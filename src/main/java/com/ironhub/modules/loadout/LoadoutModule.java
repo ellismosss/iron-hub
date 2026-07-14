@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.JComponent;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.game.ItemManager;
 
 /**
@@ -21,16 +22,18 @@ public class LoadoutModule implements IronHubModule
 {
 	private final AccountState state;
 	private final ItemManager itemManager;
+	private final ClientThread clientThread;
 	private final IronHubConfig config;
 	private final DataPack dataPack;
 	private LoadoutTab tab;
 
 	@Inject
 	public LoadoutModule(AccountState state, ItemManager itemManager,
-		IronHubConfig config, DataPack dataPack)
+		ClientThread clientThread, IronHubConfig config, DataPack dataPack)
 	{
 		this.state = state;
 		this.itemManager = itemManager;
+		this.clientThread = clientThread;
 		this.config = config;
 		this.dataPack = dataPack;
 	}
@@ -67,7 +70,7 @@ public class LoadoutModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new LoadoutTab(state, itemManager,
+			tab = new LoadoutTab(state, itemManager, clientThread,
 				dataPack.load("scenarios", ScenariosPack.class));
 		}
 		return tab;

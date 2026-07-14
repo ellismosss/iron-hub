@@ -18,6 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import net.runelite.api.EquipmentInventorySlot;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.util.AsyncBufferedImage;
 
@@ -38,16 +39,18 @@ class LoadoutTab extends JPanel
 	};
 
 	private final AccountState state;
-	private final ItemManager itemManager; // null in unit tests
+	private final ItemManager itemManager;   // null in unit tests
+	private final ClientThread clientThread; // null in unit tests
 	private final ScenariosPack pack;
 	private final JComboBox<String> scenario;
 	private final JPanel grid = new JPanel(new GridLayout(0, 3, UiTokens.GRID_GAP, UiTokens.GRID_GAP));
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 
-	LoadoutTab(AccountState state, ItemManager itemManager, ScenariosPack pack)
+	LoadoutTab(AccountState state, ItemManager itemManager, ClientThread clientThread, ScenariosPack pack)
 	{
 		this.state = state;
 		this.itemManager = itemManager;
+		this.clientThread = clientThread;
 		this.pack = pack;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
@@ -92,12 +95,24 @@ class LoadoutTab extends JPanel
 
 	private void rebuild()
 	{
-		grid.removeAll();
 		ScenariosPack.Scenario selected = pack.getScenarios().get(scenario.getSelectedIndex());
-		Map<EquipmentInventorySlot, Integer> best = itemManager == null
-			? Map.of()
-			: LoadoutSolver.solve(state, selected.getStyle(), itemManager::getItemStats);
+		if (itemManager == null || clientThread == null)
+		{
+			renderGrid(Map.of()); // unit tests
+			return;
+		}
+		// item stats require the client thread (getItemComposition asserts it)
+		clientThread.invoke(() ->
+		{
+			Map<EquipmentInventorySlot, Integer> best =
+				LoadoutSolver.solve(state, selected.getStyle(), itemManager::getItemStats);
+			SwingUtilities.invokeLater(() -> renderGrid(best));
+		});
+	}
 
+	private void renderGrid(Map<EquipmentInventorySlot, Integer> best)
+	{
+		grid.removeAll();
 		for (EquipmentInventorySlot[] row : GRID)
 		{
 			for (EquipmentInventorySlot slot : row)
