@@ -55,7 +55,7 @@ public class ModuleLifecycleTest
 			new BankTrackerModule(state, null, config,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new FarmingRunModule(),
-			new DailiesModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
+			new DailiesModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null),
 			new GoalPlannerModule(),
 			new WhatNowModule(),
 			new ClueStashModule(),

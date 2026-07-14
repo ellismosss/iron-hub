@@ -12,10 +12,15 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
+import java.awt.image.BufferedImage;
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.swing.JComponent;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.plugins.Plugin;
+import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
+import net.runelite.client.util.ImageUtil;
 
 /**
  * Dailies & recurring reminders (DESIGN.md §3.12): reset-aware manual
@@ -30,14 +35,20 @@ public class DailiesModule implements IronHubModule
 	private final AccountState state;
 	private final IronHubConfig config;
 	private final DataPack dataPack;
+	private final InfoBoxManager infoBoxManager;   // null in unit tests
+	private final Provider<? extends Plugin> plugin; // Provider breaks the DI cycle
 	private DailiesTab tab;
+	private DailiesInfoBox infoBox;
 
 	@Inject
-	public DailiesModule(AccountState state, IronHubConfig config, DataPack dataPack)
+	public DailiesModule(AccountState state, IronHubConfig config, DataPack dataPack,
+		InfoBoxManager infoBoxManager, Provider<com.ironhub.IronHubPlugin> plugin)
 	{
 		this.state = state;
 		this.config = config;
 		this.dataPack = dataPack;
+		this.infoBoxManager = infoBoxManager;
+		this.plugin = plugin;
 	}
 
 	@Override
@@ -55,11 +66,23 @@ public class DailiesModule implements IronHubModule
 	@Override
 	public void startUp()
 	{
+		if (infoBoxManager != null)
+		{
+			DailiesPack pack = dataPack.load("dailies", DailiesPack.class);
+			BufferedImage icon = ImageUtil.loadImageResource(com.ironhub.IronHubPlugin.class, "/icon.png");
+			infoBox = new DailiesInfoBox(icon, plugin.get(), () -> outstanding(state, pack));
+			infoBoxManager.addInfoBox(infoBox);
+		}
 	}
 
 	@Override
 	public void shutDown()
 	{
+		if (infoBox != null)
+		{
+			infoBoxManager.removeInfoBox(infoBox);
+			infoBox = null;
+		}
 		if (tab != null)
 		{
 			tab.dispose();
@@ -103,6 +126,15 @@ public class DailiesModule implements IronHubModule
 	{
 		long doneAt = state.dailyDoneAt(daily.getId());
 		return doneAt > 0 && doneAt >= lastReset(daily.getReset(), now);
+	}
+
+	/** Available (requirements met) and not ticked this reset. */
+	static int outstanding(AccountState state, DailiesPack pack)
+	{
+		long now = System.currentTimeMillis();
+		return (int) pack.getDailies().stream()
+			.filter(d -> !isDone(state, d, now) && requirement(d).isMet(state))
+			.count();
 	}
 
 	static Requirement requirement(DailiesPack.Daily daily)

@@ -59,7 +59,7 @@ public class DailiesModuleTest
 		AccountState state = StateFixture.state(temp.getRoot());
 		DailiesModule module = new DailiesModule(state, new IronHubConfig()
 		{
-		}, new DataPack(new Gson()));
+		}, new DataPack(new Gson()), null, null);
 		module.startUp();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
