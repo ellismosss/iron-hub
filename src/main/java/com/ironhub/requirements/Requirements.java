@@ -1,6 +1,6 @@
 package com.ironhub.requirements;
 
-import com.ironhub.state.AccountState;
+import com.ironhub.state.StateView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -179,13 +179,13 @@ public final class Requirements
 		}
 
 		@Override
-		public boolean isMet(AccountState state)
+		public boolean isMet(StateView state)
 		{
 			return state.getRealLevel(skill) >= level;
 		}
 
 		@Override
-		public boolean isMetWithBoosts(AccountState state, java.util.Map<Skill, Integer> boosts)
+		public boolean isMetWithBoosts(StateView state, java.util.Map<Skill, Integer> boosts)
 		{
 			int boost = boostable ? boosts.getOrDefault(skill, 0) : 0;
 			return state.getRealLevel(skill) + boost >= level;
@@ -214,7 +214,7 @@ public final class Requirements
 		}
 
 		@Override
-		public boolean isMet(AccountState state)
+		public boolean isMet(StateView state)
 		{
 			return state.getQuestState(quest) == QuestState.FINISHED;
 		}
@@ -242,7 +242,7 @@ public final class Requirements
 		}
 
 		@Override
-		public boolean isMet(AccountState state)
+		public boolean isMet(StateView state)
 		{
 			// default: any variation counts (recoloured graceful, broken fire
 			// cape); exact: the id itself (Ghommal's hilt 4, diary tier 4)
@@ -268,7 +268,7 @@ public final class Requirements
 		}
 
 		@Override
-		public boolean isMet(AccountState state)
+		public boolean isMet(StateView state)
 		{
 			return state.isUnlocked(key);
 		}
@@ -292,7 +292,7 @@ public final class Requirements
 		}
 
 		@Override
-		public boolean isMet(AccountState state)
+		public boolean isMet(StateView state)
 		{
 			return state.getKillCount(source) >= count;
 		}
@@ -314,7 +314,7 @@ public final class Requirements
 		}
 
 		@Override
-		public boolean isMet(AccountState state)
+		public boolean isMet(StateView state)
 		{
 			return false; // undetectable — never assume met; manual tick in the UI
 		}
@@ -336,19 +336,19 @@ public final class Requirements
 		}
 
 		@Override
-		public boolean isMet(AccountState state)
+		public boolean isMet(StateView state)
 		{
 			return children.stream().allMatch(c -> c.isMet(state));
 		}
 
 		@Override
-		public boolean isMetWithBoosts(AccountState state, java.util.Map<Skill, Integer> boosts)
+		public boolean isMetWithBoosts(StateView state, java.util.Map<Skill, Integer> boosts)
 		{
 			return children.stream().allMatch(c -> c.isMetWithBoosts(state, boosts));
 		}
 
 		@Override
-		public List<Requirement> missing(AccountState state)
+		public List<Requirement> missing(StateView state)
 		{
 			List<Requirement> missing = new ArrayList<>();
 			for (Requirement child : children)
@@ -375,13 +375,13 @@ public final class Requirements
 		}
 
 		@Override
-		public boolean isMet(AccountState state)
+		public boolean isMet(StateView state)
 		{
 			return children.stream().anyMatch(c -> c.isMet(state));
 		}
 
 		@Override
-		public boolean isMetWithBoosts(AccountState state, java.util.Map<Skill, Integer> boosts)
+		public boolean isMetWithBoosts(StateView state, java.util.Map<Skill, Integer> boosts)
 		{
 			return children.stream().anyMatch(c -> c.isMetWithBoosts(state, boosts));
 		}

@@ -1,6 +1,6 @@
 package com.ironhub.requirements;
 
-import com.ironhub.state.AccountState;
+import com.ironhub.state.StateView;
 import java.util.List;
 
 /**
@@ -11,14 +11,14 @@ import java.util.List;
 public interface Requirement
 {
 	/** Whether the account currently satisfies this requirement. */
-	boolean isMet(AccountState state);
+	boolean isMet(StateView state);
 
 	/**
 	 * Like {@link #isMet}, but boostable skill leaves ({@code skillb:})
 	 * may add the given per-skill temporary boosts. Equip requirements
 	 * ({@code skill:}) ignore boosts — OSRS checks base levels for gear.
 	 */
-	default boolean isMetWithBoosts(AccountState state, java.util.Map<net.runelite.api.Skill, Integer> boosts)
+	default boolean isMetWithBoosts(StateView state, java.util.Map<net.runelite.api.Skill, Integer> boosts)
 	{
 		return isMet(state);
 	}
@@ -36,7 +36,7 @@ public interface Requirement
 	 * The unmet leaf requirements blocking this one — what a locked row
 	 * shows on its "needs:" line and what plans are built from.
 	 */
-	default List<Requirement> missing(AccountState state)
+	default List<Requirement> missing(StateView state)
 	{
 		return isMet(state) ? List.of() : List.of(this);
 	}

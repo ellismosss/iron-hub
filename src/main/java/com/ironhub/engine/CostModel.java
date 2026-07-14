@@ -1,0 +1,146 @@
+package com.ironhub.engine;
+
+import com.ironhub.data.MethodsPack;
+import com.ironhub.requirements.Requirement;
+import com.ironhub.requirements.Requirements;
+import com.ironhub.state.StateView;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import net.runelite.api.Experience;
+import net.runelite.api.Skill;
+
+/**
+ * Duration models (ENGINE-DESIGN §5). Pure and static: everything takes a
+ * StateView so costs are computed against projections. Unknown data is
+ * NaN, never an invented number — callers render "time unknown".
+ */
+public final class CostModel
+{
+	private CostModel()
+	{
+	}
+
+	/** Parsed-requirement cache shared across costings (parse is pure). */
+	private static final Map<String, Requirement> PARSED = new HashMap<>();
+
+	static synchronized Requirement parsed(String req)
+	{
+		return PARSED.computeIfAbsent(req, Requirements::parse);
+	}
+
+	/**
+	 * Hours to train a skill to targetLevel: piecewise integration over the
+	 * xp range, using the best *unlocked* method at each xp position (WOM
+	 * threshold semantics + our requirement overlay). Banked xp is applied
+	 * at the front. NaN when a stretch has no known-rate unlocked method.
+	 */
+	public static double trainHours(Skill skill, int targetLevel, StateView view,
+		MethodsPack methods, long bankedXp)
+	{
+		long targetXp = Experience.getXpForLevel(Math.min(99, targetLevel));
+		long startXp = Math.min(targetXp, currentXp(skill, view) + Math.max(0, bankedXp));
+		if (startXp >= targetXp)
+		{
+			return 0;
+		}
+		MethodsPack.SkillLadder ladder = methods == null ? null : methods.ladder(skill);
+		if (ladder == null || ladder.methods == null || ladder.methods.isEmpty())
+		{
+			return Double.NaN;
+		}
+		// methods usable in this projection, sorted by threshold
+		List<MethodsPack.Method> unlocked = new ArrayList<>();
+		for (MethodsPack.Method method : ladder.methods)
+		{
+			if (method.req == null || method.req.isEmpty() || parsed(method.req).isMet(view))
+			{
+				unlocked.add(method);
+			}
+		}
+		unlocked.sort(Comparator.comparingInt(m -> m.startXp));
+		if (unlocked.isEmpty())
+		{
+			return Double.NaN;
+		}
+
+		double hours = 0;
+		long position = startXp;
+		while (position < targetXp)
+		{
+			MethodsPack.Method best = bestAt(unlocked, position);
+			if (best == null || best.rate <= 0)
+			{
+				return Double.NaN; // no sourced rate for this stretch
+			}
+			long segmentEnd = nextThreshold(unlocked, position, targetXp);
+			hours += (segmentEnd - position) / (double) best.rate;
+			position = segmentEnd;
+		}
+		return hours;
+	}
+
+	/** Best-rate method whose threshold is at or below this xp. */
+	private static MethodsPack.Method bestAt(List<MethodsPack.Method> unlocked, long xp)
+	{
+		MethodsPack.Method best = null;
+		for (MethodsPack.Method method : unlocked)
+		{
+			if (method.startXp <= xp && (best == null || method.rate > best.rate))
+			{
+				best = method;
+			}
+		}
+		return best;
+	}
+
+	private static long nextThreshold(List<MethodsPack.Method> unlocked, long xp, long cap)
+	{
+		long next = cap;
+		for (MethodsPack.Method method : unlocked)
+		{
+			if (method.startXp > xp && method.startXp < next)
+			{
+				next = method.startXp;
+			}
+		}
+		return next;
+	}
+
+	private static long currentXp(Skill skill, StateView view)
+	{
+		// floor to the level's xp for pre-plugin accounts without xp history
+		return Math.max(view.getXp(skill), Experience.getXpForLevel(view.getRealLevel(skill)));
+	}
+
+	/** Quest hours: pack minutes scaled by the projection's travel factor. */
+	public static double questHours(int minutes, double travelFactor)
+	{
+		return minutes <= 0 ? Double.NaN : minutes / 60.0 * Math.max(0.5, travelFactor);
+	}
+
+	/** Hours for a kill-count target at a kills-per-hour pace. */
+	public static double killHours(int kills, double killsPerHour)
+	{
+		return killsPerHour <= 0 || kills <= 0 ? (kills <= 0 ? 0 : Double.NaN)
+			: kills / killsPerHour;
+	}
+
+	/** Expected kills until a 1-in-N drop lands. */
+	public static double expectedKillsForDrop(double dropRate)
+	{
+		return dropRate <= 0 || dropRate > 1 ? Double.NaN : 1.0 / dropRate;
+	}
+
+	/** Kills by which the drop has landed with 90% confidence (geometric P90). */
+	public static double unluckyKillsForDrop(double dropRate)
+	{
+		if (dropRate <= 0 || dropRate >= 1)
+		{
+			return Double.NaN;
+		}
+		return Math.ceil(Math.log(0.1) / Math.log(1.0 - dropRate));
+	}
+}

@@ -41,7 +41,7 @@ import net.runelite.api.events.VarbitChanged;
  */
 @Slf4j
 @Singleton
-public class AccountState
+public class AccountState implements StateView
 {
 	/** Quest states refresh at most once per this many ticks (~6 s) when dirty. */
 	private static final int QUEST_REFRESH_TICKS = 10;
