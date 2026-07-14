@@ -25,6 +25,15 @@ class PersistedState
 	java.util.List<DeathRecord> deaths = new ArrayList<>(); // most recent last, capped
 
 	Map<String, PatchSeen> herbPatchSeen = new HashMap<>(); // patch id -> last observed state
+	java.util.List<ConsumptionEvent> consumptionLog = new ArrayList<>(); // rolling, capped
+
+	static class ConsumptionEvent
+	{
+		long timeMs;
+		int itemId; // canonical
+		int quantity;
+	}
+
 	Set<String> selectedGoals = new HashSet<>();
 	String activeGoal = "";
 

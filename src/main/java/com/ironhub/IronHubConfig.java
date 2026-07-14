@@ -87,6 +87,9 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "notifyDailyReset", name = "Daily reset", description = "Notify at the daily reset when dailies are outstanding", section = notificationsSection, position = 2)
 	default boolean notifyDailyReset() { return true; }
 
+	@ConfigItem(keyName = "runwayWarningHours", name = "Runway warning (hours)", description = "Warn when a consumable's runway drops below this many hours", section = notificationsSection, position = 3)
+	default int runwayWarningHours() { return 6; }
+
 	@ConfigSection(
 		name = "Integrations",
 		description = "Optional external integrations",

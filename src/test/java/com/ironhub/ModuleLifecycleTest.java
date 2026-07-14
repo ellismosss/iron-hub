@@ -64,7 +64,7 @@ public class ModuleLifecycleTest
 			new WhatNowModule(),
 			new ClueStashModule(),
 			new SlayerOptimizerModule(state, null, null, config, null, null),
-			new SuppliesRunwayModule(),
+			new SuppliesRunwayModule(state, null, config),
 			new CollectionLogModule(),
 			new ExternalSyncModule(),
 			new DashboardModule(),

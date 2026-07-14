@@ -73,6 +73,10 @@ public class AccountState
 	// completed herb run durations, persisted (avg/best/count stats)
 	private final java.util.List<Long> herbRunsMs = new CopyOnWriteArrayList<>();
 
+	/** Rolling consumption events for runway rates, capped. */
+	public static final int MAX_CONSUMPTION_EVENTS = 500;
+	private final java.util.List<PersistedState.ConsumptionEvent> consumptionLog = new CopyOnWriteArrayList<>();
+
 	// last observed herb patch states (farming varbits only sync when the
 	// region loads, so remote views predict from these)
 	private final Map<String, PersistedState.PatchSeen> herbPatchSeen = new ConcurrentHashMap<>();
@@ -287,6 +291,40 @@ public class AccountState
 		notifyListeners();
 	}
 
+	/** Rolling consumption events (time, canonical item id, qty), oldest first. */
+	public java.util.List<Consumption> getConsumptionLog()
+	{
+		return consumptionLog.stream()
+			.map(e -> new Consumption(e.timeMs, e.itemId, e.quantity))
+			.collect(java.util.stream.Collectors.toList());
+	}
+
+	/** Immutable consumption view. */
+	public static class Consumption
+	{
+		public final long timeMs;
+		public final int itemId;
+		public final int quantity;
+
+		Consumption(long timeMs, int itemId, int quantity)
+		{
+			this.timeMs = timeMs;
+			this.itemId = itemId;
+			this.quantity = quantity;
+		}
+	}
+
+	/** Owned stock summed across all variations of a canonical item. */
+	public int canonicalStock(int canonicalItemId)
+	{
+		int total = 0;
+		for (int variant : net.runelite.client.game.ItemVariationMapping.getVariations(canonicalItemId))
+		{
+			total += ownedCount(variant);
+		}
+		return total;
+	}
+
 	/** Goal ids the player is pursuing. */
 	public Set<String> getSelectedGoals()
 	{
@@ -430,14 +468,24 @@ public class AccountState
 			return; // no baseline yet (fresh login mid-trip)
 		}
 		Map<Integer, Integer> used = suppliesBySource.computeIfAbsent(source, s -> new ConcurrentHashMap<>());
+		long now = System.currentTimeMillis();
 		checkpoint.forEach((id, before) ->
 		{
 			int delta = before - current.getOrDefault(id, 0);
 			if (delta > 0)
 			{
 				used.merge(id, delta, Integer::sum);
+				PersistedState.ConsumptionEvent event = new PersistedState.ConsumptionEvent();
+				event.timeMs = now;
+				event.itemId = id;
+				event.quantity = delta;
+				consumptionLog.add(event);
 			}
 		});
+		while (consumptionLog.size() > MAX_CONSUMPTION_EVENTS)
+		{
+			consumptionLog.remove(0);
+		}
 	}
 
 	/** Inventory + equipment, variation-mapped to canonical item ids. */
@@ -656,6 +704,8 @@ public class AccountState
 			suppliesBySource.put(src, new ConcurrentHashMap<>(items)));
 		herbRunsMs.clear();
 		herbRunsMs.addAll(persisted.herbRunsMs);
+		consumptionLog.clear();
+		consumptionLog.addAll(persisted.consumptionLog);
 		deaths.clear();
 		deaths.addAll(persisted.deaths);
 		herbPatchSeen.clear();
@@ -682,6 +732,7 @@ public class AccountState
 		lootBySource.forEach((src, items) -> state.lootBySource.put(src, new HashMap<>(items)));
 		suppliesBySource.forEach((src, items) -> state.suppliesBySource.put(src, new HashMap<>(items)));
 		state.herbRunsMs = new java.util.ArrayList<>(herbRunsMs);
+		state.consumptionLog = new java.util.ArrayList<>(consumptionLog);
 		state.deaths = new java.util.ArrayList<>(deaths);
 		state.herbPatchSeen = new HashMap<>(herbPatchSeen);
 		state.selectedGoals = new HashSet<>(selectedGoals);
