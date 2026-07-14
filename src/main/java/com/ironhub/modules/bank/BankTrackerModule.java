@@ -1,6 +1,8 @@
 package com.ironhub.modules.bank;
 
 import com.ironhub.IronHubConfig;
+import com.ironhub.data.BankedXpPack;
+import com.ironhub.data.DataPack;
 import com.ironhub.modules.IronHubModule;
 import com.ironhub.state.AccountState;
 import javax.inject.Inject;
@@ -21,14 +23,17 @@ public class BankTrackerModule implements IronHubModule
 	private final AccountState state;
 	private final ItemManager itemManager;
 	private final IronHubConfig config;
+	private final DataPack dataPack;
 	private BankTab tab;
 
 	@Inject
-	public BankTrackerModule(AccountState state, ItemManager itemManager, IronHubConfig config)
+	public BankTrackerModule(AccountState state, ItemManager itemManager,
+		IronHubConfig config, DataPack dataPack)
 	{
 		this.state = state;
 		this.itemManager = itemManager;
 		this.config = config;
+		this.dataPack = dataPack;
 	}
 
 	@Override
@@ -63,7 +68,7 @@ public class BankTrackerModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new BankTab(state, itemManager);
+			tab = new BankTab(state, itemManager, dataPack.load("banked-xp", BankedXpPack.class));
 		}
 		return tab;
 	}

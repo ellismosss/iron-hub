@@ -43,13 +43,13 @@ public class BankTabTest
 	public void tabRendersHeadless() throws Exception
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
-		StateFixture.bank(state, Map.of(4151, 1, 995, 2_500_000, 207, 143));
+		StateFixture.bank(state, Map.of(4151, 1, 995, 2_500_000, 207, 143, 536, 120));
 		StateFixture.itemNames(state, Map.of(
-			4151, "Abyssal whip", 995, "Coins", 207, "Grimy ranarr weed"));
+			4151, "Abyssal whip", 995, "Coins", 207, "Grimy ranarr weed", 536, "Dragon bones"));
 
 		BankTrackerModule module = new BankTrackerModule(state, null, new IronHubConfig()
 		{
-		});
+		}, new com.ironhub.data.DataPack(new com.google.gson.Gson()));
 		module.startUp();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);

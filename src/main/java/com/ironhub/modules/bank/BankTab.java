@@ -1,8 +1,12 @@
 package com.ironhub.modules.bank;
 
+import com.ironhub.data.BankedXpPack;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
+import com.ironhub.ui.components.LabeledTile;
 import com.ironhub.ui.components.SearchField;
+import com.ironhub.ui.components.SectionLabel;
+import com.ironhub.ui.components.SegmentedControl;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.Comparator;
@@ -36,16 +40,20 @@ class BankTab extends JPanel
 
 	private final AccountState state;
 	private final ItemManager itemManager; // null in unit tests — icons skipped
+	private final BankedXpPack bankedXpPack;
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 
 	private final SearchField search = new SearchField("Search bank…");
 	private final JLabel snapshotLine = new JLabel();
 	private final JPanel list = new JPanel();
+	private final SegmentedControl xpView = SegmentedControl.viewToggle();
+	private final JPanel xpSection = new JPanel();
 
-	BankTab(AccountState state, ItemManager itemManager)
+	BankTab(AccountState state, ItemManager itemManager, BankedXpPack bankedXpPack)
 	{
 		this.state = state;
 		this.itemManager = itemManager;
+		this.bankedXpPack = bankedXpPack;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
 		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
@@ -63,7 +71,27 @@ class BankTab extends JPanel
 		list.setBackground(UiTokens.PANEL_BG);
 		list.setAlignmentX(LEFT_ALIGNMENT);
 		add(list);
+		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
+
+		JPanel xpHeader = new JPanel();
+		xpHeader.setLayout(new BoxLayout(xpHeader, BoxLayout.X_AXIS));
+		xpHeader.setOpaque(false);
+		xpHeader.setAlignmentX(LEFT_ALIGNMENT);
+		xpHeader.add(new SectionLabel("Banked XP"));
+		xpHeader.add(Box.createHorizontalGlue());
+		xpHeader.add(xpView);
+		add(xpHeader);
+		add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+
+		xpSection.setLayout(new BoxLayout(xpSection, BoxLayout.Y_AXIS));
+		xpSection.setBackground(UiTokens.PANEL_BG);
+		xpSection.setAlignmentX(LEFT_ALIGNMENT);
+		add(xpSection);
 		add(Box.createVerticalGlue());
+
+		// ponytail: view preference is UI-local; profile-scoped persistence
+		// when the config plumbing for per-module view prefs lands
+		xpView.onChange(i -> rebuild());
 
 		search.getDocument().addDocumentListener(new DocumentListener()
 		{
@@ -129,8 +157,88 @@ class BankTab extends JPanel
 				list.add(faintLine("No banked items match."));
 			}
 		}
+		rebuildBankedXp();
 		list.revalidate();
 		list.repaint();
+	}
+
+	private void rebuildBankedXp()
+	{
+		xpSection.removeAll();
+		Map<net.runelite.api.Skill, BankedXp.Result> totals = BankedXp.compute(state, bankedXpPack);
+		if (totals.isEmpty())
+		{
+			xpSection.add(faintLine("No bankable XP found."));
+		}
+		else if (xpView.getSelected() == 0) // grid — 3-col labeled tiles
+		{
+			JPanel grid = new JPanel(new java.awt.GridLayout(0, 3, UiTokens.GRID_GAP, UiTokens.GRID_GAP));
+			grid.setOpaque(false);
+			grid.setAlignmentX(LEFT_ALIGNMENT);
+			totals.forEach((skill, result) -> grid.add(new LabeledTile(
+				skill.getName().substring(0, 2).toUpperCase(Locale.ROOT),
+				skill.getName(), formatXp(result.xp), UiTokens.STATUS_AVAILABLE, null,
+				tooltip(skill, result))));
+			int pad = 3 - (totals.size() % 3);
+			for (int i = 0; pad < 3 && i < pad; i++)
+			{
+				grid.add(emptyCell());
+			}
+			xpSection.add(grid);
+		}
+		else // list — name + amber value rows
+		{
+			totals.forEach((skill, result) ->
+			{
+				xpSection.add(xpRow(skill, result));
+				xpSection.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			});
+		}
+		xpSection.revalidate();
+		xpSection.repaint();
+	}
+
+	private JPanel xpRow(net.runelite.api.Skill skill, BankedXp.Result result)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setBackground(UiTokens.CARD_BG);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
+			new EmptyBorder(0, UiTokens.ROW_GAP, 0, UiTokens.ROW_GAP)));
+		row.setPreferredSize(new Dimension(0, UiTokens.ROW_HEIGHT));
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT));
+		row.setToolTipText(tooltip(skill, result));
+
+		JLabel name = new JLabel(skill.getName());
+		name.setForeground(UiTokens.TEXT_BODY);
+		name.setFont(name.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_BODY));
+		row.add(name);
+		row.add(Box.createHorizontalGlue());
+
+		JLabel value = new JLabel(formatXp(result.xp));
+		value.setForeground(UiTokens.STATUS_AVAILABLE);
+		value.setFont(value.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
+		row.add(value);
+		return row;
+	}
+
+	private JPanel emptyCell()
+	{
+		JPanel cell = new JPanel();
+		cell.setOpaque(false);
+		return cell;
+	}
+
+	private static String tooltip(net.runelite.api.Skill skill, BankedXp.Result result)
+	{
+		return skill.getName() + " — " + formatXp(result.xp) + " XP banked · "
+			+ String.join(", ", result.methods);
+	}
+
+	private static String formatXp(double xp)
+	{
+		return QuantityFormatter.quantityToRSDecimalStack((int) Math.round(xp), true);
 	}
 
 	private JPanel itemRow(int itemId, int quantity)
