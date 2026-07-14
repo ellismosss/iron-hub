@@ -459,7 +459,7 @@ public class LoadoutLabPanel extends PluginPanel
 		// Iron Hub: the target reads as the screen title — primary bold, with
 		// compact 18px icon buttons instead of the chunky default JButtons
 		selectedLabel.setForeground(UiTokens.TEXT_PRIMARY);
-		selectedLabel.setFont(selectedLabel.getFont().deriveFont(Font.BOLD, 14f));
+		selectedLabel.setFont(selectedLabel.getFont().deriveFont(Font.BOLD, 15f));
 		selectedRow.add(selectedLabel, BorderLayout.CENTER);
 		// lastShownLoadout resets each recompute via the results rebuild
 		JPanel selectedButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
@@ -472,7 +472,7 @@ public class LoadoutLabPanel extends PluginPanel
 		selectedRow.setVisible(false);
 		top.add(selectedRow);
 		weaknessLabel.setForeground(UiTokens.STATUS_AVAILABLE);
-		weaknessLabel.setFont(weaknessLabel.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		weaknessLabel.setFont(weaknessLabel.getFont().deriveFont(UiTokens.FONT_SIZE_LAB_SMALL));
 		weaknessLabel.setAlignmentX(LEFT_ALIGNMENT);
 		weaknessLabel.setVisible(false);
 		top.add(weaknessLabel);
@@ -480,7 +480,7 @@ public class LoadoutLabPanel extends PluginPanel
 		// Curated mechanics note (finishing items, immunities) for the
 		// selected monster - so a correct suggestion doesn't look wrong.
 		monsterNote.setForeground(UiTokens.STATUS_AVAILABLE);
-		monsterNote.setFont(monsterNote.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		monsterNote.setFont(monsterNote.getFont().deriveFont(UiTokens.FONT_SIZE_LAB_SMALL));
 		monsterNote.setAlignmentX(LEFT_ALIGNMENT);
 		monsterNote.setVisible(false);
 		top.add(monsterNote);
@@ -501,7 +501,7 @@ public class LoadoutLabPanel extends PluginPanel
 		// Iron Hub: inset list chrome matching the search field
 		monsterList.setBackground(UiTokens.INSET_BG);
 		monsterList.setForeground(UiTokens.TEXT_BODY);
-		monsterList.setFont(monsterList.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		monsterList.setFont(monsterList.getFont().deriveFont(UiTokens.FONT_SIZE_LAB_TEXT));
 		monsterScroll = new JScrollPane(monsterList);
 		monsterScroll.setBorder(BorderFactory.createLineBorder(UiTokens.BORDER));
 		monsterScroll.setPreferredSize(new Dimension(0, 130));
@@ -531,7 +531,7 @@ public class LoadoutLabPanel extends PluginPanel
 		// How much gp the set may drop on a wilderness death; 0 = nothing
 		// droppable and no fees at all.
 		riskBudget.setAlignmentX(LEFT_ALIGNMENT);
-		riskBudget.setFont(riskBudget.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		riskBudget.setFont(riskBudget.getFont().deriveFont(UiTokens.FONT_SIZE_LAB_TEXT));
 		riskBudget.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
 		riskBudget.setToolTipText("Total gp the set may drop on a wilderness death");
 		riskBudget.setSelectedIndex(2);
@@ -579,7 +579,7 @@ public class LoadoutLabPanel extends PluginPanel
 
 		// Excluded items ("protected" from suggestions) - click to manage.
 		exclusionsLabel.setForeground(UiTokens.STATUS_WARNING);
-		exclusionsLabel.setFont(exclusionsLabel.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		exclusionsLabel.setFont(exclusionsLabel.getFont().deriveFont(UiTokens.FONT_SIZE_LAB_SMALL));
 		exclusionsLabel.setAlignmentX(LEFT_ALIGNMENT);
 		exclusionsLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		exclusionsLabel.addMouseListener(new MouseAdapter()
@@ -595,7 +595,7 @@ public class LoadoutLabPanel extends PluginPanel
 
 		// Stored-elsewhere items (manual owned: STASH, POH, UIM storages).
 		storedLabel.setForeground(GOOD);
-		storedLabel.setFont(storedLabel.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		storedLabel.setFont(storedLabel.getFont().deriveFont(UiTokens.FONT_SIZE_LAB_SMALL));
 		storedLabel.setAlignmentX(LEFT_ALIGNMENT);
 		storedLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		storedLabel.addMouseListener(new MouseAdapter()
@@ -662,7 +662,7 @@ public class LoadoutLabPanel extends PluginPanel
 
 		// Pinned items ("always bring") - click to manage.
 		pinnedLabel.setForeground(UiTokens.TEXT_FAINT);
-		pinnedLabel.setFont(pinnedLabel.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		pinnedLabel.setFont(pinnedLabel.getFont().deriveFont(UiTokens.FONT_SIZE_LAB_SMALL));
 		pinnedLabel.setAlignmentX(LEFT_ALIGNMENT);
 		pinnedLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		pinnedLabel.addMouseListener(new MouseAdapter()
@@ -691,7 +691,7 @@ public class LoadoutLabPanel extends PluginPanel
 		bottomControls.setLayout(new BoxLayout(bottomControls, BoxLayout.Y_AXIS));
 		bottomControls.setOpaque(false);
 		bottomControls.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
-		SectionLabel assumptions = new SectionLabel("Assumptions");
+		SectionLabel assumptions = new SectionLabel("Assumptions", UiTokens.FONT_SIZE_LAB_LABEL);
 		assumptions.setToolTipText("Prayers, potions and spellbook the DPS numbers may assume");
 		bottomControls.add(assumptions);
 		bottomControls.add(Box.createVerticalStrut(4));
@@ -734,7 +734,7 @@ public class LoadoutLabPanel extends PluginPanel
 		bottomControls.add(Box.createVerticalStrut(2));
 		bottomControls.add(centeredRow(spellRow, 3 * 34 + 4, 34));
 		bottomControls.add(Box.createVerticalStrut(8));
-		optimizeMode.setFont(optimizeMode.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		optimizeMode.setFont(optimizeMode.getFont().deriveFont(UiTokens.FONT_SIZE_LAB_TEXT));
 		bottomControls.add(optimizeMode);
 		bottomControls.add(Box.createVerticalStrut(8));
 		JPanel setupButtons = new JPanel(new GridLayout(1, 2, 4, 0));
@@ -790,7 +790,7 @@ public class LoadoutLabPanel extends PluginPanel
 		add(centerWrap, BorderLayout.CENTER);
 
 		statusLabel.setForeground(UiTokens.TEXT_FAINT);
-		statusLabel.setFont(statusLabel.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		statusLabel.setFont(statusLabel.getFont().deriveFont(UiTokens.FONT_SIZE_LAB_SMALL));
 		add(statusLabel, BorderLayout.SOUTH);
 
 		searchDebounce = new Timer(SEARCH_DEBOUNCE_MS, e -> runSearch());
@@ -817,7 +817,7 @@ public class LoadoutLabPanel extends PluginPanel
 	{
 		box.setOpaque(false);
 		box.setForeground(UiTokens.TEXT_BODY);
-		box.setFont(box.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		box.setFont(box.getFont().deriveFont(UiTokens.FONT_SIZE_LAB_TEXT));
 		box.setAlignmentX(LEFT_ALIGNMENT);
 		box.setToolTipText(tooltip);
 		box.addActionListener(e -> recompute());
@@ -828,7 +828,7 @@ public class LoadoutLabPanel extends PluginPanel
 	{
 		JLabel line = new JLabel(text);
 		line.setForeground(fg);
-		line.setFont(line.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		line.setFont(line.getFont().deriveFont(UiTokens.FONT_SIZE_LAB_SMALL));
 		line.setAlignmentX(LEFT_ALIGNMENT);
 		return line;
 	}
@@ -842,7 +842,7 @@ public class LoadoutLabPanel extends PluginPanel
 		button.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(UiTokens.BORDER_BUTTON),
 			BorderFactory.createEmptyBorder(2, 8, 2, 8)));
-		button.setFont(button.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_BODY));
+		button.setFont(button.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LAB_TEXT));
 		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	}
 
@@ -1148,7 +1148,7 @@ public class LoadoutLabPanel extends PluginPanel
 		legend.setAlignmentX(LEFT_ALIGNMENT);
 		JLabel title = new JLabel("Stored:");
 		title.setForeground(MUTED);
-		title.setFont(title.getFont().deriveFont(11f));
+		title.setFont(title.getFont().deriveFont(UiTokens.FONT_SIZE_LAB_SMALL));
 		legend.add(title);
 		for (Map.Entry<String, Color> entry : SOURCE_COLORS.entrySet())
 		{
@@ -1159,7 +1159,7 @@ public class LoadoutLabPanel extends PluginPanel
 			JLabel item = new JLabel(entry.getKey(), new SourceDotIcon(entry.getValue()),
 				SwingConstants.LEADING);
 			item.setForeground(MUTED);
-			item.setFont(item.getFont().deriveFont(11f));
+			item.setFont(item.getFont().deriveFont(UiTokens.FONT_SIZE_LAB_SMALL));
 			item.setIconTextGap(4);
 			legend.add(item);
 		}
@@ -2166,7 +2166,7 @@ public class LoadoutLabPanel extends PluginPanel
 		header.setIconTextGap(6);
 		header.setForeground(UiTokens.TEXT_PRIMARY);
 		header.setFont(SectionLabel.letterSpaced(
-			header.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY),
+			header.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LAB_TEXT),
 			UiTokens.LETTER_SPACING_LABEL));
 		header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		header.setToolTipText(collapsed ? "Click to expand this set" : "Click to collapse this set");
@@ -2217,7 +2217,7 @@ public class LoadoutLabPanel extends PluginPanel
 		JLabel dpsValue = new JLabel(hasSet
 			? String.format("%.2f dps", result.owned.get(0).getDps()) : "no set");
 		dpsValue.setForeground(hasSet ? GOOD : MUTED);
-		dpsValue.setFont(dpsValue.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
+		dpsValue.setFont(dpsValue.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LAB_TEXT));
 		headerEast.add(dpsValue);
 		headerEast.add(setMenu);
 		headerRow.add(headerEast, BorderLayout.EAST);
@@ -2334,7 +2334,8 @@ public class LoadoutLabPanel extends PluginPanel
 		{
 			card.add(Box.createVerticalStrut(8));
 			SectionLabel gameBest = new SectionLabel(
-				String.format("Game best · %.2f dps", result.overallBest.getDps()));
+				String.format("Game best · %.2f dps", result.overallBest.getDps()),
+				UiTokens.FONT_SIZE_LAB_LABEL);
 			gameBest.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			gameBest.setToolTipText("Click to hide the game-best set");
 			gameBest.addMouseListener(new MouseAdapter()
@@ -3003,7 +3004,7 @@ public class LoadoutLabPanel extends PluginPanel
 			{
 				chip.setText(part);
 				chip.setForeground(MUTED);
-				chip.setFont(chip.getFont().deriveFont(13f));
+				chip.setFont(chip.getFont().deriveFont(UiTokens.FONT_SIZE_LAB_SMALL));
 			}
 			chips.add(chip);
 		}

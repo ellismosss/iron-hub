@@ -14,9 +14,15 @@ public class SectionLabel extends JLabel
 {
 	public SectionLabel(String text)
 	{
+		this(text, UiTokens.FONT_SIZE_LABEL);
+	}
+
+	/** Same label at a non-default size (e.g. the Loadout Lab scale). */
+	public SectionLabel(String text, float size)
+	{
 		super(text.toUpperCase());
 		setForeground(UiTokens.TEXT_MUTED);
-		setFont(letterSpaced(getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LABEL),
+		setFont(letterSpaced(getFont().deriveFont(Font.BOLD, size),
 			UiTokens.LETTER_SPACING_LABEL));
 		setAlignmentX(LEFT_ALIGNMENT);
 	}
