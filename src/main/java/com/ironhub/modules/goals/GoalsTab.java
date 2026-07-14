@@ -35,14 +35,17 @@ class GoalsTab extends JPanel
 	private final AccountState state;
 	private final GoalsPack pack;
 	private final com.ironhub.data.GearProgressionPack gearPack;
+	private final net.runelite.client.game.ItemManager itemManager; // null in headless tests
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 	private final JPanel content = new JPanel();
 
-	GoalsTab(AccountState state, GoalsPack pack, com.ironhub.data.GearProgressionPack gearPack)
+	GoalsTab(AccountState state, GoalsPack pack, com.ironhub.data.GearProgressionPack gearPack,
+		net.runelite.client.game.ItemManager itemManager)
 	{
 		this.state = state;
 		this.pack = pack;
 		this.gearPack = gearPack;
+		this.itemManager = itemManager;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
 		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
@@ -60,6 +63,21 @@ class GoalsTab extends JPanel
 	void dispose()
 	{
 		state.removeListener(listener);
+	}
+
+	/** Item sprite (scaled to row height) applied async; no-op headless. */
+	private void applyIcon(GoalsPack.Goal goal, java.util.function.Consumer<javax.swing.Icon> setter)
+	{
+		Integer itemId = goal.icon();
+		if (itemId == null || itemManager == null)
+		{
+			return;
+		}
+		net.runelite.client.util.AsyncBufferedImage image = itemManager.getImage(itemId);
+		Runnable apply = () -> setter.accept(new javax.swing.ImageIcon(
+			image.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH)));
+		apply.run();
+		image.onLoaded(apply);
 	}
 
 	private void rebuild()
@@ -126,6 +144,7 @@ class GoalsTab extends JPanel
 			{
 				ListRow row = ListRow.owned(goal.getName());
 				row.setToolTipText(goal.getName() + " — detected on your account");
+				applyIcon(goal, row::setNameIcon);
 				content.add(row);
 				content.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 			}
@@ -152,6 +171,8 @@ class GoalsTab extends JPanel
 		JLabel name = new JLabel(goal.getName());
 		name.setForeground(UiTokens.TEXT_PRIMARY);
 		name.setFont(name.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
+		name.setIconTextGap(UiTokens.PAD_TIGHT);
+		applyIcon(goal, name::setIcon);
 		title.add(name);
 		title.add(Box.createHorizontalGlue());
 		JLabel pct = new JLabel(Math.round(progress * 100) + "%");
@@ -236,6 +257,7 @@ class GoalsTab extends JPanel
 		ListRow row = selected
 			? ListRow.available(goal.getName())
 			: ListRow.locked(goal.getName());
+		applyIcon(goal, row::setNameIcon);
 		row.setToolTipText(selected
 			? goal.getName() + " — " + pct + "% · click to make active"
 			: goal.getName() + " — click to add to your goals");

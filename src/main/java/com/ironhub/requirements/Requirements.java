@@ -37,7 +37,13 @@ public final class Requirements
 
 	public static Requirement item(int itemId, int quantity)
 	{
-		return new ItemRequirement(itemId, quantity);
+		return new ItemRequirement(itemId, quantity, false);
+	}
+
+	/** Exact-id ownership: tiers/imbues in the same variation group don't count. */
+	public static Requirement itemExact(int itemId, int quantity)
+	{
+		return new ItemRequirement(itemId, quantity, true);
 	}
 
 	public static Requirement unlock(String key)
@@ -86,6 +92,9 @@ public final class Requirements
 					return quest != null ? quest(quest) : text(s);
 				case "item":
 					return item(Integer.parseInt(parts[1]),
+						parts.length > 2 ? Integer.parseInt(parts[2]) : 1);
+				case "itemx": // exact id only — tiered/imbued items where variants don't count
+					return itemExact(Integer.parseInt(parts[1]),
 						parts.length > 2 ? Integer.parseInt(parts[2]) : 1);
 				case "unlock":
 					return unlock(parts[1]);
@@ -159,18 +168,21 @@ public final class Requirements
 	{
 		private final int itemId;
 		private final int quantity;
+		private final boolean exact;
 
-		ItemRequirement(int itemId, int quantity)
+		ItemRequirement(int itemId, int quantity, boolean exact)
 		{
 			this.itemId = itemId;
 			this.quantity = quantity;
+			this.exact = exact;
 		}
 
 		@Override
 		public boolean isMet(AccountState state)
 		{
-			// any variation counts: recoloured graceful, broken fire cape, ...
-			return state.canonicalStock(itemId) >= quantity;
+			// default: any variation counts (recoloured graceful, broken fire
+			// cape); exact: the id itself (Ghommal's hilt 4, diary tier 4)
+			return (exact ? state.ownedCount(itemId) : state.canonicalStock(itemId)) >= quantity;
 		}
 
 		@Override

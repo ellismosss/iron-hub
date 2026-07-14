@@ -49,7 +49,7 @@ public class GearModuleTest
 		StateFixture.stat(state, Skill.ATTACK, 40, 0);
 		GearProgressionModule module = new GearProgressionModule(state, new IronHubConfig()
 		{
-		}, new DataPack(new Gson()), null);
+		}, new DataPack(new Gson()), null, null);
 		module.startUp();
 		JPanel tab = (JPanel) module.buildTab();
 		java.awt.image.BufferedImage image = SwingRender.render(tab);

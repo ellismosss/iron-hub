@@ -47,13 +47,18 @@ class GearTab extends JPanel
 	private final ChipRow filterBottom = new ChipRow(FILTERS_BOTTOM);
 	private final JPanel body = new JPanel();
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
+	private final java.util.function.Consumer<Boolean> onHideCompleteChange;
 	private String filter; // lower-case category, null = all
+	private boolean hideComplete;
 
-	GearTab(AccountState state, GearProgressionPack pack, ItemManager itemManager)
+	GearTab(AccountState state, GearProgressionPack pack, ItemManager itemManager,
+		boolean hideComplete, java.util.function.Consumer<Boolean> onHideCompleteChange)
 	{
 		this.state = state;
 		this.pack = pack;
 		this.itemManager = itemManager;
+		this.hideComplete = hideComplete;
+		this.onHideCompleteChange = onHideCompleteChange;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
 		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
@@ -64,6 +69,8 @@ class GearTab extends JPanel
 		add(filterTop);
 		add(Box.createVerticalStrut(UiTokens.CHIP_GAP));
 		add(filterBottom);
+		add(Box.createVerticalStrut(UiTokens.CHIP_GAP));
+		add(hideCompleteToggle());
 		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 
 		body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
@@ -79,6 +86,39 @@ class GearTab extends JPanel
 	void dispose()
 	{
 		state.removeListener(listener);
+	}
+
+	/** Bordered toggle chip: painted check square + label, accent when on. */
+	private JComponent hideCompleteToggle()
+	{
+		JLabel toggle = new JLabel();
+		toggle.setOpaque(true);
+		toggle.setFont(toggle.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
+		toggle.setBorder(new javax.swing.border.CompoundBorder(
+			new javax.swing.border.LineBorder(UiTokens.BORDER_DIM),
+			new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP)));
+		toggle.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		toggle.setAlignmentX(LEFT_ALIGNMENT);
+		styleHideToggle(toggle);
+		toggle.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				hideComplete = !hideComplete;
+				styleHideToggle(toggle);
+				onHideCompleteChange.accept(hideComplete);
+				rebuild();
+			}
+		});
+		return toggle;
+	}
+
+	private void styleHideToggle(JLabel toggle)
+	{
+		toggle.setText(hideComplete ? "Hide complete: on" : "Hide complete: off");
+		toggle.setBackground(hideComplete ? UiTokens.ACCENT : UiTokens.ICON_BUTTON_BG);
+		toggle.setForeground(hideComplete ? UiTokens.PANEL_BG : UiTokens.TEXT_MUTED);
 	}
 
 	private void selectFilter(boolean top, int index)
@@ -111,6 +151,7 @@ class GearTab extends JPanel
 			{
 				List<GearProgressionPack.Item> items = group.getItems().stream()
 					.filter(this::matchesFilter)
+					.filter(i -> !hideComplete || !isObtained(i))
 					.collect(java.util.stream.Collectors.toList());
 				if (items.isEmpty())
 				{
@@ -162,10 +203,11 @@ class GearTab extends JPanel
 	{
 		boolean obtained = isObtained(item);
 		boolean targeted = state.getSelectedGoals().contains(item.goalId());
-		ItemTile tile = new ItemTile(item.getName(), obtained, targeted,
-			tooltip(item, obtained, targeted),
+		boolean ready = !obtained && requirement(item).isMet(state);
+		ItemTile tile = new ItemTile(item.getName(), obtained, targeted, ready,
+			tooltip(item, obtained, targeted, ready),
 			() -> state.selectGoal(item.goalId(), !targeted),
-			e -> contextMenu(item, obtained).show(e.getComponent(), e.getX(), e.getY()));
+			e -> contextMenu(item).show(e.getComponent(), e.getX(), e.getY()));
 		if (itemManager != null)
 		{
 			AsyncBufferedImage icon = itemManager.getImage(item.icon());
@@ -175,14 +217,24 @@ class GearTab extends JPanel
 		return tile;
 	}
 
+	/** Item detected in bank/inventory/equipment, or manually marked. */
 	private boolean isObtained(GearProgressionPack.Item item)
 	{
-		return item.isManual()
-			? state.isUnlocked(item.markKey())
-			: state.canonicalStock(item.getItemId()) > 0;
+		return detected(item) || state.isUnlocked(item.markKey());
 	}
 
-	private String tooltip(GearProgressionPack.Item item, boolean obtained, boolean targeted)
+	private boolean detected(GearProgressionPack.Item item)
+	{
+		if (item.isManual())
+		{
+			return false;
+		}
+		return (item.isExact()
+			? state.ownedCount(item.getItemId())
+			: state.canonicalStock(item.getItemId())) > 0;
+	}
+
+	private String tooltip(GearProgressionPack.Item item, boolean obtained, boolean targeted, boolean ready)
 	{
 		StringBuilder html = new StringBuilder("<html><b>")
 			.append(item.getName()).append("</b>");
@@ -190,25 +242,21 @@ class GearTab extends JPanel
 		{
 			html.append("<br>Obtained");
 		}
+		else if (ready)
+		{
+			html.append("<br>Requirements met - ready to obtain");
+		}
 		else
 		{
-			List<Requirement> missing = requirement(item).missing(state);
-			if (missing.isEmpty())
+			html.append("<br>Missing:");
+			for (Requirement req : requirement(item).missing(state))
 			{
-				html.append("<br>Requirements met");
+				html.append("<br>- ").append(req.describe());
 			}
-			else
-			{
-				html.append("<br>Missing:");
-				for (Requirement req : missing)
-				{
-					html.append("<br>- ").append(req.describe());
-				}
-			}
-			if (item.isManual())
-			{
-				html.append("<br>Not auto-detected - right-click to mark obtained");
-			}
+		}
+		if (!obtained && item.isManual())
+		{
+			html.append("<br>Not auto-detected - right-click to mark obtained");
 		}
 		html.append("<br><i>").append(targeted
 			? "Targeted - click to remove from goal planner"
@@ -223,17 +271,28 @@ class GearTab extends JPanel
 			.toArray(Requirement[]::new));
 	}
 
-	private JPopupMenu contextMenu(GearProgressionPack.Item item, boolean obtained)
+	private JPopupMenu contextMenu(GearProgressionPack.Item item)
 	{
 		JPopupMenu menu = new JPopupMenu();
 		JMenuItem wiki = new JMenuItem("Open wiki page");
 		wiki.addActionListener(e ->
 			LinkBrowser.browse("https://oldschool.runescape.wiki/w/" + item.wikiPage()));
 		menu.add(wiki);
-		if (item.isManual())
+		boolean marked = state.isUnlocked(item.markKey());
+		if (marked)
 		{
-			JMenuItem mark = new JMenuItem(obtained ? "Unmark obtained" : "Mark obtained");
-			mark.addActionListener(e -> state.setUnlocked(item.markKey(), !obtained));
+			JMenuItem unmark = new JMenuItem("Unmark as obtained");
+			unmark.addActionListener(e -> state.setUnlocked(item.markKey(), false));
+			menu.add(unmark);
+		}
+		else if (!detected(item)) // detected ownership needs no manual mark
+		{
+			JMenuItem mark = new JMenuItem("Mark as obtained");
+			mark.addActionListener(e ->
+			{
+				state.setUnlocked(item.markKey(), true);
+				state.selectGoal(item.goalId(), false); // an obtained item is no longer a target
+			});
 			menu.add(mark);
 		}
 		return menu;

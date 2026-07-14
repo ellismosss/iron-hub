@@ -39,6 +39,12 @@ public class GearProgressionPack
 		private Integer itemId;
 		/** Icon only — POH furniture etc.; obtained via a manual mark. */
 		private Integer iconItemId;
+		/**
+		 * Ownership must match this exact id — set on tiered/imbued items
+		 * (Ghommal's hilts, diary rewards, (i)/(ei) jewellery) whose
+		 * variation group spans tiers that are NOT interchangeable.
+		 */
+		private boolean exact;
 		private List<String> categories;
 		private List<String> requirements; // Requirements.parse() form
 		private String wiki; // wiki page override; defaults to name

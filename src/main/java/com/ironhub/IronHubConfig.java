@@ -112,6 +112,9 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "bankedXpGridView", name = "Banked XP grid view", description = "Internal: banked XP section view preference", hidden = true)
 	default boolean bankedXpGridView() { return true; }
 
+	@ConfigItem(keyName = "gearHideComplete", name = "Gear chart hide complete", description = "Internal: gear chart hide-complete preference", hidden = true)
+	default boolean gearHideComplete() { return false; }
+
 	@ConfigItem(keyName = "discordWebhookUrl", name = "Discord webhook URL", description = "Opt-in: milestone notifications (log slots, uniques, pets, levels, goals)", section = integrationsSection, position = 5)
 	default String discordWebhookUrl() { return ""; }
 }

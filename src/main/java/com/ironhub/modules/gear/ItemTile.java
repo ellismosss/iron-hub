@@ -32,14 +32,16 @@ class ItemTile extends JComponent
 	private final String name;
 	private final boolean obtained;
 	private final boolean targeted;
+	private final boolean ready; // requirements met, not yet obtained
 	private BufferedImage icon;
 
-	ItemTile(String name, boolean obtained, boolean targeted, String tooltip,
+	ItemTile(String name, boolean obtained, boolean targeted, boolean ready, String tooltip,
 		Runnable onClick, Consumer<MouseEvent> onContext)
 	{
 		this.name = name;
 		this.obtained = obtained;
 		this.targeted = targeted;
+		this.ready = ready;
 		setToolTipText(tooltip);
 		Dimension size = new Dimension(W, H);
 		setPreferredSize(size);
@@ -110,6 +112,13 @@ class ItemTile extends JComponent
 		}
 		g2.setColor(status != null ? status : UiTokens.BORDER_DIM);
 		g2.drawRect(0, 0, W - 1, H - 1);
+
+		if (ready && !obtained)
+		{
+			// small green corner triangle: requirements met, go get it
+			g2.setColor(UiTokens.STATUS_OWNED);
+			g2.fillPolygon(new int[]{0, 9, 0}, new int[]{0, 0, 9}, 3);
+		}
 		g2.dispose();
 	}
 

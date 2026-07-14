@@ -27,15 +27,18 @@ public class GoalPlannerModule implements IronHubModule
 	private final AccountState state;
 	private final IronHubConfig config;
 	private final DataPack dataPack;
+	private final net.runelite.client.game.ItemManager itemManager; // null in headless tests
 	private GoalsPack pack;
 	private GoalsTab tab;
 
 	@Inject
-	public GoalPlannerModule(AccountState state, IronHubConfig config, DataPack dataPack)
+	public GoalPlannerModule(AccountState state, IronHubConfig config, DataPack dataPack,
+		net.runelite.client.game.ItemManager itemManager)
 	{
 		this.state = state;
 		this.config = config;
 		this.dataPack = dataPack;
+		this.itemManager = itemManager;
 	}
 
 	@Override
@@ -76,7 +79,8 @@ public class GoalPlannerModule implements IronHubModule
 				pack = dataPack.load("goals", GoalsPack.class);
 			}
 			tab = new GoalsTab(state, pack,
-				dataPack.load("gear-progression", com.ironhub.data.GearProgressionPack.class));
+				dataPack.load("gear-progression", com.ironhub.data.GearProgressionPack.class),
+				itemManager);
 		}
 		return tab;
 	}
@@ -92,10 +96,11 @@ public class GoalPlannerModule implements IronHubModule
 	{
 		String proof = item.isManual()
 			? "unlock:" + item.markKey()
-			: "item:" + item.getItemId();
+			: (item.isExact() ? "itemx:" : "item:") + item.getItemId();
 		GoalsPack.Goal goal = new GoalsPack.Goal();
 		goal.setId(item.goalId());
 		goal.setName(item.getName());
+		goal.setIconItemId(item.icon());
 		List<GoalsPack.Step> steps = new ArrayList<>();
 		for (String raw : item.getRequirements())
 		{

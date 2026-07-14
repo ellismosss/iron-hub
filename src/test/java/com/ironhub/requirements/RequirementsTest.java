@@ -62,6 +62,19 @@ public class RequirementsTest
 	}
 
 	@Test
+	public void exactItemRequirementIgnoresTierVariants()
+	{
+		// Ghommal's hilt 2 (25928) and hilt 4 (25932) share a variation
+		// group, but owning tier 2 must NOT satisfy a tier-4 requirement
+		StateFixture.bank(state, Map.of(25928, 1));
+		assertTrue(Requirements.parse("itemx:25928").isMet(state));
+		assertFalse(Requirements.parse("itemx:25932").isMet(state));
+		// the canonical form would (wrongly, for tiers) accept it — which is
+		// exactly why tiered pack entries carry exact=true
+		assertTrue(Requirements.parse("item:25932").isMet(state));
+	}
+
+	@Test
 	public void itemRequirementCountsVariations()
 	{
 		// Arceuus-recoloured graceful hood (13579) satisfies base 11850,

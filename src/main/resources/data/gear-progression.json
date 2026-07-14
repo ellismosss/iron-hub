@@ -285,7 +285,8 @@
               "requirements": [
                 "kc:Dagannoth Rex:1"
               ],
-              "wiki": "Berserker_ring"
+              "wiki": "Berserker_ring",
+              "exact": true
             }
           ]
         },
@@ -443,7 +444,8 @@
               "requirements": [
                 "quest:Haunted Mine"
               ],
-              "wiki": "Salve_amulet_(ei)"
+              "wiki": "Salve_amulet_(ei)",
+              "exact": true
             }
           ]
         },
@@ -644,7 +646,8 @@
               "requirements": [
                 "skill:Slayer:58"
               ],
-              "wiki": "Black_mask"
+              "wiki": "Black_mask",
+              "exact": true
             },
             {
               "name": "Pharaoh's sceptre",
@@ -676,7 +679,8 @@
               "requirements": [
                 "skill:Slayer:58"
               ],
-              "wiki": "Slayer_helmet"
+              "wiki": "Slayer_helmet",
+              "exact": true
             },
             {
               "name": "Ghommal's hilt 2",
@@ -685,7 +689,8 @@
                 "utility"
               ],
               "requirements": [],
-              "wiki": "Ghommal's_hilt"
+              "wiki": "Ghommal's_hilt",
+              "exact": true
             }
           ]
         },
@@ -1077,7 +1082,8 @@
               "requirements": [
                 "Elite Lumbridge & Draynor diary"
               ],
-              "wiki": "Explorer's_ring"
+              "wiki": "Explorer's_ring",
+              "exact": true
             }
           ]
         },
@@ -1157,7 +1163,8 @@
                 "utility"
               ],
               "requirements": [],
-              "wiki": "Ghommal's_hilt"
+              "wiki": "Ghommal's_hilt",
+              "exact": true
             }
           ]
         },
@@ -1281,7 +1288,8 @@
                 "quest:Monkey Madness II",
                 "skill:Hitpoints:75"
               ],
-              "wiki": "Ring_of_suffering"
+              "wiki": "Ring_of_suffering",
+              "exact": true
             }
           ]
         },
@@ -1333,7 +1341,8 @@
               "requirements": [
                 "Elite Desert diary"
               ],
-              "wiki": "Desert_amulet"
+              "wiki": "Desert_amulet",
+              "exact": true
             },
             {
               "name": "Rada's blessing 4",
@@ -1344,7 +1353,8 @@
               "requirements": [
                 "Elite Kourend & Kebos diary"
               ],
-              "wiki": "Rada's_blessing"
+              "wiki": "Rada's_blessing",
+              "exact": true
             },
             {
               "name": "Primordial boots",
@@ -1560,7 +1570,7 @@
             },
             {
               "name": "Ultor ring",
-              "itemId": 25485,
+              "itemId": 28307,
               "categories": [
                 "melee"
               ],
@@ -1620,7 +1630,7 @@
             },
             {
               "name": "Magus ring",
-              "itemId": 25486,
+              "itemId": 28313,
               "categories": [
                 "magic"
               ],
@@ -1793,7 +1803,7 @@
             },
             {
               "name": "Venator ring",
-              "itemId": 25487,
+              "itemId": 28310,
               "categories": [
                 "ranged"
               ],
@@ -1803,7 +1813,7 @@
             },
             {
               "name": "Bellator ring",
-              "itemId": 25488,
+              "itemId": 28316,
               "categories": [
                 "melee"
               ],
@@ -1813,7 +1823,7 @@
             },
             {
               "name": "Soulreaper axe",
-              "itemId": 25484,
+              "itemId": 28338,
               "categories": [
                 "melee"
               ],

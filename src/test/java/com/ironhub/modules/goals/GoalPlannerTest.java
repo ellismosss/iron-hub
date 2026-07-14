@@ -187,7 +187,7 @@ public class GoalPlannerTest
 
 		GoalPlannerModule module = new GoalPlannerModule(state, new IronHubConfig()
 		{
-		}, new DataPack(new Gson()));
+		}, new DataPack(new Gson()), null);
 		module.startUp();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);

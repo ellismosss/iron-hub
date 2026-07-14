@@ -23,6 +23,8 @@ import javax.swing.border.LineBorder;
  */
 public class ListRow extends JPanel
 {
+	private JLabel nameLabel;
+
 	private ListRow(Status status, String name, String rightValue, String needs, IconButton... buttons)
 	{
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -45,7 +47,7 @@ public class ListRow extends JPanel
 		line.add(glyph);
 		line.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 
-		JLabel nameLabel = new JLabel(name);
+		nameLabel = new JLabel(name);
 		nameLabel.setFont(nameLabel.getFont().deriveFont(
 			status == Status.AVAILABLE ? Font.BOLD : Font.PLAIN, UiTokens.FONT_SIZE_BODY));
 		nameLabel.setForeground(nameColor(status));
@@ -93,6 +95,13 @@ public class ListRow extends JPanel
 		}
 
 		setAlignmentX(Component.LEFT_ALIGNMENT);
+	}
+
+	/** Small leading icon on the name (e.g. item sprite for gear goals). */
+	public void setNameIcon(javax.swing.Icon icon)
+	{
+		nameLabel.setIcon(icon);
+		nameLabel.setIconTextGap(UiTokens.PAD_TIGHT);
 	}
 
 	@Override
