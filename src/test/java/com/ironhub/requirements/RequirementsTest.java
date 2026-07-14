@@ -62,6 +62,28 @@ public class RequirementsTest
 	}
 
 	@Test
+	public void anyOfPathsExpressAlternativeObtainment()
+	{
+		// amulet of glory: craft it (80 Crafting) OR catch dragon implings (83 Hunter)
+		Requirement glory = Requirements.parse("any:skill:Crafting:80|skill:Hunter:83");
+		assertFalse(Requirements.isManual(glory));
+		assertFalse(glory.isMet(state));
+
+		StateFixture.stat(state, Skill.HUNTER, 83, 0);
+		assertTrue(glory.isMet(state)); // one path suffices
+
+		// paths can be multi-leaf (&-joined): both leaves of a path must hold
+		Requirement multi = Requirements.parse("any:skill:Crafting:80&skill:Magic:68|skill:Hunter:90");
+		assertFalse(multi.isMet(state)); // 83 Hunter < 90, crafting path unmet
+		StateFixture.stat(state, Skill.CRAFTING, 80, 0);
+		StateFixture.stat(state, Skill.MAGIC, 68, 0);
+		assertTrue(multi.isMet(state));
+
+		// a typo'd leaf poisons the whole string into a manual requirement
+		assertTrue(Requirements.isManual(Requirements.parse("any:skill:Craftin:80|skill:Hunter:83")));
+	}
+
+	@Test
 	public void exactItemRequirementIgnoresTierVariants()
 	{
 		// Ghommal's hilt 2 (25928) and hilt 4 (25932) share a variation

@@ -51,6 +51,23 @@ The wiki (and players) distinguish gates the plugin must not conflate:
   for the divine pouch). Skip when boostable-trivial or when the guide's
   obtainment path avoids it.
 
+**Obtainment is usually a DISJUNCTION of paths, each with its own nested
+gates.** An amulet of glory is craft-it-yourself (80 Crafting for the
+dragonstone amulet, then 68 Magic to enchant) OR dragon implings (83 Hunter)
+— a player with neither meets no path, so "requirements met" must mean "at
+least one full path met". Encode with the `any:` requirement form
+(`any:skill:Crafting:80|skill:Hunter:83`; `&` joins leaves within a path).
+Rules of thumb when writing entries:
+- Chase each path to its OWN gates (the impling path's gate is Hunter, not
+  Crafting; the crossbow's antler needs 72 Hunter before 74 Fletching).
+- If one practical path is UNGATED (magic shortbow from hard clues, mixed
+  hide cape made-for-you by Pellem for 20k), the gated alternative must NOT
+  appear as a requirement — it would block a perfectly reachable item.
+  Ignore fringe paths (wilderness-only drops like bloodbark from zombie
+  pirates) rather than making everything vacuous.
+- Enchant levels are per-gem, not per-item: sapphire 7, emerald 27, ruby 49,
+  diamond 57, dragonstone 68, onyx 87, zenyte 93.
+
 Facts that have already bitten us (all wiki-verified now): dual macuahuitl is
 70 Att/75 Str (not 75/75); the demonbane trio is level **77** (not 75);
 Moons armour is 75 style + **50 Defence**; the eclipse atlatl needs 50

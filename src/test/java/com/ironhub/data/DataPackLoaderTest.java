@@ -81,7 +81,8 @@ public class DataPackLoaderTest
 						assertNotNull(requirement);
 						// typed prefixes must resolve (a manual fallback = pack typo);
 						// free-text (diary) requirements are intentionally manual
-						if (raw.startsWith("quest:") || raw.startsWith("skill:"))
+						if (raw.startsWith("quest:") || raw.startsWith("skill:")
+							|| raw.startsWith("any:") || raw.startsWith("itemx:"))
 						{
 							assertFalse("unresolvable requirement: " + raw + " (" + item.getName() + ")",
 								Requirements.isManual(requirement));

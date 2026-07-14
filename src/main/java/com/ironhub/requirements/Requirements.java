@@ -80,6 +80,29 @@ public final class Requirements
 	/** Parse the data-pack string form; falls back to a manual text requirement. */
 	public static Requirement parse(String s)
 	{
+		// alternative obtainment paths: any:<path>|<path>, leaves within a
+		// path joined by & — e.g. glory: any:skill:Crafting:80|skill:Hunter:83
+		if (s.toLowerCase().startsWith("any:"))
+		{
+			List<Requirement> paths = new java.util.ArrayList<>();
+			for (String path : s.substring("any:".length()).split("\\|"))
+			{
+				List<Requirement> leaves = new java.util.ArrayList<>();
+				for (String leaf : path.split("&"))
+				{
+					Requirement parsed = parse(leaf);
+					if (isManual(parsed))
+					{
+						// a broken leaf would silently never be met inside the
+						// composite — surface the whole string as manual instead
+						return text(s);
+					}
+					leaves.add(parsed);
+				}
+				paths.add(leaves.size() == 1 ? leaves.get(0) : allOf(leaves.toArray(new Requirement[0])));
+			}
+			return anyOf(paths.toArray(new Requirement[0]));
+		}
 		String[] parts = s.split(":");
 		try
 		{

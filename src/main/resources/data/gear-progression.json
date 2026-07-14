@@ -59,7 +59,10 @@
               "categories": [
                 "melee"
               ],
-              "requirements": []
+              "requirements": [
+                "skill:Crafting:50",
+                "skill:Magic:49"
+              ]
             },
             {
               "name": "Rune pouch",
@@ -395,7 +398,9 @@
               "categories": [
                 "utility"
               ],
-              "requirements": []
+              "requirements": [
+                "skill:Mining:30"
+              ]
             },
             {
               "name": "Gem bag",
@@ -403,7 +408,9 @@
               "categories": [
                 "utility"
               ],
-              "requirements": []
+              "requirements": [
+                "skill:Mining:30"
+              ]
             }
           ]
         }
@@ -573,7 +580,10 @@
               "categories": [
                 "utility"
               ],
-              "requirements": []
+              "requirements": [
+                "any:skill:Crafting:80|skill:Hunter:83",
+                "skill:Magic:68"
+              ]
             }
           ]
         },
@@ -674,7 +684,9 @@
               "categories": [
                 "utility"
               ],
-              "requirements": [],
+              "requirements": [
+                "skill:Thieving:21"
+              ],
               "wiki": "Pharaoh's_sceptre"
             },
             {
@@ -780,7 +792,8 @@
               ],
               "requirements": [
                 "skill:Ranged:66",
-                "skill:Fletching:69"
+                "skill:Hunter:72",
+                "skill:Fletching:74"
               ],
               "wiki": "Hunters'_sunlight_crossbow"
             },
@@ -892,7 +905,9 @@
               "categories": [
                 "utility"
               ],
-              "requirements": []
+              "requirements": [
+                "skill:Fishing:35"
+              ]
             },
             {
               "name": "Tackle box",
@@ -900,7 +915,9 @@
               "categories": [
                 "utility"
               ],
-              "requirements": []
+              "requirements": [
+                "skill:Fishing:35"
+              ]
             },
             {
               "name": "Gem sack",
@@ -936,7 +953,9 @@
               "categories": [
                 "utility"
               ],
-              "requirements": []
+              "requirements": [
+                "skill:Farming:34"
+              ]
             },
             {
               "name": "Herb sack",
@@ -953,6 +972,7 @@
                 "utility"
               ],
               "requirements": [
+                "quest:Beneath Cursed Sands",
                 "skill:Crafting:75"
               ],
               "implies": [
@@ -973,7 +993,9 @@
               "categories": [
                 "utility"
               ],
-              "requirements": []
+              "requirements": [
+                "skill:Hunter:46"
+              ]
             },
             {
               "name": "Pendant of Ates",
@@ -981,7 +1003,9 @@
               "categories": [
                 "utility"
               ],
-              "requirements": [],
+              "requirements": [
+                "quest:The Heart of Darkness"
+              ],
               "wiki": "Pendant_of_Ates"
             },
             {
@@ -990,7 +1014,9 @@
               "categories": [
                 "utility"
               ],
-              "requirements": [],
+              "requirements": [
+                "skill:Hunter:46"
+              ],
               "wiki": "Huntsman's_kit"
             },
             {
@@ -1009,7 +1035,9 @@
               "categories": [
                 "utility"
               ],
-              "requirements": []
+              "requirements": [
+                "skill:Farming:65"
+              ]
             },
             {
               "name": "Ash covered tome",
@@ -1017,7 +1045,9 @@
               "categories": [
                 "utility"
               ],
-              "requirements": []
+              "requirements": [
+                "skill:Mining:50"
+              ]
             }
           ]
         }
@@ -1094,8 +1124,8 @@
                 "magic"
               ],
               "requirements": [
-                "skill:Crafting:85",
-                "skill:Magic:82"
+                "skill:Crafting:90",
+                "skill:Magic:87"
               ]
             },
             {
@@ -1223,7 +1253,9 @@
               "categories": [
                 "utility"
               ],
-              "requirements": []
+              "requirements": [
+                "quest:Beneath Cursed Sands"
+              ]
             },
             {
               "name": "Ghommal's hilt 4",
@@ -1559,7 +1591,8 @@
               ],
               "requirements": [
                 "kc:Zulrah:1",
-                "skill:Defence:75"
+                "skill:Defence:75",
+                "skill:Crafting:52"
               ]
             },
             {
@@ -1569,6 +1602,7 @@
                 "melee"
               ],
               "requirements": [
+                "quest:Beneath Cursed Sands",
                 "skill:Attack:82"
               ],
               "wiki": "Osmumten's_fang"
@@ -1641,7 +1675,8 @@
               ],
               "requirements": [
                 "quest:The Fremennik Exiles",
-                "skill:Defence:70"
+                "skill:Defence:70",
+                "skill:Slayer:60"
               ],
               "implies": [
                 "Helm of Neitiznot"
@@ -1769,6 +1804,7 @@
                 "magic"
               ],
               "requirements": [
+                "quest:Beneath Cursed Sands",
                 "skill:Magic:85"
               ],
               "wiki": "Tumeken's_shadow"
@@ -1858,6 +1894,7 @@
                 "ranged"
               ],
               "requirements": [
+                "quest:Beneath Cursed Sands",
                 "skill:Ranged:80",
                 "skill:Defence:80"
               ],
@@ -1870,6 +1907,7 @@
                 "ranged"
               ],
               "requirements": [
+                "quest:Beneath Cursed Sands",
                 "skill:Ranged:80",
                 "skill:Defence:80"
               ],
@@ -1882,6 +1920,7 @@
                 "ranged"
               ],
               "requirements": [
+                "quest:Beneath Cursed Sands",
                 "skill:Ranged:80",
                 "skill:Defence:80"
               ],
@@ -1894,6 +1933,7 @@
                 "magic"
               ],
               "requirements": [
+                "quest:Beneath Cursed Sands",
                 "skill:Magic:80",
                 "skill:Defence:80",
                 "skill:Prayer:80"
