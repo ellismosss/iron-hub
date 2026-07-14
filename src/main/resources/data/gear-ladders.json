@@ -8,17 +8,217 @@
         {
           "slot": "weapon",
           "ladder": [
-            {"itemId": 1323, "name": "Iron scimitar", "requirements": ["skill:Attack:1"]},
-            {"itemId": 1333, "name": "Rune scimitar", "requirements": ["skill:Attack:40"]},
-            {"itemId": 4587, "name": "Dragon scimitar", "requirements": ["skill:Attack:60", "quest:Monkey Madness I"]},
-            {"itemId": 4151, "name": "Abyssal whip", "requirements": ["skill:Attack:70", "kc:Abyssal demon:1"]}
+            {
+              "itemId": 1323,
+              "name": "Iron scimitar",
+              "requirements": [
+                "skill:Attack:1"
+              ]
+            },
+            {
+              "itemId": 1333,
+              "name": "Rune scimitar",
+              "requirements": [
+                "skill:Attack:40"
+              ]
+            },
+            {
+              "itemId": 4587,
+              "name": "Dragon scimitar",
+              "requirements": [
+                "skill:Attack:60",
+                "quest:Monkey Madness I"
+              ]
+            },
+            {
+              "itemId": 4151,
+              "name": "Abyssal whip",
+              "requirements": [
+                "skill:Attack:70",
+                "kc:Abyssal demon:1"
+              ]
+            }
           ]
         },
         {
           "slot": "shield",
           "ladder": [
-            {"itemId": 1201, "name": "Rune kiteshield", "requirements": ["skill:Defence:40"]},
-            {"itemId": 12954, "name": "Dragon defender", "requirements": ["skill:Attack:60", "skill:Defence:60"]}
+            {
+              "itemId": 1201,
+              "name": "Rune kiteshield",
+              "requirements": [
+                "skill:Defence:40"
+              ]
+            },
+            {
+              "itemId": 12954,
+              "name": "Dragon defender",
+              "requirements": [
+                "skill:Attack:60",
+                "skill:Defence:60"
+              ]
+            }
+          ]
+        },
+        {
+          "slot": "body",
+          "ladder": [
+            {
+              "itemId": 1115,
+              "name": "Iron platebody",
+              "requirements": [
+                "skill:Defence:1"
+              ]
+            },
+            {
+              "itemId": 1127,
+              "name": "Rune platebody",
+              "requirements": [
+                "skill:Defence:40",
+                "quest:Dragon Slayer I"
+              ]
+            },
+            {
+              "itemId": 10551,
+              "name": "Fighter torso",
+              "requirements": [
+                "Barbarian Assault penance points"
+              ]
+            },
+            {
+              "itemId": 11832,
+              "name": "Bandos chestplate",
+              "requirements": [
+                "skill:Defence:65",
+                "kc:General Graardor:1"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "style": "Range",
+      "slots": [
+        {
+          "slot": "weapon",
+          "ladder": [
+            {
+              "itemId": 841,
+              "name": "Shortbow",
+              "requirements": [
+                "skill:Ranged:1"
+              ]
+            },
+            {
+              "itemId": 861,
+              "name": "Magic shortbow",
+              "requirements": [
+                "skill:Ranged:50"
+              ]
+            },
+            {
+              "itemId": 9185,
+              "name": "Rune crossbow",
+              "requirements": [
+                "skill:Ranged:61"
+              ]
+            },
+            {
+              "itemId": 12926,
+              "name": "Toxic blowpipe",
+              "requirements": [
+                "skill:Ranged:75",
+                "kc:Zulrah:1"
+              ]
+            }
+          ]
+        },
+        {
+          "slot": "body",
+          "ladder": [
+            {
+              "itemId": 1129,
+              "name": "Leather body",
+              "requirements": [
+                "skill:Ranged:1"
+              ]
+            },
+            {
+              "itemId": 1135,
+              "name": "Green d'hide body",
+              "requirements": [
+                "skill:Ranged:40",
+                "quest:Dragon Slayer I"
+              ]
+            },
+            {
+              "itemId": 2503,
+              "name": "Black d'hide body",
+              "requirements": [
+                "skill:Ranged:70"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "style": "Mage",
+      "slots": [
+        {
+          "slot": "weapon",
+          "ladder": [
+            {
+              "itemId": 1381,
+              "name": "Staff of air",
+              "requirements": [
+                "skill:Magic:1"
+              ]
+            },
+            {
+              "itemId": 1393,
+              "name": "Fire battlestaff",
+              "requirements": [
+                "skill:Magic:30"
+              ]
+            },
+            {
+              "itemId": 4675,
+              "name": "Ancient staff",
+              "requirements": [
+                "skill:Magic:50",
+                "quest:Desert Treasure I"
+              ]
+            },
+            {
+              "itemId": 11905,
+              "name": "Trident of the seas",
+              "requirements": [
+                "skill:Magic:75",
+                "kc:Kraken:1"
+              ]
+            }
+          ]
+        },
+        {
+          "slot": "body",
+          "ladder": [
+            {
+              "itemId": 4091,
+              "name": "Mystic robe top",
+              "requirements": [
+                "skill:Magic:40"
+              ]
+            },
+            {
+              "itemId": 4712,
+              "name": "Ahrim's robetop",
+              "requirements": [
+                "skill:Magic:70",
+                "kc:Barrows chest:1"
+              ]
+            }
           ]
         }
       ]
