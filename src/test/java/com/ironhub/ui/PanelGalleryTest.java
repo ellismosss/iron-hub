@@ -37,7 +37,7 @@ public class PanelGalleryTest
 	public void navRowsExistForImplementedModules()
 	{
 		// nav rows route to modules by exact name — a mismatch is an inert row
-		for (String name : new String[]{"Quests", "Achievement diaries", "Combat achievements", "QoL checklist", "Bank & banked XP", "Dailies"})
+		for (String name : new String[]{"Quests", "Achievement diaries", "Combat achievements", "QoL checklist", "Bank & banked XP", "Dailies", "Gear progression"})
 		{
 			assertTrue("nav row missing for module: " + name,
 				ModuleNavPanel.moduleNames().contains(name));

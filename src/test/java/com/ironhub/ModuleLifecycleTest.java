@@ -47,7 +47,7 @@ public class ModuleLifecycleTest
 		};
 
 		Set<IronHubModule> modules = new IronHubPlugin().provideModules(
-			new GearProgressionModule(),
+			new GearProgressionModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new QuestsModule(state, config),
 			new DiariesModule(state, config),
 			new CombatAchievementsModule(state, config),
