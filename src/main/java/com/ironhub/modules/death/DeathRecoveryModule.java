@@ -1,22 +1,38 @@
 package com.ironhub.modules.death;
 
+import com.ironhub.IronHubConfig;
+import com.ironhub.integrations.ShortestPathBridge;
 import com.ironhub.modules.IronHubModule;
+import com.ironhub.state.AccountState;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.swing.JComponent;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.game.ItemManager;
 
 /**
- * Death recovery helper: on player death, captures lost-item state from the
- * last container snapshot, grave location/timer, reclaim info and untradeable
- * handling, plus a recent-death history. See DESIGN.md §3.21.
+ * Death recovery (DESIGN.md §3.21): calm, factual history of recent
+ * deaths — when, where (with a Path button to the spot), and what was
+ * carried. Reclaim costs and grave timers arrive later.
  */
 @Slf4j
 @Singleton
 public class DeathRecoveryModule implements IronHubModule
 {
+	private final AccountState state;
+	private final ItemManager itemManager;
+	private final IronHubConfig config;
+	private final ShortestPathBridge pathBridge;
+	private DeathTab tab;
+
 	@Inject
-	public DeathRecoveryModule()
+	public DeathRecoveryModule(AccountState state, ItemManager itemManager,
+		IronHubConfig config, ShortestPathBridge pathBridge)
 	{
+		this.state = state;
+		this.itemManager = itemManager;
+		this.config = config;
+		this.pathBridge = pathBridge;
 	}
 
 	@Override
@@ -26,14 +42,33 @@ public class DeathRecoveryModule implements IronHubModule
 	}
 
 	@Override
+	public boolean enabled()
+	{
+		return config.deathRecovery();
+	}
+
+	@Override
 	public void startUp()
 	{
-		// TODO: ActorDeath handler + container diff capture; grave timer;
-		// death history persistence; Path button to grave
 	}
 
 	@Override
 	public void shutDown()
 	{
+		if (tab != null)
+		{
+			tab.dispose();
+			tab = null;
+		}
+	}
+
+	@Override
+	public JComponent buildTab()
+	{
+		if (tab == null)
+		{
+			tab = new DeathTab(state, itemManager, pathBridge);
+		}
+		return tab;
 	}
 }

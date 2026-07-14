@@ -68,7 +68,7 @@ public class ModuleLifecycleTest
 			new CollectionLogModule(),
 			new ExternalSyncModule(),
 			new DashboardModule(),
-			new DeathRecoveryModule());
+			new DeathRecoveryModule(state, null, config, null));
 
 		assertEquals(19, modules.size());
 

@@ -72,6 +72,10 @@ public class AccountState
 
 	// completed herb run durations, persisted (avg/best/count stats)
 	private final java.util.List<Long> herbRunsMs = new CopyOnWriteArrayList<>();
+
+	/** Recent deaths, oldest first, capped. */
+	public static final int MAX_DEATHS = 10;
+	private final java.util.List<PersistedState.DeathRecord> deaths = new CopyOnWriteArrayList<>();
 	private volatile Map<Integer, Integer> supplyCheckpoint = Map.of();
 
 	// varbits/varps modules registered interest in (diary tiers, CA points,
@@ -273,6 +277,50 @@ public class AccountState
 		herbRunsMs.add(durationMs);
 		persist();
 		notifyListeners();
+	}
+
+	/** Death of the local player: capture location + carried items. */
+	public void recordDeath(net.runelite.api.coords.WorldPoint where)
+	{
+		PersistedState.DeathRecord death = new PersistedState.DeathRecord();
+		death.timeMs = System.currentTimeMillis();
+		death.x = where.getX();
+		death.y = where.getY();
+		death.plane = where.getPlane();
+		inventory.forEach((id, qty) -> death.carried.merge(id, qty, Integer::sum));
+		equipment.forEach((id, qty) -> death.carried.merge(id, qty, Integer::sum));
+		deaths.add(death);
+		while (deaths.size() > MAX_DEATHS)
+		{
+			deaths.remove(0);
+		}
+		persist();
+		notifyListeners();
+	}
+
+	/** Recent deaths, oldest first (read-only views of persisted records). */
+	public java.util.List<Death> getDeaths()
+	{
+		return deaths.stream()
+			.map(d -> new Death(d.timeMs,
+				new net.runelite.api.coords.WorldPoint(d.x, d.y, d.plane),
+				java.util.Collections.unmodifiableMap(d.carried)))
+			.collect(java.util.stream.Collectors.toList());
+	}
+
+	/** Immutable death view for modules. */
+	public static class Death
+	{
+		public final long timeMs;
+		public final net.runelite.api.coords.WorldPoint where;
+		public final Map<Integer, Integer> carried;
+
+		Death(long timeMs, net.runelite.api.coords.WorldPoint where, Map<Integer, Integer> carried)
+		{
+			this.timeMs = timeMs;
+			this.where = where;
+			this.carried = carried;
+		}
 	}
 
 	/**
@@ -519,6 +567,8 @@ public class AccountState
 			suppliesBySource.put(src, new ConcurrentHashMap<>(items)));
 		herbRunsMs.clear();
 		herbRunsMs.addAll(persisted.herbRunsMs);
+		deaths.clear();
+		deaths.addAll(persisted.deaths);
 		log.debug("activated profile {} ({} banked item stacks)", hash, bank.size());
 	}
 
@@ -538,6 +588,7 @@ public class AccountState
 		lootBySource.forEach((src, items) -> state.lootBySource.put(src, new HashMap<>(items)));
 		suppliesBySource.forEach((src, items) -> state.suppliesBySource.put(src, new HashMap<>(items)));
 		state.herbRunsMs = new java.util.ArrayList<>(herbRunsMs);
+		state.deaths = new java.util.ArrayList<>(deaths);
 		store.save(profile, state);
 	}
 

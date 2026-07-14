@@ -302,24 +302,10 @@ class BankTab extends JPanel
 			|| itemName.toLowerCase(Locale.ROOT).contains(query.trim().toLowerCase(Locale.ROOT));
 	}
 
-	/** "just now", "5 min ago", "2 h ago", "3 d ago" — static for testing. */
+	/** Delegates to the shared formatter — kept for the unit tests. */
 	static String relativeTime(long millisAgo)
 	{
-		long minutes = millisAgo / 60_000;
-		if (minutes < 1)
-		{
-			return "just now";
-		}
-		if (minutes < 60)
-		{
-			return minutes + " min ago";
-		}
-		long hours = minutes / 60;
-		if (hours < 24)
-		{
-			return hours + " h ago";
-		}
-		return (hours / 24) + " d ago";
+		return com.ironhub.ui.Format.relativeTime(millisAgo);
 	}
 
 	@Override

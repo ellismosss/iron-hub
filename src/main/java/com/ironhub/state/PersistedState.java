@@ -22,4 +22,14 @@ class PersistedState
 	Map<String, Map<Integer, Integer>> lootBySource = new HashMap<>(); // npc -> item id -> total qty
 	Map<String, Map<Integer, Integer>> suppliesBySource = new HashMap<>(); // npc -> canonical item id -> consumed qty
 	java.util.List<Long> herbRunsMs = new ArrayList<>(); // completed herb run durations
+	java.util.List<DeathRecord> deaths = new ArrayList<>(); // most recent last, capped
+
+	static class DeathRecord
+	{
+		long timeMs;
+		int x;
+		int y;
+		int plane;
+		Map<Integer, Integer> carried = new HashMap<>();
+	}
 }

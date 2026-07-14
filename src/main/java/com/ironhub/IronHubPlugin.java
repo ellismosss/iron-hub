@@ -31,6 +31,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
@@ -180,6 +181,15 @@ public class IronHubPlugin extends Plugin
 	public void onGameTick(GameTick event)
 	{
 		accountState.onGameTick();
+	}
+
+	@Subscribe
+	public void onActorDeath(ActorDeath event)
+	{
+		if (event.getActor() == client.getLocalPlayer() && client.getLocalPlayer() != null)
+		{
+			accountState.recordDeath(client.getLocalPlayer().getWorldLocation());
+		}
 	}
 
 	@Subscribe
