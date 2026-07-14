@@ -658,6 +658,25 @@ public class LoadoutLabPanel extends PluginPanel
 		bottomControls.add(Box.createVerticalStrut(4));
 		bottomControls.add(optimizeMode);
 		bottomControls.add(Box.createVerticalStrut(4));
+		JCheckBox assumePrayers = new JCheckBox("Assume prayers (Piety etc.)", true);
+		assumePrayers.setOpaque(false);
+		assumePrayers.setToolTipText("Compute DPS with your best offensive prayers active");
+		assumePrayers.addActionListener(e ->
+		{
+			com.loadoutlab.engine.PrayerBonuses.PRAYERS_ASSUMED = assumePrayers.isSelected();
+			recompute();
+		});
+		bottomControls.add(assumePrayers);
+		JCheckBox assumePotions = new JCheckBox("Assume potions", true);
+		assumePotions.setOpaque(false);
+		assumePotions.setToolTipText("Compute DPS with your best stat potions/hearts active");
+		assumePotions.addActionListener(e ->
+		{
+			com.loadoutlab.optimizer.BoostSelector.POTIONS_ASSUMED = assumePotions.isSelected();
+			recompute();
+		});
+		bottomControls.add(assumePotions);
+		bottomControls.add(Box.createVerticalStrut(4));
 		JPanel setupButtons = new JPanel(new GridLayout(1, 2, 4, 0));
 		setupButtons.setOpaque(false);
 		JButton saveSetupButton = new JButton("Save setup");

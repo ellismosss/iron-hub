@@ -6,6 +6,9 @@ import net.runelite.api.Prayer;
 
 public final class PrayerBonuses
 {
+	// Iron Hub: global toggle - assume offensive prayers (Piety etc.)
+	public static volatile boolean PRAYERS_ASSUMED = true;
+
 	public static final PrayerBonuses NONE = new PrayerBonuses(1.0, 1.0, 1.0, 1.0, 1.0, 0.0);
 
 	private final double meleeAccuracy;
@@ -44,6 +47,10 @@ public final class PrayerBonuses
 
 	public static PrayerBonuses bestAvailable(PlayerLevels levels, PrayerUnlocks unlocks)
 	{
+		if (!PRAYERS_ASSUMED)
+		{
+			return NONE;
+		}
 		String meleeName;
 		double meleeAcc = 1.0;
 		double meleeStr = 1.0;

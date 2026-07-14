@@ -84,6 +84,7 @@ public class LoadoutLabModule implements IronHubModule
 	private final JPanel setupView = new JPanel();
 	private String lastAutoSelected = "";
 	private String viewedSetup; // explicit Load-setup pick, wins over the activity
+	private boolean dpsCalcCollapsed;
 	private boolean started;
 
 	@Inject
@@ -541,7 +542,29 @@ public class LoadoutLabModule implements IronHubModule
 		}
 		if (lab.getPanel() != null)
 		{
-			holder.add(lab.getPanel(), BorderLayout.CENTER);
+			// collapsible DPS Calc section wrapping the whole lab panel
+			JPanel section = new JPanel(new BorderLayout());
+			section.setBackground(UiTokens.PANEL_BG);
+			JLabel header = new JLabel(dpsCalcCollapsed ? "DPS Calc  [show]" : "DPS Calc  [hide]");
+			header.setForeground(UiTokens.TEXT_PRIMARY);
+			header.setFont(header.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
+			header.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, UiTokens.PAD, UiTokens.PAD_TIGHT, UiTokens.PAD));
+			header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			header.addMouseListener(new java.awt.event.MouseAdapter()
+			{
+				@Override
+				public void mousePressed(java.awt.event.MouseEvent e)
+				{
+					dpsCalcCollapsed = !dpsCalcCollapsed;
+					lab.getPanel().setVisible(!dpsCalcCollapsed);
+					header.setText(dpsCalcCollapsed ? "DPS Calc  [show]" : "DPS Calc  [hide]");
+					holder.revalidate();
+				}
+			});
+			section.add(header, BorderLayout.NORTH);
+			section.add(lab.getPanel(), BorderLayout.CENTER);
+			lab.getPanel().setVisible(!dpsCalcCollapsed);
+			holder.add(section, BorderLayout.CENTER);
 			lab.getPanel().setSetupHooks(this::saveNamedSetup, this::loadNamedSetup);
 			onStateChanged(); // panel just arrived: apply auto-follow now
 		}

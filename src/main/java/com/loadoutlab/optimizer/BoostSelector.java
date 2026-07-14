@@ -12,6 +12,9 @@ import com.loadoutlab.engine.OwnedItems;
  */
 public final class BoostSelector
 {
+	// Iron Hub: global toggle - assume stat potions/hearts
+	public static volatile boolean POTIONS_ASSUMED = true;
+
 	private static final int SATURATED_HEART = 27641;
 	private static final int IMBUED_HEART = 20724;
 
@@ -22,6 +25,10 @@ public final class BoostSelector
 	/** The best boost in the GAME per style - the BiS ceiling assumption. */
 	public static BoostProfile ceilingFor(CombatStyle style)
 	{
+		if (!POTIONS_ASSUMED)
+		{
+			return BoostProfile.NONE;
+		}
 		switch (style)
 		{
 			case MELEE: return BoostProfile.SUPER_COMBAT;
@@ -33,6 +40,10 @@ public final class BoostSelector
 
 	public static BoostProfile bestFor(CombatStyle style, OwnedItems owned)
 	{
+		if (!POTIONS_ASSUMED)
+		{
+			return BoostProfile.NONE;
+		}
 		switch (style)
 		{
 			case MELEE:
