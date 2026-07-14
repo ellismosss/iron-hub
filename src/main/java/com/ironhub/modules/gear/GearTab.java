@@ -116,7 +116,7 @@ class GearTab extends JPanel
 
 	private void styleHideToggle(JLabel toggle)
 	{
-		toggle.setText(hideComplete ? "Hide complete: on" : "Hide complete: off");
+		toggle.setText("Hide complete");
 		toggle.setBackground(hideComplete ? UiTokens.ACCENT : UiTokens.ICON_BUTTON_BG);
 		toggle.setForeground(hideComplete ? UiTokens.PANEL_BG : UiTokens.TEXT_MUTED);
 	}
@@ -140,9 +140,13 @@ class GearTab extends JPanel
 		rebuild();
 	}
 
+	/** Obtained entries for the current rebuild, including implied predecessors. */
+	private java.util.Set<String> obtained = java.util.Set.of();
+
 	private void rebuild()
 	{
 		body.removeAll();
+		obtained = GearProgressionModule.obtainedNames(pack, state);
 		for (GearProgressionPack.Phase phase : pack.getPhases())
 		{
 			boolean phaseHasContent = false;
@@ -206,7 +210,13 @@ class GearTab extends JPanel
 		boolean ready = !obtained && requirement(item).isMet(state);
 		ItemTile tile = new ItemTile(item.getName(), obtained, targeted, ready,
 			tooltip(item, obtained, targeted, ready),
-			() -> state.selectGoal(item.goalId(), !targeted),
+			() ->
+			{
+				if (!obtained || targeted) // nothing to target once obtained
+				{
+					state.selectGoal(item.goalId(), !targeted);
+				}
+			},
 			e -> contextMenu(item).show(e.getComponent(), e.getX(), e.getY()));
 		if (itemManager != null)
 		{
@@ -217,21 +227,10 @@ class GearTab extends JPanel
 		return tile;
 	}
 
-	/** Item detected in bank/inventory/equipment, or manually marked. */
+	/** Detected, manually marked, or implied by an obtained successor. */
 	private boolean isObtained(GearProgressionPack.Item item)
 	{
-		return detected(item) || state.isUnlocked(item.markKey());
-	}
-
-	private boolean detected(GearProgressionPack.Item item)
-	{
-		if (item.isManual())
-		{
-			return false;
-		}
-		return (item.isExact()
-			? state.ownedCount(item.getItemId())
-			: state.canonicalStock(item.getItemId())) > 0;
+		return obtained.contains(item.getName());
 	}
 
 	private String tooltip(GearProgressionPack.Item item, boolean obtained, boolean targeted, boolean ready)
@@ -258,9 +257,14 @@ class GearTab extends JPanel
 		{
 			html.append("<br>Not auto-detected - right-click to mark obtained");
 		}
-		html.append("<br><i>").append(targeted
-			? "Targeted - click to remove from goal planner"
-			: "Click to add to goal planner").append("</i>");
+		if (targeted)
+		{
+			html.append("<br><i>Targeted - click to remove from goal planner</i>");
+		}
+		else if (!obtained)
+		{
+			html.append("<br><i>Click to add to goal planner</i>");
+		}
 		return html.append("</html>").toString();
 	}
 
@@ -285,7 +289,7 @@ class GearTab extends JPanel
 			unmark.addActionListener(e -> state.setUnlocked(item.markKey(), false));
 			menu.add(unmark);
 		}
-		else if (!detected(item)) // detected ownership needs no manual mark
+		else if (!isObtained(item)) // detected/implied ownership needs no manual mark
 		{
 			JMenuItem mark = new JMenuItem("Mark as obtained");
 			mark.addActionListener(e ->

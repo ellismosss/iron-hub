@@ -43,6 +43,47 @@ public class GearModuleTest
 	}
 
 	@Test
+	public void obtainedSuccessorsImplyTheirPredecessors()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		com.ironhub.data.GearProgressionPack progression =
+			new DataPack(new Gson()).load("gear-progression", com.ironhub.data.GearProgressionPack.class);
+
+		// owning only an Ava's assembler (22109) proves the whole chain
+		StateFixture.equipment(state, Map.of(22109, 1));
+		java.util.Set<String> obtained = GearProgressionModule.obtainedNames(progression, state);
+		assertTrue(obtained.contains("Ava's assembler"));
+		assertTrue(obtained.contains("Ava's accumulator")); // consumed making it
+		assertTrue(obtained.contains("Ava's attractor"));   // transitively
+		assertTrue(!obtained.contains("Book of the dead"));
+
+		// Book of the dead (25818) upgraded from Kharedst's memoirs
+		StateFixture.bank(state, Map.of(25818, 1));
+		obtained = GearProgressionModule.obtainedNames(progression, state);
+		assertTrue(obtained.contains("Kharedst's memoirs"));
+	}
+
+	@Test
+	public void everyImpliedNameResolvesToAnEntry()
+	{
+		com.ironhub.data.GearProgressionPack progression =
+			new DataPack(new Gson()).load("gear-progression", com.ironhub.data.GearProgressionPack.class);
+		java.util.Set<String> names = new java.util.HashSet<>();
+		progression.getPhases().forEach(p -> p.getGroups().forEach(g ->
+			g.getItems().forEach(i -> names.add(i.getName()))));
+		progression.getPhases().forEach(p -> p.getGroups().forEach(g ->
+			g.getItems().forEach(i ->
+			{
+				if (i.getImplies() != null)
+				{
+					// a typo'd implies target would silently never fire
+					assertTrue("unknown implies target on " + i.getName() + ": " + i.getImplies(),
+						names.containsAll(i.getImplies()));
+				}
+			})));
+	}
+
+	@Test
 	public void tabRendersHeadless() throws Exception
 	{
 		AccountState state = StateFixture.state(temp.getRoot());

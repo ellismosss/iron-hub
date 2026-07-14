@@ -88,6 +88,65 @@ public class GearProgressionModule implements IronHubModule
 		return tab;
 	}
 
+	// ── chart ownership (pure; static for tests) ──────────────────────
+
+	/**
+	 * Names of every obtained chart entry: item detection (or the manual
+	 * mark), plus everything implied by an obtained successor — owning an
+	 * Ava's assembler proves the accumulator and attractor came first,
+	 * a slayer helmet proves its black mask, treads prove the fed boots.
+	 */
+	public static java.util.Set<String> obtainedNames(
+		com.ironhub.data.GearProgressionPack pack, AccountState state)
+	{
+		List<com.ironhub.data.GearProgressionPack.Item> items = new ArrayList<>();
+		java.util.Set<String> obtained = new java.util.HashSet<>();
+		for (com.ironhub.data.GearProgressionPack.Phase phase : pack.getPhases())
+		{
+			for (com.ironhub.data.GearProgressionPack.Group group : phase.getGroups())
+			{
+				for (com.ironhub.data.GearProgressionPack.Item item : group.getItems())
+				{
+					items.add(item);
+					if (directlyObtained(item, state))
+					{
+						obtained.add(item.getName());
+					}
+				}
+			}
+		}
+		// propagate implications to a fixpoint (chains: assembler → accumulator → attractor)
+		boolean changed = true;
+		while (changed)
+		{
+			changed = false;
+			for (com.ironhub.data.GearProgressionPack.Item item : items)
+			{
+				if (obtained.contains(item.getName()) && item.getImplies() != null)
+				{
+					changed |= obtained.addAll(item.getImplies());
+				}
+			}
+		}
+		return obtained;
+	}
+
+	private static boolean directlyObtained(
+		com.ironhub.data.GearProgressionPack.Item item, AccountState state)
+	{
+		if (state.isUnlocked(item.markKey()))
+		{
+			return true;
+		}
+		if (item.isManual())
+		{
+			return false;
+		}
+		return (item.isExact()
+			? state.ownedCount(item.getItemId())
+			: state.canonicalStock(item.getItemId())) > 0;
+	}
+
 	/**
 	 * Tile state per rung: owned; else the FIRST unowned rung with met
 	 * requirements is the next upgrade (accent); the rest are locked.

@@ -221,7 +221,10 @@
                 "quest:Animal Magnetism",
                 "skill:Ranged:50"
               ],
-              "wiki": "Ava's_accumulator"
+              "wiki": "Ava's_accumulator",
+              "implies": [
+                "Ava's attractor"
+              ]
             }
           ]
         },
@@ -431,6 +434,9 @@
               ],
               "requirements": [
                 "quest:A Kingdom Divided"
+              ],
+              "implies": [
+                "Kharedst's memoirs"
               ]
             },
             {
@@ -598,7 +604,10 @@
               "requirements": [
                 "skill:Magic:75"
               ],
-              "wiki": "Imbued_god_cape"
+              "wiki": "Imbued_god_cape",
+              "implies": [
+                "God cape"
+              ]
             },
             {
               "name": "Infinity boots",
@@ -680,7 +689,10 @@
                 "skill:Slayer:58"
               ],
               "wiki": "Slayer_helmet",
-              "exact": true
+              "exact": true,
+              "implies": [
+                "Black mask (i)"
+              ]
             },
             {
               "name": "Ghommal's hilt 2",
@@ -810,7 +822,10 @@
               "requirements": [
                 "Hard Western Provinces diary"
               ],
-              "wiki": "Elite_Void_Knight_equipment"
+              "wiki": "Elite_Void_Knight_equipment",
+              "implies": [
+                "Void knight top"
+              ]
             },
             {
               "name": "Crystal halberd",
@@ -860,7 +875,10 @@
               "categories": [
                 "utility"
               ],
-              "requirements": []
+              "requirements": [],
+              "implies": [
+                "Gem bag"
+              ]
             },
             {
               "name": "Plank sack",
@@ -901,7 +919,10 @@
               "categories": [
                 "utility"
               ],
-              "requirements": []
+              "requirements": [],
+              "implies": [
+                "Rune pouch"
+              ]
             },
             {
               "name": "Fletching knife",
@@ -1061,7 +1082,10 @@
                 "quest:Dragon Slayer II",
                 "kc:Vorkath:1"
               ],
-              "wiki": "Ava's_assembler"
+              "wiki": "Ava's_assembler",
+              "implies": [
+                "Ava's accumulator"
+              ]
             },
             {
               "name": "Dragon pickaxe",
@@ -1164,7 +1188,10 @@
               ],
               "requirements": [],
               "wiki": "Ghommal's_hilt",
-              "exact": true
+              "exact": true,
+              "implies": [
+                "Ghommal's hilt 2"
+              ]
             }
           ]
         },
@@ -1191,6 +1218,9 @@
               "requirements": [
                 "skill:Slayer:87",
                 "skill:Attack:75"
+              ],
+              "implies": [
+                "Abyssal whip"
               ]
             },
             {
@@ -1212,6 +1242,9 @@
               "requirements": [
                 "quest:While Guthix Sleeps",
                 "skill:Attack:75"
+              ],
+              "implies": [
+                "Arclight"
               ]
             },
             {
@@ -1255,6 +1288,17 @@
               ],
               "requirements": [
                 "skill:Slayer:83"
+              ]
+            },
+            {
+              "name": "Tormented bracelet",
+              "itemId": 19544,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "quest:Monkey Madness II",
+                "skill:Hitpoints:75"
               ]
             },
             {
@@ -1315,6 +1359,9 @@
               "requirements": [
                 "skill:Crafting:83",
                 "skill:Smithing:70"
+              ],
+              "implies": [
+                "Tormented bracelet"
               ]
             },
             {
@@ -1325,7 +1372,12 @@
                 "ranged",
                 "magic"
               ],
-              "requirements": []
+              "requirements": [],
+              "implies": [
+                "Primordial boots",
+                "Eternal boots",
+                "Pegasian boots"
+              ]
             }
           ]
         },
@@ -1364,6 +1416,9 @@
               ],
               "requirements": [
                 "skill:Slayer:91"
+              ],
+              "implies": [
+                "Dragon boots"
               ]
             },
             {
@@ -1374,6 +1429,9 @@
               ],
               "requirements": [
                 "skill:Slayer:91"
+              ],
+              "implies": [
+                "Infinity boots"
               ]
             },
             {
@@ -1394,6 +1452,9 @@
               ],
               "requirements": [
                 "skill:Slayer:92"
+              ],
+              "implies": [
+                "Amulet of torture"
               ]
             },
             {
@@ -1512,6 +1573,9 @@
               "requirements": [
                 "quest:The Fremennik Exiles",
                 "skill:Defence:70"
+              ],
+              "implies": [
+                "Helm of Neitiznot"
               ]
             }
           ]
@@ -1533,6 +1597,9 @@
               ],
               "requirements": [
                 "kc:TzKal-Zuk:1"
+              ],
+              "implies": [
+                "Fire cape"
               ]
             },
             {
@@ -1604,6 +1671,9 @@
               "requirements": [
                 "skill:Attack:70",
                 "skill:Defence:70"
+              ],
+              "implies": [
+                "Dragon defender"
               ]
             },
             {
@@ -1858,7 +1928,7 @@
           "items": [
             {
               "name": "Oak altar",
-              "iconItemId": 8778,
+              "iconItemId": 1718,
               "categories": [
                 "poh"
               ],
@@ -1895,7 +1965,7 @@
           "items": [
             {
               "name": "Armour stand",
-              "iconItemId": 8780,
+              "iconItemId": 2347,
               "categories": [
                 "poh"
               ],
@@ -1917,7 +1987,7 @@
             },
             {
               "name": "Restoration pool",
-              "iconItemId": 8780,
+              "iconItemId": 3024,
               "categories": [
                 "poh"
               ],
@@ -1928,7 +1998,7 @@
             },
             {
               "name": "Teak shelves 2",
-              "iconItemId": 8780,
+              "iconItemId": 712,
               "categories": [
                 "poh"
               ],
@@ -1956,7 +2026,7 @@
             },
             {
               "name": "Gilded altar",
-              "iconItemId": 4692,
+              "iconItemId": 536,
               "categories": [
                 "poh"
               ],
@@ -1979,7 +2049,7 @@
             },
             {
               "name": "Marble portal nexus",
-              "iconItemId": 8786,
+              "iconItemId": 8013,
               "categories": [
                 "poh"
               ],
@@ -1990,7 +2060,7 @@
             },
             {
               "name": "Ancient / Lunar / Dark altar",
-              "iconItemId": 8786,
+              "iconItemId": 565,
               "categories": [
                 "poh"
               ],
@@ -2023,7 +2093,7 @@
             },
             {
               "name": "Occult altar",
-              "iconItemId": 8786,
+              "iconItemId": 566,
               "categories": [
                 "poh"
               ],
@@ -2034,7 +2104,7 @@
             },
             {
               "name": "Ornate rejuvenation pool",
-              "iconItemId": 8786,
+              "iconItemId": 10925,
               "categories": [
                 "poh"
               ],
@@ -2045,7 +2115,7 @@
             },
             {
               "name": "Ornate jewellery box",
-              "iconItemId": 2552,
+              "iconItemId": 2572,
               "categories": [
                 "poh"
               ],
@@ -2056,7 +2126,7 @@
             },
             {
               "name": "Crystalline portal nexus",
-              "iconItemId": 23962,
+              "iconItemId": 6102,
               "categories": [
                 "poh"
               ],
@@ -2067,7 +2137,7 @@
             },
             {
               "name": "Spirit tree & fairy ring",
-              "iconItemId": 5317,
+              "iconItemId": 772,
               "categories": [
                 "poh"
               ],

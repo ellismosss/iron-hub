@@ -117,7 +117,7 @@ class ItemTile extends JComponent
 		{
 			// small green corner triangle: requirements met, go get it
 			g2.setColor(UiTokens.STATUS_OWNED);
-			g2.fillPolygon(new int[]{0, 9, 0}, new int[]{0, 0, 9}, 3);
+			g2.fillPolygon(new int[]{0, 6, 0}, new int[]{0, 0, 6}, 3);
 		}
 		g2.dispose();
 	}

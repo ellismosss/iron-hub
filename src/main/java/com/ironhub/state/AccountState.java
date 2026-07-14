@@ -241,6 +241,7 @@ public class AccountState
 		if (unlocked ? unlocks.add(key) : unlocks.remove(key))
 		{
 			persist();
+			notifyListeners(); // manual ticks/marks re-render like any state change
 		}
 	}
 

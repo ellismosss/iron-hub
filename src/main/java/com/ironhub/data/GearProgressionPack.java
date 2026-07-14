@@ -45,6 +45,12 @@ public class GearProgressionPack
 		 * variation group spans tiers that are NOT interchangeable.
 		 */
 		private boolean exact;
+		/**
+		 * Names of predecessor entries this item supersedes or consumed —
+		 * owning an Ava's assembler proves the accumulator and attractor
+		 * were obtained even if they no longer exist.
+		 */
+		private List<String> implies;
 		private List<String> categories;
 		private List<String> requirements; // Requirements.parse() form
 		private String wiki; // wiki page override; defaults to name
