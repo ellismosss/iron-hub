@@ -11,8 +11,6 @@ import com.ironhub.ui.components.SearchField;
 import com.ironhub.ui.components.SegmentedControl;
 import com.ironhub.ui.components.Status;
 import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -128,29 +126,7 @@ public class AtomGallery
 
 	public static BufferedImage render()
 	{
-		JPanel root = build();
-		root.setSize(new Dimension(UiTokens.PANEL_WIDTH, root.getPreferredSize().height));
-		layoutTree(root);
-		// height settles once children know their width
-		root.setSize(new Dimension(UiTokens.PANEL_WIDTH, root.getPreferredSize().height));
-		layoutTree(root);
-
-		BufferedImage image = new BufferedImage(
-			root.getWidth(), root.getHeight(), BufferedImage.TYPE_INT_RGB);
-		root.paint(image.getGraphics());
-		return image;
-	}
-
-	private static void layoutTree(Component c)
-	{
-		c.doLayout();
-		if (c instanceof Container)
-		{
-			for (Component child : ((Container) c).getComponents())
-			{
-				layoutTree(child);
-			}
-		}
+		return SwingRender.render(build());
 	}
 
 	public static void main(String[] args) throws IOException

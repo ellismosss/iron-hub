@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.Getter;
@@ -17,6 +18,7 @@ import net.runelite.api.ItemContainer;
 import net.runelite.api.Quest;
 import net.runelite.api.QuestState;
 import net.runelite.api.Skill;
+import net.runelite.api.VarPlayer;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.StatChanged;
@@ -53,6 +55,15 @@ public class AccountState
 	private final Set<String> unlocks = ConcurrentHashMap.newKeySet();
 	private final Map<String, Integer> killCounts = new ConcurrentHashMap<>();
 
+	// varbits modules registered interest in (diary tiers, CA points, …)
+	private final Set<Integer> watchedVarbits = ConcurrentHashMap.newKeySet();
+	private final Map<Integer, Integer> varbitValues = new ConcurrentHashMap<>();
+	private final CopyOnWriteArrayList<Runnable> listeners = new CopyOnWriteArrayList<>();
+
+	/** Quest points from the last quest refresh. */
+	@Getter
+	private volatile int questPoints;
+
 	private volatile Map<Integer, Integer> bank = Map.of();
 	private volatile Map<Integer, Integer> inventory = Map.of();
 	private volatile Map<Integer, Integer> equipment = Map.of();
@@ -65,6 +76,7 @@ public class AccountState
 
 	// client thread only
 	private boolean questsDirty;
+	private volatile boolean varbitsRefreshNeeded;
 	private int tick;
 	private int lastQuestRefreshTick;
 
@@ -116,6 +128,41 @@ public class AccountState
 		return killCounts.getOrDefault(source, 0);
 	}
 
+	/** Last seen value of a watched varbit (0 until first refresh). */
+	public int getVarbit(int varbitId)
+	{
+		return varbitValues.getOrDefault(varbitId, 0);
+	}
+
+	/**
+	 * Register varbits to track. Values populate from the client on the
+	 * next game tick and update from VarbitChanged events afterwards.
+	 */
+	public void watchVarbits(int... varbitIds)
+	{
+		for (int id : varbitIds)
+		{
+			watchedVarbits.add(id);
+		}
+		varbitsRefreshNeeded = true;
+	}
+
+	/** Listeners fire on the client thread after meaningful state changes. */
+	public void addListener(Runnable listener)
+	{
+		listeners.add(listener);
+	}
+
+	public void removeListener(Runnable listener)
+	{
+		listeners.remove(listener);
+	}
+
+	private void notifyListeners()
+	{
+		listeners.forEach(Runnable::run);
+	}
+
 	// ── writes from modules (chat parsing, manual ticks) ──────────────
 
 	public void setUnlocked(String key, boolean unlocked)
@@ -147,6 +194,7 @@ public class AccountState
 				refreshSkills();
 				refreshContainers();
 				questsDirty = true;
+				varbitsRefreshNeeded = true;
 				break;
 			case LOGIN_SCREEN:
 			case HOPPING:
@@ -167,6 +215,15 @@ public class AccountState
 		// quest varps are not individually mapped; mark dirty and refresh
 		// on a tick throttle instead of chasing per-quest varbit ids
 		questsDirty = true;
+
+		if (watchedVarbits.contains(event.getVarbitId()))
+		{
+			Integer previous = varbitValues.put(event.getVarbitId(), event.getValue());
+			if (previous == null || previous != event.getValue())
+			{
+				notifyListeners();
+			}
+		}
 	}
 
 	public void onItemContainerChanged(ItemContainerChanged event)
@@ -189,10 +246,18 @@ public class AccountState
 	public void onGameTick()
 	{
 		tick++;
-		if (questsDirty && tick - lastQuestRefreshTick >= QUEST_REFRESH_TICKS
-			&& client.getGameState() == GameState.LOGGED_IN)
+		if (client.getGameState() != GameState.LOGGED_IN)
+		{
+			return;
+		}
+		if (questsDirty && tick - lastQuestRefreshTick >= QUEST_REFRESH_TICKS)
 		{
 			refreshQuests();
+		}
+		if (varbitsRefreshNeeded)
+		{
+			varbitsRefreshNeeded = false;
+			refreshWatchedVarbits();
 		}
 	}
 
@@ -200,8 +265,12 @@ public class AccountState
 
 	void ingestStat(Skill skill, int level, int experience)
 	{
-		realLevels.put(skill, level);
+		Integer previousLevel = realLevels.put(skill, level);
 		xp.put(skill, experience);
+		if (previousLevel == null || previousLevel != level)
+		{
+			notifyListeners(); // levels gate requirements; xp drops alone don't
+		}
 	}
 
 	void ingestQuest(Quest quest, QuestState state)
@@ -209,10 +278,16 @@ public class AccountState
 		questStates.put(quest, state);
 	}
 
+	void ingestVarbit(int varbitId, int value)
+	{
+		varbitValues.put(varbitId, value);
+	}
+
 	void ingestBank(Map<Integer, Integer> contents)
 	{
 		bank = Map.copyOf(contents);
 		bankTimestamp = System.currentTimeMillis();
+		notifyListeners();
 	}
 
 	void ingestInventory(Map<Integer, Integer> contents)
@@ -277,12 +352,37 @@ public class AccountState
 
 	private void refreshQuests()
 	{
+		boolean changed = false;
 		for (Quest quest : Quest.values())
 		{
-			ingestQuest(quest, quest.getState(client));
+			QuestState state = quest.getState(client);
+			changed |= questStates.put(quest, state) != state;
 		}
+		int points = client.getVarpValue(VarPlayer.QUEST_POINTS);
+		changed |= points != questPoints;
+		questPoints = points;
+
 		questsDirty = false;
 		lastQuestRefreshTick = tick;
+		if (changed)
+		{
+			notifyListeners();
+		}
+	}
+
+	private void refreshWatchedVarbits()
+	{
+		boolean changed = false;
+		for (int id : watchedVarbits)
+		{
+			int value = client.getVarbitValue(id);
+			Integer previous = varbitValues.put(id, value);
+			changed |= previous == null || previous != value;
+		}
+		if (changed)
+		{
+			notifyListeners();
+		}
 	}
 
 	private static Map<Integer, Integer> itemsOf(ItemContainer container)

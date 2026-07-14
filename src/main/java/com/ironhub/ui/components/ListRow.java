@@ -117,6 +117,12 @@ public class ListRow extends JPanel
 		return new ListRow(Status.LOCKED, name, null, needs, buttons);
 	}
 
+	/** Locked without a known blocking requirement — single line. */
+	public static ListRow locked(String name, IconButton... buttons)
+	{
+		return new ListRow(Status.LOCKED, name, null, null, buttons);
+	}
+
 	public static ListRow warning(String name, String rightValue, IconButton... buttons)
 	{
 		return new ListRow(Status.WARNING, name, rightValue, null, buttons);

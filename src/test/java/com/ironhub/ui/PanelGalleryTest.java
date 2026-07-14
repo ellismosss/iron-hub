@@ -1,12 +1,8 @@
 package com.ironhub.ui;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
-import javax.swing.JPanel;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -22,7 +18,7 @@ public class PanelGalleryTest
 	@Test
 	public void dashboardRendersAtPanelWidth() throws Exception
 	{
-		BufferedImage image = render(new DashboardPanel(null));
+		BufferedImage image = SwingRender.render(new DashboardPanel(null));
 		assertEquals(UiTokens.PANEL_WIDTH, image.getWidth());
 		assertTrue(image.getHeight() > 300);
 		write(image, "dashboard-1b.png");
@@ -31,51 +27,20 @@ public class PanelGalleryTest
 	@Test
 	public void moduleNavRendersAtPanelWidth() throws Exception
 	{
-		BufferedImage image = render(new ModuleNavPanel(null));
+		BufferedImage image = SwingRender.render(new ModuleNavPanel(null, name -> {}));
 		assertEquals(UiTokens.PANEL_WIDTH, image.getWidth());
 		assertTrue(image.getHeight() > 300);
 		write(image, "modules-1c.png");
 	}
 
-	static BufferedImage render(JPanel panel)
+	@Test
+	public void navRowsExistForImplementedModules()
 	{
-		// three passes: wrap layouts need a real width before preferred
-		// heights settle; invalidate clears cached BoxLayout sizes, and
-		// layout runs manually — validate() is a no-op without a peer
-		for (int pass = 0; pass < 3; pass++)
+		// nav rows route to modules by exact name — a mismatch is an inert row
+		for (String name : new String[]{"Quests", "Achievement diaries", "Combat achievements"})
 		{
-			invalidateTree(panel);
-			panel.setSize(new Dimension(UiTokens.PANEL_WIDTH, panel.getPreferredSize().height));
-			layoutTree(panel);
-		}
-
-		BufferedImage image = new BufferedImage(
-			panel.getWidth(), panel.getHeight(), BufferedImage.TYPE_INT_RGB);
-		panel.paint(image.getGraphics());
-		return image;
-	}
-
-	private static void invalidateTree(Component c)
-	{
-		c.invalidate();
-		if (c instanceof Container)
-		{
-			for (Component child : ((Container) c).getComponents())
-			{
-				invalidateTree(child);
-			}
-		}
-	}
-
-	private static void layoutTree(Component c)
-	{
-		c.doLayout();
-		if (c instanceof Container)
-		{
-			for (Component child : ((Container) c).getComponents())
-			{
-				layoutTree(child);
-			}
+			assertTrue("nav row missing for module: " + name,
+				ModuleNavPanel.moduleNames().contains(name));
 		}
 	}
 

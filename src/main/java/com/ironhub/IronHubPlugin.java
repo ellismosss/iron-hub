@@ -5,14 +5,17 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.ironhub.modules.IronHubModule;
 import com.ironhub.modules.bank.BankTrackerModule;
+import com.ironhub.modules.ca.CombatAchievementsModule;
 import com.ironhub.modules.clues.ClueStashModule;
 import com.ironhub.modules.collectionlog.CollectionLogModule;
 import com.ironhub.modules.dailies.DailiesModule;
 import com.ironhub.modules.dashboard.DashboardModule;
 import com.ironhub.modules.death.DeathRecoveryModule;
+import com.ironhub.modules.diaries.DiariesModule;
 import com.ironhub.modules.farming.FarmingRunModule;
 import com.ironhub.modules.gear.GearProgressionModule;
 import com.ironhub.modules.goals.GoalPlannerModule;
+import com.ironhub.modules.quests.QuestsModule;
 import com.ironhub.modules.slayer.SlayerOptimizerModule;
 import com.ironhub.modules.suggest.WhatNowModule;
 import com.ironhub.modules.supplies.SuppliesRunwayModule;
@@ -20,6 +23,7 @@ import com.ironhub.modules.sync.ExternalSyncModule;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.IronHubPanel;
 import java.awt.image.BufferedImage;
+import java.util.HashSet;
 import java.util.Set;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +35,7 @@ import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
@@ -60,6 +65,7 @@ public class IronHubPlugin extends Plugin
 	@Inject
 	private Set<IronHubModule> modules;
 
+	private final Set<IronHubModule> started = new HashSet<>();
 	private NavigationButton navButton;
 
 	// RuneLite ships Guice 4.1 no_aop without the multibindings extension,
@@ -68,6 +74,9 @@ public class IronHubPlugin extends Plugin
 	@Singleton
 	Set<IronHubModule> provideModules(
 		GearProgressionModule gearProgression,
+		QuestsModule quests,
+		DiariesModule diaries,
+		CombatAchievementsModule combatAchievements,
 		BankTrackerModule bankTracker,
 		FarmingRunModule farmingRun,
 		DailiesModule dailies,
@@ -81,12 +90,12 @@ public class IronHubPlugin extends Plugin
 		DashboardModule dashboard,
 		DeathRecoveryModule deathRecovery)
 	{
-		// TODO: quests, skills, QoL, loot/supplies, CAs, diaries, boat
-		// — see DESIGN.md §3
+		// TODO: skills, QoL, loot/supplies, boat — see DESIGN.md §3
 		return ImmutableSet.of(
-			gearProgression, bankTracker, farmingRun, dailies, goalPlanner,
-			whatNow, clueStash, slayerOptimizer, suppliesRunway, collectionLog,
-			externalSync, dashboard, deathRecovery);
+			gearProgression, quests, diaries, combatAchievements, bankTracker,
+			farmingRun, dailies, goalPlanner, whatNow, clueStash,
+			slayerOptimizer, suppliesRunway, collectionLog, externalSync,
+			dashboard, deathRecovery);
 	}
 
 	@Override
@@ -103,16 +112,37 @@ public class IronHubPlugin extends Plugin
 
 		clientToolbar.addNavigation(navButton);
 
-		modules.forEach(IronHubModule::startUp);
-		log.info("Iron Hub started with {} modules", modules.size());
+		syncModuleLifecycles();
+		log.info("Iron Hub started with {}/{} modules enabled", started.size(), modules.size());
 	}
 
 	@Override
 	protected void shutDown()
 	{
-		modules.forEach(IronHubModule::shutDown);
+		started.forEach(IronHubModule::shutDown);
+		started.clear();
 		clientToolbar.removeNavigation(navButton);
 		accountState.persist();
+	}
+
+	/** Start newly enabled modules; stop newly disabled ones. */
+	private void syncModuleLifecycles()
+	{
+		for (IronHubModule module : modules)
+		{
+			boolean shouldRun = module.enabled();
+			if (shouldRun && !started.contains(module))
+			{
+				module.startUp();
+				started.add(module);
+			}
+			else if (!shouldRun && started.contains(module))
+			{
+				module.shutDown();
+				started.remove(module);
+				panel.invalidateModule(module.name());
+			}
+		}
 	}
 
 	@Subscribe
@@ -143,6 +173,15 @@ public class IronHubPlugin extends Plugin
 	public void onGameTick(GameTick event)
 	{
 		accountState.onGameTick();
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event)
+	{
+		if (IronHubConfig.GROUP.equals(event.getGroup()))
+		{
+			syncModuleLifecycles();
+		}
 	}
 
 	@Provides

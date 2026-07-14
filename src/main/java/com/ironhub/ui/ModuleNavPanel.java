@@ -37,7 +37,7 @@ public class ModuleNavPanel extends JPanel
 	private static final Category[] CATEGORIES = {
 		new Category("Progression",
 			new Module("GE", "Gear progression", null, null),
-			new Module("QU", "Quests", "1 ready", UiTokens.STATUS_AVAILABLE),
+			new Module("QU", "Quests", null, null),
 			new Module("SK", "Skill milestones", null, null),
 			new Module("DI", "Achievement diaries", null, null),
 			new Module("CA", "Combat achievements", null, null),
@@ -62,9 +62,11 @@ public class ModuleNavPanel extends JPanel
 	private final Set<String> collapsed = new HashSet<>();
 	private final JPanel list = new JPanel();
 	private final SearchField search = new SearchField("Search modules…");
+	private final java.util.function.Consumer<String> onOpenModule;
 
-	public ModuleNavPanel(Runnable onBack)
+	public ModuleNavPanel(Runnable onBack, java.util.function.Consumer<String> onOpenModule)
 	{
+		this.onOpenModule = onOpenModule;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
 		collapsed.add("Account"); // shown collapsed in the mockup
@@ -124,7 +126,7 @@ public class ModuleNavPanel extends JPanel
 				{
 					for (Module module : category.modules)
 					{
-						list.add(new NavRow(module));
+						list.add(new NavRow(module, onOpenModule));
 					}
 				}
 			}
@@ -138,7 +140,7 @@ public class ModuleNavPanel extends JPanel
 				{
 					if (module.name.toLowerCase(Locale.ROOT).contains(filter))
 					{
-						list.add(new NavRow(module));
+						list.add(new NavRow(module, onOpenModule));
 					}
 				}
 			}
@@ -220,10 +222,24 @@ public class ModuleNavPanel extends JPanel
 		}
 	}
 
+	/** All nav row names, in display order — for wiring tests. */
+	static List<String> moduleNames()
+	{
+		List<String> names = new ArrayList<>();
+		for (Category category : CATEGORIES)
+		{
+			for (Module module : category.modules)
+			{
+				names.add(module.name);
+			}
+		}
+		return names;
+	}
+
 	/** 26 px borderless nav row: icon square · name · badge · › (hover fill). */
 	private static class NavRow extends JPanel
 	{
-		NavRow(Module module)
+		NavRow(Module module, java.util.function.Consumer<String> onOpen)
 		{
 			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 			setBackground(UiTokens.PANEL_BG);
@@ -282,7 +298,16 @@ public class ModuleNavPanel extends JPanel
 				{
 					setBackground(UiTokens.PANEL_BG);
 				}
-				// module tabs arrive with their milestones — no destination yet
+
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					// rows whose module has no tab yet are inert
+					if (onOpen != null)
+					{
+						onOpen.accept(module.name);
+					}
+				}
 			});
 		}
 	}

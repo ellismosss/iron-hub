@@ -57,4 +57,9 @@ public final class StateFixture
 	{
 		state.activateProfile(hash);
 	}
+
+	public static void varbit(AccountState state, int varbitId, int value)
+	{
+		state.ingestVarbit(varbitId, value);
+	}
 }

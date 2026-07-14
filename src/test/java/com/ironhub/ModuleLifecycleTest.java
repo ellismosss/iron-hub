@@ -2,23 +2,31 @@ package com.ironhub;
 
 import com.ironhub.modules.IronHubModule;
 import com.ironhub.modules.bank.BankTrackerModule;
+import com.ironhub.modules.ca.CombatAchievementsModule;
 import com.ironhub.modules.clues.ClueStashModule;
 import com.ironhub.modules.collectionlog.CollectionLogModule;
 import com.ironhub.modules.dailies.DailiesModule;
 import com.ironhub.modules.dashboard.DashboardModule;
 import com.ironhub.modules.death.DeathRecoveryModule;
+import com.ironhub.modules.diaries.DiariesModule;
 import com.ironhub.modules.farming.FarmingRunModule;
 import com.ironhub.modules.gear.GearProgressionModule;
 import com.ironhub.modules.goals.GoalPlannerModule;
+import com.ironhub.modules.quests.QuestsModule;
 import com.ironhub.modules.slayer.SlayerOptimizerModule;
 import com.ironhub.modules.suggest.WhatNowModule;
 import com.ironhub.modules.supplies.SuppliesRunwayModule;
 import com.ironhub.modules.sync.ExternalSyncModule;
+import com.ironhub.state.AccountState;
+import com.ironhub.state.StateFixture;
 import java.util.Set;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * M0 walking-skeleton check: every registered module survives a full
@@ -26,11 +34,22 @@ import static org.junit.Assert.assertFalse;
  */
 public class ModuleLifecycleTest
 {
+	@Rule
+	public TemporaryFolder temp = new TemporaryFolder();
+
 	@Test
 	public void allModulesStartUpAndShutDownCleanly()
 	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		IronHubConfig config = new IronHubConfig()
+		{
+		};
+
 		Set<IronHubModule> modules = new IronHubPlugin().provideModules(
 			new GearProgressionModule(),
+			new QuestsModule(state, config),
+			new DiariesModule(state, config),
+			new CombatAchievementsModule(state, config),
 			new BankTrackerModule(),
 			new FarmingRunModule(),
 			new DailiesModule(),
@@ -44,11 +63,12 @@ public class ModuleLifecycleTest
 			new DashboardModule(),
 			new DeathRecoveryModule());
 
-		assertEquals(13, modules.size());
+		assertEquals(16, modules.size());
 
 		for (IronHubModule module : modules)
 		{
 			assertFalse("blank module name: " + module.getClass(), module.name().trim().isEmpty());
+			assertTrue("module disabled by default: " + module.getClass(), module.enabled());
 			module.startUp();
 			module.shutDown();
 		}
