@@ -118,7 +118,29 @@ public class GoalPlannerModule implements IronHubModule
 		return goal;
 	}
 
-	/** Pack goals plus a synthetic goal per targeted gear-chart item. */
+	// ── combat-achievement tasks as synthetic goals ───────────────────
+
+	/**
+	 * A Combat Achievement task added from the CA tab: one step — the task
+	 * itself — proven by the {@code catask_<id>} unlock flag the CA module
+	 * marks once the live catalog shows the task completed.
+	 */
+	public static GoalsPack.Goal toCaGoal(String taskId, com.ironhub.state.PersistedState.CaGoal seed)
+	{
+		String proof = "unlock:catask_" + taskId;
+		GoalsPack.Goal goal = new GoalsPack.Goal();
+		goal.setId("ca:" + taskId);
+		goal.setName(seed.name);
+		GoalsPack.Step step = new GoalsPack.Step();
+		step.setLabel(seed.description + " (" + seed.tier + " combat task)");
+		step.setRequirement(proof);
+		goal.setSteps(List.of(step));
+		goal.setAchieved(List.of(proof));
+		return goal;
+	}
+
+	/** Pack goals plus a synthetic goal per targeted gear-chart item and
+	 * per combat task added from the CA tab. */
 	public static List<GoalsPack.Goal> allGoals(GoalsPack goals,
 		com.ironhub.data.GearProgressionPack gear, AccountState state)
 	{
@@ -136,6 +158,13 @@ public class GoalPlannerModule implements IronHubModule
 				}
 			}
 		}
+		state.getCaGoals().forEach((taskId, seed) ->
+		{
+			if (state.getSelectedGoals().contains("ca:" + taskId))
+			{
+				all.add(toCaGoal(taskId, seed));
+			}
+		});
 		return all;
 	}
 

@@ -108,17 +108,30 @@ public class CombatAchievementsModuleTest
 	}
 
 	@Test
-	public void trackedTasksPersistAcrossRestart()
+	public void caGoalsPersistAndCompileInThePlanner()
 	{
 		AccountState before = StateFixture.state(temp.getRoot());
 		StateFixture.profile(before, 7L);
-		before.setCaTaskTracked(12, true);
-		before.setCaTaskTracked(340, true);
-		before.setCaTaskTracked(12, false);
+		before.addCaGoal(340, "Noxious Foe", "Kill an Aberrant Spectre.", "Easy");
+		before.addCaGoal(12, "Removed", "x", "Easy");
+		before.removeCaGoal(12);
 
 		AccountState after = StateFixture.state(temp.getRoot());
 		StateFixture.profile(after, 7L);
-		assertEquals(java.util.Set.of(340), after.getTrackedCaTasks());
+		assertEquals(java.util.Set.of("ca:340"), after.getSelectedGoals());
+		assertEquals(java.util.Set.of("340"), after.getCaGoals().keySet());
+
+		// the seed compiles into a planner goal: one step, unlock-flag proof
+		com.ironhub.data.GoalsPack.Goal goal = com.ironhub.modules.goals.GoalPlannerModule
+			.toCaGoal("340", after.getCaGoals().get("340"));
+		assertEquals("ca:340", goal.getId());
+		assertEquals("Noxious Foe", goal.getName());
+		assertEquals(1, goal.getSteps().size());
+		assertFalse(com.ironhub.modules.goals.GoalPlannerModule.isAchieved(goal, after));
+
+		// the CA module marking the unlock (task done in-game) achieves it
+		after.setUnlocked("catask_340", true);
+		assertTrue(com.ironhub.modules.goals.GoalPlannerModule.isAchieved(goal, after));
 	}
 
 	@Test

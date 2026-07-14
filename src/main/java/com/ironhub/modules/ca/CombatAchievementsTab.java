@@ -71,7 +71,7 @@ class CombatAchievementsTab extends JPanel
 	private final JLabel trackedLine = new JLabel(" ");
 
 	// controls
-	private final SegmentedControl views = new SegmentedControl(true, "All", "Tracked", "Bosses");
+	private final SegmentedControl views = new SegmentedControl(true, "All", "Goals", "Bosses");
 	private final JTextField search = new SearchField("Search tasks…");
 	private final JLabel filtersHeader = new JLabel("FILTERS");
 	private final JPanel filtersPanel = new JPanel();
@@ -87,7 +87,7 @@ class CombatAchievementsTab extends JPanel
 	private final JPanel content = new JPanel();
 	private String selectedBoss; // non-null = boss drill-down
 	private final Set<Integer> expanded = new HashSet<>();
-	private Set<Integer> lastTracked;
+	private Set<String> lastCaGoals;
 	private int lastPoints = -1;
 
 	private static final Map<CaTier, ImageIcon> TIER_ICONS = loadTierIcons();
@@ -148,7 +148,7 @@ class CombatAchievementsTab extends JPanel
 		add(content);
 		add(Box.createVerticalGlue());
 
-		lastTracked = new HashSet<>(state.getTrackedCaTasks());
+		lastCaGoals = selectedCaGoals();
 		state.addListener(listener);
 		refreshStats();
 		rebuildContent();
@@ -167,18 +167,37 @@ class CombatAchievementsTab extends JPanel
 	}
 
 	/** Cheap path for AccountState notifications: stats always, rows only
-	 * when points or the tracked set actually changed. */
+	 * when points or the set of CA goals actually changed. */
 	private void onStateChanged()
 	{
 		refreshStats();
-		Set<Integer> tracked = state.getTrackedCaTasks();
+		Set<String> caGoals = selectedCaGoals();
 		int points = module.points();
-		if (!tracked.equals(lastTracked) || points != lastPoints)
+		if (!caGoals.equals(lastCaGoals) || points != lastPoints)
 		{
-			lastTracked = new HashSet<>(tracked);
+			lastCaGoals = caGoals;
 			lastPoints = points;
 			rebuildContent();
 		}
+	}
+
+	/** The "ca:" goal ids currently selected in the goal planner. */
+	private Set<String> selectedCaGoals()
+	{
+		Set<String> ids = new HashSet<>();
+		for (String goalId : state.getSelectedGoals())
+		{
+			if (goalId.startsWith("ca:"))
+			{
+				ids.add(goalId);
+			}
+		}
+		return ids;
+	}
+
+	private boolean isGoal(CaTask task)
+	{
+		return state.getSelectedGoals().contains("ca:" + task.id);
 	}
 
 	// ── stats card ────────────────────────────────────────────────────
@@ -245,29 +264,28 @@ class CombatAchievementsTab extends JPanel
 			goalBar.setFraction(threshold == 0 ? 0 : (double) points / threshold);
 		}
 
-		Set<Integer> tracked = state.getTrackedCaTasks();
-		if (tracked.isEmpty())
+		if (selectedCaGoals().isEmpty())
 		{
-			trackedLine.setText("Nothing tracked yet");
+			trackedLine.setText("No CA goals yet");
 		}
 		else
 		{
-			int trackedPts = 0;
-			int trackedDonePts = 0;
+			int goalPts = 0;
+			int goalDonePts = 0;
 			int found = 0;
 			for (CaTask task : tasks)
 			{
-				if (tracked.contains(task.id))
+				if (isGoal(task))
 				{
 					found++;
-					trackedPts += task.tier.points;
+					goalPts += task.tier.points;
 					if (task.completed)
 					{
-						trackedDonePts += task.tier.points;
+						goalDonePts += task.tier.points;
 					}
 				}
 			}
-			trackedLine.setText("Tracked: " + trackedDonePts + "/" + trackedPts
+			trackedLine.setText("Goals: " + goalDonePts + "/" + goalPts
 				+ " pts (" + found + " tasks)");
 		}
 	}
@@ -421,7 +439,7 @@ class CombatAchievementsTab extends JPanel
 			if (visible.isEmpty())
 			{
 				content.add(emptyLabel(views.getSelected() == 1
-					? "No tracked tasks match the filters. Track tasks with the + on any row."
+					? "No CA goals match the filters. The + on any row adds that task to the Goal planner."
 					: "No tasks match the filters."));
 			}
 			for (CaTask task : visible)
@@ -434,16 +452,15 @@ class CombatAchievementsTab extends JPanel
 		content.repaint();
 	}
 
-	List<CaTask> filteredSorted(List<CaTask> tasks, boolean trackedOnly, String boss)
+	List<CaTask> filteredSorted(List<CaTask> tasks, boolean goalsOnly, String boss)
 	{
-		Set<Integer> tracked = state.getTrackedCaTasks();
 		String term = search.getText().trim();
 		String status = (String) statusFilter.getSelectedItem();
 		String type = (String) typeFilter.getSelectedItem();
 		List<CaTask> visible = new ArrayList<>();
 		for (CaTask task : tasks)
 		{
-			if (trackedOnly && !tracked.contains(task.id))
+			if (goalsOnly && !isGoal(task))
 			{
 				continue;
 			}
@@ -502,7 +519,7 @@ class CombatAchievementsTab extends JPanel
 
 	private JPanel taskRow(CaTask task)
 	{
-		boolean tracked = state.getTrackedCaTasks().contains(task.id);
+		boolean goal = isGoal(task);
 		boolean open = expanded.contains(task.id);
 
 		JPanel row = new JPanel();
@@ -524,16 +541,17 @@ class CombatAchievementsTab extends JPanel
 		titleLine.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 		JLabel name = new JLabel(task.name);
 		name.setForeground(task.completed ? UiTokens.STATUS_OWNED
-			: tracked ? UiTokens.STATUS_AVAILABLE : UiTokens.TEXT_PRIMARY);
+			: goal ? UiTokens.STATUS_AVAILABLE : UiTokens.TEXT_PRIMARY);
 		name.setFont(name.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-		name.setToolTipText(task.name);
+		name.setToolTipText(task.name + (goal ? " - in your Goal planner" : ""));
 		name.setMinimumSize(new Dimension(0, 0)); // ellipsize before pushing the button out
 		titleLine.add(name);
 		titleLine.add(Box.createHorizontalGlue());
 		titleLine.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		IconButton track = new IconButton(tracked ? "×" : "+",
-			tracked ? "Stop tracking this task" : "Track this task",
-			() -> state.setCaTaskTracked(task.id, !tracked));
+		IconButton track = new IconButton(goal ? "×" : "+",
+			goal ? "Remove this task from the Goal planner"
+				: "Add this task as a goal in the Goal planner",
+			() -> toggleGoal(task));
 		titleLine.add(track);
 		row.add(titleLine);
 
@@ -623,15 +641,33 @@ class CombatAchievementsTab extends JPanel
 		return row;
 	}
 
+	/** The '+' action: the task joins the Goal planner as a "ca:" goal. */
+	private void toggleGoal(CaTask task)
+	{
+		if (isGoal(task))
+		{
+			state.removeCaGoal(task.id);
+		}
+		else
+		{
+			state.addCaGoal(task.id, task.name, task.description, task.tier.display);
+			if (task.completed)
+			{
+				// already done in-game: prove the goal immediately
+				state.setUnlocked("catask_" + task.id, true);
+			}
+		}
+	}
+
 	private void taskMenu(CaTask task, MouseEvent e)
 	{
 		JPopupMenu menu = new JPopupMenu();
 		JMenuItem wiki = new JMenuItem("Open wiki page");
 		wiki.addActionListener(a -> LinkBrowser.browse(task.wikiUrl()));
 		menu.add(wiki);
-		boolean tracked = state.getTrackedCaTasks().contains(task.id);
-		JMenuItem trackItem = new JMenuItem(tracked ? "Stop tracking" : "Track this task");
-		trackItem.addActionListener(a -> state.setCaTaskTracked(task.id, !tracked));
+		JMenuItem trackItem = new JMenuItem(isGoal(task)
+			? "Remove from Goal planner" : "Add as goal in Goal planner");
+		trackItem.addActionListener(a -> toggleGoal(task));
 		menu.add(trackItem);
 		if (!task.boss.isEmpty())
 		{

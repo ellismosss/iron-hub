@@ -96,7 +96,7 @@ public class AccountState
 	// goal planner selections (persisted)
 	private final Set<String> selectedGoals = ConcurrentHashMap.newKeySet();
 	private volatile String activeGoal = "";
-	private final Set<Integer> trackedCaTasks = ConcurrentHashMap.newKeySet();
+	private final Map<String, PersistedState.CaGoal> caGoals = new ConcurrentHashMap<>();
 
 	/** Recent deaths, oldest first, capped. */
 	public static final int MAX_DEATHS = 10;
@@ -535,15 +535,52 @@ public class AccountState
 		}
 	}
 
-	/** Combat Achievement task ids the player is actively working on. */
-	public Set<Integer> getTrackedCaTasks()
+	/** CA-task goal seeds (task id → snapshot) for the goal planner. */
+	public Map<String, PersistedState.CaGoal> getCaGoals()
 	{
-		return java.util.Collections.unmodifiableSet(trackedCaTasks);
+		return java.util.Collections.unmodifiableMap(caGoals);
 	}
 
-	public void setCaTaskTracked(int taskId, boolean tracked)
+	/** Add a Combat Achievement task to the goal planner (id "ca:&lt;task&gt;"). */
+	public void addCaGoal(int taskId, String name, String description, String tier)
 	{
-		if (tracked ? trackedCaTasks.add(taskId) : trackedCaTasks.remove(taskId))
+		PersistedState.CaGoal seed = new PersistedState.CaGoal();
+		seed.name = name;
+		seed.description = description;
+		seed.tier = tier;
+		caGoals.put(String.valueOf(taskId), seed);
+		String goalId = "ca:" + taskId;
+		if (selectedGoals.contains(goalId))
+		{
+			persist();
+			notifyListeners();
+		}
+		else
+		{
+			selectGoal(goalId, true); // persists + notifies
+		}
+	}
+
+	/** Remove a CA task from the goal planner. */
+	public void removeCaGoal(int taskId)
+	{
+		caGoals.remove(String.valueOf(taskId));
+		String goalId = "ca:" + taskId;
+		if (selectedGoals.contains(goalId))
+		{
+			selectGoal(goalId, false); // persists + notifies
+		}
+		else
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	/** Mark many unlock flags at once (one persist + one notify). */
+	public void setUnlockedBulk(java.util.Collection<String> keys)
+	{
+		if (unlocks.addAll(keys))
 		{
 			persist();
 			notifyListeners();
@@ -947,8 +984,8 @@ public class AccountState
 		herbPatchSeen.putAll(persisted.herbPatchSeen);
 		selectedGoals.clear();
 		selectedGoals.addAll(persisted.selectedGoals);
-		trackedCaTasks.clear();
-		trackedCaTasks.addAll(persisted.trackedCaTasks);
+		caGoals.clear();
+		caGoals.putAll(persisted.caGoals);
 		scoreSnapshots.clear();
 		scoreSnapshots.addAll(persisted.scoreSnapshots);
 		collectionLogSlots = persisted.collectionLogSlots;
@@ -981,7 +1018,7 @@ public class AccountState
 		state.herbPatchSeen = new HashMap<>(herbPatchSeen);
 		state.selectedGoals = new HashSet<>(selectedGoals);
 		state.activeGoal = activeGoal;
-		state.trackedCaTasks = new HashSet<>(trackedCaTasks);
+		state.caGoals = new HashMap<>(caGoals);
 		state.scoreSnapshots = new java.util.ArrayList<>(scoreSnapshots);
 		state.collectionLogSlots = collectionLogSlots;
 		state.collectionLogTotal = collectionLogTotal;

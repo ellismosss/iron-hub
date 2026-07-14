@@ -183,6 +183,7 @@ public class CombatAchievementsModule implements IronHubModule
 		}
 		tasks = List.copyOf(loaded);
 		log.debug("CA catalog loaded: {} tasks", loaded.size());
+		markCompletedGoalTasks(loaded);
 		if (announceAfterReload)
 		{
 			announceAfterReload = false;
@@ -191,6 +192,29 @@ public class CombatAchievementsModule implements IronHubModule
 		if (tasksListener != null)
 		{
 			SwingUtilities.invokeLater(tasksListener);
+		}
+	}
+
+	/**
+	 * Prove goal-planner CA goals: for every task added as a goal that the
+	 * catalog now shows completed, mark its {@code catask_<id>} unlock flag
+	 * (the goal's achieved proof) — one bulk persist.
+	 */
+	private void markCompletedGoalTasks(List<CaTask> loaded)
+	{
+		var goalIds = state.getCaGoals().keySet();
+		List<String> newlyDone = new java.util.ArrayList<>();
+		for (CaTask task : loaded)
+		{
+			if (task.completed && goalIds.contains(String.valueOf(task.id))
+				&& !state.isUnlocked("catask_" + task.id))
+			{
+				newlyDone.add("catask_" + task.id);
+			}
+		}
+		if (!newlyDone.isEmpty())
+		{
+			state.setUnlockedBulk(newlyDone);
 		}
 	}
 

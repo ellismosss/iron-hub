@@ -49,7 +49,20 @@ public class PersistedState
 	long collectionLogSeenMs;
 	Set<String> selectedGoals = new HashSet<>();
 	String activeGoal = "";
-	Set<Integer> trackedCaTasks = new HashSet<>(); // CA task ids the user is working on
+	Map<String, CaGoal> caGoals = new HashMap<>(); // CA task id -> goal-planner seed
+
+	/**
+	 * A Combat Achievement task added to the goal planner. The catalog only
+	 * exists while logged in, so the goal's display data is snapshotted at
+	 * add time; completion is proven by the {@code catask_<id>} unlock flag
+	 * the CA module marks when the live catalog shows the task done.
+	 */
+	public static class CaGoal
+	{
+		public String name;
+		public String description;
+		public String tier;
+	}
 
 	static class PatchSeen
 	{
