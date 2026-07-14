@@ -1,5 +1,10 @@
 package com.loadoutlab.ui;
 
+import com.ironhub.ui.UiTokens;
+import com.ironhub.ui.components.HubProgressBar;
+import com.ironhub.ui.components.IconButton;
+import com.ironhub.ui.components.PaintedIcon;
+import com.ironhub.ui.components.SectionLabel;
 import com.loadoutlab.UsageLog;
 import com.loadoutlab.data.GearItem;
 import com.loadoutlab.data.GearSlot;
@@ -229,11 +234,11 @@ public class LoadoutLabPanel extends PluginPanel
 		GearSlot.HANDS, GearSlot.FEET, GearSlot.RING,
 	};
 
-	/** Text palette: muted grey for secondary info, green for good news,
-	 * blue for "do this" instructions, green-border green for unowned gear. */
-	private static final Color MUTED = new Color(160, 160, 160);
-	private static final Color GOOD = new Color(140, 200, 140);
-	private static final Color INFO = new Color(150, 170, 230);
+	/** Iron Hub: the text palette maps onto the shared design tokens so the
+	 * embedded lab reads like every other Iron Hub tab (was grey/green/blue). */
+	private static final Color MUTED = UiTokens.TEXT_MUTED;
+	private static final Color GOOD = UiTokens.STATUS_OWNED;
+	private static final Color INFO = UiTokens.TEXT_BODY;
 	private static final Color UNOWNED = new Color(110, 190, 110);
 	private static final Color BORDER_UNOWNED = new Color(100, 145, 100);
 
@@ -336,7 +341,8 @@ public class LoadoutLabPanel extends PluginPanel
 	private static final Color POSTIT_BG = new Color(222, 212, 150);
 	private static final Color POSTIT_FG = new Color(55, 50, 25);
 
-	private final JTextField searchField = new JTextField();
+	// Iron Hub: shared search-field atom (inset bg, accent focus, placeholder)
+	private final JTextField searchField = new com.ironhub.ui.components.SearchField("Search a monster…");
 	private final DefaultListModel<MonsterStats> monsterModel = new DefaultListModel<>();
 	private final JList<MonsterStats> monsterList = new JList<>(monsterModel);
 	private final JScrollPane monsterScroll;
@@ -401,7 +407,7 @@ public class LoadoutLabPanel extends PluginPanel
 		this.ownedCheck = ownedCheck;
 
 		setLayout(new BorderLayout(0, 6));
-		setBackground(ColorScheme.DARK_GRAY_COLOR);
+		setBackground(UiTokens.PANEL_BG);
 		setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
 		JPanel top = new JPanel();
@@ -450,35 +456,31 @@ public class LoadoutLabPanel extends PluginPanel
 		selectedRow.setOpaque(false);
 		selectedRow.setAlignmentX(LEFT_ALIGNMENT);
 		selectedRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
-		selectedLabel.setForeground(GOOD);
-		selectedLabel.setFont(selectedLabel.getFont().deriveFont(Font.BOLD, 14f));
+		// Iron Hub: the target reads as the screen title — primary bold, with
+		// compact 18px icon buttons instead of the chunky default JButtons
+		selectedLabel.setForeground(UiTokens.TEXT_PRIMARY);
+		selectedLabel.setFont(selectedLabel.getFont().deriveFont(Font.BOLD, 13f));
 		selectedRow.add(selectedLabel, BorderLayout.CENTER);
-		JButton reloadButton = new JButton(new ReloadIcon(12));
-		reloadButton.setMargin(new Insets(0, 6, 0, 6));
-		reloadButton.setToolTipText("Re-run the search for this monster");
-		reloadButton.addActionListener(e -> recompute());
 		// lastShownLoadout resets each recompute via the results rebuild
-		JButton clearSelection = new JButton("x");
-		clearSelection.setMargin(new Insets(0, 6, 0, 6));
-		clearSelection.setToolTipText("Choose a different monster");
-		clearSelection.addActionListener(e -> clearSelection());
 		JPanel selectedButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
 		selectedButtons.setOpaque(false);
-		selectedButtons.add(reloadButton);
-		selectedButtons.add(clearSelection);
+		selectedButtons.add(new IconButton(new ReloadIcon(11),
+			"Re-run the search for this monster", this::recompute));
+		selectedButtons.add(new IconButton("×",
+			"Choose a different monster", this::clearSelection));
 		selectedRow.add(selectedButtons, BorderLayout.EAST);
 		selectedRow.setVisible(false);
 		top.add(selectedRow);
-		weaknessLabel.setForeground(MUTED);
-		weaknessLabel.setFont(weaknessLabel.getFont().deriveFont(12f));
+		weaknessLabel.setForeground(UiTokens.STATUS_AVAILABLE);
+		weaknessLabel.setFont(weaknessLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
 		weaknessLabel.setAlignmentX(LEFT_ALIGNMENT);
 		weaknessLabel.setVisible(false);
 		top.add(weaknessLabel);
 
 		// Curated mechanics note (finishing items, immunities) for the
 		// selected monster - so a correct suggestion doesn't look wrong.
-		monsterNote.setForeground(new Color(200, 170, 110));
-		monsterNote.setFont(monsterNote.getFont().deriveFont(13f));
+		monsterNote.setForeground(UiTokens.STATUS_AVAILABLE);
+		monsterNote.setFont(monsterNote.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
 		monsterNote.setAlignmentX(LEFT_ALIGNMENT);
 		monsterNote.setVisible(false);
 		top.add(monsterNote);
@@ -496,7 +498,12 @@ public class LoadoutLabPanel extends PluginPanel
 				return this;
 			}
 		});
+		// Iron Hub: inset list chrome matching the search field
+		monsterList.setBackground(UiTokens.INSET_BG);
+		monsterList.setForeground(UiTokens.TEXT_BODY);
+		monsterList.setFont(monsterList.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
 		monsterScroll = new JScrollPane(monsterList);
+		monsterScroll.setBorder(BorderFactory.createLineBorder(UiTokens.BORDER));
 		monsterScroll.setPreferredSize(new Dimension(0, 130));
 		monsterScroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 130));
 		monsterScroll.setAlignmentX(LEFT_ALIGNMENT);
@@ -524,6 +531,7 @@ public class LoadoutLabPanel extends PluginPanel
 		// How much gp the set may drop on a wilderness death; 0 = nothing
 		// droppable and no fees at all.
 		riskBudget.setAlignmentX(LEFT_ALIGNMENT);
+		riskBudget.setFont(riskBudget.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
 		riskBudget.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
 		riskBudget.setToolTipText("Total gp the set may drop on a wilderness death");
 		riskBudget.setSelectedIndex(2);
@@ -570,8 +578,8 @@ public class LoadoutLabPanel extends PluginPanel
 		// Iron Hub: optimize selector moves below the results (see bottomControls)
 
 		// Excluded items ("protected" from suggestions) - click to manage.
-		exclusionsLabel.setForeground(new Color(200, 140, 140));
-		exclusionsLabel.setFont(exclusionsLabel.getFont().deriveFont(13f));
+		exclusionsLabel.setForeground(UiTokens.STATUS_WARNING);
+		exclusionsLabel.setFont(exclusionsLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
 		exclusionsLabel.setAlignmentX(LEFT_ALIGNMENT);
 		exclusionsLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		exclusionsLabel.addMouseListener(new MouseAdapter()
@@ -587,7 +595,7 @@ public class LoadoutLabPanel extends PluginPanel
 
 		// Stored-elsewhere items (manual owned: STASH, POH, UIM storages).
 		storedLabel.setForeground(GOOD);
-		storedLabel.setFont(storedLabel.getFont().deriveFont(13f));
+		storedLabel.setFont(storedLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
 		storedLabel.setAlignmentX(LEFT_ALIGNMENT);
 		storedLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		storedLabel.addMouseListener(new MouseAdapter()
@@ -653,8 +661,8 @@ public class LoadoutLabPanel extends PluginPanel
 		// Iron Hub: the personal note editor is dropped from the embedded panel
 
 		// Pinned items ("always bring") - click to manage.
-		pinnedLabel.setForeground(INFO);
-		pinnedLabel.setFont(pinnedLabel.getFont().deriveFont(13f));
+		pinnedLabel.setForeground(UiTokens.TEXT_FAINT);
+		pinnedLabel.setFont(pinnedLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
 		pinnedLabel.setAlignmentX(LEFT_ALIGNMENT);
 		pinnedLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		pinnedLabel.addMouseListener(new MouseAdapter()
@@ -677,27 +685,25 @@ public class LoadoutLabPanel extends PluginPanel
 		resultsScroll.setBorder(null);
 		resultsScroll.getViewport().setOpaque(false);
 		resultsScroll.setOpaque(false);
-		// Iron Hub: spellbook + optimize live under the gear grids
+		// Iron Hub: grouped options block under the results - a labelled
+		// ASSUMPTIONS section (boost + spellbook icon rows, centred like the
+		// gear grids), then the optimize mode, then the action buttons. Every
+		// child is LEFT-aligned: the old mix of alignments drifted rows right.
 		JPanel bottomControls = new JPanel();
 		bottomControls.setLayout(new BoxLayout(bottomControls, BoxLayout.Y_AXIS));
 		bottomControls.setOpaque(false);
+		bottomControls.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
+		SectionLabel assumptions = new SectionLabel("Assumptions");
+		assumptions.setToolTipText("Prayers, potions and spellbook the DPS numbers may assume");
+		bottomControls.add(assumptions);
+		bottomControls.add(Box.createVerticalStrut(4));
 		JPanel spellRow = new JPanel(new GridLayout(1, 3, 2, 0));
 		spellRow.setOpaque(false);
-		spellRow.setMaximumSize(new Dimension(3 * 34 + 4, 34));
-		spellRow.setAlignmentX(LEFT_ALIGNMENT);
 		spellRow.add(spellbookIcon("standard.png", "Standard spellbook", 1));
 		spellRow.add(spellbookIcon("ancient.png", "Ancient spellbook", 2));
 		spellRow.add(spellbookIcon("arceuus.png", "Arceuus spellbook", 3));
-		bottomControls.add(spellRow);
-		bottomControls.add(Box.createVerticalStrut(4));
-		bottomControls.add(optimizeMode);
-		bottomControls.add(Box.createVerticalStrut(4));
-		// Iron Hub: icon toggles - best prayer per style, potions, heart -
-		// and spellbook icons instead of the dropdown
 		JPanel boostRow = new JPanel(new GridLayout(1, 5, 2, 0));
 		boostRow.setOpaque(false);
-		boostRow.setMaximumSize(new Dimension(5 * 34 + 8, 34));
-		boostRow.setAlignmentX(LEFT_ALIGNMENT);
 		boostRow.add(iconToggle(net.runelite.api.SpriteID.PRAYER_PIETY,
 			"Melee prayer (Piety line)", false, on ->
 			{
@@ -726,10 +732,17 @@ public class LoadoutLabPanel extends PluginPanel
 				com.loadoutlab.optimizer.BoostSelector.HEART_ASSUMED = on;
 				recompute();
 			}));
-		bottomControls.add(boostRow);
-		bottomControls.add(Box.createVerticalStrut(4));
+		bottomControls.add(centeredRow(boostRow, 5 * 34 + 8, 34));
+		bottomControls.add(Box.createVerticalStrut(2));
+		bottomControls.add(centeredRow(spellRow, 3 * 34 + 4, 34));
+		bottomControls.add(Box.createVerticalStrut(8));
+		optimizeMode.setFont(optimizeMode.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		bottomControls.add(optimizeMode);
+		bottomControls.add(Box.createVerticalStrut(8));
 		JPanel setupButtons = new JPanel(new GridLayout(1, 2, 4, 0));
 		setupButtons.setOpaque(false);
+		setupButtons.setAlignmentX(LEFT_ALIGNMENT);
+		setupButtons.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
 		JButton saveSetupButton = new JButton("Save setup");
 		saveSetupButton.setToolTipText("Save this loadout as a named setup");
 		saveSetupButton.addActionListener(e ->
@@ -748,6 +761,8 @@ public class LoadoutLabPanel extends PluginPanel
 				loadSetupHook.run();
 			}
 		});
+		flatten(saveSetupButton);
+		flatten(loadSetupButton);
 		setupButtons.add(saveSetupButton);
 		setupButtons.add(loadSetupButton);
 		bottomControls.add(setupButtons);
@@ -755,6 +770,8 @@ public class LoadoutLabPanel extends PluginPanel
 		JButton openDpsCalc = new JButton("Open OSRS DPS Calc");
 		openDpsCalc.setToolTipText("Open the wiki DPS calculator with this monster and setup mirrored");
 		openDpsCalc.setAlignmentX(LEFT_ALIGNMENT);
+		openDpsCalc.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
+		flatten(openDpsCalc);
 		openDpsCalc.addActionListener(e ->
 		{
 			if (dpsCalcHook != null && selectedMonster != null && lastShownLoadout != null)
@@ -770,7 +787,8 @@ public class LoadoutLabPanel extends PluginPanel
 		centerWrap.add(bottomControls, BorderLayout.SOUTH);
 		add(centerWrap, BorderLayout.CENTER);
 
-		statusLabel.setForeground(MUTED);
+		statusLabel.setForeground(UiTokens.TEXT_FAINT);
+		statusLabel.setFont(statusLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
 		add(statusLabel, BorderLayout.SOUTH);
 
 		searchDebounce = new Timer(SEARCH_DEBOUNCE_MS, e -> runSearch());
@@ -796,7 +814,8 @@ public class LoadoutLabPanel extends PluginPanel
 	private void initToggle(JCheckBox box, String tooltip)
 	{
 		box.setOpaque(false);
-		box.setForeground(new Color(200, 200, 200));
+		box.setForeground(UiTokens.TEXT_BODY);
+		box.setFont(box.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
 		box.setAlignmentX(LEFT_ALIGNMENT);
 		box.setToolTipText(tooltip);
 		box.addActionListener(e -> recompute());
@@ -807,9 +826,41 @@ public class LoadoutLabPanel extends PluginPanel
 	{
 		JLabel line = new JLabel(text);
 		line.setForeground(fg);
-		line.setFont(line.getFont().deriveFont(13f));
+		line.setFont(line.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
 		line.setAlignmentX(LEFT_ALIGNMENT);
 		return line;
+	}
+
+	/** Iron Hub: flat button chrome from the shared tokens. */
+	private static void flatten(JButton button)
+	{
+		button.setFocusPainted(false);
+		button.setBackground(UiTokens.ICON_BUTTON_BG);
+		button.setForeground(UiTokens.TEXT_BODY);
+		button.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(UiTokens.BORDER_BUTTON),
+			BorderFactory.createEmptyBorder(2, 8, 2, 8)));
+		button.setFont(button.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
+		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	}
+
+	/** Iron Hub: pin a fixed-size component and centre it in a full-width
+	 * row, echoing how the gear grids sit in the panel. */
+	private static JPanel centeredRow(javax.swing.JComponent inner, int width, int height)
+	{
+		Dimension size = new Dimension(width, height);
+		inner.setPreferredSize(size);
+		inner.setMinimumSize(size);
+		inner.setMaximumSize(size);
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
+		row.add(Box.createHorizontalGlue());
+		row.add(inner);
+		row.add(Box.createHorizontalGlue());
+		return row;
 	}
 
 	/**
@@ -903,6 +954,7 @@ public class LoadoutLabPanel extends PluginPanel
 			}
 			// No match: surface the query in the search box so the caller's
 			// click visibly did something instead of nothing.
+			searchField.setVisible(true);
 			searchField.setText(monsterName);
 		}
 		return false;
@@ -922,6 +974,9 @@ public class LoadoutLabPanel extends PluginPanel
 		}
 		monsterModel.clear();
 		monsterScroll.setVisible(false);
+		// Iron Hub: the empty search box is dead weight once a target is
+		// picked - hide it; the x button brings it back
+		searchField.setVisible(false);
 		selectedMonster = monster;
 		boolean wilderness = WildernessMonsters.isWilderness(monster);
 		lowRisk.setVisible(wilderness);
@@ -1503,9 +1558,13 @@ public class LoadoutLabPanel extends PluginPanel
 			spriteManager.addSpriteTo(toggle, spriteId, 0);
 		}
 		final boolean[] on = {initial};
-		Runnable style = () -> toggle.setBackground(on[0]
-			? net.runelite.client.ui.ColorScheme.MEDIUM_GRAY_COLOR
-			: net.runelite.client.ui.ColorScheme.DARKER_GRAY_COLOR);
+		// Iron Hub: accent border = on (interaction colour), dim border = off
+		Runnable style = () ->
+		{
+			toggle.setBackground(on[0] ? UiTokens.ICON_BUTTON_BG : UiTokens.INSET_BG);
+			toggle.setBorder(BorderFactory.createLineBorder(
+				on[0] ? UiTokens.ACCENT : UiTokens.BORDER_DIM));
+		};
 		style.run();
 		toggle.addMouseListener(new MouseAdapter()
 		{
@@ -1552,9 +1611,14 @@ public class LoadoutLabPanel extends PluginPanel
 		catch (java.io.IOException ignored)
 		{
 		}
-		Runnable style = () -> icon.setBackground(spellbook.getSelectedIndex() == comboIndex
-			? net.runelite.client.ui.ColorScheme.MEDIUM_GRAY_COLOR
-			: net.runelite.client.ui.ColorScheme.DARKER_GRAY_COLOR);
+		// Iron Hub: accent border = selected book, dim border = not selected
+		Runnable style = () ->
+		{
+			boolean on = spellbook.getSelectedIndex() == comboIndex;
+			icon.setBackground(on ? UiTokens.ICON_BUTTON_BG : UiTokens.INSET_BG);
+			icon.setBorder(BorderFactory.createLineBorder(
+				on ? UiTokens.ACCENT : UiTokens.BORDER_DIM));
+		};
 		style.run();
 		spellbook.addActionListener(e -> style.run());
 		icon.addMouseListener(new MouseAdapter()
@@ -1995,6 +2059,8 @@ public class LoadoutLabPanel extends PluginPanel
 		selectedMonster = null;
 		cardCollapsed.clear();
 		selectedRow.setVisible(false);
+		searchField.setVisible(true);
+		weaknessLabel.setVisible(false);
 		selectedLabel.setText("");
 		monsterNote.setText("");
 		monsterNote.setVisible(false);
@@ -2066,7 +2132,9 @@ public class LoadoutLabPanel extends PluginPanel
 		{
 			resultsPanel.add(legend);
 		}
-		statusLabel.setText("Best owned sets vs " + monster.getName());
+		// Iron Hub: the target row already names the monster - repeating it
+		// in a footer line was noise
+		statusLabel.setText(" ");
 		resultsPanel.revalidate();
 		resultsPanel.repaint();
 	}
@@ -2076,8 +2144,11 @@ public class LoadoutLabPanel extends PluginPanel
 		renderingStyle = style;
 		JPanel card = new JPanel();
 		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		card.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+		// Iron Hub: shared card chrome - flat CARD_BG fill + 1px border
+		card.setBackground(UiTokens.CARD_BG);
+		card.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(UiTokens.BORDER),
+			BorderFactory.createEmptyBorder(6, 8, 8, 8)));
 		card.setAlignmentX(LEFT_ALIGNMENT);
 
 		boolean hasSet = result != null && result.owned != null && !result.owned.isEmpty();
@@ -2085,14 +2156,16 @@ public class LoadoutLabPanel extends PluginPanel
 			? cardCollapsed.get(style)
 			: autoCollapsed.getOrDefault(style, false);
 
-		// Header row: collapse toggle + summary dps left, the set's own
-		// menu (per-set pins and bank-filter supplies) right.
-		JLabel header = new JLabel((collapsed ? "> " : "v ") + style
-			+ (hasSet
-				? String.format(" - %.2f DPS", result.owned.get(0).getDps())
-				: " - no set"));
-		header.setForeground(Color.WHITE);
-		header.setFont(header.getFont().deriveFont(Font.BOLD, 14f));
+		// Header row: collapse triangle + STYLE left, the summary dps value
+		// right, then the set's own menu (per-set pins and filter supplies).
+		JLabel header = new JLabel(style.toString().toUpperCase());
+		header.setIcon(new PaintedIcon(collapsed
+			? PaintedIcon.Shape.TRIANGLE_RIGHT : PaintedIcon.Shape.TRIANGLE_DOWN, 10));
+		header.setIconTextGap(6);
+		header.setForeground(UiTokens.TEXT_PRIMARY);
+		header.setFont(SectionLabel.letterSpaced(
+			header.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY),
+			UiTokens.LETTER_SPACING_LABEL));
 		header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		header.setToolTipText(collapsed ? "Click to expand this set" : "Click to collapse this set");
 		header.addMouseListener(new MouseAdapter()
@@ -2115,6 +2188,9 @@ public class LoadoutLabPanel extends PluginPanel
 		JButton setMenu = new JButton(new DotsIcon(11));
 		setMenu.setToolTipText("Pins and bank-filter items for this set");
 		setMenu.setMargin(new Insets(1, 5, 1, 5));
+		flatten(setMenu);
+		setMenu.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
+		setMenu.setContentAreaFilled(false);
 		setMenu.addActionListener(e ->
 		{
 			JPopupMenu menu = new JPopupMenu();
@@ -2132,15 +2208,15 @@ public class LoadoutLabPanel extends PluginPanel
 			menu.add(filterAll);
 			menu.show(setMenu, 0, setMenu.getHeight());
 		});
-		// Assume icons ride the header (right, before the menu) - a whole
-		// row of vertical space reclaimed per card.
+		// Iron Hub: the dps value sits right-aligned in the header - the
+		// single number per style, once (it used to repeat three times).
 		JPanel headerEast = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
 		headerEast.setOpaque(false);
-		if (hasSet && result.boostLabel != null && !result.boostLabel.isEmpty())
-		{
-			headerEast.add(assumesChips(result.boostLabel,
-				"Assumed prayer + boost (you own these)"));
-		}
+		JLabel dpsValue = new JLabel(hasSet
+			? String.format("%.2f dps", result.owned.get(0).getDps()) : "no set");
+		dpsValue.setForeground(hasSet ? GOOD : MUTED);
+		dpsValue.setFont(dpsValue.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
+		headerEast.add(dpsValue);
 		headerEast.add(setMenu);
 		headerRow.add(headerEast, BorderLayout.EAST);
 		card.add(headerRow);
@@ -2183,12 +2259,45 @@ public class LoadoutLabPanel extends PluginPanel
 
 		DpsResult best = result.owned.get(0);
 
-		// Yours vs the game's ceiling.
-		JLabel dps = new JLabel(String.format("Yours: %.2f DPS  (max %d, %.0f%% acc)",
-			best.getDps(), best.getMaxHit(), best.getAccuracy() * 100));
-		dps.setForeground(GOOD);
-		dps.setAlignmentX(LEFT_ALIGNMENT);
-		card.add(dps);
+		// Iron Hub: one stat strip replaces the three dps text lines - a bar
+		// to the game-best ceiling (click inspects that set) + one caption.
+		double ceiling = result.overallBest != null ? result.overallBest.getDps() : 0;
+		if (ceiling > 0)
+		{
+			double fraction = Math.min(1.0, best.getDps() / ceiling);
+			HubProgressBar bar = HubProgressBar.bar(fraction);
+			bar.setToolTipText(String.format(
+				"You are at %.0f%% of the game-best set (%.2f DPS) - click to inspect it",
+				fraction * 100, ceiling));
+			bar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			bar.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mouseClicked(MouseEvent e)
+				{
+					if (!gameBestExpanded.remove(style))
+					{
+						gameBestExpanded.add(style);
+					}
+					if (selectedMonster != null && lastResults != null)
+					{
+						showResults(selectedMonster, lastResults);
+					}
+				}
+			});
+			card.add(Box.createVerticalStrut(4));
+			card.add(bar);
+		}
+		card.add(Box.createVerticalStrut(3));
+		JLabel caption = line(ceiling > 0
+			? String.format("Max %d · %.0f%% acc · %.0f%% of best",
+				best.getMaxHit(), best.getAccuracy() * 100,
+				Math.min(100.0, 100.0 * best.getDps() / ceiling))
+			: String.format("Max %d · %.0f%% acc",
+				best.getMaxHit(), best.getAccuracy() * 100), MUTED);
+		caption.setToolTipText("Max hit and accuracy of your best owned set");
+		card.add(caption);
+		addAssumesRow(card, result.boostLabel, "Assumed prayer + boost (you own these)");
 		addIncomingLine(card, result.incoming);
 		if (result.modeTrade != null)
 		{
@@ -2206,48 +2315,46 @@ public class LoadoutLabPanel extends PluginPanel
 		card.add(iconGrid(best, result.spec, result.specWeapon, result.specExpectedDamage,
 			result.specDrainValue, best.getExpectedHit(), "Swap in for the special attack",
 			true, result.overallBest == null ? null : result.overallBest.getLoadout()));
-		JPanel bankRow = iconRow(card);
+		// Iron Hub: full-width paired action buttons instead of floating ones
+		JPanel bankRow = new JPanel(new GridLayout(1, 2, 4, 0));
+		bankRow.setOpaque(false);
+		bankRow.setAlignmentX(LEFT_ALIGNMENT);
+		bankRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
 		bankRow.add(bankButton(style, best, result.specWeapon));
 		bankRow.add(bankFilterButton(style, best, result.specWeapon));
+		card.add(Box.createVerticalStrut(6));
+		card.add(bankRow);
 
-		// The ceiling: the game-wide best set, so "off" numbers are inspectable.
-		// The header always shows the summary; clicking it shows/hides the rest.
-		if (result.overallBest != null && result.overallBest.getDps() > 0)
+		// The ceiling set itself - the progress bar is the toggle; when
+		// expanded, a labelled sub-section keeps it visually subordinate.
+		if (result.overallBest != null && result.overallBest.getDps() > 0
+			&& gameBestExpanded.contains(style))
 		{
-			card.add(Box.createVerticalStrut(6));
-			boolean expanded = gameBestExpanded.contains(style);
-			double pct = 100.0 * best.getDps() / result.overallBest.getDps();
-			JLabel ceiling = line(String.format("%s Game best: %.2f DPS - you are at %.0f%%",
-				expanded ? "v" : ">",
-				result.overallBest.getDps(), Math.min(100.0, pct)), MUTED);
-			ceiling.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			ceiling.setToolTipText(expanded ? "Click to hide the game-best set" : "Click to show the game-best set");
-			ceiling.addMouseListener(new MouseAdapter()
+			card.add(Box.createVerticalStrut(8));
+			SectionLabel gameBest = new SectionLabel(
+				String.format("Game best · %.2f dps", result.overallBest.getDps()));
+			gameBest.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			gameBest.setToolTipText("Click to hide the game-best set");
+			gameBest.addMouseListener(new MouseAdapter()
 			{
 				@Override
 				public void mouseClicked(MouseEvent e)
 				{
-					if (!gameBestExpanded.remove(style))
-					{
-						gameBestExpanded.add(style);
-					}
+					gameBestExpanded.remove(style);
 					if (selectedMonster != null && lastResults != null)
 					{
 						showResults(selectedMonster, lastResults);
 					}
 				}
 			});
-			card.add(ceiling);
-			if (expanded)
-			{
-				addAssumesRow(card, result.gameBoostLabel, "Best prayers + boost in the game");
-				addSpellLine(card, style, result.overallBest);
-				addDartLine(card, result.overallBest);
-				card.add(Box.createVerticalStrut(4));
-				card.add(iconGrid(result.overallBest, result.gameSpec, result.gameSpecWeapon, result.gameSpecExpectedDamage,
-					result.gameSpecDrainValue, result.overallBest.getExpectedHit(),
-					"Strongest special attack in the game vs this monster"));
-			}
+			card.add(gameBest);
+			addAssumesRow(card, result.gameBoostLabel, "Best prayers + boost in the game");
+			addSpellLine(card, style, result.overallBest);
+			addDartLine(card, result.overallBest);
+			card.add(Box.createVerticalStrut(4));
+			card.add(iconGrid(result.overallBest, result.gameSpec, result.gameSpecWeapon, result.gameSpecExpectedDamage,
+				result.gameSpecDrainValue, result.overallBest.getExpectedHit(),
+				"Strongest special attack in the game vs this monster"));
 		}
 		return card;
 	}
@@ -2758,8 +2865,7 @@ public class LoadoutLabPanel extends PluginPanel
 	{
 		boolean filtering = bankFiltered == style;
 		JButton button = new JButton(filtering ? "Unfilter bank" : "Filter bank");
-		button.setFont(button.getFont().deriveFont(13f));
-		button.setMargin(new Insets(1, 6, 1, 6));
+		flatten(button);
 		button.setToolTipText("Show only this set's items in the bank (needs Bank Tags enabled)");
 		button.addActionListener(e ->
 		{
@@ -2791,10 +2897,9 @@ public class LoadoutLabPanel extends PluginPanel
 	private JButton bankButton(CombatStyle style, DpsResult best, GearItem specWeapon)
 	{
 		boolean showing = bankShown == style;
-		JButton button = new JButton(showing ? "Stop showing in bank" : "Show in bank");
+		JButton button = new JButton(showing ? "Stop showing" : "Show in bank");
 		button.setAlignmentX(LEFT_ALIGNMENT);
-		button.setFont(button.getFont().deriveFont(13f));
-		button.setMargin(new Insets(1, 6, 1, 6));
+		flatten(button);
 		button.setToolTipText("Outline this set's items in the bank");
 		button.addActionListener(e ->
 		{

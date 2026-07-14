@@ -166,7 +166,9 @@ public class LoadoutLabModule implements IronHubModule
 		return holder;
 	}
 
-	/** The activity strip: auto-followed target, tips, remembered setup. */
+	/** The activity card: what the module is auto-following, plus wiki tips.
+	 * (Save/Load setup live once, at the bottom with the saved-setup view -
+	 * the old second Save button up here duplicated them.) */
 	private JPanel buildStrip()
 	{
 		strip = new JPanel();
@@ -174,31 +176,38 @@ public class LoadoutLabModule implements IronHubModule
 		strip.setBackground(UiTokens.PANEL_BG);
 		strip.setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD_TIGHT, UiTokens.PAD));
 
-		activityLabel.setForeground(UiTokens.TEXT_MUTED);
-		activityLabel.setFont(activityLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
-		activityLabel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-		strip.add(activityLabel);
-		strip.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		JPanel card = new JPanel();
+		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+		card.setBackground(UiTokens.CARD_BG);
+		card.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		card.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+			new javax.swing.border.LineBorder(UiTokens.BORDER),
+			new EmptyBorder(6, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD)));
 
-		JPanel buttons = new JPanel(new GridLayout(1, 2, UiTokens.GRID_GAP, 0));
-		buttons.setOpaque(false);
-		buttons.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-		buttons.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
-		buttons.add(button("Wiki tips",
+		JPanel headerRow = new JPanel(new BorderLayout());
+		headerRow.setOpaque(false);
+		headerRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		headerRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ICON_BUTTON_SIZE + 2));
+		headerRow.add(new SectionLabel("Activity"), BorderLayout.WEST);
+		headerRow.add(button("Wiki tips",
 			"Fetch tips for this task/boss from its wiki strategy page (user-initiated request)",
-			this::fetchTips));
-		buttons.add(button("Save setup",
-			"Remember your current worn gear, inventory and rune pouch for this task/boss",
-			this::saveCurrentSetup));
-		strip.add(buttons);
-		strip.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			this::fetchTips), BorderLayout.EAST);
+		card.add(headerRow);
+		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+
+		activityLabel.setForeground(UiTokens.TEXT_BODY);
+		activityLabel.setFont(activityLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
+		activityLabel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		card.add(activityLabel);
 
 		tipsLabel.setForeground(UiTokens.TEXT_FAINT);
 		tipsLabel.setFont(tipsLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
 		tipsLabel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 		tipsLabel.setVisible(false);
-		strip.add(tipsLabel);
+		tipsLabel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
+		card.add(tipsLabel);
 
+		strip.add(card);
 		return strip;
 	}
 
@@ -208,8 +217,10 @@ public class LoadoutLabModule implements IronHubModule
 		button.setOpaque(true);
 		button.setBackground(UiTokens.ICON_BUTTON_BG);
 		button.setForeground(UiTokens.TEXT_BODY);
-		button.setBorder(new javax.swing.border.LineBorder(UiTokens.BORDER_BUTTON));
-		button.setFont(button.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
+		button.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+			new javax.swing.border.LineBorder(UiTokens.BORDER_BUTTON),
+			new EmptyBorder(1, 6, 1, 6)));
+		button.setFont(button.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
 		button.setToolTipText(tooltip);
 		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		button.addMouseListener(new java.awt.event.MouseAdapter()
@@ -262,6 +273,7 @@ public class LoadoutLabModule implements IronHubModule
 			line.append(line.length() > 0 ? " · " : "").append("Last fought: ").append(fighting);
 		}
 		activityLabel.setText(line.length() > 0 ? line.toString() : "No task or fight detected yet");
+		activityLabel.setToolTipText(activityLabel.getText());
 		renderSavedSetup();
 	}
 
@@ -333,17 +345,6 @@ public class LoadoutLabModule implements IronHubModule
 			viewedSetup = pick;
 			renderSavedSetup();
 		}
-	}
-
-	/** Capture worn gear + inventory now; the rune pouch needs the client thread. */
-	private void saveCurrentSetup()
-	{
-		String activity = activity();
-		if (activity.isEmpty())
-		{
-			return;
-		}
-		captureSetup(activity);
 	}
 
 	private void captureSetup(String key)
@@ -546,14 +547,16 @@ public class LoadoutLabModule implements IronHubModule
 		}
 		if (lab.getPanel() != null)
 		{
-			// collapsible DPS Calc section wrapping the whole lab panel
+			// collapsible DPS Calc section wrapping the whole lab panel -
+			// styled like every other Iron Hub section header (triangle glyph)
 			JPanel section = new JPanel(new BorderLayout());
 			section.setBackground(UiTokens.PANEL_BG);
-			JLabel header = new JLabel(dpsCalcCollapsed ? "DPS Calc  [show]" : "DPS Calc  [hide]");
-			header.setForeground(UiTokens.TEXT_PRIMARY);
-			header.setFont(header.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
+			SectionLabel header = new SectionLabel("DPS Calc");
+			header.setIcon(new com.ironhub.ui.components.PaintedIcon(triangle(), 10));
+			header.setIconTextGap(UiTokens.ROW_GAP);
 			header.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, UiTokens.PAD, UiTokens.PAD_TIGHT, UiTokens.PAD));
 			header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			header.setToolTipText("Show or hide the DPS calculator");
 			header.addMouseListener(new java.awt.event.MouseAdapter()
 			{
 				@Override
@@ -561,7 +564,7 @@ public class LoadoutLabModule implements IronHubModule
 				{
 					dpsCalcCollapsed = !dpsCalcCollapsed;
 					lab.getPanel().setVisible(!dpsCalcCollapsed);
-					header.setText(dpsCalcCollapsed ? "DPS Calc  [show]" : "DPS Calc  [hide]");
+					header.setIcon(new com.ironhub.ui.components.PaintedIcon(triangle(), 10));
 					holder.revalidate();
 				}
 			});
@@ -580,6 +583,14 @@ public class LoadoutLabModule implements IronHubModule
 		}
 		holder.revalidate();
 		holder.repaint();
+	}
+
+	/** The DPS Calc header triangle for the current collapse state. */
+	private com.ironhub.ui.components.PaintedIcon.Shape triangle()
+	{
+		return dpsCalcCollapsed
+			? com.ironhub.ui.components.PaintedIcon.Shape.TRIANGLE_RIGHT
+			: com.ironhub.ui.components.PaintedIcon.Shape.TRIANGLE_DOWN;
 	}
 
 	/** Idempotent: attach all wrapper hooks once the panel exists. */
