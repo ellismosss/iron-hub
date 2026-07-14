@@ -96,6 +96,56 @@ public class GoalPlannerTest
 	}
 
 	@Test
+	public void targetedGearItemsBecomeGoals()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		com.ironhub.data.GearProgressionPack gear = new DataPack(new Gson())
+			.load("gear-progression", com.ironhub.data.GearProgressionPack.class);
+		com.ironhub.data.GearProgressionPack.Item fireCape = gear.getPhases().stream()
+			.flatMap(p -> p.getGroups().stream())
+			.flatMap(g -> g.getItems().stream())
+			.filter(i -> i.getName().equals("Fire cape"))
+			.findFirst().orElseThrow();
+
+		// untargeted: only the pack goals exist
+		assertEquals(pack.getGoals().size(),
+			GoalPlannerModule.allGoals(pack, gear, state).size());
+
+		// clicking the chart tile targets it -> synthetic goal appears
+		state.selectGoal(fireCape.goalId(), true);
+		List<GoalsPack.Goal> goals = GoalPlannerModule.allGoals(pack, gear, state);
+		assertEquals(pack.getGoals().size() + 1, goals.size());
+		GoalsPack.Goal synthetic = goals.get(goals.size() - 1);
+		assertEquals("gear:fire_cape", synthetic.getId());
+		assertEquals("Obtain Fire cape",
+			synthetic.getSteps().get(synthetic.getSteps().size() - 1).getLabel());
+
+		// first target auto-pins as the active goal; ownership achieves it
+		assertEquals("gear:fire_cape", state.getActiveGoal());
+		assertFalse(GoalPlannerModule.isAchieved(synthetic, state));
+		StateFixture.equipment(state, Map.of(6570, 1));
+		assertTrue(GoalPlannerModule.isAchieved(synthetic, state));
+	}
+
+	@Test
+	public void manualGearEntriesAchieveViaMark()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		com.ironhub.data.GearProgressionPack gear = new DataPack(new Gson())
+			.load("gear-progression", com.ironhub.data.GearProgressionPack.class);
+		com.ironhub.data.GearProgressionPack.Item altar = gear.getPhases().stream()
+			.flatMap(p -> p.getGroups().stream())
+			.flatMap(g -> g.getItems().stream())
+			.filter(com.ironhub.data.GearProgressionPack.Item::isManual)
+			.findFirst().orElseThrow();
+
+		GoalsPack.Goal goal = GoalPlannerModule.toGoal(altar);
+		assertFalse(GoalPlannerModule.isAchieved(goal, state));
+		state.setUnlocked(altar.markKey(), true); // right-click "Mark obtained"
+		assertTrue(GoalPlannerModule.isAchieved(goal, state));
+	}
+
+	@Test
 	public void manualStepsTickViaUnlockFlags()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());

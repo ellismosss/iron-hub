@@ -27,14 +27,17 @@ public class GearProgressionModule implements IronHubModule
 	private final AccountState state;
 	private final IronHubConfig config;
 	private final DataPack dataPack;
+	private final net.runelite.client.game.ItemManager itemManager; // null in headless tests
 	private GearTab tab;
 
 	@Inject
-	public GearProgressionModule(AccountState state, IronHubConfig config, DataPack dataPack)
+	public GearProgressionModule(AccountState state, IronHubConfig config, DataPack dataPack,
+		net.runelite.client.game.ItemManager itemManager)
 	{
 		this.state = state;
 		this.config = config;
 		this.dataPack = dataPack;
+		this.itemManager = itemManager;
 	}
 
 	@Override
@@ -69,7 +72,9 @@ public class GearProgressionModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new GearTab(state, dataPack.load("gear-ladders", GearLaddersPack.class));
+			tab = new GearTab(state,
+				dataPack.load("gear-progression", com.ironhub.data.GearProgressionPack.class),
+				itemManager);
 		}
 		return tab;
 	}

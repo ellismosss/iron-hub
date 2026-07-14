@@ -35,7 +35,8 @@ public class WhatNowTest
 		packs.load("dailies", DailiesPack.class),
 		packs.load("herb-patches", HerbPatchesPack.class),
 		packs.load("banked-xp", BankedXpPack.class),
-		packs.load("goals", GoalsPack.class));
+		packs.load("goals", GoalsPack.class),
+		packs.load("gear-progression", com.ironhub.data.GearProgressionPack.class));
 
 	@Test
 	public void suggestionsComposeAcrossModules()

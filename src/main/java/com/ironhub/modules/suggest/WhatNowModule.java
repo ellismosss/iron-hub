@@ -46,14 +46,17 @@ public class WhatNowModule implements IronHubModule
 		final HerbPatchesPack herbPatches;
 		final BankedXpPack bankedXp;
 		final GoalsPack goals;
+		final com.ironhub.data.GearProgressionPack gearProgression;
 
 		public Packs(DailiesPack dailies, HerbPatchesPack herbPatches,
-			BankedXpPack bankedXp, GoalsPack goals)
+			BankedXpPack bankedXp, GoalsPack goals,
+			com.ironhub.data.GearProgressionPack gearProgression)
 		{
 			this.dailies = dailies;
 			this.herbPatches = herbPatches;
 			this.bankedXp = bankedXp;
 			this.goals = goals;
+			this.gearProgression = gearProgression;
 		}
 	}
 
@@ -103,7 +106,8 @@ public class WhatNowModule implements IronHubModule
 					dataPack.load("dailies", DailiesPack.class),
 					dataPack.load("herb-patches", HerbPatchesPack.class),
 					dataPack.load("banked-xp", BankedXpPack.class),
-					dataPack.load("goals", GoalsPack.class));
+					dataPack.load("goals", GoalsPack.class),
+					dataPack.load("gear-progression", com.ironhub.data.GearProgressionPack.class));
 			}
 			tab = new WhatNowTab(state, packs);
 		}
@@ -162,7 +166,7 @@ public class WhatNowModule implements IronHubModule
 				SuppliesRunwayModule.formatHours(r.hoursLeft()) + " of stock left", 30,
 				2.5, Math.min(3.0, 6.0 / Math.max(0.5, r.hoursLeft())), budgetMinutes)));
 
-		packs.goals.getGoals().stream()
+		GoalPlannerModule.allGoals(packs.goals, packs.gearProgression, state).stream()
 			.filter(g -> g.getId().equals(state.getActiveGoal()))
 			.findFirst()
 			.map(g -> Map.entry(g, GoalPlannerModule.nextStep(g, state)))

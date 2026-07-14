@@ -69,6 +69,7 @@ public class DashboardPanel extends JPanel
 	private final DailiesPack dailiesPack;
 	private final HerbPatchesPack herbPack;
 	private final GearLaddersPack gearPack;
+	private final com.ironhub.data.GearProgressionPack gearProgressionPack;
 	private final WhatNowModule.Packs whatNowPacks;
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 
@@ -86,8 +87,9 @@ public class DashboardPanel extends JPanel
 		this.dailiesPack = dataPack.load("dailies", DailiesPack.class);
 		this.herbPack = dataPack.load("herb-patches", HerbPatchesPack.class);
 		this.gearPack = dataPack.load("gear-ladders", GearLaddersPack.class);
+		this.gearProgressionPack = dataPack.load("gear-progression", com.ironhub.data.GearProgressionPack.class);
 		this.whatNowPacks = new WhatNowModule.Packs(dailiesPack, herbPack,
-			dataPack.load("banked-xp", BankedXpPack.class), goalsPack);
+			dataPack.load("banked-xp", BankedXpPack.class), goalsPack, gearProgressionPack);
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
@@ -292,7 +294,7 @@ public class DashboardPanel extends JPanel
 		section.add(new SectionLabel("Active goal"));
 		section.add(Box.createVerticalStrut(5));
 
-		GoalsPack.Goal active = goalsPack.getGoals().stream()
+		GoalsPack.Goal active = GoalPlannerModule.allGoals(goalsPack, gearProgressionPack, state).stream()
 			.filter(g -> g.getId().equals(state.getActiveGoal()))
 			.filter(g -> !GoalPlannerModule.isAchieved(g, state)) // done → prompt for a new one
 			.findFirst().orElse(null);

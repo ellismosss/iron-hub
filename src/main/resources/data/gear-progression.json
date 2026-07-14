@@ -1,0 +1,2102 @@
+{
+  "$schema": "./schemas/gear-progression.schema.json",
+  "version": 1,
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Early game",
+      "groups": [
+        {
+          "label": "First steps",
+          "items": [
+            {
+              "name": "Chronicle",
+              "itemId": 13660,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            },
+            {
+              "name": "Ardougne cloak 1",
+              "itemId": 13121,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [
+                "skill:Thieving:15"
+              ],
+              "wiki": "Ardougne_cloak"
+            },
+            {
+              "name": "Climbing boots",
+              "itemId": 3105,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:Death Plateau"
+              ]
+            },
+            {
+              "name": "Anti-dragon shield",
+              "itemId": 1540,
+              "categories": [
+                "melee",
+                "magic"
+              ],
+              "requirements": [],
+              "wiki": "Anti-dragon_shield"
+            }
+          ]
+        },
+        {
+          "label": "[L1] Foundations",
+          "items": [
+            {
+              "name": "Amulet of strength",
+              "itemId": 1725,
+              "categories": [
+                "melee"
+              ],
+              "requirements": []
+            },
+            {
+              "name": "Rune pouch",
+              "itemId": 12791,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            },
+            {
+              "name": "Adamant scimitar",
+              "itemId": 1331,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:The Feud"
+              ]
+            },
+            {
+              "name": "Proselyte hauberk",
+              "itemId": 9674,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:The Slug Menace",
+                "skill:Defence:30",
+                "skill:Prayer:20"
+              ]
+            },
+            {
+              "name": "Rune platebody",
+              "itemId": 1127,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:Dragon Slayer I",
+                "skill:Defence:40"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[L2] First real weapons",
+          "items": [
+            {
+              "name": "Iban's staff (u)",
+              "itemId": 12658,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "quest:Underground Pass",
+                "skill:Magic:50"
+              ],
+              "wiki": "Iban's_staff"
+            },
+            {
+              "name": "Ancient staff",
+              "itemId": 4675,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "quest:Desert Treasure I",
+                "skill:Magic:50"
+              ]
+            },
+            {
+              "name": "Mystic robe top",
+              "itemId": 4091,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Magic:66"
+              ],
+              "wiki": "Mystic_robes"
+            }
+          ]
+        },
+        {
+          "label": "Early ranged track",
+          "items": [
+            {
+              "name": "Dorgeshuun crossbow",
+              "itemId": 8880,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "quest:The Lost Tribe",
+                "skill:Ranged:28"
+              ]
+            },
+            {
+              "name": "Studded body",
+              "itemId": 1133,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Ranged:20"
+              ]
+            },
+            {
+              "name": "Snakeskin body",
+              "itemId": 6322,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Ranged:30"
+              ]
+            },
+            {
+              "name": "Ava's attractor",
+              "itemId": 10498,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "quest:Animal Magnetism",
+                "skill:Ranged:30"
+              ],
+              "wiki": "Ava's_attractor"
+            },
+            {
+              "name": "Green d'hide body",
+              "itemId": 1135,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "quest:Dragon Slayer I",
+                "skill:Ranged:40"
+              ],
+              "wiki": "Green_d'hide_body"
+            },
+            {
+              "name": "Magic shortbow",
+              "itemId": 861,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Ranged:50"
+              ]
+            },
+            {
+              "name": "Ava's accumulator",
+              "itemId": 10499,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "quest:Animal Magnetism",
+                "skill:Ranged:50"
+              ],
+              "wiki": "Ava's_accumulator"
+            }
+          ]
+        },
+        {
+          "label": "[L3] Barbarian Assault",
+          "items": [
+            {
+              "name": "Fighter torso",
+              "itemId": 10551,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Defence:40"
+              ]
+            },
+            {
+              "name": "Granite body",
+              "itemId": 10564,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Defence:50",
+                "skill:Strength:50"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[L4] Scimitar, spec and ring",
+          "items": [
+            {
+              "name": "Dragon scimitar",
+              "itemId": 4587,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:Monkey Madness I",
+                "skill:Attack:60"
+              ]
+            },
+            {
+              "name": "Dragon dagger",
+              "itemId": 1215,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:Lost City",
+                "skill:Attack:60"
+              ]
+            },
+            {
+              "name": "Berserker ring (i)",
+              "itemId": 11773,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "kc:Dagannoth Rex:1"
+              ],
+              "wiki": "Berserker_ring"
+            }
+          ]
+        },
+        {
+          "label": "[L5] Early-game capstones",
+          "items": [
+            {
+              "name": "Helm of Neitiznot",
+              "itemId": 10828,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:The Fremennik Isles",
+                "skill:Defence:55"
+              ]
+            },
+            {
+              "name": "God cape",
+              "itemId": 2412,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Magic:60"
+              ],
+              "wiki": "God_cape"
+            },
+            {
+              "name": "Fire cape",
+              "itemId": 6570,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "kc:TzTok-Jad:1"
+              ]
+            },
+            {
+              "name": "Barrows gloves",
+              "itemId": 7462,
+              "categories": [
+                "melee",
+                "ranged",
+                "magic"
+              ],
+              "requirements": [
+                "quest:Recipe for Disaster"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Phase 1 utility",
+          "items": [
+            {
+              "name": "Ectophial",
+              "itemId": 4251,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [
+                "quest:Ghosts Ahoy"
+              ]
+            },
+            {
+              "name": "Dramen staff",
+              "itemId": 772,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [
+                "quest:Lost City"
+              ],
+              "wiki": "Fairy_ring"
+            },
+            {
+              "name": "Kharedst's memoirs",
+              "itemId": 21760,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [
+                "quest:Client of Kourend"
+              ],
+              "wiki": "Kharedst's_memoirs"
+            },
+            {
+              "name": "Imcando hammer",
+              "itemId": 25644,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [
+                "quest:Below Ice Mountain"
+              ]
+            },
+            {
+              "name": "Coal bag",
+              "itemId": 12019,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            },
+            {
+              "name": "Gem bag",
+              "itemId": 12020,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Mid game",
+      "groups": [
+        {
+          "label": "[L6] Mid-game keystones",
+          "items": [
+            {
+              "name": "Dragon defender",
+              "itemId": 12954,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Attack:65",
+                "skill:Strength:65"
+              ]
+            },
+            {
+              "name": "Book of the dead",
+              "itemId": 25818,
+              "categories": [
+                "magic",
+                "utility"
+              ],
+              "requirements": [
+                "quest:A Kingdom Divided"
+              ]
+            },
+            {
+              "name": "Salve amulet (ei)",
+              "itemId": 12018,
+              "categories": [
+                "melee",
+                "ranged",
+                "magic"
+              ],
+              "requirements": [
+                "quest:Haunted Mine"
+              ],
+              "wiki": "Salve_amulet_(ei)"
+            }
+          ]
+        },
+        {
+          "label": "Weapons and Barrows",
+          "items": [
+            {
+              "name": "Zombie axe",
+              "itemId": 28810,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:Defender of Varrock",
+                "skill:Smithing:70"
+              ]
+            },
+            {
+              "name": "Dharok's platebody",
+              "itemId": 4720,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Defence:70"
+              ],
+              "wiki": "Dharok_the_Wretched's_equipment"
+            },
+            {
+              "name": "Guthan's chainskirt",
+              "itemId": 4730,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Defence:70"
+              ],
+              "wiki": "Guthan_the_Infested's_equipment"
+            }
+          ]
+        },
+        {
+          "label": "Moons of Peril",
+          "items": [
+            {
+              "name": "Dual macuahuitl",
+              "itemId": 28997,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Attack:75",
+                "skill:Strength:75"
+              ]
+            },
+            {
+              "name": "Blood moon chestplate",
+              "itemId": 29022,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Defence:75",
+                "skill:Strength:75"
+              ]
+            },
+            {
+              "name": "Blood moon tassets",
+              "itemId": 29025,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Defence:75",
+                "skill:Strength:75"
+              ]
+            },
+            {
+              "name": "Eclipse atlatl",
+              "itemId": 29000,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Ranged:75",
+                "skill:Strength:75"
+              ]
+            },
+            {
+              "name": "Eclipse moon chestplate",
+              "itemId": 29004,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Defence:75",
+                "skill:Ranged:75"
+              ]
+            },
+            {
+              "name": "Blue moon spear",
+              "itemId": 28988,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Attack:75",
+                "skill:Magic:75"
+              ]
+            },
+            {
+              "name": "Amulet of glory",
+              "itemId": 1704,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            }
+          ]
+        },
+        {
+          "label": "[L7-9] Capes, boots and MTA",
+          "items": [
+            {
+              "name": "Mixed hide cape",
+              "itemId": 29289,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Ranged:60"
+              ]
+            },
+            {
+              "name": "Mixed hide boots",
+              "itemId": 29286,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Ranged:60"
+              ]
+            },
+            {
+              "name": "Imbued god cape",
+              "itemId": 21791,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Magic:75"
+              ],
+              "wiki": "Imbued_god_cape"
+            },
+            {
+              "name": "Infinity boots",
+              "itemId": 6920,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Magic:50",
+                "skill:Defence:25"
+              ]
+            },
+            {
+              "name": "Mage's book",
+              "itemId": 6889,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Magic:60"
+              ],
+              "wiki": "Mage's_book"
+            }
+          ]
+        },
+        {
+          "label": "[L10-15] The slayer on-ramp",
+          "items": [
+            {
+              "name": "Arkan blade",
+              "itemId": 30955,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:The Final Dawn"
+              ]
+            },
+            {
+              "name": "Black mask (i)",
+              "itemId": 11784,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Slayer:58"
+              ],
+              "wiki": "Black_mask"
+            },
+            {
+              "name": "Pharaoh's sceptre",
+              "itemId": 9044,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [],
+              "wiki": "Pharaoh's_sceptre"
+            },
+            {
+              "name": "Arclight",
+              "itemId": 19675,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Attack:75"
+              ]
+            },
+            {
+              "name": "Slayer helmet (i)",
+              "itemId": 11865,
+              "categories": [
+                "melee",
+                "ranged",
+                "magic"
+              ],
+              "requirements": [
+                "skill:Slayer:58"
+              ],
+              "wiki": "Slayer_helmet"
+            },
+            {
+              "name": "Ghommal's hilt 2",
+              "itemId": 25928,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [],
+              "wiki": "Ghommal's_hilt"
+            }
+          ]
+        },
+        {
+          "label": "Royal Titans",
+          "items": [
+            {
+              "name": "Deadeye prayer scroll",
+              "itemId": 30626,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Prayer:62"
+              ],
+              "wiki": "Deadeye"
+            },
+            {
+              "name": "Mystic vigour prayer scroll",
+              "itemId": 30627,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Prayer:63"
+              ],
+              "wiki": "Mystic_Vigour"
+            },
+            {
+              "name": "Twinflame staff",
+              "itemId": 30634,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Magic:60"
+              ]
+            },
+            {
+              "name": "Giantsoul amulet",
+              "itemId": 30638,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [],
+              "wiki": "Giantsoul_amulet"
+            },
+            {
+              "name": "Warped sceptre",
+              "itemId": 28585,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "quest:The Path of Glouphrie",
+                "skill:Magic:62"
+              ]
+            },
+            {
+              "name": "Hunters' sunlight crossbow",
+              "itemId": 28869,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Ranged:66",
+                "skill:Fletching:69"
+              ],
+              "wiki": "Hunters'_sunlight_crossbow"
+            },
+            {
+              "name": "Dragon hunter wand",
+              "itemId": 30070,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Magic:70"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[L16-19] Void and the chinning ramp",
+          "items": [
+            {
+              "name": "Void knight top",
+              "itemId": 8839,
+              "categories": [
+                "ranged",
+                "melee",
+                "magic"
+              ],
+              "requirements": [
+                "skill:Prayer:22"
+              ],
+              "wiki": "Void_Knight_equipment"
+            },
+            {
+              "name": "Void ranger helm",
+              "itemId": 11664,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Prayer:22"
+              ],
+              "wiki": "Void_Knight_equipment"
+            },
+            {
+              "name": "Elite void top",
+              "itemId": 13072,
+              "categories": [
+                "ranged",
+                "magic"
+              ],
+              "requirements": [
+                "Hard Western Provinces diary"
+              ],
+              "wiki": "Elite_Void_Knight_equipment"
+            },
+            {
+              "name": "Crystal halberd",
+              "itemId": 23987,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:Roving Elves",
+                "skill:Attack:70"
+              ]
+            },
+            {
+              "name": "Red chinchompa",
+              "itemId": 9977,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Hunter:63"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Convenience grinds",
+          "items": [
+            {
+              "name": "Fish barrel",
+              "itemId": 25582,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            },
+            {
+              "name": "Tackle box",
+              "itemId": 25580,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            },
+            {
+              "name": "Gem sack",
+              "itemId": 33393,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            },
+            {
+              "name": "Plank sack",
+              "itemId": 24882,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            },
+            {
+              "name": "Amy's saw",
+              "itemId": 24880,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [],
+              "wiki": "Amy's_saw"
+            },
+            {
+              "name": "Seed box",
+              "itemId": 13639,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            },
+            {
+              "name": "Herb sack",
+              "itemId": 13226,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            },
+            {
+              "name": "Divine rune pouch",
+              "itemId": 27281,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            },
+            {
+              "name": "Fletching knife",
+              "itemId": 31043,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            },
+            {
+              "name": "Basic quetzal whistle",
+              "itemId": 29271,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            },
+            {
+              "name": "Pendant of Ates",
+              "itemId": 29893,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [],
+              "wiki": "Pendant_of_Ates_(inert)"
+            },
+            {
+              "name": "Huntsman's kit",
+              "itemId": 29309,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [],
+              "wiki": "Huntsman's_kit"
+            },
+            {
+              "name": "Costume needle",
+              "itemId": 29920,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [
+                "quest:Death on the Isle"
+              ]
+            },
+            {
+              "name": "Bottomless compost bucket",
+              "itemId": 22994,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            },
+            {
+              "name": "Ash covered tome",
+              "itemId": 21697,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Late game",
+      "groups": [
+        {
+          "label": "[L20] The Corrupted Gauntlet",
+          "items": [
+            {
+              "name": "Bow of Faerdhinen",
+              "itemId": 25865,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "quest:Song of the Elves",
+                "skill:Ranged:80"
+              ]
+            },
+            {
+              "name": "Crystal helm",
+              "itemId": 23971,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "quest:Song of the Elves",
+                "skill:Defence:70"
+              ],
+              "wiki": "Crystal_armour"
+            },
+            {
+              "name": "Crystal body",
+              "itemId": 23975,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "quest:Song of the Elves",
+                "skill:Defence:70"
+              ],
+              "wiki": "Crystal_armour"
+            },
+            {
+              "name": "Crystal legs",
+              "itemId": 23979,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "quest:Song of the Elves",
+                "skill:Defence:70"
+              ],
+              "wiki": "Crystal_armour"
+            }
+          ]
+        },
+        {
+          "label": "[L21-25] Post-Gauntlet consolidation",
+          "items": [
+            {
+              "name": "Amulet of fury",
+              "itemId": 6585,
+              "categories": [
+                "melee",
+                "ranged",
+                "magic"
+              ],
+              "requirements": [
+                "skill:Crafting:85",
+                "skill:Magic:82"
+              ]
+            },
+            {
+              "name": "Bloodbark body",
+              "itemId": 25404,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Magic:60",
+                "skill:Defence:60"
+              ],
+              "wiki": "Bloodbark_armour"
+            },
+            {
+              "name": "Ava's assembler",
+              "itemId": 22109,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "quest:Dragon Slayer II",
+                "kc:Vorkath:1"
+              ],
+              "wiki": "Ava's_assembler"
+            },
+            {
+              "name": "Dragon pickaxe",
+              "itemId": 11920,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [
+                "skill:Mining:61"
+              ]
+            },
+            {
+              "name": "Explorer's ring 4",
+              "itemId": 13128,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [
+                "Elite Lumbridge & Draynor diary"
+              ],
+              "wiki": "Explorer's_ring"
+            }
+          ]
+        },
+        {
+          "label": "[L26] Zenytes and the GWD spec pair",
+          "items": [
+            {
+              "name": "Necklace of anguish",
+              "itemId": 19547,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "quest:Monkey Madness II",
+                "skill:Hitpoints:75"
+              ]
+            },
+            {
+              "name": "Amulet of torture",
+              "itemId": 19553,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:Monkey Madness II",
+                "skill:Hitpoints:75"
+              ]
+            },
+            {
+              "name": "Zamorakian hasta",
+              "itemId": 11889,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Attack:70"
+              ]
+            },
+            {
+              "name": "Bandos godsword",
+              "itemId": 11804,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Attack:75",
+                "kc:General Graardor:1"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[L27-30] Voidwaker, prayers, ToA dip",
+          "items": [
+            {
+              "name": "Voidwaker",
+              "itemId": 27690,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Attack:75"
+              ]
+            },
+            {
+              "name": "Lightbearer",
+              "itemId": 25975,
+              "categories": [
+                "utility"
+              ],
+              "requirements": []
+            },
+            {
+              "name": "Ghommal's hilt 4",
+              "itemId": 25932,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [],
+              "wiki": "Ghommal's_hilt"
+            }
+          ]
+        },
+        {
+          "label": "[L31] The great slayer block",
+          "items": [
+            {
+              "name": "Abyssal whip",
+              "itemId": 4151,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Slayer:85",
+                "skill:Attack:70"
+              ]
+            },
+            {
+              "name": "Abyssal tentacle",
+              "itemId": 12006,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Slayer:87",
+                "skill:Attack:75"
+              ]
+            },
+            {
+              "name": "Dragon warhammer",
+              "itemId": 13576,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Attack:60"
+              ]
+            },
+            {
+              "name": "Emberlight",
+              "itemId": 29589,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:While Guthix Sleeps",
+                "skill:Attack:75"
+              ]
+            },
+            {
+              "name": "Scorching bow",
+              "itemId": 29591,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "quest:While Guthix Sleeps",
+                "skill:Ranged:75"
+              ]
+            },
+            {
+              "name": "Purging staff",
+              "itemId": 29594,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "quest:While Guthix Sleeps",
+                "skill:Magic:75"
+              ]
+            },
+            {
+              "name": "Burning claws",
+              "itemId": 29577,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:While Guthix Sleeps",
+                "skill:Attack:60"
+              ]
+            },
+            {
+              "name": "Dragon boots",
+              "itemId": 11840,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Slayer:83"
+              ]
+            },
+            {
+              "name": "Trident of the seas",
+              "itemId": 11907,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Slayer:87",
+                "skill:Magic:75"
+              ]
+            },
+            {
+              "name": "Occult necklace",
+              "itemId": 12002,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Slayer:93"
+              ]
+            },
+            {
+              "name": "Ring of suffering (i)",
+              "itemId": 19710,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [
+                "quest:Monkey Madness II",
+                "skill:Hitpoints:75"
+              ],
+              "wiki": "Ring_of_suffering"
+            }
+          ]
+        },
+        {
+          "label": "[L32/35] Doom of Mokhaiotl and Yama",
+          "items": [
+            {
+              "name": "Eye of ayak",
+              "itemId": 31113,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Magic:87"
+              ]
+            },
+            {
+              "name": "Confliction gauntlets",
+              "itemId": 31106,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Crafting:83",
+                "skill:Smithing:70"
+              ]
+            },
+            {
+              "name": "Avernic treads",
+              "itemId": 31088,
+              "categories": [
+                "melee",
+                "ranged",
+                "magic"
+              ],
+              "requirements": []
+            }
+          ]
+        },
+        {
+          "label": "[L33-34] Diaries, boots, amulet endgame",
+          "items": [
+            {
+              "name": "Desert amulet 4",
+              "itemId": 13136,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [
+                "Elite Desert diary"
+              ],
+              "wiki": "Desert_amulet"
+            },
+            {
+              "name": "Rada's blessing 4",
+              "itemId": 22947,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [
+                "Elite Kourend & Kebos diary"
+              ],
+              "wiki": "Rada's_blessing"
+            },
+            {
+              "name": "Primordial boots",
+              "itemId": 13239,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Slayer:91"
+              ]
+            },
+            {
+              "name": "Eternal boots",
+              "itemId": 13235,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Slayer:91"
+              ]
+            },
+            {
+              "name": "Pegasian boots",
+              "itemId": 13237,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Slayer:91"
+              ]
+            },
+            {
+              "name": "Amulet of rancour",
+              "itemId": 29801,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Slayer:92"
+              ]
+            },
+            {
+              "name": "Ferocious gloves",
+              "itemId": 22981,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:Dragon Slayer II",
+                "skill:Slayer:95"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "[L36-39] Zulrah to Rigour & Augury",
+          "items": [
+            {
+              "name": "Toxic blowpipe",
+              "itemId": 12926,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Ranged:75",
+                "kc:Zulrah:1"
+              ]
+            },
+            {
+              "name": "Serpentine helm",
+              "itemId": 12931,
+              "categories": [
+                "melee",
+                "ranged"
+              ],
+              "requirements": [
+                "kc:Zulrah:1"
+              ]
+            },
+            {
+              "name": "Osmumten's fang",
+              "itemId": 26219,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Attack:82"
+              ],
+              "wiki": "Osmumten's_fang"
+            },
+            {
+              "name": "Dexterous prayer scroll",
+              "itemId": 21034,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Prayer:74"
+              ],
+              "wiki": "Rigour"
+            },
+            {
+              "name": "Arcane prayer scroll",
+              "itemId": 21079,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Prayer:77"
+              ],
+              "wiki": "Augury"
+            }
+          ]
+        },
+        {
+          "label": "Phase 3 utility",
+          "items": [
+            {
+              "name": "Mythical cape",
+              "itemId": 21913,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [
+                "quest:Dragon Slayer II"
+              ]
+            },
+            {
+              "name": "Drakan's medallion",
+              "itemId": 22400,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [
+                "quest:Sins of the Father"
+              ],
+              "wiki": "Drakan's_medallion"
+            },
+            {
+              "name": "Royal seed pod",
+              "itemId": 19564,
+              "categories": [
+                "utility"
+              ],
+              "requirements": [
+                "quest:Monkey Madness II"
+              ]
+            },
+            {
+              "name": "Neitiznot faceguard",
+              "itemId": 24271,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:The Fremennik Exiles",
+                "skill:Defence:70"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "Endgame & megarares",
+      "groups": [
+        {
+          "label": "[L40-43] The capes and Yama",
+          "items": [
+            {
+              "name": "Infernal cape",
+              "itemId": 21295,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "kc:TzKal-Zuk:1"
+              ]
+            },
+            {
+              "name": "Oathplate helm",
+              "itemId": 30750,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "kc:Yama:1"
+              ],
+              "wiki": "Oathplate_armour"
+            },
+            {
+              "name": "Oathplate chest",
+              "itemId": 30753,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "kc:Yama:1"
+              ],
+              "wiki": "Oathplate_armour"
+            },
+            {
+              "name": "Oathplate legs",
+              "itemId": 30756,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "kc:Yama:1"
+              ],
+              "wiki": "Oathplate_armour"
+            },
+            {
+              "name": "Ultor ring",
+              "itemId": 25485,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:Desert Treasure II - The Fallen Empire"
+              ],
+              "wiki": "Ultor_ring"
+            },
+            {
+              "name": "Dizana's quiver",
+              "itemId": 28951,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "kc:Sol Heredit:1"
+              ],
+              "wiki": "Dizana's_quiver"
+            }
+          ]
+        },
+        {
+          "label": "[L44-49] The megarare trio",
+          "items": [
+            {
+              "name": "Avernic defender",
+              "itemId": 22322,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Attack:70",
+                "skill:Defence:70"
+              ]
+            },
+            {
+              "name": "Scythe of vitur",
+              "itemId": 22325,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Attack:80",
+                "skill:Strength:90"
+              ]
+            },
+            {
+              "name": "Tumeken's shadow",
+              "itemId": 27275,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Magic:85"
+              ],
+              "wiki": "Tumeken's_shadow"
+            },
+            {
+              "name": "Magus ring",
+              "itemId": 25486,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "quest:Desert Treasure II - The Fallen Empire"
+              ]
+            },
+            {
+              "name": "Twisted bow",
+              "itemId": 20997,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Ranged:85"
+              ]
+            },
+            {
+              "name": "Dragon claws",
+              "itemId": 13652,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Attack:60"
+              ]
+            },
+            {
+              "name": "Ancestral hat",
+              "itemId": 21018,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Magic:75",
+                "skill:Defence:65"
+              ],
+              "wiki": "Ancestral_robes"
+            },
+            {
+              "name": "Ancestral robe top",
+              "itemId": 21021,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Magic:75",
+                "skill:Defence:65"
+              ],
+              "wiki": "Ancestral_robes"
+            },
+            {
+              "name": "Ancestral robe bottom",
+              "itemId": 21024,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Magic:75",
+                "skill:Defence:65"
+              ],
+              "wiki": "Ancestral_robes"
+            },
+            {
+              "name": "Elder maul",
+              "itemId": 21003,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Strength:75"
+              ]
+            },
+            {
+              "name": "Masori mask (f)",
+              "itemId": 27235,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Ranged:80",
+                "skill:Defence:80"
+              ],
+              "wiki": "Masori_armour"
+            },
+            {
+              "name": "Masori body (f)",
+              "itemId": 27238,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Ranged:80",
+                "skill:Defence:80"
+              ],
+              "wiki": "Masori_armour"
+            },
+            {
+              "name": "Masori chaps (f)",
+              "itemId": 27241,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Ranged:80",
+                "skill:Defence:80"
+              ],
+              "wiki": "Masori_armour"
+            },
+            {
+              "name": "Elidinis' ward (f)",
+              "itemId": 27251,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Magic:80",
+                "skill:Prayer:70"
+              ],
+              "wiki": "Elidinis'_ward"
+            },
+            {
+              "name": "Saturated heart",
+              "itemId": 27641,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "skill:Magic:98"
+              ]
+            },
+            {
+              "name": "Zaryte crossbow",
+              "itemId": 26374,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Ranged:80",
+                "kc:Nex:1"
+              ]
+            },
+            {
+              "name": "Zaryte vambraces",
+              "itemId": 26235,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Ranged:80",
+                "skill:Defence:45",
+                "kc:Nex:1"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Rounding out the endgame",
+          "items": [
+            {
+              "name": "Virtus robe top",
+              "itemId": 26243,
+              "categories": [
+                "magic"
+              ],
+              "requirements": [
+                "quest:Desert Treasure II - The Fallen Empire"
+              ],
+              "wiki": "Virtus_robes"
+            },
+            {
+              "name": "Venator ring",
+              "itemId": 25487,
+              "categories": [
+                "ranged"
+              ],
+              "requirements": [
+                "quest:Desert Treasure II - The Fallen Empire"
+              ]
+            },
+            {
+              "name": "Bellator ring",
+              "itemId": 25488,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:Desert Treasure II - The Fallen Empire"
+              ]
+            },
+            {
+              "name": "Soulreaper axe",
+              "itemId": 25484,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "quest:Desert Treasure II - The Fallen Empire",
+                "skill:Attack:80",
+                "skill:Strength:80"
+              ]
+            },
+            {
+              "name": "Torva platebody",
+              "itemId": 26384,
+              "categories": [
+                "melee"
+              ],
+              "requirements": [
+                "skill:Defence:80",
+                "kc:Nex:1"
+              ],
+              "wiki": "Torva_armour"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": 5,
+      "name": "POH & Sailing",
+      "groups": [
+        {
+          "label": "Oak era (to ~50 Construction)",
+          "items": [
+            {
+              "name": "Oak altar",
+              "iconItemId": 8778,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:45"
+              ]
+            },
+            {
+              "name": "Mounted amulet of glory",
+              "iconItemId": 1712,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:47"
+              ],
+              "wiki": "Amulet_of_Glory_(mounted)"
+            },
+            {
+              "name": "Teak portal",
+              "iconItemId": 563,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:50"
+              ],
+              "wiki": "Portal_Chamber"
+            }
+          ]
+        },
+        {
+          "label": "Teak era (50-67)",
+          "items": [
+            {
+              "name": "Armour stand",
+              "iconItemId": 8780,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:55"
+              ],
+              "wiki": "Armour_stand"
+            },
+            {
+              "name": "Spice rack",
+              "iconItemId": 2007,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:60"
+              ],
+              "wiki": "Spice_rack"
+            },
+            {
+              "name": "Restoration pool",
+              "iconItemId": 8780,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:65"
+              ],
+              "wiki": "Restoration_pool"
+            },
+            {
+              "name": "Teak shelves 2",
+              "iconItemId": 8780,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:67"
+              ],
+              "wiki": "Shelves"
+            }
+          ]
+        },
+        {
+          "label": "Portal-nexus era (70-92)",
+          "items": [
+            {
+              "name": "Barrows portal",
+              "iconItemId": 563,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:78",
+                "skill:Magic:78"
+              ],
+              "wiki": "Portal_Chamber"
+            },
+            {
+              "name": "Gilded altar",
+              "iconItemId": 4692,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:75"
+              ],
+              "wiki": "Altar_space"
+            },
+            {
+              "name": "Spirit tree",
+              "iconItemId": 5317,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:75",
+                "skill:Farming:83"
+              ],
+              "wiki": "Spirit_tree_(Superior_Garden)"
+            },
+            {
+              "name": "Marble portal nexus",
+              "iconItemId": 8786,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:72"
+              ],
+              "wiki": "Portal_Nexus"
+            },
+            {
+              "name": "Ancient / Lunar / Dark altar",
+              "iconItemId": 8786,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:80"
+              ],
+              "wiki": "Altar_space_(Achievement_Gallery)"
+            },
+            {
+              "name": "Basic jewellery box",
+              "iconItemId": 2552,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:81"
+              ],
+              "wiki": "Jewellery_Box"
+            },
+            {
+              "name": "Fairy ring",
+              "iconItemId": 772,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:85"
+              ],
+              "wiki": "Fairy_ring_(Superior_Garden)"
+            },
+            {
+              "name": "Occult altar",
+              "iconItemId": 8786,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:90"
+              ],
+              "wiki": "Occult_altar"
+            },
+            {
+              "name": "Ornate rejuvenation pool",
+              "iconItemId": 8786,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:90"
+              ],
+              "wiki": "Ornate_rejuvenation_pool"
+            },
+            {
+              "name": "Ornate jewellery box",
+              "iconItemId": 2552,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:91"
+              ],
+              "wiki": "Jewellery_Box"
+            },
+            {
+              "name": "Crystalline portal nexus",
+              "iconItemId": 23962,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:92"
+              ],
+              "wiki": "Portal_Nexus"
+            },
+            {
+              "name": "Spirit tree & fairy ring",
+              "iconItemId": 5317,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:95",
+                "skill:Farming:83"
+              ],
+              "wiki": "Spirit_tree_%26_fairy_ring"
+            }
+          ]
+        },
+        {
+          "label": "Sailing (early data)",
+          "items": [
+            {
+              "name": "Camphor blowpipe",
+              "itemId": 31575,
+              "categories": [
+                "boat",
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Ranged:45"
+              ]
+            },
+            {
+              "name": "Ironwood blowpipe",
+              "itemId": 31579,
+              "categories": [
+                "boat",
+                "ranged"
+              ],
+              "requirements": [
+                "skill:Ranged:55"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

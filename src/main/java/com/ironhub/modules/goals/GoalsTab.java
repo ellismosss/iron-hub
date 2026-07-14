@@ -34,13 +34,15 @@ class GoalsTab extends JPanel
 {
 	private final AccountState state;
 	private final GoalsPack pack;
+	private final com.ironhub.data.GearProgressionPack gearPack;
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 	private final JPanel content = new JPanel();
 
-	GoalsTab(AccountState state, GoalsPack pack)
+	GoalsTab(AccountState state, GoalsPack pack, com.ironhub.data.GearProgressionPack gearPack)
 	{
 		this.state = state;
 		this.pack = pack;
+		this.gearPack = gearPack;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
 		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
@@ -60,21 +62,21 @@ class GoalsTab extends JPanel
 		state.removeListener(listener);
 	}
 
-	private GoalsPack.Goal byId(String id)
-	{
-		return pack.getGoals().stream().filter(g -> g.getId().equals(id)).findFirst().orElse(null);
-	}
-
 	private void rebuild()
 	{
 		content.removeAll();
 
+		// pack goals + synthetic goals for targeted gear-chart items
+		List<GoalsPack.Goal> goals = GoalPlannerModule.allGoals(pack, gearPack, state);
+
 		// achieved goals retire out of Active/Other/Browse into Completed
-		List<GoalsPack.Goal> completed = pack.getGoals().stream()
+		List<GoalsPack.Goal> completed = goals.stream()
 			.filter(g -> GoalPlannerModule.isAchieved(g, state))
 			.collect(java.util.stream.Collectors.toList());
 
-		GoalsPack.Goal active = byId(state.getActiveGoal());
+		GoalsPack.Goal active = goals.stream()
+			.filter(g -> g.getId().equals(state.getActiveGoal()))
+			.findFirst().orElse(null);
 		if (active != null && !completed.contains(active))
 		{
 			content.add(new SectionLabel("Active goal"));
@@ -83,7 +85,7 @@ class GoalsTab extends JPanel
 			content.add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 		}
 
-		List<GoalsPack.Goal> others = pack.getGoals().stream()
+		List<GoalsPack.Goal> others = goals.stream()
 			.filter(g -> state.getSelectedGoals().contains(g.getId()))
 			.filter(g -> !g.getId().equals(state.getActiveGoal()))
 			.filter(g -> !completed.contains(g))
@@ -100,7 +102,7 @@ class GoalsTab extends JPanel
 			content.add(Box.createVerticalStrut(UiTokens.PAD));
 		}
 
-		List<GoalsPack.Goal> browse = pack.getGoals().stream()
+		List<GoalsPack.Goal> browse = goals.stream()
 			.filter(g -> !state.getSelectedGoals().contains(g.getId()))
 			.filter(g -> !completed.contains(g))
 			.collect(java.util.stream.Collectors.toList());

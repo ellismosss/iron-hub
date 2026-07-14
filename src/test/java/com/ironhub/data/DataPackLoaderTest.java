@@ -61,6 +61,38 @@ public class DataPackLoaderTest
 		}
 	}
 
+	@Test
+	public void gearProgressionPackResolves()
+	{
+		GearProgressionPack pack = dataPack.load("gear-progression", GearProgressionPack.class);
+		int items = 0;
+		for (GearProgressionPack.Phase phase : pack.getPhases())
+		{
+			for (GearProgressionPack.Group group : phase.getGroups())
+			{
+				for (GearProgressionPack.Item item : group.getItems())
+				{
+					items++;
+					assertTrue("no icon id: " + item.getName(), item.icon() > 0);
+					assertFalse("blank slug: " + item.getName(), item.slug().isEmpty());
+					for (String raw : item.getRequirements())
+					{
+						Requirement requirement = Requirements.parse(raw);
+						assertNotNull(requirement);
+						// typed prefixes must resolve (a manual fallback = pack typo);
+						// free-text (diary) requirements are intentionally manual
+						if (raw.startsWith("quest:") || raw.startsWith("skill:"))
+						{
+							assertFalse("unresolvable requirement: " + raw + " (" + item.getName() + ")",
+								Requirements.isManual(requirement));
+						}
+					}
+				}
+			}
+		}
+		assertTrue("suspiciously small gear pack: " + items, items > 100);
+	}
+
 	@Test(expected = IllegalStateException.class)
 	public void missingPackFailsFast()
 	{

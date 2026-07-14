@@ -75,9 +75,63 @@ public class GoalPlannerModule implements IronHubModule
 			{
 				pack = dataPack.load("goals", GoalsPack.class);
 			}
-			tab = new GoalsTab(state, pack);
+			tab = new GoalsTab(state, pack,
+				dataPack.load("gear-progression", com.ironhub.data.GearProgressionPack.class));
 		}
 		return tab;
+	}
+
+	// ── gear-chart targets as synthetic goals ─────────────────────────
+
+	/**
+	 * A targeted gear-chart item as a goal: its requirements become steps,
+	 * a final "Obtain" step and the achieved proof are ownership (or the
+	 * manual mark for undetectable entries like POH furniture).
+	 */
+	public static GoalsPack.Goal toGoal(com.ironhub.data.GearProgressionPack.Item item)
+	{
+		String proof = item.isManual()
+			? "unlock:" + item.markKey()
+			: "item:" + item.getItemId();
+		GoalsPack.Goal goal = new GoalsPack.Goal();
+		goal.setId(item.goalId());
+		goal.setName(item.getName());
+		List<GoalsPack.Step> steps = new ArrayList<>();
+		for (String raw : item.getRequirements())
+		{
+			GoalsPack.Step step = new GoalsPack.Step();
+			step.setLabel(Requirements.parse(raw).describe());
+			step.setRequirement(raw);
+			steps.add(step);
+		}
+		GoalsPack.Step obtain = new GoalsPack.Step();
+		obtain.setLabel("Obtain " + item.getName());
+		obtain.setRequirement(proof);
+		steps.add(obtain);
+		goal.setSteps(steps);
+		goal.setAchieved(List.of(proof));
+		return goal;
+	}
+
+	/** Pack goals plus a synthetic goal per targeted gear-chart item. */
+	public static List<GoalsPack.Goal> allGoals(GoalsPack goals,
+		com.ironhub.data.GearProgressionPack gear, AccountState state)
+	{
+		List<GoalsPack.Goal> all = new ArrayList<>(goals.getGoals());
+		for (com.ironhub.data.GearProgressionPack.Phase phase : gear.getPhases())
+		{
+			for (com.ironhub.data.GearProgressionPack.Group group : phase.getGroups())
+			{
+				for (com.ironhub.data.GearProgressionPack.Item item : group.getItems())
+				{
+					if (state.getSelectedGoals().contains(item.goalId()))
+					{
+						all.add(toGoal(item));
+					}
+				}
+			}
+		}
+		return all;
 	}
 
 	// ── compilation (pure; static for tests) ──────────────────────────
