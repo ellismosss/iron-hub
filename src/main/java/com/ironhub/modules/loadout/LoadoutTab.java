@@ -5,7 +5,10 @@ import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.components.GridTile;
 import com.ironhub.ui.components.SectionLabel;
+import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.util.Map;
@@ -45,6 +48,7 @@ class LoadoutTab extends JPanel
 	private final JComboBox<String> scenario;
 	private final JPanel grid = new JPanel(new GridLayout(0, 3, UiTokens.GRID_GAP, UiTokens.GRID_GAP));
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
+	private Map<EquipmentInventorySlot, Integer> lastBest = Map.of();
 
 	LoadoutTab(AccountState state, ItemManager itemManager, ClientThread clientThread, ScenariosPack pack)
 	{
@@ -82,6 +86,28 @@ class LoadoutTab extends JPanel
 		grid.setOpaque(false);
 		grid.setAlignmentX(LEFT_ALIGNMENT);
 		add(grid);
+		add(Box.createVerticalStrut(UiTokens.PAD));
+
+		JLabel bankTag = new JLabel("Bank tag", javax.swing.SwingConstants.CENTER);
+		bankTag.setOpaque(true);
+		bankTag.setBackground(UiTokens.ICON_BUTTON_BG);
+		bankTag.setForeground(UiTokens.TEXT_BODY);
+		bankTag.setBorder(new javax.swing.border.LineBorder(UiTokens.BORDER_BUTTON));
+		bankTag.setFont(bankTag.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
+		bankTag.setToolTipText("Copy this loadout as a Bank Tags import string");
+		bankTag.setAlignmentX(LEFT_ALIGNMENT);
+		bankTag.setPreferredSize(new Dimension(0, UiTokens.BUTTON_HEIGHT));
+		bankTag.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
+		bankTag.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		bankTag.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				copyBankTag();
+			}
+		});
+		add(bankTag);
 		add(Box.createVerticalGlue());
 
 		state.addListener(listener);
@@ -112,6 +138,7 @@ class LoadoutTab extends JPanel
 
 	private void renderGrid(Map<EquipmentInventorySlot, Integer> best)
 	{
+		lastBest = best;
 		grid.removeAll();
 		for (EquipmentInventorySlot[] row : GRID)
 		{
@@ -122,6 +149,21 @@ class LoadoutTab extends JPanel
 		}
 		grid.revalidate();
 		grid.repaint();
+	}
+
+	/** Bank Tags import form: banktag,<name>,<icon item>,<item ids…> */
+	private void copyBankTag()
+	{
+		if (lastBest.isEmpty())
+		{
+			return;
+		}
+		ScenariosPack.Scenario selected = pack.getScenarios().get(scenario.getSelectedIndex());
+		StringBuilder tag = new StringBuilder("banktag,iron-hub-").append(selected.getId())
+			.append(",").append(lastBest.values().iterator().next());
+		lastBest.values().forEach(id -> tag.append(",").append(id));
+		Toolkit.getDefaultToolkit().getSystemClipboard()
+			.setContents(new StringSelection(tag.toString()), null);
 	}
 
 	private JPanel cell(EquipmentInventorySlot slot, Integer itemId)
