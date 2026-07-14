@@ -13,7 +13,9 @@ RuneLite Plugin Hub plugin: an all-in-one progression companion for standard OSR
 
 - `com.ironhub.IronHubPlugin` — entry point; a `@Provides Set<IronHubModule>` registers 13 of 21 modules (RuneLite ships Guice without the multibindings extension). TODOs mark the rest: quests, skills, QoL, loot/supplies, CAs, diaries, boat.
 - `com.ironhub.IronHubConfig` — per-module enable toggles + opt-in integration settings.
-- `com.ironhub.state.AccountState` — single-source-of-truth service, event ingestion stubbed.
+- `com.ironhub.state.AccountState` — single-source-of-truth service: skill/quest/container ingestion, unlock flags, kill counts; profile-scoped persistence via `ProfileStore` (JSON under `RUNELITE_DIR/iron-hub/<accountHash>/`). Quest states refresh tick-throttled on varbit dirty. Test seam: `StateFixture` (test sources).
+- `com.ironhub.requirements` — the shared requirement graph (`Requirement` + `Requirements`): skill/quest/item/unlock/kc + allOf/anyOf composites, `missing()` leaf resolution, and `parse()` for the data-pack string form (`skill:Farming:65`); unparseable strings become manual (never auto-met) requirements.
+- `com.ironhub.data.DataPack` — bundled data-pack loader (`/data/<name>.json` → typed model, e.g. `DailiesPack`); content schema-validated in CI, loader fails fast on missing/corrupt packs.
 - `com.ironhub.modules.*` — one package per module, each a stub implementing `IronHubModule` with a Javadoc pointing at its DESIGN.md section.
 - `com.ironhub.ui.IronHubPanel` — CardLayout shell: `DashboardPanel` (frame 1b) ↔ `ModuleNavPanel` (frame 1c), placeholder data until M2. `com.ironhub.ui.components` — shared atoms (M1). `com.ironhub.ui.UiTokens` — all design tokens as constants (mirrors DESIGN-PACKAGE.md; keep them in sync, never hardcode styles in views). Offscreen renders for mockup side-by-sides: `./gradlew test` → `build/reports/*.png`.
 - `com.ironhub.integrations.ShortestPathBridge` — PluginMessage soft integration, done in principle.

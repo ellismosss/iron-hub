@@ -25,6 +25,7 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
@@ -111,6 +112,7 @@ public class IronHubPlugin extends Plugin
 	{
 		modules.forEach(IronHubModule::shutDown);
 		clientToolbar.removeNavigation(navButton);
+		accountState.persist();
 	}
 
 	@Subscribe
@@ -135,6 +137,12 @@ public class IronHubPlugin extends Plugin
 	public void onItemContainerChanged(ItemContainerChanged event)
 	{
 		accountState.onItemContainerChanged(event);
+	}
+
+	@Subscribe
+	public void onGameTick(GameTick event)
+	{
+		accountState.onGameTick();
 	}
 
 	@Provides
