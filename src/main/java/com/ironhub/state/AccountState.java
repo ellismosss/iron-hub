@@ -194,6 +194,14 @@ public class AccountState
 		persist();
 	}
 
+	/** One kill observed (loot event); feeds kc: requirements live. */
+	public void incrementKillCount(String source)
+	{
+		killCounts.merge(source, 1, Integer::sum);
+		persist();
+		notifyListeners();
+	}
+
 	/** Epoch millis a daily was manually ticked, or 0 if never. */
 	public long dailyDoneAt(String dailyId)
 	{

@@ -38,6 +38,7 @@ import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.events.NpcLootReceived;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
@@ -177,6 +178,15 @@ public class IronHubPlugin extends Plugin
 	public void onGameTick(GameTick event)
 	{
 		accountState.onGameTick();
+	}
+
+	@Subscribe
+	public void onNpcLootReceived(NpcLootReceived event)
+	{
+		if (event.getNpc().getName() != null)
+		{
+			accountState.incrementKillCount(event.getNpc().getName());
+		}
 	}
 
 	@Subscribe
