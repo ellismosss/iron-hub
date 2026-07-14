@@ -90,6 +90,36 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "runwayWarningHours", name = "Runway warning (hours)", description = "Warn when a consumable's runway drops below this many hours", section = notificationsSection, position = 3)
 	default int runwayWarningHours() { return 6; }
 
+	@ConfigItem(keyName = "caTierGoal", name = "CA tier goal", description = "Combat Achievements tier to work toward; Auto advances to the next incomplete tier", section = notificationsSection, position = 4)
+	default CaTierGoal caTierGoal() { return CaTierGoal.AUTO; }
+
+	@ConfigItem(keyName = "caGoalMessages", name = "CA goal progress in chat", description = "On completing a combat task, show points progress toward your tier goal in the chatbox", section = notificationsSection, position = 5)
+	default boolean caGoalMessages() { return true; }
+
+	enum CaTierGoal
+	{
+		AUTO("Auto"),
+		EASY("Easy"),
+		MEDIUM("Medium"),
+		HARD("Hard"),
+		ELITE("Elite"),
+		MASTER("Master"),
+		GRANDMASTER("Grandmaster");
+
+		private final String display;
+
+		CaTierGoal(String display)
+		{
+			this.display = display;
+		}
+
+		@Override
+		public String toString()
+		{
+			return display;
+		}
+	}
+
 	@ConfigSection(
 		name = "Integrations",
 		description = "Optional external integrations",

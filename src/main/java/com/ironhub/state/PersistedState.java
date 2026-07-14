@@ -49,6 +49,7 @@ public class PersistedState
 	long collectionLogSeenMs;
 	Set<String> selectedGoals = new HashSet<>();
 	String activeGoal = "";
+	Set<Integer> trackedCaTasks = new HashSet<>(); // CA task ids the user is working on
 
 	static class PatchSeen
 	{

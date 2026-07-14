@@ -1,43 +1,73 @@
 package com.ironhub.modules.ca;
 
 import com.ironhub.IronHubConfig;
+import com.ironhub.data.CaCompletionPack;
+import com.ironhub.data.DataPack;
 import com.ironhub.modules.IronHubModule;
 import com.ironhub.state.AccountState;
+import java.awt.Color;
+import java.util.List;
+import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Varbits;
+import net.runelite.api.ChatMessageType;
+import net.runelite.api.Client;
+import net.runelite.api.GameState;
+import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
 import net.runelite.api.gameval.VarbitID;
+import net.runelite.client.chat.ChatMessageBuilder;
+import net.runelite.client.chat.ChatMessageManager;
+import net.runelite.client.chat.QueuedMessage;
+import net.runelite.client.eventbus.EventBus;
+import net.runelite.client.eventbus.Subscribe;
 
 /**
- * Combat achievements tracker (mockup frame 2b, tier card): points, tier
- * thresholds and per-tier completed counts all come from varbits. The
- * per-boss task grid and "easiest next" ranking arrive with the CA data
- * pack. See DESIGN.md §3.10.
+ * Combat achievements (DESIGN.md §3.10, rebuilt to full parity with the
+ * Combat Achievements Tracker hub plugin per user direction): the complete
+ * task catalog read live from the game cache (CaCatalog), searchable and
+ * filterable, with per-task tracking, a boss drill-down, tier goals
+ * (auto-advancing or fixed via config), community completion rates from
+ * the bundled wiki snapshot, and goal-progress chat messages on each
+ * completed task.
  */
 @Slf4j
 @Singleton
 public class CombatAchievementsModule implements IronHubModule
 {
-	static final Tier[] TIERS = {
-		new Tier("Easy", VarbitID.CA_THRESHOLD_EASY, Varbits.COMBAT_TASK_EASY, Varbits.COMBAT_ACHIEVEMENT_TIER_EASY),
-		new Tier("Medium", VarbitID.CA_THRESHOLD_MEDIUM, Varbits.COMBAT_TASK_MEDIUM, Varbits.COMBAT_ACHIEVEMENT_TIER_MEDIUM),
-		new Tier("Hard", VarbitID.CA_THRESHOLD_HARD, Varbits.COMBAT_TASK_HARD, Varbits.COMBAT_ACHIEVEMENT_TIER_HARD),
-		new Tier("Elite", VarbitID.CA_THRESHOLD_ELITE, Varbits.COMBAT_TASK_ELITE, Varbits.COMBAT_ACHIEVEMENT_TIER_ELITE),
-		new Tier("Master", VarbitID.CA_THRESHOLD_MASTER, Varbits.COMBAT_TASK_MASTER, Varbits.COMBAT_ACHIEVEMENT_TIER_MASTER),
-		new Tier("Grandmaster", VarbitID.CA_THRESHOLD_GRANDMASTER, Varbits.COMBAT_TASK_GRANDMASTER, Varbits.COMBAT_ACHIEVEMENT_TIER_GRANDMASTER),
-	};
+	static final CaTier[] TIERS = CaTier.values();
 
 	private final AccountState state;
 	private final IronHubConfig config;
+	private final Client client;               // null in unit tests
+	private final EventBus eventBus;
+	private final DataPack dataPack;
+	private final ChatMessageManager chatMessageManager; // null in unit tests
+
 	private CombatAchievementsTab tab;
+	private volatile List<CaTask> tasks = List.of();
+	private Map<Integer, Double> pctById = Map.of();
+	private Map<String, Double> pctByName = Map.of();
+	private boolean loadedThisSession;
+	private boolean reloadRequested;
+	/** A combat task completed this tick: reload, then chat the goal progress. */
+	private boolean announceAfterReload;
+	private Runnable tasksListener;
 
 	@Inject
-	public CombatAchievementsModule(AccountState state, IronHubConfig config)
+	public CombatAchievementsModule(AccountState state, IronHubConfig config, Client client,
+		EventBus eventBus, DataPack dataPack, ChatMessageManager chatMessageManager)
 	{
 		this.state = state;
 		this.config = config;
+		this.client = client;
+		this.eventBus = eventBus;
+		this.dataPack = dataPack;
+		this.chatMessageManager = chatMessageManager;
 	}
 
 	@Override
@@ -55,16 +85,22 @@ public class CombatAchievementsModule implements IronHubModule
 	@Override
 	public void startUp()
 	{
+		CaCompletionPack pack = dataPack.load("ca-completion", CaCompletionPack.class);
+		pctById = pack.byId();
+		pctByName = pack.byName();
 		state.watchVarbits(VarbitID.CA_POINTS);
-		for (Tier tier : TIERS)
+		for (CaTier tier : TIERS)
 		{
 			state.watchVarbits(tier.thresholdVarbit, tier.completedCountVarbit, tier.statusVarbit);
 		}
+		eventBus.register(this);
 	}
 
 	@Override
 	public void shutDown()
 	{
+		eventBus.unregister(this);
+		loadedThisSession = false;
 		if (tab != null)
 		{
 			tab.dispose();
@@ -77,20 +113,123 @@ public class CombatAchievementsModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new CombatAchievementsTab(state);
+			tab = new CombatAchievementsTab(this, state, config);
+			tasksListener = tab::onTasksUpdated;
 		}
 		return tab;
+	}
+
+	/** The loaded catalog (immutable snapshot; empty until first load). */
+	List<CaTask> tasks()
+	{
+		return tasks;
+	}
+
+	/** Re-read the catalog from the client on the next game tick. */
+	void requestReload()
+	{
+		reloadRequested = true;
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event)
+	{
+		if (event.getGameState() == GameState.LOGIN_SCREEN
+			|| event.getGameState() == GameState.CONNECTION_LOST)
+		{
+			loadedThisSession = false;
+		}
+	}
+
+	@Subscribe
+	public void onGameTick(GameTick event)
+	{
+		// covers plugin start while already logged in (no login event fires)
+		if (!loadedThisSession || reloadRequested)
+		{
+			loadedThisSession = true;
+			reloadRequested = false;
+			loadCatalog();
+		}
+	}
+
+	@Subscribe
+	public void onChatMessage(ChatMessage event)
+	{
+		if (event.getType() != ChatMessageType.GAMEMESSAGE && event.getType() != ChatMessageType.SPAM)
+		{
+			return;
+		}
+		String message = event.getMessage();
+		if (message.contains("Congratulations, you've completed") && message.contains("combat task"))
+		{
+			reloadRequested = true;
+			announceAfterReload = config.caGoalMessages();
+		}
+	}
+
+	/** Runs on the client thread (GameTick dispatch). */
+	private void loadCatalog()
+	{
+		List<CaTask> loaded = CaCatalog.load(client);
+		for (CaTask task : loaded)
+		{
+			Double pct = pctById.get(task.id);
+			if (pct == null)
+			{
+				pct = pctByName.get(CaCompletionPack.normalize(task.name));
+			}
+			task.communityPct = pct;
+		}
+		tasks = List.copyOf(loaded);
+		log.debug("CA catalog loaded: {} tasks", loaded.size());
+		if (announceAfterReload)
+		{
+			announceAfterReload = false;
+			announceGoalProgress();
+		}
+		if (tasksListener != null)
+		{
+			SwingUtilities.invokeLater(tasksListener);
+		}
+	}
+
+	// ── tier goal math (thresholds always from the game's varbits) ────
+
+	int points()
+	{
+		return state.getVarbit(VarbitID.CA_POINTS);
+	}
+
+	/**
+	 * The tier being worked toward: the configured tier, or with AUTO the
+	 * first tier whose threshold is not yet reached (null = all complete).
+	 */
+	CaTier goalTier()
+	{
+		IronHubConfig.CaTierGoal goal = config.caTierGoal();
+		if (goal != IronHubConfig.CaTierGoal.AUTO)
+		{
+			return CaTier.valueOf(goal.name());
+		}
+		return nextTier(state);
+	}
+
+	/** Points needed for the goal tier (0 when thresholds are unseen). */
+	int goalThreshold()
+	{
+		CaTier goal = goalTier();
+		return goal == null ? 0 : state.getVarbit(goal.thresholdVarbit);
 	}
 
 	/**
 	 * The next tier still in progress: the first whose points threshold is
 	 * above the current points, or null when all thresholds are passed.
-	 * Thresholds come from the game (varbits), never hardcoded.
 	 */
-	static Tier nextTier(AccountState state)
+	static CaTier nextTier(AccountState state)
 	{
 		int points = state.getVarbit(VarbitID.CA_POINTS);
-		for (Tier tier : TIERS)
+		for (CaTier tier : TIERS)
 		{
 			int threshold = state.getVarbit(tier.thresholdVarbit);
 			if (threshold > 0 && points < threshold)
@@ -101,19 +240,31 @@ public class CombatAchievementsModule implements IronHubModule
 		return null;
 	}
 
-	static class Tier
+	/** Goal-progress chatbox line after each completed combat task. */
+	private void announceGoalProgress()
 	{
-		final String name;
-		final int thresholdVarbit;      // points needed for this tier
-		final int completedCountVarbit; // tasks of this tier completed
-		final int statusVarbit;         // ≥1 = tier complete
-
-		Tier(String name, int thresholdVarbit, int completedCountVarbit, int statusVarbit)
+		if (chatMessageManager == null)
 		{
-			this.name = name;
-			this.thresholdVarbit = thresholdVarbit;
-			this.completedCountVarbit = completedCountVarbit;
-			this.statusVarbit = statusVarbit;
+			return;
 		}
+		int points = points();
+		CaTier goal = goalTier();
+		int threshold = goalThreshold();
+		ChatMessageBuilder message = new ChatMessageBuilder()
+			.append(Color.CYAN, "[Iron Hub] ");
+		if (goal == null || threshold <= 0 || points >= threshold)
+		{
+			message.append(Color.GREEN, (goal == null ? "All CA tiers" : goal.display + " tier") + " complete! ")
+				.append(Color.WHITE, "(" + points + " points)");
+		}
+		else
+		{
+			message.append(Color.WHITE, "CA progress: " + points + "/" + threshold + " points ")
+				.append(Color.YELLOW, "(" + (threshold - points) + " to " + goal.display + ")");
+		}
+		chatMessageManager.queue(QueuedMessage.builder()
+			.type(ChatMessageType.CONSOLE)
+			.runeLiteFormattedMessage(message.build())
+			.build());
 	}
 }

@@ -1,0 +1,3191 @@
+{
+ "source": "https://oldschool.runescape.wiki/w/Combat_Achievements/All_tasks",
+ "generated": "2026-07-14",
+ "tasks": [
+  {
+   "id": 0,
+   "name": "Noxious Foe",
+   "pct": 58.1
+  },
+  {
+   "id": 1,
+   "name": "Abyssal Adept",
+   "pct": 20.7
+  },
+  {
+   "id": 2,
+   "name": "Abyssal Veteran",
+   "pct": 18.7
+  },
+  {
+   "id": 3,
+   "name": "They Grow Up Too Fast",
+   "pct": 13.6
+  },
+  {
+   "id": 4,
+   "name": "Respiratory Runner",
+   "pct": 17.7
+  },
+  {
+   "id": 5,
+   "name": "Don't Whip Me",
+   "pct": 20.8
+  },
+  {
+   "id": 6,
+   "name": "Demonic Rebound",
+   "pct": 11.0
+  },
+  {
+   "id": 7,
+   "name": "Don't Stop Moving",
+   "pct": 19.5
+  },
+  {
+   "id": 8,
+   "name": "Perfect Sire",
+   "pct": 18.5
+  },
+  {
+   "id": 9,
+   "name": "Kree'arra Adept",
+   "pct": 10.5
+  },
+  {
+   "id": 10,
+   "name": "Kree'arra Veteran",
+   "pct": 8.2
+  },
+  {
+   "id": 11,
+   "name": "Collateral Damage",
+   "pct": 3.6
+  },
+  {
+   "id": 12,
+   "name": "Airborne Showdown",
+   "pct": 6.1
+  },
+  {
+   "id": 13,
+   "name": "Swoop No More",
+   "pct": 5.3
+  },
+  {
+   "id": 14,
+   "name": "The Worst Ranged Weapon",
+   "pct": 4.1
+  },
+  {
+   "id": 15,
+   "name": "Feather Hunter",
+   "pct": 2.8
+  },
+  {
+   "id": 16,
+   "name": "General Graardor Adept",
+   "pct": 20.1
+  },
+  {
+   "id": 17,
+   "name": "General Graardor Veteran",
+   "pct": 16.3
+  },
+  {
+   "id": 18,
+   "name": "Ourg Freezer",
+   "pct": 11.6
+  },
+  {
+   "id": 19,
+   "name": "Ourg Freezer II",
+   "pct": 12.4
+  },
+  {
+   "id": 20,
+   "name": "General Showdown",
+   "pct": 8.1
+  },
+  {
+   "id": 21,
+   "name": "Defence Matters",
+   "pct": 1.6
+  },
+  {
+   "id": 22,
+   "name": "Keep Away",
+   "pct": 3.6
+  },
+  {
+   "id": 23,
+   "name": "Ourg Killer",
+   "pct": 5.6
+  },
+  {
+   "id": 24,
+   "name": "Barrows Novice",
+   "pct": 54.0
+  },
+  {
+   "id": 25,
+   "name": "Barrows Champion",
+   "pct": 47.3
+  },
+  {
+   "id": 26,
+   "name": "Can't Touch Me",
+   "pct": 19.7
+  },
+  {
+   "id": 27,
+   "name": "Pray for Success",
+   "pct": 41.9
+  },
+  {
+   "id": 28,
+   "name": "Defence? What Defence?",
+   "pct": 61.7
+  },
+  {
+   "id": 29,
+   "name": "Just Like That",
+   "pct": 29.2
+  },
+  {
+   "id": 30,
+   "name": "Faithless Crypt Run",
+   "pct": 26.7
+  },
+  {
+   "id": 31,
+   "name": "Reflecting on This Encounter",
+   "pct": 30.2
+  },
+  {
+   "id": 32,
+   "name": "Big, Black and Fiery",
+   "pct": 71.3
+  },
+  {
+   "id": 33,
+   "name": "The Demonic Punching Bag",
+   "pct": 69.3
+  },
+  {
+   "id": 34,
+   "name": "Brutal, Big, Black and Firey",
+   "pct": 31.0
+  },
+  {
+   "id": 35,
+   "name": "Bryophyta Novice",
+   "pct": 36.3
+  },
+  {
+   "id": 36,
+   "name": "Bryophyta Champion",
+   "pct": 22.8
+  },
+  {
+   "id": 37,
+   "name": "Protection from Moss",
+   "pct": 30.6
+  },
+  {
+   "id": 38,
+   "name": "Quick Cutter",
+   "pct": 26.9
+  },
+  {
+   "id": 39,
+   "name": "Preparation Is Key",
+   "pct": 33.3
+  },
+  {
+   "id": 40,
+   "name": "A Slow Death",
+   "pct": 24.9
+  },
+  {
+   "id": 41,
+   "name": "Fighting as Intended II",
+   "pct": 24.2
+  },
+  {
+   "id": 42,
+   "name": "Callisto Adept",
+   "pct": 22.0
+  },
+  {
+   "id": 43,
+   "name": "Callisto Veteran",
+   "pct": 20.2
+  },
+  {
+   "id": 44,
+   "name": "Skotizo Champion",
+   "pct": 43.9
+  },
+  {
+   "id": 45,
+   "name": "Skotizo Adept",
+   "pct": 35.2
+  },
+  {
+   "id": 46,
+   "name": "Demonic Weakening",
+   "pct": 31.9
+  },
+  {
+   "id": 47,
+   "name": "Demon Evasion",
+   "pct": 16.6
+  },
+  {
+   "id": 48,
+   "name": "Demonbane Weaponry",
+   "pct": 38.6
+  },
+  {
+   "id": 49,
+   "name": "Up for the Challenge",
+   "pct": 21.3
+  },
+  {
+   "id": 50,
+   "name": "Precise Positioning",
+   "pct": 14.1
+  },
+  {
+   "id": 51,
+   "name": "Cerberus Veteran",
+   "pct": 20.0
+  },
+  {
+   "id": 52,
+   "name": "Cerberus Master",
+   "pct": 18.4
+  },
+  {
+   "id": 53,
+   "name": "Arooo No More",
+   "pct": 20.7
+  },
+  {
+   "id": 54,
+   "name": "Ghost Buster",
+   "pct": 18.8
+  },
+  {
+   "id": 55,
+   "name": "Unrequired Antifire",
+   "pct": 21.4
+  },
+  {
+   "id": 56,
+   "name": "Anti-Bite Mechanics",
+   "pct": 21.0
+  },
+  {
+   "id": 57,
+   "name": "Chaos Elemental Adept",
+   "pct": 16.5
+  },
+  {
+   "id": 58,
+   "name": "Chaos Elemental Veteran",
+   "pct": 13.3
+  },
+  {
+   "id": 59,
+   "name": "Hoarder",
+   "pct": 23.2
+  },
+  {
+   "id": 60,
+   "name": "The Flincher",
+   "pct": 12.5
+  },
+  {
+   "id": 61,
+   "name": "Chaos Fanatic Champion",
+   "pct": 21.4
+  },
+  {
+   "id": 62,
+   "name": "Chaos Fanatic Adept",
+   "pct": 17.1
+  },
+  {
+   "id": 63,
+   "name": "Sorry, What Was That?",
+   "pct": 24.7
+  },
+  {
+   "id": 64,
+   "name": "Praying to the Gods",
+   "pct": 12.7
+  },
+  {
+   "id": 65,
+   "name": "Corporeal Beast Veteran",
+   "pct": 10.0
+  },
+  {
+   "id": 66,
+   "name": "Corporeal Beast Master",
+   "pct": 7.8
+  },
+  {
+   "id": 67,
+   "name": "Hot on Your Feet",
+   "pct": 10.0
+  },
+  {
+   "id": 68,
+   "name": "Finding the Weak Spot",
+   "pct": 8.3
+  },
+  {
+   "id": 69,
+   "name": "Chicken Killer",
+   "pct": 9.8
+  },
+  {
+   "id": 70,
+   "name": "Crazy Archaeologist Champion",
+   "pct": 32.4
+  },
+  {
+   "id": 71,
+   "name": "Crazy Archaeologist Adept",
+   "pct": 26.1
+  },
+  {
+   "id": 72,
+   "name": "Mage of the Ruins",
+   "pct": 37.9
+  },
+  {
+   "id": 73,
+   "name": "I'd Rather Not Learn",
+   "pct": 31.6
+  },
+  {
+   "id": 74,
+   "name": "If Gorillas Could Fly",
+   "pct": 46.9
+  },
+  {
+   "id": 75,
+   "name": "Hitting Them Where It Hurts",
+   "pct": 31.6
+  },
+  {
+   "id": 76,
+   "name": "Deranged Archaeologist Novice",
+   "pct": 27.5
+  },
+  {
+   "id": 77,
+   "name": "Deranged Archaeologist Champion",
+   "pct": 24.0
+  },
+  {
+   "id": 78,
+   "name": "Mage of the Swamp",
+   "pct": 29.2
+  },
+  {
+   "id": 79,
+   "name": "I'd Rather Be Illiterate",
+   "pct": 28.9
+  },
+  {
+   "id": 80,
+   "name": "The Walking Volcano",
+   "pct": 75.2
+  },
+  {
+   "id": 81,
+   "name": "Galvek Speed-Trialist",
+   "pct": 4.2
+  },
+  {
+   "id": 82,
+   "name": "Grotesque Guardians Adept",
+   "pct": 21.7
+  },
+  {
+   "id": 83,
+   "name": "Grotesque Guardians Veteran",
+   "pct": 18.7
+  },
+  {
+   "id": 84,
+   "name": "Don't Look at the Eclipse",
+   "pct": 24.8
+  },
+  {
+   "id": 85,
+   "name": "Prison Break",
+   "pct": 25.3
+  },
+  {
+   "id": 86,
+   "name": "Granite Footwork",
+   "pct": 25.1
+  },
+  {
+   "id": 87,
+   "name": "Heal No More",
+   "pct": 25.3
+  },
+  {
+   "id": 88,
+   "name": "Static Awareness",
+   "pct": 24.9
+  },
+  {
+   "id": 89,
+   "name": "Done before Dusk",
+   "pct": 25.2
+  },
+  {
+   "id": 90,
+   "name": "Perfect Grotesque Guardians",
+   "pct": 23.3
+  },
+  {
+   "id": 91,
+   "name": "Perfect Grotesque Guardians II",
+   "pct": 11.3
+  },
+  {
+   "id": 92,
+   "name": "Grotesque Guardians Speed-Trialist",
+   "pct": 17.3
+  },
+  {
+   "id": 93,
+   "name": "Grotesque Guardians Speed-Chaser",
+   "pct": 11.6
+  },
+  {
+   "id": 94,
+   "name": "Grotesque Guardians Speed-Runner",
+   "pct": 5.2
+  },
+  {
+   "id": 95,
+   "name": "From Dusk...",
+   "pct": 13.8
+  },
+  {
+   "id": 96,
+   "name": "... 'til Dawn",
+   "pct": 8.1
+  },
+  {
+   "id": 97,
+   "name": "A Smashing Time",
+   "pct": 46.2
+  },
+  {
+   "id": 98,
+   "name": "Corrupted Gauntlet Veteran",
+   "pct": 23.8
+  },
+  {
+   "id": 99,
+   "name": "Corrupted Gauntlet Master",
+   "pct": 22.3
+  },
+  {
+   "id": 100,
+   "name": "Corrupted Gauntlet Grandmaster",
+   "pct": 18.0
+  },
+  {
+   "id": 101,
+   "name": "3, 2, 1 - Mage",
+   "pct": 24.6
+  },
+  {
+   "id": 102,
+   "name": "Perfect Corrupted Hunllef",
+   "pct": 18.9
+  },
+  {
+   "id": 103,
+   "name": "Defence Doesn't Matter II",
+   "pct": 5.8
+  },
+  {
+   "id": 104,
+   "name": "Egniol Diet II",
+   "pct": 5.6
+  },
+  {
+   "id": 105,
+   "name": "Corrupted Warrior",
+   "pct": 7.7
+  },
+  {
+   "id": 106,
+   "name": "Wolf Puncher II",
+   "pct": 9.8
+  },
+  {
+   "id": 107,
+   "name": "Corrupted Gauntlet Speed-Chaser",
+   "pct": 4.9
+  },
+  {
+   "id": 108,
+   "name": "Corrupted Gauntlet Speed-Runner",
+   "pct": 2.1
+  },
+  {
+   "id": 109,
+   "name": "Gauntlet Veteran",
+   "pct": 30.5
+  },
+  {
+   "id": 110,
+   "name": "Gauntlet Master",
+   "pct": 25.3
+  },
+  {
+   "id": 111,
+   "name": "3, 2, 1 - Range",
+   "pct": 22.9
+  },
+  {
+   "id": 112,
+   "name": "Perfect Crystalline Hunllef",
+   "pct": 13.0
+  },
+  {
+   "id": 113,
+   "name": "Defence Doesn't Matter",
+   "pct": 12.7
+  },
+  {
+   "id": 114,
+   "name": "Egniol Diet",
+   "pct": 10.9
+  },
+  {
+   "id": 115,
+   "name": "Crystalline Warrior",
+   "pct": 13.3
+  },
+  {
+   "id": 116,
+   "name": "Wolf Puncher",
+   "pct": 13.1
+  },
+  {
+   "id": 117,
+   "name": "Gauntlet Speed-Chaser",
+   "pct": 3.3
+  },
+  {
+   "id": 118,
+   "name": "Gauntlet Speed-Runner",
+   "pct": 1.8
+  },
+  {
+   "id": 119,
+   "name": "Glough Speed-Trialist",
+   "pct": 5.0
+  },
+  {
+   "id": 120,
+   "name": "A Greater Foe",
+   "pct": 69.4
+  },
+  {
+   "id": 121,
+   "name": "Not So Great After All",
+   "pct": 47.6
+  },
+  {
+   "id": 122,
+   "name": "A Demon's Best Friend",
+   "pct": 70.4
+  },
+  {
+   "id": 123,
+   "name": "Hespori Adept",
+   "pct": 46.2
+  },
+  {
+   "id": 124,
+   "name": "Hesporisn't",
+   "pct": 32.6
+  },
+  {
+   "id": 125,
+   "name": "Weed Whacker",
+   "pct": 40.6
+  },
+  {
+   "id": 126,
+   "name": "Plant-Based Diet",
+   "pct": 22.3
+  },
+  {
+   "id": 127,
+   "name": "Hespori Speed-Trialist",
+   "pct": 14.9
+  },
+  {
+   "id": 128,
+   "name": "Hespori Speed-Chaser",
+   "pct": 6.0
+  },
+  {
+   "id": 129,
+   "name": "Obor Novice",
+   "pct": 36.0
+  },
+  {
+   "id": 130,
+   "name": "Obor Champion",
+   "pct": 22.4
+  },
+  {
+   "id": 131,
+   "name": "Sleeping Giant",
+   "pct": 23.9
+  },
+  {
+   "id": 132,
+   "name": "Back to the Wall",
+   "pct": 30.8
+  },
+  {
+   "id": 133,
+   "name": "Squashing the Giant",
+   "pct": 22.6
+  },
+  {
+   "id": 134,
+   "name": "Fighting as Intended",
+   "pct": 23.5
+  },
+  {
+   "id": 135,
+   "name": "Alchemical Veteran",
+   "pct": 15.9
+  },
+  {
+   "id": 136,
+   "name": "Alchemical Master",
+   "pct": 14.8
+  },
+  {
+   "id": 137,
+   "name": "Unrequired Antipoisons",
+   "pct": 15.4
+  },
+  {
+   "id": 138,
+   "name": "Lightning Lure",
+   "pct": 15.6
+  },
+  {
+   "id": 139,
+   "name": "Don't Flame Me",
+   "pct": 15.7
+  },
+  {
+   "id": 140,
+   "name": "Mixing Correctly",
+   "pct": 15.0
+  },
+  {
+   "id": 141,
+   "name": "The Flame Skipper",
+   "pct": 12.8
+  },
+  {
+   "id": 142,
+   "name": "Alcleanical Hydra",
+   "pct": 14.8
+  },
+  {
+   "id": 143,
+   "name": "No Pressure",
+   "pct": 4.9
+  },
+  {
+   "id": 144,
+   "name": "Alchemical Speed-Chaser",
+   "pct": 9.4
+  },
+  {
+   "id": 145,
+   "name": "Alchemical Speed-Runner",
+   "pct": 3.6
+  },
+  {
+   "id": 146,
+   "name": "Working Overtime",
+   "pct": 10.6
+  },
+  {
+   "id": 147,
+   "name": "Fight Caves Veteran",
+   "pct": 60.9
+  },
+  {
+   "id": 148,
+   "name": "Fight Caves Master",
+   "pct": 16.5
+  },
+  {
+   "id": 149,
+   "name": "A Near Miss!",
+   "pct": 28.9
+  },
+  {
+   "id": 150,
+   "name": "Denying the Healers",
+   "pct": 14.9
+  },
+  {
+   "id": 151,
+   "name": "Denying the Healers II",
+   "pct": 5.2
+  },
+  {
+   "id": 152,
+   "name": "You Didn't Say Anything About a Bat",
+   "pct": 7.9
+  },
+  {
+   "id": 153,
+   "name": "Facing Jad Head-on",
+   "pct": 8.3
+  },
+  {
+   "id": 154,
+   "name": "No Time for a Drink",
+   "pct": 1.3
+  },
+  {
+   "id": 155,
+   "name": "Fight Caves Speed-Chaser",
+   "pct": 3.7
+  },
+  {
+   "id": 156,
+   "name": "Fight Caves Speed-Runner",
+   "pct": 1.8
+  },
+  {
+   "id": 157,
+   "name": "Kalphite Queen Adept",
+   "pct": 17.9
+  },
+  {
+   "id": 158,
+   "name": "Kalphite Queen Veteran",
+   "pct": 15.5
+  },
+  {
+   "id": 159,
+   "name": "Chitin Penetrator",
+   "pct": 22.7
+  },
+  {
+   "id": 160,
+   "name": "Insect Deflection",
+   "pct": 12.8
+  },
+  {
+   "id": 161,
+   "name": "Prayer Smasher",
+   "pct": 11.3
+  },
+  {
+   "id": 162,
+   "name": "King Black Dragon Novice",
+   "pct": 34.1
+  },
+  {
+   "id": 163,
+   "name": "King Black Dragon Champion",
+   "pct": 28.9
+  },
+  {
+   "id": 164,
+   "name": "Claw Clipper",
+   "pct": 31.1
+  },
+  {
+   "id": 165,
+   "name": "Hide Penetration",
+   "pct": 29.3
+  },
+  {
+   "id": 166,
+   "name": "Antifire Protection",
+   "pct": 35.3
+  },
+  {
+   "id": 167,
+   "name": "Who Is the King Now?",
+   "pct": 14.5
+  },
+  {
+   "id": 168,
+   "name": "Kraken Adept",
+   "pct": 31.0
+  },
+  {
+   "id": 169,
+   "name": "Unnecessary Optimisation",
+   "pct": 22.0
+  },
+  {
+   "id": 170,
+   "name": "Krakan't Hurt Me",
+   "pct": 25.1
+  },
+  {
+   "id": 171,
+   "name": "Ten-tacles",
+   "pct": 21.5
+  },
+  {
+   "id": 172,
+   "name": "One Hundred Tentacles",
+   "pct": 16.7
+  },
+  {
+   "id": 173,
+   "name": "Master of Broad Weaponry",
+   "pct": 46.7
+  },
+  {
+   "id": 174,
+   "name": "A Scaley Encounter",
+   "pct": 46.1
+  },
+  {
+   "id": 175,
+   "name": "Shayzien Protector",
+   "pct": 31.7
+  },
+  {
+   "id": 176,
+   "name": "Mimic Veteran",
+   "pct": 18.5
+  },
+  {
+   "id": 177,
+   "name": "Giant Mole Novice",
+   "pct": 32.4
+  },
+  {
+   "id": 178,
+   "name": "Giant Mole Champion",
+   "pct": 28.7
+  },
+  {
+   "id": 179,
+   "name": "Why Are You Running?",
+   "pct": 35.9
+  },
+  {
+   "id": 180,
+   "name": "Hard Hitter",
+   "pct": 19.4
+  },
+  {
+   "id": 181,
+   "name": "Whack-a-Mole",
+   "pct": 28.9
+  },
+  {
+   "id": 182,
+   "name": "Avoiding Those Little Arms",
+   "pct": 37.8
+  },
+  {
+   "id": 183,
+   "name": "Nightmare Adept",
+   "pct": 12.7
+  },
+  {
+   "id": 184,
+   "name": "Nightmare Veteran",
+   "pct": 6.6
+  },
+  {
+   "id": 185,
+   "name": "Nightmare Master",
+   "pct": 5.2
+  },
+  {
+   "id": 186,
+   "name": "Terrible Parent",
+   "pct": 1.7
+  },
+  {
+   "id": 187,
+   "name": "Explosion!",
+   "pct": 3.6
+  },
+  {
+   "id": 188,
+   "name": "Perfect Nightmare",
+   "pct": 1.9
+  },
+  {
+   "id": 189,
+   "name": "Sleep Tight",
+   "pct": 3.2
+  },
+  {
+   "id": 190,
+   "name": "A Long Trip",
+   "pct": 1.8
+  },
+  {
+   "id": 191,
+   "name": "Nightmare (Solo) Speed-Trialist",
+   "pct": 3.0
+  },
+  {
+   "id": 192,
+   "name": "Nightmare (Solo) Speed-Chaser",
+   "pct": 2.3
+  },
+  {
+   "id": 193,
+   "name": "Nightmare (Solo) Speed-Runner",
+   "pct": 1.5
+  },
+  {
+   "id": 194,
+   "name": "Nightmare (5-Scale) Speed-Trialist",
+   "pct": 4.6
+  },
+  {
+   "id": 195,
+   "name": "Nightmare (5-Scale) Speed-Chaser",
+   "pct": 2.5
+  },
+  {
+   "id": 196,
+   "name": "Nightmare (5-Scale) Speed-Runner",
+   "pct": 1.8
+  },
+  {
+   "id": 197,
+   "name": "Dagannoth Prime Champion",
+   "pct": 26.7
+  },
+  {
+   "id": 198,
+   "name": "Dagannoth Prime Adept",
+   "pct": 23.3
+  },
+  {
+   "id": 199,
+   "name": "Death to the Seer King",
+   "pct": 9.7
+  },
+  {
+   "id": 200,
+   "name": "From One King to Another",
+   "pct": 7.3
+  },
+  {
+   "id": 201,
+   "name": "Dagannoth Rex Champion",
+   "pct": 39.0
+  },
+  {
+   "id": 202,
+   "name": "Dagannoth Rex Adept",
+   "pct": 35.4
+  },
+  {
+   "id": 203,
+   "name": "Death to the Warrior King",
+   "pct": 11.0
+  },
+  {
+   "id": 204,
+   "name": "A Frozen King",
+   "pct": 16.8
+  },
+  {
+   "id": 205,
+   "name": "Toppling the Diarchy",
+   "pct": 5.3
+  },
+  {
+   "id": 206,
+   "name": "Sarachnis Novice",
+   "pct": 28.8
+  },
+  {
+   "id": 207,
+   "name": "Sarachnis Champion",
+   "pct": 24.8
+  },
+  {
+   "id": 208,
+   "name": "Ready to Pounce",
+   "pct": 24.7
+  },
+  {
+   "id": 209,
+   "name": "Inspect Repellent",
+   "pct": 28.1
+  },
+  {
+   "id": 210,
+   "name": "Newspaper Enthusiast",
+   "pct": 30.8
+  },
+  {
+   "id": 211,
+   "name": "Commander Zilyana Adept",
+   "pct": 13.6
+  },
+  {
+   "id": 212,
+   "name": "Commander Zilyana Veteran",
+   "pct": 10.3
+  },
+  {
+   "id": 213,
+   "name": "Commander Showdown",
+   "pct": 8.3
+  },
+  {
+   "id": 214,
+   "name": "Animal Whisperer",
+   "pct": 4.2
+  },
+  {
+   "id": 215,
+   "name": "Moving Collateral",
+   "pct": 3.6
+  },
+  {
+   "id": 216,
+   "name": "Reminisce",
+   "pct": 4.5
+  },
+  {
+   "id": 217,
+   "name": "Peach Conjurer",
+   "pct": 3.1
+  },
+  {
+   "id": 218,
+   "name": "Scorpia Adept",
+   "pct": 15.4
+  },
+  {
+   "id": 219,
+   "name": "Scorpia Veteran",
+   "pct": 12.6
+  },
+  {
+   "id": 220,
+   "name": "I Can't Reach That",
+   "pct": 16.8
+  },
+  {
+   "id": 221,
+   "name": "Guardians No More",
+   "pct": 21.3
+  },
+  {
+   "id": 222,
+   "name": "Fragment of Seren Speed-Trialist",
+   "pct": 4.0
+  },
+  {
+   "id": 223,
+   "name": "A Frozen Foe from the Past",
+   "pct": 48.9
+  },
+  {
+   "id": 224,
+   "name": "Zulrah Adept",
+   "pct": 28.6
+  },
+  {
+   "id": 225,
+   "name": "Zulrah Veteran",
+   "pct": 25.0
+  },
+  {
+   "id": 226,
+   "name": "Zulrah Master",
+   "pct": 22.0
+  },
+  {
+   "id": 227,
+   "name": "Snake Rebound",
+   "pct": 13.0
+  },
+  {
+   "id": 228,
+   "name": "Snake. Snake!? Snaaaaaake!",
+   "pct": 24.0
+  },
+  {
+   "id": 229,
+   "name": "Perfect Zulrah",
+   "pct": 10.5
+  },
+  {
+   "id": 230,
+   "name": "Zulrah Speed-Trialist",
+   "pct": 20.4
+  },
+  {
+   "id": 231,
+   "name": "Zulrah Speed-Chaser",
+   "pct": 12.9
+  },
+  {
+   "id": 232,
+   "name": "Zulrah Speed-Runner",
+   "pct": 9.8
+  },
+  {
+   "id": 233,
+   "name": "Dagannoth Supreme Champion",
+   "pct": 26.5
+  },
+  {
+   "id": 234,
+   "name": "Dagannoth Supreme Adept",
+   "pct": 22.9
+  },
+  {
+   "id": 235,
+   "name": "Death to the Archer King",
+   "pct": 17.0
+  },
+  {
+   "id": 236,
+   "name": "Rapid Succession",
+   "pct": 5.5
+  },
+  {
+   "id": 237,
+   "name": "Theatre of Blood Veteran",
+   "pct": 7.3
+  },
+  {
+   "id": 238,
+   "name": "Theatre of Blood Master",
+   "pct": 5.5
+  },
+  {
+   "id": 239,
+   "name": "Theatre of Blood Grandmaster",
+   "pct": 4.2
+  },
+  {
+   "id": 240,
+   "name": "Two-Down",
+   "pct": 9.4
+  },
+  {
+   "id": 241,
+   "name": "Pop It",
+   "pct": 3.8
+  },
+  {
+   "id": 242,
+   "name": "A Timely Snack",
+   "pct": 3.7
+  },
+  {
+   "id": 243,
+   "name": "Perfect Theatre",
+   "pct": 0.9
+  },
+  {
+   "id": 244,
+   "name": "Perfect Maiden",
+   "pct": 4.3
+  },
+  {
+   "id": 245,
+   "name": "Perfect Bloat",
+   "pct": 6.1
+  },
+  {
+   "id": 246,
+   "name": "Perfect Nylocas",
+   "pct": 2.4
+  },
+  {
+   "id": 247,
+   "name": "Perfect Sotetseg",
+   "pct": 4.3
+  },
+  {
+   "id": 248,
+   "name": "Perfect Xarpus",
+   "pct": 2.2
+  },
+  {
+   "id": 249,
+   "name": "Perfect Verzik",
+   "pct": 1.1
+  },
+  {
+   "id": 250,
+   "name": "Can't Drain This",
+   "pct": 2.4
+  },
+  {
+   "id": 251,
+   "name": "Can You Dance?",
+   "pct": 5.5
+  },
+  {
+   "id": 252,
+   "name": "Morytania Only",
+   "pct": 1.4
+  },
+  {
+   "id": 253,
+   "name": "Back in My Day...",
+   "pct": 5.0
+  },
+  {
+   "id": 254,
+   "name": "Theatre (Duo) Speed-Runner",
+   "pct": 1.3
+  },
+  {
+   "id": 255,
+   "name": "Theatre (Trio) Speed-Chaser",
+   "pct": 4.0
+  },
+  {
+   "id": 256,
+   "name": "Theatre (Trio) Speed-Runner",
+   "pct": 1.5
+  },
+  {
+   "id": 257,
+   "name": "Theatre (4-Scale) Speed-Chaser",
+   "pct": 3.3
+  },
+  {
+   "id": 258,
+   "name": "Theatre (4-Scale) Speed-Runner",
+   "pct": 1.1
+  },
+  {
+   "id": 259,
+   "name": "Theatre (5-Scale) Speed-Chaser",
+   "pct": 2.2
+  },
+  {
+   "id": 260,
+   "name": "Theatre (5-Scale) Speed-Runner",
+   "pct": 1.1
+  },
+  {
+   "id": 261,
+   "name": "Thermonuclear Veteran",
+   "pct": 19.7
+  },
+  {
+   "id": 262,
+   "name": "Hazard Prevention",
+   "pct": 13.0
+  },
+  {
+   "id": 263,
+   "name": "Spec'd Out",
+   "pct": 12.1
+  },
+  {
+   "id": 264,
+   "name": "Venenatis Adept",
+   "pct": 19.6
+  },
+  {
+   "id": 265,
+   "name": "Venenatis Veteran",
+   "pct": 17.7
+  },
+  {
+   "id": 266,
+   "name": "Vet'ion Adept",
+   "pct": 25.2
+  },
+  {
+   "id": 267,
+   "name": "Vet'eran",
+   "pct": 23.3
+  },
+  {
+   "id": 268,
+   "name": "Vorkath Veteran",
+   "pct": 34.9
+  },
+  {
+   "id": 269,
+   "name": "Vorkath Master",
+   "pct": 25.6
+  },
+  {
+   "id": 270,
+   "name": "The Walk",
+   "pct": 7.6
+  },
+  {
+   "id": 271,
+   "name": "Zombie Destroyer",
+   "pct": 15.0
+  },
+  {
+   "id": 272,
+   "name": "Dodging the Dragon",
+   "pct": 6.9
+  },
+  {
+   "id": 273,
+   "name": "Stick 'em With the Pointy End",
+   "pct": 17.6
+  },
+  {
+   "id": 274,
+   "name": "Faithless Encounter",
+   "pct": 9.3
+  },
+  {
+   "id": 275,
+   "name": "The Fremennik Way",
+   "pct": 5.7
+  },
+  {
+   "id": 276,
+   "name": "Vorkath Speed-Chaser",
+   "pct": 14.5
+  },
+  {
+   "id": 277,
+   "name": "Vorkath Speed-Runner",
+   "pct": 3.6
+  },
+  {
+   "id": 278,
+   "name": "Extended Encounter",
+   "pct": 4.8
+  },
+  {
+   "id": 279,
+   "name": "Wintertodt Novice",
+   "pct": 75.2
+  },
+  {
+   "id": 280,
+   "name": "Wintertodt Champion",
+   "pct": 72.5
+  },
+  {
+   "id": 281,
+   "name": "Mummy!",
+   "pct": 45.0
+  },
+  {
+   "id": 282,
+   "name": "Handyman",
+   "pct": 68.7
+  },
+  {
+   "id": 283,
+   "name": "Can We Fix It?",
+   "pct": 71.4
+  },
+  {
+   "id": 284,
+   "name": "Leaving No One Behind",
+   "pct": 66.1
+  },
+  {
+   "id": 285,
+   "name": "Cosy",
+   "pct": 68.7
+  },
+  {
+   "id": 286,
+   "name": "Why Fletch?",
+   "pct": 30.3
+  },
+  {
+   "id": 287,
+   "name": "A Slithery Encounter",
+   "pct": 56.8
+  },
+  {
+   "id": 288,
+   "name": "Chambers of Xeric: CM Master",
+   "pct": 6.9
+  },
+  {
+   "id": 289,
+   "name": "Chambers of Xeric: CM Grandmaster",
+   "pct": 5.3
+  },
+  {
+   "id": 290,
+   "name": "Immortal Raid Team",
+   "pct": 8.0
+  },
+  {
+   "id": 291,
+   "name": "Immortal Raider",
+   "pct": 2.6
+  },
+  {
+   "id": 292,
+   "name": "Dust Seeker",
+   "pct": 10.3
+  },
+  {
+   "id": 293,
+   "name": "Chambers of Xeric: CM (Solo) Speed-Chaser",
+   "pct": 1.9
+  },
+  {
+   "id": 294,
+   "name": "Chambers of Xeric: CM (Solo) Speed-Runner",
+   "pct": 1.4
+  },
+  {
+   "id": 295,
+   "name": "Chambers of Xeric: CM (5-Scale) Speed-Chaser",
+   "pct": 2.7
+  },
+  {
+   "id": 296,
+   "name": "Chambers of Xeric: CM (5-Scale) Speed-Runner",
+   "pct": 1.6
+  },
+  {
+   "id": 297,
+   "name": "Chambers of Xeric: CM (Trio) Speed-Chaser",
+   "pct": 5.5
+  },
+  {
+   "id": 298,
+   "name": "Chambers of Xeric: CM (Trio) Speed-Runner",
+   "pct": 2.2
+  },
+  {
+   "id": 299,
+   "name": "Chambers of Xeric Veteran",
+   "pct": 16.9
+  },
+  {
+   "id": 300,
+   "name": "Chambers of Xeric Master",
+   "pct": 12.4
+  },
+  {
+   "id": 301,
+   "name": "Chambers of Xeric Grandmaster",
+   "pct": 9.2
+  },
+  {
+   "id": 302,
+   "name": "Perfectly Balanced",
+   "pct": 19.1
+  },
+  {
+   "id": 303,
+   "name": "Together We'll Fall",
+   "pct": 13.7
+  },
+  {
+   "id": 304,
+   "name": "No Time for Death",
+   "pct": 10.9
+  },
+  {
+   "id": 305,
+   "name": "Putting It Olm on the Line",
+   "pct": 3.2
+  },
+  {
+   "id": 306,
+   "name": "A Not So Special Lizard",
+   "pct": 3.9
+  },
+  {
+   "id": 307,
+   "name": "Mutta-diet",
+   "pct": 25.3
+  },
+  {
+   "id": 308,
+   "name": "Redemption Enthusiast",
+   "pct": 16.6
+  },
+  {
+   "id": 309,
+   "name": "Stop Drop and Roll",
+   "pct": 16.3
+  },
+  {
+   "id": 310,
+   "name": "Anvil No More",
+   "pct": 23.5
+  },
+  {
+   "id": 311,
+   "name": "Dancing with Statues",
+   "pct": 20.1
+  },
+  {
+   "id": 312,
+   "name": "Undying Raid Team",
+   "pct": 22.2
+  },
+  {
+   "id": 313,
+   "name": "Undying Raider",
+   "pct": 5.9
+  },
+  {
+   "id": 314,
+   "name": "Shayzien Specialist",
+   "pct": 15.2
+  },
+  {
+   "id": 315,
+   "name": "Playing with Lasers",
+   "pct": 20.7
+  },
+  {
+   "id": 316,
+   "name": "Cryo No More",
+   "pct": 16.7
+  },
+  {
+   "id": 317,
+   "name": "Perfect Olm (Solo)",
+   "pct": 3.7
+  },
+  {
+   "id": 318,
+   "name": "Perfect Olm (Trio)",
+   "pct": 2.4
+  },
+  {
+   "id": 319,
+   "name": "Blind Spot",
+   "pct": 13.4
+  },
+  {
+   "id": 320,
+   "name": "Blizzard Dodger",
+   "pct": 14.0
+  },
+  {
+   "id": 321,
+   "name": "Kill It with Fire",
+   "pct": 15.2
+  },
+  {
+   "id": 322,
+   "name": "Chambers of Xeric (Solo) Speed-Chaser",
+   "pct": 2.5
+  },
+  {
+   "id": 323,
+   "name": "Chambers of Xeric (Solo) Speed-Runner",
+   "pct": 1.5
+  },
+  {
+   "id": 324,
+   "name": "Chambers of Xeric (5-Scale) Speed-Chaser",
+   "pct": 2.2
+  },
+  {
+   "id": 325,
+   "name": "Chambers of Xeric (5-Scale) Speed-Runner",
+   "pct": 1.8
+  },
+  {
+   "id": 326,
+   "name": "Chambers of Xeric (Trio) Speed-Chaser",
+   "pct": 2.9
+  },
+  {
+   "id": 327,
+   "name": "Chambers of Xeric (Trio) Speed-Runner",
+   "pct": 2.4
+  },
+  {
+   "id": 328,
+   "name": "Zalcano Veteran",
+   "pct": 18.8
+  },
+  {
+   "id": 329,
+   "name": "Perfect Zalcano",
+   "pct": 11.9
+  },
+  {
+   "id": 330,
+   "name": "Team Player",
+   "pct": 16.9
+  },
+  {
+   "id": 331,
+   "name": "The Spurned Hero",
+   "pct": 19.2
+  },
+  {
+   "id": 332,
+   "name": "K'ril Tsutsaroth Adept",
+   "pct": 14.7
+  },
+  {
+   "id": 333,
+   "name": "K'ril Tsutsaroth Veteran",
+   "pct": 10.9
+  },
+  {
+   "id": 334,
+   "name": "Yarr No More",
+   "pct": 26.2
+  },
+  {
+   "id": 335,
+   "name": "Demonic Showdown",
+   "pct": 7.5
+  },
+  {
+   "id": 336,
+   "name": "The Bane of Demons",
+   "pct": 5.0
+  },
+  {
+   "id": 337,
+   "name": "Demonic Defence",
+   "pct": 8.4
+  },
+  {
+   "id": 338,
+   "name": "Demon Whisperer",
+   "pct": 5.7
+  },
+  {
+   "id": 339,
+   "name": "Demonbane Weaponry II",
+   "pct": 24.4
+  },
+  {
+   "id": 340,
+   "name": "Ash Collector",
+   "pct": 6.0
+  },
+  {
+   "id": 341,
+   "name": "Half-Way There",
+   "pct": 14.8
+  },
+  {
+   "id": 342,
+   "name": "Inferno Grandmaster",
+   "pct": 1.5
+  },
+  {
+   "id": 343,
+   "name": "The Floor Is Lava",
+   "pct": 1.1
+  },
+  {
+   "id": 344,
+   "name": "Playing with Jads",
+   "pct": 1.2
+  },
+  {
+   "id": 345,
+   "name": "No Luck Required",
+   "pct": 8.5
+  },
+  {
+   "id": 346,
+   "name": "Nibblers, Begone!",
+   "pct": 4.9
+  },
+  {
+   "id": 347,
+   "name": "Wasn't Even Close",
+   "pct": 1.8
+  },
+  {
+   "id": 348,
+   "name": "Budget Setup",
+   "pct": 6.9
+  },
+  {
+   "id": 349,
+   "name": "Nibbler Chaser",
+   "pct": 1.2
+  },
+  {
+   "id": 350,
+   "name": "Facing Jad Head-on II",
+   "pct": 0.9
+  },
+  {
+   "id": 351,
+   "name": "Jad? What Are You Doing Here?",
+   "pct": 2.7
+  },
+  {
+   "id": 352,
+   "name": "Inferno Speed-Runner",
+   "pct": 1.3
+  },
+  {
+   "id": 353,
+   "name": "Tempoross Novice",
+   "pct": 59.3
+  },
+  {
+   "id": 354,
+   "name": "Tempoross Champion",
+   "pct": 55.1
+  },
+  {
+   "id": 355,
+   "name": "Dress Like You Mean It",
+   "pct": 37.4
+  },
+  {
+   "id": 356,
+   "name": "Master of Buckets",
+   "pct": 49.5
+  },
+  {
+   "id": 357,
+   "name": "Calm Before the Storm",
+   "pct": 55.5
+  },
+  {
+   "id": 358,
+   "name": "Why Cook?",
+   "pct": 22.2
+  },
+  {
+   "id": 359,
+   "name": "The Lone Angler",
+   "pct": 34.5
+  },
+  {
+   "id": 360,
+   "name": "Fire in the Hole!",
+   "pct": 29.3
+  },
+  {
+   "id": 361,
+   "name": "The II Jad Challenge",
+   "pct": 9.3
+  },
+  {
+   "id": 362,
+   "name": "The IV Jad Challenge",
+   "pct": 4.0
+  },
+  {
+   "id": 363,
+   "name": "The VI Jad Challenge",
+   "pct": 2.0
+  },
+  {
+   "id": 364,
+   "name": "TzHaar-Ket-Rak's Speed-Trialist",
+   "pct": 4.3
+  },
+  {
+   "id": 365,
+   "name": "TzHaar-Ket-Rak's Speed-Chaser",
+   "pct": 2.8
+  },
+  {
+   "id": 366,
+   "name": "TzHaar-Ket-Rak's Speed-Runner",
+   "pct": 1.5
+  },
+  {
+   "id": 367,
+   "name": "Facing Jad Head-on III",
+   "pct": 5.6
+  },
+  {
+   "id": 368,
+   "name": "Facing Jad Head-on IV",
+   "pct": 2.7
+  },
+  {
+   "id": 369,
+   "name": "Supplies? Who Needs 'em?",
+   "pct": 2.9
+  },
+  {
+   "id": 370,
+   "name": "It Wasn't a Fluke",
+   "pct": 1.5
+  },
+  {
+   "id": 371,
+   "name": "Multi-Style Specialist",
+   "pct": 3.3
+  },
+  {
+   "id": 372,
+   "name": "Stop Right There!",
+   "pct": 2.4
+  },
+  {
+   "id": 373,
+   "name": "Personal Space",
+   "pct": 1.1
+  },
+  {
+   "id": 374,
+   "name": "Royal Affairs",
+   "pct": 1.6
+  },
+  {
+   "id": 375,
+   "name": "Harder Mode I",
+   "pct": 1.2
+  },
+  {
+   "id": 376,
+   "name": "Harder Mode II",
+   "pct": 0.9
+  },
+  {
+   "id": 377,
+   "name": "Nylo Sniper",
+   "pct": 1.2
+  },
+  {
+   "id": 378,
+   "name": "Team Work Makes the Dream Work",
+   "pct": 2.6
+  },
+  {
+   "id": 379,
+   "name": "Harder Mode III",
+   "pct": 1.0
+  },
+  {
+   "id": 380,
+   "name": "Pack Like a Yak",
+   "pct": 1.1
+  },
+  {
+   "id": 381,
+   "name": "Hard Mode? Completed It",
+   "pct": 3.4
+  },
+  {
+   "id": 382,
+   "name": "Theatre: HM (Trio) Speed-Runner",
+   "pct": 1.0
+  },
+  {
+   "id": 383,
+   "name": "Theatre: HM (4-Scale) Speed-Runner",
+   "pct": 1.7
+  },
+  {
+   "id": 384,
+   "name": "Theatre: HM (5-Scale) Speed-Runner",
+   "pct": 1.6
+  },
+  {
+   "id": 385,
+   "name": "Theatre of Blood: HM Grandmaster",
+   "pct": 1.9
+  },
+  {
+   "id": 386,
+   "name": "Anticoagulants",
+   "pct": 22.1
+  },
+  {
+   "id": 387,
+   "name": "Appropriate Tools",
+   "pct": 20.7
+  },
+  {
+   "id": 388,
+   "name": "They Won't Expect This",
+   "pct": 13.9
+  },
+  {
+   "id": 389,
+   "name": "Chally Time",
+   "pct": 9.8
+  },
+  {
+   "id": 390,
+   "name": "Nylocas, On the Rocks",
+   "pct": 9.0
+  },
+  {
+   "id": 391,
+   "name": "Just To Be Safe",
+   "pct": 15.4
+  },
+  {
+   "id": 392,
+   "name": "Don't Look at Me!",
+   "pct": 19.7
+  },
+  {
+   "id": 393,
+   "name": "No-Pillar",
+   "pct": 31.7
+  },
+  {
+   "id": 394,
+   "name": "Attack, Step, Wait",
+   "pct": 12.1
+  },
+  {
+   "id": 395,
+   "name": "Pass It On",
+   "pct": 7.7
+  },
+  {
+   "id": 396,
+   "name": "Theatre of Blood: SM Speed-Chaser",
+   "pct": 7.0
+  },
+  {
+   "id": 397,
+   "name": "Theatre of Blood: SM Adept",
+   "pct": 34.6
+  },
+  {
+   "id": 398,
+   "name": "Into the Den of Giants",
+   "pct": 27.7
+  },
+  {
+   "id": 399,
+   "name": "Sit Back and Relax",
+   "pct": 40.8
+  },
+  {
+   "id": 400,
+   "name": "Phosani's Veteran",
+   "pct": 5.5
+  },
+  {
+   "id": 401,
+   "name": "Phosani's Master",
+   "pct": 4.7
+  },
+  {
+   "id": 402,
+   "name": "Phosani's Grandmaster",
+   "pct": 3.8
+  },
+  {
+   "id": 403,
+   "name": "Perfect Phosani's Nightmare",
+   "pct": 3.0
+  },
+  {
+   "id": 404,
+   "name": "Phosani's Speedchaser",
+   "pct": 4.2
+  },
+  {
+   "id": 405,
+   "name": "Phosani's Speedrunner",
+   "pct": 2.8
+  },
+  {
+   "id": 406,
+   "name": "Crush Hour",
+   "pct": 4.5
+  },
+  {
+   "id": 407,
+   "name": "I Would Simply React",
+   "pct": 4.2
+  },
+  {
+   "id": 408,
+   "name": "Dreamland Express",
+   "pct": 4.4
+  },
+  {
+   "id": 409,
+   "name": "Can't Wake Up",
+   "pct": 2.0
+  },
+  {
+   "id": 410,
+   "name": "Nex Veteran",
+   "pct": 16.6
+  },
+  {
+   "id": 411,
+   "name": "Nex Master",
+   "pct": 12.7
+  },
+  {
+   "id": 412,
+   "name": "Nex Survivors",
+   "pct": 15.6
+  },
+  {
+   "id": 413,
+   "name": "A siphon will solve this",
+   "pct": 14.5
+  },
+  {
+   "id": 414,
+   "name": "Contain this!",
+   "pct": 15.6
+  },
+  {
+   "id": 415,
+   "name": "There is no escape!",
+   "pct": 15.8
+  },
+  {
+   "id": 416,
+   "name": "Nex Trio",
+   "pct": 5.6
+  },
+  {
+   "id": 417,
+   "name": "Nex Duo",
+   "pct": 2.6
+  },
+  {
+   "id": 418,
+   "name": "I should see a doctor",
+   "pct": 10.9
+  },
+  {
+   "id": 419,
+   "name": "Perfect Nex",
+   "pct": 11.8
+  },
+  {
+   "id": 420,
+   "name": "Shadows Move...",
+   "pct": 15.6
+  },
+  {
+   "id": 421,
+   "name": "Tombs Speed Runner",
+   "pct": 1.7
+  },
+  {
+   "id": 422,
+   "name": "Tombs Speed Runner II",
+   "pct": 1.4
+  },
+  {
+   "id": 423,
+   "name": "Tombs Speed Runner III",
+   "pct": 1.2
+  },
+  {
+   "id": 424,
+   "name": "You are not prepared",
+   "pct": 5.0
+  },
+  {
+   "id": 425,
+   "name": "Helpful spirit who?",
+   "pct": 4.9
+  },
+  {
+   "id": 426,
+   "name": "Resourceful Raider",
+   "pct": 5.2
+  },
+  {
+   "id": 427,
+   "name": "But... Damage",
+   "pct": 2.6
+  },
+  {
+   "id": 428,
+   "name": "Chompington",
+   "pct": 6.8
+  },
+  {
+   "id": 429,
+   "name": "Fancy feet",
+   "pct": 2.3
+  },
+  {
+   "id": 430,
+   "name": "Hardcore Raiders",
+   "pct": 22.8
+  },
+  {
+   "id": 431,
+   "name": "Hardcore Tombs",
+   "pct": 21.1
+  },
+  {
+   "id": 432,
+   "name": "Perfect Het",
+   "pct": 23.1
+  },
+  {
+   "id": 433,
+   "name": "Perfect Akkha",
+   "pct": 1.8
+  },
+  {
+   "id": 434,
+   "name": "Perfection of Het",
+   "pct": 1.6
+  },
+  {
+   "id": 435,
+   "name": "Perfect Apmeken",
+   "pct": 19.5
+  },
+  {
+   "id": 436,
+   "name": "Perfect Ba-Ba",
+   "pct": 6.0
+  },
+  {
+   "id": 437,
+   "name": "Perfection of Apmeken",
+   "pct": 4.1
+  },
+  {
+   "id": 438,
+   "name": "Perfect Crondis",
+   "pct": 24.9
+  },
+  {
+   "id": 439,
+   "name": "Perfect Zebak",
+   "pct": 11.1
+  },
+  {
+   "id": 440,
+   "name": "Perfection of Crondis",
+   "pct": 8.8
+  },
+  {
+   "id": 441,
+   "name": "Perfect Scabaras",
+   "pct": 24.4
+  },
+  {
+   "id": 442,
+   "name": "Perfect Kephri",
+   "pct": 5.8
+  },
+  {
+   "id": 443,
+   "name": "Perfection of Scabaras",
+   "pct": 3.8
+  },
+  {
+   "id": 444,
+   "name": "Perfect Wardens",
+   "pct": 1.6
+  },
+  {
+   "id": 445,
+   "name": "Insanity",
+   "pct": 1.5
+  },
+  {
+   "id": 446,
+   "name": "Amascut's Remnant",
+   "pct": 4.8
+  },
+  {
+   "id": 447,
+   "name": "Something of an expert myself",
+   "pct": 13.7
+  },
+  {
+   "id": 448,
+   "name": "Maybe I'm the boss.",
+   "pct": 1.6
+  },
+  {
+   "id": 449,
+   "name": "Dropped the ball",
+   "pct": 25.4
+  },
+  {
+   "id": 450,
+   "name": "Akkhan't Do it",
+   "pct": 2.4
+  },
+  {
+   "id": 451,
+   "name": "No skipping allowed",
+   "pct": 5.9
+  },
+  {
+   "id": 452,
+   "name": "I'm in a rush",
+   "pct": 17.6
+  },
+  {
+   "id": 453,
+   "name": "Ba-Bananza",
+   "pct": 7.0
+  },
+  {
+   "id": 454,
+   "name": "All Praise Zebak",
+   "pct": 1.6
+  },
+  {
+   "id": 455,
+   "name": "Rockin' around the croc",
+   "pct": 5.4
+  },
+  {
+   "id": 456,
+   "name": "Doesn't bug me",
+   "pct": 2.2
+  },
+  {
+   "id": 457,
+   "name": "All out of medics",
+   "pct": 4.6
+  },
+  {
+   "id": 458,
+   "name": "Down Do Specs",
+   "pct": 15.4
+  },
+  {
+   "id": 459,
+   "name": "Better get movin'",
+   "pct": 13.3
+  },
+  {
+   "id": 460,
+   "name": "Warden't you believe it",
+   "pct": 13.4
+  },
+  {
+   "id": 461,
+   "name": "Novice Tomb Explorer",
+   "pct": 36.3
+  },
+  {
+   "id": 462,
+   "name": "Novice Tomb Looter",
+   "pct": 19.8
+  },
+  {
+   "id": 463,
+   "name": "Novice Tomb Raider",
+   "pct": 15.3
+  },
+  {
+   "id": 464,
+   "name": "Movin' on up",
+   "pct": 34.1
+  },
+  {
+   "id": 465,
+   "name": "Confident Raider",
+   "pct": 32.7
+  },
+  {
+   "id": 466,
+   "name": "Tomb Looter",
+   "pct": 18.6
+  },
+  {
+   "id": 467,
+   "name": "Tomb Raider",
+   "pct": 14.6
+  },
+  {
+   "id": 468,
+   "name": "Tomb Explorer",
+   "pct": 32.1
+  },
+  {
+   "id": 469,
+   "name": "Expert Tomb Explorer",
+   "pct": 21.2
+  },
+  {
+   "id": 470,
+   "name": "Expert Tomb Looter",
+   "pct": 11.7
+  },
+  {
+   "id": 471,
+   "name": "Expert Tomb Raider",
+   "pct": 9.1
+  },
+  {
+   "id": 472,
+   "name": "More than just a ranged weapon",
+   "pct": 4.4
+  },
+  {
+   "id": 473,
+   "name": "Can't Escape",
+   "pct": 9.4
+  },
+  {
+   "id": 474,
+   "name": "Essence Farmer",
+   "pct": 6.2
+  },
+  {
+   "id": 475,
+   "name": "Phantom Muspah Speed-Trialist",
+   "pct": 14.1
+  },
+  {
+   "id": 476,
+   "name": "Phantom Muspah Speed-Chaser",
+   "pct": 5.3
+  },
+  {
+   "id": 477,
+   "name": "Phantom Muspah Speed-Runner",
+   "pct": 2.0
+  },
+  {
+   "id": 478,
+   "name": "Phantom Muspah Adept",
+   "pct": 21.7
+  },
+  {
+   "id": 479,
+   "name": "Phantom Muspah Veteran",
+   "pct": 16.6
+  },
+  {
+   "id": 480,
+   "name": "Phantom Muspah Master",
+   "pct": 14.3
+  },
+  {
+   "id": 481,
+   "name": "Space is Tight",
+   "pct": 12.4
+  },
+  {
+   "id": 482,
+   "name": "Versatile Drainer",
+   "pct": 11.2
+  },
+  {
+   "id": 483,
+   "name": "Walk Straight Pray True",
+   "pct": 15.0
+  },
+  {
+   "id": 484,
+   "name": "Phantom Muspah Manipulator",
+   "pct": 4.0
+  },
+  {
+   "id": 485,
+   "name": "Vardorvis Speed-Trialist",
+   "pct": 9.0
+  },
+  {
+   "id": 486,
+   "name": "Vardorvis Speed-Chaser",
+   "pct": 7.2
+  },
+  {
+   "id": 487,
+   "name": "Vardorvis Speed-Runner",
+   "pct": 4.3
+  },
+  {
+   "id": 488,
+   "name": "Vardorvis Adept",
+   "pct": 16.0
+  },
+  {
+   "id": 489,
+   "name": "Vardorvis Master",
+   "pct": 10.8
+  },
+  {
+   "id": 490,
+   "name": "Vardorvis Sleeper",
+   "pct": 2.7
+  },
+  {
+   "id": 491,
+   "name": "Perfect Vardorvis",
+   "pct": 6.2
+  },
+  {
+   "id": 492,
+   "name": "Axe Enthusiast",
+   "pct": 2.8
+  },
+  {
+   "id": 493,
+   "name": "Budget Cutter",
+   "pct": 6.0
+  },
+  {
+   "id": 494,
+   "name": "Whisperer Speed-Trialist",
+   "pct": 5.5
+  },
+  {
+   "id": 495,
+   "name": "Whisperer Speed-Chaser",
+   "pct": 3.1
+  },
+  {
+   "id": 496,
+   "name": "Whisperer Speed-Runner",
+   "pct": 1.5
+  },
+  {
+   "id": 497,
+   "name": "Whisperer Adept",
+   "pct": 10.0
+  },
+  {
+   "id": 498,
+   "name": "Whisperer Master",
+   "pct": 5.5
+  },
+  {
+   "id": 499,
+   "name": "Whispered",
+   "pct": 2.5
+  },
+  {
+   "id": 500,
+   "name": "Perfect Whisperer",
+   "pct": 3.7
+  },
+  {
+   "id": 501,
+   "name": "Tentacular",
+   "pct": 6.3
+  },
+  {
+   "id": 502,
+   "name": "Dark Memories",
+   "pct": 4.1
+  },
+  {
+   "id": 503,
+   "name": "Leviathan Speed-Trialist",
+   "pct": 5.1
+  },
+  {
+   "id": 504,
+   "name": "Leviathan Speed-Chaser",
+   "pct": 3.0
+  },
+  {
+   "id": 505,
+   "name": "Leviathan Speed-Runner",
+   "pct": 2.1
+  },
+  {
+   "id": 506,
+   "name": "Leviathan Adept",
+   "pct": 10.8
+  },
+  {
+   "id": 507,
+   "name": "Leviathan Master",
+   "pct": 6.2
+  },
+  {
+   "id": 508,
+   "name": "Leviathan Sleeper",
+   "pct": 2.4
+  },
+  {
+   "id": 509,
+   "name": "Perfect Leviathan",
+   "pct": 3.3
+  },
+  {
+   "id": 510,
+   "name": "Serpentine Solo",
+   "pct": 7.9
+  },
+  {
+   "id": 511,
+   "name": "Unconventional",
+   "pct": 2.4
+  },
+  {
+   "id": 512,
+   "name": "Duke Sucellus Speed-Trialist",
+   "pct": 9.0
+  },
+  {
+   "id": 513,
+   "name": "Duke Sucellus Speed-Chaser",
+   "pct": 6.8
+  },
+  {
+   "id": 514,
+   "name": "Duke Sucellus Speed-Runner",
+   "pct": 4.1
+  },
+  {
+   "id": 515,
+   "name": "Duke Sucellus Adept",
+   "pct": 19.2
+  },
+  {
+   "id": 516,
+   "name": "Duke Sucellus Master",
+   "pct": 13.1
+  },
+  {
+   "id": 517,
+   "name": "Duke Sucellus Sleeper",
+   "pct": 2.5
+  },
+  {
+   "id": 518,
+   "name": "Perfect Duke Sucellus",
+   "pct": 10.2
+  },
+  {
+   "id": 519,
+   "name": "Cold Feet",
+   "pct": 4.6
+  },
+  {
+   "id": 520,
+   "name": "Mirror Image",
+   "pct": 3.8
+  },
+  {
+   "id": 521,
+   "name": "Scurrius Novice",
+   "pct": 44.2
+  },
+  {
+   "id": 522,
+   "name": "Scurrius Champion",
+   "pct": 35.9
+  },
+  {
+   "id": 523,
+   "name": "Sit Rat",
+   "pct": 26.9
+  },
+  {
+   "id": 524,
+   "name": "Perfect Scurrius",
+   "pct": 30.2
+  },
+  {
+   "id": 525,
+   "name": "Efficient Pest Control",
+   "pct": 24.1
+  },
+  {
+   "id": 526,
+   "name": "The Clone Zone",
+   "pct": 24.3
+  },
+  {
+   "id": 527,
+   "name": "High Hitter",
+   "pct": 36.5
+  },
+  {
+   "id": 528,
+   "name": "Lunar Triplet",
+   "pct": 43.1
+  },
+  {
+   "id": 529,
+   "name": "Perilous Novice",
+   "pct": 35.7
+  },
+  {
+   "id": 530,
+   "name": "Perilous Champion",
+   "pct": 29.0
+  },
+  {
+   "id": 531,
+   "name": "Perilous Dancer",
+   "pct": 19.5
+  },
+  {
+   "id": 532,
+   "name": "Fortified",
+   "pct": 33.3
+  },
+  {
+   "id": 533,
+   "name": "Betrayal",
+   "pct": 20.3
+  },
+  {
+   "id": 534,
+   "name": "Back to Our Roots",
+   "pct": 22.3
+  },
+  {
+   "id": 535,
+   "name": "Moons of Peril Speed-Trialist",
+   "pct": 33.2
+  },
+  {
+   "id": 536,
+   "name": "Moons of Peril Speed-Chaser",
+   "pct": 27.5
+  },
+  {
+   "id": 537,
+   "name": "Fat of the Land",
+   "pct": 28.1
+  },
+  {
+   "id": 538,
+   "name": "Sportsmanship",
+   "pct": 9.5
+  },
+  {
+   "id": 539,
+   "name": "Colosseum Grand Champion",
+   "pct": 1.9
+  },
+  {
+   "id": 540,
+   "name": "I Brought Mine Too",
+   "pct": 2.2
+  },
+  {
+   "id": 541,
+   "name": "Slow Dancing in the Sand",
+   "pct": 1.2
+  },
+  {
+   "id": 542,
+   "name": "Furball",
+   "pct": 11.9
+  },
+  {
+   "id": 543,
+   "name": "Perfect Footwork",
+   "pct": 3.3
+  },
+  {
+   "id": 544,
+   "name": "Showboating",
+   "pct": 1.2
+  },
+  {
+   "id": 545,
+   "name": "Denied",
+   "pct": 10.5
+  },
+  {
+   "id": 546,
+   "name": "One-off",
+   "pct": 6.0
+  },
+  {
+   "id": 547,
+   "name": "Reinforcements",
+   "pct": 1.0
+  },
+  {
+   "id": 548,
+   "name": "I was here first!",
+   "pct": 6.1
+  },
+  {
+   "id": 549,
+   "name": "Colosseum Speed-Chaser",
+   "pct": 2.8
+  },
+  {
+   "id": 550,
+   "name": "Colosseum Speed-Runner",
+   "pct": 1.7
+  },
+  {
+   "id": 551,
+   "name": "Unending Torment",
+   "pct": 28.3
+  },
+  {
+   "id": 552,
+   "name": "Through Fire and Flames",
+   "pct": 27.4
+  },
+  {
+   "id": 553,
+   "name": "Two Times the Torment",
+   "pct": 3.6
+  },
+  {
+   "id": 554,
+   "name": "Three Times the Thrashing",
+   "pct": 2.5
+  },
+  {
+   "id": 555,
+   "name": "Rapid Reload",
+   "pct": 4.5
+  },
+  {
+   "id": 556,
+   "name": "Araxxor Veteran",
+   "pct": 16.2
+  },
+  {
+   "id": 557,
+   "name": "Araxxor Master",
+   "pct": 14.5
+  },
+  {
+   "id": 558,
+   "name": "Araxxor Speed-Trialist",
+   "pct": 15.0
+  },
+  {
+   "id": 559,
+   "name": "Araxxor Speed-Chaser",
+   "pct": 11.2
+  },
+  {
+   "id": 560,
+   "name": "Araxxor Speed-Runner",
+   "pct": 5.3
+  },
+  {
+   "id": 561,
+   "name": "Perfect Araxxor",
+   "pct": 11.2
+  },
+  {
+   "id": 562,
+   "name": "Perfect Araxxor 2",
+   "pct": 5.1
+  },
+  {
+   "id": 563,
+   "name": "Let it seep in",
+   "pct": 10.3
+  },
+  {
+   "id": 564,
+   "name": "Relaxxor",
+   "pct": 9.2
+  },
+  {
+   "id": 565,
+   "name": "Swimming in Venom",
+   "pct": 12.8
+  },
+  {
+   "id": 566,
+   "name": "Araxyte Betrayal",
+   "pct": 7.2
+  },
+  {
+   "id": 567,
+   "name": "Arachnid Lover",
+   "pct": 8.7
+  },
+  {
+   "id": 568,
+   "name": "Hueycoatl Champion",
+   "pct": 26.8
+  },
+  {
+   "id": 569,
+   "name": "Hueycoatl Adept",
+   "pct": 23.1
+  },
+  {
+   "id": 570,
+   "name": "Hueycoatl Veteran",
+   "pct": 18.6
+  },
+  {
+   "id": 571,
+   "name": "Perfect Hueycoatl",
+   "pct": 10.5
+  },
+  {
+   "id": 572,
+   "name": "Pillar Lover",
+   "pct": 21.2
+  },
+  {
+   "id": 573,
+   "name": "Is it a bird?",
+   "pct": 11.3
+  },
+  {
+   "id": 574,
+   "name": "You're a wizard",
+   "pct": 14.1
+  },
+  {
+   "id": 575,
+   "name": "I'm your son",
+   "pct": 7.7
+  },
+  {
+   "id": 576,
+   "name": "Hueycoatl Speed-Trialist",
+   "pct": 21.1
+  },
+  {
+   "id": 577,
+   "name": "Hueycoatl Speed-Chaser",
+   "pct": 8.0
+  },
+  {
+   "id": 578,
+   "name": "Hueycoatl Speed-Runner",
+   "pct": 2.9
+  },
+  {
+   "id": 579,
+   "name": "Amoxliatl Champion",
+   "pct": 25.6
+  },
+  {
+   "id": 580,
+   "name": "Amoxliatl Adept",
+   "pct": 20.0
+  },
+  {
+   "id": 581,
+   "name": "Amoxliatl Speed-Trialist",
+   "pct": 16.8
+  },
+  {
+   "id": 582,
+   "name": "Amoxliatl Speed-Chaser",
+   "pct": 4.3
+  },
+  {
+   "id": 583,
+   "name": "Nagua Negation",
+   "pct": 21.7
+  },
+  {
+   "id": 584,
+   "name": "Temotli Triumph",
+   "pct": 15.6
+  },
+  {
+   "id": 585,
+   "name": "Without Ralos' Light",
+   "pct": 13.6
+  },
+  {
+   "id": 586,
+   "name": "Kemo Makti",
+   "pct": 18.4
+  },
+  {
+   "id": 587,
+   "name": "Totally Shattered",
+   "pct": 24.6
+  },
+  {
+   "id": 588,
+   "name": "Perfect Royal Titans",
+   "pct": 23.9
+  },
+  {
+   "id": 589,
+   "name": "Royal Titan Champion",
+   "pct": 29.8
+  },
+  {
+   "id": 590,
+   "name": "Royal Titan Adept",
+   "pct": 26.7
+  },
+  {
+   "id": 591,
+   "name": "One by one",
+   "pct": 21.8
+  },
+  {
+   "id": 592,
+   "name": "Royal Titan Speed-Runner",
+   "pct": 17.7
+  },
+  {
+   "id": 593,
+   "name": "Titan Killer",
+   "pct": 10.4
+  },
+  {
+   "id": 594,
+   "name": "Elemental Company",
+   "pct": 23.3
+  },
+  {
+   "id": 595,
+   "name": "I need room",
+   "pct": 23.7
+  },
+  {
+   "id": 596,
+   "name": "No time to pray",
+   "pct": 10.5
+  },
+  {
+   "id": 597,
+   "name": "Let them fight",
+   "pct": 22.7
+  },
+  {
+   "id": 598,
+   "name": "It takes too long",
+   "pct": 24.2
+  },
+  {
+   "id": 599,
+   "name": "Yama Adept",
+   "pct": 12.7
+  },
+  {
+   "id": 600,
+   "name": "Yama Veteran",
+   "pct": 9.6
+  },
+  {
+   "id": 601,
+   "name": "Yama Speed-Trialist",
+   "pct": 8.5
+  },
+  {
+   "id": 602,
+   "name": "Yama Speed-Chaser",
+   "pct": 3.1
+  },
+  {
+   "id": 603,
+   "name": "Yama Speed-Runner",
+   "pct": 0.9
+  },
+  {
+   "id": 604,
+   "name": "No toppings, no drinks, thanks",
+   "pct": 4.1
+  },
+  {
+   "id": 605,
+   "name": "Shadow dancer",
+   "pct": 8.7
+  },
+  {
+   "id": 606,
+   "name": "Fire fighter",
+   "pct": 10.1
+  },
+  {
+   "id": 607,
+   "name": "Back so soon?",
+   "pct": 11.7
+  },
+  {
+   "id": 608,
+   "name": "Contract Choreographer",
+   "pct": 7.3
+  },
+  {
+   "id": 609,
+   "name": "Contractually Unbound",
+   "pct": 1.8
+  },
+  {
+   "id": 610,
+   "name": "Doom Adept",
+   "pct": 12.3
+  },
+  {
+   "id": 611,
+   "name": "Doom Veteran",
+   "pct": 5.2
+  },
+  {
+   "id": 612,
+   "name": "It's Dark Down Here",
+   "pct": 1.5
+  },
+  {
+   "id": 613,
+   "name": "Exposed Doom",
+   "pct": 11.0
+  },
+  {
+   "id": 614,
+   "name": "Mokhaiotl Drift",
+   "pct": 2.9
+  },
+  {
+   "id": 615,
+   "name": "Grub Patrol",
+   "pct": 3.1
+  },
+  {
+   "id": 616,
+   "name": "Perfect Doom",
+   "pct": 1.1
+  },
+  {
+   "id": 617,
+   "name": "The Praying Mantis",
+   "pct": 1.1
+  },
+  {
+   "id": 618,
+   "name": "Duel of Mokhaiotl",
+   "pct": 0.7
+  },
+  {
+   "id": 619,
+   "name": "Darkness Is Your Ally?",
+   "pct": 1.1
+  },
+  {
+   "id": 620,
+   "name": "Mine's Better",
+   "pct": 0.9
+  },
+  {
+   "id": 621,
+   "name": "Doom Crawler",
+   "pct": 2.7
+  },
+  {
+   "id": 622,
+   "name": "Doom Chaser",
+   "pct": 2.5
+  },
+  {
+   "id": 623,
+   "name": "Doom Racer",
+   "pct": 0.6
+  },
+  {
+   "id": 624,
+   "name": "Mopping up",
+   "pct": 2.7
+  },
+  {
+   "id": 625,
+   "name": "Shellbane Adept",
+   "pct": 7.2
+  },
+  {
+   "id": 626,
+   "name": "Shellbane Veteran",
+   "pct": 6.8
+  },
+  {
+   "id": 627,
+   "name": "Perfect Shellbane",
+   "pct": 5.9
+  },
+  {
+   "id": 628,
+   "name": "Shellbane Speedrunner",
+   "pct": 4.6
+  },
+  {
+   "id": 629,
+   "name": "Shellbane Survivor",
+   "pct": 4.3
+  },
+  {
+   "id": 630,
+   "name": "Dry Cleaning",
+   "pct": 4.3
+  },
+  {
+   "id": 631,
+   "name": "Featherweight Fighter",
+   "pct": 4.3
+  },
+  {
+   "id": 632,
+   "name": "Brutus Novice",
+   "pct": 25.0
+  },
+  {
+   "id": 633,
+   "name": "Brutus Champion",
+   "pct": 23.7
+  },
+  {
+   "id": 634,
+   "name": "Brutus Speed-Trialist",
+   "pct": 12.7
+  },
+  {
+   "id": 635,
+   "name": "Beef vs Beef",
+   "pct": 16.2
+  },
+  {
+   "id": 636,
+   "name": "Smarter than a Cow",
+   "pct": 17.8
+  }
+ ]
+}

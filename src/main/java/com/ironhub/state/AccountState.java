@@ -96,6 +96,7 @@ public class AccountState
 	// goal planner selections (persisted)
 	private final Set<String> selectedGoals = ConcurrentHashMap.newKeySet();
 	private volatile String activeGoal = "";
+	private final Set<Integer> trackedCaTasks = ConcurrentHashMap.newKeySet();
 
 	/** Recent deaths, oldest first, capped. */
 	public static final int MAX_DEATHS = 10;
@@ -534,6 +535,21 @@ public class AccountState
 		}
 	}
 
+	/** Combat Achievement task ids the player is actively working on. */
+	public Set<Integer> getTrackedCaTasks()
+	{
+		return java.util.Collections.unmodifiableSet(trackedCaTasks);
+	}
+
+	public void setCaTaskTracked(int taskId, boolean tracked)
+	{
+		if (tracked ? trackedCaTasks.add(taskId) : trackedCaTasks.remove(taskId))
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
 	/** The pinned active goal id, or empty. */
 	public String getActiveGoal()
 	{
@@ -931,6 +947,8 @@ public class AccountState
 		herbPatchSeen.putAll(persisted.herbPatchSeen);
 		selectedGoals.clear();
 		selectedGoals.addAll(persisted.selectedGoals);
+		trackedCaTasks.clear();
+		trackedCaTasks.addAll(persisted.trackedCaTasks);
 		scoreSnapshots.clear();
 		scoreSnapshots.addAll(persisted.scoreSnapshots);
 		collectionLogSlots = persisted.collectionLogSlots;
@@ -963,6 +981,7 @@ public class AccountState
 		state.herbPatchSeen = new HashMap<>(herbPatchSeen);
 		state.selectedGoals = new HashSet<>(selectedGoals);
 		state.activeGoal = activeGoal;
+		state.trackedCaTasks = new HashSet<>(trackedCaTasks);
 		state.scoreSnapshots = new java.util.ArrayList<>(scoreSnapshots);
 		state.collectionLogSlots = collectionLogSlots;
 		state.collectionLogTotal = collectionLogTotal;

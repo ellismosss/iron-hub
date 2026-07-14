@@ -1,0 +1,25 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Combat Achievements community completion rates",
+	"type": "object",
+	"required": ["source", "generated", "tasks"],
+	"additionalProperties": false,
+	"properties": {
+		"source": {"type": "string", "format": "uri"},
+		"generated": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+		"tasks": {
+			"type": "array",
+			"minItems": 500,
+			"items": {
+				"type": "object",
+				"required": ["id", "name", "pct"],
+				"additionalProperties": false,
+				"properties": {
+					"id": {"type": "integer", "minimum": 0},
+					"name": {"type": "string", "minLength": 1},
+					"pct": {"type": "number", "minimum": 0, "maximum": 100}
+				}
+			}
+		}
+	}
+}

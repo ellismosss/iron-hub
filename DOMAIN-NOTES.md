@@ -115,6 +115,29 @@ Mechanics that matter:
 - Farming varbits only sync in-region; quest states need script runs on the
   client thread.
 
+## Combat Achievements cache layout
+
+- The full task catalog lives in the game cache: per-tier enums
+  **3981–3986** (Easy→Grandmaster) map task index → struct id; each struct
+  carries params **1306** (task id), **1308** (name), **1309** (description),
+  **1311** (type 1–6: Stamina/Perfection/Kill Count/Mechanical/Restriction/
+  Speed), **1312** (boss id, resolved via string enum **3971**). These have
+  no gameval constants — values adopted from the production Combat
+  Achievements Tracker hub plugin; `CaCatalog.load` fails soft if they move.
+- Completion is a bitfield: task id N → bit N%32 of documented varp
+  `CA_TASK_COMPLETED_{N/32}` (20 varps = 640 bits; 637 tasks as of 2026-07,
+  ids 0–636 — the exact fit corroborates the id mapping, as does the wiki's
+  `data-ca-task-id` matching param 1306).
+- Points per task are fixed per tier (Easy 1 … Grandmaster 6); tier
+  thresholds and CA_POINTS come from documented varbits — never hardcode
+  thresholds, Jagex rebalances them.
+- Community completion rates come from the wiki's All-tasks table, bundled
+  as `data/ca-completion.json` via `tools/gen_ca_completion.py` (no runtime
+  HTTP; regenerate occasionally — rates drift slowly).
+- Task completion fires a GAMEMESSAGE/SPAM chat line "Congratulations,
+  you've completed … combat task"; varps update the same tick, so a reload
+  on the next tick reads fresh state.
+
 ## Wiki page-name gotchas
 
 Override `wiki` in the pack when the display name isn't the page: "God capes"
