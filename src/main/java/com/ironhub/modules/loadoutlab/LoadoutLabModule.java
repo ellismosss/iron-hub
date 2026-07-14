@@ -378,6 +378,7 @@ public class LoadoutLabModule implements IronHubModule
 			equipmentRow.setLayout(new BoxLayout(equipmentRow, BoxLayout.X_AXIS));
 			equipmentRow.setOpaque(false);
 			equipmentRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+			equipmentRow.add(Box.createHorizontalGlue());
 			equipmentRow.add(equipment);
 			equipmentRow.add(Box.createHorizontalGlue());
 			setupView.add(equipmentRow);
@@ -400,6 +401,7 @@ public class LoadoutLabModule implements IronHubModule
 				runesRow.setLayout(new BoxLayout(runesRow, BoxLayout.X_AXIS));
 				runesRow.setOpaque(false);
 				runesRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+				runesRow.add(Box.createHorizontalGlue());
 				runesRow.add(runes);
 				runesRow.add(Box.createHorizontalGlue());
 				setupView.add(runesRow);
@@ -424,6 +426,7 @@ public class LoadoutLabModule implements IronHubModule
 				invRow.setLayout(new BoxLayout(invRow, BoxLayout.X_AXIS));
 				invRow.setOpaque(false);
 				invRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+				invRow.add(Box.createHorizontalGlue());
 				invRow.add(inv);
 				invRow.add(Box.createHorizontalGlue());
 				setupView.add(invRow);

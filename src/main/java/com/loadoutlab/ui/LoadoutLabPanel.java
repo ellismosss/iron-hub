@@ -2613,7 +2613,9 @@ public class LoadoutLabPanel extends PluginPanel
 		JPanel icons = new JPanel(new GridLayout(5, 3, 1, 1));
 		icons.setOpaque(false);
 		icons.setAlignmentX(LEFT_ALIGNMENT);
-		int cell = ICON_SIZE + 4;
+		// Inventory Setups slot geometry: fixed 46x42 boxes
+		int cell = 46;
+		final int cellH = 42;
 		// Wilderness: badge every cell with its death fate.
 		PvpRisk.Assessment fates = null;
 		if (markUnowned && WildernessMonsters.isWilderness(selectedMonster))
@@ -2626,7 +2628,9 @@ public class LoadoutLabPanel extends PluginPanel
 		{
 			GearItem item = result.getLoadout().get(slotType);
 			RiskDotLabel slot = new RiskDotLabel();
-			slot.setPreferredSize(new Dimension(cell, cell));
+			slot.setPreferredSize(new Dimension(cell, cellH));
+			slot.setOpaque(true);
+			slot.setBackground(net.runelite.client.ui.ColorScheme.DARKER_GRAY_COLOR);
 			slot.setHorizontalAlignment(SwingConstants.CENTER);
 			List<JMenuItem> extras = slotType == GearSlot.SHIELD
 				? dragonfireMenuEntries() : Collections.emptyList();
@@ -2737,7 +2741,9 @@ public class LoadoutLabPanel extends PluginPanel
 		}
 		// The special-attack weapon to swap in (top-right, quiver-position).
 		RiskDotLabel specCell = new RiskDotLabel();
-		specCell.setPreferredSize(new Dimension(cell, cell));
+		specCell.setPreferredSize(new Dimension(cell, cellH));
+		specCell.setOpaque(true);
+		specCell.setBackground(net.runelite.client.ui.ColorScheme.DARKER_GRAY_COLOR);
 		specCell.setHorizontalAlignment(SwingConstants.CENTER);
 		if (spec != null && specWeapon != null && specExpected > 0)
 		{
@@ -2807,17 +2813,28 @@ public class LoadoutLabPanel extends PluginPanel
 				else
 				{
 					JLabel blank = new JLabel();
-					blank.setPreferredSize(new Dimension(cell, cell));
+					blank.setPreferredSize(new Dimension(cell, cellH));
+					blank.setOpaque(true);
+					blank.setBackground(net.runelite.client.ui.ColorScheme.DARK_GRAY_COLOR);
 					icons.add(blank);
 				}
 			}
 		}
-		// Stretch past the minimum so there is no dead right margin, but cap
-		// the width - unbounded stretch made cells balloon on wide layouts.
-		int height = 3 * cell + 4;
-		icons.setPreferredSize(new Dimension(4 * cell + 6, height));
-		icons.setMaximumSize(new Dimension(4 * (cell + 8) + 6, height));
-		return icons;
+		// Fixed Inventory-Setups geometry: pin the grid so BoxLayout parents
+		// can neither stretch nor squash it, and centre it in the panel.
+		Dimension gridSize = new Dimension(3 * cell + 2, 5 * cellH + 4);
+		icons.setPreferredSize(gridSize);
+		icons.setMinimumSize(gridSize);
+		icons.setMaximumSize(gridSize);
+		JPanel centered = new JPanel();
+		centered.setLayout(new BoxLayout(centered, BoxLayout.X_AXIS));
+		centered.setOpaque(false);
+		centered.setAlignmentX(LEFT_ALIGNMENT);
+		centered.setMaximumSize(new Dimension(Integer.MAX_VALUE, gridSize.height));
+		centered.add(Box.createHorizontalGlue());
+		centered.add(icons);
+		centered.add(Box.createHorizontalGlue());
+		return centered;
 	}
 
 	/** Same combat stats in every block - interchangeable for dps. */
