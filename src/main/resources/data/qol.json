@@ -1,0 +1,15 @@
+{
+  "$schema": "./schemas/qol.schema.json",
+  "version": 1,
+  "unlocks": [
+    {"id": "herb_sack", "name": "Herb sack", "itemIds": [13226], "requirements": ["250 Tithe Farm points"]},
+    {"id": "seed_box", "name": "Seed box", "itemIds": [13639], "requirements": ["400 Tithe Farm points"]},
+    {"id": "coal_bag", "name": "Coal bag", "itemIds": [12019], "requirements": ["100 golden nuggets (Motherlode Mine)"]},
+    {"id": "gem_bag", "name": "Gem bag", "itemIds": [12020], "requirements": ["100 golden nuggets (Motherlode Mine)"]},
+    {"id": "rune_pouch", "name": "Rune pouch", "itemIds": [12791], "requirements": ["750 Slayer reward points"]},
+    {"id": "graceful_hood", "name": "Graceful hood", "itemIds": [11850], "requirements": ["35 marks of grace"]},
+    {"id": "ava_accumulator", "name": "Ava's accumulator", "itemIds": [10499], "requirements": ["skill:Ranged:50", "quest:Animal Magnetism"]},
+    {"id": "ava_assembler", "name": "Ava's assembler", "itemIds": [22109], "requirements": ["quest:Dragon Slayer II"]},
+    {"id": "dragon_defender", "name": "Dragon defender", "itemIds": [12954], "requirements": ["skill:Attack:60", "skill:Defence:60"]}
+  ]
+}

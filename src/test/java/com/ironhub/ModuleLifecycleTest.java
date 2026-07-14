@@ -12,6 +12,7 @@ import com.ironhub.modules.diaries.DiariesModule;
 import com.ironhub.modules.farming.FarmingRunModule;
 import com.ironhub.modules.gear.GearProgressionModule;
 import com.ironhub.modules.goals.GoalPlannerModule;
+import com.ironhub.modules.qol.QolModule;
 import com.ironhub.modules.quests.QuestsModule;
 import com.ironhub.modules.slayer.SlayerOptimizerModule;
 import com.ironhub.modules.suggest.WhatNowModule;
@@ -50,6 +51,7 @@ public class ModuleLifecycleTest
 			new QuestsModule(state, config),
 			new DiariesModule(state, config),
 			new CombatAchievementsModule(state, config),
+			new QolModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new BankTrackerModule(state, null, config,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new FarmingRunModule(),
@@ -64,7 +66,7 @@ public class ModuleLifecycleTest
 			new DashboardModule(),
 			new DeathRecoveryModule());
 
-		assertEquals(16, modules.size());
+		assertEquals(17, modules.size());
 
 		for (IronHubModule module : modules)
 		{
