@@ -62,6 +62,17 @@ public class RequirementsTest
 	}
 
 	@Test
+	public void itemRequirementCountsVariations()
+	{
+		// Arceuus-recoloured graceful hood (13579) satisfies base 11850,
+		// and either id in the requirement matches either id owned
+		StateFixture.equipment(state, Map.of(13579, 1));
+		assertTrue(Requirements.item(11850, 1).isMet(state));
+		assertTrue(Requirements.item(13579, 1).isMet(state));
+		assertFalse(Requirements.item(11852, 1).isMet(state)); // cape group untouched
+	}
+
+	@Test
 	public void unlockAndKcRequirements()
 	{
 		assertFalse(Requirements.unlock("fairy_rings").isMet(state));

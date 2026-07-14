@@ -41,6 +41,26 @@ public class DataPackLoaderTest
 		}
 	}
 
+	@Test
+	public void goalAchievedProofsResolve()
+	{
+		GoalsPack pack = dataPack.load("goals", GoalsPack.class);
+		for (GoalsPack.Goal goal : pack.getGoals())
+		{
+			if (goal.getAchieved() == null)
+			{
+				continue;
+			}
+			for (String raw : goal.getAchieved())
+			{
+				// a proof that falls back to manual can never fire — a typo'd id
+				// would silently regress achieved-goal detection
+				assertFalse("unresolvable achieved proof: " + raw,
+					Requirements.isManual(Requirements.parse(raw)));
+			}
+		}
+	}
+
 	@Test(expected = IllegalStateException.class)
 	public void missingPackFailsFast()
 	{

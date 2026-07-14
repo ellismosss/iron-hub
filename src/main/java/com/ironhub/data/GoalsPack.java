@@ -19,6 +19,12 @@ public class GoalsPack
 		private String id;
 		private String name;
 		private List<Step> steps;
+		/**
+		 * Optional ownership proof (all must hold): owning the end product
+		 * completes the goal even when steps can't be detected retroactively
+		 * (pre-plugin kill counts, spent marks of grace).
+		 */
+		private List<String> achieved;
 	}
 
 	@Data

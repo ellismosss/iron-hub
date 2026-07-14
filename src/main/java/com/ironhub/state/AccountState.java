@@ -324,11 +324,13 @@ public class AccountState
 		}
 	}
 
-	/** Owned stock summed across all variations of a canonical item. */
-	public int canonicalStock(int canonicalItemId)
+	/** Owned stock summed across all variations of an item (any variant id). */
+	public int canonicalStock(int itemId)
 	{
+		// map to the group base first: recolours/broken/charged variants all count
+		int base = net.runelite.client.game.ItemVariationMapping.map(itemId);
 		int total = 0;
-		for (int variant : net.runelite.client.game.ItemVariationMapping.getVariations(canonicalItemId))
+		for (int variant : net.runelite.client.game.ItemVariationMapping.getVariations(base))
 		{
 			total += ownedCount(variant);
 		}

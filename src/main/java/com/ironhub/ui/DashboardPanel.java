@@ -294,6 +294,7 @@ public class DashboardPanel extends JPanel
 
 		GoalsPack.Goal active = goalsPack.getGoals().stream()
 			.filter(g -> g.getId().equals(state.getActiveGoal()))
+			.filter(g -> !GoalPlannerModule.isAchieved(g, state)) // done → prompt for a new one
 			.findFirst().orElse(null);
 		if (active == null)
 		{

@@ -56,6 +56,46 @@ public class GoalPlannerTest
 	}
 
 	@Test
+	public void owningTheEndProductCompletesTheGoal()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		GoalsPack.Goal fireCape = goal("fire_cape");
+
+		// KC steps can't detect a pre-plugin Jad kill…
+		assertFalse(GoalPlannerModule.isAchieved(fireCape, state));
+
+		// …but the cape in the bank proves it
+		StateFixture.bank(state, Map.of(6570, 1));
+		assertTrue(GoalPlannerModule.isAchieved(fireCape, state));
+		assertEquals(1.0, GoalPlannerModule.progress(fireCape, state), 0.001);
+		assertEquals(null, GoalPlannerModule.nextStep(fireCape, state));
+	}
+
+	@Test
+	public void recolouredGracefulCountsAsAchieved()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		GoalsPack.Goal graceful = goal("graceful");
+
+		// five base pieces + an Arceuus-recoloured hood (13579), marks-of-grace
+		// manual step never ticked — ownership proof still completes the goal
+		StateFixture.equipment(state,
+			Map.of(13579, 1, 11852, 1, 11854, 1, 11856, 1, 11858, 1, 11860, 1));
+		assertTrue(GoalPlannerModule.isAchieved(graceful, state));
+		assertEquals(1.0, GoalPlannerModule.progress(graceful, state), 0.001);
+	}
+
+	@Test
+	public void achievedProofRequiresEveryPiece()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		GoalsPack.Goal graceful = goal("graceful");
+
+		StateFixture.equipment(state, Map.of(11850, 1)); // hood only
+		assertFalse(GoalPlannerModule.isAchieved(graceful, state));
+	}
+
+	@Test
 	public void manualStepsTickViaUnlockFlags()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());

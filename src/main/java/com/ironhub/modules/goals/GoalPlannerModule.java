@@ -115,8 +115,28 @@ public class GoalPlannerModule implements IronHubModule
 		return steps;
 	}
 
+	/**
+	 * Complete: every step met, or the pack's ownership proof holds — owning
+	 * the end product trumps steps that can't detect the past (pre-plugin
+	 * kill counts, already-spent marks of grace).
+	 */
+	public static boolean isAchieved(GoalsPack.Goal goal, AccountState state)
+	{
+		List<String> proof = goal.getAchieved();
+		if (proof != null && !proof.isEmpty()
+			&& proof.stream().allMatch(r -> Requirements.parse(r).isMet(state)))
+		{
+			return true;
+		}
+		return compile(goal, state).stream().allMatch(s -> s.met);
+	}
+
 	public static double progress(GoalsPack.Goal goal, AccountState state)
 	{
+		if (isAchieved(goal, state))
+		{
+			return 1.0;
+		}
 		List<CompiledStep> steps = compile(goal, state);
 		return steps.stream().filter(s -> s.met).count() / (double) steps.size();
 	}
@@ -124,6 +144,10 @@ public class GoalPlannerModule implements IronHubModule
 	/** First unmet step, or null when the goal is complete. */
 	public static CompiledStep nextStep(GoalsPack.Goal goal, AccountState state)
 	{
+		if (isAchieved(goal, state))
+		{
+			return null;
+		}
 		return compile(goal, state).stream().filter(s -> !s.met).findFirst().orElse(null);
 	}
 }

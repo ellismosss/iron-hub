@@ -69,8 +69,13 @@ class GoalsTab extends JPanel
 	{
 		content.removeAll();
 
+		// achieved goals retire out of Active/Other/Browse into Completed
+		List<GoalsPack.Goal> completed = pack.getGoals().stream()
+			.filter(g -> GoalPlannerModule.isAchieved(g, state))
+			.collect(java.util.stream.Collectors.toList());
+
 		GoalsPack.Goal active = byId(state.getActiveGoal());
-		if (active != null)
+		if (active != null && !completed.contains(active))
 		{
 			content.add(new SectionLabel("Active goal"));
 			content.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
@@ -81,6 +86,7 @@ class GoalsTab extends JPanel
 		List<GoalsPack.Goal> others = pack.getGoals().stream()
 			.filter(g -> state.getSelectedGoals().contains(g.getId()))
 			.filter(g -> !g.getId().equals(state.getActiveGoal()))
+			.filter(g -> !completed.contains(g))
 			.collect(java.util.stream.Collectors.toList());
 		if (!others.isEmpty())
 		{
@@ -96,6 +102,7 @@ class GoalsTab extends JPanel
 
 		List<GoalsPack.Goal> browse = pack.getGoals().stream()
 			.filter(g -> !state.getSelectedGoals().contains(g.getId()))
+			.filter(g -> !completed.contains(g))
 			.collect(java.util.stream.Collectors.toList());
 		if (!browse.isEmpty())
 		{
@@ -104,6 +111,20 @@ class GoalsTab extends JPanel
 			for (GoalsPack.Goal goal : browse)
 			{
 				content.add(goalRow(goal, false));
+				content.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			}
+			content.add(Box.createVerticalStrut(UiTokens.PAD));
+		}
+
+		if (!completed.isEmpty())
+		{
+			content.add(new SectionLabel("Completed"));
+			content.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+			for (GoalsPack.Goal goal : completed)
+			{
+				ListRow row = ListRow.owned(goal.getName());
+				row.setToolTipText(goal.getName() + " — detected on your account");
+				content.add(row);
 				content.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 			}
 		}

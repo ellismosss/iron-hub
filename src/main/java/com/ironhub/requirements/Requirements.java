@@ -169,7 +169,8 @@ public final class Requirements
 		@Override
 		public boolean isMet(AccountState state)
 		{
-			return state.ownedCount(itemId) >= quantity;
+			// any variation counts: recoloured graceful, broken fire cape, ...
+			return state.canonicalStock(itemId) >= quantity;
 		}
 
 		@Override

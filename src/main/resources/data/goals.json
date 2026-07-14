@@ -5,55 +5,132 @@
     {
       "id": "bowfa",
       "name": "Bow of Faerdhinen",
+      "achieved": [
+        "item:25865"
+      ],
       "steps": [
-        {"label": "Complete Song of the Elves", "requirement": "quest:Song of the Elves"},
-        {"label": "Unlock the Gauntlet (Prifddinas)", "requirement": "quest:Song of the Elves"},
-        {"label": "Enhanced crystal weapon seed drop", "requirement": "Enhanced crystal weapon seed from the Corrupted Gauntlet"},
-        {"label": "150 crystal shards", "requirement": "150 crystal shards"}
+        {
+          "label": "Complete Song of the Elves",
+          "requirement": "quest:Song of the Elves"
+        },
+        {
+          "label": "Unlock the Gauntlet (Prifddinas)",
+          "requirement": "quest:Song of the Elves"
+        },
+        {
+          "label": "Enhanced crystal weapon seed drop",
+          "requirement": "Enhanced crystal weapon seed from the Corrupted Gauntlet"
+        },
+        {
+          "label": "150 crystal shards",
+          "requirement": "150 crystal shards"
+        }
       ]
     },
     {
       "id": "barrows_gloves",
       "name": "Barrows gloves",
+      "achieved": [
+        "item:7462"
+      ],
       "steps": [
-        {"label": "Complete Recipe for Disaster", "requirement": "quest:Recipe for Disaster"},
-        {"label": "175 quest points", "requirement": "175 quest points"},
-        {"label": "Buy the gloves (130k)", "requirement": "item:7462"}
+        {
+          "label": "Complete Recipe for Disaster",
+          "requirement": "quest:Recipe for Disaster"
+        },
+        {
+          "label": "175 quest points",
+          "requirement": "175 quest points"
+        },
+        {
+          "label": "Buy the gloves (130k)",
+          "requirement": "item:7462"
+        }
       ]
     },
     {
       "id": "dragon_defender",
       "name": "Dragon defender",
+      "achieved": [
+        "item:12954"
+      ],
       "steps": [
-        {"label": "60 Attack", "requirement": "skill:Attack:60"},
-        {"label": "60 Defence", "requirement": "skill:Defence:60"},
-        {"label": "Climb the Warriors' Guild cyclopes", "requirement": "item:12954"}
+        {
+          "label": "60 Attack",
+          "requirement": "skill:Attack:60"
+        },
+        {
+          "label": "60 Defence",
+          "requirement": "skill:Defence:60"
+        },
+        {
+          "label": "Climb the Warriors' Guild cyclopes",
+          "requirement": "item:12954"
+        }
       ]
     },
     {
       "id": "ava_assembler",
       "name": "Ava's assembler",
+      "achieved": [
+        "item:22109"
+      ],
       "steps": [
-        {"label": "Complete Dragon Slayer II", "requirement": "quest:Dragon Slayer II"},
-        {"label": "Vorkath's head (or 50 kc guarantee)", "requirement": "kc:Vorkath:1"},
-        {"label": "Assemble it", "requirement": "item:22109"}
+        {
+          "label": "Complete Dragon Slayer II",
+          "requirement": "quest:Dragon Slayer II"
+        },
+        {
+          "label": "Vorkath's head (or 50 kc guarantee)",
+          "requirement": "kc:Vorkath:1"
+        },
+        {
+          "label": "Assemble it",
+          "requirement": "item:22109"
+        }
       ]
     },
     {
       "id": "graceful",
       "name": "Full graceful outfit",
+      "achieved": [
+        "item:11850",
+        "item:11852",
+        "item:11854",
+        "item:11856",
+        "item:11858",
+        "item:11860"
+      ],
       "steps": [
-        {"label": "260 marks of grace", "requirement": "260 marks of grace"},
-        {"label": "Buy the set from Grace", "requirement": "item:11850"}
+        {
+          "label": "260 marks of grace",
+          "requirement": "260 marks of grace"
+        },
+        {
+          "label": "Buy the set from Grace",
+          "requirement": "item:11850"
+        }
       ]
     },
     {
       "id": "fire_cape",
       "name": "Fire cape",
+      "achieved": [
+        "item:6570"
+      ],
       "steps": [
-        {"label": "High Ranged (61+ recommended)", "requirement": "skill:Ranged:61"},
-        {"label": "43 Prayer for protection prayers", "requirement": "skill:Prayer:43"},
-        {"label": "Defeat TzTok-Jad", "requirement": "kc:TzTok-Jad:1"}
+        {
+          "label": "High Ranged (61+ recommended)",
+          "requirement": "skill:Ranged:61"
+        },
+        {
+          "label": "43 Prayer for protection prayers",
+          "requirement": "skill:Prayer:43"
+        },
+        {
+          "label": "Defeat TzTok-Jad",
+          "requirement": "kc:TzTok-Jad:1"
+        }
       ]
     }
   ]
