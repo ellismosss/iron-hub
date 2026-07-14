@@ -13,8 +13,8 @@ import com.loadoutlab.engine.OwnedItems;
 public final class BoostSelector
 {
 	// Iron Hub: global toggle - assume stat potions/hearts
-	public static volatile boolean POTIONS_ASSUMED = true;
-	public static volatile boolean HEART_ASSUMED = true;
+	public static volatile boolean POTIONS_ASSUMED = false;
+	public static volatile boolean HEART_ASSUMED = false;
 
 	private static final int SATURATED_HEART = 27641;
 	private static final int IMBUED_HEART = 20724;

@@ -679,9 +679,9 @@ public class LoadoutLabPanel extends PluginPanel
 		spellRow.setOpaque(false);
 		spellRow.setMaximumSize(new Dimension(3 * 34 + 4, 34));
 		spellRow.setAlignmentX(LEFT_ALIGNMENT);
-		spellRow.add(spellbookIcon(563, "Standard spellbook", 1));
-		spellRow.add(spellbookIcon(4675, "Ancient spellbook", 2));
-		spellRow.add(spellbookIcon(25818, "Arceuus spellbook", 3));
+		spellRow.add(spellbookIcon("standard.png", "Standard spellbook", 1));
+		spellRow.add(spellbookIcon("ancient.png", "Ancient spellbook", 2));
+		spellRow.add(spellbookIcon("arceuus.png", "Arceuus spellbook", 3));
 		bottomControls.add(spellRow);
 		bottomControls.add(Box.createVerticalStrut(4));
 		bottomControls.add(optimizeMode);
@@ -693,29 +693,29 @@ public class LoadoutLabPanel extends PluginPanel
 		boostRow.setMaximumSize(new Dimension(5 * 34 + 8, 34));
 		boostRow.setAlignmentX(LEFT_ALIGNMENT);
 		boostRow.add(iconToggle(net.runelite.api.SpriteID.PRAYER_PIETY,
-			"Melee prayer (Piety line)", true, on ->
+			"Melee prayer (Piety line)", false, on ->
 			{
 				com.loadoutlab.engine.PrayerBonuses.MELEE_PRAYER = on;
 				recompute();
 			}));
 		boostRow.add(iconToggle(net.runelite.api.SpriteID.PRAYER_RIGOUR,
-			"Ranged prayer (Rigour line)", true, on ->
+			"Ranged prayer (Rigour line)", false, on ->
 			{
 				com.loadoutlab.engine.PrayerBonuses.RANGED_PRAYER = on;
 				recompute();
 			}));
 		boostRow.add(iconToggle(net.runelite.api.SpriteID.PRAYER_AUGURY,
-			"Magic prayer (Augury line)", true, on ->
+			"Magic prayer (Augury line)", false, on ->
 			{
 				com.loadoutlab.engine.PrayerBonuses.MAGIC_PRAYER = on;
 				recompute();
 			}));
-		boostRow.add(itemToggle(12695, "Combat potions", true, on ->
+		boostRow.add(itemToggle(12695, "Combat potions", false, on ->
 			{
 				com.loadoutlab.optimizer.BoostSelector.POTIONS_ASSUMED = on;
 				recompute();
 			}));
-		boostRow.add(itemToggle(20724, "Imbued/saturated heart", true, on ->
+		boostRow.add(itemToggle(20724, "Imbued/saturated heart", false, on ->
 			{
 				com.loadoutlab.optimizer.BoostSelector.HEART_ASSUMED = on;
 				recompute();
@@ -948,7 +948,9 @@ public class LoadoutLabPanel extends PluginPanel
 			slayerTask.setToolTipText("On task: slayer helmet bonuses apply");
 		}
 		usageLog.record(monster.label());
-		selectedLabel.setText(monster.label());
+		String weakness = monster.getWeaknessElement().isEmpty() ? ""
+			: "  (+" + monster.getWeaknessSeverity() + "% weak to " + monster.getWeaknessElement() + " spells)";
+		selectedLabel.setText(monster.label() + weakness);
 		selectedRow.setVisible(true);
 		String note = MonsterNotes.noteFor(monster);
 		monsterNote.setText(note == null ? "" : "<html>" + note + "</html>");
@@ -1481,7 +1483,10 @@ public class LoadoutLabPanel extends PluginPanel
 		toggle.setPreferredSize(new Dimension(34, 34));
 		toggle.setToolTipText(tooltip);
 		toggle.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		spriteManager.addSpriteTo(toggle, spriteId, 0);
+		if (spriteId > 0)
+		{
+			spriteManager.addSpriteTo(toggle, spriteId, 0);
+		}
 		final boolean[] on = {initial};
 		Runnable style = () -> toggle.setBackground(on[0]
 			? net.runelite.client.ui.ColorScheme.MEDIUM_GRAY_COLOR
@@ -1504,7 +1509,7 @@ public class LoadoutLabPanel extends PluginPanel
 	private JLabel itemToggle(int itemId, String tooltip, boolean initial,
 		java.util.function.Consumer<Boolean> onChange)
 	{
-		JLabel toggle = iconToggle(0, tooltip, initial, onChange);
+		JLabel toggle = iconToggle(-1, tooltip, initial, onChange);
 		net.runelite.client.util.AsyncBufferedImage sprite = itemManager.getImage(itemId);
 		toggle.setIcon(new javax.swing.ImageIcon(sprite));
 		sprite.onLoaded(toggle::repaint);
@@ -1513,7 +1518,7 @@ public class LoadoutLabPanel extends PluginPanel
 
 	/** Spellbook icon: selects that book in the (hidden) combo; click the
 	 * active one again for Any spellbook. */
-	private JLabel spellbookIcon(int itemId, String tooltip, int comboIndex)
+	private JLabel spellbookIcon(String bookFile, String tooltip, int comboIndex)
 	{
 		JLabel icon = new JLabel();
 		icon.setOpaque(true);
@@ -1521,9 +1526,17 @@ public class LoadoutLabPanel extends PluginPanel
 		icon.setPreferredSize(new Dimension(34, 34));
 		icon.setToolTipText(tooltip + " (click again for any spellbook)");
 		icon.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		net.runelite.client.util.AsyncBufferedImage sprite = itemManager.getImage(itemId);
-		icon.setIcon(new javax.swing.ImageIcon(sprite));
-		sprite.onLoaded(icon::repaint);
+		try (java.io.InputStream in = getClass().getResourceAsStream(
+			"/data/icons/spellbooks/" + bookFile))
+		{
+			if (in != null)
+			{
+				icon.setIcon(new javax.swing.ImageIcon(javax.imageio.ImageIO.read(in)));
+			}
+		}
+		catch (java.io.IOException ignored)
+		{
+		}
 		Runnable style = () -> icon.setBackground(spellbook.getSelectedIndex() == comboIndex
 			? net.runelite.client.ui.ColorScheme.MEDIUM_GRAY_COLOR
 			: net.runelite.client.ui.ColorScheme.DARKER_GRAY_COLOR);

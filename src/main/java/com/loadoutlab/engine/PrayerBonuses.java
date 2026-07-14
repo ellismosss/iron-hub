@@ -7,9 +7,9 @@ import net.runelite.api.Prayer;
 public final class PrayerBonuses
 {
 	// Iron Hub: per-style toggles - assume the best offensive prayer
-	public static volatile boolean MELEE_PRAYER = true;
-	public static volatile boolean RANGED_PRAYER = true;
-	public static volatile boolean MAGIC_PRAYER = true;
+	public static volatile boolean MELEE_PRAYER = false;
+	public static volatile boolean RANGED_PRAYER = false;
+	public static volatile boolean MAGIC_PRAYER = false;
 
 	public static final PrayerBonuses NONE = new PrayerBonuses(1.0, 1.0, 1.0, 1.0, 1.0, 0.0);
 

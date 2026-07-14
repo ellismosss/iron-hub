@@ -243,7 +243,13 @@ public class OptimizerService
 			+ "|" + maxTradeables + "|" + riskBudget + "|" + antifirePotion
 			+ "|" + dreams.hashCode() + "|" + pins.hashCode() + "|" + upgradeBudgetGp
 			+ "|" + (mode == null ? OptimizeMode.MAX_DPS : mode).name()
-			+ "|" + levelKey(real) + "|" + levelKey(boostedLevels);
+			+ "|" + levelKey(real) + "|" + levelKey(boostedLevels)
+			// Iron Hub: the boost toggles change results without changing
+			// ownership - they must split the cache
+			+ "|" + com.loadoutlab.engine.PrayerBonuses.MELEE_PRAYER
+			+ com.loadoutlab.engine.PrayerBonuses.RANGED_PRAYER
+			+ com.loadoutlab.engine.PrayerBonuses.MAGIC_PRAYER
+			+ BoostSelector.POTIONS_ASSUMED + BoostSelector.HEART_ASSUMED;
 		Map<CombatStyle, StyleResult> cached;
 		synchronized (cache)
 		{
