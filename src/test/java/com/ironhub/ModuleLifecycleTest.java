@@ -62,7 +62,7 @@ public class ModuleLifecycleTest
 			new DailiesModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null, null),
 			new GoalPlannerModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new WhatNowModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
-			new ClueStashModule(),
+			new ClueStashModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new SlayerOptimizerModule(state, null, null, config, null, null),
 			new SuppliesRunwayModule(state, null, config),
 			new CollectionLogModule(),
