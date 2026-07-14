@@ -55,7 +55,7 @@ public class ModuleLifecycleTest
 			new QolModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new LoadoutModule(state, null, null, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new BankTrackerModule(state, null, config,
-				new com.ironhub.data.DataPack(new com.google.gson.Gson())),
+				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
 			new FarmingRunModule(),
 			new DailiesModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null),
 			new GoalPlannerModule(),

@@ -49,7 +49,8 @@ class BankTab extends JPanel
 	private final SegmentedControl xpView = SegmentedControl.viewToggle();
 	private final JPanel xpSection = new JPanel();
 
-	BankTab(AccountState state, ItemManager itemManager, BankedXpPack bankedXpPack)
+	BankTab(AccountState state, ItemManager itemManager, BankedXpPack bankedXpPack,
+		boolean gridView, java.util.function.Consumer<Boolean> onViewChange)
 	{
 		this.state = state;
 		this.itemManager = itemManager;
@@ -89,9 +90,12 @@ class BankTab extends JPanel
 		add(xpSection);
 		add(Box.createVerticalGlue());
 
-		// ponytail: view preference is UI-local; profile-scoped persistence
-		// when the config plumbing for per-module view prefs lands
-		xpView.onChange(i -> rebuild());
+		xpView.setSelected(gridView ? 0 : 1);
+		xpView.onChange(i ->
+		{
+			onViewChange.accept(i == 0); // persists per profile via ConfigManager
+			rebuild();
+		});
 
 		search.getDocument().addDocumentListener(new DocumentListener()
 		{

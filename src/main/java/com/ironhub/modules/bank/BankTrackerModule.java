@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.JComponent;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
 
 /**
@@ -24,16 +25,18 @@ public class BankTrackerModule implements IronHubModule
 	private final ItemManager itemManager;
 	private final IronHubConfig config;
 	private final DataPack dataPack;
+	private final ConfigManager configManager;
 	private BankTab tab;
 
 	@Inject
 	public BankTrackerModule(AccountState state, ItemManager itemManager,
-		IronHubConfig config, DataPack dataPack)
+		IronHubConfig config, DataPack dataPack, ConfigManager configManager)
 	{
 		this.state = state;
 		this.itemManager = itemManager;
 		this.config = config;
 		this.dataPack = dataPack;
+		this.configManager = configManager;
 	}
 
 	@Override
@@ -68,7 +71,14 @@ public class BankTrackerModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new BankTab(state, itemManager, dataPack.load("banked-xp", BankedXpPack.class));
+			tab = new BankTab(state, itemManager, dataPack.load("banked-xp", BankedXpPack.class),
+				config.bankedXpGridView(), gridView ->
+				{
+					if (configManager != null)
+					{
+						configManager.setConfiguration(IronHubConfig.GROUP, "bankedXpGridView", gridView);
+					}
+				});
 		}
 		return tab;
 	}

@@ -49,7 +49,7 @@ public class BankTabTest
 
 		BankTrackerModule module = new BankTrackerModule(state, null, new IronHubConfig()
 		{
-		}, new com.ironhub.data.DataPack(new com.google.gson.Gson()));
+		}, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null);
 		module.startUp();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
