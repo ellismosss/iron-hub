@@ -16,6 +16,7 @@ import com.ironhub.modules.farming.FarmingRunModule;
 import com.ironhub.modules.gear.GearProgressionModule;
 import com.ironhub.modules.goals.GoalPlannerModule;
 import com.ironhub.modules.loadout.LoadoutModule;
+import com.ironhub.modules.loot.LootModule;
 import com.ironhub.modules.qol.QolModule;
 import com.ironhub.modules.quests.QuestsModule;
 import com.ironhub.modules.slayer.SlayerOptimizerModule;
@@ -82,6 +83,7 @@ public class IronHubPlugin extends Plugin
 		CombatAchievementsModule combatAchievements,
 		QolModule qol,
 		LoadoutModule loadout,
+		LootModule loot,
 		BankTrackerModule bankTracker,
 		FarmingRunModule farmingRun,
 		DailiesModule dailies,
@@ -95,9 +97,9 @@ public class IronHubPlugin extends Plugin
 		DashboardModule dashboard,
 		DeathRecoveryModule deathRecovery)
 	{
-		// TODO: skills, loot/supplies, boat — see DESIGN.md §3
+		// TODO: skills, boat — see DESIGN.md §3
 		return ImmutableSet.of(
-			gearProgression, quests, diaries, combatAchievements, qol, loadout, bankTracker,
+			gearProgression, quests, diaries, combatAchievements, qol, loadout, loot, bankTracker,
 			farmingRun, dailies, goalPlanner, whatNow, clueStash,
 			slayerOptimizer, suppliesRunway, collectionLog, externalSync,
 			dashboard, deathRecovery);

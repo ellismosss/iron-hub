@@ -211,8 +211,21 @@ public class AccountState
 		Map<Integer, Integer> totals =
 			lootBySource.computeIfAbsent(source, s -> new ConcurrentHashMap<>());
 		items.forEach((id, qty) -> totals.merge(id, qty, Integer::sum));
+		if (itemManager != null) // resolve names so the loot tab reads offline
+		{
+			for (int id : items.keySet())
+			{
+				itemNames.computeIfAbsent(id, i -> itemManager.getItemComposition(i).getName());
+			}
+		}
 		persist();
 		notifyListeners();
+	}
+
+	/** Sources with recorded loot, for the loot tab's selector. */
+	public java.util.Set<String> lootSources()
+	{
+		return java.util.Collections.unmodifiableSet(lootBySource.keySet());
 	}
 
 	/** Lifetime loot totals for a source (item id -> quantity). */

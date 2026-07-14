@@ -9,17 +9,17 @@ RuneLite Plugin Hub plugin: an all-in-one progression companion for standard OSR
 3. **design/iron-hub-mockups.html** — open in a browser. High-fidelity mockups; frame id badges (1a–1d visual system/P0, 2a–2g module tabs, 3a–3f overlays/infoboxes) match the sections in DESIGN-PACKAGE.md.
 4. DESIGN-HANDOVER.md — the original design brief; superseded by the design package where they differ.
 
-## Current code state (scaffold only — no feature logic yet)
+## Current code state
 
-- `com.ironhub.IronHubPlugin` — entry point; a `@Provides Set<IronHubModule>` registers 17 of 21 modules (RuneLite ships Guice without the multibindings extension). TODOs mark the rest: skills, loot/supplies, boat. Config toggles gate module lifecycles (`enabled()` + ConfigChanged sync).
+- `com.ironhub.IronHubPlugin` — entry point; a `@Provides Set<IronHubModule>` registers 19 of 21 modules (RuneLite ships Guice without the multibindings extension). TODOs mark the rest: skills, boat. Config toggles gate module lifecycles (`enabled()` + ConfigChanged sync).
 - `com.ironhub.IronHubConfig` — per-module enable toggles + opt-in integration settings.
 - `com.ironhub.state.AccountState` — single-source-of-truth service: skill/quest/container ingestion, unlock flags, kill counts; profile-scoped persistence via `ProfileStore` (JSON under `RUNELITE_DIR/iron-hub/<accountHash>/`). Quest states refresh tick-throttled on varbit dirty. Test seam: `StateFixture` (test sources).
 - `com.ironhub.requirements` — the shared requirement graph (`Requirement` + `Requirements`): skill/quest/item/unlock/kc + allOf/anyOf composites, `missing()` leaf resolution, and `parse()` for the data-pack string form (`skill:Farming:65`); unparseable strings become manual (never auto-met) requirements.
 - `com.ironhub.data.DataPack` — bundled data-pack loader (`/data/<name>.json` → typed model, e.g. `DailiesPack`); content schema-validated in CI, loader fails fast on missing/corrupt packs.
-- `com.ironhub.modules.*` — one package per module. **Implemented (M3): quests, diaries, ca** — read-only trackers built entirely from documented API constants (`Quest` API, `Varbits.DIARY_*`, `VarbitID.CA_*`); modules contribute tabs via `IronHubModule.buildTab()`, routed by nav-row name. **M4 in progress: bank (search + banked XP, frame 2f complete), qol (requirement-graph checklist)** — dailies detection + infobox still pending. The rest are stubs with Javadoc pointing at their DESIGN.md section.
+- `com.ironhub.modules.*` — one package per module; tabs contributed via `IronHubModule.buildTab()`, routed by nav-row name (guarded by `PanelGalleryTest.navRowsExistForImplementedModules`). **Live (M3): quests, diaries, ca** (documented API constants only). **Live (M4): bank (search + banked XP, frame 2f), qol (requirement-graph checklist), dailies (reset-aware manual ticks + outstanding infobox; varbit/chat auto-detection pending)**. **Live (M5): gear (2a ladders, 3 styles), loadout (top-level module per user direction — deviates from 2f's embedded placement; BETA solver, golden-tested, solves on the client thread), loot (per-source totals + per-kill view over NpcLootReceived)**. Remaining stubs: skills, boat, farming, goals, whatnow, clues, slayer, supplies, collectionlog, sync, dashboard-module, death. M5 still open: DPS calc export (verify wiki URL format first), supplies consumption, uniques pack, slayer basics.
 - `com.ironhub.ui.IronHubPanel` — CardLayout shell: `DashboardPanel` (frame 1b) ↔ `ModuleNavPanel` (frame 1c), placeholder data until M2. `com.ironhub.ui.components` — shared atoms (M1). `com.ironhub.ui.UiTokens` — all design tokens as constants (mirrors DESIGN-PACKAGE.md; keep them in sync, never hardcode styles in views). Offscreen renders for mockup side-by-sides: `./gradlew test` → `build/reports/*.png`.
 - `com.ironhub.integrations.ShortestPathBridge` — PluginMessage soft integration, done in principle.
-- `src/main/resources/data/dailies.json` — example of the data-pack pattern.
+- `src/main/resources/data/*.json` — data packs (dailies, banked-xp, qol, gear-ladders, scenarios), schema-validated in CI; requirement strings use the graph's `parse()` form.
 - Build: Gradle, Java 11, `net.runelite:client` latest.release. Dev launcher: `src/test/java/com/ironhub/IronHubPluginTest`.
 
 ## Implementation order
