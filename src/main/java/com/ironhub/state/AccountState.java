@@ -66,9 +66,12 @@ public class AccountState
 	// aggregated loot: npc name -> item id -> total quantity (persisted)
 	private final Map<String, Map<Integer, Integer>> lootBySource = new ConcurrentHashMap<>();
 
-	// varbits modules registered interest in (diary tiers, CA points, …)
+	// varbits/varps modules registered interest in (diary tiers, CA points,
+	// slayer task, …)
 	private final Set<Integer> watchedVarbits = ConcurrentHashMap.newKeySet();
 	private final Map<Integer, Integer> varbitValues = new ConcurrentHashMap<>();
+	private final Set<Integer> watchedVarps = ConcurrentHashMap.newKeySet();
+	private final Map<Integer, Integer> varpValues = new ConcurrentHashMap<>();
 	private final CopyOnWriteArrayList<Runnable> listeners = new CopyOnWriteArrayList<>();
 
 	/** Quest points from the last quest refresh. */
@@ -161,6 +164,22 @@ public class AccountState
 		for (int id : varbitIds)
 		{
 			watchedVarbits.add(id);
+		}
+		varbitsRefreshNeeded = true;
+	}
+
+	/** Last seen value of a watched varp (0 until first refresh). */
+	public int getVarp(int varpId)
+	{
+		return varpValues.getOrDefault(varpId, 0);
+	}
+
+	/** Register varps to track — same lifecycle as watchVarbits. */
+	public void watchVarps(int... varpIds)
+	{
+		for (int id : varpIds)
+		{
+			watchedVarps.add(id);
 		}
 		varbitsRefreshNeeded = true;
 	}
@@ -299,6 +318,15 @@ public class AccountState
 				notifyListeners();
 			}
 		}
+		// raw varp updates arrive with varbitId == -1
+		else if (event.getVarbitId() == -1 && watchedVarps.contains(event.getVarpId()))
+		{
+			Integer previous = varpValues.put(event.getVarpId(), event.getValue());
+			if (previous == null || previous != event.getValue())
+			{
+				notifyListeners();
+			}
+		}
 	}
 
 	public void onItemContainerChanged(ItemContainerChanged event)
@@ -356,6 +384,11 @@ public class AccountState
 	void ingestVarbit(int varbitId, int value)
 	{
 		varbitValues.put(varbitId, value);
+	}
+
+	void ingestVarp(int varpId, int value)
+	{
+		varpValues.put(varpId, value);
 	}
 
 	void ingestBank(Map<Integer, Integer> contents)
@@ -474,6 +507,12 @@ public class AccountState
 		{
 			int value = client.getVarbitValue(id);
 			Integer previous = varbitValues.put(id, value);
+			changed |= previous == null || previous != value;
+		}
+		for (int id : watchedVarps)
+		{
+			int value = client.getVarpValue(id);
+			Integer previous = varpValues.put(id, value);
 			changed |= previous == null || previous != value;
 		}
 		if (changed)

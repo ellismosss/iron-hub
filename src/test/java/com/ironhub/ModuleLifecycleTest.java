@@ -63,7 +63,7 @@ public class ModuleLifecycleTest
 			new GoalPlannerModule(),
 			new WhatNowModule(),
 			new ClueStashModule(),
-			new SlayerOptimizerModule(),
+			new SlayerOptimizerModule(state, null, null, config, null, null),
 			new SuppliesRunwayModule(),
 			new CollectionLogModule(),
 			new ExternalSyncModule(),

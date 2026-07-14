@@ -63,6 +63,11 @@ public final class StateFixture
 		state.ingestVarbit(varbitId, value);
 	}
 
+	public static void varp(AccountState state, int varpId, int value)
+	{
+		state.ingestVarp(varpId, value);
+	}
+
 	public static void itemNames(AccountState state, Map<Integer, String> names)
 	{
 		state.ingestItemNames(names);
