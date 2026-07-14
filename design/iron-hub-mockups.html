@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <style>
+    body { margin: 0; background: #161616; font-family: Helvetica, Arial, sans-serif; }
+    a { color: #DC8A00; text-decoration: none; }
+    a:hover { color: #F0A226; text-decoration: underline; }
+  </style>
+</helmet>
+
+<section style="padding:40px 48px 40px;display:flex;flex-direction:column;gap:24px;border-bottom:1px solid #2A2A2A;">
+
+  <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+    <div style="font-size:20px;font-weight:700;color:#DCDCDC;">Overlays &amp; infoboxes</div>
+    <div style="font-size:12px;color:#8C8C8C;">Semi-transparent dark panels · RuneScape-style shadowed text (white/yellow) · display-only · snap to canvas corners · status colors brightened one step for canvas legibility (same semantics)</div>
+  </div>
+
+  <!-- ============ 3a · CANVAS COMPOSITE ============ -->
+  <div id="3a" data-screen-label="Overlay placement canvas" style="display:flex;flex-direction:column;gap:8px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">3a</span>
+      <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Placement — game canvas 1400×800 (all overlays on, worst case)</span>
+    </div>
+    <div style="position:relative;width:1400px;height:800px;background:#23271E;border:1px solid #3A3A3A;overflow:hidden;">
+      <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:monospace;font-size:14px;color:#3D4435;">game canvas placeholder · 1400×800</div>
+
+      <!-- minimap placeholder -->
+      <div style="position:absolute;right:24px;top:20px;width:120px;height:120px;border-radius:50%;background:#2B3025;border:1px solid #3D4435;display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:10px;color:#4A523F;">minimap</div>
+
+      <!-- chatbox placeholder -->
+      <div style="position:absolute;left:12px;bottom:12px;width:490px;height:140px;background:#2B3025;border:1px solid #3D4435;display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:10px;color:#4A523F;">chatbox</div>
+
+      <!-- farming run overlay · top-left -->
+      <div style="position:absolute;left:16px;top:16px;width:150px;background:rgba(0,0,0,0.55);border-radius:2px;padding:6px 8px;display:flex;flex-direction:column;gap:3px;font-size:12px;text-shadow:1px 1px 0 #000000;">
+        <div style="display:flex;align-items:baseline;gap:6px;">
+          <span style="flex:1;color:#FFFFFF;font-weight:700;">Herb run</span>
+          <span style="color:#FFFF00;">2:14</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;color:#52E06A;font-weight:700;">✓</span><span style="color:#52E06A;">Falador</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;color:#FFB83F;font-weight:700;">▶</span><span style="color:#FFFFFF;font-weight:700;">Catherby</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;color:#B0B0B0;">·</span><span style="color:#B0B0B0;">Ardougne</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;color:#B0B0B0;">·</span><span style="color:#B0B0B0;">Morytania</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;color:#FF5C5C;font-weight:700;">!</span><span style="color:#FF5C5C;">Weiss — diseased</span></div>
+        <div style="color:#B0B0B0;font-size:11px;">1 of 7 done</div>
+      </div>
+
+      <!-- supplies HUD · below farming -->
+      <div style="position:absolute;left:16px;top:206px;width:118px;background:rgba(0,0,0,0.55);border-radius:2px;padding:6px 8px;display:flex;flex-direction:column;gap:3px;font-size:12px;text-shadow:1px 1px 0 #000000;">
+        <div style="color:#FFFFFF;font-weight:700;">This trip</div>
+        <div style="display:flex;align-items:center;gap:6px;"><span style="width:16px;height:16px;background:rgba(60,60,60,0.8);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#CCCCCC;text-shadow:none;">SH</span><span style="color:#FFFF00;">−4</span></div>
+        <div style="display:flex;align-items:center;gap:6px;"><span style="width:16px;height:16px;background:rgba(60,60,60,0.8);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#CCCCCC;text-shadow:none;">AV</span><span style="color:#FFFF00;">−2 doses</span></div>
+        <div style="display:flex;align-items:center;gap:6px;"><span style="width:16px;height:16px;background:rgba(60,60,60,0.8);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#CCCCCC;text-shadow:none;">PP</span><span style="color:#FFFF00;">−3 doses</span></div>
+        <div style="display:flex;align-items:center;gap:6px;"><span style="width:16px;height:16px;background:rgba(60,60,60,0.8);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#CCCCCC;text-shadow:none;">ZS</span><span style="color:#FF5C5C;">−186</span></div>
+      </div>
+
+      <!-- active goal overlay · above chatbox -->
+      <div style="position:absolute;left:16px;bottom:168px;width:190px;background:rgba(0,0,0,0.55);border-radius:2px;padding:6px 8px;display:flex;flex-direction:column;gap:4px;font-size:12px;text-shadow:1px 1px 0 #000000;">
+        <div style="display:flex;align-items:baseline;gap:6px;">
+          <span style="flex:1;color:#FFFFFF;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Bow of Faerdhinen</span>
+          <span style="color:#FFFF00;">34%</span>
+        </div>
+        <div style="height:6px;background:rgba(255,255,255,0.15);border-radius:1px;overflow:hidden;"><div style="width:34%;height:100%;background:#DC8A00;"></div></div>
+        <div style="color:#FFB83F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">➜ Song of the Elves</div>
+      </div>
+
+      <!-- infobox row · under minimap -->
+      <div style="position:absolute;right:24px;top:152px;display:flex;gap:2px;">
+        <div title="Dailies outstanding" style="position:relative;width:34px;height:34px;background:rgba(0,0,0,0.45);border-radius:2px;display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:11px;font-weight:700;color:#CCCCCC;">DA</span>
+          <span style="position:absolute;right:2px;bottom:0;font-size:11px;font-weight:700;color:#FFFF00;text-shadow:1px 1px 0 #000000;">4</span>
+        </div>
+        <div title="Patches ready" style="position:relative;width:34px;height:34px;background:rgba(0,0,0,0.45);border-radius:2px;display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:11px;font-weight:700;color:#CCCCCC;">FA</span>
+          <span style="position:absolute;right:2px;bottom:0;font-size:11px;font-weight:700;color:#FFFF00;text-shadow:1px 1px 0 #000000;">7</span>
+        </div>
+        <div title="Run timer" style="position:relative;width:34px;height:34px;background:rgba(0,0,0,0.45);border-radius:2px;display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:11px;font-weight:700;color:#CCCCCC;">⏱</span>
+          <span style="position:absolute;right:2px;bottom:0;font-size:10px;font-weight:700;color:#FFFF00;text-shadow:1px 1px 0 #000000;">2:14</span>
+        </div>
+        <div title="Slayer task" style="position:relative;width:34px;height:34px;background:rgba(0,0,0,0.45);border-radius:2px;display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:11px;font-weight:700;color:#CCCCCC;">SL</span>
+          <span style="position:absolute;right:2px;bottom:0;font-size:11px;font-weight:700;color:#FFFF00;text-shadow:1px 1px 0 #000000;">87</span>
+        </div>
+      </div>
+
+      <!-- clue helper · right, below infoboxes -->
+      <div style="position:absolute;right:24px;top:200px;width:200px;background:rgba(0,0,0,0.55);border-radius:2px;padding:6px 8px;display:flex;flex-direction:column;gap:3px;font-size:12px;text-shadow:1px 1px 0 #000000;">
+        <div style="display:flex;align-items:baseline;gap:6px;">
+          <span style="flex:1;color:#FFFFFF;font-weight:700;">Hard clue · step 3</span>
+        </div>
+        <div style="color:#B0B0B0;">Emote: Falador Park</div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;color:#52E06A;font-weight:700;">✓</span><span style="color:#52E06A;">Guthix full helm</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;color:#FF5C5C;font-weight:700;">✗</span><span style="color:#FF5C5C;">Guthix platebody</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;color:#52E06A;font-weight:700;">✓</span><span style="color:#FFFFFF;">STASH built · filled</span></div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#6B6B6B;">Worst case shown — only the farming run overlay is on by default. Each panel is independently draggable; budget ≤250×200 each. Minimap/chatbox are placement references only.</div>
+  </div>
+
+  <!-- close-ups -->
+  <div style="display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap;">
+
+    <!-- 3b farming -->
+    <div id="3b" data-screen-label="Farming run overlay" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">3b</span>
+        <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Farming run overlay</span>
+      </div>
+      <div style="width:225px;background:#23271E;border:1px solid #3A3A3A;padding:20px;display:flex;justify-content:center;">
+        <div style="width:150px;background:rgba(0,0,0,0.55);border-radius:2px;padding:6px 8px;display:flex;flex-direction:column;gap:3px;font-size:12px;text-shadow:1px 1px 0 #000000;">
+          <div style="display:flex;align-items:baseline;gap:6px;">
+            <span style="flex:1;color:#FFFFFF;font-weight:700;">Herb run</span>
+            <span style="color:#FFFF00;">2:14</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;color:#52E06A;font-weight:700;">✓</span><span style="color:#52E06A;">Falador</span></div>
+          <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;color:#FFB83F;font-weight:700;">▶</span><span style="color:#FFFFFF;font-weight:700;">Catherby</span></div>
+          <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;color:#B0B0B0;">·</span><span style="color:#B0B0B0;">Ardougne</span></div>
+          <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;color:#B0B0B0;">·</span><span style="color:#B0B0B0;">Morytania</span></div>
+          <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;color:#FF5C5C;font-weight:700;">!</span><span style="color:#FF5C5C;">Weiss — diseased</span></div>
+          <div style="color:#B0B0B0;font-size:11px;">1 of 7 done</div>
+        </div>
+      </div>
+      <div style="width:225px;font-size:10px;color:#6B6B6B;">On by default during a run. 150×~130. Done rows collapse after 3 (\"+3 done\") so it never exceeds 7 lines. ▶ = next in route order; right-click ▸ skip patch / end run.</div>
+    </div>
+
+    <!-- 3c goal -->
+    <div id="3c" data-screen-label="Active goal overlay" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">3c</span>
+        <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Active goal overlay</span>
+      </div>
+      <div style="width:225px;background:#23271E;border:1px solid #3A3A3A;padding:20px;display:flex;justify-content:center;">
+        <div style="width:190px;background:rgba(0,0,0,0.55);border-radius:2px;padding:6px 8px;display:flex;flex-direction:column;gap:4px;font-size:12px;text-shadow:1px 1px 0 #000000;">
+          <div style="display:flex;align-items:baseline;gap:6px;">
+            <span style="flex:1;color:#FFFFFF;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Bow of Faerdhinen</span>
+            <span style="color:#FFFF00;">34%</span>
+          </div>
+          <div style="height:6px;background:rgba(255,255,255,0.15);border-radius:1px;overflow:hidden;"><div style="width:34%;height:100%;background:#DC8A00;"></div></div>
+          <div style="color:#FFB83F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">➜ Song of the Elves</div>
+        </div>
+      </div>
+      <div style="width:225px;font-size:10px;color:#6B6B6B;">190×~52, two lines + bar, fixed height. Step line flashes green once on auto-complete, then shows the next step. Off by default.</div>
+    </div>
+
+    <!-- 3d supplies -->
+    <div id="3d" data-screen-label="Supplies per trip HUD" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">3d</span>
+        <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Supplies-per-trip HUD</span>
+      </div>
+      <div style="width:225px;background:#23271E;border:1px solid #3A3A3A;padding:20px;display:flex;justify-content:center;">
+        <div style="width:118px;background:rgba(0,0,0,0.55);border-radius:2px;padding:6px 8px;display:flex;flex-direction:column;gap:3px;font-size:12px;text-shadow:1px 1px 0 #000000;">
+          <div style="color:#FFFFFF;font-weight:700;">This trip</div>
+          <div style="display:flex;align-items:center;gap:6px;"><span style="width:16px;height:16px;background:rgba(60,60,60,0.8);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#CCCCCC;text-shadow:none;">SH</span><span style="color:#FFFF00;">−4</span></div>
+          <div style="display:flex;align-items:center;gap:6px;"><span style="width:16px;height:16px;background:rgba(60,60,60,0.8);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#CCCCCC;text-shadow:none;">AV</span><span style="color:#FFFF00;">−2 doses</span></div>
+          <div style="display:flex;align-items:center;gap:6px;"><span style="width:16px;height:16px;background:rgba(60,60,60,0.8);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#CCCCCC;text-shadow:none;">PP</span><span style="color:#FFFF00;">−3 doses</span></div>
+          <div style="display:flex;align-items:center;gap:6px;"><span style="width:16px;height:16px;background:rgba(60,60,60,0.8);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#CCCCCC;text-shadow:none;">ZS</span><span style="color:#FF5C5C;">−186</span></div>
+        </div>
+      </div>
+      <div style="width:225px;font-size:10px;color:#6B6B6B;">118×~110, max 5 rows (highest-usage first). Red count = that consumable is inside its runway warning threshold. Resets on bank/trip end.</div>
+    </div>
+
+    <!-- 3e clue -->
+    <div id="3e" data-screen-label="Clue step helper overlay" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">3e</span>
+        <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Clue step helper</span>
+      </div>
+      <div style="width:225px;background:#23271E;border:1px solid #3A3A3A;padding:20px;display:flex;justify-content:center;">
+        <div style="width:185px;background:rgba(0,0,0,0.55);border-radius:2px;padding:6px 8px;display:flex;flex-direction:column;gap:3px;font-size:12px;text-shadow:1px 1px 0 #000000;">
+          <div style="color:#FFFFFF;font-weight:700;">Hard clue · step 3</div>
+          <div style="color:#B0B0B0;">Emote: Falador Park</div>
+          <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;color:#52E06A;font-weight:700;">✓</span><span style="color:#52E06A;">Guthix full helm</span></div>
+          <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;color:#FF5C5C;font-weight:700;">✗</span><span style="color:#FF5C5C;">Guthix platebody</span></div>
+          <div style="display:flex;align-items:center;gap:5px;"><span style="width:12px;color:#52E06A;font-weight:700;">✓</span><span style="color:#FFFFFF;">STASH built · filled</span></div>
+        </div>
+      </div>
+      <div style="width:225px;font-size:10px;color:#6B6B6B;">Auto-shows while a clue is in inventory. ✗ row = missing item; its iron source lives in the panel (Clues &amp; STASH), not the overlay — overlay stays display-only.</div>
+    </div>
+
+    <!-- 3f infoboxes -->
+    <div id="3f" data-screen-label="Infoboxes" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">3f</span>
+        <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Infoboxes — 32×32 + text + tooltip</span>
+      </div>
+      <div style="width:225px;background:#23271E;border:1px solid #3A3A3A;padding:14px;display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="position:relative;flex:none;width:34px;height:34px;background:rgba(0,0,0,0.45);border-radius:2px;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:11px;font-weight:700;color:#CCCCCC;">DA</span>
+            <span style="position:absolute;right:2px;bottom:0;font-size:11px;font-weight:700;color:#FFFF00;text-shadow:1px 1px 0 #000000;">4</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:1px;">
+            <span style="font-size:11px;font-weight:700;color:#C4C4C4;">Dailies outstanding</span>
+            <span style="font-size:10px;color:#6B6B6B;">tooltip: list of the 4 · "resets 00:00 UTC" · hidden at 0</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="position:relative;flex:none;width:34px;height:34px;background:rgba(0,0,0,0.45);border-radius:2px;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:11px;font-weight:700;color:#CCCCCC;">FA</span>
+            <span style="position:absolute;right:2px;bottom:0;font-size:11px;font-weight:700;color:#FFFF00;text-shadow:1px 1px 0 #000000;">7</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:1px;">
+            <span style="font-size:11px;font-weight:700;color:#C4C4C4;">Patches ready</span>
+            <span style="font-size:10px;color:#6B6B6B;">tooltip: per-group counts · "herb 7/9, trees 5/5" · click → panel</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="position:relative;flex:none;width:34px;height:34px;background:rgba(0,0,0,0.45);border-radius:2px;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:11px;font-weight:700;color:#CCCCCC;">⏱</span>
+            <span style="position:absolute;right:2px;bottom:0;font-size:10px;font-weight:700;color:#FFFF00;text-shadow:1px 1px 0 #000000;">2:14</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:1px;">
+            <span style="font-size:11px;font-weight:700;color:#C4C4C4;">Run timer</span>
+            <span style="font-size:10px;color:#6B6B6B;">tooltip: "herb run · 1/7 · avg 5:40 best 4:55" · only during run</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="position:relative;flex:none;width:34px;height:34px;background:rgba(0,0,0,0.45);border-radius:2px;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:11px;font-weight:700;color:#CCCCCC;">SL</span>
+            <span style="position:absolute;right:2px;bottom:0;font-size:11px;font-weight:700;color:#FFFF00;text-shadow:1px 1px 0 #000000;">87</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:1px;">
+            <span style="font-size:11px;font-weight:700;color:#C4C4C4;">Slayer task</span>
+            <span style="font-size:10px;color:#6B6B6B;">tooltip: "Nechryael · 87 left · streak 43 · 1,240 pts"</span>
+          </div>
+        </div>
+      </div>
+      <div style="width:225px;font-size:10px;color:#6B6B6B;">Icon = game sprite (letters are placeholders); count bottom-right, yellow shadowed. RuneLite manages stacking — single-box content only. Run-timer text at 4–5 chars is the width limit.</div>
+    </div>
+
+  </div>
+</section>
+
+<section style="padding:40px 48px 40px;display:flex;flex-direction:column;gap:24px;border-bottom:1px solid #2A2A2A;">
+
+  <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+    <div style="font-size:20px;font-weight:700;color:#DCDCDC;">Module tabs — grid-first</div>
+    <div style="font-size:12px;color:#8C8C8C;">Grid tile atom: 30×30 cell · status border (green owned / amber available / gray locked / red warning) · letter codes = game sprite placeholders · ⊞/☰ toggle on every gridded section</div>
+  </div>
+
+  <div style="display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap;">
+
+    <!-- ============ 2a · GEAR PROGRESSION ============ -->
+    <div id="2a" data-screen-label="Gear progression" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">2a</span>
+        <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Gear progression — slot ladders</span>
+      </div>
+      <div style="width:225px;background:#262626;border:1px solid #3A3A3A;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;">
+          <a href="#1c" title="Back" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:14px;" style-hover="color:#DC8A00;text-decoration:none;">‹</a>
+          <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Gear progression</span>
+        </div>
+        <div style="padding:8px;border-bottom:1px solid #333333;display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;border:1px solid #454545;border-radius:2px;overflow:hidden;">
+            <span style="flex:1;height:20px;display:flex;align-items:center;justify-content:center;background:#2B2B2B;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="color:#DCDCDC;">Melee</span>
+            <span style="flex:1;height:20px;display:flex;align-items:center;justify-content:center;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;">Range</span>
+            <span style="flex:1;height:20px;display:flex;align-items:center;justify-content:center;background:#2B2B2B;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="color:#DCDCDC;">Mage</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="flex:1;font-size:11px;color:#8C8C8C;">Context: General ▾</span>
+            <span style="display:inline-flex;border:1px solid #454545;border-radius:2px;overflow:hidden;">
+              <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;">⊞</span>
+              <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#2B2B2B;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="color:#DCDCDC;">☰</span>
+            </span>
+          </div>
+        </div>
+
+        <div style="padding:8px;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:baseline;gap:6px;">
+              <span style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;flex:1;">HEAD</span>
+              <span style="font-size:10px;color:#E0A23C;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">next: Karil's coif</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;">
+              <div title="Coif — owned" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">CO</div>
+              <div title="Archer helm — owned, equipped" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#DCDCDC;">AH</div>
+              <div title="Karil's coif — obtainable now" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #DC8A00;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#E0A23C;">KC</div>
+              <div title="Crystal helm — locked" style="width:30px;height:30px;background:#252525;border:1px solid #3F3F3F;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#6B6B6B;">CH</div>
+              <div title="Masori mask — locked" style="width:30px;height:30px;background:#252525;border:1px solid #3F3F3F;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#6B6B6B;">MM</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:baseline;gap:6px;">
+              <span style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;flex:1;">BODY</span>
+              <span style="font-size:10px;color:#E0A23C;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">next: Karil's top</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;">
+              <div title="Leather body — owned" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">LB</div>
+              <div title="Green d'hide — owned" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">GD</div>
+              <div title="Black d'hide — owned, equipped" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#DCDCDC;">BD</div>
+              <div title="Karil's leathertop — obtainable now" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #DC8A00;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#E0A23C;">KT</div>
+              <div title="Crystal body — locked" style="width:30px;height:30px;background:#252525;border:1px solid #3F3F3F;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#6B6B6B;">CB</div>
+              <div title="Masori body — locked" style="width:30px;height:30px;background:#252525;border:1px solid #3F3F3F;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#6B6B6B;">MB</div>
+              <div title="Masori body (f) — locked" style="width:30px;height:30px;background:#252525;border:1px solid #3F3F3F;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#6B6B6B;">MF</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:baseline;gap:6px;">
+              <span style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;flex:1;">WEAPON</span>
+              <span style="font-size:10px;color:#E0A23C;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">next: Toxic blowpipe</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;">
+              <div title="Magic shortbow — owned" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">MS</div>
+              <div title="Rune crossbow — owned, equipped" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#DCDCDC;">RC</div>
+              <div title="Toxic blowpipe — obtainable now" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #DC8A00;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#E0A23C;">BP</div>
+              <div title="Armadyl crossbow — locked" style="width:30px;height:30px;background:#252525;border:1px solid #3F3F3F;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#6B6B6B;">AC</div>
+              <div title="Bow of Faerdhinen — locked" style="width:30px;height:30px;background:#252525;border:1px solid #3F3F3F;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#6B6B6B;">BF</div>
+              <div title="Twisted bow — locked" style="width:30px;height:30px;background:#252525;border:1px solid #3F3F3F;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#6B6B6B;">TB</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:baseline;gap:6px;">
+              <span style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;flex:1;">LEGS</span>
+              <span style="font-size:10px;color:#E0A23C;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">next: Karil's skirt</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;">
+              <div title="Black d'hide chaps — owned, equipped" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#DCDCDC;">BC</div>
+              <div title="Karil's leatherskirt — obtainable now" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #DC8A00;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#E0A23C;">KS</div>
+              <div title="Crystal legs — locked" style="width:30px;height:30px;background:#252525;border:1px solid #3F3F3F;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#6B6B6B;">CL</div>
+              <div title="Masori chaps — locked" style="width:30px;height:30px;background:#252525;border:1px solid #3F3F3F;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#6B6B6B;">MC</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:6px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:11px;font-weight:700;">●</span>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;">
+              <span style="font-size:11px;font-weight:700;color:#DCDCDC;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Black d'hide → Karil's top</span>
+              <span style="font-size:10px;color:#8C8C8C;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">biggest upgrade · Barrows chest</span>
+            </div>
+            <span title="Route via Shortest Path" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:10px;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">⚑</span>
+          </div>
+        </div>
+      </div>
+      <div style="width:225px;font-size:10px;color:#6B6B6B;">Ladder cells click → requirement tree. Equipped item = bright code. Ladders longer than 6 wrap to a 2nd row (no horizontal scroll). ☰ list view = one row per item with reqs.</div>
+    </div>
+
+    <!-- ============ 2b · COMBAT ACHIEVEMENTS ============ -->
+    <div id="2b" data-screen-label="Combat achievements" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">2b</span>
+        <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Combat achievements</span>
+      </div>
+      <div style="width:225px;background:#262626;border:1px solid #3A3A3A;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;">
+          <a href="#1c" title="Back" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:14px;" style-hover="color:#DC8A00;text-decoration:none;">‹</a>
+          <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Combat achievements</span>
+        </div>
+        <div style="padding:8px;border-bottom:1px solid #333333;display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:baseline;gap:6px;">
+            <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Hard tier</span>
+            <span style="font-size:11px;color:#C4C4C4;">214<span style="color:#6B6B6B;">/425 pts</span></span>
+          </div>
+          <div style="height:10px;background:#1F1F1F;border:1px solid #3A3A3A;border-radius:2px;overflow:hidden;"><div style="width:50%;height:100%;background:#DC8A00;"></div></div>
+          <div style="font-size:10px;color:#8C8C8C;">next reward: Ghommal's hilt 4 · 211 pts to Elite</div>
+        </div>
+        <div style="padding:8px;border-bottom:1px solid #333333;display:flex;align-items:center;gap:4px;">
+          <span style="padding:3px 7px;background:#2B2B2B;border:1px solid #DC8A00;border-radius:2px;color:#DC8A00;font-size:10px;font-weight:700;">Possible now</span>
+          <span style="padding:3px 7px;background:#2B2B2B;border:1px solid #3F3F3F;border-radius:2px;color:#9A9A9A;font-size:10px;cursor:pointer;" style-hover="border-color:#DC8A00;">All</span>
+          <span style="flex:1;"></span>
+          <span style="display:inline-flex;border:1px solid #454545;border-radius:2px;overflow:hidden;">
+            <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;">⊞</span>
+            <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#2B2B2B;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="color:#DCDCDC;">☰</span>
+          </span>
+        </div>
+        <div style="padding:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:5px;border-bottom:1px solid #333333;">
+          <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+            <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">ZU</span>
+            <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Zulrah</span>
+            <span style="font-size:9px;font-weight:700;color:#E0A23C;">8/14</span>
+            <div style="width:48px;height:3px;background:#1F1F1F;"><div style="width:57%;height:100%;background:#E0A23C;"></div></div>
+          </div>
+          <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+            <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">VO</span>
+            <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Vorkath</span>
+            <span style="font-size:9px;font-weight:700;color:#E0A23C;">6/12</span>
+            <div style="width:48px;height:3px;background:#1F1F1F;"><div style="width:50%;height:100%;background:#E0A23C;"></div></div>
+          </div>
+          <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #35533B;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#4DAE58;">
+            <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">HE</span>
+            <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Hespori</span>
+            <span style="font-size:9px;font-weight:700;color:#4DAE58;">5/5 ✓</span>
+            <div style="width:48px;height:3px;background:#1F1F1F;"><div style="width:100%;height:100%;background:#4DAE58;"></div></div>
+          </div>
+          <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+            <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">BA</span>
+            <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Barrows</span>
+            <span style="font-size:9px;font-weight:700;color:#E0A23C;">10/12</span>
+            <div style="width:48px;height:3px;background:#1F1F1F;"><div style="width:83%;height:100%;background:#E0A23C;"></div></div>
+          </div>
+          <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+            <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">GG</span>
+            <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Gr. Gorillas</span>
+            <span style="font-size:9px;font-weight:700;color:#E0A23C;">2/6</span>
+            <div style="width:48px;height:3px;background:#1F1F1F;"><div style="width:33%;height:100%;background:#E0A23C;"></div></div>
+          </div>
+          <div style="padding:5px 2px 4px;background:#252525;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;">
+            <span style="width:22px;height:22px;background:#333333;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#6B6B6B;">CG</span>
+            <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#8C8C8C;">C. Gauntlet</span>
+            <span style="font-size:9px;font-weight:700;color:#808080;">0/9</span>
+            <div style="width:48px;height:3px;background:#1F1F1F;"></div>
+          </div>
+        </div>
+        <div style="padding:8px;display:flex;flex-direction:column;gap:4px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">EASIEST NEXT</div>
+          <div style="display:flex;flex-direction:column;gap:2px;padding:4px 6px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:11px;font-weight:700;">●</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#DCDCDC;font-size:12px;font-weight:700;">Zulrah — Snake. Snake!?</span>
+              <span title="Open wiki page" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;font-weight:700;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">W</span>
+            </div>
+            <div style="padding-left:20px;font-size:10px;color:#8C8C8C;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">readiness 92% · rated easy for your gear</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px;padding:4px 6px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:11px;font-weight:700;">●</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#DCDCDC;font-size:12px;font-weight:700;">Barrows — Pray for success</span>
+              <span title="Open wiki page" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;font-weight:700;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">W</span>
+            </div>
+            <div style="padding-left:20px;font-size:10px;color:#8C8C8C;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">readiness 88% · 2 pts</div>
+          </div>
+        </div>
+      </div>
+      <div style="width:225px;font-size:10px;color:#6B6B6B;">Boss grid 3-col; tile click → task list filtered to that boss. Green border + ✓ = boss complete. "Possible now" uses the loadout solver.</div>
+    </div>
+
+    <!-- ============ 2c · COLLECTION LOG ============ -->
+    <div id="2c" data-screen-label="Collection log" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">2c</span>
+        <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Collection log</span>
+        <span style="font-size:10px;color:#6B6B6B;">(⊞/☰ live — Tweaks)</span>
+      </div>
+      <div style="width:225px;background:#262626;border:1px solid #3A3A3A;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;">
+          <a href="#1c" title="Back" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:14px;" style-hover="color:#DC8A00;text-decoration:none;">‹</a>
+          <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Collection log</span>
+        </div>
+        <div style="padding:8px;border-bottom:1px solid #333333;display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:baseline;gap:6px;">
+            <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">247<span style="color:#6B6B6B;font-weight:400;">/1,568 slots</span></span>
+            <span style="font-size:11px;font-weight:700;color:#DC8A00;">22%</span>
+          </div>
+          <div style="height:10px;background:#1F1F1F;border:1px solid #3A3A3A;border-radius:2px;overflow:hidden;"><div style="width:22%;height:100%;background:#DC8A00;"></div></div>
+        </div>
+        <div style="padding:8px;border-bottom:1px solid #333333;display:flex;align-items:center;gap:6px;">
+          <span style="flex:1;font-size:11px;color:#8C8C8C;">Bosses ▾ · by completion ▾</span>
+          <sc-if value="{{ clogGrid }}" hint-placeholder-val="{{ true }}">
+            <span style="display:inline-flex;border:1px solid #454545;border-radius:2px;overflow:hidden;">
+              <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;">⊞</span>
+              <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#2B2B2B;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="color:#DCDCDC;">☰</span>
+            </span>
+          </sc-if>
+          <sc-if value="{{ clogList }}" hint-placeholder-val="{{ false }}">
+            <span style="display:inline-flex;border:1px solid #454545;border-radius:2px;overflow:hidden;">
+              <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#2B2B2B;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="color:#DCDCDC;">⊞</span>
+              <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;">☰</span>
+            </span>
+          </sc-if>
+        </div>
+        <sc-if value="{{ clogGrid }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:5px;border-bottom:1px solid #333333;">
+            <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #35533B;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#4DAE58;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">BA</span>
+              <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Barrows</span>
+              <span style="font-size:9px;font-weight:700;color:#4DAE58;">24/24 ✓</span>
+            </div>
+            <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">ZU</span>
+              <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Zulrah</span>
+              <span style="font-size:9px;font-weight:700;color:#E0A23C;">6/10</span>
+            </div>
+            <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">VO</span>
+              <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Vorkath</span>
+              <span style="font-size:9px;font-weight:700;color:#E0A23C;">3/8</span>
+            </div>
+            <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">WT</span>
+              <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Wintertodt</span>
+              <span style="font-size:9px;font-weight:700;color:#E0A23C;">8/12</span>
+            </div>
+            <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">TE</span>
+              <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Tempoross</span>
+              <span style="font-size:9px;font-weight:700;color:#E0A23C;">4/9</span>
+            </div>
+            <div style="padding:5px 2px 4px;background:#252525;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;">
+              <span style="width:22px;height:22px;background:#333333;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#6B6B6B;">KQ</span>
+              <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#8C8C8C;">Kalphite Q.</span>
+              <span style="font-size:9px;font-weight:700;color:#808080;">0/6</span>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ clogList }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:8px;display:flex;flex-direction:column;gap:4px;border-bottom:1px solid #333333;">
+            <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #35533B;border-radius:2px;">
+              <span style="flex:none;width:14px;text-align:center;color:#4DAE58;font-size:11px;font-weight:700;">✓</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Barrows</span>
+              <span style="flex:none;font-size:10px;color:#4DAE58;font-weight:700;">24/24</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+              <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:11px;font-weight:700;">●</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Zulrah</span>
+              <div style="flex:none;width:40px;height:4px;background:#1F1F1F;"><div style="width:60%;height:100%;background:#E0A23C;"></div></div>
+              <span style="flex:none;font-size:10px;color:#E0A23C;font-weight:700;">6/10</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+              <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:11px;font-weight:700;">●</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Vorkath</span>
+              <div style="flex:none;width:40px;height:4px;background:#1F1F1F;"><div style="width:38%;height:100%;background:#E0A23C;"></div></div>
+              <span style="flex:none;font-size:10px;color:#E0A23C;font-weight:700;">3/8</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+              <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:11px;font-weight:700;">●</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Wintertodt</span>
+              <div style="flex:none;width:40px;height:4px;background:#1F1F1F;"><div style="width:66%;height:100%;background:#E0A23C;"></div></div>
+              <span style="flex:none;font-size:10px;color:#E0A23C;font-weight:700;">8/12</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+              <span style="flex:none;width:14px;text-align:center;color:#808080;font-size:11px;font-weight:700;">○</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8C8C8C;font-size:12px;">Kalphite Queen</span>
+              <span style="flex:none;font-size:10px;color:#808080;">0/6</span>
+            </div>
+          </div>
+        </sc-if>
+        <div style="padding:8px;display:flex;flex-direction:column;gap:4px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">DRY STREAK</div>
+          <div style="display:flex;flex-direction:column;gap:2px;padding:5px 6px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:#C4C4C4;">Vorkath's head</span>
+              <span style="flex:none;font-size:10px;color:#D95757;font-weight:700;">2.1× rate</span>
+            </div>
+            <div style="font-size:10px;color:#8C8C8C;">486 KC since last unique</div>
+          </div>
+        </div>
+      </div>
+      <div style="width:225px;font-size:10px;color:#6B6B6B;">Grid = activity tiles; tile click → that activity's item grid (same cell atom as loot, 2g). List adds per-row progress bars. Dry-streak framing stays factual.</div>
+    </div>
+
+    <!-- ============ 2d · GOAL PLANNER (MAIN) ============ -->
+    <div id="2d" data-screen-label="Goal planner main" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">2d</span>
+        <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Goal planner — main tab</span>
+      </div>
+      <div style="width:225px;background:#262626;border:1px solid #3A3A3A;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;">
+          <a href="#1c" title="Back" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:14px;" style-hover="color:#DC8A00;text-decoration:none;">‹</a>
+          <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Goal planner</span>
+          <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;border-radius:2px;cursor:pointer;" style-hover="background:#F0A226;">+ Goal</span>
+        </div>
+        <div style="padding:8px;border-bottom:1px solid #333333;display:flex;flex-direction:column;gap:5px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">ACTIVE</div>
+          <div style="display:flex;flex-direction:column;gap:5px;padding:6px;background:#2B2B2B;border:1px solid #DC8A00;border-radius:2px;">
+            <div style="display:flex;align-items:baseline;gap:6px;">
+              <a href="#1d" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:700;color:#DCDCDC;">Bow of Faerdhinen</a>
+              <span style="flex:none;font-size:11px;font-weight:700;color:#DC8A00;">34%</span>
+            </div>
+            <div style="height:10px;background:#1F1F1F;border:1px solid #3A3A3A;border-radius:2px;overflow:hidden;"><div style="width:34%;height:100%;background:#DC8A00;"></div></div>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:10px;font-weight:700;">●</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:#C4C4C4;">Next: Song of the Elves</span>
+              <a href="#1d" style="flex:none;font-size:10px;color:#DC8A00;">tree ›</a>
+            </div>
+          </div>
+        </div>
+        <div style="padding:8px;border-bottom:1px solid #333333;display:flex;flex-direction:column;gap:4px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">OTHER GOALS</div>
+          <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Quest cape</span>
+            <div style="flex:none;width:40px;height:4px;background:#1F1F1F;"><div style="width:61%;height:100%;background:#DC8A00;"></div></div>
+            <span style="flex:none;font-size:10px;color:#8C8C8C;">61%</span>
+            <span title="Pin as active" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">▲</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Base 70 stats</span>
+            <div style="flex:none;width:40px;height:4px;background:#1F1F1F;"><div style="width:84%;height:100%;background:#DC8A00;"></div></div>
+            <span style="flex:none;font-size:10px;color:#8C8C8C;">84%</span>
+            <span title="Pin as active" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">▲</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;padding:4px 6px;background:#252525;border:1px solid #333333;border-radius:2px;">
+            <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:10px;font-weight:700;">●</span>
+            <span style="flex:1;font-size:10px;color:#8C8C8C;">70 Agility feeds 3 of your goals — shared steps deduplicated</span>
+          </div>
+        </div>
+        <div style="padding:8px;display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="flex:1;font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">BROWSE TARGETS</span>
+            <span style="display:inline-flex;border:1px solid #454545;border-radius:2px;overflow:hidden;">
+              <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;">⊞</span>
+              <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#2B2B2B;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="color:#DCDCDC;">☰</span>
+            </span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;">
+            <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">BG</span>
+              <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">B. gloves</span>
+            </div>
+            <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">FC</span>
+              <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Fire cape</span>
+            </div>
+            <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">EV</span>
+              <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Elite void</span>
+            </div>
+            <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">DS</span>
+              <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Ava's asm.</span>
+            </div>
+            <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">QC</span>
+              <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Quest cape</span>
+            </div>
+            <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">GR</span>
+              <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Graceful</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="width:225px;font-size:10px;color:#6B6B6B;">Target tile click → pre-built plan preview → "Add goal". Any item/quest is searchable via + Goal; grid shows popular capstones.</div>
+    </div>
+
+    <!-- ============ 2e · FARMING RUNS ============ -->
+    <div id="2e" data-screen-label="Farming runs" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">2e</span>
+        <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Farming runs</span>
+      </div>
+      <div style="width:225px;background:#262626;border:1px solid #3A3A3A;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;">
+          <a href="#1c" title="Back" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:14px;" style-hover="color:#DC8A00;text-decoration:none;">‹</a>
+          <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Farming runs</span>
+        </div>
+        <div style="padding:8px;border-bottom:1px solid #333333;display:flex;flex-direction:column;gap:5px;">
+          <span style="height:24px;display:flex;align-items:center;justify-content:center;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;border-radius:2px;cursor:pointer;" style-hover="background:#F0A226;">Start herb run</span>
+          <div style="font-size:10px;color:#8C8C8C;text-align:center;">avg 5:40 · best 4:55 · 62 runs logged</div>
+        </div>
+        <div style="padding:8px;border-bottom:1px solid #333333;display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="flex:1;font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">HERB PATCHES</span>
+            <span style="font-size:10px;color:#E0A23C;font-weight:700;">7 of 9 ready</span>
+            <span style="display:inline-flex;border:1px solid #454545;border-radius:2px;overflow:hidden;">
+              <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;">⊞</span>
+              <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#2B2B2B;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="color:#DCDCDC;">☰</span>
+            </span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;">
+            <div title="Falador — ready" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #E0A23C;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#E0A23C;">FA</div>
+            <div title="Catherby — ready" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #E0A23C;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#E0A23C;">CA</div>
+            <div title="Ardougne — ready" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #E0A23C;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#E0A23C;">AR</div>
+            <div title="Morytania — ready" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #E0A23C;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#E0A23C;">MO</div>
+            <div title="Hosidius — ready" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #E0A23C;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#E0A23C;">HO</div>
+            <div title="Farming Guild — ready" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #E0A23C;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#E0A23C;">FG</div>
+            <div title="Troll Stronghold — ready" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #E0A23C;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#E0A23C;">TS</div>
+            <div title="Weiss — diseased!" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #D95757;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#D95757;">WE</div>
+            <div title="Harmony — growing, 26 min" style="width:30px;height:30px;background:#252525;border:1px solid #3F3F3F;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#6B6B6B;">HA</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span style="flex:none;width:14px;text-align:center;color:#D95757;font-size:10px;font-weight:700;">!</span>
+            <span style="flex:1;font-size:10px;color:#8C8C8C;">Weiss diseased · 12 ranarr seeds left (≈3 runs)</span>
+          </div>
+        </div>
+        <div style="padding:8px;display:flex;flex-direction:column;gap:4px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">OTHER GROUPS</div>
+          <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:11px;font-weight:700;">●</span>
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Trees</span>
+            <span style="flex:none;font-size:10px;color:#E0A23C;font-weight:700;">5/5 ready</span>
+            <span title="Route via Shortest Path" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:10px;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">⚑</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <span style="flex:none;width:14px;text-align:center;color:#808080;font-size:11px;font-weight:700;">○</span>
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Fruit trees</span>
+            <span style="flex:none;font-size:10px;color:#8C8C8C;">4 h 10 m</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:11px;font-weight:700;">●</span>
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Hespori</span>
+            <span style="flex:none;font-size:10px;color:#E0A23C;font-weight:700;">ready</span>
+            <span title="Route via Shortest Path" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:10px;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">⚑</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <span style="flex:none;width:14px;text-align:center;color:#808080;font-size:11px;font-weight:700;">○</span>
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Birdhouses</span>
+            <span style="flex:none;font-size:10px;color:#8C8C8C;">12 m</span>
+          </div>
+        </div>
+      </div>
+      <div style="width:225px;font-size:10px;color:#6B6B6B;">Patch tiles: amber ready · gray growing (timer on hover) · red diseased/dead. "Start run" opens the on-canvas overlay checklist (P2).</div>
+    </div>
+
+    <!-- ============ 2f · BANK & BANKED XP ============ -->
+    <div id="2f" data-screen-label="Bank and banked XP" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">2f</span>
+        <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Bank &amp; banked XP</span>
+      </div>
+      <div style="width:225px;background:#262626;border:1px solid #3A3A3A;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;">
+          <a href="#1c" title="Back" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:14px;" style-hover="color:#DC8A00;text-decoration:none;">‹</a>
+          <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Bank &amp; banked XP</span>
+        </div>
+        <div style="padding:8px;border-bottom:1px solid #333333;display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;height:24px;padding:0 8px;background:#1F1F1F;border:1px solid #DC8A00;border-radius:2px;color:#DCDCDC;font-size:11px;">ranarr<span style="color:#DC8A00;">|</span></div>
+          <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">RW</span>
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Ranarr weed</span>
+            <span style="flex:none;font-size:11px;color:#DCDCDC;font-weight:700;">×143</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">GR</span>
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Grimy ranarr weed</span>
+            <span style="flex:none;font-size:11px;color:#DCDCDC;font-weight:700;">×12</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">RS</span>
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Ranarr seed</span>
+            <span style="flex:none;font-size:11px;color:#DCDCDC;font-weight:700;">×12</span>
+          </div>
+          <div style="font-size:10px;color:#6B6B6B;">snapshot from last bank visit · 2 h ago</div>
+        </div>
+        <div style="padding:8px;border-bottom:1px solid #333333;display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="flex:1;font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">BANKED XP</span>
+            <span style="display:inline-flex;border:1px solid #454545;border-radius:2px;overflow:hidden;">
+              <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;">⊞</span>
+              <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#2B2B2B;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="color:#DCDCDC;">☰</span>
+            </span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;">
+            <div title="Herblore — 2.4M banked, method: unf potions" style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">HB</span>
+              <span style="font-size:9px;color:#C4C4C4;">Herblore</span>
+              <span style="font-size:9px;font-weight:700;color:#E0A23C;">2.4M</span>
+            </div>
+            <div title="Cooking — 3.0M banked" style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">CK</span>
+              <span style="font-size:9px;color:#C4C4C4;">Cooking</span>
+              <span style="font-size:9px;font-weight:700;color:#E0A23C;">3.0M</span>
+            </div>
+            <div title="Fletching — 1.1M banked" style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">FL</span>
+              <span style="font-size:9px;color:#C4C4C4;">Fletching</span>
+              <span style="font-size:9px;font-weight:700;color:#E0A23C;">1.1M</span>
+            </div>
+            <div title="Prayer — 890K banked" style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">PR</span>
+              <span style="font-size:9px;color:#C4C4C4;">Prayer</span>
+              <span style="font-size:9px;font-weight:700;color:#E0A23C;">890K</span>
+            </div>
+            <div title="Crafting — 380K banked" style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">CR</span>
+              <span style="font-size:9px;color:#C4C4C4;">Crafting</span>
+              <span style="font-size:9px;font-weight:700;color:#E0A23C;">380K</span>
+            </div>
+            <div title="Smithing — 220K banked" style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+              <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">SM</span>
+              <span style="font-size:9px;color:#C4C4C4;">Smithing</span>
+              <span style="font-size:9px;font-weight:700;color:#E0A23C;">220K</span>
+            </div>
+          </div>
+        </div>
+        <div style="padding:8px;display:flex;flex-direction:column;gap:5px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">BEST IN BANK <span style="font-weight:400;letter-spacing:0;color:#6B6B6B;">· vs Zulrah · Ranged ▾</span></div>
+          <div style="display:grid;grid-template-columns:repeat(3,30px);gap:4px;justify-content:center;padding:4px 0;">
+            <div></div>
+            <div title="Archer helm" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">AH</div>
+            <div></div>
+            <div title="Ava's accumulator" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">AV</div>
+            <div title="Amulet of glory" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">GL</div>
+            <div title="Diamond bolts (e)" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">DB</div>
+            <div title="Rune crossbow" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#DCDCDC;">RC</div>
+            <div title="Black d'hide body" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">BD</div>
+            <div title="Odium ward" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">OW</div>
+            <div></div>
+            <div title="Black d'hide chaps" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">BC</div>
+            <div></div>
+            <div title="Barrows gloves" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">BG</div>
+            <div title="Snakeskin boots" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">SB</div>
+            <div title="Archers ring" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">AR</div>
+          </div>
+          <div style="display:flex;gap:5px;">
+            <span style="flex:1;height:22px;display:flex;align-items:center;justify-content:center;background:#333333;color:#C4C4C4;font-size:10px;border:1px solid #454545;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;color:#DCDCDC;">DPS calc ↗</span>
+            <span style="flex:1;height:22px;display:flex;align-items:center;justify-content:center;background:#333333;color:#C4C4C4;font-size:10px;border:1px solid #454545;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;color:#DCDCDC;">Bank tag</span>
+          </div>
+        </div>
+      </div>
+      <div style="width:225px;font-size:10px;color:#6B6B6B;">Equipment grid = standard OSRS slot layout. ⚑ flag: full labels "Export to DPS calc / Save as bank tag" don't fit side-by-side at 225 — shortened; full text in tooltip.</div>
+    </div>
+
+    <!-- ============ 2g · LOOT & SUPPLIES ============ -->
+    <div id="2g" data-screen-label="Loot and supplies" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">2g</span>
+        <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Loot &amp; supplies</span>
+      </div>
+      <div style="width:225px;background:#262626;border:1px solid #3A3A3A;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;">
+          <a href="#1c" title="Back" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:14px;" style-hover="color:#DC8A00;text-decoration:none;">‹</a>
+          <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Loot &amp; supplies</span>
+        </div>
+        <div style="padding:8px;border-bottom:1px solid #333333;display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Zulrah ▾</span>
+            <span style="font-size:10px;color:#8C8C8C;">234 kills</span>
+          </div>
+          <div style="display:flex;border:1px solid #454545;border-radius:2px;overflow:hidden;">
+            <span style="flex:1;height:20px;display:flex;align-items:center;justify-content:center;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;">Per kill</span>
+            <span style="flex:1;height:20px;display:flex;align-items:center;justify-content:center;background:#2B2B2B;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="color:#DCDCDC;">Per hour</span>
+            <span style="flex:1;height:20px;display:flex;align-items:center;justify-content:center;background:#2B2B2B;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="color:#DCDCDC;">Session</span>
+          </div>
+        </div>
+        <div style="padding:8px;border-bottom:1px solid #333333;display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="flex:1;font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">LOOT</span>
+            <span style="font-size:10px;color:#4DAE58;font-weight:700;">2 uniques</span>
+            <span style="display:inline-flex;border:1px solid #454545;border-radius:2px;overflow:hidden;">
+              <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;">⊞</span>
+              <span style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#2B2B2B;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="color:#DCDCDC;">☰</span>
+            </span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:1px;">
+              <div title="Tanzanite fang — unique!" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#4DAE58;">TF</div>
+              <span style="font-size:8px;color:#4DAE58;font-weight:700;">×1</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:1px;">
+              <div title="Serpentine visage — unique!" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #4DAE58;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#4DAE58;">SV</div>
+              <span style="font-size:8px;color:#4DAE58;font-weight:700;">×1</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:1px;">
+              <div title="Zulrah's scales" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">ZS</div>
+              <span style="font-size:8px;color:#8C8C8C;">×41k</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:1px;">
+              <div title="Battlestaves" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">BS</div>
+              <span style="font-size:8px;color:#8C8C8C;">×187</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:1px;">
+              <div title="Grimy toadflax" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">TX</div>
+              <span style="font-size:8px;color:#8C8C8C;">×312</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:1px;">
+              <div title="Mahogany logs" style="width:30px;height:30px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">ML</div>
+              <span style="font-size:8px;color:#8C8C8C;">×445</span>
+            </div>
+          </div>
+        </div>
+        <div style="padding:8px;border-bottom:1px solid #333333;display:flex;flex-direction:column;gap:4px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">SUPPLIES USED · PER KILL</div>
+          <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">SH</span>
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Sharks</span>
+            <span style="flex:none;font-size:11px;color:#C4C4C4;">1.2</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">AV</span>
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Anti-venom+ (dose)</span>
+            <span style="flex:none;font-size:11px;color:#C4C4C4;">0.8</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #4A3030;border-radius:2px;">
+            <span style="flex:none;width:14px;text-align:center;color:#D95757;font-size:11px;font-weight:700;">!</span>
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Blowpipe scales</span>
+            <span style="flex:none;font-size:10px;color:#D95757;font-weight:700;">6 h runway</span>
+          </div>
+        </div>
+        <div style="padding:8px;display:flex;flex-direction:column;gap:2px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">NET · IN ITEMS</div>
+          <div style="font-size:11px;color:#C4C4C4;">Scales <span style="color:#4DAE58;font-weight:700;">self-sustaining ✓</span> · food <span style="color:#D95757;font-weight:700;">−1.2 sharks/kill</span></div>
+          <div style="font-size:10px;color:#6B6B6B;">GP value de-emphasized — items are the iron metric</div>
+        </div>
+      </div>
+      <div style="width:225px;font-size:10px;color:#6B6B6B;">Loot grid: green border = unique/log slot. Counts sit under cells (Swing can't overlay text on sprites reliably at 30 px). Consumption feeds Supplies Runway.</div>
+    </div>
+
+  </div>
+</section>
+
+<section style="padding:40px 48px 80px;display:flex;flex-direction:column;gap:24px;">
+
+  <div style="display:flex;align-items:baseline;gap:14px;">
+    <div style="font-size:20px;font-weight:700;color:#DCDCDC;">Iron Hub — P0 mockups</div>
+    <div style="font-size:12px;color:#8C8C8C;">225 px panel frames · Swing-realistic (flat fills, 1 px borders, no gradients) · RuneLite dark palette</div>
+  </div>
+
+  <div style="display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap;">
+
+    <!-- ============ 1a · VISUAL SYSTEM ONE-PAGER ============ -->
+    <div id="1a" data-screen-label="Visual system" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">1a</span>
+        <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Visual system — one-pager</span>
+      </div>
+
+      <div style="width:452px;background:#212121;border:1px solid #3A3A3A;padding:18px;display:flex;flex-direction:column;gap:18px;color:#C4C4C4;font-size:12px;">
+
+        <!-- Palette -->
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#8C8C8C;">1 · PALETTE</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;">
+              <div style="width:52px;height:30px;background:#262626;border:1px solid #3A3A3A;"></div>
+              <div style="font-size:9px;color:#8C8C8C;font-family:monospace;">#262626</div>
+              <div style="font-size:9px;color:#6B6B6B;">panel bg</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;">
+              <div style="width:52px;height:30px;background:#2B2B2B;border:1px solid #3A3A3A;"></div>
+              <div style="font-size:9px;color:#8C8C8C;font-family:monospace;">#2B2B2B</div>
+              <div style="font-size:9px;color:#6B6B6B;">card</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;">
+              <div style="width:52px;height:30px;background:#1F1F1F;border:1px solid #3A3A3A;"></div>
+              <div style="font-size:9px;color:#8C8C8C;font-family:monospace;">#1F1F1F</div>
+              <div style="font-size:9px;color:#6B6B6B;">inset / field</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;">
+              <div style="width:52px;height:30px;background:#3A3A3A;"></div>
+              <div style="font-size:9px;color:#8C8C8C;font-family:monospace;">#3A3A3A</div>
+              <div style="font-size:9px;color:#6B6B6B;">border 1px</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;">
+              <div style="width:52px;height:30px;background:#DC8A00;"></div>
+              <div style="font-size:9px;color:#8C8C8C;font-family:monospace;">#DC8A00</div>
+              <div style="font-size:9px;color:#6B6B6B;">accent</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;">
+              <div style="width:52px;height:30px;background:#212121;border:1px solid #3A3A3A;display:flex;align-items:center;justify-content:center;color:#DCDCDC;font-size:11px;font-weight:700;">Aa</div>
+              <div style="font-size:9px;color:#8C8C8C;font-family:monospace;">#DCDCDC</div>
+              <div style="font-size:9px;color:#6B6B6B;">text primary</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center;">
+              <div style="width:52px;height:30px;background:#212121;border:1px solid #3A3A3A;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:11px;">Aa</div>
+              <div style="font-size:9px;color:#8C8C8C;font-family:monospace;">#8C8C8C</div>
+              <div style="font-size:9px;color:#6B6B6B;">text muted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status language -->
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#8C8C8C;">2 · STATUS LANGUAGE <span style="font-weight:400;letter-spacing:0;color:#6B6B6B;">— identical meaning in panel + overlays, never repurposed</span></div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:16px;text-align:center;color:#4DAE58;font-weight:700;font-size:12px;">✓</span>
+              <span style="width:64px;color:#4DAE58;font-weight:700;font-size:11px;font-family:monospace;">#4DAE58</span>
+              <span style="color:#C4C4C4;">Owned / complete / done</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:16px;text-align:center;color:#E0A23C;font-weight:700;font-size:12px;">●</span>
+              <span style="width:64px;color:#E0A23C;font-weight:700;font-size:11px;font-family:monospace;">#E0A23C</span>
+              <span style="color:#C4C4C4;">Available / actionable now</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:16px;text-align:center;color:#808080;font-weight:700;font-size:12px;">○</span>
+              <span style="width:64px;color:#808080;font-weight:700;font-size:11px;font-family:monospace;">#808080</span>
+              <span style="color:#C4C4C4;">Locked / missing <span style="color:#6B6B6B;">(row text also muted)</span></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:16px;text-align:center;color:#D95757;font-weight:700;font-size:12px;">!</span>
+              <span style="width:64px;color:#D95757;font-weight:700;font-size:11px;font-family:monospace;">#D95757</span>
+              <span style="color:#C4C4C4;">Warning / shortfall</span>
+            </div>
+          </div>
+          <div style="font-size:10px;color:#6B6B6B;">Amber ≠ accent: #E0A23C is a state, #DC8A00 is interaction/selection. Glyphs stand in for 14 px icons.</div>
+        </div>
+
+        <!-- Type + spacing -->
+        <div style="display:flex;gap:24px;">
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+            <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#8C8C8C;">3 · TYPE (system sans)</div>
+            <div style="font-size:12px;font-weight:700;color:#DCDCDC;">12 bold — titles, names</div>
+            <div style="font-size:12px;color:#C4C4C4;">12 regular — body</div>
+            <div style="font-size:11px;color:#8C8C8C;">11 muted — secondary, "why" lines</div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#8C8C8C;">10 CAPS — SECTION LABELS</div>
+            <div style="font-size:10px;color:#6B6B6B;">Hierarchy via bold + color, not size jumps.</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+            <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#8C8C8C;">4 · SPACING</div>
+            <div style="display:flex;align-items:center;gap:8px;"><div style="width:4px;height:12px;background:#DC8A00;"></div><span style="font-size:11px;color:#8C8C8C;">4 — inside rows, glyph gaps</span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><div style="width:8px;height:12px;background:#DC8A00;"></div><span style="font-size:11px;color:#8C8C8C;">8 — panel padding, card gaps</span></div>
+            <div style="display:flex;align-items:center;gap:8px;"><div style="width:12px;height:12px;background:#DC8A00;"></div><span style="font-size:11px;color:#8C8C8C;">12 — between sections</span></div>
+            <div style="font-size:11px;color:#8C8C8C;">Row heights: 26 standard · 24 dense tree</div>
+          </div>
+        </div>
+
+        <!-- Shared list row -->
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#8C8C8C;">5 · SHARED LIST ROW <span style="font-weight:400;letter-spacing:0;color:#6B6B6B;">— the atom, at exact 225 px</span></div>
+          <div style="width:225px;background:#262626;border:1px solid #3A3A3A;padding:6px;display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+              <span style="flex:none;width:14px;text-align:center;color:#4DAE58;font-size:11px;font-weight:700;">✓</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Dragon defender</span>
+              <span title="Route via Shortest Path" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:10px;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">⚑</span>
+              <span title="Open wiki page" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;font-weight:700;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">W</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+              <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:11px;font-weight:700;">●</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#DCDCDC;font-size:12px;font-weight:700;">Barrows gloves</span>
+              <span title="Route via Shortest Path" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:10px;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">⚑</span>
+              <span title="Open wiki page" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;font-weight:700;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">W</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;padding:4px 6px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="flex:none;width:14px;text-align:center;color:#808080;font-size:11px;font-weight:700;">○</span>
+                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8C8C8C;font-size:12px;">Ava's assembler</span>
+                <span title="Route via Shortest Path" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:10px;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">⚑</span>
+                <span title="Open wiki page" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;font-weight:700;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">W</span>
+              </div>
+              <div style="padding-left:20px;font-size:10px;color:#8C8C8C;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">needs: Dragon Slayer II</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #4A3030;border-radius:2px;">
+              <span style="flex:none;width:14px;text-align:center;color:#D95757;font-size:11px;font-weight:700;">!</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Prayer potions</span>
+              <span style="flex:none;font-size:10px;color:#D95757;font-weight:700;">6 h left</span>
+              <span title="Open wiki page" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;font-weight:700;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">W</span>
+            </div>
+          </div>
+          <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+            <div style="width:225px;font-size:10px;color:#7AA2FF;line-height:1.5;font-family:monospace;">status 14px · name flex + ellipsis · [⚑ Path] [W Wiki] 18×18 right-aligned. Locked = 2-line: "needs:" on line 2 (inline doesn't fit 225). Warning may swap a button for a value.</div>
+          </sc-if>
+        </div>
+
+        <!-- Buttons -->
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#8C8C8C;">6 · BUTTONS &amp; CONTROLS</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span style="height:22px;display:inline-flex;align-items:center;padding:0 12px;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;border:1px solid #DC8A00;border-radius:2px;cursor:pointer;" style-hover="background:#F0A226;">Start run</span>
+            <span style="height:22px;display:inline-flex;align-items:center;padding:0 12px;background:#333333;color:#C4C4C4;font-size:11px;border:1px solid #454545;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;color:#DCDCDC;">Export</span>
+            <span style="display:inline-flex;border:1px solid #454545;border-radius:2px;overflow:hidden;">
+              <span style="height:20px;display:inline-flex;align-items:center;padding:0 9px;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;">Tree</span>
+              <span style="height:20px;display:inline-flex;align-items:center;padding:0 9px;background:#2B2B2B;color:#9A9A9A;font-size:11px;cursor:pointer;">Checklist</span>
+            </span>
+            <span style="padding:3px 8px;background:#2B2B2B;border:1px solid #E0A23C;border-radius:2px;color:#E0A23C;font-size:10px;font-weight:700;">4 dailies</span>
+            <span style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:10px;">⚑</span>
+            <span style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;font-weight:700;">W</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:120px;height:10px;background:#1F1F1F;border:1px solid #3A3A3A;border-radius:2px;overflow:hidden;"><div style="width:34%;height:100%;background:#DC8A00;"></div></div>
+            <span style="font-size:10px;color:#6B6B6B;">progress: accent fill · green when complete</span>
+          </div>
+          <div style="font-size:10px;color:#6B6B6B;">Hover = accent border/text only. No shadows, no gradients, radius ≤ 2 px. Item/skill icons: game sprites 16–24 px (squares here are placeholders).</div>
+        </div>
+
+        <!-- Constraint flags -->
+        <div style="display:flex;flex-direction:column;gap:5px;border-top:1px solid #333333;padding-top:12px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#D95757;">⚑ 225 PX CONSTRAINT FLAGS</div>
+          <div style="font-size:11px;color:#8C8C8C;line-height:1.55;">
+            · Locked rows: inline blocking requirement doesn't fit beside name + 2 buttons → moved to a muted second line.<br>
+            · With both [⚑][W] buttons, names truncate at ~120 px — long item names ellipsize (full name in tooltip).<br>
+            · Time selector: 4 segments is the max that fits; "2h+" is the widest label allowed.<br>
+            · Score sparkline capped at 64 px wide — trend direction only, no axis.<br>
+            · Suggestion "why" lines: one line, ellipsized; full text in tooltip.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 1b · DASHBOARD ============ -->
+    <div id="1b" data-screen-label="Dashboard" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">1b</span>
+        <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Dashboard — panel home</span>
+      </div>
+
+      <div style="width:225px;background:#262626;border:1px solid #3A3A3A;display:flex;flex-direction:column;">
+        <!-- header -->
+        <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;">
+          <span style="flex:1;font-size:11px;font-weight:700;letter-spacing:0.12em;color:#DCDCDC;">IRON HUB</span>
+          <span title="Settings" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:12px;cursor:pointer;" style-hover="color:#DC8A00;">⋮</span>
+        </div>
+
+        <!-- account score -->
+        <div style="padding:8px;display:flex;flex-direction:column;gap:4px;border-bottom:1px solid #333333;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:1px;min-width:0;">
+              <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">ACCOUNT SCORE</div>
+              <div style="display:flex;align-items:baseline;gap:6px;">
+                <span style="font-size:17px;font-weight:700;color:#DCDCDC;">61%</span>
+                <span style="font-size:10px;color:#4DAE58;font-weight:700;">▲ 1.2 this wk</span>
+              </div>
+            </div>
+            <svg width="64" height="20" viewBox="0 0 64 20" style="flex:none;"><polyline points="1,16 9,15 17,15 25,13 33,12 41,10 49,8 57,7 63,5" fill="none" stroke="#4DAE58" stroke-width="1.5"></polyline></svg>
+          </div>
+          <div style="font-size:10px;color:#6B6B6B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">quests 74 · diaries 58 · CA 41 · QoL 63 · log 22</div>
+        </div>
+
+        <!-- what now -->
+        <div style="padding:8px;display:flex;flex-direction:column;gap:6px;border-bottom:1px solid #333333;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">WHAT NOW?</div>
+          <div style="display:flex;gap:3px;">
+            <span style="flex:1;height:20px;display:flex;align-items:center;justify-content:center;background:#2B2B2B;border:1px solid #3F3F3F;border-radius:2px;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="border-color:#DC8A00;">5m</span>
+            <span style="flex:1;height:20px;display:flex;align-items:center;justify-content:center;background:#2B2B2B;border:1px solid #3F3F3F;border-radius:2px;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="border-color:#DC8A00;">30m</span>
+            <span style="flex:1;height:20px;display:flex;align-items:center;justify-content:center;background:#DC8A00;border:1px solid #DC8A00;border-radius:2px;color:#1E1E1E;font-size:11px;font-weight:700;">1h</span>
+            <span style="flex:1;height:20px;display:flex;align-items:center;justify-content:center;background:#2B2B2B;border:1px solid #3F3F3F;border-radius:2px;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="border-color:#DC8A00;">2h+</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:6px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+            <span style="flex:none;width:14px;font-size:12px;font-weight:700;color:#DC8A00;text-align:center;">1</span>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;">
+              <div style="display:flex;align-items:baseline;gap:6px;">
+                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:700;color:#DCDCDC;">Herb run</span>
+                <span style="flex:none;font-size:10px;color:#8C8C8C;">~6 min</span>
+              </div>
+              <div style="font-size:10px;color:#8C8C8C;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">7 patches ready · crops decay</div>
+            </div>
+            <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:6px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+            <span style="flex:none;width:14px;font-size:12px;font-weight:700;color:#DC8A00;text-align:center;">2</span>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;">
+              <div style="display:flex;align-items:baseline;gap:6px;">
+                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:700;color:#DCDCDC;">Sepulchre laps</span>
+                <span style="flex:none;font-size:10px;color:#8C8C8C;">40 min</span>
+              </div>
+              <div style="font-size:10px;color:#8C8C8C;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">feeds 70 Agility → Bowfa goal</div>
+            </div>
+            <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:6px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+            <span style="flex:none;width:14px;font-size:12px;font-weight:700;color:#DC8A00;text-align:center;">3</span>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;">
+              <div style="display:flex;align-items:baseline;gap:6px;">
+                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:700;color:#DCDCDC;">Tears of Guthix</span>
+                <span style="flex:none;font-size:10px;color:#8C8C8C;">5 min</span>
+              </div>
+              <div style="font-size:10px;color:#8C8C8C;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">weekly · resets in 2 d 4 h</div>
+            </div>
+            <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+          </div>
+        </div>
+
+        <!-- active goal -->
+        <div style="padding:8px;display:flex;flex-direction:column;gap:5px;border-bottom:1px solid #333333;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">ACTIVE GOAL</div>
+          <div style="display:flex;flex-direction:column;gap:5px;padding:6px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <div style="display:flex;align-items:baseline;gap:6px;">
+              <a href="#1d" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:700;color:#DCDCDC;">Bow of Faerdhinen</a>
+              <span style="flex:none;font-size:11px;font-weight:700;color:#DC8A00;">34%</span>
+            </div>
+            <div style="height:10px;background:#1F1F1F;border:1px solid #3A3A3A;border-radius:2px;overflow:hidden;"><div style="width:34%;height:100%;background:#DC8A00;"></div></div>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:10px;font-weight:700;">●</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:#C4C4C4;">Next: Song of the Elves</span>
+              <span title="Route via Shortest Path" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:10px;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">⚑</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- alerts -->
+        <div style="padding:8px;display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid #333333;">
+          <span style="padding:3px 7px;background:#2B2B2B;border:1px solid #E0A23C;border-radius:2px;color:#E0A23C;font-size:10px;font-weight:700;cursor:pointer;">4 dailies</span>
+          <span style="padding:3px 7px;background:#2B2B2B;border:1px solid #E0A23C;border-radius:2px;color:#E0A23C;font-size:10px;font-weight:700;cursor:pointer;">7 patches ready</span>
+          <span style="padding:3px 7px;background:#2B2B2B;border:1px solid #D95757;border-radius:2px;color:#D95757;font-size:10px;font-weight:700;cursor:pointer;">! runway 6 h</span>
+        </div>
+
+        <!-- next best upgrades -->
+        <div style="padding:8px;display:flex;flex-direction:column;gap:4px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">NEXT BEST UPGRADES</div>
+          <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:11px;font-weight:700;">●</span>
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#DCDCDC;font-size:12px;font-weight:700;">Barrows gloves</span>
+            <span title="Route via Shortest Path" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:10px;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">⚑</span>
+            <span title="Open wiki page" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;font-weight:700;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">W</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:11px;font-weight:700;">●</span>
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#DCDCDC;font-size:12px;font-weight:700;">Dragon boots</span>
+            <span title="Route via Shortest Path" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:10px;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">⚑</span>
+            <span title="Open wiki page" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;font-weight:700;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">W</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px;padding:4px 6px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="flex:none;width:14px;text-align:center;color:#808080;font-size:11px;font-weight:700;">○</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8C8C8C;font-size:12px;">Ava's assembler</span>
+              <span title="Route via Shortest Path" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:10px;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">⚑</span>
+              <span title="Open wiki page" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;font-weight:700;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">W</span>
+            </div>
+            <div style="padding-left:20px;font-size:10px;color:#8C8C8C;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">needs: Dragon Slayer II</div>
+          </div>
+        </div>
+
+        <!-- all modules -->
+        <div style="border-top:1px solid #333333;">
+          <a href="#1c" style="display:flex;align-items:center;gap:6px;height:28px;padding:0 8px;color:#C4C4C4;font-size:12px;" style-hover="background:#2F2F2F;color:#DC8A00;text-decoration:none;">
+            <span style="flex:1;">All modules</span>
+            <span style="color:#6B6B6B;">›</span>
+          </a>
+        </div>
+      </div>
+      <div style="width:225px;font-size:10px;color:#6B6B6B;">225 × auto · vertical scroll · strips top-to-bottom by decision order</div>
+    </div>
+
+    <!-- ============ 1c · MODULE NAVIGATION ============ -->
+    <div id="1c" data-screen-label="Module navigation" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">1c</span>
+        <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Module navigation — 18 modules</span>
+      </div>
+
+      <div style="width:225px;background:#262626;border:1px solid #3A3A3A;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;">
+          <a href="#1b" title="Back to dashboard" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:14px;" style-hover="color:#DC8A00;text-decoration:none;">‹</a>
+          <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Modules</span>
+        </div>
+
+        <div style="padding:8px;border-bottom:1px solid #333333;">
+          <div style="display:flex;align-items:center;height:24px;padding:0 8px;background:#1F1F1F;border:1px solid #3A3A3A;border-radius:2px;color:#6B6B6B;font-size:11px;">Search modules…</div>
+        </div>
+
+        <!-- PROGRESSION -->
+        <div style="display:flex;align-items:center;gap:6px;height:24px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;cursor:pointer;">
+          <span style="flex:none;width:10px;color:#8C8C8C;font-size:9px;">▾</span>
+          <span style="flex:1;font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">PROGRESSION</span>
+          <span style="font-size:10px;color:#6B6B6B;">6</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;cursor:pointer;" style-hover="background:#2F2F2F;">
+          <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">GE</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">Gear progression</span>
+          <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;cursor:pointer;" style-hover="background:#2F2F2F;">
+          <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">QU</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">Quests</span>
+          <span style="flex:none;font-size:10px;color:#E0A23C;font-weight:700;">1 ready</span>
+          <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;cursor:pointer;" style-hover="background:#2F2F2F;">
+          <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">SK</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">Skill milestones</span>
+          <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;cursor:pointer;" style-hover="background:#2F2F2F;">
+          <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">DI</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">Achievement diaries</span>
+          <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;cursor:pointer;" style-hover="background:#2F2F2F;">
+          <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">CA</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">Combat achievements</span>
+          <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;border-bottom:1px solid #303030;cursor:pointer;" style-hover="background:#2F2F2F;">
+          <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">CL</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">Collection log</span>
+          <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+        </div>
+
+        <!-- PLANNING -->
+        <div style="display:flex;align-items:center;gap:6px;height:24px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;cursor:pointer;">
+          <span style="flex:none;width:10px;color:#8C8C8C;font-size:9px;">▾</span>
+          <span style="flex:1;font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">PLANNING</span>
+          <span style="font-size:10px;color:#6B6B6B;">3</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;cursor:pointer;" style-hover="background:#2F2F2F;">
+          <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">GO</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">Goal planner</span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">3 goals</span>
+          <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;cursor:pointer;" style-hover="background:#2F2F2F;">
+          <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">WN</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">What now?</span>
+          <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;border-bottom:1px solid #303030;cursor:pointer;" style-hover="background:#2F2F2F;">
+          <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">RW</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">Supplies runway</span>
+          <span style="flex:none;font-size:10px;color:#D95757;font-weight:700;">!</span>
+          <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+        </div>
+
+        <!-- DAILY LOOP -->
+        <div style="display:flex;align-items:center;gap:6px;height:24px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;cursor:pointer;">
+          <span style="flex:none;width:10px;color:#8C8C8C;font-size:9px;">▾</span>
+          <span style="flex:1;font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">DAILY LOOP</span>
+          <span style="font-size:10px;color:#6B6B6B;">4</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;cursor:pointer;" style-hover="background:#2F2F2F;">
+          <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">FA</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">Farming runs</span>
+          <span style="flex:none;font-size:10px;color:#E0A23C;font-weight:700;">7</span>
+          <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;cursor:pointer;" style-hover="background:#2F2F2F;">
+          <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">DA</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">Dailies</span>
+          <span style="flex:none;font-size:10px;color:#E0A23C;font-weight:700;">4</span>
+          <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;cursor:pointer;" style-hover="background:#2F2F2F;">
+          <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">SL</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">Slayer</span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">87 left</span>
+          <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;border-bottom:1px solid #303030;cursor:pointer;" style-hover="background:#2F2F2F;">
+          <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">CS</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">Clues &amp; STASH</span>
+          <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+        </div>
+
+        <!-- ACCOUNT (collapsible) -->
+        <div style="display:flex;align-items:center;gap:6px;height:24px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;cursor:pointer;">
+          <span style="flex:none;width:10px;color:#8C8C8C;font-size:9px;">{{ accountChevron }}</span>
+          <span style="flex:1;font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">ACCOUNT</span>
+          <span style="font-size:10px;color:#6B6B6B;">5</span>
+        </div>
+        <sc-if value="{{ accountExpanded }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;">
+            <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;cursor:pointer;" style-hover="background:#2F2F2F;">
+              <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">BK</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">Bank &amp; banked XP</span>
+              <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;cursor:pointer;" style-hover="background:#2F2F2F;">
+              <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">LS</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">Loot &amp; supplies</span>
+              <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;cursor:pointer;" style-hover="background:#2F2F2F;">
+              <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">QL</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">QoL checklist</span>
+              <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;cursor:pointer;" style-hover="background:#2F2F2F;">
+              <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">BT</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">Boat upgrades</span>
+              <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px;height:26px;padding:0 8px;cursor:pointer;" style-hover="background:#2F2F2F;">
+              <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">DR</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">Death recovery</span>
+              <span style="flex:none;color:#6B6B6B;font-size:12px;">›</span>
+            </div>
+          </div>
+        </sc-if>
+        <div style="height:6px;"></div>
+      </div>
+      <div style="width:225px;font-size:10px;color:#6B6B6B;">Category accordion + search (typing flattens to filtered list). Two-letter squares stand in for module sprite icons. "Account" shown collapsed — toggle in Tweaks.</div>
+    </div>
+
+    <!-- ============ 1d · GOAL PLANNER DETAIL ============ -->
+    <div id="1d" data-screen-label="Goal Planner detail" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">1d</span>
+        <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Goal Planner — goal detail (tree)</span>
+      </div>
+
+      <div style="width:225px;background:#262626;border:1px solid #3A3A3A;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;">
+          <a href="#1b" title="Back" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:14px;" style-hover="color:#DC8A00;text-decoration:none;">‹</a>
+          <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Goal Planner</span>
+        </div>
+
+        <!-- goal card -->
+        <div style="padding:8px;border-bottom:1px solid #333333;display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;align-items:baseline;gap:6px;">
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:700;color:#DCDCDC;">Bow of Faerdhinen</span>
+            <span style="flex:none;font-size:11px;font-weight:700;color:#DC8A00;">34%</span>
+          </div>
+          <div style="height:10px;background:#1F1F1F;border:1px solid #3A3A3A;border-radius:2px;overflow:hidden;"><div style="width:34%;height:100%;background:#DC8A00;"></div></div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:10px;color:#8C8C8C;flex:1;">est. ~86 h remaining</span>
+            <span style="padding:2px 6px;background:#2B2B2B;border:1px solid #DC8A00;border-radius:2px;color:#DC8A00;font-size:9px;font-weight:700;">ACTIVE</span>
+          </div>
+        </div>
+
+        <!-- view toggle -->
+        <div style="padding:8px;border-bottom:1px solid #333333;display:flex;align-items:center;gap:8px;">
+          <span style="display:inline-flex;border:1px solid #454545;border-radius:2px;overflow:hidden;">
+            <span style="height:20px;display:inline-flex;align-items:center;padding:0 10px;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;">Tree</span>
+            <span style="height:20px;display:inline-flex;align-items:center;padding:0 10px;background:#2B2B2B;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="color:#DCDCDC;">Checklist</span>
+          </span>
+          <span style="font-size:10px;color:#6B6B6B;flex:1;text-align:right;">missing only ▾</span>
+        </div>
+
+        <!-- tree -->
+        <div style="padding:8px;display:flex;flex-direction:column;gap:2px;">
+
+          <div style="display:flex;align-items:center;gap:6px;height:24px;">
+            <span style="flex:none;width:14px;text-align:center;color:#808080;font-size:11px;font-weight:700;">○</span>
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:700;color:#8C8C8C;">Enhanced weapon seed</span>
+            <span title="Open wiki page" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;font-weight:700;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">W</span>
+          </div>
+
+          <div style="margin-left:13px;border-left:1px solid #333333;padding-left:6px;display:flex;flex-direction:column;gap:2px;">
+            <div style="display:flex;align-items:center;gap:6px;height:24px;">
+              <span style="flex:none;width:14px;text-align:center;color:#808080;font-size:11px;font-weight:700;">○</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#8C8C8C;">Corrupted Gauntlet KC</span>
+              <span style="flex:none;font-size:10px;color:#6B6B6B;">0/1</span>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:6px;height:24px;">
+              <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:11px;font-weight:700;">●</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:700;color:#DCDCDC;">Song of the Elves</span>
+              <span title="Route via Shortest Path" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:10px;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">⚑</span>
+              <span title="Open wiki page" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;font-weight:700;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">W</span>
+            </div>
+
+            <div style="margin-left:13px;border-left:1px solid #333333;padding-left:6px;display:flex;flex-direction:column;gap:2px;">
+              <div style="display:flex;align-items:center;gap:6px;height:24px;">
+                <span style="flex:none;width:14px;text-align:center;color:#4DAE58;font-size:11px;font-weight:700;">✓</span>
+                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;text-decoration:line-through;text-decoration-color:#4A4A4A;">Mourning's End II</span>
+                <span style="flex:none;font-size:9px;color:#4DAE58;border:1px solid #35533B;border-radius:2px;padding:1px 4px;">auto</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:1px;">
+                <div style="display:flex;align-items:center;gap:6px;height:24px;">
+                  <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:11px;font-weight:700;">●</span>
+                  <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">70 Agility</span>
+                  <span style="flex:none;font-size:10px;color:#E0A23C;font-weight:700;">68/70</span>
+                  <span title="Open wiki page" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;font-weight:700;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">W</span>
+                </div>
+                <div style="padding-left:20px;font-size:10px;color:#6B6B6B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">feeds 3 of your goals</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;height:24px;">
+                <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:11px;font-weight:700;">●</span>
+                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">70 Construction</span>
+                <span style="flex:none;font-size:10px;color:#E0A23C;font-weight:700;">62/70</span>
+                <span title="Open wiki page" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;font-weight:700;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">W</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;height:24px;">
+                <span style="flex:none;width:14px;text-align:center;color:#4DAE58;font-size:11px;font-weight:700;">✓</span>
+                <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;text-decoration:line-through;text-decoration-color:#4A4A4A;">70 Farming</span>
+                <span style="flex:none;font-size:9px;color:#4DAE58;border:1px solid #35533B;border-radius:2px;padding:1px 4px;">auto</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:6px;height:24px;margin-top:4px;">
+            <span style="flex:none;width:14px;text-align:center;color:#808080;font-size:11px;font-weight:700;">○</span>
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:700;color:#8C8C8C;">Crystal shards × 100</span>
+            <span style="flex:none;font-size:10px;color:#6B6B6B;">0/100</span>
+            <span title="Open wiki page" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;font-weight:700;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">W</span>
+          </div>
+          <div style="padding-left:20px;font-size:10px;color:#8C8C8C;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">needs: Prifddinas access</div>
+
+          <div style="display:flex;flex-direction:column;gap:1px;margin-top:2px;">
+            <div style="display:flex;align-items:center;gap:6px;height:24px;">
+              <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:11px;font-weight:700;">●</span>
+              <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#C4C4C4;">82 Crafting</span>
+              <span style="flex:none;font-size:10px;color:#E0A23C;font-weight:700;">79/82</span>
+              <span title="Open wiki page" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;font-weight:700;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">W</span>
+            </div>
+            <div style="padding-left:20px;font-size:10px;color:#6B6B6B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">boostable · 380k banked XP</div>
+          </div>
+        </div>
+
+        <div style="padding:8px;border-top:1px solid #333333;font-size:10px;color:#6B6B6B;">✓ steps auto-complete from account state — no manual ticking</div>
+      </div>
+      <div style="width:225px;font-size:10px;color:#6B6B6B;">Tree collapsed to missing steps; indent guides 13 px/level (2 levels max shown, deeper nests flatten). Done rows keep ✓ + strikethrough + "auto" tag.</div>
+    </div>
+
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showAnnotations&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Mockup&quot;},&quot;accountExpanded&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Mockup&quot;},&quot;clogGridView&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Mockup&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const accountExpanded = this.props.accountExpanded ?? false;
+    const clogGrid = this.props.clogGridView ?? true;
+    return {
+      clogGrid: clogGrid,
+      clogList: !clogGrid,
+      showAnnotations: this.props.showAnnotations ?? true,
+      accountExpanded: accountExpanded,
+      accountChevron: accountExpanded ? "▾" : "▸"
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+{
+  "$schema": "./schemas/dailies.schema.json",
+  "version": 1,
+  "dailies": [
+    {
+      "id": "zaff_battlestaves",
+      "name": "Battlestaves from Zaff",
+      "reset": "daily",
+      "location": {"x": 3202, "y": 3434, "plane": 0},
+      "requirements": [],
+      "scaling": "Varrock diary tier increases purchase limit",
+      "detection": "manual"
+    },
+    {
+      "id": "tears_of_guthix",
+      "name": "Tears of Guthix",
+      "reset": "weekly",
+      "location": {"x": 3257, "y": 9517, "plane": 2},
+      "requirements": ["quest:Tears of Guthix", "100k XP or 1 QP since last visit"],
+      "detection": "manual"
+    },
+    {
+      "id": "miscellania",
+      "name": "Miscellania kingdom management",
+      "reset": "daily",
+      "location": {"x": 2500, "y": 3860, "plane": 0},
+      "requirements": ["quest:Throne of Miscellania"],
+      "detection": "varbit"
+    },
+    {
+      "id": "hespori",
+      "name": "Hespori check",
+      "reset": "growth",
+      "location": {"x": 1247, "y": 3726, "plane": 0},
+      "requirements": ["skill:Farming:65"],
+      "detection": "varbit"
+    }
+  ]
+}
