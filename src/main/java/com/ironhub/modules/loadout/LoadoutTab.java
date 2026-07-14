@@ -59,6 +59,7 @@ class LoadoutTab extends JPanel
 	private final StrategyClient strategyClient; // null in unit tests
 	private final com.ironhub.data.ItemNameIndex nameIndex;
 	private final JPanel strategyBar = new JPanel();
+	private final JLabel notesLabel = new JLabel();
 	private java.util.List<WikiStrategy> strategies = java.util.List.of();
 	private int selectedStrategy;
 	/** Player slot swaps on top of the solved setup (cleared on refetch). */
@@ -151,12 +152,15 @@ class LoadoutTab extends JPanel
 		buttons.add(secondaryButton("Bank tag", "Copy this loadout as a Bank Tags import string", this::copyBankTag));
 		add(buttons);
 		add(Box.createVerticalStrut(UiTokens.GRID_GAP));
-		JPanel buttons2 = new JPanel(new GridLayout(1, 1, UiTokens.GRID_GAP, 0));
+		JPanel buttons2 = new JPanel(new GridLayout(1, 2, UiTokens.GRID_GAP, 0));
 		buttons2.setOpaque(false);
 		buttons2.setAlignmentX(LEFT_ALIGNMENT);
 		buttons2.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
 		buttons2.add(secondaryButton("Save setup",
 			"Remember this setup for the current task / target", this::saveSetup));
+		buttons2.add(secondaryButton("Inv. setups",
+			"Copy for the Inventory Setups plugin (paste via its 'Import setup from clipboard')",
+			this::copyInventorySetup));
 		add(buttons2);
 		add(Box.createVerticalGlue());
 
@@ -245,6 +249,20 @@ class LoadoutTab extends JPanel
 			}));
 	}
 
+	/** Wiki tips for the selected setup, wrapped to the panel width. */
+	private void renderStrategyNotes()
+	{
+		WikiStrategy strategy = strategies.isEmpty() ? null
+			: strategies.get(Math.min(selectedStrategy, strategies.size() - 1));
+		String notes = strategy == null ? "" : strategy.notes;
+		notesLabel.setVisible(!notes.isEmpty());
+		notesLabel.setText("<html><body style='width:190px'>" + notes
+			.replace("&", "&amp;").replace("<", "&lt;") + "</body></html>");
+		notesLabel.setForeground(UiTokens.TEXT_FAINT);
+		notesLabel.setFont(notesLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
+		notesLabel.setToolTipText(notes.isEmpty() ? null : notes);
+	}
+
 	private void renderStrategyBar(String activity)
 	{
 		strategyBar.removeAll();
@@ -262,9 +280,14 @@ class LoadoutTab extends JPanel
 			tabs.onChange(i ->
 			{
 				selectedStrategy = i;
+				renderStrategyNotes();
 				rebuild();
 			});
 			strategyBar.add(tabs);
+			strategyBar.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			notesLabel.setAlignmentX(LEFT_ALIGNMENT);
+			strategyBar.add(notesLabel);
+			renderStrategyNotes();
 			strategyBar.add(Box.createVerticalStrut(UiTokens.PAD));
 		}
 		else
@@ -505,6 +528,21 @@ class LoadoutTab extends JPanel
 		return button;
 	}
 
+	/** Copy the shown setup + current inventory for Inventory Setups. */
+	private void copyInventorySetup()
+	{
+		if (lastBest.isEmpty())
+		{
+			return;
+		}
+		String activity = plannedActivity();
+		String json = InventorySetupsExport.buildJson(gson,
+			"Iron Hub - " + (activity.isEmpty() ? "loadout" : activity),
+			lastBest, state.getInventorySlots(), state.getInventorySnapshot());
+		Toolkit.getDefaultToolkit().getSystemClipboard()
+			.setContents(new StringSelection(json), null);
+	}
+
 	/** POST the loadout to the wiki shortlink API, open the share URL. */
 	private void exportToDpsCalc()
 	{
@@ -512,9 +550,13 @@ class LoadoutTab extends JPanel
 		{
 			return;
 		}
-		ScenariosPack.Scenario selected = pack.getScenarios().get(scenario.getSelectedIndex());
+		String activity = plannedActivity();
+		// preselect the fought NPC in the calculator when that's the plan
+		boolean vsNpc = !state.getCombatNpcName().isEmpty()
+			&& activity.equals(state.getCombatNpcName());
 		com.google.gson.JsonObject payload = DpsExport.buildPayload(
-			gson, state, "Iron Hub — " + selected.getName(), lastBest);
+			gson, state, "Iron Hub - " + (activity.isEmpty() ? "loadout" : activity), lastBest,
+			vsNpc ? state.getCombatNpcId() : -1, vsNpc ? state.getCombatNpcName() : null);
 
 		okhttp3.Request request = new okhttp3.Request.Builder()
 			.url(DpsExport.ENDPOINT)

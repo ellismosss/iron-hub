@@ -60,5 +60,7 @@ public class WikiStrategyTest
 		assertEquals(12002, strategies.get(0).slots.get("neck").get(0).itemId);
 		// second tab is the ranged setup
 		assertTrue(strategies.stream().anyMatch(s -> s.name().toLowerCase().contains("ranged")));
+		// tips: the prose before the gear table survives markup stripping
+		assertTrue(strategies.get(0).notes.toLowerCase().contains("elemental weakness"));
 	}
 }

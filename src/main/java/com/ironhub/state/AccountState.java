@@ -174,6 +174,12 @@ public class AccountState
 		return bank;
 	}
 
+	/** Current inventory contents (item id → quantity). */
+	public Map<Integer, Integer> getInventorySnapshot()
+	{
+		return inventory;
+	}
+
 	/** Inventory in container order (28 entries, -1 = empty); empty pre-login. */
 	public int[] getInventorySlots()
 	{

@@ -47,7 +47,25 @@ final class DpsExport
 	static JsonObject buildPayload(Gson gson, AccountState state, String loadoutName,
 		Map<EquipmentInventorySlot, Integer> equipment)
 	{
+		return buildPayload(gson, state, loadoutName, equipment, -1, null);
+	}
+
+	/**
+	 * Payload with the target monster preselected. The calculator
+	 * rehydrates monsters by id from its own dataset (state.tsx
+	 * updateImportedData), so id + name is all it needs.
+	 */
+	static JsonObject buildPayload(Gson gson, AccountState state, String loadoutName,
+		Map<EquipmentInventorySlot, Integer> equipment, int monsterId, String monsterName)
+	{
 		JsonObject data = loadTemplate(gson);
+		if (monsterId > 0 && monsterName != null)
+		{
+			JsonObject monster = data.getAsJsonObject("monster");
+			monster.addProperty("id", monsterId);
+			monster.addProperty("name", monsterName);
+			monster.addProperty("version", "");
+		}
 		JsonObject loadout = data.getAsJsonArray("loadouts").get(0).getAsJsonObject();
 		loadout.addProperty("name", loadoutName);
 

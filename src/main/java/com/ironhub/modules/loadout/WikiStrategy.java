@@ -32,6 +32,8 @@ final class WikiStrategy
 	final String name;
 	/** slot key → candidates (item id + display name) in preference order. */
 	final Map<String, List<Candidate>> slots;
+	/** Cleaned prose immediately before the gear table (tips), may be empty. */
+	final String notes;
 
 	static final class Candidate
 	{
@@ -45,10 +47,11 @@ final class WikiStrategy
 		}
 	}
 
-	private WikiStrategy(String name, Map<String, List<Candidate>> slots)
+	private WikiStrategy(String name, Map<String, List<Candidate>> slots, String notes)
 	{
 		this.name = name;
 		this.slots = slots;
+		this.notes = notes;
 	}
 
 	String name()
@@ -86,7 +89,8 @@ final class WikiStrategy
 			{
 				label = "Setup " + (strategies.size() + 1);
 			}
-			strategies.add(new WikiStrategy(label.trim(), slotCandidates(params, names)));
+			strategies.add(new WikiStrategy(label.trim(), slotCandidates(params, names),
+				precedingProse(wikitext, start)));
 		}
 		return strategies;
 	}
@@ -194,6 +198,30 @@ final class WikiStrategy
 			}
 		}
 		return -1;
+	}
+
+	/** Wiki tips: the prose paragraph right before the gear table, cleaned. */
+	private static String precedingProse(String wikitext, int templateStart)
+	{
+		int windowStart = Math.max(0, templateStart - 1200);
+		String window = wikitext.substring(windowStart, templateStart);
+		int cut = Math.max(Math.max(window.lastIndexOf("\n=="), window.lastIndexOf("<tabber>")),
+			Math.max(window.lastIndexOf("|-|"), window.lastIndexOf("}}\n")));
+		if (cut >= 0)
+		{
+			window = window.substring(cut);
+			int newline = window.indexOf('\n');
+			window = newline >= 0 ? window.substring(newline + 1) : "";
+		}
+		String clean = window
+			.replaceAll("\\{\\{[^{}]*}}", "")
+			.replaceAll("\\[\\[(?:[^\\]|]*\\|)?([^\\]]*)]]", "$1")
+			.replaceAll("'{2,}", "")
+			.replaceAll("<[^>]+>", "")
+			.replaceAll("(?m)^[=|*#: ].*$", "")
+			.replaceAll("\\s+", " ")
+			.trim();
+		return clean.length() > 300 ? clean.substring(0, 297) + "..." : clean;
 	}
 
 	/** Nearest preceding tabber tab label ("Magic=" after <tabber> or |-|). */
