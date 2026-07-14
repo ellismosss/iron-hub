@@ -81,6 +81,11 @@ public class AccountState
 	// region loads, so remote views predict from these)
 	private final Map<String, PersistedState.PatchSeen> herbPatchSeen = new ConcurrentHashMap<>();
 
+	// collection log progress from the last log open (persisted)
+	private volatile int collectionLogSlots;
+	private volatile int collectionLogTotal;
+	private volatile long collectionLogSeenMs;
+
 	// goal planner selections (persisted)
 	private final Set<String> selectedGoals = ConcurrentHashMap.newKeySet();
 	private volatile String activeGoal = "";
@@ -323,6 +328,37 @@ public class AccountState
 			total += ownedCount(variant);
 		}
 		return total;
+	}
+
+	/** Collection log slots filled, recorded when the log was opened. */
+	public int getCollectionLogSlots()
+	{
+		return collectionLogSlots;
+	}
+
+	public int getCollectionLogTotal()
+	{
+		return collectionLogTotal;
+	}
+
+	public long getCollectionLogSeenMs()
+	{
+		return collectionLogSeenMs;
+	}
+
+	public void recordCollectionLog(int slots, int total)
+	{
+		collectionLogSlots = slots;
+		collectionLogTotal = total;
+		collectionLogSeenMs = System.currentTimeMillis();
+		persist();
+		notifyListeners();
+	}
+
+	/** All tracked kill counts (source -> kills). */
+	public Map<String, Integer> getKillCounts()
+	{
+		return java.util.Collections.unmodifiableMap(killCounts);
 	}
 
 	/** Goal ids the player is pursuing. */
@@ -712,6 +748,9 @@ public class AccountState
 		herbPatchSeen.putAll(persisted.herbPatchSeen);
 		selectedGoals.clear();
 		selectedGoals.addAll(persisted.selectedGoals);
+		collectionLogSlots = persisted.collectionLogSlots;
+		collectionLogTotal = persisted.collectionLogTotal;
+		collectionLogSeenMs = persisted.collectionLogSeenMs;
 		activeGoal = persisted.activeGoal == null ? "" : persisted.activeGoal;
 		log.debug("activated profile {} ({} banked item stacks)", hash, bank.size());
 	}
@@ -737,6 +776,9 @@ public class AccountState
 		state.herbPatchSeen = new HashMap<>(herbPatchSeen);
 		state.selectedGoals = new HashSet<>(selectedGoals);
 		state.activeGoal = activeGoal;
+		state.collectionLogSlots = collectionLogSlots;
+		state.collectionLogTotal = collectionLogTotal;
+		state.collectionLogSeenMs = collectionLogSeenMs;
 		store.save(profile, state);
 	}
 

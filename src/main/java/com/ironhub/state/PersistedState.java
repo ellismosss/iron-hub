@@ -34,6 +34,9 @@ class PersistedState
 		int quantity;
 	}
 
+	int collectionLogSlots;
+	int collectionLogTotal;
+	long collectionLogSeenMs;
 	Set<String> selectedGoals = new HashSet<>();
 	String activeGoal = "";
 
