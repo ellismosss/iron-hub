@@ -135,6 +135,7 @@ public class AccountState
 	private volatile boolean varbitsRefreshNeeded;
 	private int tick;
 	private int lastQuestRefreshTick;
+	private boolean containersSeeded;
 
 	@Inject
 	public AccountState(Client client, net.runelite.client.game.ItemManager itemManager, ProfileStore store)
@@ -808,6 +809,15 @@ public class AccountState
 		{
 			varbitsRefreshNeeded = false;
 			refreshWatchedVarbits();
+		}
+		if (!containersSeeded)
+		{
+			// plugin started mid-session: no GameStateChanged will fire, so
+			// seed skills/containers once from the live client
+			containersSeeded = true;
+			refreshSkills();
+			refreshContainers();
+			notifyListeners();
 		}
 		if (inventoryDirty && tick % 10 == 0) // ~6s: keeps panel rebuilds sane
 		{

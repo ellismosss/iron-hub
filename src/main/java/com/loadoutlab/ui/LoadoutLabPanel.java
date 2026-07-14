@@ -325,6 +325,7 @@ public class LoadoutLabPanel extends PluginPanel
 	private final JLabel exclusionsLabel = new JLabel();
 	private final JLabel storedLabel = new JLabel();
 	private final JLabel dwmsLabel = new JLabel();
+	private final JLabel weaknessLabel = new JLabel();
 	private final JLabel pinnedLabel = new JLabel();
 	/** The user's own note for the selected monster: a collapsible
 	 * post-it, edited inline (saves on focus loss - no edit button). */
@@ -468,6 +469,11 @@ public class LoadoutLabPanel extends PluginPanel
 		selectedRow.add(selectedButtons, BorderLayout.EAST);
 		selectedRow.setVisible(false);
 		top.add(selectedRow);
+		weaknessLabel.setForeground(MUTED);
+		weaknessLabel.setFont(weaknessLabel.getFont().deriveFont(12f));
+		weaknessLabel.setAlignmentX(LEFT_ALIGNMENT);
+		weaknessLabel.setVisible(false);
+		top.add(weaknessLabel);
 
 		// Curated mechanics note (finishing items, immunities) for the
 		// selected monster - so a correct suggestion doesn't look wrong.
@@ -948,10 +954,19 @@ public class LoadoutLabPanel extends PluginPanel
 			slayerTask.setToolTipText("On task: slayer helmet bonuses apply");
 		}
 		usageLog.record(monster.label());
-		String weakness = monster.getWeaknessElement().isEmpty() ? ""
-			: "  (+" + monster.getWeaknessSeverity() + "% weak to " + monster.getWeaknessElement() + " spells)";
-		selectedLabel.setText(monster.label() + weakness);
+		selectedLabel.setText(monster.label());
 		selectedRow.setVisible(true);
+		// Iron Hub: elemental weakness on its own line so it never truncates
+		if (monster.getWeaknessElement().isEmpty())
+		{
+			weaknessLabel.setVisible(false);
+		}
+		else
+		{
+			weaknessLabel.setText("+" + monster.getWeaknessSeverity() + "% weak to "
+				+ monster.getWeaknessElement() + " spells");
+			weaknessLabel.setVisible(true);
+		}
 		String note = MonsterNotes.noteFor(monster);
 		monsterNote.setText(note == null ? "" : "<html>" + note + "</html>");
 		monsterNote.setVisible(note != null);
