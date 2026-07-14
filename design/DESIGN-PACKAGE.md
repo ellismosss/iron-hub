@@ -50,12 +50,16 @@ The page is organized newest-first in three groups, each frame carrying a visibl
 
 Amber status (`#E0A23C`) ≠ accent (`#DC8A00`): a state vs. an interaction color.
 
-### Typography (standard small sans-serif; RuneLite default fonts)
-- 12 px bold `#DCDCDC` — titles, item names
-- 12 px regular `#C4C4C4` — body
-- 11 px `#8C8C8C` — secondary
-- 10 px bold, letter-spacing ~0.08em, `#8C8C8C` — SECTION LABELS (all caps)
-- Hierarchy via bold + color, not size jumps. Panel minimum 9 px (grid-tile labels only).
+### Typography (RuneLite default fonts — the RuneScape pixel font, drawn at 16 px)
+**Revised 2026-07-14 (field rule): HARD FLOOR 14 px — no text below it anywhere.** The
+pixel font turns illegible scaled down; any smaller size elsewhere in this document is
+superseded. Long text ellipsizes or wraps, never shrinks. `UiTokens` is authoritative.
+- 14 px bold `#DCDCDC` — titles, item names, card headers
+- 14 px regular `#C4C4C4` — body
+- 14 px `#8C8C8C` — secondary
+- 14 px bold, letter-spacing ~0.08em, `#8C8C8C` — SECTION LABELS (all caps)
+- Screen/target titles may go larger (15 px bold); dashboard score figure 17 px.
+- Hierarchy via bold + color, not size jumps.
 
 ### Spacing
 4 px inside rows / glyph gaps · 8 px panel padding + card gaps · 12 px between sections. Row heights: 26 px standard, 24 px dense tree, 30 px panel header. Sections separated by 1 px `#333333` rules.
