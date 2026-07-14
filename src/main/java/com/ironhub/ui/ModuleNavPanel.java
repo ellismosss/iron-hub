@@ -1,8 +1,10 @@
 package com.ironhub.ui;
 
+import com.ironhub.ui.components.HubScrollPane;
 import com.ironhub.ui.components.NavHeader;
 import com.ironhub.ui.components.SearchField;
 import com.ironhub.ui.components.SectionLabel;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -67,11 +69,15 @@ public class ModuleNavPanel extends JPanel
 	public ModuleNavPanel(Runnable onBack, java.util.function.Consumer<String> onOpenModule)
 	{
 		this.onOpenModule = onOpenModule;
-		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+		setLayout(new BorderLayout());
 		setBackground(UiTokens.PANEL_BG);
 		collapsed.add("Account"); // shown collapsed in the mockup
 
-		add(new NavHeader("Modules", onBack));
+		// header + search stay fixed; the category list scrolls below them
+		JPanel top = new JPanel();
+		top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
+		top.setBackground(UiTokens.PANEL_BG);
+		top.add(new NavHeader("Modules", onBack));
 
 		JPanel searchStrip = new JPanel();
 		searchStrip.setLayout(new BoxLayout(searchStrip, BoxLayout.Y_AXIS));
@@ -81,13 +87,12 @@ public class ModuleNavPanel extends JPanel
 			new MatteBorder(0, 0, 1, 0, UiTokens.BORDER_ROW),
 			new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD)));
 		searchStrip.add(search);
-		add(searchStrip);
+		top.add(searchStrip);
+		add(top, BorderLayout.NORTH);
 
 		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
 		list.setBackground(UiTokens.PANEL_BG);
-		list.setAlignmentX(LEFT_ALIGNMENT);
-		add(list);
-		add(Box.createVerticalGlue());
+		add(new HubScrollPane(list), BorderLayout.CENTER);
 
 		search.getDocument().addDocumentListener(new DocumentListener()
 		{

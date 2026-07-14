@@ -99,6 +99,7 @@ public final class UiTokens
 	public static final int FOOTER_ROW_HEIGHT = 28; // "All modules ›" row
 	public static final int SPARKLINE_WIDTH = 64;   // score sparkline cap (trend only)
 	public static final int SPARKLINE_HEIGHT = 20;
+	public static final int SCROLL_UNIT = 16;       // wheel scroll px per unit
 
 	// ── Overlay budgets ───────────────────────────────────────────────
 	public static final int OVERLAY_MAX_WIDTH = 250;

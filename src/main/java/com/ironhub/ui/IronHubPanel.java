@@ -1,6 +1,7 @@
 package com.ironhub.ui;
 
 import com.ironhub.modules.IronHubModule;
+import com.ironhub.ui.components.HubScrollPane;
 import com.ironhub.ui.components.NavHeader;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -12,16 +13,18 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
 import net.runelite.client.ui.PluginPanel;
 
 /**
  * Root side panel: dashboard home (frame 1b), searchable module navigation
  * (frame 1c), and one card per opened module tab. Navigation depth ≤ 2:
  * dashboard → module → detail.
+ *
+ * Unwrapped PluginPanel: each card keeps its nav header fixed and scrolls
+ * only its content (the client's wrapped panel would scroll the back
+ * button away and crawls at the default 1 px wheel increment).
  */
 @Singleton
 public class IronHubPanel extends PluginPanel
@@ -37,17 +40,17 @@ public class IronHubPanel extends PluginPanel
 	@Inject
 	public IronHubPanel(Set<IronHubModule> modules)
 	{
+		super(false);
 		modulesByName = modules.stream()
 			.collect(Collectors.toMap(IronHubModule::name, Function.identity()));
 
 		setLayout(new BorderLayout());
-		setBorder(new EmptyBorder(0, 0, 0, 0)); // design owns all padding
 		setBackground(UiTokens.PANEL_BG);
 
 		cardPanel.setBackground(UiTokens.PANEL_BG);
-		cardPanel.add(new DashboardPanel(this::showModules), CARD_DASHBOARD);
+		cardPanel.add(new HubScrollPane(new DashboardPanel(this::showModules)), CARD_DASHBOARD);
 		cardPanel.add(new ModuleNavPanel(this::showDashboard, this::openModule), CARD_MODULES);
-		add(cardPanel, BorderLayout.NORTH);
+		add(cardPanel, BorderLayout.CENTER);
 	}
 
 	public void showDashboard()
@@ -100,12 +103,11 @@ public class IronHubPanel extends PluginPanel
 
 	private JPanel wrap(String name, JComponent tab)
 	{
-		JPanel wrapper = new JPanel();
-		wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.Y_AXIS));
+		// back header fixed at the top; only the tab content scrolls
+		JPanel wrapper = new JPanel(new BorderLayout());
 		wrapper.setBackground(UiTokens.PANEL_BG);
-		wrapper.add(new NavHeader(name, this::showModules));
-		tab.setAlignmentX(Component.LEFT_ALIGNMENT);
-		wrapper.add(tab);
+		wrapper.add(new NavHeader(name, this::showModules), BorderLayout.NORTH);
+		wrapper.add(new HubScrollPane(tab), BorderLayout.CENTER);
 		return wrapper;
 	}
 }
