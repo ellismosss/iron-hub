@@ -146,6 +146,18 @@ Mechanics that matter:
   ascending bit ranges with holes (bits of removed/multistage subtasks are
   skipped). The four per-region tier-complete varbits
   (`Varbits.DIARY_*`) are separate and only flip on claim.
+- **Never derive displayed counts from the bitfields alone.** Some tasks
+  have **ironman-only alternate completion flags the client can't see**
+  (confirmed: Desert Medium's "redirected house tablet" task — ironmen
+  complete it via the Pollnivneach house portal and bit 22 of varp 1198
+  never sets, yet the tier completes). The game's own per-tier
+  **completed-count varbits** (`<REGION>_<TIER>_COUNT` in gameval, e.g.
+  `DESERT_MED_COUNT` 6296; the full 48-varbit table is what clientscript
+  2200 `diary_completion_info` returns, per the RuneStar cs2 dump — its
+  per-tier totals also corroborate all 48 pack task counts) include those
+  alternates. Counts come from these varbits (bit-count as fallback), and
+  a task also renders complete when its tier is claimed or its count
+  varbit equals the tier size.
 - **Karamja is the exception**: its tasks are individual `ATJUN_*` varbits
   (gameval-named), some counting (`ATJUN_EASY_BANANA` completes at ≥ 5,
   `ATJUN_EASY_SEAWEED` at ≥ 5); Karamja Elite is varp `ATJUN_TASKS_4`

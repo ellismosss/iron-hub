@@ -118,11 +118,12 @@ public class DiariesModuleTest
 		DiariesPack pack = module.pack();
 
 		// Ardougne easy task 1 = bit 0 of the Ardougne diary varp
-		DiariesPack.Task essMine = pack.regions.get(0).tiers.get(0).tasks.get(0);
+		DiariesPack.Region ardougne = pack.regions.get(0);
+		DiariesPack.Task essMine = ardougne.tiers.get(0).tasks.get(0);
 		assertEquals((Integer) VarPlayerID.ARDOUNGE_ACHIEVEMENT_DIARY, essMine.varp);
-		assertFalse(module.taskComplete(essMine));
+		assertFalse(module.taskComplete(ardougne, 0, essMine));
 		StateFixture.varp(state, essMine.varp, 1 << essMine.bit);
-		assertTrue(module.taskComplete(essMine));
+		assertTrue(module.taskComplete(ardougne, 0, essMine));
 
 		// Karamja easy task 1 = pick 5 bananas, varbit counts to 5
 		DiariesPack.Region karamja = pack.regions.stream()
@@ -130,9 +131,9 @@ public class DiariesModuleTest
 		DiariesPack.Task bananas = karamja.tiers.get(0).tasks.get(0);
 		assertEquals((Integer) VarbitID.ATJUN_EASY_BANANA, bananas.varbit);
 		StateFixture.varbit(state, bananas.varbit, 4);
-		assertFalse(module.taskComplete(bananas));
+		assertFalse(module.taskComplete(karamja, 0, bananas));
 		StateFixture.varbit(state, bananas.varbit, 5);
-		assertTrue(module.taskComplete(bananas));
+		assertTrue(module.taskComplete(karamja, 0, bananas));
 	}
 
 	@Test
@@ -143,19 +144,96 @@ public class DiariesModuleTest
 		DiariesPack pack = module.pack();
 
 		// Ardougne easy: task 1 needs Rune Mysteries, task 2 needs 5 Thieving
-		DiariesPack.Task essMine = pack.regions.get(0).tiers.get(0).tasks.get(0);
-		DiariesPack.Task stealCake = pack.regions.get(0).tiers.get(0).tasks.get(1);
-		assertFalse(module.taskDoable(essMine));
-		assertFalse(module.taskDoable(stealCake));
+		DiariesPack.Region ardougne = pack.regions.get(0);
+		DiariesPack.Task essMine = ardougne.tiers.get(0).tasks.get(0);
+		DiariesPack.Task stealCake = ardougne.tiers.get(0).tasks.get(1);
+		assertFalse(module.taskDoable(ardougne, 0, essMine));
+		assertFalse(module.taskDoable(ardougne, 0, stealCake));
 
 		StateFixture.quest(state, Quest.RUNE_MYSTERIES, QuestState.FINISHED);
 		StateFixture.stat(state, Skill.THIEVING, 5, 400);
-		assertTrue(module.taskDoable(essMine));
-		assertTrue(module.taskDoable(stealCake));
+		assertTrue(module.taskDoable(ardougne, 0, essMine));
+		assertTrue(module.taskDoable(ardougne, 0, stealCake));
 
 		// completing a task removes the highlight
 		StateFixture.varp(state, essMine.varp, 1 << essMine.bit);
-		assertFalse(module.taskDoable(essMine));
+		assertFalse(module.taskDoable(ardougne, 0, essMine));
+	}
+
+	@Test
+	public void tierCountAndClaimVarbitsCoverIronmanAlternateFlags()
+	{
+		// Desert Medium's Pollnivneach task has an ironman-only alternate
+		// flag the client can't see: the game's own count/claim varbits
+		// must prove it (the in-client 11/12-but-complete bug).
+		AccountState state = StateFixture.state(temp.getRoot());
+		DiariesModule module = module(state);
+		DiariesPack.Region desert = module.pack().regions.stream()
+			.filter(r -> r.name.equals("Desert")).findFirst().orElseThrow(AssertionError::new);
+		DiariesPack.Tier medium = desert.tiers.get(1);
+		DiariesPack.Task pollnivneach = medium.tasks.get(10);
+
+		// 11 of 12 bits set — the Pollnivneach bit (22) missing
+		int elevenBits = 0;
+		for (DiariesPack.Task task : medium.tasks)
+		{
+			if (task != pollnivneach)
+			{
+				elevenBits |= 1 << task.bit;
+			}
+		}
+		StateFixture.varp(state, VarPlayerID.DESERT_ACHIEVEMENT_DIARY, elevenBits);
+		assertEquals(11, module.tierDone(desert, 1));
+		assertFalse(module.taskComplete(desert, 1, pollnivneach));
+
+		// the game's completed count says 12/12 -> task and tier complete
+		StateFixture.varbit(state, VarbitID.DESERT_MED_COUNT, 12);
+		assertEquals(12, module.tierDone(desert, 1));
+		assertTrue(module.taskComplete(desert, 1, pollnivneach));
+		assertTrue(module.tierAllDone(desert, 1));
+
+		// a claimed tier proves its tasks too (independent of the count)
+		StateFixture.varbit(state, VarbitID.DESERT_MED_COUNT, 0);
+		StateFixture.varbit(state, Varbits.DIARY_DESERT_MEDIUM, 1);
+		assertTrue(module.taskComplete(desert, 1, pollnivneach));
+	}
+
+	@Test
+	public void diaryGoalsPersistAndCompileInThePlanner()
+	{
+		AccountState before = StateFixture.state(temp.getRoot());
+		StateFixture.profile(before, 7L);
+		DiariesModule beforeModule = module(before);
+		DiariesPack.Region ardougne = beforeModule.pack().regions.get(0);
+		DiariesPack.Task essMine = ardougne.tiers.get(0).tasks.get(0);
+		String slug = DiariesModule.slug(essMine);
+		assertEquals("1196_0", slug);
+
+		before.addDiaryGoal(slug, essMine.task, ardougne.name, "Easy");
+		before.addDiaryGoal("vb9999", "Removed", "Karamja", "Easy");
+		before.removeDiaryGoal("vb9999");
+
+		AccountState after = StateFixture.state(temp.getRoot());
+		StateFixture.profile(after, 7L);
+		assertEquals(java.util.Set.of("diary:" + slug), after.getSelectedGoals());
+		assertEquals(java.util.Set.of(slug), after.getDiaryGoals().keySet());
+
+		// the seed compiles into a planner goal: one step, unlock-flag proof
+		com.ironhub.data.GoalsPack.Goal goal = com.ironhub.modules.goals.GoalPlannerModule
+			.toDiaryGoal(slug, after.getDiaryGoals().get(slug));
+		assertEquals("diary:" + slug, goal.getId());
+		assertEquals(essMine.task, goal.getName());
+		assertEquals(1, goal.getSteps().size());
+		assertFalse(com.ironhub.modules.goals.GoalPlannerModule.isAchieved(goal, after));
+
+		// completing the task in-game: the module marks the proof on state
+		// change (the fixture's ingest doesn't notify, so invoke the
+		// listener's target directly)
+		DiariesModule afterModule = module(after);
+		StateFixture.varp(after, VarPlayerID.ARDOUNGE_ACHIEVEMENT_DIARY, 1 << essMine.bit);
+		afterModule.markDiaryGoalProofs();
+		assertTrue(after.isUnlocked("diarytask_" + slug));
+		assertTrue(com.ironhub.modules.goals.GoalPlannerModule.isAchieved(goal, after));
 	}
 
 	@Test

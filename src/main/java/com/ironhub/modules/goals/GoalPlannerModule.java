@@ -139,8 +139,28 @@ public class GoalPlannerModule implements IronHubModule
 		return goal;
 	}
 
+	/**
+	 * An achievement diary task added from the diaries tab: one step — the
+	 * task itself — proven by the {@code diarytask_<slug>} unlock flag the
+	 * diaries module marks once the completion flag (or the tier's own
+	 * completion) shows the task done.
+	 */
+	public static GoalsPack.Goal toDiaryGoal(String slug, com.ironhub.state.PersistedState.DiaryGoal seed)
+	{
+		String proof = "unlock:diarytask_" + slug;
+		GoalsPack.Goal goal = new GoalsPack.Goal();
+		goal.setId("diary:" + slug);
+		goal.setName(seed.task);
+		GoalsPack.Step step = new GoalsPack.Step();
+		step.setLabel(seed.task + " (" + seed.region + " " + seed.tier + " diary)");
+		step.setRequirement(proof);
+		goal.setSteps(List.of(step));
+		goal.setAchieved(List.of(proof));
+		return goal;
+	}
+
 	/** Pack goals plus a synthetic goal per targeted gear-chart item and
-	 * per combat task added from the CA tab. */
+	 * per combat/diary task added from its module tab. */
 	public static List<GoalsPack.Goal> allGoals(GoalsPack goals,
 		com.ironhub.data.GearProgressionPack gear, AccountState state)
 	{
@@ -163,6 +183,13 @@ public class GoalPlannerModule implements IronHubModule
 			if (state.getSelectedGoals().contains("ca:" + taskId))
 			{
 				all.add(toCaGoal(taskId, seed));
+			}
+		});
+		state.getDiaryGoals().forEach((slug, seed) ->
+		{
+			if (state.getSelectedGoals().contains("diary:" + slug))
+			{
+				all.add(toDiaryGoal(slug, seed));
 			}
 		});
 		return all;

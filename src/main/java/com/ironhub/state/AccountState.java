@@ -97,6 +97,7 @@ public class AccountState
 	private final Set<String> selectedGoals = ConcurrentHashMap.newKeySet();
 	private volatile String activeGoal = "";
 	private final Map<String, PersistedState.CaGoal> caGoals = new ConcurrentHashMap<>();
+	private final Map<String, PersistedState.DiaryGoal> diaryGoals = new ConcurrentHashMap<>();
 
 	/** Recent deaths, oldest first, capped. */
 	public static final int MAX_DEATHS = 10;
@@ -577,6 +578,48 @@ public class AccountState
 		}
 	}
 
+	/** Diary-task goal seeds (task slug → snapshot) for the goal planner. */
+	public Map<String, PersistedState.DiaryGoal> getDiaryGoals()
+	{
+		return java.util.Collections.unmodifiableMap(diaryGoals);
+	}
+
+	/** Add an achievement diary task to the goal planner (id "diary:&lt;slug&gt;"). */
+	public void addDiaryGoal(String slug, String task, String region, String tier)
+	{
+		PersistedState.DiaryGoal seed = new PersistedState.DiaryGoal();
+		seed.task = task;
+		seed.region = region;
+		seed.tier = tier;
+		diaryGoals.put(slug, seed);
+		String goalId = "diary:" + slug;
+		if (selectedGoals.contains(goalId))
+		{
+			persist();
+			notifyListeners();
+		}
+		else
+		{
+			selectGoal(goalId, true); // persists + notifies
+		}
+	}
+
+	/** Remove a diary task from the goal planner. */
+	public void removeDiaryGoal(String slug)
+	{
+		diaryGoals.remove(slug);
+		String goalId = "diary:" + slug;
+		if (selectedGoals.contains(goalId))
+		{
+			selectGoal(goalId, false); // persists + notifies
+		}
+		else
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
 	/** Mark many unlock flags at once (one persist + one notify). */
 	public void setUnlockedBulk(java.util.Collection<String> keys)
 	{
@@ -986,6 +1029,8 @@ public class AccountState
 		selectedGoals.addAll(persisted.selectedGoals);
 		caGoals.clear();
 		caGoals.putAll(persisted.caGoals);
+		diaryGoals.clear();
+		diaryGoals.putAll(persisted.diaryGoals);
 		scoreSnapshots.clear();
 		scoreSnapshots.addAll(persisted.scoreSnapshots);
 		collectionLogSlots = persisted.collectionLogSlots;
@@ -1019,6 +1064,7 @@ public class AccountState
 		state.selectedGoals = new HashSet<>(selectedGoals);
 		state.activeGoal = activeGoal;
 		state.caGoals = new HashMap<>(caGoals);
+		state.diaryGoals = new HashMap<>(diaryGoals);
 		state.scoreSnapshots = new java.util.ArrayList<>(scoreSnapshots);
 		state.collectionLogSlots = collectionLogSlots;
 		state.collectionLogTotal = collectionLogTotal;

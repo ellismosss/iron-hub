@@ -64,6 +64,22 @@ public class PersistedState
 		public String tier;
 	}
 
+	Map<String, DiaryGoal> diaryGoals = new HashMap<>(); // task slug -> goal-planner seed
+
+	/**
+	 * An achievement diary task added to the goal planner, keyed by its
+	 * completion-flag slug ("&lt;varp&gt;_&lt;bit&gt;" or "vb&lt;varbit&gt;").
+	 * Display data is snapshotted at add time; completion is proven by the
+	 * {@code diarytask_<slug>} unlock flag the diaries module marks once
+	 * the flag (or the tier's own completion) shows the task done.
+	 */
+	public static class DiaryGoal
+	{
+		public String task;
+		public String region;
+		public String tier;
+	}
+
 	static class PatchSeen
 	{
 		String state;

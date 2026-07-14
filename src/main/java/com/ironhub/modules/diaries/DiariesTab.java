@@ -5,6 +5,7 @@ import com.ironhub.modules.diaries.DiariesModule.DiaryRegion;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.components.HubProgressBar;
+import com.ironhub.ui.components.IconButton;
 import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.components.SectionLabel;
 import com.ironhub.ui.components.Status;
@@ -186,12 +187,13 @@ class DiariesTab extends JPanel
 		if (open)
 		{
 			card.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
-			for (DiariesPack.Tier tier : region.tiers)
+			for (int i = 0; i < region.tiers.size(); i++)
 			{
-				card.add(tierHeader(tier));
+				DiariesPack.Tier tier = region.tiers.get(i);
+				card.add(tierHeader(region, i));
 				for (DiariesPack.Task task : tier.tasks)
 				{
-					card.add(taskEntry(task));
+					card.add(taskEntry(region, i, task));
 				}
 				card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 			}
@@ -210,7 +212,7 @@ class DiariesTab extends JPanel
 		for (int i = 0; i < region.tiers.size() && i < 4; i++)
 		{
 			DiariesPack.Tier tier = region.tiers.get(i);
-			int done = module.tierDone(tier);
+			int done = module.tierDone(region, i);
 			fractions[i] = tier.tasks.isEmpty() ? 0 : (double) done / tier.tasks.size();
 			complete[i] = meta != null && state.getVarbit(meta.tierVarbits[i]) >= 1;
 			tip.append(i > 0 ? "<br>" : "").append(tier.tier).append(" — ")
@@ -247,9 +249,10 @@ class DiariesTab extends JPanel
 
 	// ── expanded task list ────────────────────────────────────────────
 
-	private JComponent tierHeader(DiariesPack.Tier tier)
+	private JComponent tierHeader(DiariesPack.Region region, int tierIndex)
 	{
-		int done = module.tierDone(tier);
+		DiariesPack.Tier tier = region.tiers.get(tierIndex);
+		int done = module.tierDone(region, tierIndex);
 		int total = tier.tasks.size();
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
@@ -273,10 +276,10 @@ class DiariesTab extends JPanel
 		return row;
 	}
 
-	private JComponent taskEntry(DiariesPack.Task task)
+	private JComponent taskEntry(DiariesPack.Region region, int tierIndex, DiariesPack.Task task)
 	{
-		boolean complete = module.taskComplete(task);
-		boolean doable = !complete && module.taskDoable(task);
+		boolean complete = module.taskComplete(region, tierIndex, task);
+		boolean doable = !complete && module.taskDoable(region, tierIndex, task);
 		Status status = complete ? Status.OWNED : doable ? Status.AVAILABLE : Status.LOCKED;
 		Color textColor = complete ? UiTokens.TEXT_MUTED
 			: doable ? UiTokens.STATUS_AVAILABLE : UiTokens.TEXT_BODY;
@@ -339,7 +342,32 @@ class DiariesTab extends JPanel
 			}
 		}
 		entry.add(column, BorderLayout.CENTER);
+
+		boolean isGoal = state.getDiaryGoals().containsKey(DiariesModule.slug(task));
+		JPanel buttonAnchor = new JPanel(new BorderLayout());
+		buttonAnchor.setOpaque(false);
+		buttonAnchor.add(new IconButton(isGoal ? "\u00d7" : "+",
+			isGoal ? "Remove this task from the goal planner" : "Add this task to the goal planner",
+			() -> toggleGoal(region, tierIndex, task)), BorderLayout.NORTH);
+		entry.add(buttonAnchor, BorderLayout.EAST);
 		return entry;
+	}
+
+	private void toggleGoal(DiariesPack.Region region, int tierIndex, DiariesPack.Task task)
+	{
+		String slug = DiariesModule.slug(task);
+		if (state.getDiaryGoals().containsKey(slug))
+		{
+			state.removeDiaryGoal(slug);
+			return;
+		}
+		state.addDiaryGoal(slug, task.task, region.name,
+			region.tiers.get(tierIndex).tier);
+		if (module.taskComplete(region, tierIndex, task))
+		{
+			// already done in-game: prove the goal immediately
+			state.setUnlocked("diarytask_" + slug, true);
+		}
 	}
 
 	// ── rewards ───────────────────────────────────────────────────────
