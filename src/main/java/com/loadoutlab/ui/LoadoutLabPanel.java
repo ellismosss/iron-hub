@@ -675,28 +675,52 @@ public class LoadoutLabPanel extends PluginPanel
 		JPanel bottomControls = new JPanel();
 		bottomControls.setLayout(new BoxLayout(bottomControls, BoxLayout.Y_AXIS));
 		bottomControls.setOpaque(false);
-		bottomControls.add(spellbook);
+		JPanel spellRow = new JPanel(new GridLayout(1, 3, 2, 0));
+		spellRow.setOpaque(false);
+		spellRow.setMaximumSize(new Dimension(3 * 34 + 4, 34));
+		spellRow.setAlignmentX(LEFT_ALIGNMENT);
+		spellRow.add(spellbookIcon(563, "Standard spellbook", 1));
+		spellRow.add(spellbookIcon(4675, "Ancient spellbook", 2));
+		spellRow.add(spellbookIcon(25818, "Arceuus spellbook", 3));
+		bottomControls.add(spellRow);
 		bottomControls.add(Box.createVerticalStrut(4));
 		bottomControls.add(optimizeMode);
 		bottomControls.add(Box.createVerticalStrut(4));
-		JCheckBox assumePrayers = new JCheckBox("Assume prayers (Piety etc.)", true);
-		assumePrayers.setOpaque(false);
-		assumePrayers.setToolTipText("Compute DPS with your best offensive prayers active");
-		assumePrayers.addActionListener(e ->
-		{
-			com.loadoutlab.engine.PrayerBonuses.PRAYERS_ASSUMED = assumePrayers.isSelected();
-			recompute();
-		});
-		bottomControls.add(assumePrayers);
-		JCheckBox assumePotions = new JCheckBox("Assume potions", true);
-		assumePotions.setOpaque(false);
-		assumePotions.setToolTipText("Compute DPS with your best stat potions/hearts active");
-		assumePotions.addActionListener(e ->
-		{
-			com.loadoutlab.optimizer.BoostSelector.POTIONS_ASSUMED = assumePotions.isSelected();
-			recompute();
-		});
-		bottomControls.add(assumePotions);
+		// Iron Hub: icon toggles - best prayer per style, potions, heart -
+		// and spellbook icons instead of the dropdown
+		JPanel boostRow = new JPanel(new GridLayout(1, 5, 2, 0));
+		boostRow.setOpaque(false);
+		boostRow.setMaximumSize(new Dimension(5 * 34 + 8, 34));
+		boostRow.setAlignmentX(LEFT_ALIGNMENT);
+		boostRow.add(iconToggle(net.runelite.api.SpriteID.PRAYER_PIETY,
+			"Melee prayer (Piety line)", true, on ->
+			{
+				com.loadoutlab.engine.PrayerBonuses.MELEE_PRAYER = on;
+				recompute();
+			}));
+		boostRow.add(iconToggle(net.runelite.api.SpriteID.PRAYER_RIGOUR,
+			"Ranged prayer (Rigour line)", true, on ->
+			{
+				com.loadoutlab.engine.PrayerBonuses.RANGED_PRAYER = on;
+				recompute();
+			}));
+		boostRow.add(iconToggle(net.runelite.api.SpriteID.PRAYER_AUGURY,
+			"Magic prayer (Augury line)", true, on ->
+			{
+				com.loadoutlab.engine.PrayerBonuses.MAGIC_PRAYER = on;
+				recompute();
+			}));
+		boostRow.add(itemToggle(12695, "Combat potions", true, on ->
+			{
+				com.loadoutlab.optimizer.BoostSelector.POTIONS_ASSUMED = on;
+				recompute();
+			}));
+		boostRow.add(itemToggle(20724, "Imbued/saturated heart", true, on ->
+			{
+				com.loadoutlab.optimizer.BoostSelector.HEART_ASSUMED = on;
+				recompute();
+			}));
+		bottomControls.add(boostRow);
 		bottomControls.add(Box.createVerticalStrut(4));
 		JPanel setupButtons = new JPanel(new GridLayout(1, 2, 4, 0));
 		setupButtons.setOpaque(false);
@@ -1447,6 +1471,76 @@ public class LoadoutLabPanel extends PluginPanel
 
 	/** Right-click menu on a suggested item: exclude it and recompute. A
 	 * container weapon (blowpipe) also offers its loaded ammo. */
+	/** Iron Hub: 34px toggle showing a game sprite; dim = off. */
+	private JLabel iconToggle(int spriteId, String tooltip, boolean initial,
+		java.util.function.Consumer<Boolean> onChange)
+	{
+		JLabel toggle = new JLabel();
+		toggle.setOpaque(true);
+		toggle.setHorizontalAlignment(SwingConstants.CENTER);
+		toggle.setPreferredSize(new Dimension(34, 34));
+		toggle.setToolTipText(tooltip);
+		toggle.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		spriteManager.addSpriteTo(toggle, spriteId, 0);
+		final boolean[] on = {initial};
+		Runnable style = () -> toggle.setBackground(on[0]
+			? net.runelite.client.ui.ColorScheme.MEDIUM_GRAY_COLOR
+			: net.runelite.client.ui.ColorScheme.DARKER_GRAY_COLOR);
+		style.run();
+		toggle.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				on[0] = !on[0];
+				style.run();
+				onChange.accept(on[0]);
+			}
+		});
+		return toggle;
+	}
+
+	/** Same toggle, but the icon is an item sprite. */
+	private JLabel itemToggle(int itemId, String tooltip, boolean initial,
+		java.util.function.Consumer<Boolean> onChange)
+	{
+		JLabel toggle = iconToggle(0, tooltip, initial, onChange);
+		net.runelite.client.util.AsyncBufferedImage sprite = itemManager.getImage(itemId);
+		toggle.setIcon(new javax.swing.ImageIcon(sprite));
+		sprite.onLoaded(toggle::repaint);
+		return toggle;
+	}
+
+	/** Spellbook icon: selects that book in the (hidden) combo; click the
+	 * active one again for Any spellbook. */
+	private JLabel spellbookIcon(int itemId, String tooltip, int comboIndex)
+	{
+		JLabel icon = new JLabel();
+		icon.setOpaque(true);
+		icon.setHorizontalAlignment(SwingConstants.CENTER);
+		icon.setPreferredSize(new Dimension(34, 34));
+		icon.setToolTipText(tooltip + " (click again for any spellbook)");
+		icon.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		net.runelite.client.util.AsyncBufferedImage sprite = itemManager.getImage(itemId);
+		icon.setIcon(new javax.swing.ImageIcon(sprite));
+		sprite.onLoaded(icon::repaint);
+		Runnable style = () -> icon.setBackground(spellbook.getSelectedIndex() == comboIndex
+			? net.runelite.client.ui.ColorScheme.MEDIUM_GRAY_COLOR
+			: net.runelite.client.ui.ColorScheme.DARKER_GRAY_COLOR);
+		style.run();
+		spellbook.addActionListener(e -> style.run());
+		icon.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				// setSelectedIndex fires the combo's listener -> recompute
+				spellbook.setSelectedIndex(spellbook.getSelectedIndex() == comboIndex ? 0 : comboIndex);
+			}
+		});
+		return icon;
+	}
+
 	/** Iron Hub: icon dropdown of slot candidates, strongest first. */
 	private void showSwapIcons(JLabel cell, com.loadoutlab.data.GearSlot slot, CombatStyle style)
 	{

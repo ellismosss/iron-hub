@@ -14,6 +14,7 @@ public final class BoostSelector
 {
 	// Iron Hub: global toggle - assume stat potions/hearts
 	public static volatile boolean POTIONS_ASSUMED = true;
+	public static volatile boolean HEART_ASSUMED = true;
 
 	private static final int SATURATED_HEART = 27641;
 	private static final int IMBUED_HEART = 20724;
@@ -51,11 +52,11 @@ public final class BoostSelector
 			case RANGED:
 				return BoostProfile.RANGING;
 			case MAGIC:
-				if (owned.owns(SATURATED_HEART))
+				if (HEART_ASSUMED && owned.owns(SATURATED_HEART))
 				{
 					return BoostProfile.SATURATED_HEART;
 				}
-				if (owned.owns(IMBUED_HEART))
+				if (HEART_ASSUMED && owned.owns(IMBUED_HEART))
 				{
 					return BoostProfile.IMBUED_HEART;
 				}

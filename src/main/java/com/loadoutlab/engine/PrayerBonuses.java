@@ -6,8 +6,10 @@ import net.runelite.api.Prayer;
 
 public final class PrayerBonuses
 {
-	// Iron Hub: global toggle - assume offensive prayers (Piety etc.)
-	public static volatile boolean PRAYERS_ASSUMED = true;
+	// Iron Hub: per-style toggles - assume the best offensive prayer
+	public static volatile boolean MELEE_PRAYER = true;
+	public static volatile boolean RANGED_PRAYER = true;
+	public static volatile boolean MAGIC_PRAYER = true;
 
 	public static final PrayerBonuses NONE = new PrayerBonuses(1.0, 1.0, 1.0, 1.0, 1.0, 0.0);
 
@@ -47,10 +49,31 @@ public final class PrayerBonuses
 
 	public static PrayerBonuses bestAvailable(PlayerLevels levels, PrayerUnlocks unlocks)
 	{
-		if (!PRAYERS_ASSUMED)
+		return applyToggles(bestAvailableRaw(levels, unlocks));
+	}
+
+	/** Iron Hub: neutralize the styles whose prayer toggle is off. */
+	private static PrayerBonuses applyToggles(PrayerBonuses best)
+	{
+		if (MELEE_PRAYER && RANGED_PRAYER && MAGIC_PRAYER)
 		{
-			return NONE;
+			return best;
 		}
+		PrayerBonuses adjusted = new PrayerBonuses(
+			MELEE_PRAYER ? best.meleeAccuracy : 1.0,
+			MELEE_PRAYER ? best.meleeStrength : 1.0,
+			RANGED_PRAYER ? best.rangedAccuracy : 1.0,
+			RANGED_PRAYER ? best.rangedStrength : 1.0,
+			MAGIC_PRAYER ? best.magicAccuracy : 1.0,
+			MAGIC_PRAYER ? best.magicDamagePercent : 0.0);
+		adjusted.meleeName = MELEE_PRAYER ? best.meleeName : "";
+		adjusted.rangedName = RANGED_PRAYER ? best.rangedName : "";
+		adjusted.magicName = MAGIC_PRAYER ? best.magicName : "";
+		return adjusted;
+	}
+
+	private static PrayerBonuses bestAvailableRaw(PlayerLevels levels, PrayerUnlocks unlocks)
+	{
 		String meleeName;
 		double meleeAcc = 1.0;
 		double meleeStr = 1.0;

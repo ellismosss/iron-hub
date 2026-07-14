@@ -123,7 +123,11 @@ public class LoadoutLabModule implements IronHubModule
 			strategyClient = new com.ironhub.modules.loadout.StrategyClient(
 				httpClient, gson, new com.ironhub.data.ItemNameIndex(gson));
 		}
-		lab.setPanelReadyCallback(() -> SwingUtilities.invokeLater(this::mountPanel));
+		lab.setPanelReadyCallback(() -> SwingUtilities.invokeLater(() ->
+		{
+			wireHooks();
+			mountPanel();
+		}));
 		eventBus.register(lab);
 		lab.startUp();
 		state.addListener(listener);
@@ -565,9 +569,7 @@ public class LoadoutLabModule implements IronHubModule
 			section.add(lab.getPanel(), BorderLayout.CENTER);
 			lab.getPanel().setVisible(!dpsCalcCollapsed);
 			holder.add(section, BorderLayout.CENTER);
-			lab.getPanel().setSetupHooks(this::saveNamedSetup, this::loadNamedSetup);
-			lab.getPanel().setWornLookup(this::wornItemFor);
-			lab.getPanel().setDpsCalcHook(this::openDpsCalc);
+			wireHooks();
 			onStateChanged(); // panel just arrived: apply auto-follow now
 		}
 		else
@@ -578,6 +580,17 @@ public class LoadoutLabModule implements IronHubModule
 		}
 		holder.revalidate();
 		holder.repaint();
+	}
+
+	/** Idempotent: attach all wrapper hooks once the panel exists. */
+	private void wireHooks()
+	{
+		if (lab.getPanel() != null)
+		{
+			lab.getPanel().setSetupHooks(this::saveNamedSetup, this::loadNamedSetup);
+			lab.getPanel().setWornLookup(this::wornItemFor);
+			lab.getPanel().setDpsCalcHook(this::openDpsCalc);
+		}
 	}
 
 	/** GearSlot → currently worn item id (or null). */
