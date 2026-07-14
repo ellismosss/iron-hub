@@ -66,7 +66,7 @@ public class ModuleLifecycleTest
 			new SlayerOptimizerModule(state, null, null, config, null, null),
 			new SuppliesRunwayModule(state, null, config),
 			new CollectionLogModule(state, null, null, new net.runelite.client.eventbus.EventBus(), config),
-			new ExternalSyncModule(),
+			new ExternalSyncModule(state, null, new net.runelite.client.eventbus.EventBus(), config, null, new com.google.gson.Gson()),
 			new DashboardModule(),
 			new DeathRecoveryModule(state, null, config, null));
 
