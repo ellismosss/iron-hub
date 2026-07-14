@@ -619,7 +619,8 @@
                 "magic"
               ],
               "requirements": [
-                "skill:Magic:75"
+                "skill:Magic:75",
+                "any:item:2412:1:Saradomin cape|item:2413:1:Guthix cape|item:2414:1:Zamorak cape"
               ],
               "wiki": "Imbued_god_cape",
               "implies": [
@@ -708,7 +709,8 @@
                 "magic"
               ],
               "requirements": [
-                "skill:Slayer:58"
+                "skill:Slayer:58",
+                "item:8901:1:Black mask"
               ],
               "wiki": "Slayer_helmet",
               "exact": true,
@@ -863,7 +865,8 @@
                 "skill:Defence:42",
                 "skill:Hitpoints:42",
                 "skill:Ranged:42",
-                "skill:Magic:42"
+                "skill:Magic:42",
+                "item:8839:1:Void knight top"
               ],
               "wiki": "Elite_Void_Knight_equipment",
               "implies": [
@@ -925,7 +928,9 @@
               "categories": [
                 "utility"
               ],
-              "requirements": [],
+              "requirements": [
+                "item:12020:1:Gem bag"
+              ],
               "implies": [
                 "Gem bag"
               ]
@@ -973,7 +978,8 @@
               ],
               "requirements": [
                 "quest:Beneath Cursed Sands",
-                "skillb:Crafting:75"
+                "skillb:Crafting:75",
+                "item:12791:1:Rune pouch"
               ],
               "implies": [
                 "Rune pouch"
@@ -1150,7 +1156,8 @@
               "requirements": [
                 "quest:Dragon Slayer II",
                 "kc:Vorkath:1",
-                "skill:Ranged:70"
+                "skill:Ranged:70",
+                "item:10499:1:Ava's accumulator"
               ],
               "wiki": "Ava's_assembler",
               "implies": [
@@ -1294,7 +1301,8 @@
               ],
               "requirements": [
                 "skillb:Slayer:87",
-                "skill:Attack:75"
+                "skill:Attack:75",
+                "item:4151:1:Abyssal whip"
               ],
               "implies": [
                 "Abyssal whip"
@@ -1319,7 +1327,8 @@
               "requirements": [
                 "quest:While Guthix Sleeps",
                 "skill:Attack:77",
-                "skillb:Smithing:74"
+                "skillb:Smithing:74",
+                "item:19675:1:Arclight"
               ],
               "implies": [
                 "Arclight"
@@ -1446,7 +1455,8 @@
               "requirements": [
                 "skill:Hitpoints:90",
                 "skillb:Crafting:83",
-                "skillb:Smithing:70"
+                "skillb:Smithing:70",
+                "item:19544:1:Tormented bracelet"
               ],
               "implies": [
                 "Tormented bracelet"
@@ -1460,7 +1470,11 @@
                 "ranged",
                 "magic"
               ],
-              "requirements": [],
+              "requirements": [
+                "item:13239:1:Primordial boots",
+                "item:13235:1:Eternal boots",
+                "item:13237:1:Pegasian boots"
+              ],
               "implies": [
                 "Primordial boots",
                 "Eternal boots",
@@ -1546,7 +1560,8 @@
               ],
               "requirements": [
                 "skillb:Slayer:92",
-                "skill:Hitpoints:90"
+                "skill:Hitpoints:90",
+                "item:19553:1:Amulet of torture"
               ],
               "implies": [
                 "Amulet of torture"
@@ -1676,7 +1691,8 @@
               "requirements": [
                 "quest:The Fremennik Exiles",
                 "skill:Defence:70",
-                "skill:Slayer:60"
+                "skill:Slayer:60",
+                "item:10828:1:Helm of Neitiznot"
               ],
               "implies": [
                 "Helm of Neitiznot"
@@ -1780,7 +1796,8 @@
               ],
               "requirements": [
                 "skill:Attack:70",
-                "skill:Defence:70"
+                "skill:Defence:70",
+                "item:12954:1:Dragon defender"
               ],
               "implies": [
                 "Dragon defender"
@@ -2080,7 +2097,8 @@
                 "poh"
               ],
               "requirements": [
-                "skillb:Construction:47"
+                "skillb:Construction:47",
+                "item:1704:1:Amulet of glory"
               ],
               "wiki": "Amulet_of_Glory_(mounted)",
               "iconFile": "poh/mounted_glory.png"
@@ -2203,7 +2221,8 @@
                 "poh"
               ],
               "requirements": [
-                "skillb:Construction:72"
+                "skillb:Construction:72",
+                "item:13393:1:Xeric's talisman"
               ],
               "wiki": "Mounted_Xeric's_Talisman",
               "iconFile": "poh/mounted_xerics.png"
@@ -2289,7 +2308,8 @@
               ],
               "requirements": [
                 "skillb:Construction:82",
-                "quest:The Dig Site"
+                "quest:The Dig Site",
+                "item:11190:1:Digsite pendant"
               ],
               "wiki": "Mounted_digsite_pendant",
               "iconFile": "poh/mounted_digsite.png"

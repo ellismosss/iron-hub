@@ -67,6 +67,14 @@ Rules of thumb when writing entries:
   pirates) rather than making everything vacuous.
 - Enchant levels are per-gem, not per-item: sapphire 7, emerald 27, ruby 49,
   diamond 57, dragonstone 68, onyx 87, zenyte 93.
+- **Combine/upgrade/mount entries must require their input items** — a
+  mounted glory needs an amulet of glory in hand, Avernic treads need all
+  three Cerberus boots, the tentacle needs a whip. Meeting the entry's own
+  skill gates means nothing without the input, and the input carries its
+  whole upstream chain. Encode as `item:<id>:1:<Display name>` (the label
+  keeps tooltips readable); the input's own gates live on ITS chart entry,
+  never copied. This is the requirement-side mirror of `implies` (which
+  handles the obtained-direction of the same relationship).
 
 Facts that have already bitten us (all wiki-verified now): dual macuahuitl is
 70 Att/75 Str (not 75/75); the demonbane trio is level **77** (not 75);

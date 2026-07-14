@@ -43,13 +43,13 @@ public final class Requirements
 
 	public static Requirement item(int itemId, int quantity)
 	{
-		return new ItemRequirement(itemId, quantity, false);
+		return new ItemRequirement(itemId, quantity, false, null);
 	}
 
 	/** Exact-id ownership: tiers/imbues in the same variation group don't count. */
 	public static Requirement itemExact(int itemId, int quantity)
 	{
-		return new ItemRequirement(itemId, quantity, true);
+		return new ItemRequirement(itemId, quantity, true, null);
 	}
 
 	public static Requirement unlock(String key)
@@ -121,12 +121,12 @@ public final class Requirements
 				case "quest":
 					Quest quest = questByName(s.substring("quest:".length()));
 					return quest != null ? quest(quest) : text(s);
-				case "item":
-					return item(Integer.parseInt(parts[1]),
-						parts.length > 2 ? Integer.parseInt(parts[2]) : 1);
+				case "item": // item:<id>[:qty[:display name]]
+					return new ItemRequirement(Integer.parseInt(parts[1]),
+						parts.length > 2 ? Integer.parseInt(parts[2]) : 1, false, itemLabel(parts));
 				case "itemx": // exact id only — tiered/imbued items where variants don't count
-					return itemExact(Integer.parseInt(parts[1]),
-						parts.length > 2 ? Integer.parseInt(parts[2]) : 1);
+					return new ItemRequirement(Integer.parseInt(parts[1]),
+						parts.length > 2 ? Integer.parseInt(parts[2]) : 1, true, itemLabel(parts));
 				case "unlock":
 					return unlock(parts[1]);
 				case "kc":
@@ -139,6 +139,14 @@ public final class Requirements
 		{
 			return text(s);
 		}
+	}
+
+	/** Display name from item:<id>:<qty>:<name> (name may contain colons). */
+	private static String itemLabel(String[] parts)
+	{
+		return parts.length > 3
+			? String.join(":", java.util.Arrays.copyOfRange(parts, 3, parts.length))
+			: null;
 	}
 
 	private static Quest questByName(String name)
@@ -215,12 +223,14 @@ public final class Requirements
 		private final int itemId;
 		private final int quantity;
 		private final boolean exact;
+		private final String name; // display label from the pack, or null
 
-		ItemRequirement(int itemId, int quantity, boolean exact)
+		ItemRequirement(int itemId, int quantity, boolean exact, String name)
 		{
 			this.itemId = itemId;
 			this.quantity = quantity;
 			this.exact = exact;
+			this.name = name;
 		}
 
 		@Override
@@ -235,7 +245,8 @@ public final class Requirements
 		public String describe()
 		{
 			// data packs supply display names; the raw form is a fallback
-			return "item " + itemId + (quantity > 1 ? " ×" + quantity : "");
+			return (name != null ? name : "item " + itemId)
+				+ (quantity > 1 ? " ×" + quantity : "");
 		}
 	}
 

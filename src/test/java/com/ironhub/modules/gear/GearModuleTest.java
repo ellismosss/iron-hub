@@ -64,6 +64,33 @@ public class GearModuleTest
 	}
 
 	@Test
+	public void mountedGloryRequiresOwningAGlory()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		com.ironhub.data.GearProgressionPack progression =
+			new DataPack(new Gson()).load("gear-progression", com.ironhub.data.GearProgressionPack.class);
+		com.ironhub.data.GearProgressionPack.Item mount = progression.getPhases().stream()
+			.flatMap(p -> p.getGroups().stream())
+			.flatMap(g -> g.getItems().stream())
+			.filter(i -> i.getName().equals("Mounted amulet of glory"))
+			.findFirst().orElseThrow();
+		com.ironhub.requirements.Requirement req = com.ironhub.requirements.Requirements.allOf(
+			mount.getRequirements().stream()
+				.map(com.ironhub.requirements.Requirements::parse)
+				.toArray(com.ironhub.requirements.Requirement[]::new));
+
+		// 47 Construction alone is NOT enough — you must own a glory to mount
+		StateFixture.stat(state, net.runelite.api.Skill.CONSTRUCTION, 47, 0);
+		assertTrue(!req.isMet(state));
+		// the missing line reads as the item name, not a raw id
+		assertTrue(req.missing(state).stream()
+			.anyMatch(r -> r.describe().equals("Amulet of glory")));
+
+		StateFixture.bank(state, Map.of(1712, 1)); // glory(4) — variant counts
+		assertTrue(req.isMet(state));
+	}
+
+	@Test
 	public void everyIconFileIsBundled()
 	{
 		com.ironhub.data.GearProgressionPack progression =
