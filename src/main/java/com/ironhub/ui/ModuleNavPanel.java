@@ -40,6 +40,7 @@ public class ModuleNavPanel extends JPanel
 	private static final Category[] CATEGORIES = {
 		new Category("Progression",
 			new Module("GE", "Gear progression", null, null),
+			new Module("LO", "Loadout", null, null),
 			new Module("QU", "Quests", null, null),
 			new Module("SK", "Skill milestones", null, null),
 			new Module("DI", "Achievement diaries", null, null),
