@@ -8,6 +8,7 @@ RuneLite Plugin Hub plugin: an all-in-one progression companion for standard OSR
 
 1. **DESIGN.md** — full feature spec. §2 architecture, §3 the 21 feature modules, §7 roadmap phases.
 1b. **ENGINE-DESIGN.md** — the goal-planner engine blueprint (design-only, not yet implemented): 7-layer architecture (projection→catalog→compiler→expander→cost→router→explainer), data-pack pipeline (methods/quests/sources/effects from WOM ironman EHP configs + wiki Lua modules + QH), E1–E5 implementation roadmap, and the July-2026 ironman meta research in Appendices A–D. Read before any engine/planner work.
+1c. **design/PLANNER-UX.md** + **design/goal-planner-mockups.html** (frames 4a–4f) — the planner UX proposal over the engine: one plan / three views (Today · Route · Goals), reorder-by-constraint (pin/snooze/ban, never drag), no-silent-reshuffle update banner, explain cards, merge-preview add flow. Supersedes frames 2d/1d where they conflict; open questions for Luke at the end of the doc.
 2. **design/DESIGN-PACKAGE.md** — UI handoff from design: tokens, shared atoms, per-screen specs (frames 1a–3f), interaction rules. This is the UI source of truth.
 3. **design/iron-hub-mockups.html** — open in a browser. High-fidelity mockups; frame id badges (1a–1d visual system/P0, 2a–2g module tabs, 3a–3f overlays/infoboxes) match the sections in DESIGN-PACKAGE.md.
 4. DESIGN-HANDOVER.md — the original design brief; superseded by the design package where they differ.

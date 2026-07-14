@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <style>
+    body { margin: 0; background: #161616; font-family: Helvetica, Arial, sans-serif; }
+    a { color: #DC8A00; text-decoration: none; }
+    a:hover { color: #F0A226; text-decoration: underline; }
+  </style>
+</helmet>
+
+<section style="padding:40px 48px 40px;display:flex;flex-direction:column;gap:24px;">
+
+  <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+    <div style="font-size:20px;font-weight:700;color:#DCDCDC;">Goal planner UX — frames 4a–4f</div>
+    <div style="font-size:12px;color:#8C8C8C;">Companion to design/PLANNER-UX.md and ENGINE-DESIGN.md · one plan, three views (Today / Route / Goals) · reorder by constraint (pin/snooze/ban), never by drag · no silent reshuffles · all type maps to the ≥14px UiTokens scale in-client · sample account = ENGINE-DESIGN Appendix D fixture</div>
+  </div>
+
+  <div style="display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap;">
+
+  <!-- ============ 4a · TODAY VIEW ============ -->
+  <div id="4a" data-screen-label="Planner — Today view" style="display:flex;flex-direction:column;gap:8px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">4a</span>
+      <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Today — the session view (default)</span>
+    </div>
+    <div style="width:225px;background:#262626;border:1px solid #3A3A3A;display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;">
+        <a href="#4a" title="Back" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:14px;">‹</a>
+        <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Goal planner</span>
+        <a href="#4e" style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;border-radius:2px;" style-hover="background:#F0A226;text-decoration:none;">+ Goal</a>
+      </div>
+      <div style="padding:8px 8px 0;">
+        <div style="display:flex;border:1px solid #454545;border-radius:2px;overflow:hidden;">
+          <span style="flex:1;height:20px;display:inline-flex;align-items:center;justify-content:center;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;">Today</span>
+          <a href="#4c" style="flex:1;height:20px;display:inline-flex;align-items:center;justify-content:center;background:#2B2B2B;color:#9A9A9A;font-size:11px;" style-hover="color:#DCDCDC;text-decoration:none;">Route</a>
+          <a href="#4f" style="flex:1;height:20px;display:inline-flex;align-items:center;justify-content:center;background:#2B2B2B;color:#9A9A9A;font-size:11px;" style-hover="color:#DCDCDC;text-decoration:none;">Goals</a>
+        </div>
+      </div>
+      <!-- horizon header -->
+      <div style="display:flex;align-items:baseline;gap:6px;padding:8px;border-bottom:1px solid #333333;">
+        <a href="#4c" title="See the full route" style="font-size:12px;font-weight:700;color:#DCDCDC;" style-hover="color:#F0A226;text-decoration:none;">All goals · ~212h</a>
+        <span style="flex:1;"></span>
+        <span title="Measured 5.1h/week over the last 4 weeks" style="font-size:11px;color:#8C8C8C;cursor:help;">at your pace ~6w</span>
+      </div>
+      <!-- budget chips -->
+      <div style="display:flex;gap:3px;padding:8px 8px 0;">
+        <span style="height:18px;display:inline-flex;align-items:center;padding:0 7px;background:#2B2B2B;border:1px solid #3F3F3F;border-radius:2px;color:#9A9A9A;font-size:10px;cursor:pointer;" style-hover="border-color:#DC8A00;color:#DCDCDC;">30m</span>
+        <span style="height:18px;display:inline-flex;align-items:center;padding:0 7px;background:#333333;border:1px solid #DC8A00;border-radius:2px;color:#DCDCDC;font-size:10px;font-weight:700;">1h</span>
+        <span style="height:18px;display:inline-flex;align-items:center;padding:0 7px;background:#2B2B2B;border:1px solid #3F3F3F;border-radius:2px;color:#9A9A9A;font-size:10px;cursor:pointer;" style-hover="border-color:#DC8A00;color:#DCDCDC;">2h+</span>
+        <span style="height:18px;display:inline-flex;align-items:center;padding:0 7px;background:#2B2B2B;border:1px solid #3F3F3F;border-radius:2px;color:#9A9A9A;font-size:10px;cursor:pointer;" style-hover="border-color:#DC8A00;color:#DCDCDC;">AFK</span>
+      </div>
+      <!-- NOW card -->
+      <div style="padding:8px;display:flex;flex-direction:column;gap:5px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">NOW</div>
+        <div style="display:flex;flex-direction:column;gap:5px;padding:6px;background:#2B2B2B;border:1px solid #DC8A00;border-radius:2px;cursor:pointer;">
+          <div style="display:flex;align-items:baseline;gap:6px;">
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:700;color:#DCDCDC;">Start Fairytale II</span>
+            <span style="flex:none;font-size:11px;font-weight:700;color:#DC8A00;">~15m</span>
+          </div>
+          <div style="font-size:11px;color:#E0A23C;">Unlocks fairy rings — saves ~3.5h across 14 later steps</div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span title="Serves: Bowfa, Quest cape, Base 70s" style="flex:1;font-size:10px;color:#8C8C8C;">serves 3 goals</span>
+            <span title="Path to Zanaris (Shortest Path)" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:10px;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">⚑</span>
+            <span title="Open wiki quest guide" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:10px;font-weight:700;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">W</span>
+          </div>
+        </div>
+      </div>
+      <!-- UP NEXT -->
+      <div style="padding:0 8px 8px;display:flex;flex-direction:column;gap:4px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">UP NEXT</div>
+        <div title="Right-click: pin / snooze / ban / alternatives" style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+          <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:10px;font-weight:700;">●</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Ardougne cloak 2</span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">~40m</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+          <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:10px;font-weight:700;">●</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Royal Titans prayers</span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">~2h</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+          <span style="flex:none;width:14px;text-align:center;color:#808080;font-size:10px;">○</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Kandarin hard diary</span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">~1.5h</span>
+        </div>
+      </div>
+      <!-- PASSIVE LANE -->
+      <div style="padding:0 8px 8px;display:flex;flex-direction:column;gap:4px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">PASSIVE LANE</div>
+        <div style="display:flex;flex-direction:column;gap:3px;padding:6px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span style="flex:none;width:14px;text-align:center;color:#4DAE58;font-size:10px;font-weight:700;">●</span>
+            <span style="flex:1;font-size:11px;color:#C4C4C4;">Farming 61→65</span>
+            <span style="font-size:10px;color:#8C8C8C;">~Aug 2</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:10px;font-weight:700;">!</span>
+            <span style="flex:1;font-size:11px;color:#E0A23C;">Birdhouses idle 3h</span>
+            <a href="#4a" style="font-size:10px;color:#DC8A00;">go ›</a>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span style="flex:none;width:14px;text-align:center;color:#4DAE58;font-size:10px;font-weight:700;">●</span>
+            <span style="flex:1;font-size:11px;color:#C4C4C4;">Kingdom · approval 84%</span>
+          </div>
+        </div>
+      </div>
+      <!-- since last session -->
+      <div style="padding:0 8px 8px;">
+        <div style="display:flex;align-items:center;gap:5px;padding:4px 6px;background:#252525;border:1px solid #333333;border-radius:2px;">
+          <span style="flex:none;width:14px;text-align:center;color:#4DAE58;font-size:10px;font-weight:700;">✓</span>
+          <span style="flex:1;font-size:10px;color:#8C8C8C;">since last session: Fairytale I done · plan −1.3h</span>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#6B6B6B;max-width:225px;">Budget chip filters Up next to fitting steps (AFK = afk-tagged only). NOW is the only accent-bordered card. Right-click any row: pin / snooze / ban / alternatives.</div>
+  </div>
+
+  <!-- ============ 4b · STEP EXPAND ============ -->
+  <div id="4b" data-screen-label="Planner — step explain card" style="display:flex;flex-direction:column;gap:8px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">4b</span>
+      <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Step expand — the explain card</span>
+    </div>
+    <div style="width:225px;background:#262626;border:1px solid #3A3A3A;display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;">
+        <a href="#4c" title="Back" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:14px;">‹</a>
+        <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Goal planner</span>
+      </div>
+      <div style="padding:8px;display:flex;flex-direction:column;gap:4px;">
+        <!-- collapsed row above for context -->
+        <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:24px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+          <span style="flex:none;font-size:9px;color:#6B6B6B;">6</span>
+          <span style="flex:none;width:14px;text-align:center;color:#4DAE58;font-size:10px;font-weight:700;">✓</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8C8C8C;font-size:12px;text-decoration:line-through;">Song of the Elves</span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">3.1h</span>
+        </div>
+        <!-- EXPANDED row -->
+        <div style="display:flex;flex-direction:column;gap:6px;padding:6px;background:#2B2B2B;border:1px solid #454545;border-radius:2px;">
+          <div style="display:flex;align-items:baseline;gap:6px;">
+            <span style="flex:none;font-size:9px;color:#6B6B6B;">7</span>
+            <span style="flex:1;min-width:0;font-size:12px;font-weight:700;color:#DCDCDC;">Agility 62→70</span>
+            <span style="flex:none;font-size:11px;font-weight:700;color:#DC8A00;">~8.1h</span>
+          </div>
+          <div style="font-size:11px;color:#C4C4C4;">Gates SotE's 8×70 block — the longest chain to Bowfa runs through this step.</div>
+          <div style="font-size:10px;color:#6B6B6B;">basis: measured 46k/hr (4.2h sampled) · pack 52k/hr</div>
+          <div style="display:flex;gap:3px;flex-wrap:wrap;">
+            <a href="#4d" style="height:18px;display:inline-flex;align-items:center;padding:0 7px;background:#333333;border:1px solid #3F3F3F;border-radius:2px;color:#C4C4C4;font-size:10px;" style-hover="border-color:#DC8A00;text-decoration:none;">Bowfa</a>
+            <span style="height:18px;display:inline-flex;align-items:center;padding:0 7px;background:#333333;border:1px solid #3F3F3F;border-radius:2px;color:#C4C4C4;font-size:10px;">Quest cape</span>
+            <span style="height:18px;display:inline-flex;align-items:center;padding:0 7px;background:#333333;border:1px solid #3F3F3F;border-radius:2px;color:#C4C4C4;font-size:10px;">Base 70s</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">ALTERNATIVES</div>
+            <div style="display:flex;align-items:center;gap:5px;padding:3px 6px;background:#252525;border:1px solid #333333;border-radius:2px;">
+              <span style="flex:1;font-size:11px;color:#C4C4C4;">Colossal Wyrm course · +2.3h · low intensity</span>
+              <span title="Prefer this method for Agility" style="flex:none;font-size:10px;color:#DC8A00;cursor:pointer;">prefer</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;padding:3px 6px;background:#252525;border:1px solid #333333;border-radius:2px;">
+              <span style="flex:1;font-size:11px;color:#C4C4C4;">Sepulchre from 72 · −1.1h · intense</span>
+              <span style="flex:none;font-size:10px;color:#DC8A00;cursor:pointer;">prefer</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:4px;">
+            <span style="flex:1;height:22px;display:inline-flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#C4C4C4;font-size:11px;cursor:pointer;" style-hover="border-color:#DC8A00;color:#DCDCDC;">Pin next</span>
+            <span style="flex:1;height:22px;display:inline-flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#C4C4C4;font-size:11px;cursor:pointer;" style-hover="border-color:#DC8A00;color:#DCDCDC;">Snooze</span>
+            <span style="flex:1;height:22px;display:inline-flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#C4C4C4;font-size:11px;cursor:pointer;" style-hover="border-color:#D95757;color:#D95757;">Ban</span>
+          </div>
+        </div>
+        <!-- stochastic row below, collapsed, for contrast -->
+        <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:24px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+          <span style="flex:none;font-size:9px;color:#6B6B6B;">8</span>
+          <span style="flex:none;width:14px;text-align:center;color:#808080;font-size:10px;">○</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Corrupted Gauntlet · seed</span>
+          <span title="~17h expected · up to ~39h if unlucky" style="flex:none;font-size:10px;color:#8C8C8C;">~17h</span>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#6B6B6B;max-width:225px;">One expand open at a time (diaries pattern). Stochastic times keep the tilde in the row; the spread ("up to ~39h") lives in the expand + tooltip only. Ban asks for no confirmation — the update banner offers undo.</div>
+  </div>
+
+  <!-- ============ 4c · ROUTE VIEW ============ -->
+  <div id="4c" data-screen-label="Planner — Route view" style="display:flex;flex-direction:column;gap:8px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">4c</span>
+      <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Route — the whole plan, chaptered</span>
+    </div>
+    <div style="width:225px;background:#262626;border:1px solid #3A3A3A;display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;">
+        <a href="#4a" title="Back" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:14px;">‹</a>
+        <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Goal planner</span>
+        <a href="#4e" style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;border-radius:2px;" style-hover="background:#F0A226;text-decoration:none;">+ Goal</a>
+      </div>
+      <div style="padding:8px 8px 0;">
+        <div style="display:flex;border:1px solid #454545;border-radius:2px;overflow:hidden;">
+          <a href="#4a" style="flex:1;height:20px;display:inline-flex;align-items:center;justify-content:center;background:#2B2B2B;color:#9A9A9A;font-size:11px;" style-hover="color:#DCDCDC;text-decoration:none;">Today</a>
+          <span style="flex:1;height:20px;display:inline-flex;align-items:center;justify-content:center;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;">Route</span>
+          <a href="#4f" style="flex:1;height:20px;display:inline-flex;align-items:center;justify-content:center;background:#2B2B2B;color:#9A9A9A;font-size:11px;" style-hover="color:#DCDCDC;text-decoration:none;">Goals</a>
+        </div>
+      </div>
+      <!-- update banner -->
+      <div style="margin:8px 8px 0;display:flex;align-items:center;gap:5px;padding:4px 6px;background:#2E2A20;border:1px solid #E0A23C;border-radius:2px;cursor:pointer;">
+        <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:10px;font-weight:700;">!</span>
+        <span style="flex:1;font-size:10px;color:#E0A23C;">Plan updated: 2 steps cheaper, 1 reordered</span>
+        <span style="flex:none;font-size:10px;font-weight:700;color:#DC8A00;">apply ›</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:6px;padding:8px;border-bottom:1px solid #333333;">
+        <span style="font-size:12px;font-weight:700;color:#DCDCDC;">~212h to all goals</span>
+        <span style="flex:1;"></span>
+        <span style="font-size:10px;color:#8C8C8C;">3 goals · 34 steps</span>
+      </div>
+      <!-- chapter 1 -->
+      <div style="padding:8px 8px 0;display:flex;flex-direction:column;gap:4px;">
+        <div style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <span style="color:#8C8C8C;font-size:9px;">▾</span>
+          <span style="flex:1;font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">QUESTS &amp; UNLOCKS · ~9H</span>
+          <div style="flex:none;width:40px;height:4px;background:#1F1F1F;"><div style="width:44%;height:100%;background:#4DAE58;"></div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:24px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+          <span style="flex:none;font-size:9px;color:#6B6B6B;">1</span>
+          <span style="flex:none;width:14px;text-align:center;color:#4DAE58;font-size:10px;font-weight:700;">✓</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8C8C8C;font-size:12px;text-decoration:line-through;">Fairytale I</span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">1.3h</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:24px;background:#2B2B2B;border:1px solid #DC8A00;border-radius:2px;cursor:pointer;">
+          <span style="flex:none;font-size:9px;color:#6B6B6B;">2</span>
+          <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:10px;font-weight:700;">●</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#DCDCDC;font-size:12px;font-weight:700;">Start Fairytale II</span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">~15m</span>
+        </div>
+        <div title="Also serves Quest cape and Base 70s" style="display:flex;align-items:center;gap:6px;padding:0 6px;height:24px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+          <span style="flex:none;font-size:9px;color:#6B6B6B;">3</span>
+          <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:10px;font-weight:700;">●</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Ardougne cloak 2 <span style="color:#6B6B6B;font-size:9px;">×3</span></span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">~40m</span>
+        </div>
+        <div title="Pinned — you asked for this next" style="display:flex;align-items:center;gap:6px;padding:0 6px;height:24px;background:#2B2B2B;border:1px solid #333333;border-left:2px solid #DC8A00;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+          <span style="flex:none;font-size:9px;color:#6B6B6B;">4</span>
+          <span style="flex:none;width:14px;text-align:center;color:#808080;font-size:10px;">○</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Royal Titans prayers</span>
+          <span title="Pinned: plan +0.4h vs optimal" style="flex:none;font-size:9px;color:#DC8A00;">pin</span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">~2h</span>
+        </div>
+      </div>
+      <!-- chapter 2 -->
+      <div style="padding:8px 8px 0;display:flex;flex-direction:column;gap:4px;">
+        <div style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <span style="color:#8C8C8C;font-size:9px;">▾</span>
+          <span style="flex:1;font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">STAT BLOCKS · ~41H</span>
+          <div style="flex:none;width:40px;height:4px;background:#1F1F1F;"><div style="width:12%;height:100%;background:#E0A23C;"></div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:24px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+          <span style="flex:none;font-size:9px;color:#6B6B6B;">7</span>
+          <span style="flex:none;width:14px;text-align:center;color:#808080;font-size:10px;">○</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Agility 62→70 <span style="color:#6B6B6B;font-size:9px;">×3</span></span>
+          <span style="flex:none;font-size:10px;color:#4DAE58;">−0.9h</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:24px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+          <span style="flex:none;font-size:9px;color:#6B6B6B;">8</span>
+          <span style="flex:none;width:14px;text-align:center;color:#808080;font-size:10px;">○</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Hunter 66→70 · rumours</span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">~5.4h</span>
+        </div>
+      </div>
+      <!-- collapsed chapters + snoozed -->
+      <div style="padding:8px;display:flex;flex-direction:column;gap:4px;">
+        <div style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <span style="color:#8C8C8C;font-size:9px;">▸</span>
+          <span style="flex:1;font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">THE CG GRIND · ~17H</span>
+          <div style="flex:none;width:40px;height:4px;background:#1F1F1F;"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <span style="color:#8C8C8C;font-size:9px;">▸</span>
+          <span style="flex:1;font-size:10px;font-weight:700;letter-spacing:0.08em;color:#6B6B6B;">SNOOZED (2)</span>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#6B6B6B;max-width:225px;">Banner never auto-applies while visible; applying shows green/red hour deltas (row 7) until the next interaction. ×N = serves N goals (tooltip lists them). Accent left edge = pinned. Banned steps live in Settings › Planner, not here.</div>
+  </div>
+
+  <!-- ============ 4d · GOAL DETAIL ============ -->
+  <div id="4d" data-screen-label="Planner — goal detail route slice" style="display:flex;flex-direction:column;gap:8px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">4d</span>
+      <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Goal detail — route slice (evolves 1d)</span>
+    </div>
+    <div style="width:225px;background:#262626;border:1px solid #3A3A3A;display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;">
+        <a href="#4f" title="Back" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:14px;">‹</a>
+        <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Bow of Faerdhinen</span>
+        <span style="height:18px;display:inline-flex;align-items:center;padding:0 6px;background:#333333;border:1px solid #DC8A00;border-radius:2px;color:#DC8A00;font-size:9px;font-weight:700;">ACTIVE</span>
+      </div>
+      <div style="padding:8px;border-bottom:1px solid #333333;display:flex;flex-direction:column;gap:5px;">
+        <div style="display:flex;align-items:baseline;gap:6px;">
+          <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">~34h remaining</span>
+          <span style="flex:none;font-size:11px;font-weight:700;color:#DC8A00;">34%</span>
+        </div>
+        <div style="height:10px;background:#1F1F1F;border:1px solid #3A3A3A;border-radius:2px;overflow:hidden;"><div style="width:34%;height:100%;background:#DC8A00;"></div></div>
+        <div style="font-size:10px;color:#8C8C8C;">12 of 21 steps · unlucky bound ~56h</div>
+      </div>
+      <div style="padding:8px 8px 0;">
+        <div style="display:flex;border:1px solid #454545;border-radius:2px;overflow:hidden;">
+          <span style="flex:1;height:20px;display:inline-flex;align-items:center;justify-content:center;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;">Route slice</span>
+          <span style="flex:1;height:20px;display:inline-flex;align-items:center;justify-content:center;background:#2B2B2B;color:#9A9A9A;font-size:11px;cursor:pointer;" style-hover="color:#DCDCDC;">Tree</span>
+        </div>
+      </div>
+      <!-- merge insight -->
+      <div style="margin:8px;display:flex;align-items:center;gap:5px;padding:4px 6px;background:#252525;border:1px solid #333333;border-radius:2px;">
+        <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:10px;font-weight:700;">●</span>
+        <span style="flex:1;font-size:10px;color:#8C8C8C;">6 of these steps also serve Quest cape — it would add only ~4h</span>
+      </div>
+      <div style="padding:0 8px 8px;display:flex;flex-direction:column;gap:4px;">
+        <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:24px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+          <span style="flex:none;width:14px;text-align:center;color:#4DAE58;font-size:10px;font-weight:700;">✓</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8C8C8C;font-size:12px;text-decoration:line-through;">Mourning's End Part II</span>
+          <span style="flex:none;font-size:9px;color:#6B6B6B;">auto</span>
+        </div>
+        <div title="Critical path — this step gates your finish date" style="display:flex;align-items:center;gap:6px;padding:0 6px;height:24px;background:#2B2B2B;border:1px solid #333333;border-left:2px solid #E0A23C;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+          <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:10px;font-weight:700;">●</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Agility 62→70 <span style="color:#6B6B6B;font-size:9px;">shared</span></span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">~8.1h</span>
+        </div>
+        <div title="Critical path" style="display:flex;align-items:center;gap:6px;padding:0 6px;height:24px;background:#2B2B2B;border:1px solid #333333;border-left:2px solid #E0A23C;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+          <span style="flex:none;width:14px;text-align:center;color:#808080;font-size:10px;">○</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Song of the Elves</span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">~3h</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:24px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+          <span style="flex:none;width:14px;text-align:center;color:#808080;font-size:10px;">○</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">150 crystal shards <span style="color:#6B6B6B;font-size:9px;">shared</span></span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">~2.5h</span>
+        </div>
+        <div title="Critical path" style="display:flex;align-items:center;gap:6px;padding:0 6px;height:24px;background:#2B2B2B;border:1px solid #333333;border-left:2px solid #E0A23C;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+          <span style="flex:none;width:14px;text-align:center;color:#808080;font-size:10px;">○</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Corrupted Gauntlet · seed</span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">~17h</span>
+        </div>
+      </div>
+      <div style="padding:0 8px 8px;">
+        <div style="font-size:9px;color:#6B6B6B;">✓ steps auto-complete from account state · amber edge = critical path</div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#6B6B6B;max-width:225px;">Tree toggle keeps the existing 1d dependency view (structure); the slice answers "path + hours". Goal-level unlucky bound shown once in the header card, not per row.</div>
+  </div>
+
+  <!-- ============ 4e · ADD GOAL ============ -->
+  <div id="4e" data-screen-label="Planner — add goal with merge preview" style="display:flex;flex-direction:column;gap:8px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">4e</span>
+      <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Add goal — search-first + merge preview</span>
+    </div>
+    <div style="width:225px;background:#262626;border:1px solid #3A3A3A;display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;">
+        <a href="#4a" title="Back" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:14px;">‹</a>
+        <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Add goal</span>
+      </div>
+      <div style="padding:8px;">
+        <div style="display:flex;align-items:center;gap:6px;height:24px;padding:0 8px;background:#1F1F1F;border:1px solid #DC8A00;border-radius:2px;">
+          <span style="color:#8C8C8C;font-size:11px;">⌕</span>
+          <span style="flex:1;font-size:12px;color:#DCDCDC;">diary cape<span style="border-left:1px solid #DC8A00;margin-left:1px;"></span></span>
+          <span style="color:#6B6B6B;font-size:11px;cursor:pointer;">×</span>
+        </div>
+      </div>
+      <div style="padding:0 8px 8px;display:flex;flex-direction:column;gap:4px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">GOALS</div>
+        <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #DC8A00;border-radius:2px;">
+          <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#9A9A9A;">AD</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#DCDCDC;font-size:12px;font-weight:700;">Achievement diary cape</span>
+        </div>
+        <!-- merge preview -->
+        <div style="display:flex;flex-direction:column;gap:5px;padding:6px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;">
+          <div style="font-size:11px;color:#C4C4C4;">adds <span style="font-weight:700;color:#DCDCDC;">~68h</span> to plan · <span style="color:#4DAE58;">~46h already shared</span> with your goals</div>
+          <div style="font-size:10px;color:#8C8C8C;">shares: 70 Agility · SotE chain · 9 more</div>
+          <div style="font-size:10px;color:#8C8C8C;">new chapter: ELITE DIARIES (~22h)</div>
+          <span style="height:22px;display:inline-flex;align-items:center;justify-content:center;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;border-radius:2px;cursor:pointer;" style-hover="background:#F0A226;">+ Add goal</span>
+        </div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;margin-top:4px;">SKILLS</div>
+        <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+          <span style="flex:none;width:16px;height:16px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#9A9A9A;">FM</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Firemaking → level…</span>
+        </div>
+      </div>
+      <div style="padding:0 8px 8px;display:flex;flex-direction:column;gap:5px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">BROWSE TARGETS</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;">
+          <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+            <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">FC</span>
+            <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Fire cape</span>
+          </div>
+          <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+            <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">QC</span>
+            <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Quest cape</span>
+          </div>
+          <div style="padding:5px 2px 4px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+            <span style="width:22px;height:22px;background:#3A3A3A;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#9A9A9A;">IN</span>
+            <span style="max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#C4C4C4;">Infernal</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#6B6B6B;max-width:225px;">One search box covers pack goals, gear items, quests, skills ("firemaking 92"), bosses (KC), CA/diary tasks. Preview numbers come from a live dry-run merge (&lt;100ms). Shared hours in green — the reason to add goals here, not track lists elsewhere.</div>
+  </div>
+
+  <!-- ============ 4f · GOALS VIEW ============ -->
+  <div id="4f" data-screen-label="Planner — Goals view" style="display:flex;flex-direction:column;gap:8px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px;">4f</span>
+      <span style="font-size:13px;font-weight:700;color:#DCDCDC;">Goals — configuration view (evolves 2d)</span>
+    </div>
+    <div style="width:225px;background:#262626;border:1px solid #3A3A3A;display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;background:#2B2B2B;border-bottom:1px solid #333333;">
+        <a href="#4a" title="Back" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#8C8C8C;font-size:14px;">‹</a>
+        <span style="flex:1;font-size:12px;font-weight:700;color:#DCDCDC;">Goal planner</span>
+        <a href="#4e" style="height:20px;display:inline-flex;align-items:center;padding:0 8px;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;border-radius:2px;" style-hover="background:#F0A226;text-decoration:none;">+ Goal</a>
+      </div>
+      <div style="padding:8px 8px 0;">
+        <div style="display:flex;border:1px solid #454545;border-radius:2px;overflow:hidden;">
+          <a href="#4a" style="flex:1;height:20px;display:inline-flex;align-items:center;justify-content:center;background:#2B2B2B;color:#9A9A9A;font-size:11px;" style-hover="color:#DCDCDC;text-decoration:none;">Today</a>
+          <a href="#4c" style="flex:1;height:20px;display:inline-flex;align-items:center;justify-content:center;background:#2B2B2B;color:#9A9A9A;font-size:11px;" style-hover="color:#DCDCDC;text-decoration:none;">Route</a>
+          <span style="flex:1;height:20px;display:inline-flex;align-items:center;justify-content:center;background:#DC8A00;color:#1E1E1E;font-size:11px;font-weight:700;">Goals</span>
+        </div>
+      </div>
+      <div style="padding:8px;border-bottom:1px solid #333333;display:flex;flex-direction:column;gap:5px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">ACTIVE</div>
+        <div style="display:flex;flex-direction:column;gap:5px;padding:6px;background:#2B2B2B;border:1px solid #DC8A00;border-radius:2px;">
+          <div style="display:flex;align-items:baseline;gap:6px;">
+            <a href="#4d" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:700;color:#DCDCDC;">Bow of Faerdhinen</a>
+            <span style="flex:none;font-size:11px;font-weight:700;color:#DC8A00;">34%</span>
+          </div>
+          <div style="height:10px;background:#1F1F1F;border:1px solid #3A3A3A;border-radius:2px;overflow:hidden;"><div style="width:34%;height:100%;background:#DC8A00;"></div></div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span style="flex:1;font-size:11px;color:#8C8C8C;">~34h remaining</span>
+            <a href="#4d" style="flex:none;font-size:10px;color:#DC8A00;">route ›</a>
+          </div>
+        </div>
+      </div>
+      <div style="padding:8px;border-bottom:1px solid #333333;display:flex;flex-direction:column;gap:4px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">OTHER GOALS</div>
+        <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Quest cape</span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">~52h</span>
+          <div style="flex:none;width:40px;height:4px;background:#1F1F1F;"><div style="width:61%;height:100%;background:#DC8A00;"></div></div>
+          <span title="Pin as active" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">▲</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#2B2B2B;border:1px solid #333333;border-radius:2px;cursor:pointer;" style-hover="border-color:#DC8A00;">
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#C4C4C4;font-size:12px;">Base 70 stats</span>
+          <span style="flex:none;font-size:10px;color:#8C8C8C;">~18h</span>
+          <div style="flex:none;width:40px;height:4px;background:#1F1F1F;"><div style="width:84%;height:100%;background:#DC8A00;"></div></div>
+          <span title="Pin as active" style="flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:#333333;border:1px solid #454545;border-radius:2px;color:#9A9A9A;font-size:9px;cursor:pointer;" style-hover="color:#DC8A00;border-color:#DC8A00;">▲</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;padding:4px 6px;background:#252525;border:1px solid #333333;border-radius:2px;">
+          <span style="flex:none;width:14px;text-align:center;color:#E0A23C;font-size:10px;font-weight:700;">●</span>
+          <span style="flex:1;font-size:10px;color:#8C8C8C;">merged plan saves ~46h vs pursuing these separately</span>
+        </div>
+      </div>
+      <div style="padding:8px;display:flex;flex-direction:column;gap:4px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="flex:1;font-size:10px;font-weight:700;letter-spacing:0.08em;color:#8C8C8C;">COMPLETED</span>
+          <span style="font-size:10px;color:#4DAE58;">this month: 3 ✓</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:0 6px;height:26px;background:#252525;border:1px solid #333333;border-radius:2px;">
+          <span style="flex:none;width:14px;text-align:center;color:#4DAE58;font-size:10px;font-weight:700;">✓</span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8C8C8C;font-size:12px;">Barrows gloves</span>
+          <span title="Estimated 11h · took 9.5h" style="flex:none;font-size:10px;color:#8C8C8C;">9.5h</span>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#6B6B6B;max-width:225px;">2d evolved: rows gain remaining-hours (the missing number), the dedupe note is computed not copy, browse grid moved to Add goal. Completed rows show measured hours (tooltip: estimate vs actual).</div>
+  </div>
+
+  </div>
+</section>
+
+</x-dc>
+</body>
+</html>
