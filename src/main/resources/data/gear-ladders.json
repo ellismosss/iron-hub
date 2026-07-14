@@ -1,0 +1,27 @@
+{
+  "$schema": "./schemas/gear-ladders.schema.json",
+  "version": 1,
+  "styles": [
+    {
+      "style": "Melee",
+      "slots": [
+        {
+          "slot": "weapon",
+          "ladder": [
+            {"itemId": 1323, "name": "Iron scimitar", "requirements": ["skill:Attack:1"]},
+            {"itemId": 1333, "name": "Rune scimitar", "requirements": ["skill:Attack:40"]},
+            {"itemId": 4587, "name": "Dragon scimitar", "requirements": ["skill:Attack:60", "quest:Monkey Madness I"]},
+            {"itemId": 4151, "name": "Abyssal whip", "requirements": ["skill:Attack:70", "kc:Abyssal demon:1"]}
+          ]
+        },
+        {
+          "slot": "shield",
+          "ladder": [
+            {"itemId": 1201, "name": "Rune kiteshield", "requirements": ["skill:Defence:40"]},
+            {"itemId": 12954, "name": "Dragon defender", "requirements": ["skill:Attack:60", "skill:Defence:60"]}
+          ]
+        }
+      ]
+    }
+  ]
+}
