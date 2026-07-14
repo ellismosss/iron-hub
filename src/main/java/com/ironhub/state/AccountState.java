@@ -69,6 +69,9 @@ public class AccountState
 	// supplies consumed per source (canonical item ids, persisted); the
 	// checkpoint is carried gear at the last bank interaction or kill
 	private final Map<String, Map<Integer, Integer>> suppliesBySource = new ConcurrentHashMap<>();
+
+	// completed herb run durations, persisted (avg/best/count stats)
+	private final java.util.List<Long> herbRunsMs = new CopyOnWriteArrayList<>();
 	private volatile Map<Integer, Integer> supplyCheckpoint = Map.of();
 
 	// varbits/varps modules registered interest in (diary tiers, CA points,
@@ -257,6 +260,19 @@ public class AccountState
 	public Map<Integer, Integer> suppliesFor(String source)
 	{
 		return suppliesBySource.getOrDefault(source, Map.of());
+	}
+
+	/** Completed herb run durations in millis, oldest first. */
+	public java.util.List<Long> getHerbRunsMs()
+	{
+		return java.util.Collections.unmodifiableList(herbRunsMs);
+	}
+
+	public void recordHerbRun(long durationMs)
+	{
+		herbRunsMs.add(durationMs);
+		persist();
+		notifyListeners();
 	}
 
 	/**
@@ -501,6 +517,8 @@ public class AccountState
 		suppliesBySource.clear();
 		persisted.suppliesBySource.forEach((src, items) ->
 			suppliesBySource.put(src, new ConcurrentHashMap<>(items)));
+		herbRunsMs.clear();
+		herbRunsMs.addAll(persisted.herbRunsMs);
 		log.debug("activated profile {} ({} banked item stacks)", hash, bank.size());
 	}
 
@@ -519,6 +537,7 @@ public class AccountState
 		state.dailiesDoneAt = new HashMap<>(dailiesDoneAt);
 		lootBySource.forEach((src, items) -> state.lootBySource.put(src, new HashMap<>(items)));
 		suppliesBySource.forEach((src, items) -> state.suppliesBySource.put(src, new HashMap<>(items)));
+		state.herbRunsMs = new java.util.ArrayList<>(herbRunsMs);
 		store.save(profile, state);
 	}
 

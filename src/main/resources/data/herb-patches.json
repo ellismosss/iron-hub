@@ -1,0 +1,15 @@
+{
+  "$schema": "./schemas/herb-patches.schema.json",
+  "version": 1,
+  "patches": [
+    {"id": "falador", "name": "Falador", "location": {"x": 3058, "y": 3311, "plane": 0}},
+    {"id": "ardougne", "name": "Ardougne", "location": {"x": 2670, "y": 3374, "plane": 0}},
+    {"id": "catherby", "name": "Catherby", "location": {"x": 2813, "y": 3463, "plane": 0}},
+    {"id": "morytania", "name": "Morytania", "location": {"x": 3605, "y": 3529, "plane": 0}},
+    {"id": "troll_stronghold", "name": "Troll Stronghold", "location": {"x": 2826, "y": 3694, "plane": 0}},
+    {"id": "weiss", "name": "Weiss", "location": {"x": 2848, "y": 3934, "plane": 0}},
+    {"id": "farming_guild", "name": "Farming Guild", "location": {"x": 1238, "y": 3726, "plane": 0}},
+    {"id": "harmony", "name": "Harmony Island", "location": {"x": 3789, "y": 2837, "plane": 0}},
+    {"id": "varlamore", "name": "Civitas illa Fortis", "location": {"x": 1582, "y": 3094, "plane": 0}}
+  ]
+}

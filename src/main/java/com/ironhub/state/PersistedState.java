@@ -1,5 +1,6 @@
 package com.ironhub.state;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -20,4 +21,5 @@ class PersistedState
 	Map<String, Long> dailiesDoneAt = new HashMap<>(); // daily id -> epoch millis of manual tick
 	Map<String, Map<Integer, Integer>> lootBySource = new HashMap<>(); // npc -> item id -> total qty
 	Map<String, Map<Integer, Integer>> suppliesBySource = new HashMap<>(); // npc -> canonical item id -> consumed qty
+	java.util.List<Long> herbRunsMs = new ArrayList<>(); // completed herb run durations
 }
