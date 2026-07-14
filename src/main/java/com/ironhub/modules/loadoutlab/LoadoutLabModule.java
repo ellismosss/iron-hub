@@ -359,52 +359,74 @@ public class LoadoutLabModule implements IronHubModule
 			setupView.add(new SectionLabel("Saved setup"));
 			setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 
-			JPanel equipment = new JPanel(new GridLayout(0, 3, UiTokens.GRID_GAP, UiTokens.GRID_GAP));
+			// Inventory Setups look: fixed 46x42 slot boxes, 1px gaps,
+			// blank corners as dark boxes
+			JPanel equipment = new JPanel(new GridLayout(5, 3, 1, 1));
 			equipment.setOpaque(false);
 			equipment.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+			equipment.setMaximumSize(new Dimension(3 * 46 + 2, 5 * 42 + 4));
 			for (EquipmentInventorySlot[] row : GRID)
 			{
 				for (EquipmentInventorySlot slot : row)
 				{
 					Integer id = slot == null ? null : saved.equipment.get(slot.name());
-					equipment.add(tileCell(id, slot == null ? null
+					equipment.add(slotBox(id, slot == null ? null
 						: slot.name().toLowerCase(java.util.Locale.ROOT), 0));
 				}
 			}
-			setupView.add(equipment);
+			JPanel equipmentRow = new JPanel();
+			equipmentRow.setLayout(new BoxLayout(equipmentRow, BoxLayout.X_AXIS));
+			equipmentRow.setOpaque(false);
+			equipmentRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+			equipmentRow.add(equipment);
+			equipmentRow.add(Box.createHorizontalGlue());
+			setupView.add(equipmentRow);
 
 			if (saved.pouchRunes.length > 0 && java.util.Arrays.stream(saved.pouchRunes).anyMatch(r -> r > 0))
 			{
 				setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 				JLabel pouch = smallLabel("Rune pouch");
 				setupView.add(pouch);
-				JPanel runes = new JPanel(new GridLayout(1, 4, UiTokens.GRID_GAP, 0));
+				JPanel runes = new JPanel(new GridLayout(1, 4, 1, 1));
 				runes.setOpaque(false);
 				runes.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-				runes.setMaximumSize(new Dimension(4 * 40, 40));
+				runes.setMaximumSize(new Dimension(4 * 46 + 3, 42));
 				for (int i = 0; i < saved.pouchRunes.length; i++)
 				{
-					runes.add(tileCell(saved.pouchRunes[i] > 0 ? saved.pouchRunes[i] : null,
+					runes.add(slotBox(saved.pouchRunes[i] > 0 ? saved.pouchRunes[i] : null,
 						"empty", saved.pouchAmounts.length > i ? saved.pouchAmounts[i] : 0));
 				}
-				setupView.add(runes);
+				JPanel runesRow = new JPanel();
+				runesRow.setLayout(new BoxLayout(runesRow, BoxLayout.X_AXIS));
+				runesRow.setOpaque(false);
+				runesRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+				runesRow.add(runes);
+				runesRow.add(Box.createHorizontalGlue());
+				setupView.add(runesRow);
 			}
 
 			if (saved.inventory.length > 0)
 			{
 				setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 				setupView.add(smallLabel("Inventory"));
-				JPanel inv = new JPanel(new GridLayout(7, 4, UiTokens.GRID_GAP, UiTokens.GRID_GAP));
+				JPanel inv = new JPanel(new GridLayout(7, 4, 1, 1));
 				inv.setOpaque(false);
 				inv.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+				inv.setMaximumSize(new Dimension(4 * 46 + 3, 7 * 42 + 6));
 				for (int i = 0; i < 28; i++)
 				{
 					Integer id = i < saved.inventory.length && saved.inventory[i] > 0
 						? saved.inventory[i] : null;
-					inv.add(tileCell(id, "empty",
+					inv.add(slotBox(id, "empty",
 						id != null && saved.inventoryQty.length > i ? saved.inventoryQty[i] : 0));
 				}
-				setupView.add(inv);
+				JPanel invRow = new JPanel();
+				invRow.setLayout(new BoxLayout(invRow, BoxLayout.X_AXIS));
+				invRow.setOpaque(false);
+				invRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+				invRow.add(inv);
+				invRow.add(Box.createHorizontalGlue());
+				setupView.add(invRow);
 			}
 		}
 		setupView.revalidate();
@@ -420,33 +442,45 @@ public class LoadoutLabModule implements IronHubModule
 		return label;
 	}
 
-	private JPanel tileCell(Integer itemId, String emptyTooltip, int quantity)
+	/** A 46x42 slot box, exactly the Inventory Setups look: darker-grey
+	 * filled slots, dark-grey empties/spacers, sprite centred with the
+	 * stack count baked into the icon. */
+	private JPanel slotBox(Integer itemId, String emptyTooltip, int quantity)
 	{
-		JPanel wrap = new JPanel();
-		wrap.setOpaque(false);
+		JPanel box = new JPanel(new BorderLayout());
+		box.setPreferredSize(new Dimension(46, 42));
+		box.setMinimumSize(new Dimension(46, 42));
+		box.setMaximumSize(new Dimension(46, 42));
 		if (emptyTooltip == null && itemId == null)
 		{
-			return wrap; // spacer in the equipment layout
+			box.setBackground(net.runelite.client.ui.ColorScheme.DARK_GRAY_COLOR);
+			return box; // spacer corner, a dark box like Inventory Setups
 		}
-		GridTile tile;
+		JLabel icon = new JLabel();
+		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 		if (itemId != null)
 		{
+			box.setBackground(net.runelite.client.ui.ColorScheme.DARKER_GRAY_COLOR);
 			String name = state.itemName(itemId);
-			tile = new GridTile("", quantity > 1 ? name + " x" + quantity : name,
-				GridTile.State.OWNED, false);
+			box.setToolTipText(quantity > 1 ? name + " x" + quantity : name);
 			if (itemManager != null)
 			{
 				AsyncBufferedImage sprite = itemManager.getImage(itemId, Math.max(1, quantity), quantity > 1);
-				tile.setIcon(new ImageIcon(sprite));
-				sprite.onLoaded(tile::repaint);
+				icon.setIcon(new ImageIcon(sprite));
+				sprite.onLoaded(() ->
+				{
+					icon.setIcon(new ImageIcon(sprite));
+					icon.repaint();
+				});
 			}
 		}
 		else
 		{
-			tile = new GridTile("", emptyTooltip, GridTile.State.LOCKED, false);
+			box.setBackground(net.runelite.client.ui.ColorScheme.DARKER_GRAY_COLOR);
+			box.setToolTipText(emptyTooltip);
 		}
-		wrap.add(tile);
-		return wrap;
+		box.add(icon, BorderLayout.CENTER);
+		return box;
 	}
 
 	/** The lab panel arrives async (its ~3MB dataset parses off-thread). */

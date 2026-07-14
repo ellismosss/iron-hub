@@ -476,6 +476,7 @@ public class LoadoutLabPanel extends PluginPanel
 		top.add(f2pOnly);
 
 		initToggle(slayerTask, "On task: slayer helmet bonuses apply");
+		slayerTask.setSelected(true); // Iron Hub: assume on-task by default
 		top.add(slayerTask);
 
 		// Wilderness only: cap the set to the items death mechanics keep.
@@ -617,7 +618,7 @@ public class LoadoutLabPanel extends PluginPanel
 		notePanel.add(noteHeader);
 		notePanel.add(noteArea);
 		notePanel.setVisible(false);
-		top.add(notePanel);
+		// Iron Hub: the personal note editor is dropped from the embedded panel
 
 		// Pinned items ("always bring") - click to manage.
 		pinnedLabel.setForeground(INFO);
@@ -2608,7 +2609,8 @@ public class LoadoutLabPanel extends PluginPanel
 		double specDrainValue, double replacedAutoExpected, String specFallbackTooltip, boolean markUnowned,
 		Loadout gameBest)
 	{
-		JPanel icons = new JPanel(new GridLayout(3, 4, 2, 2));
+		// Iron Hub: OSRS worn-equipment arrangement (Inventory Setups style)
+		JPanel icons = new JPanel(new GridLayout(5, 3, 1, 1));
 		icons.setOpaque(false);
 		icons.setAlignmentX(LEFT_ALIGNMENT);
 		int cell = ICON_SIZE + 4;
@@ -2619,6 +2621,7 @@ public class LoadoutLabPanel extends PluginPanel
 			fates = PvpRisk.assess(result.getLoadout(), specWeapon,
 				protectItem.isSelected() ? 4 : 3);
 		}
+		java.util.Map<GearSlot, RiskDotLabel> bySlot = new java.util.EnumMap<>(GearSlot.class);
 		for (GearSlot slotType : GRID_ORDER)
 		{
 			GearItem item = result.getLoadout().get(slotType);
@@ -2730,9 +2733,9 @@ public class LoadoutLabPanel extends PluginPanel
 					attachExclusionMenu(slot, Collections.emptyList(), extras);
 				}
 			}
-			icons.add(slot);
+			bySlot.put(slotType, slot);
 		}
-		// Cell 12: the special-attack weapon to swap in.
+		// The special-attack weapon to swap in (top-right, quiver-position).
 		RiskDotLabel specCell = new RiskDotLabel();
 		specCell.setPreferredSize(new Dimension(cell, cell));
 		specCell.setHorizontalAlignment(SwingConstants.CENTER);
@@ -2778,7 +2781,37 @@ public class LoadoutLabPanel extends PluginPanel
 			specCell.setBorder(BorderFactory.createLineBorder(BORDER_EMPTY));
 			specCell.setToolTipText("Spec: none");
 		}
-		icons.add(specCell);
+		// blank | head | spec, cape | neck | ammo, weapon | body | shield,
+		// blank | legs | blank, hands | feet | ring — the in-game layout
+		GearSlot[][] arrangement = {
+			{null, GearSlot.HEAD, null},
+			{GearSlot.CAPE, GearSlot.NECK, GearSlot.AMMO},
+			{GearSlot.WEAPON, GearSlot.BODY, GearSlot.SHIELD},
+			{null, GearSlot.LEGS, null},
+			{GearSlot.HANDS, GearSlot.FEET, GearSlot.RING},
+		};
+		boolean specPlaced = false;
+		for (GearSlot[] row : arrangement)
+		{
+			for (GearSlot slotType : row)
+			{
+				if (slotType != null)
+				{
+					icons.add(bySlot.get(slotType));
+				}
+				else if (!specPlaced)
+				{
+					icons.add(specCell); // first gap = the quiver position
+					specPlaced = true;
+				}
+				else
+				{
+					JLabel blank = new JLabel();
+					blank.setPreferredSize(new Dimension(cell, cell));
+					icons.add(blank);
+				}
+			}
+		}
 		// Stretch past the minimum so there is no dead right margin, but cap
 		// the width - unbounded stretch made cells balloon on wide layouts.
 		int height = 3 * cell + 4;
