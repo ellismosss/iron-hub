@@ -1,0 +1,12 @@
+{
+  "$schema": "./schemas/scenarios.schema.json",
+  "version": 1,
+  "scenarios": [
+    {"id": "general", "name": "General", "style": "Melee"},
+    {"id": "slayer_melee", "name": "Slayer task (melee)", "style": "Melee"},
+    {"id": "zulrah", "name": "Zulrah", "style": "Range"},
+    {"id": "vorkath", "name": "Vorkath", "style": "Range"},
+    {"id": "graardor", "name": "General Graardor", "style": "Melee"},
+    {"id": "kraken", "name": "Kraken", "style": "Mage"}
+  ]
+}
