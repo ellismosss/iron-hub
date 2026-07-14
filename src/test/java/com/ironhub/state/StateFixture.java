@@ -68,6 +68,11 @@ public final class StateFixture
 		state.ingestVarp(varpId, value);
 	}
 
+	public static void checkpointSupplies(AccountState state)
+	{
+		state.checkpointSupplies();
+	}
+
 	public static void itemNames(AccountState state, Map<Integer, String> names)
 	{
 		state.ingestItemNames(names);

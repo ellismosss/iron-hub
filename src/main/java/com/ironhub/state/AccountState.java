@@ -66,6 +66,11 @@ public class AccountState
 	// aggregated loot: npc name -> item id -> total quantity (persisted)
 	private final Map<String, Map<Integer, Integer>> lootBySource = new ConcurrentHashMap<>();
 
+	// supplies consumed per source (canonical item ids, persisted); the
+	// checkpoint is carried gear at the last bank interaction or kill
+	private final Map<String, Map<Integer, Integer>> suppliesBySource = new ConcurrentHashMap<>();
+	private volatile Map<Integer, Integer> supplyCheckpoint = Map.of();
+
 	// varbits/varps modules registered interest in (diary tiers, CA points,
 	// slayer task, …)
 	private final Set<Integer> watchedVarbits = ConcurrentHashMap.newKeySet();
@@ -227,6 +232,7 @@ public class AccountState
 	/** Aggregate a loot drop into the per-source totals (client thread). */
 	public void ingestLoot(String source, Map<Integer, Integer> items)
 	{
+		attributeConsumption(source);
 		Map<Integer, Integer> totals =
 			lootBySource.computeIfAbsent(source, s -> new ConcurrentHashMap<>());
 		items.forEach((id, qty) -> totals.merge(id, qty, Integer::sum));
@@ -245,6 +251,57 @@ public class AccountState
 	public java.util.Set<String> lootSources()
 	{
 		return java.util.Collections.unmodifiableSet(lootBySource.keySet());
+	}
+
+	/** Supplies consumed while killing a source (canonical id -> qty). */
+	public Map<Integer, Integer> suppliesFor(String source)
+	{
+		return suppliesBySource.getOrDefault(source, Map.of());
+	}
+
+	/**
+	 * A kill happened: carried items that decreased since the checkpoint
+	 * were consumed fighting this source. Potion sips cancel out via
+	 * variation mapping until the potion empties.
+	 * ponytail: drops/alchs between kills also count as consumption, and
+	 * eating a shark while picking one up nets to zero — per-kill
+	 * averages converge regardless; refine when Supplies Runway needs it.
+	 */
+	private void attributeConsumption(String source)
+	{
+		Map<Integer, Integer> current = carriedCanonical();
+		Map<Integer, Integer> checkpoint = supplyCheckpoint;
+		supplyCheckpoint = current;
+		if (checkpoint.isEmpty())
+		{
+			return; // no baseline yet (fresh login mid-trip)
+		}
+		Map<Integer, Integer> used = suppliesBySource.computeIfAbsent(source, s -> new ConcurrentHashMap<>());
+		checkpoint.forEach((id, before) ->
+		{
+			int delta = before - current.getOrDefault(id, 0);
+			if (delta > 0)
+			{
+				used.merge(id, delta, Integer::sum);
+			}
+		});
+	}
+
+	/** Inventory + equipment, variation-mapped to canonical item ids. */
+	private Map<Integer, Integer> carriedCanonical()
+	{
+		Map<Integer, Integer> carried = new HashMap<>();
+		inventory.forEach((id, qty) ->
+			carried.merge(net.runelite.client.game.ItemVariationMapping.map(id), qty, Integer::sum));
+		equipment.forEach((id, qty) ->
+			carried.merge(net.runelite.client.game.ItemVariationMapping.map(id), qty, Integer::sum));
+		return carried;
+	}
+
+	/** Reset the consumption baseline (bank interaction = trip boundary). */
+	void checkpointSupplies()
+	{
+		supplyCheckpoint = carriedCanonical();
 	}
 
 	/** Lifetime loot totals for a source (item id -> quantity). */
@@ -395,6 +452,9 @@ public class AccountState
 	{
 		bank = Map.copyOf(contents);
 		bankTimestamp = System.currentTimeMillis();
+		// every bank interaction re-baselines, so deposits/withdrawals
+		// are never misread as consumption
+		checkpointSupplies();
 		if (itemManager != null) // client thread; compositions are cached
 		{
 			for (int id : contents.keySet())
@@ -438,6 +498,9 @@ public class AccountState
 		lootBySource.clear();
 		persisted.lootBySource.forEach((src, items) ->
 			lootBySource.put(src, new ConcurrentHashMap<>(items)));
+		suppliesBySource.clear();
+		persisted.suppliesBySource.forEach((src, items) ->
+			suppliesBySource.put(src, new ConcurrentHashMap<>(items)));
 		log.debug("activated profile {} ({} banked item stacks)", hash, bank.size());
 	}
 
@@ -455,6 +518,7 @@ public class AccountState
 		state.killCounts = new HashMap<>(killCounts);
 		state.dailiesDoneAt = new HashMap<>(dailiesDoneAt);
 		lootBySource.forEach((src, items) -> state.lootBySource.put(src, new HashMap<>(items)));
+		suppliesBySource.forEach((src, items) -> state.suppliesBySource.put(src, new HashMap<>(items)));
 		store.save(profile, state);
 	}
 

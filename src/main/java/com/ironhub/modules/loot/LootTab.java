@@ -42,6 +42,7 @@ class LootTab extends JPanel
 	private final SegmentedControl view = new SegmentedControl(true, "Total", "Per kill");
 	private final JLabel killsLine = new JLabel();
 	private final JPanel list = new JPanel();
+	private final JPanel supplies = new JPanel();
 	private List<String> sources = new ArrayList<>();
 
 	LootTab(AccountState state, ItemManager itemManager)
@@ -75,6 +76,12 @@ class LootTab extends JPanel
 		list.setBackground(UiTokens.PANEL_BG);
 		list.setAlignmentX(LEFT_ALIGNMENT);
 		add(list);
+		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
+
+		supplies.setLayout(new BoxLayout(supplies, BoxLayout.Y_AXIS));
+		supplies.setBackground(UiTokens.PANEL_BG);
+		supplies.setAlignmentX(LEFT_ALIGNMENT);
+		add(supplies);
 		add(Box.createVerticalGlue());
 
 		state.addListener(listener);
@@ -137,8 +144,34 @@ class LootTab extends JPanel
 				list.add(faintLine("+ " + (ids.size() - MAX_ROWS) + " more items"));
 			}
 		}
+		rebuildSupplies(selected);
 		list.revalidate();
 		list.repaint();
+	}
+
+	/** SUPPLIES USED (frame 2g): consumption per source, avg per kill. */
+	private void rebuildSupplies(String selected)
+	{
+		supplies.removeAll();
+		Map<Integer, Integer> used = selected == null ? Map.of() : state.suppliesFor(selected);
+		if (!used.isEmpty())
+		{
+			supplies.add(new SectionLabel("Supplies used"));
+			supplies.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+
+			int kills = state.getKillCount(selected);
+			boolean perKill = view.getSelected() == 1;
+			List<Integer> ids = new ArrayList<>(used.keySet());
+			ids.sort(Comparator.comparingInt((Integer id) -> -used.get(id))
+				.thenComparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)));
+			for (Integer id : ids.subList(0, Math.min(ids.size(), MAX_ROWS)))
+			{
+				supplies.add(itemRow(id, used.get(id), kills, perKill));
+				supplies.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			}
+		}
+		supplies.revalidate();
+		supplies.repaint();
 	}
 
 	private JPanel itemRow(int itemId, int quantity, int kills, boolean perKill)
