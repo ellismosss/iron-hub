@@ -14,6 +14,7 @@ class PersistedState
 {
 	Map<Integer, Integer> bank = new HashMap<>();
 	long bankTimestamp;
+	Map<Integer, String> itemNames = new HashMap<>();
 	Set<String> unlocks = new HashSet<>();
 	Map<String, Integer> killCounts = new HashMap<>();
 }

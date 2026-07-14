@@ -20,7 +20,7 @@ public final class StateFixture
 	public static AccountState state(File storageDir)
 	{
 		// Runnable::run = synchronous writes, so tests see files immediately
-		return new AccountState(null, new ProfileStore(new Gson(), Runnable::run, storageDir));
+		return new AccountState(null, null, new ProfileStore(new Gson(), Runnable::run, storageDir));
 	}
 
 	public static ProfileStore store(File storageDir)
@@ -61,5 +61,10 @@ public final class StateFixture
 	public static void varbit(AccountState state, int varbitId, int value)
 	{
 		state.ingestVarbit(varbitId, value);
+	}
+
+	public static void itemNames(AccountState state, Map<Integer, String> names)
+	{
+		state.ingestItemNames(names);
 	}
 }

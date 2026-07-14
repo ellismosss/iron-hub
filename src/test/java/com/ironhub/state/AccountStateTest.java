@@ -52,6 +52,7 @@ public class AccountStateTest
 		AccountState before = StateFixture.state(temp.getRoot());
 		StateFixture.profile(before, 42L);
 		StateFixture.bank(before, Map.of(4151, 1, 995, 10_000));
+		StateFixture.itemNames(before, Map.of(4151, "Abyssal whip"));
 		before.setUnlocked("fairy_rings", true);
 		before.setKillCount("Zulrah", 12);
 		before.persist();
@@ -64,6 +65,7 @@ public class AccountStateTest
 
 		assertEquals(1, after.ownedCount(4151));
 		assertEquals(10_000, after.ownedCount(995));
+		assertEquals("Abyssal whip", after.itemName(4151));
 		assertTrue(after.isUnlocked("fairy_rings"));
 		assertEquals(12, after.getKillCount("Zulrah"));
 		assertEquals(bankedAt, after.getBankTimestamp());

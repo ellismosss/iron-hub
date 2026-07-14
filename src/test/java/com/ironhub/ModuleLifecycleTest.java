@@ -50,7 +50,7 @@ public class ModuleLifecycleTest
 			new QuestsModule(state, config),
 			new DiariesModule(state, config),
 			new CombatAchievementsModule(state, config),
-			new BankTrackerModule(),
+			new BankTrackerModule(state, null, config),
 			new FarmingRunModule(),
 			new DailiesModule(),
 			new GoalPlannerModule(),

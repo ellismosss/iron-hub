@@ -47,6 +47,7 @@ public class AccountState
 	private static final int QUEST_REFRESH_TICKS = 10;
 
 	private final Client client;
+	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
 	private final ProfileStore store;
 
 	private final Map<Skill, Integer> realLevels = new ConcurrentHashMap<>();
@@ -54,6 +55,10 @@ public class AccountState
 	private final Map<Quest, QuestState> questStates = new ConcurrentHashMap<>();
 	private final Set<String> unlocks = ConcurrentHashMap.newKeySet();
 	private final Map<String, Integer> killCounts = new ConcurrentHashMap<>();
+
+	// display names for items seen in the bank — persisted so bank search
+	// works after a restart, before the bank is reopened
+	private final Map<Integer, String> itemNames = new ConcurrentHashMap<>();
 
 	// varbits modules registered interest in (diary tiers, CA points, …)
 	private final Set<Integer> watchedVarbits = ConcurrentHashMap.newKeySet();
@@ -81,9 +86,10 @@ public class AccountState
 	private int lastQuestRefreshTick;
 
 	@Inject
-	public AccountState(Client client, ProfileStore store)
+	public AccountState(Client client, net.runelite.client.game.ItemManager itemManager, ProfileStore store)
 	{
 		this.client = client;
+		this.itemManager = itemManager;
 		this.store = store;
 	}
 
@@ -116,6 +122,12 @@ public class AccountState
 	public Map<Integer, Integer> getBankSnapshot()
 	{
 		return bank;
+	}
+
+	/** Display name of an item seen in the bank, or "item <id>" if unknown. */
+	public String itemName(int itemId)
+	{
+		return itemNames.getOrDefault(itemId, "item " + itemId);
 	}
 
 	public boolean isUnlocked(String key)
@@ -287,7 +299,19 @@ public class AccountState
 	{
 		bank = Map.copyOf(contents);
 		bankTimestamp = System.currentTimeMillis();
+		if (itemManager != null) // client thread; compositions are cached
+		{
+			for (int id : contents.keySet())
+			{
+				itemNames.computeIfAbsent(id, i -> itemManager.getItemComposition(i).getName());
+			}
+		}
 		notifyListeners();
+	}
+
+	void ingestItemNames(Map<Integer, String> names)
+	{
+		itemNames.putAll(names);
 	}
 
 	void ingestInventory(Map<Integer, Integer> contents)
@@ -307,6 +331,8 @@ public class AccountState
 		PersistedState persisted = store.load(hash);
 		bank = Map.copyOf(persisted.bank);
 		bankTimestamp = persisted.bankTimestamp;
+		itemNames.clear();
+		itemNames.putAll(persisted.itemNames);
 		unlocks.clear();
 		unlocks.addAll(persisted.unlocks);
 		killCounts.clear();
@@ -323,6 +349,7 @@ public class AccountState
 		PersistedState state = new PersistedState();
 		state.bank = new HashMap<>(bank);
 		state.bankTimestamp = bankTimestamp;
+		state.itemNames = new HashMap<>(itemNames);
 		state.unlocks = new HashSet<>(unlocks);
 		state.killCounts = new HashMap<>(killCounts);
 		store.save(profile, state);
