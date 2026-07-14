@@ -1,0 +1,197 @@
+{{Infobox Slayer
+|name = Dust devil
+|icon = [[File:Dust devil icon.png|center]]
+|skillreq = {{SCP|Slayer|65}}
+|combatreq = {{SCP|Combat|70}}
+|otherreq = [[Desert Treasure I]] (partial)
+|krystilia = 75-125 (200-250)
+|vannaka = 40-90 (200-250)
+|chaeldar = 70-130 (200-250)
+|konar = 120-170 (200-250)
+|nieve = 120-185 (200-250)
+|duradel = 130-200 (200-250)
+|id = 
+}}
+
+'''[[Dust devil]]s''' can be assigned as a slayer task by various medium and high-levelled [[Slayer Master]]s upon reaching 65 [[Slayer]] and 70 combat. In order to obtain these as a Slayer task, the player must have started [[Desert Treasure I]].
+
+Dust devils are an incredibly popular task amongst most slayers, as they have a superior, the [[choke devil]], and are often found in [[multicombat area]]s which allows for chinning and burst/barraging. They have relatively decent drops which usually covers the cost of supplies.
+
+Unlike most monsters, dust devils attack with [[ranged melee]]; their attacks are considered melee, but they roll on the player's ranged defence rather than melee. They have low defence but are surprisingly accurate for their level.
+
+Players have three options to choose from when slaying dust devils:
+
+*[[Catacombs of Kourend]] - this is the most easily accessible location. Dust devils here have access to the Catacombs of Kourend drop table.
+*[[Smoke Dungeon]] - a more remote, quiet location. A multicombat area can be found to the west for on-task purposes.
+*[[Wilderness Slayer Cave]] - a somewhat busy location, can only be killed on-task. This location is in level 25-28 [[Wilderness]], so '''do not bring items you are unwilling to lose.''' A large amount of costs can be lowered via [[Blighted ancient ice sack]]s and the dust devils here have access to the Wilderness Slayer Cave drop table.
+
+Unless killing them as part of [[Konar quo Maten]] or [[Krystilia]]'s Slayer tasks, the Catacombs of Kourend are highly recommended for their ease of accessibility.
+<!--
+[[File:Dust devil (Catacombs of Kourend) safespot.png|thumb|295x295px|A safespot in the Catacombs, just south of the Warped Jellies.]]{{clear}}
+-->
+
+==Common setups==
+{{Equipment
+|align = right
+|buttons = No
+|head = Slayer helmet (i)
+|cape = Imbued saradomin cape
+|neck = Occult necklace
+|ammo = Rada's blessing 4
+|weapon = Kodai wand
+|torso = Virtus robe top
+|legs = Virtus robe bottom
+|shield = Elidinis' ward (f)
+|gloves = Confliction gauntlets
+|boots = Devout boots
+|ring = Magus ring
+}}
+
+{{Inventory
+|align = right|Toxic blowpipe|Prayer potion|Prayer potion|Silklined herb sack|Gem bag|Dinh's bulwark|||||||||||||||||Bracelet of slaughter|Bracelet of slaughter|Explorer's ring 4|Bonecrusher|Teleport to house (tablet)|Rune pouch
+}}
+
+{{Rune pouch|align=right
+|1=Water rune
+|2=Blood rune
+|3=Death rune
+}}
+
+This is the best-in-slot available equipment for maging dust devils. See the table below for an overview of equipment alternatives in case this setup is not accessible or too expensive.
+
+===Notes===
+*The [[occult necklace]] (+5%), [[tormented bracelet]] (+5%), [[imbued god capes]] (+2%), and [[virtus robes]] (+2% each) or [[ancestral robes]] (+3% each) increase the maximum hit of the player's Magic spells. However, the tormented bracelet is generally inefficient to use as the [[bracelet of slaughter]] will increase the task's length and maximise overall Slayer experience rates.
+*It is recommended to use a staff or wand that can autocast [[Ancient Magicks]]. [[Kodai wand]] provides +15% magic damage bonus as well as infinite water runes and a chance to save runes, making it the most effective.
+*A [[goading potion]], darts, knives, or a blowpipe may be used to lure. The special attack of the [[Dinh's bulwark]] in conjunction with a [[Lightbearer]] may also be used to lure, however it may cause stamina issues due to its weight for players with lower agility levels.
+*A [[Hunters' crossbow]] or [[Hunters' sunlight crossbow]] is also an effective luring weapon, having the same speed as shortbows and 1 more tile of range. It is also 1-handed, so magic off-hands aren't unequipped. [[Kebbit bolts]] and [[sunlight antler bolts]] are much more expensive than the cheapest arrows and darts, however [[Long kebbit bolts]] are currently very cheap.
+*A [[venator bow]] can also be effectively used.
+
+===Equipment upgrades and downgrades===
+{{Recommended equipment
+| style = Bursting/Barraging
+| head1 = {{Plink|Slayer helmet (i)}}
+| head2 = {{Plink|Facemask}}
+| neck1 = {{Plink|Occult necklace}}
+| neck2 = {{plink|Dragonbone necklace}} /<br/>{{plink|Bonecrusher necklace}}
+| neck3 = {{plink|Stole|pic=Saradomin stole}}
+| neck4 = {{plink|Holy symbol}}/{{plink|Unholy symbol}}
+| neck5 = {{plink|Amulet of fury}}
+| cape1 = {{plink|God capes#Imbuing|txt=Imbued god cape|pic=Imbued saradomin cape}}
+| cape2 = {{plink|Soul cape|pic=Soul cape (red)}}
+| cape3 = {{Plink|Ardougne cloak 4}}
+| cape4 = {{Plink|Ardougne cloak 3}}
+| cape5 = {{Plink|Ardougne cloak 2}}
+| body1 = {{Plink|Virtus robe top}}
+| body2 = {{Plink|Ancestral robe top}}
+| body3 = {{Plink|Sunfire fanatic cuirass}}
+| body4 = {{Plink|Zealot's robe top}} /<br/> {{plink|Proselyte hauberk}}
+| body5 = {{plink|Dagon'hai robe top}} /<br/> {{plink|Ahrim's robetop}} /<br/> {{plink|Blue moon chestplate}} /<br/> {{Plink|Vestment robe top|pic=Armadyl robe top}}
+| legs1 = {{Plink|Virtus robe bottom}}
+| legs2 = {{Plink|Ancestral robe bottom}}
+| legs3 = {{Plink|Sunfire fanatic chausses}}
+| legs4 = {{plink|Zealot's robe bottom}} /<br/> {{Plink|Proselyte cuisse}} / [[Proselyte tasset|tasset]]
+| legs5 = {{plink|Dagon'hai robe bottom}} /<br/> {{plink|Ahrim's robeskirt}} /<br/> {{plink|Blue moon tassets}} /<br/> {{Plink|Vestment robe legs|pic=Armadyl robe legs}}
+| weapon1 = {{Plink|Kodai wand}} > <br/> {{Plink|Nightmare staff}}
+| weapon2 = {{plink|Dragon hunter wand}}
+| weapon3 = {{Plink|Ancient sceptre}}
+| weapon4 = {{Plink|Blue moon spear}}
+| weapon5 = {{Plink|Master wand}} > <br/> {{Plink|Ancient staff}}
+| shield1 = {{Plink|Elidinis' ward (f)}}
+| shield2 = {{Plink|Arcane spirit shield}} > <br/> {{Plink|Elidinis' ward}}
+| shield3 = {{plink|Ancient wyvern shield}} / {{plink|Mage's book}} / {{Plink|Malediction ward}}
+| shield4 = {{Plink|Book of darkness}} / {{Plink|Antler guard}}
+| shield5 = {{Plink|Broodoo shield|pic=Broodoo shield (combat)}} <br>/{{plink|Tome of water}} (charged) <ref>If not using [[Kodai wand]], to save on water runes.</ref> <br>/ {{Plink|God book}}
+| ammo1 = {{Plink|Rada's blessing 4}}
+| ammo2 = {{plink|God blessing|pic=Peaceful blessing}} <br/> {{plink|Rada's blessing 3|txt=Rada's blessing 3/2}}
+| hands1 = {{plink|Bracelet of slaughter}}
+| hands2 = {{plink|Confliction gauntlets}}
+| hands3 = {{Plink|Tormented bracelet}}
+| hands4 = {{Plink|Barrows gloves}}
+| hands5 = {{Plink|Dragon gloves}} <br/> {{Plink|Infinity gloves}}
+| feet1 = {{plink|Avernic treads (max)}} / {{Plink|Devout boots}}
+| feet2 = {{Plink|Eternal boots}}
+| feet3 = {{Plink|Echo boots}}
+| feet4 = {{Plink|Holy sandals}}
+| feet5 = {{plink|Guardian boots}}
+| ring1 = {{Plink|Magus ring}}
+| ring2 = {{Plink|Lightbearer}} <ref name=Spec>Particularly useful if paired with Dinh's bulwark special attack.</ref>
+| ring3 = {{Plink|Ring of the gods (i)}}
+| ring4 = {{Plink|Ring of suffering (i)}}
+| ring5 = {{plink|Ring of shadows}} / <br/> {{plink|Explorer's ring 4}} / <br/> {{Plink|Ring of wealth}} <ref name=Wealth>For coin drops.</ref>
+| special1 = {{Plink|Dinh's bulwark}} <ref>Optional for luring.</ref>
+| special2 = {{Plink|Crystal halberd}}
+| special3 = 
+| special4 = 
+| special5 = 
+}}
+
+==Monster variants==
+{|class = "wikitable sortable"
+!Monster
+!Combat level
+!Slayer XP
+!Locations
+!Notes
+|-
+|[[Dust devil]]
+|93
+|105
+|
+*[[Catacombs of Kourend]]
+*[[Wilderness Slayer Cave]]
+*[[Smoke Dungeon]]
+|
+* Standard dust devils.
+|-
+|[[Choke devil]]
+|264
+|3000
+|
+*[[Catacombs of Kourend]]
+*[[Wilderness Slayer Cave]]
+*[[Smoke Dungeon]]
+|
+* [[Superior slayer monster|Superior Slayer monster]] variant, which has a chance of spawning on a dust devil's death after purchasing the ''Bigger and Badder'' unlock for 50 [[Slayer reward point]]s from any [[Slayer master]].
+|}
+
+==Location comparison==
+{|class = "wikitable sortable align-center-3"
+!Location
+!Map
+!Amount
+!Multicombat
+!Cannonable
+!Safespottable
+!Notes
+|-
+|[[Catacombs of Kourend]]
+|{{Map|mapID=-1|type=maplink|mtype=pin|x:1708,y:10014|x:1709,y:10018|x:1711,y:10011|x:1712,y:10016|x:1712,y:10034|x:1713,y:10013|x:1713,y:10020|x:1714,y:10030|x:1716,y:10016|x:1716,y:10019|x:1716,y:10033|x:1717,y:10030|x:1718,y:10035}}
+|13
+|{{Yes}}
+|{{No}}
+|{{Yes}}
+|
+*Multicombat area, dust devils here have access to the Catacombs of Kourend drop table.
+|-
+|[[Wilderness Slayer Cave]]
+|{{Map|mapID=-1|type=maplink|mtype=pin|x:3431,y:10117|x:3433,y:10124|x:3434,y:10120|x:3437,y:10127|x:3439,y:10119|x:3439,y:10123|x:3444,y:10121|x:3444,y:10126|x:3448,y:10123}}
+|9
+|{{Yes}}
+|{{Yes}}
+|{{Yes}}
+|
+*Multicombat area that additionally allows the use of a [[dwarf multicannon]].
+*Located in levels 25-28 [[Wilderness]]; '''do not bring items you are unwilling to lose.'''
+|-
+|[[Smoke Dungeon]]
+|{{Map|mapID=-1|type=maplink|mtype=pin|x:3179,y:9362|x:3180,y:9366|x:3182,y:9359|x:3183,y:9364|x:3183,y:9382|x:3184,y:9361|x:3184,y:9368|x:3185,y:9378|x:3187,y:9364|x:3187,y:9367|x:3187,y:9381|x:3188,y:9378|x:3189,y:9383|x:3209,y:9361|x:3213,y:9361|x:3215,y:9355|x:3216,y:9351|x:3217,y:9400|x:3218,y:9365|x:3218,y:9373|x:3220,y:9347|x:3220,y:9380|x:3221,y:9383|x:3224,y:9396|x:3224,y:9400|x:3226,y:9352|x:3226,y:9385|x:3229,y:9375|x:3230,y:9368|x:3230,y:9395|x:3233,y:9398|x:3234,y:9364|x:3234,y:9369|x:3235,y:9374|x:3236,y:9402|x:3237,y:9377|x:3239,y:9383|x:3241,y:9400|x:3243,y:9383|x:3245,y:9349|x:3245,y:9400|x:3250,y:9349|x:3259,y:9372|x:3261,y:9399}}
+|44
+|{{Yes}}
+|{{Maybe}}
+|{{Yes}}
+|
+*A multicombat, task only area can be found to the west, guarded by [[Dusty Aliv]]. He will not allow a dwarf multicannon in the area. The remaining locations are single-way combat and allow for a cannon.
+|}
+
+==References==
+{{Reflist}}
