@@ -70,6 +70,7 @@ public class AccountState
 	// checkpoint is carried gear at the last bank interaction or kill
 	private final Map<String, Map<Integer, Integer>> suppliesBySource = new ConcurrentHashMap<>();
 	private final Map<String, Map<String, Integer>> savedLoadouts = new ConcurrentHashMap<>();
+	private final Map<String, PersistedState.SavedSetup> savedSetups = new ConcurrentHashMap<>();
 
 	// completed herb run durations, persisted (avg/best/count stats)
 	private final java.util.List<Long> herbRunsMs = new CopyOnWriteArrayList<>();
@@ -239,6 +240,19 @@ public class AccountState
 	public void saveLoadout(String activity, Map<String, Integer> slotToItem)
 	{
 		savedLoadouts.put(activity, new ConcurrentHashMap<>(slotToItem));
+		persist();
+		notifyListeners();
+	}
+
+	/** Full remembered setup (gear + inventory + rune pouch), or null. */
+	public PersistedState.SavedSetup savedSetup(String activity)
+	{
+		return savedSetups.get(activity);
+	}
+
+	public void saveSetup(String activity, PersistedState.SavedSetup setup)
+	{
+		savedSetups.put(activity, setup);
 		persist();
 		notifyListeners();
 	}
@@ -887,6 +901,8 @@ public class AccountState
 		savedLoadouts.clear();
 		persisted.savedLoadouts.forEach((activity, slots) ->
 			savedLoadouts.put(activity, new ConcurrentHashMap<>(slots)));
+		savedSetups.clear();
+		savedSetups.putAll(persisted.savedSetups);
 		herbRunsMs.clear();
 		herbRunsMs.addAll(persisted.herbRunsMs);
 		consumptionLog.clear();
@@ -922,6 +938,7 @@ public class AccountState
 		lootBySource.forEach((src, items) -> state.lootBySource.put(src, new HashMap<>(items)));
 		suppliesBySource.forEach((src, items) -> state.suppliesBySource.put(src, new HashMap<>(items)));
 		savedLoadouts.forEach((activity, slots) -> state.savedLoadouts.put(activity, new HashMap<>(slots)));
+		state.savedSetups.putAll(savedSetups);
 		state.herbRunsMs = new java.util.ArrayList<>(herbRunsMs);
 		state.consumptionLog = new java.util.ArrayList<>(consumptionLog);
 		state.deaths = new java.util.ArrayList<>(deaths);

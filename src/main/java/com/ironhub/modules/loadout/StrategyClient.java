@@ -24,7 +24,7 @@ import okhttp3.ResponseBody;
  * cache per activity for the session.
  */
 @Slf4j
-class StrategyClient
+public class StrategyClient
 {
 	private static final String API = "https://oldschool.runescape.wiki/api.php";
 	private static final String UA = "RuneLite Iron Hub plugin (strategy lookup; user-initiated)";
@@ -34,7 +34,7 @@ class StrategyClient
 	private final ItemNameIndex names;
 	private final Map<String, List<WikiStrategy>> cache = new ConcurrentHashMap<>();
 
-	StrategyClient(OkHttpClient httpClient, Gson gson, ItemNameIndex names)
+	public StrategyClient(OkHttpClient httpClient, Gson gson, ItemNameIndex names)
 	{
 		this.httpClient = httpClient;
 		this.gson = gson;
@@ -55,7 +55,7 @@ class StrategyClient
 	}
 
 	/** Fetch (async) and cache; callback on an arbitrary thread. */
-	void fetch(String activity, boolean slayerTask, Consumer<List<WikiStrategy>> onDone)
+	public void fetch(String activity, boolean slayerTask, Consumer<List<WikiStrategy>> onDone)
 	{
 		List<WikiStrategy> hit = cache.get(activity);
 		if (hit != null)

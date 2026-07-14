@@ -70,7 +70,8 @@ public class ModuleLifecycleTest
 			new DashboardModule(),
 			new DeathRecoveryModule(state, null, config, null),
 			new com.ironhub.modules.loadoutlab.LoadoutLabModule(
-				new com.loadoutlab.LoadoutLabPlugin(), new net.runelite.client.eventbus.EventBus(), config));
+				new com.loadoutlab.LoadoutLabPlugin(), new net.runelite.client.eventbus.EventBus(), config,
+				state, null, null, null, new com.google.gson.Gson(), null));
 
 		assertEquals(20, modules.size());
 

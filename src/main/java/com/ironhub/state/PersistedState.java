@@ -11,7 +11,7 @@ import java.util.Set;
  * restart (the bank is only readable while open; unlocks and kill counts
  * accumulate from events). Serialized as JSON per profile by ProfileStore.
  */
-class PersistedState
+public class PersistedState
 {
 	Map<Integer, Integer> bank = new HashMap<>();
 	long bankTimestamp;
@@ -22,6 +22,7 @@ class PersistedState
 	Map<String, Map<Integer, Integer>> lootBySource = new HashMap<>(); // npc -> item id -> total qty
 	Map<String, Map<Integer, Integer>> suppliesBySource = new HashMap<>(); // npc -> canonical item id -> consumed qty
 	Map<String, Map<String, Integer>> savedLoadouts = new HashMap<>(); // activity -> equipment slot name -> item id
+	Map<String, SavedSetup> savedSetups = new HashMap<>(); // activity -> full setup (gear + inventory + rune pouch)
 	java.util.List<Long> herbRunsMs = new ArrayList<>(); // completed herb run durations
 	java.util.List<DeathRecord> deaths = new ArrayList<>(); // most recent last, capped
 
@@ -64,5 +65,15 @@ class PersistedState
 		int y;
 		int plane;
 		Map<Integer, Integer> carried = new HashMap<>();
+	}
+
+	/** A remembered activity setup: worn gear, inventory and rune pouch. */
+	public static class SavedSetup
+	{
+		public Map<String, Integer> equipment = new HashMap<>(); // slot name -> item id
+		public int[] inventory = new int[0];      // 28 slots, -1 empty
+		public int[] inventoryQty = new int[0];   // parallel quantities
+		public int[] pouchRunes = new int[0];     // rune item ids, -1 empty
+		public int[] pouchAmounts = new int[0];
 	}
 }

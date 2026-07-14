@@ -233,6 +233,7 @@ public class IronHubPlugin extends Plugin
 			return;
 		}
 		accountState.incrementKillCount(source);
+		accountState.setCombatTarget(source, event.getNpc().getId()); // most recent kill drives loadout tools
 		java.util.Map<Integer, Integer> items = new java.util.HashMap<>();
 		event.getItems().forEach(stack -> items.merge(stack.getId(), stack.getQuantity(), Integer::sum));
 		accountState.ingestLoot(source, items);

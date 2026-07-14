@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
  * item candidates in the wiki's preference order (rank 1 → 5, slashes
  * within a rank kept in sequence). Pure parser — testable offline.
  */
-final class WikiStrategy
+public final class WikiStrategy
 {
 	/** Calculator-style slot keys used by the wiki template. */
 	static final String[] SLOT_KEYS = {
@@ -29,11 +29,11 @@ final class WikiStrategy
 	private static final Pattern SLOT_PARAM = Pattern.compile(
 		"^(head|neck|cape|body|legs|weapon|shield|ammo|hands|feet|ring)([1-9])$");
 
-	final String name;
+	public final String name;
 	/** slot key → candidates (item id + display name) in preference order. */
 	final Map<String, List<Candidate>> slots;
 	/** Cleaned prose immediately before the gear table (tips), may be empty. */
-	final String notes;
+	public final String notes;
 
 	static final class Candidate
 	{
@@ -54,7 +54,7 @@ final class WikiStrategy
 		this.notes = notes;
 	}
 
-	String name()
+	public String name()
 	{
 		return name;
 	}
