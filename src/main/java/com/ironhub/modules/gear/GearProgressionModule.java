@@ -77,6 +77,7 @@ public class GearProgressionModule implements IronHubModule
 		{
 			tab = new GearTab(state,
 				dataPack.load("gear-progression", com.ironhub.data.GearProgressionPack.class),
+				dataPack.load("boosts", com.ironhub.data.BoostsPack.class),
 				itemManager, config.gearHideComplete(), hide ->
 				{
 					if (configManager != null)

@@ -76,6 +76,26 @@ Attack AND 50 Strength; the DWH needs 60 **Strength** (not Attack); Masori
 eye of ayak is 83 Magic; dragon hunter wand 65 Magic; Virtus is 78 Magic/75
 Def; full Void needs 42 in six combat stats + 22 Prayer.
 
+## Temporary skill boosts
+
+Boosts satisfy **action gates only** — creation, activities, slayer kills —
+never equip gates (wiki, Magic potion: "will not be able to equip... but
+will be able to cast"). The requirement graph encodes this as `skillb:`
+(boostable) vs `skill:` (hard/equip); only `skillb:` leaves consult boosts.
+
+Mechanics that matter:
+- **Visible boosts don't stack with each other** — the best one wins. The
+  crystal saw is *invisible* and stacks on top: saw (+3) + POH tea (+3) = +6
+  (86→92, Theoatrix's max-house line), saw + spicy stew (+5) = +8.
+- **Boost sources have their own obtainment gates**, tracked in
+  `data/boosts.json`: spicy stews need RFD Evil Dave; pies need the Cooking
+  level (or owning one); the saw needs The Eyes of Glouphrie; POH tea needs
+  Teak shelves 2. An unavailable boost gives no headroom.
+- Slayer: a wild pie (+5) lets you *kill* higher monsters but not *receive*
+  tasks above your level.
+- The chart paints an **amber** corner triangle for boost-reachable items
+  (green = met outright); tooltips name the usable sources per gap.
+
 ## Detection limits (what the client can and cannot tell us)
 
 - **Kill counts** only accumulate from loot events after install — historic

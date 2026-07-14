@@ -331,6 +331,77 @@ phases = [
 
 pack = {'$schema': './schemas/gear-progression.schema.json', 'version': 1, 'phases': phases}
 
+
+# ── boostable gates ─────────────────────────────────────────────────
+# skill: → skillb: for action gates that temporary boosts can satisfy.
+# Equip/wield requirements stay skill: — OSRS checks base levels for
+# gear (wiki: "boosted Magic will not be able to equip... but will be
+# able to cast"). POH Construction reqs are all boostable (that's the
+# whole Theoatrix strategy), as are creation gates (crafting/smithing/
+# fletching/enchanting), slayer kill gates and activity-entry gates.
+BOOSTABLE = {
+  "Zombie axe": ['skill:Smithing:70'],
+  "Bloodbark body": ['skill:Runecraft:81'],
+  "Serpentine helm": ['skill:Crafting:52'],
+  "Toxic blowpipe": ['skill:Fletching:78'],
+  "Hunters' sunlight crossbow": ['skill:Fletching:74', 'skill:Hunter:72'],
+  "Emberlight": ['skill:Smithing:74'],
+  "Scorching bow": ['skill:Fletching:74'],
+  "Purging staff": ['skill:Crafting:74'],
+  "Confliction gauntlets": ['skill:Crafting:83', 'skill:Smithing:70'],
+  "Necklace of anguish": ['skill:Magic:93', 'skill:Crafting:92'],
+  "Amulet of torture": ['skill:Magic:93', 'skill:Crafting:98'],
+  "Tormented bracelet": ['skill:Magic:93', 'skill:Crafting:95'],
+  "Ring of suffering (i)": ['skill:Magic:93', 'skill:Crafting:89'],
+  "Amulet of glory": ['any:skill:Crafting:80|skill:Hunter:83', 'skill:Magic:68'],
+  "Amulet of fury": ['skill:Crafting:90', 'skill:Magic:87'],
+  "Ultor ring": ['skill:Magic:90', 'skill:Crafting:80'],
+  "Magus ring": ['skill:Magic:90', 'skill:Crafting:80'],
+  "Venator ring": ['skill:Magic:90', 'skill:Crafting:80'],
+  "Bellator ring": ['skill:Magic:90', 'skill:Crafting:80'],
+  "Divine rune pouch": ['skill:Crafting:75'],
+  "Camphor blowpipe": ['skill:Fletching:58'],
+  "Ironwood blowpipe": ['skill:Fletching:72'],
+  "Black mask (i)": ['skill:Slayer:58'],
+  "Warped sceptre": ['skill:Slayer:56'],
+  "Dragon boots": ['skill:Slayer:83'],
+  "Abyssal whip": ['skill:Slayer:85'],
+  "Abyssal tentacle": ['skill:Slayer:87'],
+  "Trident of the seas": ['skill:Slayer:87'],
+  "Occult necklace": ['skill:Slayer:93'],
+  "Primordial boots": ['skill:Slayer:91'],
+  "Eternal boots": ['skill:Slayer:91'],
+  "Pegasian boots": ['skill:Slayer:91'],
+  "Amulet of rancour": ['skill:Slayer:92'],
+  "Ferocious gloves": ['skill:Slayer:95'],
+  "Coal bag": ['skill:Mining:30'],
+  "Gem bag": ['skill:Mining:30'],
+  "Ash covered tome": ['skill:Mining:50'],
+  "Fish barrel": ['skill:Fishing:35'],
+  "Tackle box": ['skill:Fishing:35'],
+  "Pharaoh's sceptre": ['skill:Thieving:21'],
+  "Red chinchompa": ['skill:Hunter:63'],
+}
+
+def _boostify(req, names):
+    for target in names:
+        if req == target:
+            return req.replace('skill:', 'skillb:')
+    return req
+
+for _p in phases:
+    for _g in _p['groups']:
+        for _i in _g['items']:
+            if 'poh' in _i['categories']:
+                # every POH build gate is boostable (saw/tea/stew strategy)
+                _i['requirements'] = [r.replace('skill:Construction:', 'skillb:Construction:')
+                                          .replace('skill:Farming:', 'skillb:Farming:')
+                                      for r in _i['requirements']]
+            if _i['name'] in BOOSTABLE:
+                _i['requirements'] = [_boostify(r, BOOSTABLE[_i['name']]) for r in _i['requirements']]
+_covered = {n for _p in phases for _g in _p['groups'] for _i in _g['items'] if _i['name'] in BOOSTABLE for n in [_i['name']]}
+assert _covered == set(BOOSTABLE), set(BOOSTABLE) - _covered
+
 all_names = {i['name'] for p in phases for g in p['groups'] for i in g['items']}
 for p in phases:
     for g in p['groups']:

@@ -82,7 +82,8 @@ public class DataPackLoaderTest
 						// typed prefixes must resolve (a manual fallback = pack typo);
 						// free-text (diary) requirements are intentionally manual
 						if (raw.startsWith("quest:") || raw.startsWith("skill:")
-							|| raw.startsWith("any:") || raw.startsWith("itemx:"))
+							|| raw.startsWith("skillb:") || raw.startsWith("any:")
+							|| raw.startsWith("itemx:"))
 						{
 							assertFalse("unresolvable requirement: " + raw + " (" + item.getName() + ")",
 								Requirements.isManual(requirement));
@@ -92,6 +93,22 @@ public class DataPackLoaderTest
 			}
 		}
 		assertTrue("suspiciously small gear pack: " + items, items > 100);
+	}
+
+	@Test
+	public void boostGatesAndSkillsResolve()
+	{
+		BoostsPack pack = dataPack.load("boosts", BoostsPack.class);
+		for (BoostsPack.Boost boost : pack.getBoosts())
+		{
+			// an unresolvable gate would silently never grant the boost
+			assertFalse("unresolvable gate: " + boost.getGate() + " (" + boost.getName() + ")",
+				Requirements.isManual(Requirements.parse(boost.getGate())));
+			for (String skill : boost.getSkills())
+			{
+				net.runelite.api.Skill.valueOf(skill.toUpperCase(java.util.Locale.ROOT)); // throws on typo
+			}
+		}
 	}
 
 	@Test(expected = IllegalStateException.class)

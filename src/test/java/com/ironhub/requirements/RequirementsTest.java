@@ -62,6 +62,42 @@ public class RequirementsTest
 	}
 
 	@Test
+	public void boostableGatesUseAvailableBoostsButEquipGatesNever()
+	{
+		com.ironhub.data.BoostsPack boostsPack = new com.ironhub.data.DataPack(new com.google.gson.Gson())
+			.load("boosts", com.ironhub.data.BoostsPack.class);
+		StateFixture.stat(state, Skill.CONSTRUCTION, 86, 0);
+
+		// no boost sources available yet: 92 is out of reach, and the boost
+		// source itself must be obtained — no wild pie access at 1 Cooking
+		// means no Slayer headroom either
+		java.util.Map<Skill, Integer> none = Boosts.available(boostsPack, state);
+		Requirement nexus = Requirements.parse("skillb:Construction:92");
+		assertFalse(nexus.isMetWithBoosts(state, none));
+		assertEquals(null, none.get(Skill.SLAYER));
+
+		// Theoatrix stack: crystal saw (+3 invisible) + POH tea (+3 visible) = 92 from 86
+		StateFixture.bank(state, Map.of(9625, 1)); // crystal saw
+		state.setUnlocked("gearmark_teak_shelves_2", true);
+		java.util.Map<Skill, Integer> sawTea = Boosts.available(boostsPack, state);
+		assertEquals(6, (int) sawTea.get(Skill.CONSTRUCTION));
+		assertTrue(nexus.isMetWithBoosts(state, sawTea));
+
+		// visible boosts don't stack: Evil Dave's +5 stew replaces the +3 tea,
+		// it doesn't add to it (saw +3 invisible still stacks on top = +8)
+		StateFixture.quest(state, net.runelite.api.Quest.RECIPE_FOR_DISASTER__EVIL_DAVE, QuestState.FINISHED);
+		java.util.Map<Skill, Integer> sawStew = Boosts.available(boostsPack, state);
+		assertEquals(8, (int) sawStew.get(Skill.CONSTRUCTION));
+
+		// equip gates (plain skill:) never consult boosts
+		Requirement equip = Requirements.parse("skill:Construction:92");
+		assertFalse(equip.isMetWithBoosts(state, sawStew));
+
+		// with Evil Dave done the stew now covers Slayer as well
+		assertEquals(5, (int) sawStew.get(Skill.SLAYER));
+	}
+
+	@Test
 	public void anyOfPathsExpressAlternativeObtainment()
 	{
 		// amulet of glory: craft it (80 Crafting) OR catch dragon implings (83 Hunter)

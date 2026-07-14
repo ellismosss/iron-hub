@@ -40,6 +40,7 @@ class GearTab extends JPanel
 
 	private final AccountState state;
 	private final GearProgressionPack pack;
+	private final com.ironhub.data.BoostsPack boostsPack;
 	private final ItemManager itemManager; // null in headless tests
 	private final ChipRow filterTop = new ChipRow(FILTERS_TOP);
 	private final ChipRow filterBottom = new ChipRow(FILTERS_BOTTOM);
@@ -49,11 +50,13 @@ class GearTab extends JPanel
 	private String filter; // lower-case category, null = all
 	private boolean hideComplete;
 
-	GearTab(AccountState state, GearProgressionPack pack, ItemManager itemManager,
+	GearTab(AccountState state, GearProgressionPack pack, com.ironhub.data.BoostsPack boostsPack,
+		ItemManager itemManager,
 		boolean hideComplete, java.util.function.Consumer<Boolean> onHideCompleteChange)
 	{
 		this.state = state;
 		this.pack = pack;
+		this.boostsPack = boostsPack;
 		this.itemManager = itemManager;
 		this.hideComplete = hideComplete;
 		this.onHideCompleteChange = onHideCompleteChange;
@@ -140,11 +143,14 @@ class GearTab extends JPanel
 
 	/** Obtained entries for the current rebuild, including implied predecessors. */
 	private java.util.Set<String> obtained = java.util.Set.of();
+	/** Usable temporary boost per skill (sources whose own gates are met). */
+	private java.util.Map<net.runelite.api.Skill, Integer> boosts = java.util.Map.of();
 
 	private void rebuild()
 	{
 		body.removeAll();
 		obtained = GearProgressionModule.obtainedNames(pack, state);
+		boosts = com.ironhub.requirements.Boosts.available(boostsPack, state);
 		for (GearProgressionPack.Phase phase : pack.getPhases())
 		{
 			boolean phaseHasContent = false;
@@ -217,8 +223,10 @@ class GearTab extends JPanel
 	{
 		boolean obtained = isObtained(item);
 		boolean targeted = state.getSelectedGoals().contains(item.goalId());
-		boolean ready = !obtained && requirement(item).isMet(state);
-		ItemTile tile = new ItemTile(item.getName(), obtained, targeted, ready,
+		Requirement requirement = requirement(item);
+		boolean ready = !obtained && requirement.isMet(state);
+		boolean boostReady = !obtained && !ready && requirement.isMetWithBoosts(state, boosts);
+		ItemTile tile = new ItemTile(item.getName(), obtained, targeted, ready, boostReady,
 			tooltip(item, obtained, targeted, ready),
 			() ->
 			{
@@ -283,6 +291,15 @@ class GearTab extends JPanel
 			for (Requirement req : requirement(item).missing(state))
 			{
 				html.append("<br>- ").append(req.describe());
+				// a boost you already have access to closes this gap
+				if (!req.isMet(state) && req.isMetWithBoosts(state, boosts))
+				{
+					net.runelite.api.Skill skill = req.boostableSkill();
+					List<String> sources = skill == null ? List.of()
+						: com.ironhub.requirements.Boosts.describe(boostsPack, state, skill);
+					html.append(" - boostable")
+						.append(sources.isEmpty() ? "" : " with " + String.join(", ", sources));
+				}
 			}
 		}
 		if (!obtained && item.isManual())

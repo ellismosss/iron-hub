@@ -27,7 +27,13 @@ public final class Requirements
 
 	public static Requirement skill(Skill skill, int level)
 	{
-		return new SkillRequirement(skill, level);
+		return new SkillRequirement(skill, level, false);
+	}
+
+	/** Skill gate that temporary boosts can satisfy (actions, not equipping). */
+	public static Requirement skillBoostable(Skill skill, int level)
+	{
+		return new SkillRequirement(skill, level, true);
 	}
 
 	public static Requirement quest(Quest quest)
@@ -110,6 +116,8 @@ public final class Requirements
 			{
 				case "skill":
 					return skill(Skill.valueOf(parts[1].toUpperCase()), Integer.parseInt(parts[2]));
+				case "skillb": // boostable: creation/activity gates, never equip gates
+					return skillBoostable(Skill.valueOf(parts[1].toUpperCase()), Integer.parseInt(parts[2]));
 				case "quest":
 					Quest quest = questByName(s.substring("quest:".length()));
 					return quest != null ? quest(quest) : text(s);
@@ -145,17 +153,32 @@ public final class Requirements
 	{
 		private final Skill skill;
 		private final int level;
+		private final boolean boostable;
 
-		SkillRequirement(Skill skill, int level)
+		SkillRequirement(Skill skill, int level, boolean boostable)
 		{
 			this.skill = skill;
 			this.level = level;
+			this.boostable = boostable;
 		}
 
 		@Override
 		public boolean isMet(AccountState state)
 		{
 			return state.getRealLevel(skill) >= level;
+		}
+
+		@Override
+		public boolean isMetWithBoosts(AccountState state, java.util.Map<Skill, Integer> boosts)
+		{
+			int boost = boostable ? boosts.getOrDefault(skill, 0) : 0;
+			return state.getRealLevel(skill) + boost >= level;
+		}
+
+		@Override
+		public Skill boostableSkill()
+		{
+			return boostable ? skill : null;
 		}
 
 		@Override
@@ -300,6 +323,12 @@ public final class Requirements
 		}
 
 		@Override
+		public boolean isMetWithBoosts(AccountState state, java.util.Map<Skill, Integer> boosts)
+		{
+			return children.stream().allMatch(c -> c.isMetWithBoosts(state, boosts));
+		}
+
+		@Override
 		public List<Requirement> missing(AccountState state)
 		{
 			List<Requirement> missing = new ArrayList<>();
@@ -330,6 +359,12 @@ public final class Requirements
 		public boolean isMet(AccountState state)
 		{
 			return children.stream().anyMatch(c -> c.isMet(state));
+		}
+
+		@Override
+		public boolean isMetWithBoosts(AccountState state, java.util.Map<Skill, Integer> boosts)
+		{
+			return children.stream().anyMatch(c -> c.isMetWithBoosts(state, boosts));
 		}
 
 		@Override

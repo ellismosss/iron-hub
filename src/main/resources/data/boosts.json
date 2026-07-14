@@ -1,0 +1,67 @@
+{
+  "$schema": "./schemas/boosts.schema.json",
+  "version": 1,
+  "boosts": [
+    {
+      "name": "Spicy stew (+5)",
+      "skills": ["Construction", "Crafting", "Smithing", "Fletching", "Runecraft", "Cooking", "Firemaking", "Magic", "Ranged", "Attack", "Strength", "Defence", "Agility", "Hunter", "Slayer", "Thieving", "Farming", "Fishing", "Mining", "Woodcutting", "Herblore"],
+      "boost": 5,
+      "gate": "quest:Recipe for Disaster - Evil Dave"
+    },
+    {
+      "name": "Crystal saw (+3)",
+      "skills": ["Construction"],
+      "boost": 3,
+      "invisible": true,
+      "gate": "item:9625"
+    },
+    {
+      "name": "POH tea (+3)",
+      "skills": ["Construction"],
+      "boost": 3,
+      "gate": "unlock:gearmark_teak_shelves_2"
+    },
+    {
+      "name": "Mushroom pie (+4)",
+      "skills": ["Crafting"],
+      "boost": 4,
+      "gate": "any:item:21690|skillb:Cooking:60"
+    },
+    {
+      "name": "Wild pie (+5)",
+      "skills": ["Slayer"],
+      "boost": 5,
+      "gate": "any:item:7208|skillb:Cooking:85"
+    },
+    {
+      "name": "Admiral pie (+5)",
+      "skills": ["Fishing"],
+      "boost": 5,
+      "gate": "any:item:7198|skillb:Cooking:70"
+    },
+    {
+      "name": "Summer pie (+5)",
+      "skills": ["Agility"],
+      "boost": 5,
+      "gate": "any:item:7218|skillb:Cooking:95"
+    },
+    {
+      "name": "Hunter potion (+3)",
+      "skills": ["Hunter"],
+      "boost": 3,
+      "gate": "any:item:9998|skillb:Herblore:58"
+    },
+    {
+      "name": "Magic potion (+4)",
+      "skills": ["Magic"],
+      "boost": 4,
+      "gate": "any:item:3040|skillb:Herblore:76"
+    },
+    {
+      "name": "Dragon pickaxe spec (+3)",
+      "skills": ["Mining"],
+      "boost": 3,
+      "gate": "item:11920"
+    }
+  ]
+}
