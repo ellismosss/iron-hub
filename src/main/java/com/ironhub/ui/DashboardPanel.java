@@ -5,6 +5,7 @@ import com.ironhub.ui.components.ChipRow;
 import com.ironhub.ui.components.HubProgressBar;
 import com.ironhub.ui.components.IconButton;
 import com.ironhub.ui.components.ListRow;
+import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.components.SectionLabel;
 import com.ironhub.ui.components.Status;
 import com.ironhub.ui.components.StatusGlyph;
@@ -73,9 +74,10 @@ public class DashboardPanel extends JPanel
 		header.add(title);
 		header.add(Box.createHorizontalGlue());
 
-		JLabel settings = new JLabel("⋮", SwingConstants.CENTER);
+		JLabel settings = new JLabel(new PaintedIcon(
+			PaintedIcon.Shape.DOTS_VERTICAL, (int) UiTokens.FONT_SIZE_BODY));
+		settings.setHorizontalAlignment(SwingConstants.CENTER);
 		settings.setForeground(UiTokens.TEXT_MUTED);
-		settings.setFont(settings.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_BODY));
 		settings.setToolTipText("Settings");
 		settings.setPreferredSize(new Dimension(UiTokens.ICON_BUTTON_SIZE, UiTokens.ICON_BUTTON_SIZE));
 		settings.setMaximumSize(new Dimension(UiTokens.ICON_BUTTON_SIZE, UiTokens.ICON_BUTTON_SIZE));
@@ -101,7 +103,10 @@ public class DashboardPanel extends JPanel
 		pct.setFont(pct.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SCORE));
 		figure.add(pct);
 		figure.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		JLabel trend = new JLabel("▲ 1.2 this wk");
+		JLabel trend = new JLabel("1.2 this wk",
+			new PaintedIcon(PaintedIcon.Shape.TRIANGLE_UP, (int) UiTokens.FONT_SIZE_LABEL),
+			SwingConstants.LEADING);
+		trend.setIconTextGap(UiTokens.PAD_TIGHT);
 		trend.setForeground(UiTokens.STATUS_OWNED);
 		trend.setFont(trend.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LABEL));
 		figure.add(trend);
@@ -135,7 +140,7 @@ public class DashboardPanel extends JPanel
 
 		section.add(new SuggestionCard(1, "Herb run", "~6 min", "7 patches ready · crops decay"));
 		section.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
-		section.add(new SuggestionCard(2, "Sepulchre laps", "40 min", "feeds 70 Agility → Bowfa goal"));
+		section.add(new SuggestionCard(2, "Sepulchre laps", "40 min", "feeds 70 Agility · Bowfa goal"));
 		section.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 		section.add(new SuggestionCard(3, "Tears of Guthix", "5 min", "weekly · resets in 2 d 4 h"));
 		return section;
@@ -233,9 +238,9 @@ public class DashboardPanel extends JPanel
 		label.setFont(label.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_BODY));
 		footer.add(label);
 		footer.add(Box.createHorizontalGlue());
-		JLabel chevron = new JLabel("›");
+		JLabel chevron = new JLabel(new PaintedIcon(
+			PaintedIcon.Shape.CHEVRON_RIGHT, (int) UiTokens.FONT_SIZE_LABEL));
 		chevron.setForeground(UiTokens.TEXT_FAINT);
-		chevron.setFont(chevron.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_BODY));
 		footer.add(chevron);
 
 		footer.addMouseListener(new MouseAdapter()
@@ -385,9 +390,9 @@ public class DashboardPanel extends JPanel
 			add(text);
 			add(Box.createHorizontalGlue());
 
-			JLabel chevron = new JLabel("›");
+			JLabel chevron = new JLabel(new PaintedIcon(
+				PaintedIcon.Shape.CHEVRON_RIGHT, (int) UiTokens.FONT_SIZE_LABEL));
 			chevron.setForeground(UiTokens.TEXT_FAINT);
-			chevron.setFont(chevron.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_BODY));
 			add(chevron);
 
 			addMouseListener(new MouseAdapter()

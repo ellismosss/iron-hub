@@ -2,6 +2,7 @@ package com.ironhub.ui;
 
 import com.ironhub.ui.components.HubScrollPane;
 import com.ironhub.ui.components.NavHeader;
+import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.components.SearchField;
 import com.ironhub.ui.components.SectionLabel;
 import java.awt.BorderLayout;
@@ -168,9 +169,10 @@ public class ModuleNavPanel extends JPanel
 		header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
 		boolean isCollapsed = collapsed.contains(category.name);
-		JLabel chevron = new JLabel(isCollapsed ? "▸" : "▾");
+		JLabel chevron = new JLabel(new PaintedIcon(
+			isCollapsed ? PaintedIcon.Shape.TRIANGLE_RIGHT : PaintedIcon.Shape.TRIANGLE_DOWN,
+			(int) UiTokens.FONT_SIZE_TILE_LABEL));
 		chevron.setForeground(UiTokens.TEXT_MUTED);
-		chevron.setFont(chevron.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_TILE_LABEL));
 		chevron.setPreferredSize(new Dimension(10, 0));
 		chevron.setMaximumSize(new Dimension(10, Integer.MAX_VALUE));
 		header.add(chevron);
@@ -285,9 +287,9 @@ public class ModuleNavPanel extends JPanel
 				add(Box.createHorizontalStrut(UiTokens.ROW_GAP + 1));
 			}
 
-			JLabel chevron = new JLabel("›");
+			JLabel chevron = new JLabel(new PaintedIcon(
+				PaintedIcon.Shape.CHEVRON_RIGHT, (int) UiTokens.FONT_SIZE_LABEL));
 			chevron.setForeground(UiTokens.TEXT_FAINT);
-			chevron.setFont(chevron.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_BODY));
 			add(chevron);
 
 			addMouseListener(new MouseAdapter()

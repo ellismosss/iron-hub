@@ -128,7 +128,7 @@ class DiariesTab extends JPanel
 		for (int tier = 0; tier < 4; tier++)
 		{
 			boolean complete = state.getVarbit(region.tierVarbits[tier]) >= 1;
-			tip.append("<br>").append(TIER_NAMES[tier]).append(complete ? " ✓" : " —");
+			tip.append("<br>").append(TIER_NAMES[tier]).append(complete ? " — complete" : " — incomplete");
 		}
 		return tip.append("</html>").toString();
 	}

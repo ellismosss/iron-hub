@@ -9,9 +9,11 @@ import java.awt.geom.Path2D;
 import javax.swing.Icon;
 
 /**
- * Tiny painted control glyphs (⚑ flag, ⊞ grid, ☰ list) — painted in the
- * host component's foreground so hover/selection recoloring applies.
- * Painted because font fallback for these codepoints is unreliable.
+ * Tiny painted control glyphs (flag, grid, list, chevrons, triangles,
+ * dots) — painted in the host component's foreground so hover/selection
+ * recoloring applies. Painted because RuneLite's bundled RuneScape fonts
+ * lack these codepoints entirely (they render as the boxed missing-glyph
+ * character); only ASCII plus · … — × are safe as label text.
  */
 public class PaintedIcon implements Icon
 {
@@ -19,7 +21,13 @@ public class PaintedIcon implements Icon
 	{
 		FLAG,
 		GRID,
-		LIST
+		LIST,
+		CHEVRON_LEFT,
+		CHEVRON_RIGHT,
+		TRIANGLE_UP,
+		TRIANGLE_DOWN,
+		TRIANGLE_RIGHT,
+		DOTS_VERTICAL
 	}
 
 	private final Shape shape;
@@ -67,8 +75,52 @@ public class PaintedIcon implements Icon
 					g2.drawLine(0, ly, size - 1, ly);
 				}
 				break;
+			case CHEVRON_LEFT:
+				g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+				g2.draw(chevron(size, 0.62f, 0.34f));
+				break;
+			case CHEVRON_RIGHT:
+				g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+				g2.draw(chevron(size, 0.38f, 0.66f));
+				break;
+			case TRIANGLE_UP:
+				g2.fill(triangle(size, 0.5f, 0.2f, 0.84f, 0.74f, 0.16f, 0.74f));
+				break;
+			case TRIANGLE_DOWN:
+				g2.fill(triangle(size, 0.16f, 0.26f, 0.84f, 0.26f, 0.5f, 0.8f));
+				break;
+			case TRIANGLE_RIGHT:
+				g2.fill(triangle(size, 0.3f, 0.16f, 0.3f, 0.84f, 0.82f, 0.5f));
+				break;
+			case DOTS_VERTICAL:
+				float d = Math.max(1.6f, size * 0.16f);
+				for (int i = 0; i < 3; i++)
+				{
+					float cy = size * (0.18f + 0.32f * i);
+					g2.fill(new java.awt.geom.Ellipse2D.Float(size / 2f - d / 2, cy - d / 2, d, d));
+				}
+				break;
 		}
 		g2.dispose();
+	}
+
+	private static Path2D chevron(int size, float fromX, float tipX)
+	{
+		Path2D path = new Path2D.Float();
+		path.moveTo(size * fromX, size * 0.18f);
+		path.lineTo(size * tipX, size * 0.5f);
+		path.lineTo(size * fromX, size * 0.82f);
+		return path;
+	}
+
+	private static Path2D triangle(int size, float x1, float y1, float x2, float y2, float x3, float y3)
+	{
+		Path2D path = new Path2D.Float();
+		path.moveTo(size * x1, size * y1);
+		path.lineTo(size * x2, size * y2);
+		path.lineTo(size * x3, size * y3);
+		path.closePath();
+		return path;
 	}
 
 	@Override

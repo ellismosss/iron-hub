@@ -30,9 +30,10 @@ public class NavHeader extends JPanel
 			new MatteBorder(0, 0, 1, 0, UiTokens.BORDER_ROW),
 			new EmptyBorder(0, UiTokens.PAD, 0, UiTokens.PAD)));
 
-		JLabel back = new JLabel("‹", SwingConstants.CENTER);
+		// painted — the RuneScape fonts have no ‹ glyph
+		JLabel back = new JLabel(new PaintedIcon(PaintedIcon.Shape.CHEVRON_LEFT, UiTokens.STATUS_GLYPH_SIZE));
+		back.setHorizontalAlignment(SwingConstants.CENTER);
 		back.setForeground(UiTokens.TEXT_MUTED);
-		back.setFont(back.getFont().deriveFont(Font.PLAIN, UiTokens.STATUS_GLYPH_SIZE));
 		back.setToolTipText("Back");
 		Dimension backSize = new Dimension(UiTokens.ICON_BUTTON_SIZE, UiTokens.ICON_BUTTON_SIZE);
 		back.setPreferredSize(backSize);
