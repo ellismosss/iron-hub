@@ -412,7 +412,7 @@ public class LoadoutLabPanel extends PluginPanel
 			menu.show(optionsButton, 0, optionsButton.getHeight());
 		});
 		header.add(optionsButton, BorderLayout.EAST);
-		top.add(header);
+		// Iron Hub: title + Options header dropped (module nav header covers it)
 		top.add(Box.createVerticalStrut(4));
 
 		searchField.setAlignmentX(LEFT_ALIGNMENT);
@@ -505,7 +505,7 @@ public class LoadoutLabPanel extends PluginPanel
 		spellbook.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
 		spellbook.setToolTipText("Limit spells to one spellbook (powered staves always considered)");
 		spellbook.addActionListener(e -> recompute());
-		top.add(spellbook);
+		// Iron Hub: spellbook selector moves below the results (see bottomControls)
 
 		// Buyable upgrades within a total gp budget join the consideration
 		// pool (dream items are the manual version, via right-click).
@@ -528,14 +528,14 @@ public class LoadoutLabPanel extends PluginPanel
 			}
 		});
 		budgetRow.add(upgradeBudget, BorderLayout.CENTER);
-		top.add(budgetRow);
+		// Iron Hub: upgrade-budget row dropped per user direction
 
 		// D-4: pick the offense/defense frontier point (sweep is slower).
 		optimizeMode.setAlignmentX(LEFT_ALIGNMENT);
 		optimizeMode.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
 		optimizeMode.setToolTipText("Balanced/Tanky trade dps for less damage taken");
 		optimizeMode.addActionListener(e -> recompute());
-		top.add(optimizeMode);
+		// Iron Hub: optimize selector moves below the results (see bottomControls)
 
 		// Excluded items ("protected" from suggestions) - click to manage.
 		exclusionsLabel.setForeground(new Color(200, 140, 140));
@@ -574,7 +574,7 @@ public class LoadoutLabPanel extends PluginPanel
 		dwmsLabel.setForeground(MUTED);
 		dwmsLabel.setFont(dwmsLabel.getFont().deriveFont(12f));
 		dwmsLabel.setAlignmentX(LEFT_ALIGNMENT);
-		top.add(dwmsLabel);
+		// Iron Hub: DWMS contribution line dropped per user direction
 		refreshDwmsLabel();
 
 		// The mob's post-it note: collapsible, edited inline (saves when
@@ -645,7 +645,18 @@ public class LoadoutLabPanel extends PluginPanel
 		resultsScroll.setBorder(null);
 		resultsScroll.getViewport().setOpaque(false);
 		resultsScroll.setOpaque(false);
-		add(resultsScroll, BorderLayout.CENTER);
+		// Iron Hub: spellbook + optimize live under the gear grids
+		JPanel bottomControls = new JPanel();
+		bottomControls.setLayout(new BoxLayout(bottomControls, BoxLayout.Y_AXIS));
+		bottomControls.setOpaque(false);
+		bottomControls.add(spellbook);
+		bottomControls.add(Box.createVerticalStrut(4));
+		bottomControls.add(optimizeMode);
+		JPanel centerWrap = new JPanel(new BorderLayout());
+		centerWrap.setOpaque(false);
+		centerWrap.add(resultsScroll, BorderLayout.CENTER);
+		centerWrap.add(bottomControls, BorderLayout.SOUTH);
+		add(centerWrap, BorderLayout.CENTER);
 
 		statusLabel.setForeground(MUTED);
 		add(statusLabel, BorderLayout.SOUTH);
@@ -1378,7 +1389,10 @@ public class LoadoutLabPanel extends PluginPanel
 
 			private void maybeShow(MouseEvent e)
 			{
-				if (!e.isPopupTrigger())
+				// Iron Hub: left-click opens the same swap menu (pin an item
+				// via search, use what you own, exclude the suggestion)
+				if (!e.isPopupTrigger()
+					&& !(e.getID() == MouseEvent.MOUSE_PRESSED && SwingUtilities.isLeftMouseButton(e)))
 				{
 					return;
 				}

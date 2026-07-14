@@ -150,6 +150,10 @@ public class LoadoutLabModule implements IronHubModule
 			holder = new JPanel(new BorderLayout());
 			holder.setBackground(UiTokens.PANEL_BG);
 			holder.add(buildStrip(), BorderLayout.NORTH);
+			setupView.setLayout(new BoxLayout(setupView, BoxLayout.Y_AXIS));
+			setupView.setOpaque(false);
+			setupView.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
+			holder.add(setupView, BorderLayout.SOUTH); // saved setup sits under the lab
 			mountPanel();
 			refreshStrip();
 		}
@@ -189,10 +193,6 @@ public class LoadoutLabModule implements IronHubModule
 		tipsLabel.setVisible(false);
 		strip.add(tipsLabel);
 
-		setupView.setLayout(new BoxLayout(setupView, BoxLayout.Y_AXIS));
-		setupView.setOpaque(false);
-		setupView.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-		strip.add(setupView);
 		return strip;
 	}
 
