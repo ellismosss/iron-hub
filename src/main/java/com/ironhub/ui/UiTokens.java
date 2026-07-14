@@ -32,10 +32,11 @@ public final class UiTokens
 	public static final Color TEXT_FAINT = new Color(0x6B, 0x6B, 0x6B);  // hints, timestamps
 	public static final Color GLYPH_MUTED = new Color(0x9A, 0x9A, 0x9A); // icon-button glyphs, unselected segments
 
-	// ── Controls & tiles (from mockup frames 1a/2a) ───────────────────
+	// ── Controls & tiles (from mockup frames 1a/1b/2a) ────────────────
 	public static final Color ICON_BUTTON_BG = new Color(0x33, 0x33, 0x33);
 	public static final Color TILE_BG_LOCKED = new Color(0x25, 0x25, 0x25);   // dimmed locked tile fill
-	public static final Color BORDER_TILE_LOCKED = new Color(0x3F, 0x3F, 0x3F);
+	public static final Color BORDER_DIM = new Color(0x3F, 0x3F, 0x3F);       // locked tiles, unselected chips
+	public static final Color NAV_ROW_HOVER_BG = new Color(0x2F, 0x2F, 0x2F); // borderless nav rows (1c)
 
 	// ── Accent (interaction/selection ONLY — never a status color) ────
 	public static final Color ACCENT = new Color(0xDC, 0x8A, 0x00);
@@ -81,16 +82,23 @@ public final class UiTokens
 	public static final int BORDER_RADIUS = 2;      // maximum radius anywhere
 
 	// ── Typography (px; hierarchy via bold + color, not size jumps) ───
+	public static final float FONT_SIZE_SCORE = 17f;     // dashboard account-score figure only
 	public static final float FONT_SIZE_BODY = 12f;      // titles + body (titles bold)
 	public static final float FONT_SIZE_SECONDARY = 11f; // secondary, "why" lines
 	public static final float FONT_SIZE_LABEL = 10f;     // SECTION LABELS, needs: lines, chips
 	public static final float FONT_SIZE_TILE_LABEL = 9f; // labeled-tile names/values (panel minimum)
 	public static final float FONT_SIZE_TILE_CODE = 8f;  // two-letter sprite placeholder codes
 	public static final float LETTER_SPACING_LABEL = 0.08f; // section labels (~0.08em tracking)
+	public static final float LETTER_SPACING_TITLE = 0.12f; // "IRON HUB" panel title
 
-	// ── Row internals (mockup frame 1a: gap + h-padding inside rows) ──
+	// ── Row internals (mockup frames 1a–1c) ───────────────────────────
 	public static final int ROW_GAP = 6;
-	public static final int GRID_GAP = 5; // between 30 px tiles
+	public static final int GRID_GAP = 5;      // between 30 px tiles
+	public static final int CHIP_GAP = 3;      // between time/filter chips
+	public static final int NAV_ICON_SIZE = 16; // module icon squares in nav rows
+	public static final int FOOTER_ROW_HEIGHT = 28; // "All modules ›" row
+	public static final int SPARKLINE_WIDTH = 64;   // score sparkline cap (trend only)
+	public static final int SPARKLINE_HEIGHT = 20;
 
 	// ── Overlay budgets ───────────────────────────────────────────────
 	public static final int OVERLAY_MAX_WIDTH = 250;

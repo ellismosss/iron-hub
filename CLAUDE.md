@@ -11,11 +11,11 @@ RuneLite Plugin Hub plugin: an all-in-one progression companion for standard OSR
 
 ## Current code state (scaffold only — no feature logic yet)
 
-- `com.ironhub.IronHubPlugin` — entry point; Guice multibinding registers 13 of 21 modules (TODOs mark the rest: quests, skills, QoL, loot/supplies, CAs, diaries, boat).
+- `com.ironhub.IronHubPlugin` — entry point; a `@Provides Set<IronHubModule>` registers 13 of 21 modules (RuneLite ships Guice without the multibindings extension). TODOs mark the rest: quests, skills, QoL, loot/supplies, CAs, diaries, boat.
 - `com.ironhub.IronHubConfig` — per-module enable toggles + opt-in integration settings.
 - `com.ironhub.state.AccountState` — single-source-of-truth service, event ingestion stubbed.
 - `com.ironhub.modules.*` — one package per module, each a stub implementing `IronHubModule` with a Javadoc pointing at its DESIGN.md section.
-- `com.ironhub.ui.IronHubPanel` — placeholder panel. `com.ironhub.ui.UiTokens` — all design tokens as constants (mirrors DESIGN-PACKAGE.md; keep them in sync, never hardcode styles in views).
+- `com.ironhub.ui.IronHubPanel` — CardLayout shell: `DashboardPanel` (frame 1b) ↔ `ModuleNavPanel` (frame 1c), placeholder data until M2. `com.ironhub.ui.components` — shared atoms (M1). `com.ironhub.ui.UiTokens` — all design tokens as constants (mirrors DESIGN-PACKAGE.md; keep them in sync, never hardcode styles in views). Offscreen renders for mockup side-by-sides: `./gradlew test` → `build/reports/*.png`.
 - `com.ironhub.integrations.ShortestPathBridge` — PluginMessage soft integration, done in principle.
 - `src/main/resources/data/dailies.json` — example of the data-pack pattern.
 - Build: Gradle, Java 11, `net.runelite:client` latest.release. Dev launcher: `src/test/java/com/ironhub/IronHubPluginTest`.

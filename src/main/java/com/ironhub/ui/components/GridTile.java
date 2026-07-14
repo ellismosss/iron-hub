@@ -59,7 +59,7 @@ public class GridTile extends JLabel
 			case WARNING:
 				return UiTokens.STATUS_WARNING;
 			default:
-				return UiTokens.BORDER_TILE_LOCKED;
+				return UiTokens.BORDER_DIM;
 		}
 	}
 
