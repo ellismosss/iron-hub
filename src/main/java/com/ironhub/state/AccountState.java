@@ -69,6 +69,7 @@ public class AccountState
 	// supplies consumed per source (canonical item ids, persisted); the
 	// checkpoint is carried gear at the last bank interaction or kill
 	private final Map<String, Map<Integer, Integer>> suppliesBySource = new ConcurrentHashMap<>();
+	private final Map<String, Map<String, Integer>> savedLoadouts = new ConcurrentHashMap<>();
 
 	// completed herb run durations, persisted (avg/best/count stats)
 	private final java.util.List<Long> herbRunsMs = new CopyOnWriteArrayList<>();
@@ -220,6 +221,20 @@ public class AccountState
 			combatNpcId = npcId;
 			notifyListeners();
 		}
+	}
+
+	/** Saved loadout for an activity (slot name → item id), or null. */
+	public Map<String, Integer> savedLoadout(String activity)
+	{
+		Map<String, Integer> saved = savedLoadouts.get(activity);
+		return saved == null ? null : Map.copyOf(saved);
+	}
+
+	public void saveLoadout(String activity, Map<String, Integer> slotToItem)
+	{
+		savedLoadouts.put(activity, new ConcurrentHashMap<>(slotToItem));
+		persist();
+		notifyListeners();
 	}
 
 	/** Display name of an item seen in the bank, or "item <id>" if unknown. */
@@ -863,6 +878,9 @@ public class AccountState
 		suppliesBySource.clear();
 		persisted.suppliesBySource.forEach((src, items) ->
 			suppliesBySource.put(src, new ConcurrentHashMap<>(items)));
+		savedLoadouts.clear();
+		persisted.savedLoadouts.forEach((activity, slots) ->
+			savedLoadouts.put(activity, new ConcurrentHashMap<>(slots)));
 		herbRunsMs.clear();
 		herbRunsMs.addAll(persisted.herbRunsMs);
 		consumptionLog.clear();
@@ -897,6 +915,7 @@ public class AccountState
 		state.dailiesDoneAt = new HashMap<>(dailiesDoneAt);
 		lootBySource.forEach((src, items) -> state.lootBySource.put(src, new HashMap<>(items)));
 		suppliesBySource.forEach((src, items) -> state.suppliesBySource.put(src, new HashMap<>(items)));
+		savedLoadouts.forEach((activity, slots) -> state.savedLoadouts.put(activity, new HashMap<>(slots)));
 		state.herbRunsMs = new java.util.ArrayList<>(herbRunsMs);
 		state.consumptionLog = new java.util.ArrayList<>(consumptionLog);
 		state.deaths = new java.util.ArrayList<>(deaths);

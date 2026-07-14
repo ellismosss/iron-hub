@@ -57,9 +57,13 @@ class LoadoutTab extends JPanel
 	private final JPanel invGrid = new JPanel(new GridLayout(7, 4, UiTokens.GRID_GAP, UiTokens.GRID_GAP));
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 	private final StrategyClient strategyClient; // null in unit tests
+	private final com.ironhub.data.ItemNameIndex nameIndex;
 	private final JPanel strategyBar = new JPanel();
 	private java.util.List<WikiStrategy> strategies = java.util.List.of();
 	private int selectedStrategy;
+	/** Player slot swaps on top of the solved setup (cleared on refetch). */
+	private final Map<EquipmentInventorySlot, Integer> overrides =
+		new java.util.EnumMap<>(EquipmentInventorySlot.class);
 	private Map<EquipmentInventorySlot, Integer> lastBest = Map.of();
 
 	LoadoutTab(AccountState state, ItemManager itemManager, ClientThread clientThread,
@@ -73,8 +77,9 @@ class LoadoutTab extends JPanel
 		this.config = config;
 		this.gson = gson;
 		this.httpClient = httpClient;
+		this.nameIndex = new com.ironhub.data.ItemNameIndex(gson);
 		this.strategyClient = httpClient == null ? null
-			: new StrategyClient(httpClient, gson, new com.ironhub.data.ItemNameIndex(gson));
+			: new StrategyClient(httpClient, gson, nameIndex);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
 		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
@@ -145,6 +150,14 @@ class LoadoutTab extends JPanel
 		buttons.add(secondaryButton("DPS calc", "Export to the wiki DPS calculator", this::exportToDpsCalc));
 		buttons.add(secondaryButton("Bank tag", "Copy this loadout as a Bank Tags import string", this::copyBankTag));
 		add(buttons);
+		add(Box.createVerticalStrut(UiTokens.GRID_GAP));
+		JPanel buttons2 = new JPanel(new GridLayout(1, 1, UiTokens.GRID_GAP, 0));
+		buttons2.setOpaque(false);
+		buttons2.setAlignmentX(LEFT_ALIGNMENT);
+		buttons2.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
+		buttons2.add(secondaryButton("Save setup",
+			"Remember this setup for the current task / target", this::saveSetup));
+		add(buttons2);
 		add(Box.createVerticalGlue());
 
 		state.addListener(listener);
@@ -175,6 +188,26 @@ class LoadoutTab extends JPanel
 					StrategySolver.solve(state, strategy, itemManager::getItemStats);
 				SwingUtilities.invokeLater(() -> renderGrid(best));
 			});
+			return;
+		}
+		// a remembered setup for this activity beats the generic heuristic
+		Map<String, Integer> saved = state.savedLoadout(plannedActivity());
+		if (saved != null)
+		{
+			Map<EquipmentInventorySlot, Integer> best =
+				new java.util.EnumMap<>(EquipmentInventorySlot.class);
+			saved.forEach((slotName, id) ->
+			{
+				try
+				{
+					best.put(EquipmentInventorySlot.valueOf(slotName), id);
+				}
+				catch (IllegalArgumentException ignored)
+				{
+					// stale slot name in an old profile — skip
+				}
+			});
+			renderGrid(best);
 			return;
 		}
 		ScenariosPack.Scenario selected = pack.getScenarios().get(scenario.getSelectedIndex());
@@ -277,7 +310,7 @@ class LoadoutTab extends JPanel
 				{
 					id = worn[slot.getSlotIdx()];
 				}
-				wornGrid.add(cell(slot, id));
+				wornGrid.add(cell(slot, id, false));
 			}
 		}
 		wornGrid.revalidate();
@@ -314,17 +347,141 @@ class LoadoutTab extends JPanel
 
 	private void renderGrid(Map<EquipmentInventorySlot, Integer> best)
 	{
-		lastBest = best;
+		Map<EquipmentInventorySlot, Integer> merged =
+			new java.util.EnumMap<>(EquipmentInventorySlot.class);
+		merged.putAll(best);
+		merged.putAll(overrides); // player swaps win
+		lastBest = merged;
 		grid.removeAll();
 		for (EquipmentInventorySlot[] row : GRID)
 		{
 			for (EquipmentInventorySlot slot : row)
 			{
-				grid.add(cell(slot, slot == null ? null : best.get(slot)));
+				grid.add(cell(slot, slot == null ? null : merged.get(slot), true));
 			}
 		}
 		grid.revalidate();
 		grid.repaint();
+	}
+
+	/** Persist the shown setup for the detected activity. */
+	private void saveSetup()
+	{
+		String activity = plannedActivity();
+		if (activity.isEmpty() || lastBest.isEmpty())
+		{
+			return;
+		}
+		Map<String, Integer> slots = new java.util.LinkedHashMap<>();
+		lastBest.forEach((slot, id) -> slots.put(slot.name(), id));
+		state.saveLoadout(activity, slots);
+	}
+
+	/** Click-to-swap: type-to-search replacement for a suggested slot. */
+	private void showSwapPopup(java.awt.Component anchor, EquipmentInventorySlot slot)
+	{
+		javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+		JPanel body = new JPanel();
+		body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
+		body.setBackground(UiTokens.PANEL_BG);
+		body.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, UiTokens.PAD_TIGHT,
+			UiTokens.PAD_TIGHT, UiTokens.PAD_TIGHT));
+		javax.swing.JTextField search = new javax.swing.JTextField();
+		search.setMaximumSize(new Dimension(180, UiTokens.BUTTON_HEIGHT));
+		search.setPreferredSize(new Dimension(180, UiTokens.BUTTON_HEIGHT));
+		body.add(search);
+		JPanel results = new JPanel();
+		results.setLayout(new BoxLayout(results, BoxLayout.Y_AXIS));
+		results.setOpaque(false);
+		body.add(results);
+		Runnable refresh = () ->
+		{
+			results.removeAll();
+			String query = search.getText().trim();
+			if (overrides.containsKey(slot))
+			{
+				results.add(swapRow("Clear swap", () ->
+				{
+					overrides.remove(slot);
+					popup.setVisible(false);
+					rebuild();
+				}));
+			}
+			if (query.length() >= 2)
+			{
+				for (String name : nameIndex.search(query, 8))
+				{
+					Integer id = nameIndex.idOf(name);
+					if (id == null)
+					{
+						continue;
+					}
+					boolean owned = state.canonicalStock(id) > 0;
+					results.add(swapRow(name + (owned ? " · owned" : ""), () ->
+					{
+						overrides.put(slot, owned ? state.ownedVariantOf(id) : id);
+						popup.setVisible(false);
+						rebuild();
+					}));
+				}
+			}
+			results.revalidate();
+			popup.pack();
+		};
+		search.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+		{
+			@Override
+			public void insertUpdate(javax.swing.event.DocumentEvent e)
+			{
+				refresh.run();
+			}
+
+			@Override
+			public void removeUpdate(javax.swing.event.DocumentEvent e)
+			{
+				refresh.run();
+			}
+
+			@Override
+			public void changedUpdate(javax.swing.event.DocumentEvent e)
+			{
+				refresh.run();
+			}
+		});
+		refresh.run();
+		popup.add(body);
+		popup.show(anchor, 0, anchor.getHeight());
+		search.requestFocusInWindow();
+	}
+
+	private JLabel swapRow(String label, Runnable onPick)
+	{
+		JLabel row = new JLabel(label);
+		row.setForeground(UiTokens.TEXT_BODY);
+		row.setFont(row.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
+		row.setBorder(new EmptyBorder(2, 2, 2, 2));
+		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		row.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				onPick.run();
+			}
+
+			@Override
+			public void mouseEntered(java.awt.event.MouseEvent e)
+			{
+				row.setForeground(UiTokens.ACCENT);
+			}
+
+			@Override
+			public void mouseExited(java.awt.event.MouseEvent e)
+			{
+				row.setForeground(UiTokens.TEXT_BODY);
+			}
+		});
+		return row;
 	}
 
 	private JLabel secondaryButton(String label, String tooltip, Runnable onClick)
@@ -400,7 +557,7 @@ class LoadoutTab extends JPanel
 			.setContents(new StringSelection(tag.toString()), null);
 	}
 
-	private JPanel cell(EquipmentInventorySlot slot, Integer itemId)
+	private JPanel cell(EquipmentInventorySlot slot, Integer itemId, boolean editable)
 	{
 		JPanel wrap = new JPanel();
 		wrap.setOpaque(false);
@@ -411,7 +568,10 @@ class LoadoutTab extends JPanel
 		GridTile tile;
 		if (itemId != null)
 		{
-			tile = new GridTile("", state.itemName(itemId), GridTile.State.OWNED, false);
+			String name = state.itemName(itemId);
+			tile = new GridTile("", editable ? name + " — click to swap" : name,
+				overrides.containsKey(slot) && editable ? GridTile.State.NEXT : GridTile.State.OWNED,
+				false);
 			if (itemManager != null)
 			{
 				AsyncBufferedImage sprite = itemManager.getImage(itemId);
@@ -421,8 +581,21 @@ class LoadoutTab extends JPanel
 		}
 		else
 		{
-			tile = new GridTile("", slot.name().toLowerCase() + " — nothing owned",
+			tile = new GridTile("", slot.name().toLowerCase()
+				+ (editable ? " — nothing owned, click to pick" : " — empty"),
 				GridTile.State.LOCKED, false);
+		}
+		if (editable)
+		{
+			tile.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			tile.addMouseListener(new java.awt.event.MouseAdapter()
+			{
+				@Override
+				public void mousePressed(java.awt.event.MouseEvent e)
+				{
+					showSwapPopup(tile, slot);
+				}
+			});
 		}
 		wrap.add(tile);
 		return wrap;

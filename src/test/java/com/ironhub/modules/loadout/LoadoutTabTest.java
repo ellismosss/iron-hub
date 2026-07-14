@@ -20,6 +20,21 @@ public class LoadoutTabTest
 	public TemporaryFolder temp = new TemporaryFolder();
 
 	@Test
+	public void savedLoadoutsPersistPerActivity()
+	{
+		AccountState before = StateFixture.state(temp.getRoot());
+		StateFixture.profile(before, 77L);
+		before.saveLoadout("Dust devils", java.util.Map.of("WEAPON", 4151, "HEAD", 11865));
+
+		AccountState after = StateFixture.state(temp.getRoot());
+		StateFixture.profile(after, 77L);
+		java.util.Map<String, Integer> saved = after.savedLoadout("Dust devils");
+		assertTrue(saved != null);
+		assertTrue(saved.get("WEAPON") == 4151);
+		assertTrue(after.savedLoadout("Zulrah") == null);
+	}
+
+	@Test
 	public void currentLoadoutAndActivityRenderHeadless() throws Exception
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
