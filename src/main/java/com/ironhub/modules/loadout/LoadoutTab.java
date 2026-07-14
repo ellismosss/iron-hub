@@ -56,6 +56,10 @@ class LoadoutTab extends JPanel
 	private final JPanel wornGrid = new JPanel(new GridLayout(0, 3, UiTokens.GRID_GAP, UiTokens.GRID_GAP));
 	private final JPanel invGrid = new JPanel(new GridLayout(7, 4, UiTokens.GRID_GAP, UiTokens.GRID_GAP));
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
+	private final StrategyClient strategyClient; // null in unit tests
+	private final JPanel strategyBar = new JPanel();
+	private java.util.List<WikiStrategy> strategies = java.util.List.of();
+	private int selectedStrategy;
 	private Map<EquipmentInventorySlot, Integer> lastBest = Map.of();
 
 	LoadoutTab(AccountState state, ItemManager itemManager, ClientThread clientThread,
@@ -69,6 +73,8 @@ class LoadoutTab extends JPanel
 		this.config = config;
 		this.gson = gson;
 		this.httpClient = httpClient;
+		this.strategyClient = httpClient == null ? null
+			: new StrategyClient(httpClient, gson, new com.ironhub.data.ItemNameIndex(gson));
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
 		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
@@ -108,6 +114,12 @@ class LoadoutTab extends JPanel
 		add(header);
 		add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 
+		// wiki strategy tabs appear here after a fetch
+		strategyBar.setLayout(new BoxLayout(strategyBar, BoxLayout.Y_AXIS));
+		strategyBar.setOpaque(false);
+		strategyBar.setAlignmentX(LEFT_ALIGNMENT);
+		add(strategyBar);
+
 		scenario = new JComboBox<>(pack.getScenarios().stream()
 			.map(s -> s.getName() + " · " + s.getStyle())
 			.toArray(String[]::new));
@@ -122,11 +134,14 @@ class LoadoutTab extends JPanel
 		add(grid);
 		add(Box.createVerticalStrut(UiTokens.PAD));
 
-		// two half-width buttons (2f): full labels in tooltips
-		JPanel buttons = new JPanel(new GridLayout(1, 2, UiTokens.GRID_GAP, 0));
+		// compact buttons (2f): full labels in tooltips
+		JPanel buttons = new JPanel(new GridLayout(1, 3, UiTokens.GRID_GAP, 0));
 		buttons.setOpaque(false);
 		buttons.setAlignmentX(LEFT_ALIGNMENT);
 		buttons.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
+		buttons.add(secondaryButton("Wiki gear",
+			"Fetch the wiki's recommended gear for your task / target (user-initiated request)",
+			this::fetchStrategies));
 		buttons.add(secondaryButton("DPS calc", "Export to the wiki DPS calculator", this::exportToDpsCalc));
 		buttons.add(secondaryButton("Bank tag", "Copy this loadout as a Bank Tags import string", this::copyBankTag));
 		add(buttons);
@@ -145,19 +160,91 @@ class LoadoutTab extends JPanel
 	{
 		renderActivity();
 		renderCurrent();
-		ScenariosPack.Scenario selected = pack.getScenarios().get(scenario.getSelectedIndex());
 		if (itemManager == null || clientThread == null)
 		{
 			renderGrid(Map.of()); // unit tests
 			return;
 		}
 		// item stats require the client thread (getItemComposition asserts it)
+		if (!strategies.isEmpty())
+		{
+			WikiStrategy strategy = strategies.get(Math.min(selectedStrategy, strategies.size() - 1));
+			clientThread.invoke(() ->
+			{
+				Map<EquipmentInventorySlot, Integer> best =
+					StrategySolver.solve(state, strategy, itemManager::getItemStats);
+				SwingUtilities.invokeLater(() -> renderGrid(best));
+			});
+			return;
+		}
+		ScenariosPack.Scenario selected = pack.getScenarios().get(scenario.getSelectedIndex());
 		clientThread.invoke(() ->
 		{
 			Map<EquipmentInventorySlot, Integer> best =
 				LoadoutSolver.solve(state, selected.getStyle(), itemManager::getItemStats);
 			SwingUtilities.invokeLater(() -> renderGrid(best));
 		});
+	}
+
+	/** The activity strategies are planned for: current fight beats task. */
+	private String plannedActivity()
+	{
+		return !state.getCombatNpcName().isEmpty()
+			? state.getCombatNpcName() : state.getSlayerTask();
+	}
+
+	/** User-initiated wiki lookup for the detected activity. */
+	private void fetchStrategies()
+	{
+		String activity = plannedActivity();
+		if (strategyClient == null || activity.isEmpty())
+		{
+			return;
+		}
+		boolean slayerTask = activity.equals(state.getSlayerTask());
+		strategyClient.fetch(activity, slayerTask, result ->
+			SwingUtilities.invokeLater(() ->
+			{
+				strategies = result;
+				selectedStrategy = 0;
+				renderStrategyBar(activity);
+				rebuild();
+			}));
+	}
+
+	private void renderStrategyBar(String activity)
+	{
+		strategyBar.removeAll();
+		if (!strategies.isEmpty())
+		{
+			JLabel source = new JLabel("Wiki setups · " + activity);
+			source.setForeground(UiTokens.TEXT_FAINT);
+			source.setFont(source.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
+			source.setAlignmentX(LEFT_ALIGNMENT);
+			strategyBar.add(source);
+			strategyBar.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			com.ironhub.ui.components.SegmentedControl tabs =
+				new com.ironhub.ui.components.SegmentedControl(true,
+					strategies.stream().limit(4).map(WikiStrategy::name).toArray(String[]::new));
+			tabs.onChange(i ->
+			{
+				selectedStrategy = i;
+				rebuild();
+			});
+			strategyBar.add(tabs);
+			strategyBar.add(Box.createVerticalStrut(UiTokens.PAD));
+		}
+		else
+		{
+			JLabel none = new JLabel("No wiki setup found for " + activity);
+			none.setForeground(UiTokens.TEXT_FAINT);
+			none.setFont(none.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
+			none.setAlignmentX(LEFT_ALIGNMENT);
+			strategyBar.add(none);
+			strategyBar.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		}
+		strategyBar.revalidate();
+		strategyBar.repaint();
 	}
 
 	private void renderActivity()

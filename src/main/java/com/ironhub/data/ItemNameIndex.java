@@ -69,7 +69,10 @@ public class ItemNameIndex
 
 	static String normalize(String name)
 	{
-		return name.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]+", "_")
+		// apostrophes vanish in ItemID constants (AHRIMS_ROBETOP), they
+		// don't become separators
+		return name.replaceAll("['\u2019]", "")
+			.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]+", "_")
 			.replaceAll("^_|_$", "");
 	}
 

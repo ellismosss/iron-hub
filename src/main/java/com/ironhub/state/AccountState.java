@@ -380,6 +380,20 @@ public class AccountState
 		}
 	}
 
+	/** The variant id actually owned for an item (any variant), or -1. */
+	public int ownedVariantOf(int itemId)
+	{
+		int base = net.runelite.client.game.ItemVariationMapping.map(itemId);
+		for (int variant : net.runelite.client.game.ItemVariationMapping.getVariations(base))
+		{
+			if (ownedCount(variant) > 0)
+			{
+				return variant;
+			}
+		}
+		return -1;
+	}
+
 	/** Owned stock summed across all variations of an item (any variant id). */
 	public int canonicalStock(int itemId)
 	{
