@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.gameval.VarbitID;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
@@ -40,6 +41,15 @@ public class FarmingRunModule implements IronHubModule
 	/** A patch counts as visited within this many tiles. */
 	static final int VISIT_RADIUS = 12;
 
+	// farming transmit varbits only sync while the patch's region is
+	// loaded; letters map data-pack entries to the documented constants
+	private static final java.util.Map<String, Integer> TRANSMIT_VARBITS = java.util.Map.of(
+		"A", VarbitID.FARMING_TRANSMIT_A,
+		"B", VarbitID.FARMING_TRANSMIT_B,
+		"C", VarbitID.FARMING_TRANSMIT_C,
+		"D", VarbitID.FARMING_TRANSMIT_D,
+		"E", VarbitID.FARMING_TRANSMIT_E);
+
 	private final AccountState state;
 	private final Client client;
 	private final EventBus eventBus;
@@ -54,6 +64,8 @@ public class FarmingRunModule implements IronHubModule
 	private FarmingTab tab;
 	private FarmingRunOverlay overlay;
 	private RunTimerInfoBox infoBox;
+	private PatchesReadyInfoBox readyInfoBox;
+	private final Runnable patchObserver = this::observePatches;
 
 	// run state — written on the client thread, read from EDT/overlay
 	private volatile long runStartMs;
@@ -92,6 +104,9 @@ public class FarmingRunModule implements IronHubModule
 	public void startUp()
 	{
 		pack = dataPack.load("herb-patches", HerbPatchesPack.class);
+		pack.getPatches().forEach(p ->
+			state.watchVarbits(TRANSMIT_VARBITS.get(p.getVarbit())));
+		state.addListener(patchObserver);
 		eventBus.register(this);
 		if (overlayManager != null)
 		{
@@ -103,12 +118,15 @@ public class FarmingRunModule implements IronHubModule
 			BufferedImage icon = ImageUtil.loadImageResource(com.ironhub.IronHubPlugin.class, "/icon.png");
 			infoBox = new RunTimerInfoBox(icon, plugin.get(), this);
 			infoBoxManager.addInfoBox(infoBox);
+			readyInfoBox = new PatchesReadyInfoBox(icon, plugin.get(), this);
+			infoBoxManager.addInfoBox(readyInfoBox);
 		}
 	}
 
 	@Override
 	public void shutDown()
 	{
+		state.removeListener(patchObserver);
 		eventBus.unregister(this);
 		runStartMs = 0;
 		if (overlay != null)
@@ -120,6 +138,11 @@ public class FarmingRunModule implements IronHubModule
 		{
 			infoBoxManager.removeInfoBox(infoBox);
 			infoBox = null;
+		}
+		if (readyInfoBox != null)
+		{
+			infoBoxManager.removeInfoBox(readyInfoBox);
+			readyInfoBox = null;
 		}
 		if (tab != null)
 		{
@@ -228,6 +251,86 @@ public class FarmingRunModule implements IronHubModule
 	AccountState state()
 	{
 		return state;
+	}
+
+	/**
+	 * Observe herb patches in the player's current region: the transmit
+	 * varbit only carries this region's patch, so attribute by region id.
+	 * Runs off AccountState notifications on the client thread.
+	 */
+	private void observePatches()
+	{
+		if (client == null || !client.isClientThread() || client.getLocalPlayer() == null)
+		{
+			return;
+		}
+		int region = client.getLocalPlayer().getWorldLocation().getRegionID();
+		for (HerbPatchesPack.Patch patch : patches())
+		{
+			if (patch.getRegionId() == region)
+			{
+				int value = state.getVarbit(TRANSMIT_VARBITS.get(patch.getVarbit()));
+				HerbPatchDecoder.Seen seen = HerbPatchDecoder.decode(value);
+				if (seen.state != HerbPatchDecoder.State.UNKNOWN
+					&& state.recordHerbPatch(patch.getId(), seen.state.name(), seen.herb, seen.stage)
+					&& tab != null)
+				{
+					SwingUtilities.invokeLater(tab::rebuild);
+				}
+			}
+		}
+	}
+
+	/** Predicted patch view for display — static for testing. */
+	enum PatchView
+	{
+		READY,
+		PREDICTED_READY,
+		GROWING,
+		DISEASED,
+		DEAD,
+		EMPTY,
+		UNKNOWN
+	}
+
+	static PatchView predict(AccountState.HerbPatchSeen seen, long now)
+	{
+		if (seen == null)
+		{
+			return PatchView.UNKNOWN;
+		}
+		switch (HerbPatchDecoder.State.valueOf(seen.state))
+		{
+			case HARVESTABLE:
+				return PatchView.READY;
+			case DISEASED:
+				return PatchView.DISEASED;
+			case DEAD:
+				return PatchView.DEAD;
+			case EMPTY:
+				return PatchView.EMPTY;
+			case GROWING:
+				return now >= readyAtMs(seen) ? PatchView.PREDICTED_READY : PatchView.GROWING;
+			default:
+				return PatchView.UNKNOWN;
+		}
+	}
+
+	/** Earliest time a growing patch could be harvestable. */
+	static long readyAtMs(AccountState.HerbPatchSeen seen)
+	{
+		int stagesLeft = HerbPatchDecoder.GROWING_STAGES - seen.stage;
+		return seen.timeMs + (long) stagesLeft * HerbPatchDecoder.STAGE_MINUTES * 60_000;
+	}
+
+	/** Patches ready or predicted ready — drives the infobox. */
+	int readyCount()
+	{
+		long now = System.currentTimeMillis();
+		return (int) patches().stream()
+			.map(p -> predict(state.herbPatchSeen(p.getId()), now))
+			.filter(v -> v == PatchView.READY || v == PatchView.PREDICTED_READY)
+			.count();
 	}
 
 	/** "5:40" from millis — static for testing. */

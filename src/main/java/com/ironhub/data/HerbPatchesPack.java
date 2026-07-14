@@ -20,5 +20,7 @@ public class HerbPatchesPack
 		private String id;
 		private String name;
 		private WorldPoint location;
+		private int regionId;
+		private String varbit; // FARMING_TRANSMIT_<letter>
 	}
 }

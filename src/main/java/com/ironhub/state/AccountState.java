@@ -73,6 +73,10 @@ public class AccountState
 	// completed herb run durations, persisted (avg/best/count stats)
 	private final java.util.List<Long> herbRunsMs = new CopyOnWriteArrayList<>();
 
+	// last observed herb patch states (farming varbits only sync when the
+	// region loads, so remote views predict from these)
+	private final Map<String, PersistedState.PatchSeen> herbPatchSeen = new ConcurrentHashMap<>();
+
 	/** Recent deaths, oldest first, capped. */
 	public static final int MAX_DEATHS = 10;
 	private final java.util.List<PersistedState.DeathRecord> deaths = new CopyOnWriteArrayList<>();
@@ -277,6 +281,51 @@ public class AccountState
 		herbRunsMs.add(durationMs);
 		persist();
 		notifyListeners();
+	}
+
+	/** Record an observed herb patch state; returns true when it changed. */
+	public boolean recordHerbPatch(String patchId, String state, String herb, int stage)
+	{
+		PersistedState.PatchSeen previous = herbPatchSeen.get(patchId);
+		if (previous != null && previous.state.equals(state)
+			&& previous.herb.equals(herb) && previous.stage == stage)
+		{
+			return false;
+		}
+		PersistedState.PatchSeen seen = new PersistedState.PatchSeen();
+		seen.state = state;
+		seen.herb = herb;
+		seen.stage = stage;
+		seen.timeMs = System.currentTimeMillis();
+		herbPatchSeen.put(patchId, seen);
+		persist();
+		notifyListeners();
+		return true;
+	}
+
+	/** Last observed herb patch state, or null if never seen. */
+	public HerbPatchSeen herbPatchSeen(String patchId)
+	{
+		PersistedState.PatchSeen seen = herbPatchSeen.get(patchId);
+		return seen == null ? null
+			: new HerbPatchSeen(seen.state, seen.herb, seen.stage, seen.timeMs);
+	}
+
+	/** Immutable last-seen view for modules. */
+	public static class HerbPatchSeen
+	{
+		public final String state;
+		public final String herb;
+		public final int stage;
+		public final long timeMs;
+
+		HerbPatchSeen(String state, String herb, int stage, long timeMs)
+		{
+			this.state = state;
+			this.herb = herb;
+			this.stage = stage;
+			this.timeMs = timeMs;
+		}
 	}
 
 	/** Death of the local player: capture location + carried items. */
@@ -569,6 +618,8 @@ public class AccountState
 		herbRunsMs.addAll(persisted.herbRunsMs);
 		deaths.clear();
 		deaths.addAll(persisted.deaths);
+		herbPatchSeen.clear();
+		herbPatchSeen.putAll(persisted.herbPatchSeen);
 		log.debug("activated profile {} ({} banked item stacks)", hash, bank.size());
 	}
 
@@ -589,6 +640,7 @@ public class AccountState
 		suppliesBySource.forEach((src, items) -> state.suppliesBySource.put(src, new HashMap<>(items)));
 		state.herbRunsMs = new java.util.ArrayList<>(herbRunsMs);
 		state.deaths = new java.util.ArrayList<>(deaths);
+		state.herbPatchSeen = new HashMap<>(herbPatchSeen);
 		store.save(profile, state);
 	}
 

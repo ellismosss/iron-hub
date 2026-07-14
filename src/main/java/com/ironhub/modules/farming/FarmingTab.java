@@ -32,6 +32,7 @@ class FarmingTab extends JPanel
 
 	private final JLabel runButton = new JLabel("", javax.swing.SwingConstants.CENTER);
 	private final JLabel stats = new JLabel();
+	private final JLabel readyCount = new JLabel();
 	private final JPanel list = new JPanel();
 
 	FarmingTab(AccountState state, FarmingRunModule module, ShortestPathBridge pathBridge)
@@ -78,7 +79,16 @@ class FarmingTab extends JPanel
 		add(stats);
 		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 
-		add(new SectionLabel("Herb patches"));
+		JPanel patchHeader = new JPanel();
+		patchHeader.setLayout(new BoxLayout(patchHeader, BoxLayout.X_AXIS));
+		patchHeader.setOpaque(false);
+		patchHeader.setAlignmentX(LEFT_ALIGNMENT);
+		patchHeader.add(new SectionLabel("Herb patches"));
+		patchHeader.add(Box.createHorizontalGlue());
+		readyCount.setForeground(UiTokens.STATUS_AVAILABLE);
+		readyCount.setFont(readyCount.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
+		patchHeader.add(readyCount);
+		add(patchHeader);
 		add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
 		list.setBackground(UiTokens.PANEL_BG);
@@ -100,29 +110,69 @@ class FarmingTab extends JPanel
 		runButton.setText(module.running() ? "End run" : "Start herb run");
 		stats.setText(FarmingRunModule.statsLine(state.getHerbRunsMs()));
 
+		long now = System.currentTimeMillis();
+		readyCount.setText(module.readyCount() + " of " + module.patches().size() + " ready");
+
 		HerbPatchesPack.Patch next = module.nextPatch();
 		list.removeAll();
 		for (HerbPatchesPack.Patch patch : module.patches())
 		{
 			IconButton path = IconButton.path(() -> pathBridge.pathTo(patch.getLocation()));
-			ListRow row;
-			if (module.running() && module.isVisited(patch.getId()))
-			{
-				row = ListRow.owned(patch.getName(), path);
-			}
-			else if (module.running() && next != null && next.getId().equals(patch.getId()))
-			{
-				row = ListRow.available(patch.getName(), path);
-			}
-			else
-			{
-				row = ListRow.locked(patch.getName(), path);
-			}
-			list.add(row);
+			list.add(patchRow(patch, next, now, path));
 			list.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
 		list.revalidate();
 		list.repaint();
+	}
+
+	private ListRow patchRow(HerbPatchesPack.Patch patch, HerbPatchesPack.Patch next,
+		long now, IconButton path)
+	{
+		if (module.running())
+		{
+			if (module.isVisited(patch.getId()))
+			{
+				return ListRow.owned(patch.getName(), path);
+			}
+			if (next != null && next.getId().equals(patch.getId()))
+			{
+				return ListRow.available(patch.getName(), path);
+			}
+			return ListRow.locked(patch.getName(), path);
+		}
+
+		AccountState.HerbPatchSeen seen = state.herbPatchSeen(patch.getId());
+		ListRow row;
+		switch (FarmingRunModule.predict(seen, now))
+		{
+			case READY:
+				row = ListRow.available(patch.getName(), path);
+				row.setToolTipText(patch.getName() + " — " + seen.herb + " ready");
+				break;
+			case PREDICTED_READY:
+				row = ListRow.available(patch.getName(), path);
+				row.setToolTipText(patch.getName() + " — " + seen.herb + " predicted ready");
+				break;
+			case GROWING:
+				row = ListRow.locked(patch.getName(), path);
+				long minutes = Math.max(1, (FarmingRunModule.readyAtMs(seen) - now) / 60_000);
+				row.setToolTipText(patch.getName() + " — " + seen.herb + " ready ~ in " + minutes + " min");
+				break;
+			case DISEASED:
+				row = ListRow.warning(patch.getName(), "diseased", path);
+				break;
+			case DEAD:
+				row = ListRow.warning(patch.getName(), "dead", path);
+				break;
+			case EMPTY:
+				row = ListRow.locked(patch.getName(), path);
+				row.setToolTipText(patch.getName() + " — empty");
+				break;
+			default:
+				row = ListRow.locked(patch.getName(), path);
+				row.setToolTipText(patch.getName() + " — not seen yet");
+		}
+		return row;
 	}
 
 	@Override
