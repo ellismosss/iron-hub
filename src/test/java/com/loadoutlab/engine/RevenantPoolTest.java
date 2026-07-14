@@ -21,6 +21,18 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class RevenantPoolTest
 {
+
+	@org.junit.jupiter.api.BeforeAll
+	static void ironHubAssumeBoosts()
+	{
+		// Iron Hub: production defaults the boost toggles OFF; these
+		// vendored suites were written against upstream's always-on model.
+		com.loadoutlab.engine.PrayerBonuses.MELEE_PRAYER = true;
+		com.loadoutlab.engine.PrayerBonuses.RANGED_PRAYER = true;
+		com.loadoutlab.engine.PrayerBonuses.MAGIC_PRAYER = true;
+		com.loadoutlab.optimizer.BoostSelector.POTIONS_ASSUMED = true;
+		com.loadoutlab.optimizer.BoostSelector.HEART_ASSUMED = true;
+	}
 	private static LoadoutData data;
 	private static MonsterStats revDemon;
 
