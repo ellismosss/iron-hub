@@ -40,6 +40,12 @@ public class GearProgressionPack
 		/** Icon only — POH furniture etc.; obtained via a manual mark. */
 		private Integer iconItemId;
 		/**
+		 * Bundled icon image under {@code /data/icons/} — official wiki
+		 * object icons for things with no item sprite (POH furniture).
+		 * Takes precedence over the item-sprite icon on chart tiles.
+		 */
+		private String iconFile;
+		/**
 		 * Ownership must match this exact id — set on tiered/imbued items
 		 * (Ghommal's hilts, diary rewards, (i)/(ei) jewellery) whose
 		 * variation group spans tiers that are NOT interchangeable.

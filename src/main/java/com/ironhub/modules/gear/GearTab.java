@@ -7,9 +7,7 @@ import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.components.ChipRow;
 import com.ironhub.ui.components.SectionLabel;
-import com.ironhub.ui.components.WrapLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
@@ -180,14 +178,26 @@ class GearTab extends JPanel
 				body.add(label);
 				body.add(Box.createVerticalStrut(2));
 
-				JPanel row = new JPanel(new WrapLayout(FlowLayout.LEFT, UiTokens.CHIP_GAP, UiTokens.CHIP_GAP));
-				row.setOpaque(false);
-				row.setAlignmentX(LEFT_ALIGNMENT);
-				for (GearProgressionPack.Item item : items)
+				// deterministic chunked rows: WrapLayout's height inside the
+				// scroll view goes stale and clips everything past one row
+				int perRow = (UiTokens.PANEL_WIDTH - 2 * UiTokens.PAD + UiTokens.CHIP_GAP)
+					/ (ItemTile.W + UiTokens.CHIP_GAP);
+				for (int start = 0; start < items.size(); start += perRow)
 				{
-					row.add(tile(item));
+					JPanel row = new JPanel();
+					row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+					row.setOpaque(false);
+					row.setAlignmentX(LEFT_ALIGNMENT);
+					for (GearProgressionPack.Item item : items.subList(start,
+						Math.min(start + perRow, items.size())))
+					{
+						row.add(tile(item));
+						row.add(Box.createHorizontalStrut(UiTokens.CHIP_GAP));
+					}
+					row.add(Box.createHorizontalGlue());
+					body.add(row);
+					body.add(Box.createVerticalStrut(UiTokens.CHIP_GAP));
 				}
-				body.add(row);
 			}
 			if (phaseHasContent)
 			{
@@ -218,13 +228,35 @@ class GearTab extends JPanel
 				}
 			},
 			e -> contextMenu(item).show(e.getComponent(), e.getX(), e.getY()));
-		if (itemManager != null)
+		if (item.getIconFile() != null)
+		{
+			tile.setIcon(bundledIcon(item.getIconFile()));
+		}
+		else if (itemManager != null)
 		{
 			AsyncBufferedImage icon = itemManager.getImage(item.icon());
 			tile.setIcon(icon);
 			icon.onLoaded(tile::repaint);
 		}
 		return tile;
+	}
+
+	private static final java.util.Map<String, java.awt.image.BufferedImage> ICON_CACHE = new java.util.HashMap<>();
+
+	/** Bundled wiki object icon from /data/icons/ (POH furniture etc.). */
+	private static java.awt.image.BufferedImage bundledIcon(String file)
+	{
+		return ICON_CACHE.computeIfAbsent(file, f ->
+		{
+			try (java.io.InputStream in = GearTab.class.getResourceAsStream("/data/icons/" + f))
+			{
+				return in != null ? javax.imageio.ImageIO.read(in) : null;
+			}
+			catch (java.io.IOException e)
+			{
+				return null; // letter-code fallback paints instead
+			}
+		});
 	}
 
 	/** Detected, manually marked, or implied by an obtained successor. */

@@ -90,7 +90,13 @@ class ItemTile extends JComponent
 
 		if (icon != null)
 		{
-			g2.drawImage(icon, (W - icon.getWidth()) / 2, (H - icon.getHeight()) / 2, null);
+			// scale down to fit (wiki object icons vary in size); never scale up
+			int w = icon.getWidth();
+			int h = icon.getHeight();
+			double fit = Math.min(1.0, Math.min((W - 4) / (double) w, (H - 4) / (double) h));
+			w = (int) Math.round(w * fit);
+			h = (int) Math.round(h * fit);
+			g2.drawImage(icon, (W - w) / 2, (H - h) / 2, w, h, null);
 		}
 		else
 		{

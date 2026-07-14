@@ -2051,6 +2051,18 @@
           "label": "Oak era (to ~50 Construction)",
           "items": [
             {
+              "name": "Demon butler",
+              "iconItemId": 8780,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:40"
+              ],
+              "wiki": "Demon_butler",
+              "iconFile": "poh/demon_butler.png"
+            },
+            {
               "name": "Oak altar",
               "iconItemId": 1718,
               "categories": [
@@ -2058,7 +2070,8 @@
               ],
               "requirements": [
                 "skill:Construction:45"
-              ]
+              ],
+              "iconFile": "poh/oak_altar.png"
             },
             {
               "name": "Mounted amulet of glory",
@@ -2069,7 +2082,8 @@
               "requirements": [
                 "skill:Construction:47"
               ],
-              "wiki": "Amulet_of_Glory_(mounted)"
+              "wiki": "Amulet_of_Glory_(mounted)",
+              "iconFile": "poh/mounted_glory.png"
             },
             {
               "name": "Teak portal",
@@ -2080,7 +2094,8 @@
               "requirements": [
                 "skill:Construction:50"
               ],
-              "wiki": "Portal_Chamber"
+              "wiki": "Portal_Chamber",
+              "iconFile": "poh/teak_portal.png"
             }
           ]
         },
@@ -2096,7 +2111,8 @@
               "requirements": [
                 "skill:Construction:55"
               ],
-              "wiki": "Armour_stand"
+              "wiki": "Armour_stand",
+              "iconFile": "poh/armour_stand.png"
             },
             {
               "name": "Spice rack",
@@ -2107,7 +2123,8 @@
               "requirements": [
                 "skill:Construction:60"
               ],
-              "wiki": "Spice_rack"
+              "wiki": "Spice_rack",
+              "iconFile": "poh/spice_rack.png"
             },
             {
               "name": "Restoration pool",
@@ -2118,7 +2135,8 @@
               "requirements": [
                 "skill:Construction:65"
               ],
-              "wiki": "Restoration_pool"
+              "wiki": "Restoration_pool",
+              "iconFile": "poh/restoration_pool.png"
             },
             {
               "name": "Teak shelves 2",
@@ -2129,12 +2147,41 @@
               "requirements": [
                 "skill:Construction:67"
               ],
-              "wiki": "Shelves"
+              "wiki": "Shelves",
+              "iconFile": "poh/teak_shelves.png"
             }
           ]
         },
         {
-          "label": "Portal-nexus era (70-92)",
+          "label": "Boost toolkit (build up to +8 early)",
+          "items": [
+            {
+              "name": "Crystal saw",
+              "itemId": 9625,
+              "categories": [
+                "poh",
+                "utility"
+              ],
+              "requirements": [
+                "quest:The Eyes of Glouphrie"
+              ],
+              "wiki": "Crystal_saw"
+            },
+            {
+              "name": "Spicy stew boost",
+              "iconItemId": 7479,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "quest:Recipe for Disaster - Evil Dave"
+              ],
+              "wiki": "Spicy_stew"
+            }
+          ]
+        },
+        {
+          "label": "Portal-nexus era (70-92; saw + POH tea boost +6)",
           "items": [
             {
               "name": "Barrows portal",
@@ -2146,7 +2193,32 @@
                 "skill:Construction:50",
                 "skill:Magic:83"
               ],
-              "wiki": "Portal_Chamber"
+              "wiki": "Portal_Chamber",
+              "iconFile": "poh/barrows_portal.png"
+            },
+            {
+              "name": "Mounted Xeric's talisman",
+              "iconItemId": 13393,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:72"
+              ],
+              "wiki": "Mounted_Xeric's_Talisman",
+              "iconFile": "poh/mounted_xerics.png"
+            },
+            {
+              "name": "Marble portal nexus",
+              "iconItemId": 8013,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:72"
+              ],
+              "wiki": "Portal_Nexus",
+              "iconFile": "poh/marble_nexus.png"
             },
             {
               "name": "Gilded altar",
@@ -2157,7 +2229,8 @@
               "requirements": [
                 "skill:Construction:75"
               ],
-              "wiki": "Altar_space"
+              "wiki": "Altar_space",
+              "iconFile": "poh/gilded_altar.png"
             },
             {
               "name": "Spirit tree",
@@ -2169,18 +2242,20 @@
                 "skill:Construction:75",
                 "skill:Farming:83"
               ],
-              "wiki": "Spirit_tree_(Construction)"
+              "wiki": "Spirit_tree_(Construction)",
+              "iconFile": "poh/spirit_tree.png"
             },
             {
-              "name": "Marble portal nexus",
-              "iconItemId": 8013,
+              "name": "Wilderness Obelisk",
+              "iconItemId": 21166,
               "categories": [
                 "poh"
               ],
               "requirements": [
-                "skill:Construction:72"
+                "skill:Construction:80"
               ],
-              "wiki": "Portal_Nexus"
+              "wiki": "Obelisk_(Construction)",
+              "iconFile": "poh/wilderness_obelisk.png"
             },
             {
               "name": "Ancient / Lunar / Dark altar",
@@ -2191,7 +2266,8 @@
               "requirements": [
                 "skill:Construction:80"
               ],
-              "wiki": "Occult_altar"
+              "wiki": "Occult_altar",
+              "iconFile": "poh/spellbook_altar.png"
             },
             {
               "name": "Basic jewellery box",
@@ -2202,7 +2278,36 @@
               "requirements": [
                 "skill:Construction:81"
               ],
-              "wiki": "Jewellery_box"
+              "wiki": "Jewellery_box",
+              "iconFile": "poh/basic_jewellery_box.png"
+            },
+            {
+              "name": "Mounted digsite pendant",
+              "iconItemId": 11194,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:82",
+                "quest:The Dig Site"
+              ],
+              "wiki": "Mounted_digsite_pendant",
+              "iconFile": "poh/mounted_digsite.png"
+            },
+            {
+              "name": "Fancy rejuvenation pool",
+              "iconItemId": 3024,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:85"
+              ],
+              "wiki": "Fancy_rejuvenation_pool",
+              "iconFile": "poh/fancy_pool.png",
+              "implies": [
+                "Restoration pool"
+              ]
             },
             {
               "name": "Fairy ring",
@@ -2211,9 +2316,26 @@
                 "poh"
               ],
               "requirements": [
-                "skill:Construction:85"
+                "skill:Construction:85",
+                "quest:Fairytale II - Cure a Queen"
               ],
-              "wiki": "Fairy_ring_(Construction)"
+              "wiki": "Fairy_ring_(Construction)",
+              "iconFile": "poh/fairy_ring.png"
+            },
+            {
+              "name": "Fancy jewellery box",
+              "iconItemId": 2552,
+              "categories": [
+                "poh"
+              ],
+              "requirements": [
+                "skill:Construction:86"
+              ],
+              "wiki": "Jewellery_box",
+              "iconFile": "poh/fancy_jewellery_box.png",
+              "implies": [
+                "Basic jewellery box"
+              ]
             },
             {
               "name": "Occult altar",
@@ -2222,9 +2344,15 @@
                 "poh"
               ],
               "requirements": [
-                "skill:Construction:90"
+                "skill:Construction:90",
+                "quest:Lunar Diplomacy",
+                "quest:Desert Treasure I"
               ],
-              "wiki": "Occult_altar"
+              "wiki": "Occult_altar",
+              "iconFile": "poh/occult_altar.png",
+              "implies": [
+                "Ancient / Lunar / Dark altar"
+              ]
             },
             {
               "name": "Ornate rejuvenation pool",
@@ -2235,7 +2363,11 @@
               "requirements": [
                 "skill:Construction:90"
               ],
-              "wiki": "Ornate_rejuvenation_pool"
+              "wiki": "Ornate_rejuvenation_pool",
+              "iconFile": "poh/ornate_pool.png",
+              "implies": [
+                "Fancy rejuvenation pool"
+              ]
             },
             {
               "name": "Ornate jewellery box",
@@ -2246,7 +2378,11 @@
               "requirements": [
                 "skill:Construction:91"
               ],
-              "wiki": "Jewellery_box"
+              "wiki": "Jewellery_box",
+              "iconFile": "poh/ornate_jewellery_box.png",
+              "implies": [
+                "Fancy jewellery box"
+              ]
             },
             {
               "name": "Crystalline portal nexus",
@@ -2257,7 +2393,11 @@
               "requirements": [
                 "skill:Construction:92"
               ],
-              "wiki": "Portal_Nexus"
+              "wiki": "Portal_Nexus",
+              "iconFile": "poh/crystalline_nexus.png",
+              "implies": [
+                "Marble portal nexus"
+              ]
             },
             {
               "name": "Spirit tree & fairy ring",
@@ -2267,9 +2407,15 @@
               ],
               "requirements": [
                 "skill:Construction:95",
-                "skill:Farming:83"
+                "skill:Farming:83",
+                "quest:Fairytale II - Cure a Queen"
               ],
-              "wiki": "Spirit_tree_%26_fairy_ring"
+              "wiki": "Spirit_tree_%26_fairy_ring",
+              "iconFile": "poh/spirit_tree_fairy_ring.png",
+              "implies": [
+                "Spirit tree",
+                "Fairy ring"
+              ]
             }
           ]
         },

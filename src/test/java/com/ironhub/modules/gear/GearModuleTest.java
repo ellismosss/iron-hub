@@ -64,6 +64,22 @@ public class GearModuleTest
 	}
 
 	@Test
+	public void everyIconFileIsBundled()
+	{
+		com.ironhub.data.GearProgressionPack progression =
+			new DataPack(new Gson()).load("gear-progression", com.ironhub.data.GearProgressionPack.class);
+		progression.getPhases().forEach(p -> p.getGroups().forEach(g ->
+			g.getItems().forEach(i ->
+			{
+				if (i.getIconFile() != null)
+				{
+					assertTrue("missing bundled icon: " + i.getIconFile() + " (" + i.getName() + ")",
+						getClass().getResource("/data/icons/" + i.getIconFile()) != null);
+				}
+			})));
+	}
+
+	@Test
 	public void everyImpliedNameResolvesToAnEntry()
 	{
 		com.ironhub.data.GearProgressionPack progression =

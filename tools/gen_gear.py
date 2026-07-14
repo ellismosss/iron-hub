@@ -26,9 +26,15 @@ def I(name, const, cats, reqs=(), wiki=None, exact=False, implies=()):
         e['implies'] = list(implies)
     return e
 
-def M(name, icon_const, cats, reqs=(), wiki=None):
-    """Manual entry (POH furniture / undetectable): icon only, obtained by right-click mark."""
-    return _entry(name, None, icon_const, cats, reqs, wiki)
+def M(name, icon_const, cats, reqs=(), wiki=None, iconfile=None, implies=()):
+    """Manual entry (POH furniture / undetectable): obtained by right-click mark.
+    iconfile = bundled wiki object icon under /data/icons/poh/."""
+    e = _entry(name, None, icon_const, cats, reqs, wiki)
+    if iconfile:
+        e['iconFile'] = 'poh/' + iconfile
+    if implies:
+        e['implies'] = list(implies)
+    return e
 
 def _entry(name, const, icon_const, cats, reqs, wiki):
     for c in cats:
@@ -282,29 +288,39 @@ phases = [
   ]},
   {'phase': 5, 'name': 'POH & Sailing', 'groups': [
     G('Oak era (to ~50 Construction)',
-      M("Oak altar", 'HOLY_SYMBOL', ['poh'], ['skill:Construction:45']),
-      M("Mounted amulet of glory", 'AMULET_OF_GLORY4', ['poh'], ['skill:Construction:47'], 'Amulet_of_Glory_(mounted)'),
-      M("Teak portal", 'LAW_RUNE', ['poh'], ['skill:Construction:50'], 'Portal_Chamber'),
+      M("Demon butler", 'TEAK_PLANK', ['poh'], ['skill:Construction:40'], 'Demon_butler', iconfile='demon_butler.png'),
+      M("Oak altar", 'HOLY_SYMBOL', ['poh'], ['skill:Construction:45'], iconfile='oak_altar.png'),
+      M("Mounted amulet of glory", 'AMULET_OF_GLORY4', ['poh'], ['skill:Construction:47'], 'Amulet_of_Glory_(mounted)', iconfile='mounted_glory.png'),
+      M("Teak portal", 'LAW_RUNE', ['poh'], ['skill:Construction:50'], 'Portal_Chamber', iconfile='teak_portal.png'),
     ),
     G('Teak era (50-67)',
-      M("Armour stand", 'HAMMER', ['poh'], ['skill:Construction:55'], 'Armour_stand'),
-      M("Spice rack", 'SPICE', ['poh'], ['skill:Construction:60'], 'Spice_rack'),
-      M("Restoration pool", 'SUPER_RESTORE4', ['poh'], ['skill:Construction:65'], 'Restoration_pool'),
-      M("Teak shelves 2", 'CUP_OF_TEA', ['poh'], ['skill:Construction:67'], 'Shelves'),
+      M("Armour stand", 'HAMMER', ['poh'], ['skill:Construction:55'], 'Armour_stand', iconfile='armour_stand.png'),
+      M("Spice rack", 'SPICE', ['poh'], ['skill:Construction:60'], 'Spice_rack', iconfile='spice_rack.png'),
+      M("Restoration pool", 'SUPER_RESTORE4', ['poh'], ['skill:Construction:65'], 'Restoration_pool', iconfile='restoration_pool.png'),
+      M("Teak shelves 2", 'CUP_OF_TEA', ['poh'], ['skill:Construction:67'], 'Shelves', iconfile='teak_shelves.png'),
     ),
-    G('Portal-nexus era (70-92)',
-      M("Barrows portal", 'LAW_RUNE', ['poh'], ['skill:Construction:50', 'skill:Magic:83'], 'Portal_Chamber'),
-      M("Gilded altar", 'DRAGON_BONES', ['poh'], ['skill:Construction:75'], 'Altar_space'),
-      M("Spirit tree", 'SPIRIT_SEED', ['poh'], ['skill:Construction:75', 'skill:Farming:83'], 'Spirit_tree_(Construction)'),
-      M("Marble portal nexus", 'TELEPORT_TO_HOUSE', ['poh'], ['skill:Construction:72'], 'Portal_Nexus'),
-      M("Ancient / Lunar / Dark altar", 'BLOOD_RUNE', ['poh'], ['skill:Construction:80'], 'Occult_altar'),
-      M("Basic jewellery box", 'RING_OF_DUELING8', ['poh'], ['skill:Construction:81'], 'Jewellery_box'),
-      M("Fairy ring", 'DRAMEN_STAFF', ['poh'], ['skill:Construction:85'], 'Fairy_ring_(Construction)'),
-      M("Occult altar", 'SOUL_RUNE', ['poh'], ['skill:Construction:90'], 'Occult_altar'),
-      M("Ornate rejuvenation pool", 'SANFEW_SERUM4', ['poh'], ['skill:Construction:90'], 'Ornate_rejuvenation_pool'),
-      M("Ornate jewellery box", 'RING_OF_WEALTH', ['poh'], ['skill:Construction:91'], 'Jewellery_box'),
-      M("Crystalline portal nexus", 'TELEPORT_CRYSTAL_1', ['poh'], ['skill:Construction:92'], 'Portal_Nexus'),
-      M("Spirit tree & fairy ring", 'DRAMEN_STAFF', ['poh'], ['skill:Construction:95', 'skill:Farming:83'], 'Spirit_tree_%26_fairy_ring'),
+    G('Boost toolkit (build up to +8 early)',
+      I("Crystal saw", 'CRYSTAL_SAW', ['poh', 'utility'], ['quest:The Eyes of Glouphrie'], 'Crystal_saw'),
+      M("Spicy stew boost", 'SPICY_STEW', ['poh'], ['quest:Recipe for Disaster - Evil Dave'], 'Spicy_stew'),
+    ),
+    G('Portal-nexus era (70-92; saw + POH tea boost +6)',
+      M("Barrows portal", 'LAW_RUNE', ['poh'], ['skill:Construction:50', 'skill:Magic:83'], 'Portal_Chamber', iconfile='barrows_portal.png'),
+      M("Mounted Xeric's talisman", 'XERICS_TALISMAN', ['poh'], ['skill:Construction:72'], "Mounted_Xeric's_Talisman", iconfile='mounted_xerics.png'),
+      M("Marble portal nexus", 'TELEPORT_TO_HOUSE', ['poh'], ['skill:Construction:72'], 'Portal_Nexus', iconfile='marble_nexus.png'),
+      M("Gilded altar", 'DRAGON_BONES', ['poh'], ['skill:Construction:75'], 'Altar_space', iconfile='gilded_altar.png'),
+      M("Spirit tree", 'SPIRIT_SEED', ['poh'], ['skill:Construction:75', 'skill:Farming:83'], 'Spirit_tree_(Construction)', iconfile='spirit_tree.png'),
+      M("Wilderness Obelisk", 'BURNING_AMULET5', ['poh'], ['skill:Construction:80'], 'Obelisk_(Construction)', iconfile='wilderness_obelisk.png'),
+      M("Ancient / Lunar / Dark altar", 'BLOOD_RUNE', ['poh'], ['skill:Construction:80'], 'Occult_altar', iconfile='spellbook_altar.png'),
+      M("Basic jewellery box", 'RING_OF_DUELING8', ['poh'], ['skill:Construction:81'], 'Jewellery_box', iconfile='basic_jewellery_box.png'),
+      M("Mounted digsite pendant", 'DIGSITE_PENDANT_5', ['poh'], ['skill:Construction:82', 'quest:The Dig Site'], 'Mounted_digsite_pendant', iconfile='mounted_digsite.png'),
+      M("Fancy rejuvenation pool", 'SUPER_RESTORE4', ['poh'], ['skill:Construction:85'], 'Fancy_rejuvenation_pool', iconfile='fancy_pool.png', implies=['Restoration pool']),
+      M("Fairy ring", 'DRAMEN_STAFF', ['poh'], ['skill:Construction:85', 'quest:Fairytale II - Cure a Queen'], 'Fairy_ring_(Construction)', iconfile='fairy_ring.png'),
+      M("Fancy jewellery box", 'RING_OF_DUELING8', ['poh'], ['skill:Construction:86'], 'Jewellery_box', iconfile='fancy_jewellery_box.png', implies=['Basic jewellery box']),
+      M("Occult altar", 'SOUL_RUNE', ['poh'], ['skill:Construction:90', 'quest:Lunar Diplomacy', 'quest:Desert Treasure I'], 'Occult_altar', iconfile='occult_altar.png', implies=['Ancient / Lunar / Dark altar']),
+      M("Ornate rejuvenation pool", 'SANFEW_SERUM4', ['poh'], ['skill:Construction:90'], 'Ornate_rejuvenation_pool', iconfile='ornate_pool.png', implies=['Fancy rejuvenation pool']),
+      M("Ornate jewellery box", 'RING_OF_WEALTH', ['poh'], ['skill:Construction:91'], 'Jewellery_box', iconfile='ornate_jewellery_box.png', implies=['Fancy jewellery box']),
+      M("Crystalline portal nexus", 'TELEPORT_CRYSTAL_1', ['poh'], ['skill:Construction:92'], 'Portal_Nexus', iconfile='crystalline_nexus.png', implies=['Marble portal nexus']),
+      M("Spirit tree & fairy ring", 'DRAMEN_STAFF', ['poh'], ['skill:Construction:95', 'skill:Farming:83', 'quest:Fairytale II - Cure a Queen'], 'Spirit_tree_%26_fairy_ring', iconfile='spirit_tree_fairy_ring.png', implies=['Spirit tree', 'Fairy ring']),
     ),
     G('Sailing (early data)',
       I("Camphor blowpipe", 'CAMPHOR_BLOWPIPE', ['boat', 'ranged'], ['skill:Ranged:45', 'skill:Fletching:58']),
