@@ -60,7 +60,7 @@ public class ModuleLifecycleTest
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
 			new FarmingRunModule(state, null, new net.runelite.client.eventbus.EventBus(), null, null, null, config, null, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
 			new DailiesModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null, null),
-			new GoalPlannerModule(),
+			new GoalPlannerModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new WhatNowModule(),
 			new ClueStashModule(),
 			new SlayerOptimizerModule(state, null, null, config, null, null),

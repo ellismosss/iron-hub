@@ -77,6 +77,10 @@ public class AccountState
 	// region loads, so remote views predict from these)
 	private final Map<String, PersistedState.PatchSeen> herbPatchSeen = new ConcurrentHashMap<>();
 
+	// goal planner selections (persisted)
+	private final Set<String> selectedGoals = ConcurrentHashMap.newKeySet();
+	private volatile String activeGoal = "";
+
 	/** Recent deaths, oldest first, capped. */
 	public static final int MAX_DEATHS = 10;
 	private final java.util.List<PersistedState.DeathRecord> deaths = new CopyOnWriteArrayList<>();
@@ -279,6 +283,42 @@ public class AccountState
 	public void recordHerbRun(long durationMs)
 	{
 		herbRunsMs.add(durationMs);
+		persist();
+		notifyListeners();
+	}
+
+	/** Goal ids the player is pursuing. */
+	public Set<String> getSelectedGoals()
+	{
+		return java.util.Collections.unmodifiableSet(selectedGoals);
+	}
+
+	public void selectGoal(String goalId, boolean selected)
+	{
+		if (selected ? selectedGoals.add(goalId) : selectedGoals.remove(goalId))
+		{
+			if (!selected && goalId.equals(activeGoal))
+			{
+				activeGoal = "";
+			}
+			if (selected && activeGoal.isEmpty())
+			{
+				activeGoal = goalId; // first goal becomes active automatically
+			}
+			persist();
+			notifyListeners();
+		}
+	}
+
+	/** The pinned active goal id, or empty. */
+	public String getActiveGoal()
+	{
+		return activeGoal;
+	}
+
+	public void setActiveGoal(String goalId)
+	{
+		activeGoal = goalId;
 		persist();
 		notifyListeners();
 	}
@@ -620,6 +660,9 @@ public class AccountState
 		deaths.addAll(persisted.deaths);
 		herbPatchSeen.clear();
 		herbPatchSeen.putAll(persisted.herbPatchSeen);
+		selectedGoals.clear();
+		selectedGoals.addAll(persisted.selectedGoals);
+		activeGoal = persisted.activeGoal == null ? "" : persisted.activeGoal;
 		log.debug("activated profile {} ({} banked item stacks)", hash, bank.size());
 	}
 
@@ -641,6 +684,8 @@ public class AccountState
 		state.herbRunsMs = new java.util.ArrayList<>(herbRunsMs);
 		state.deaths = new java.util.ArrayList<>(deaths);
 		state.herbPatchSeen = new HashMap<>(herbPatchSeen);
+		state.selectedGoals = new HashSet<>(selectedGoals);
+		state.activeGoal = activeGoal;
 		store.save(profile, state);
 	}
 

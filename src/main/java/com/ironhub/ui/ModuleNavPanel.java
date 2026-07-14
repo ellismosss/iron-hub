@@ -47,7 +47,7 @@ public class ModuleNavPanel extends JPanel
 			new Module("CA", "Combat achievements", null, null),
 			new Module("CL", "Collection log", null, null)),
 		new Category("Planning",
-			new Module("GO", "Goal planner", "3 goals", UiTokens.TEXT_MUTED),
+			new Module("GO", "Goal planner", null, null),
 			new Module("WN", "What now?", null, null),
 			new Module("RW", "Supplies runway", "!", UiTokens.STATUS_WARNING)),
 		new Category("Daily loop",

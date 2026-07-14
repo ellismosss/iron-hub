@@ -25,6 +25,8 @@ class PersistedState
 	java.util.List<DeathRecord> deaths = new ArrayList<>(); // most recent last, capped
 
 	Map<String, PatchSeen> herbPatchSeen = new HashMap<>(); // patch id -> last observed state
+	Set<String> selectedGoals = new HashSet<>();
+	String activeGoal = "";
 
 	static class PatchSeen
 	{
