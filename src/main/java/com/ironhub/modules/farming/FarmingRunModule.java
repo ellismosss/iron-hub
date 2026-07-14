@@ -366,8 +366,14 @@ public class FarmingRunModule implements IronHubModule
 	/** Patches ready or predicted ready — drives the infobox. */
 	int readyCount()
 	{
+		return readyPatches(state, pack);
+	}
+
+	/** Pure ready-count over a pack — shared with the What Now engine. */
+	public static int readyPatches(AccountState state, HerbPatchesPack pack)
+	{
 		long now = System.currentTimeMillis();
-		return (int) patches().stream()
+		return (int) pack.getPatches().stream()
 			.map(p -> predict(state.herbPatchSeen(p.getId()), now))
 			.filter(v -> v == PatchView.READY || v == PatchView.PREDICTED_READY)
 			.count();

@@ -16,20 +16,20 @@ import net.runelite.api.Skill;
  * counts once — bury vs gilded altar never double-counts the same bones.
  * Pure logic over the bank snapshot; ~O(entries).
  */
-final class BankedXp
+public final class BankedXp
 {
 	private BankedXp()
 	{
 	}
 
-	static class Result
+	public static class Result
 	{
-		double xp;
-		final Set<String> methods = new TreeSet<>();
+		public double xp;
+		public final Set<String> methods = new TreeSet<>();
 	}
 
 	/** Per-skill banked XP, largest first; skills with 0 XP omitted. */
-	static Map<Skill, Result> compute(AccountState state, BankedXpPack pack)
+	public static Map<Skill, Result> compute(AccountState state, BankedXpPack pack)
 	{
 		// best method per (skill, item)
 		Map<Skill, Map<Integer, BankedXpPack.Entry>> best = new HashMap<>();

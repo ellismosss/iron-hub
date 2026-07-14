@@ -7,6 +7,7 @@ import com.ironhub.ui.components.IconButton;
 import com.ironhub.ui.components.ListRow;
 import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.components.SectionLabel;
+import com.ironhub.ui.components.SuggestionCard;
 import com.ironhub.ui.components.Status;
 import com.ironhub.ui.components.StatusGlyph;
 import com.ironhub.ui.components.WrapLayout;
@@ -342,90 +343,4 @@ public class DashboardPanel extends JPanel
 		}
 	}
 
-	/** Ranked "What now?" card: accent rank · bold title + duration · why line. */
-	private static class SuggestionCard extends JPanel
-	{
-		SuggestionCard(int rank, String title, String duration, String why)
-		{
-			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-			setBackground(UiTokens.CARD_BG);
-			setAlignmentX(LEFT_ALIGNMENT);
-			setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-				new EmptyBorder(UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP)));
-			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-			JLabel rankLabel = new JLabel(String.valueOf(rank), SwingConstants.CENTER);
-			rankLabel.setForeground(UiTokens.ACCENT);
-			rankLabel.setFont(rankLabel.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-			rankLabel.setPreferredSize(new Dimension(UiTokens.STATUS_GLYPH_SIZE, 0));
-			rankLabel.setMaximumSize(new Dimension(UiTokens.STATUS_GLYPH_SIZE, Integer.MAX_VALUE));
-			add(rankLabel);
-			add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-
-			JPanel text = new JPanel();
-			text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
-			text.setOpaque(false);
-
-			JPanel titleLine = row();
-			JLabel titleLabel = new JLabel(title);
-			titleLabel.setForeground(UiTokens.TEXT_PRIMARY);
-			titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-			titleLabel.setToolTipText(title);
-			titleLabel.setMinimumSize(new Dimension(0, 0));
-			titleLine.add(titleLabel);
-			titleLine.add(Box.createHorizontalGlue());
-			JLabel durationLabel = new JLabel(duration);
-			durationLabel.setForeground(UiTokens.TEXT_MUTED);
-			durationLabel.setFont(durationLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
-			titleLine.add(durationLabel);
-			text.add(titleLine);
-
-			JLabel whyLabel = new JLabel(why);
-			whyLabel.setForeground(UiTokens.TEXT_MUTED);
-			whyLabel.setFont(whyLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
-			whyLabel.setToolTipText(why); // one line, ellipsized; full text in tooltip
-			whyLabel.setMinimumSize(new Dimension(0, 0));
-			whyLabel.setAlignmentX(LEFT_ALIGNMENT);
-			text.add(whyLabel);
-			add(text);
-			add(Box.createHorizontalGlue());
-
-			JLabel chevron = new JLabel(new PaintedIcon(
-				PaintedIcon.Shape.CHEVRON_RIGHT, (int) UiTokens.FONT_SIZE_LABEL));
-			chevron.setForeground(UiTokens.TEXT_FAINT);
-			add(chevron);
-
-			addMouseListener(new MouseAdapter()
-			{
-				@Override
-				public void mouseEntered(MouseEvent e)
-				{
-					setBorder(new CompoundBorder(new LineBorder(UiTokens.ACCENT),
-						new EmptyBorder(UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP)));
-				}
-
-				@Override
-				public void mouseExited(MouseEvent e)
-				{
-					setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-						new EmptyBorder(UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP)));
-				}
-			});
-		}
-
-		@Override
-		public Dimension getMaximumSize()
-		{
-			return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
-		}
-
-		private static JPanel row()
-		{
-			JPanel row = new JPanel();
-			row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-			row.setOpaque(false);
-			row.setAlignmentX(LEFT_ALIGNMENT);
-			return row;
-		}
-	}
 }

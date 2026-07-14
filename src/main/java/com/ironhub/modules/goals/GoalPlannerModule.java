@@ -83,12 +83,12 @@ public class GoalPlannerModule implements IronHubModule
 	// ── compilation (pure; static for tests) ──────────────────────────
 
 	/** A goal step evaluated against the account. */
-	static class CompiledStep
+	public static class CompiledStep
 	{
-		final String label;
-		final boolean met;
-		final boolean manual;
-		final String unlockKey; // manual steps tick via this unlock flag
+		public final String label;
+		public final boolean met;
+		public final boolean manual;
+		public final String unlockKey; // manual steps tick via this unlock flag
 
 		CompiledStep(String label, boolean met, boolean manual, String unlockKey)
 		{
@@ -100,7 +100,7 @@ public class GoalPlannerModule implements IronHubModule
 	}
 
 	/** Compile a goal's steps: detectable ones evaluate live. */
-	static List<CompiledStep> compile(GoalsPack.Goal goal, AccountState state)
+	public static List<CompiledStep> compile(GoalsPack.Goal goal, AccountState state)
 	{
 		List<CompiledStep> steps = new ArrayList<>();
 		for (int i = 0; i < goal.getSteps().size(); i++)
@@ -122,7 +122,7 @@ public class GoalPlannerModule implements IronHubModule
 	}
 
 	/** First unmet step, or null when the goal is complete. */
-	static CompiledStep nextStep(GoalsPack.Goal goal, AccountState state)
+	public static CompiledStep nextStep(GoalsPack.Goal goal, AccountState state)
 	{
 		return compile(goal, state).stream().filter(s -> !s.met).findFirst().orElse(null);
 	}

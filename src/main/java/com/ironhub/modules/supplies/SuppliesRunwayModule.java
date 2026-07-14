@@ -82,11 +82,11 @@ public class SuppliesRunwayModule implements IronHubModule
 	}
 
 	/** A consumable with an observed usage rate. */
-	static class Runway
+	public static class Runway
 	{
-		final int itemId;
-		final double perHour;
-		final int stock;
+		public final int itemId;
+		public final double perHour;
+		public final int stock;
 
 		Runway(int itemId, double perHour, int stock)
 		{
@@ -95,7 +95,7 @@ public class SuppliesRunwayModule implements IronHubModule
 			this.stock = stock;
 		}
 
-		double hoursLeft()
+		public double hoursLeft()
 		{
 			return perHour <= 0 ? Double.POSITIVE_INFINITY : stock / perHour;
 		}
@@ -108,7 +108,7 @@ public class SuppliesRunwayModule implements IronHubModule
 	 * ponytail: spans include logged-out time, so rates skew low after
 	 * breaks; refine with session windows when planning mode lands.
 	 */
-	static Map<Integer, Runway> compute(AccountState state)
+	public static Map<Integer, Runway> compute(AccountState state)
 	{
 		List<AccountState.Consumption> log = state.getConsumptionLog();
 		Map<Integer, long[]> spans = new HashMap<>();   // id -> [first, last]
@@ -136,7 +136,7 @@ public class SuppliesRunwayModule implements IronHubModule
 	}
 
 	/** "14 h" / "45 min" / "-" for unknown. */
-	static String formatHours(double hours)
+	public static String formatHours(double hours)
 	{
 		if (Double.isInfinite(hours))
 		{

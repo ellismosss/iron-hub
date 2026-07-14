@@ -170,7 +170,7 @@ public class DailiesModule implements IronHubModule
 	}
 
 	/** Available (requirements met) and not ticked this reset. */
-	static int outstanding(AccountState state, DailiesPack pack)
+	public static int outstanding(AccountState state, DailiesPack pack)
 	{
 		long now = System.currentTimeMillis();
 		return (int) pack.getDailies().stream()
