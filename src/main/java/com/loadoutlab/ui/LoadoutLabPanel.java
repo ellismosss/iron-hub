@@ -459,7 +459,7 @@ public class LoadoutLabPanel extends PluginPanel
 		// Iron Hub: the target reads as the screen title — primary bold, with
 		// compact 18px icon buttons instead of the chunky default JButtons
 		selectedLabel.setForeground(UiTokens.TEXT_PRIMARY);
-		selectedLabel.setFont(selectedLabel.getFont().deriveFont(Font.BOLD, 13f));
+		selectedLabel.setFont(selectedLabel.getFont().deriveFont(Font.BOLD, 14f));
 		selectedRow.add(selectedLabel, BorderLayout.CENTER);
 		// lastShownLoadout resets each recompute via the results rebuild
 		JPanel selectedButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
@@ -472,7 +472,7 @@ public class LoadoutLabPanel extends PluginPanel
 		selectedRow.setVisible(false);
 		top.add(selectedRow);
 		weaknessLabel.setForeground(UiTokens.STATUS_AVAILABLE);
-		weaknessLabel.setFont(weaknessLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		weaknessLabel.setFont(weaknessLabel.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		weaknessLabel.setAlignmentX(LEFT_ALIGNMENT);
 		weaknessLabel.setVisible(false);
 		top.add(weaknessLabel);
@@ -480,7 +480,7 @@ public class LoadoutLabPanel extends PluginPanel
 		// Curated mechanics note (finishing items, immunities) for the
 		// selected monster - so a correct suggestion doesn't look wrong.
 		monsterNote.setForeground(UiTokens.STATUS_AVAILABLE);
-		monsterNote.setFont(monsterNote.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		monsterNote.setFont(monsterNote.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		monsterNote.setAlignmentX(LEFT_ALIGNMENT);
 		monsterNote.setVisible(false);
 		top.add(monsterNote);
@@ -501,7 +501,7 @@ public class LoadoutLabPanel extends PluginPanel
 		// Iron Hub: inset list chrome matching the search field
 		monsterList.setBackground(UiTokens.INSET_BG);
 		monsterList.setForeground(UiTokens.TEXT_BODY);
-		monsterList.setFont(monsterList.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		monsterList.setFont(monsterList.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		monsterScroll = new JScrollPane(monsterList);
 		monsterScroll.setBorder(BorderFactory.createLineBorder(UiTokens.BORDER));
 		monsterScroll.setPreferredSize(new Dimension(0, 130));
@@ -531,7 +531,7 @@ public class LoadoutLabPanel extends PluginPanel
 		// How much gp the set may drop on a wilderness death; 0 = nothing
 		// droppable and no fees at all.
 		riskBudget.setAlignmentX(LEFT_ALIGNMENT);
-		riskBudget.setFont(riskBudget.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		riskBudget.setFont(riskBudget.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		riskBudget.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
 		riskBudget.setToolTipText("Total gp the set may drop on a wilderness death");
 		riskBudget.setSelectedIndex(2);
@@ -579,13 +579,13 @@ public class LoadoutLabPanel extends PluginPanel
 
 		// Excluded items ("protected" from suggestions) - click to manage.
 		exclusionsLabel.setForeground(UiTokens.STATUS_WARNING);
-		exclusionsLabel.setFont(exclusionsLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		exclusionsLabel.setFont(exclusionsLabel.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		exclusionsLabel.setAlignmentX(LEFT_ALIGNMENT);
 		exclusionsLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		exclusionsLabel.addMouseListener(new MouseAdapter()
 		{
 			@Override
-			public void mouseClicked(MouseEvent e)
+			public void mousePressed(MouseEvent e)
 			{
 				showExclusionsMenu(e);
 			}
@@ -595,13 +595,13 @@ public class LoadoutLabPanel extends PluginPanel
 
 		// Stored-elsewhere items (manual owned: STASH, POH, UIM storages).
 		storedLabel.setForeground(GOOD);
-		storedLabel.setFont(storedLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		storedLabel.setFont(storedLabel.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		storedLabel.setAlignmentX(LEFT_ALIGNMENT);
 		storedLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		storedLabel.addMouseListener(new MouseAdapter()
 		{
 			@Override
-			public void mouseClicked(MouseEvent e)
+			public void mousePressed(MouseEvent e)
 			{
 				showStoredMenu(e);
 			}
@@ -630,7 +630,7 @@ public class LoadoutLabPanel extends PluginPanel
 		noteHeader.addMouseListener(new MouseAdapter()
 		{
 			@Override
-			public void mouseClicked(MouseEvent e)
+			public void mousePressed(MouseEvent e)
 			{
 				saveNoteIfChanged();
 				noteCollapsed = !noteCollapsed;
@@ -662,13 +662,13 @@ public class LoadoutLabPanel extends PluginPanel
 
 		// Pinned items ("always bring") - click to manage.
 		pinnedLabel.setForeground(UiTokens.TEXT_FAINT);
-		pinnedLabel.setFont(pinnedLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		pinnedLabel.setFont(pinnedLabel.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		pinnedLabel.setAlignmentX(LEFT_ALIGNMENT);
 		pinnedLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		pinnedLabel.addMouseListener(new MouseAdapter()
 		{
 			@Override
-			public void mouseClicked(MouseEvent e)
+			public void mousePressed(MouseEvent e)
 			{
 				showPinnedMenu(e);
 			}
@@ -680,11 +680,9 @@ public class LoadoutLabPanel extends PluginPanel
 
 		resultsPanel.setLayout(new BoxLayout(resultsPanel, BoxLayout.Y_AXIS));
 		resultsPanel.setOpaque(false);
-		JScrollPane resultsScroll = new JScrollPane(resultsPanel,
-			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		resultsScroll.setBorder(null);
-		resultsScroll.getViewport().setOpaque(false);
-		resultsScroll.setOpaque(false);
+		// Iron Hub: no inner scroll pane - the module shell already wraps
+		// every tab in a HubScrollPane, and nesting a second scroller made
+		// the wheel stick at the inner pane's limits
 		// Iron Hub: grouped options block under the results - a labelled
 		// ASSUMPTIONS section (boost + spellbook icon rows, centred like the
 		// gear grids), then the optimize mode, then the action buttons. Every
@@ -736,7 +734,7 @@ public class LoadoutLabPanel extends PluginPanel
 		bottomControls.add(Box.createVerticalStrut(2));
 		bottomControls.add(centeredRow(spellRow, 3 * 34 + 4, 34));
 		bottomControls.add(Box.createVerticalStrut(8));
-		optimizeMode.setFont(optimizeMode.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		optimizeMode.setFont(optimizeMode.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		bottomControls.add(optimizeMode);
 		bottomControls.add(Box.createVerticalStrut(8));
 		JPanel setupButtons = new JPanel(new GridLayout(1, 2, 4, 0));
@@ -781,14 +779,18 @@ public class LoadoutLabPanel extends PluginPanel
 			}
 		});
 		bottomControls.add(openDpsCalc);
+		// NORTH-anchor so spare height stays empty instead of stretching cards
+		JPanel resultsAnchor = new JPanel(new BorderLayout());
+		resultsAnchor.setOpaque(false);
+		resultsAnchor.add(resultsPanel, BorderLayout.NORTH);
 		JPanel centerWrap = new JPanel(new BorderLayout());
 		centerWrap.setOpaque(false);
-		centerWrap.add(resultsScroll, BorderLayout.CENTER);
+		centerWrap.add(resultsAnchor, BorderLayout.CENTER);
 		centerWrap.add(bottomControls, BorderLayout.SOUTH);
 		add(centerWrap, BorderLayout.CENTER);
 
 		statusLabel.setForeground(UiTokens.TEXT_FAINT);
-		statusLabel.setFont(statusLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		statusLabel.setFont(statusLabel.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		add(statusLabel, BorderLayout.SOUTH);
 
 		searchDebounce = new Timer(SEARCH_DEBOUNCE_MS, e -> runSearch());
@@ -815,7 +817,7 @@ public class LoadoutLabPanel extends PluginPanel
 	{
 		box.setOpaque(false);
 		box.setForeground(UiTokens.TEXT_BODY);
-		box.setFont(box.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		box.setFont(box.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		box.setAlignmentX(LEFT_ALIGNMENT);
 		box.setToolTipText(tooltip);
 		box.addActionListener(e -> recompute());
@@ -826,7 +828,7 @@ public class LoadoutLabPanel extends PluginPanel
 	{
 		JLabel line = new JLabel(text);
 		line.setForeground(fg);
-		line.setFont(line.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		line.setFont(line.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		line.setAlignmentX(LEFT_ALIGNMENT);
 		return line;
 	}
@@ -840,7 +842,7 @@ public class LoadoutLabPanel extends PluginPanel
 		button.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(UiTokens.BORDER_BUTTON),
 			BorderFactory.createEmptyBorder(2, 8, 2, 8)));
-		button.setFont(button.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
+		button.setFont(button.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_BODY));
 		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	}
 
@@ -2164,14 +2166,14 @@ public class LoadoutLabPanel extends PluginPanel
 		header.setIconTextGap(6);
 		header.setForeground(UiTokens.TEXT_PRIMARY);
 		header.setFont(SectionLabel.letterSpaced(
-			header.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY),
+			header.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY),
 			UiTokens.LETTER_SPACING_LABEL));
 		header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		header.setToolTipText(collapsed ? "Click to expand this set" : "Click to collapse this set");
 		header.addMouseListener(new MouseAdapter()
 		{
 			@Override
-			public void mouseClicked(MouseEvent e)
+			public void mousePressed(MouseEvent e)
 			{
 				cardCollapsed.put(style, !collapsed);
 				if (selectedMonster != null && lastResults != null)
@@ -2215,7 +2217,7 @@ public class LoadoutLabPanel extends PluginPanel
 		JLabel dpsValue = new JLabel(hasSet
 			? String.format("%.2f dps", result.owned.get(0).getDps()) : "no set");
 		dpsValue.setForeground(hasSet ? GOOD : MUTED);
-		dpsValue.setFont(dpsValue.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
+		dpsValue.setFont(dpsValue.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
 		headerEast.add(dpsValue);
 		headerEast.add(setMenu);
 		headerRow.add(headerEast, BorderLayout.EAST);
@@ -2273,7 +2275,7 @@ public class LoadoutLabPanel extends PluginPanel
 			bar.addMouseListener(new MouseAdapter()
 			{
 				@Override
-				public void mouseClicked(MouseEvent e)
+				public void mousePressed(MouseEvent e)
 				{
 					if (!gameBestExpanded.remove(style))
 					{
@@ -2338,7 +2340,7 @@ public class LoadoutLabPanel extends PluginPanel
 			gameBest.addMouseListener(new MouseAdapter()
 			{
 				@Override
-				public void mouseClicked(MouseEvent e)
+				public void mousePressed(MouseEvent e)
 				{
 					gameBestExpanded.remove(style);
 					if (selectedMonster != null && lastResults != null)

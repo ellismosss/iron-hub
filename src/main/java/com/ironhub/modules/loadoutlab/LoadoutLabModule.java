@@ -190,21 +190,34 @@ public class LoadoutLabModule implements IronHubModule
 		headerRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ICON_BUTTON_SIZE + 2));
 		headerRow.add(new SectionLabel("Activity"), BorderLayout.WEST);
 		headerRow.add(button("Wiki tips",
-			"Fetch tips for this task/boss from its wiki strategy page (user-initiated request)",
+			"Fetch tips for this task/boss from its wiki strategy page"
+				+ " (user-initiated request); click again to hide them",
 			this::fetchTips), BorderLayout.EAST);
 		card.add(headerRow);
 		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 
 		activityLabel.setForeground(UiTokens.TEXT_BODY);
-		activityLabel.setFont(activityLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
+		activityLabel.setFont(activityLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_BODY));
 		activityLabel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 		card.add(activityLabel);
 
-		tipsLabel.setForeground(UiTokens.TEXT_FAINT);
-		tipsLabel.setFont(tipsLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
+		tipsLabel.setForeground(UiTokens.TEXT_BODY);
+		tipsLabel.setFont(tipsLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_BODY));
 		tipsLabel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 		tipsLabel.setVisible(false);
 		tipsLabel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
+		tipsLabel.setToolTipText("Click to dismiss");
+		tipsLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		tipsLabel.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				tipsLabel.setVisible(false);
+				strip.revalidate();
+				strip.repaint();
+			}
+		});
 		card.add(tipsLabel);
 
 		strip.add(card);
@@ -220,7 +233,7 @@ public class LoadoutLabModule implements IronHubModule
 		button.setBorder(javax.swing.BorderFactory.createCompoundBorder(
 			new javax.swing.border.LineBorder(UiTokens.BORDER_BUTTON),
 			new EmptyBorder(1, 6, 1, 6)));
-		button.setFont(button.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
+		button.setFont(button.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
 		button.setToolTipText(tooltip);
 		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		button.addMouseListener(new java.awt.event.MouseAdapter()
@@ -281,6 +294,14 @@ public class LoadoutLabModule implements IronHubModule
 
 	private void fetchTips()
 	{
+		// second press = dismiss (the tips had no way to close)
+		if (tipsLabel.isVisible())
+		{
+			tipsLabel.setVisible(false);
+			strip.revalidate();
+			strip.repaint();
+			return;
+		}
 		String activity = activity();
 		if (strategyClient == null || activity.isEmpty())
 		{
@@ -484,8 +505,8 @@ public class LoadoutLabModule implements IronHubModule
 	private JLabel smallLabel(String text)
 	{
 		JLabel label = new JLabel(text);
-		label.setForeground(UiTokens.TEXT_FAINT);
-		label.setFont(label.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
+		label.setForeground(UiTokens.TEXT_MUTED);
+		label.setFont(label.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
 		label.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 		return label;
 	}
