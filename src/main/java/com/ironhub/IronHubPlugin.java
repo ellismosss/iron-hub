@@ -48,6 +48,10 @@ import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 
 @Slf4j
+// the imported Loadout Lab module injects BankTagsService/TagManager, which
+// only bind when the plugin declares the Bank Tags dependency (upstream
+// Loadout Lab carries the same annotation on its own plugin class)
+@net.runelite.client.plugins.PluginDependency(net.runelite.client.plugins.banktags.BankTagsPlugin.class)
 @PluginDescriptor(
 	name = "Iron Hub",
 	description = "Central companion hub for Ironman accounts: gear, quests, milestones, bank, farming, dailies and more",
