@@ -115,7 +115,8 @@
               ],
               "requirements": [
                 "quest:Underground Pass",
-                "skill:Magic:50"
+                "skill:Magic:50",
+                "skill:Attack:50"
               ],
               "wiki": "Iban's_staff"
             },
@@ -127,7 +128,8 @@
               ],
               "requirements": [
                 "quest:Desert Treasure I",
-                "skill:Magic:50"
+                "skill:Magic:50",
+                "skill:Attack:50"
               ]
             },
             {
@@ -316,7 +318,7 @@
               "requirements": [
                 "skill:Magic:60"
               ],
-              "wiki": "God_cape"
+              "wiki": "God_capes"
             },
             {
               "name": "Fire cape",
@@ -422,7 +424,8 @@
               ],
               "requirements": [
                 "skill:Attack:65",
-                "skill:Strength:65"
+                "skill:Strength:65",
+                "skill:Defence:60"
               ]
             },
             {
@@ -466,6 +469,7 @@
               ],
               "requirements": [
                 "quest:Defender of Varrock",
+                "skill:Attack:65",
                 "skill:Smithing:70"
               ]
             },
@@ -503,7 +507,7 @@
                 "melee"
               ],
               "requirements": [
-                "skill:Attack:75",
+                "skill:Attack:70",
                 "skill:Strength:75"
               ]
             },
@@ -514,8 +518,8 @@
                 "melee"
               ],
               "requirements": [
-                "skill:Defence:75",
-                "skill:Strength:75"
+                "skill:Strength:75",
+                "skill:Defence:50"
               ]
             },
             {
@@ -525,8 +529,8 @@
                 "melee"
               ],
               "requirements": [
-                "skill:Defence:75",
-                "skill:Strength:75"
+                "skill:Strength:75",
+                "skill:Defence:50"
               ]
             },
             {
@@ -537,7 +541,8 @@
               ],
               "requirements": [
                 "skill:Ranged:75",
-                "skill:Strength:75"
+                "skill:Attack:50",
+                "skill:Strength:50"
               ]
             },
             {
@@ -547,8 +552,8 @@
                 "ranged"
               ],
               "requirements": [
-                "skill:Defence:75",
-                "skill:Ranged:75"
+                "skill:Ranged:75",
+                "skill:Defence:50"
               ]
             },
             {
@@ -558,7 +563,7 @@
                 "magic"
               ],
               "requirements": [
-                "skill:Attack:75",
+                "skill:Attack:70",
                 "skill:Magic:75"
               ]
             },
@@ -582,7 +587,8 @@
                 "ranged"
               ],
               "requirements": [
-                "skill:Ranged:60"
+                "skill:Ranged:60",
+                "skill:Defence:50"
               ]
             },
             {
@@ -592,7 +598,8 @@
                 "ranged"
               ],
               "requirements": [
-                "skill:Ranged:60"
+                "skill:Ranged:60",
+                "skill:Defence:50"
               ]
             },
             {
@@ -643,7 +650,8 @@
                 "melee"
               ],
               "requirements": [
-                "quest:The Final Dawn"
+                "quest:The Final Dawn",
+                "skill:Attack:60"
               ]
             },
             {
@@ -653,7 +661,9 @@
                 "melee"
               ],
               "requirements": [
-                "skill:Slayer:58"
+                "skill:Slayer:58",
+                "skill:Strength:20",
+                "skill:Defence:10"
               ],
               "wiki": "Black_mask",
               "exact": true
@@ -758,7 +768,8 @@
               ],
               "requirements": [
                 "quest:The Path of Glouphrie",
-                "skill:Magic:62"
+                "skill:Magic:62",
+                "skill:Slayer:56"
               ]
             },
             {
@@ -780,7 +791,7 @@
                 "magic"
               ],
               "requirements": [
-                "skill:Magic:70"
+                "skill:Magic:65"
               ]
             }
           ]
@@ -797,7 +808,13 @@
                 "magic"
               ],
               "requirements": [
-                "skill:Prayer:22"
+                "skill:Prayer:22",
+                "skill:Attack:42",
+                "skill:Strength:42",
+                "skill:Defence:42",
+                "skill:Hitpoints:42",
+                "skill:Ranged:42",
+                "skill:Magic:42"
               ],
               "wiki": "Void_Knight_equipment"
             },
@@ -808,7 +825,13 @@
                 "ranged"
               ],
               "requirements": [
-                "skill:Prayer:22"
+                "skill:Prayer:22",
+                "skill:Attack:42",
+                "skill:Strength:42",
+                "skill:Defence:42",
+                "skill:Hitpoints:42",
+                "skill:Ranged:42",
+                "skill:Magic:42"
               ],
               "wiki": "Void_Knight_equipment"
             },
@@ -820,7 +843,14 @@
                 "magic"
               ],
               "requirements": [
-                "Hard Western Provinces diary"
+                "Hard Western Provinces diary",
+                "skill:Prayer:22",
+                "skill:Attack:42",
+                "skill:Strength:42",
+                "skill:Defence:42",
+                "skill:Hitpoints:42",
+                "skill:Ranged:42",
+                "skill:Magic:42"
               ],
               "wiki": "Elite_Void_Knight_equipment",
               "implies": [
@@ -835,7 +865,9 @@
               ],
               "requirements": [
                 "quest:Roving Elves",
-                "skill:Attack:70"
+                "skill:Attack:70",
+                "skill:Strength:35",
+                "skill:Agility:50"
               ]
             },
             {
@@ -845,7 +877,8 @@
                 "ranged"
               ],
               "requirements": [
-                "skill:Hunter:63"
+                "skill:Hunter:63",
+                "skill:Ranged:55"
               ]
             }
           ]
@@ -919,7 +952,9 @@
               "categories": [
                 "utility"
               ],
-              "requirements": [],
+              "requirements": [
+                "skill:Crafting:75"
+              ],
               "implies": [
                 "Rune pouch"
               ]
@@ -947,7 +982,7 @@
                 "utility"
               ],
               "requirements": [],
-              "wiki": "Pendant_of_Ates_(inert)"
+              "wiki": "Pendant_of_Ates"
             },
             {
               "name": "Huntsman's kit",
@@ -1014,7 +1049,8 @@
               ],
               "requirements": [
                 "quest:Song of the Elves",
-                "skill:Defence:70"
+                "skill:Defence:70",
+                "skill:Agility:50"
               ],
               "wiki": "Crystal_armour"
             },
@@ -1026,7 +1062,8 @@
               ],
               "requirements": [
                 "quest:Song of the Elves",
-                "skill:Defence:70"
+                "skill:Defence:70",
+                "skill:Agility:50"
               ],
               "wiki": "Crystal_armour"
             },
@@ -1038,7 +1075,8 @@
               ],
               "requirements": [
                 "quest:Song of the Elves",
-                "skill:Defence:70"
+                "skill:Defence:70",
+                "skill:Agility:50"
               ],
               "wiki": "Crystal_armour"
             }
@@ -1068,7 +1106,8 @@
               ],
               "requirements": [
                 "skill:Magic:60",
-                "skill:Defence:60"
+                "skill:Defence:60",
+                "skill:Runecraft:81"
               ],
               "wiki": "Bloodbark_armour"
             },
@@ -1080,7 +1119,8 @@
               ],
               "requirements": [
                 "quest:Dragon Slayer II",
-                "kc:Vorkath:1"
+                "kc:Vorkath:1",
+                "skill:Ranged:70"
               ],
               "wiki": "Ava's_assembler",
               "implies": [
@@ -1094,7 +1134,8 @@
                 "utility"
               ],
               "requirements": [
-                "skill:Mining:61"
+                "skill:Mining:61",
+                "skill:Attack:60"
               ]
             },
             {
@@ -1122,7 +1163,9 @@
               ],
               "requirements": [
                 "quest:Monkey Madness II",
-                "skill:Hitpoints:75"
+                "skill:Hitpoints:75",
+                "skill:Magic:93",
+                "skill:Crafting:92"
               ]
             },
             {
@@ -1133,7 +1176,9 @@
               ],
               "requirements": [
                 "quest:Monkey Madness II",
-                "skill:Hitpoints:75"
+                "skill:Hitpoints:75",
+                "skill:Magic:93",
+                "skill:Crafting:98"
               ]
             },
             {
@@ -1230,7 +1275,7 @@
                 "melee"
               ],
               "requirements": [
-                "skill:Attack:60"
+                "skill:Strength:60"
               ]
             },
             {
@@ -1241,7 +1286,8 @@
               ],
               "requirements": [
                 "quest:While Guthix Sleeps",
-                "skill:Attack:75"
+                "skill:Attack:77",
+                "skill:Smithing:74"
               ],
               "implies": [
                 "Arclight"
@@ -1255,7 +1301,8 @@
               ],
               "requirements": [
                 "quest:While Guthix Sleeps",
-                "skill:Ranged:75"
+                "skill:Ranged:77",
+                "skill:Fletching:74"
               ]
             },
             {
@@ -1266,7 +1313,9 @@
               ],
               "requirements": [
                 "quest:While Guthix Sleeps",
-                "skill:Magic:75"
+                "skill:Magic:77",
+                "skill:Attack:50",
+                "skill:Crafting:74"
               ]
             },
             {
@@ -1287,7 +1336,8 @@
                 "melee"
               ],
               "requirements": [
-                "skill:Slayer:83"
+                "skill:Slayer:83",
+                "skill:Defence:60"
               ]
             },
             {
@@ -1298,7 +1348,9 @@
               ],
               "requirements": [
                 "quest:Monkey Madness II",
-                "skill:Hitpoints:75"
+                "skill:Hitpoints:75",
+                "skill:Magic:93",
+                "skill:Crafting:95"
               ]
             },
             {
@@ -1319,7 +1371,8 @@
                 "magic"
               ],
               "requirements": [
-                "skill:Slayer:93"
+                "skill:Slayer:93",
+                "skill:Magic:70"
               ]
             },
             {
@@ -1330,7 +1383,9 @@
               ],
               "requirements": [
                 "quest:Monkey Madness II",
-                "skill:Hitpoints:75"
+                "skill:Hitpoints:75",
+                "skill:Magic:93",
+                "skill:Crafting:89"
               ],
               "wiki": "Ring_of_suffering",
               "exact": true
@@ -1347,7 +1402,7 @@
                 "magic"
               ],
               "requirements": [
-                "skill:Magic:87"
+                "skill:Magic:83"
               ]
             },
             {
@@ -1357,6 +1412,7 @@
                 "magic"
               ],
               "requirements": [
+                "skill:Hitpoints:90",
                 "skill:Crafting:83",
                 "skill:Smithing:70"
               ],
@@ -1415,7 +1471,9 @@
                 "melee"
               ],
               "requirements": [
-                "skill:Slayer:91"
+                "skill:Slayer:91",
+                "skill:Strength:75",
+                "skill:Defence:75"
               ],
               "implies": [
                 "Dragon boots"
@@ -1428,7 +1486,9 @@
                 "magic"
               ],
               "requirements": [
-                "skill:Slayer:91"
+                "skill:Slayer:91",
+                "skill:Magic:75",
+                "skill:Defence:75"
               ],
               "implies": [
                 "Infinity boots"
@@ -1441,7 +1501,9 @@
                 "ranged"
               ],
               "requirements": [
-                "skill:Slayer:91"
+                "skill:Slayer:91",
+                "skill:Ranged:75",
+                "skill:Defence:75"
               ]
             },
             {
@@ -1451,7 +1513,8 @@
                 "melee"
               ],
               "requirements": [
-                "skill:Slayer:92"
+                "skill:Slayer:92",
+                "skill:Hitpoints:90"
               ],
               "implies": [
                 "Amulet of torture"
@@ -1465,7 +1528,9 @@
               ],
               "requirements": [
                 "quest:Dragon Slayer II",
-                "skill:Slayer:95"
+                "skill:Slayer:95",
+                "skill:Attack:80",
+                "skill:Defence:80"
               ]
             }
           ]
@@ -1481,7 +1546,8 @@
               ],
               "requirements": [
                 "skill:Ranged:75",
-                "kc:Zulrah:1"
+                "kc:Zulrah:1",
+                "skill:Fletching:78"
               ]
             },
             {
@@ -1492,7 +1558,8 @@
                 "ranged"
               ],
               "requirements": [
-                "kc:Zulrah:1"
+                "kc:Zulrah:1",
+                "skill:Defence:75"
               ]
             },
             {
@@ -1513,7 +1580,8 @@
                 "ranged"
               ],
               "requirements": [
-                "skill:Prayer:74"
+                "skill:Prayer:74",
+                "skill:Defence:70"
               ],
               "wiki": "Rigour"
             },
@@ -1524,7 +1592,8 @@
                 "magic"
               ],
               "requirements": [
-                "skill:Prayer:77"
+                "skill:Prayer:77",
+                "skill:Defence:70"
               ],
               "wiki": "Augury"
             }
@@ -1609,7 +1678,8 @@
                 "melee"
               ],
               "requirements": [
-                "kc:Yama:1"
+                "kc:Yama:1",
+                "skill:Defence:78"
               ],
               "wiki": "Oathplate_armour"
             },
@@ -1620,7 +1690,8 @@
                 "melee"
               ],
               "requirements": [
-                "kc:Yama:1"
+                "kc:Yama:1",
+                "skill:Defence:78"
               ],
               "wiki": "Oathplate_armour"
             },
@@ -1631,7 +1702,8 @@
                 "melee"
               ],
               "requirements": [
-                "kc:Yama:1"
+                "kc:Yama:1",
+                "skill:Defence:78"
               ],
               "wiki": "Oathplate_armour"
             },
@@ -1642,7 +1714,9 @@
                 "melee"
               ],
               "requirements": [
-                "quest:Desert Treasure II - The Fallen Empire"
+                "quest:Desert Treasure II - The Fallen Empire",
+                "skill:Magic:90",
+                "skill:Crafting:80"
               ],
               "wiki": "Ultor_ring"
             },
@@ -1653,7 +1727,8 @@
                 "ranged"
               ],
               "requirements": [
-                "kc:Sol Heredit:1"
+                "kc:Sol Heredit:1",
+                "skill:Ranged:75"
               ],
               "wiki": "Dizana's_quiver"
             }
@@ -1705,7 +1780,9 @@
                 "magic"
               ],
               "requirements": [
-                "quest:Desert Treasure II - The Fallen Empire"
+                "quest:Desert Treasure II - The Fallen Empire",
+                "skill:Magic:90",
+                "skill:Crafting:80"
               ]
             },
             {
@@ -1818,7 +1895,8 @@
               ],
               "requirements": [
                 "skill:Magic:80",
-                "skill:Prayer:70"
+                "skill:Defence:80",
+                "skill:Prayer:80"
               ],
               "wiki": "Elidinis'_ward"
             },
@@ -1867,7 +1945,9 @@
                 "magic"
               ],
               "requirements": [
-                "quest:Desert Treasure II - The Fallen Empire"
+                "quest:Desert Treasure II - The Fallen Empire",
+                "skill:Magic:78",
+                "skill:Defence:75"
               ],
               "wiki": "Virtus_robes"
             },
@@ -1878,7 +1958,9 @@
                 "ranged"
               ],
               "requirements": [
-                "quest:Desert Treasure II - The Fallen Empire"
+                "quest:Desert Treasure II - The Fallen Empire",
+                "skill:Magic:90",
+                "skill:Crafting:80"
               ]
             },
             {
@@ -1888,7 +1970,9 @@
                 "melee"
               ],
               "requirements": [
-                "quest:Desert Treasure II - The Fallen Empire"
+                "quest:Desert Treasure II - The Fallen Empire",
+                "skill:Magic:90",
+                "skill:Crafting:80"
               ]
             },
             {
@@ -2019,8 +2103,8 @@
                 "poh"
               ],
               "requirements": [
-                "skill:Construction:78",
-                "skill:Magic:78"
+                "skill:Construction:50",
+                "skill:Magic:83"
               ],
               "wiki": "Portal_Chamber"
             },
@@ -2045,7 +2129,7 @@
                 "skill:Construction:75",
                 "skill:Farming:83"
               ],
-              "wiki": "Spirit_tree_(Superior_Garden)"
+              "wiki": "Spirit_tree_(Construction)"
             },
             {
               "name": "Marble portal nexus",
@@ -2067,7 +2151,7 @@
               "requirements": [
                 "skill:Construction:80"
               ],
-              "wiki": "Altar_space_(Achievement_Gallery)"
+              "wiki": "Occult_altar"
             },
             {
               "name": "Basic jewellery box",
@@ -2078,7 +2162,7 @@
               "requirements": [
                 "skill:Construction:81"
               ],
-              "wiki": "Jewellery_Box"
+              "wiki": "Jewellery_box"
             },
             {
               "name": "Fairy ring",
@@ -2089,7 +2173,7 @@
               "requirements": [
                 "skill:Construction:85"
               ],
-              "wiki": "Fairy_ring_(Superior_Garden)"
+              "wiki": "Fairy_ring_(Construction)"
             },
             {
               "name": "Occult altar",
@@ -2122,7 +2206,7 @@
               "requirements": [
                 "skill:Construction:91"
               ],
-              "wiki": "Jewellery_Box"
+              "wiki": "Jewellery_box"
             },
             {
               "name": "Crystalline portal nexus",
@@ -2160,7 +2244,8 @@
                 "ranged"
               ],
               "requirements": [
-                "skill:Ranged:45"
+                "skill:Ranged:45",
+                "skill:Fletching:58"
               ]
             },
             {
@@ -2171,7 +2256,8 @@
                 "ranged"
               ],
               "requirements": [
-                "skill:Ranged:55"
+                "skill:Ranged:55",
+                "skill:Fletching:72"
               ]
             }
           ]

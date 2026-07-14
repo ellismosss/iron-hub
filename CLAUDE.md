@@ -2,6 +2,8 @@
 
 RuneLite Plugin Hub plugin: an all-in-one progression companion for standard OSRS Ironman accounts. Design phase is complete; your job is implementation.
 
+**Before touching any feature that reads game data: read [DOMAIN-NOTES.md](DOMAIN-NOTES.md)** — OSRS domain knowledge (item identity layers, requirement semantics, detection limits) collected from the wiki after real in-client bugs. The gear pack is generated and wiki-audited via `tools/` (never hand-edit the JSON).
+
 ## Document map (read in this order)
 
 1. **DESIGN.md** — full feature spec. §2 architecture, §3 the 21 feature modules, §7 roadmap phases.
