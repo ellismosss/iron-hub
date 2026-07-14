@@ -75,6 +75,19 @@ public interface IronHubConfig extends Config
 	default boolean deathRecovery() { return true; }
 
 	@ConfigSection(
+		name = "Notifications",
+		description = "Per-category notification toggles",
+		position = 2
+	)
+	String notificationsSection = "notifications";
+
+	@ConfigItem(keyName = "notifyPatchReady", name = "Herb patch ready", description = "Notify when a herb patch is ready or predicted ready", section = notificationsSection, position = 1)
+	default boolean notifyPatchReady() { return true; }
+
+	@ConfigItem(keyName = "notifyDailyReset", name = "Daily reset", description = "Notify at the daily reset when dailies are outstanding", section = notificationsSection, position = 2)
+	default boolean notifyDailyReset() { return true; }
+
+	@ConfigSection(
 		name = "Integrations",
 		description = "Optional external integrations",
 		position = 1

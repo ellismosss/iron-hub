@@ -33,7 +33,7 @@ public class FarmingRunModuleTest
 	private FarmingRunModule module(AccountState state)
 	{
 		FarmingRunModule module = new FarmingRunModule(state, null, new EventBus(),
-			null, null, null, config, null, new DataPack(new Gson()));
+			null, null, null, config, null, new DataPack(new Gson()), null);
 		module.startUp();
 		return module;
 	}
@@ -74,6 +74,24 @@ public class FarmingRunModuleTest
 		}
 		assertFalse(module.running());
 		assertEquals(1, state.getHerbRunsMs().size());
+		module.shutDown();
+	}
+
+	@Test
+	public void readyPatchesNotifyOnceUntilRearmed()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		FarmingRunModule module = module(state);
+
+		state.recordHerbPatch("falador", "HARVESTABLE", "Ranarr", 0);
+		assertEquals(List.of("Falador"), module.newlyReadyPatches());
+		assertTrue(module.newlyReadyPatches().isEmpty()); // once only
+
+		// harvested and replanted: re-arms, growing does not notify
+		state.recordHerbPatch("falador", "GROWING", "Ranarr", 0);
+		assertTrue(module.newlyReadyPatches().isEmpty());
+		state.recordHerbPatch("falador", "HARVESTABLE", "Ranarr", 0);
+		assertEquals(List.of("Falador"), module.newlyReadyPatches());
 		module.shutDown();
 	}
 

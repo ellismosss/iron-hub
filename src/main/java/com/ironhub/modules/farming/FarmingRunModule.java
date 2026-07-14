@@ -59,6 +59,7 @@ public class FarmingRunModule implements IronHubModule
 	private final IronHubConfig config;
 	private final ShortestPathBridge pathBridge;
 	private final DataPack dataPack;
+	private final net.runelite.client.Notifier notifier; // null in unit tests
 
 	private HerbPatchesPack pack;
 	private FarmingTab tab;
@@ -71,12 +72,17 @@ public class FarmingRunModule implements IronHubModule
 	private volatile long runStartMs;
 	private final Set<String> visited = ConcurrentHashMap.newKeySet();
 
+	// notification bookkeeping (client thread)
+	private final Set<String> notifiedReady = ConcurrentHashMap.newKeySet();
+	private int notifyTick;
+
 	@Inject
 	public FarmingRunModule(AccountState state, Client client, EventBus eventBus,
 		OverlayManager overlayManager, InfoBoxManager infoBoxManager,
 		Provider<com.ironhub.IronHubPlugin> plugin, IronHubConfig config,
-		ShortestPathBridge pathBridge, DataPack dataPack)
+		ShortestPathBridge pathBridge, DataPack dataPack, net.runelite.client.Notifier notifier)
 	{
+		this.notifier = notifier;
 		this.state = state;
 		this.client = client;
 		this.eventBus = eventBus;
@@ -164,6 +170,16 @@ public class FarmingRunModule implements IronHubModule
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
+		if (++notifyTick % 20 == 0) // ~12 s — prediction moves slowly
+		{
+			for (String name : newlyReadyPatches())
+			{
+				if (notifier != null && config.notifyPatchReady())
+				{
+					notifier.notify("Herb patch ready: " + name);
+				}
+			}
+		}
 		if (!running() || client == null)
 		{
 			return;
@@ -177,6 +193,30 @@ public class FarmingRunModule implements IronHubModule
 		{
 			SwingUtilities.invokeLater(tab::rebuild);
 		}
+	}
+
+	/**
+	 * Patches newly ready since the last check; each notifies once and
+	 * re-arms when it stops being ready (harvested/replanted).
+	 */
+	java.util.List<String> newlyReadyPatches()
+	{
+		long now = System.currentTimeMillis();
+		java.util.List<String> fresh = new java.util.ArrayList<>();
+		for (HerbPatchesPack.Patch patch : patches())
+		{
+			PatchView view = predict(state.herbPatchSeen(patch.getId()), now);
+			boolean ready = view == PatchView.READY || view == PatchView.PREDICTED_READY;
+			if (ready && notifiedReady.add(patch.getId()))
+			{
+				fresh.add(patch.getName());
+			}
+			else if (!ready)
+			{
+				notifiedReady.remove(patch.getId());
+			}
+		}
+		return fresh;
 	}
 
 	/** Mark any patch within range as visited; ends the run when all done. */

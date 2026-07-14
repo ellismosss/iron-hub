@@ -18,6 +18,10 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.swing.JComponent;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.events.GameTick;
+import net.runelite.client.Notifier;
+import net.runelite.client.eventbus.EventBus;
+import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.util.ImageUtil;
@@ -37,13 +41,21 @@ public class DailiesModule implements IronHubModule
 	private final DataPack dataPack;
 	private final InfoBoxManager infoBoxManager;   // null in unit tests
 	private final Provider<? extends Plugin> plugin; // Provider breaks the DI cycle
+	private final EventBus eventBus;               // null in unit tests
+	private final Notifier notifier;               // null in unit tests
 	private DailiesTab tab;
 	private DailiesInfoBox infoBox;
+	private DailiesPack pack;
+	private long lastResetKey;
+	private int notifyTick;
 
 	@Inject
 	public DailiesModule(AccountState state, IronHubConfig config, DataPack dataPack,
-		InfoBoxManager infoBoxManager, Provider<com.ironhub.IronHubPlugin> plugin)
+		InfoBoxManager infoBoxManager, Provider<com.ironhub.IronHubPlugin> plugin,
+		EventBus eventBus, Notifier notifier)
 	{
+		this.eventBus = eventBus;
+		this.notifier = notifier;
 		this.state = state;
 		this.config = config;
 		this.dataPack = dataPack;
@@ -66,18 +78,47 @@ public class DailiesModule implements IronHubModule
 	@Override
 	public void startUp()
 	{
+		pack = dataPack.load("dailies", DailiesPack.class);
+		lastResetKey = lastReset("daily", System.currentTimeMillis());
+		if (eventBus != null)
+		{
+			eventBus.register(this);
+		}
 		if (infoBoxManager != null)
 		{
-			DailiesPack pack = dataPack.load("dailies", DailiesPack.class);
 			BufferedImage icon = ImageUtil.loadImageResource(com.ironhub.IronHubPlugin.class, "/icon.png");
 			infoBox = new DailiesInfoBox(icon, plugin.get(), () -> outstanding(state, pack));
 			infoBoxManager.addInfoBox(infoBox);
 		}
 	}
 
+	@Subscribe
+	public void onGameTick(GameTick event)
+	{
+		if (++notifyTick % 100 != 0) // ~1 min — reset crossings are daily
+		{
+			return;
+		}
+		long key = lastReset("daily", System.currentTimeMillis());
+		if (key != lastResetKey)
+		{
+			lastResetKey = key;
+			int outstanding = outstanding(state, pack);
+			if (outstanding > 0 && notifier != null && config.notifyDailyReset())
+			{
+				notifier.notify(outstanding + (outstanding == 1
+					? " daily is available again" : " dailies are available again"));
+			}
+		}
+	}
+
 	@Override
 	public void shutDown()
 	{
+		if (eventBus != null)
+		{
+			eventBus.unregister(this);
+		}
 		if (infoBox != null)
 		{
 			infoBoxManager.removeInfoBox(infoBox);
