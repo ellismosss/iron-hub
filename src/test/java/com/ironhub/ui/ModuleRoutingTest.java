@@ -28,7 +28,7 @@ public class ModuleRoutingTest
 		IronHubConfig config = new IronHubConfig()
 		{
 		};
-		LoadoutModule loadout = new LoadoutModule(state, null, null, config, new DataPack(new Gson()));
+		LoadoutModule loadout = new LoadoutModule(state, null, null, config, new DataPack(new Gson()), new Gson(), null);
 		assertTrue(loadout.enabled());
 		assertNotNull(loadout.buildTab());
 

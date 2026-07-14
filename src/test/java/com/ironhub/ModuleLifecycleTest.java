@@ -54,7 +54,7 @@ public class ModuleLifecycleTest
 			new DiariesModule(state, config),
 			new CombatAchievementsModule(state, config),
 			new QolModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
-			new LoadoutModule(state, null, null, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
+			new LoadoutModule(state, null, null, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), new com.google.gson.Gson(), null),
 			new LootModule(state, null, config),
 			new BankTrackerModule(state, null, config,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),

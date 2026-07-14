@@ -27,10 +27,16 @@ public class LoadoutModule implements IronHubModule
 	private final DataPack dataPack;
 	private LoadoutTab tab;
 
+	private final com.google.gson.Gson gson;
+	private final okhttp3.OkHttpClient httpClient;
+
 	@Inject
 	public LoadoutModule(AccountState state, ItemManager itemManager,
-		ClientThread clientThread, IronHubConfig config, DataPack dataPack)
+		ClientThread clientThread, IronHubConfig config, DataPack dataPack,
+		com.google.gson.Gson gson, okhttp3.OkHttpClient httpClient)
 	{
+		this.gson = gson;
+		this.httpClient = httpClient;
 		this.state = state;
 		this.itemManager = itemManager;
 		this.clientThread = clientThread;
@@ -71,7 +77,7 @@ public class LoadoutModule implements IronHubModule
 		if (tab == null)
 		{
 			tab = new LoadoutTab(state, itemManager, clientThread,
-				dataPack.load("scenarios", ScenariosPack.class));
+				dataPack.load("scenarios", ScenariosPack.class), config, gson, httpClient);
 		}
 		return tab;
 	}

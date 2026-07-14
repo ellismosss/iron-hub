@@ -21,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import net.runelite.api.EquipmentInventorySlot;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.util.AsyncBufferedImage;
@@ -30,6 +31,7 @@ import net.runelite.client.util.AsyncBufferedImage;
  * filled with the best owned gear (green = owned by definition; empty
  * slots dim). BETA label until the heuristic earns trust.
  */
+@Slf4j
 class LoadoutTab extends JPanel
 {
 	// mockup 2f grid: rows of 3, null = spacer
@@ -45,17 +47,25 @@ class LoadoutTab extends JPanel
 	private final ItemManager itemManager;   // null in unit tests
 	private final ClientThread clientThread; // null in unit tests
 	private final ScenariosPack pack;
+	private final com.ironhub.IronHubConfig config;
+	private final com.google.gson.Gson gson;
+	private final okhttp3.OkHttpClient httpClient; // null in unit tests
 	private final JComboBox<String> scenario;
 	private final JPanel grid = new JPanel(new GridLayout(0, 3, UiTokens.GRID_GAP, UiTokens.GRID_GAP));
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 	private Map<EquipmentInventorySlot, Integer> lastBest = Map.of();
 
-	LoadoutTab(AccountState state, ItemManager itemManager, ClientThread clientThread, ScenariosPack pack)
+	LoadoutTab(AccountState state, ItemManager itemManager, ClientThread clientThread,
+		ScenariosPack pack, com.ironhub.IronHubConfig config, com.google.gson.Gson gson,
+		okhttp3.OkHttpClient httpClient)
 	{
 		this.state = state;
 		this.itemManager = itemManager;
 		this.clientThread = clientThread;
 		this.pack = pack;
+		this.config = config;
+		this.gson = gson;
+		this.httpClient = httpClient;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
 		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
@@ -88,26 +98,14 @@ class LoadoutTab extends JPanel
 		add(grid);
 		add(Box.createVerticalStrut(UiTokens.PAD));
 
-		JLabel bankTag = new JLabel("Bank tag", javax.swing.SwingConstants.CENTER);
-		bankTag.setOpaque(true);
-		bankTag.setBackground(UiTokens.ICON_BUTTON_BG);
-		bankTag.setForeground(UiTokens.TEXT_BODY);
-		bankTag.setBorder(new javax.swing.border.LineBorder(UiTokens.BORDER_BUTTON));
-		bankTag.setFont(bankTag.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
-		bankTag.setToolTipText("Copy this loadout as a Bank Tags import string");
-		bankTag.setAlignmentX(LEFT_ALIGNMENT);
-		bankTag.setPreferredSize(new Dimension(0, UiTokens.BUTTON_HEIGHT));
-		bankTag.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
-		bankTag.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		bankTag.addMouseListener(new java.awt.event.MouseAdapter()
-		{
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
-			{
-				copyBankTag();
-			}
-		});
-		add(bankTag);
+		// two half-width buttons (2f): full labels in tooltips
+		JPanel buttons = new JPanel(new GridLayout(1, 2, UiTokens.GRID_GAP, 0));
+		buttons.setOpaque(false);
+		buttons.setAlignmentX(LEFT_ALIGNMENT);
+		buttons.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
+		buttons.add(secondaryButton("DPS calc", "Export to the wiki DPS calculator", this::exportToDpsCalc));
+		buttons.add(secondaryButton("Bank tag", "Copy this loadout as a Bank Tags import string", this::copyBankTag));
+		add(buttons);
 		add(Box.createVerticalGlue());
 
 		state.addListener(listener);
@@ -149,6 +147,64 @@ class LoadoutTab extends JPanel
 		}
 		grid.revalidate();
 		grid.repaint();
+	}
+
+	private JLabel secondaryButton(String label, String tooltip, Runnable onClick)
+	{
+		JLabel button = new JLabel(label, javax.swing.SwingConstants.CENTER);
+		button.setOpaque(true);
+		button.setBackground(UiTokens.ICON_BUTTON_BG);
+		button.setForeground(UiTokens.TEXT_BODY);
+		button.setBorder(new javax.swing.border.LineBorder(UiTokens.BORDER_BUTTON));
+		button.setFont(button.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
+		button.setToolTipText(tooltip);
+		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		button.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				onClick.run();
+			}
+		});
+		return button;
+	}
+
+	/** POST the loadout to the wiki shortlink API, open the share URL. */
+	private void exportToDpsCalc()
+	{
+		if (lastBest.isEmpty() || httpClient == null || !config.dpsCalcExport())
+		{
+			return;
+		}
+		ScenariosPack.Scenario selected = pack.getScenarios().get(scenario.getSelectedIndex());
+		com.google.gson.JsonObject payload = DpsExport.buildPayload(
+			gson, state, "Iron Hub — " + selected.getName(), lastBest);
+
+		okhttp3.Request request = new okhttp3.Request.Builder()
+			.url(DpsExport.ENDPOINT)
+			.post(okhttp3.RequestBody.create(
+				okhttp3.MediaType.parse("application/json"), gson.toJson(payload)))
+			.build();
+		httpClient.newCall(request).enqueue(new okhttp3.Callback()
+		{
+			@Override
+			public void onFailure(okhttp3.Call call, java.io.IOException e)
+			{
+				log.warn("dps calc export failed", e);
+			}
+
+			@Override
+			public void onResponse(okhttp3.Call call, okhttp3.Response response) throws java.io.IOException
+			{
+				try (okhttp3.ResponseBody body = response.body())
+				{
+					String id = gson.fromJson(body.string(), com.google.gson.JsonObject.class)
+						.get("data").getAsString();
+					net.runelite.client.util.LinkBrowser.browse(DpsExport.SHARE_URL + id);
+				}
+			}
+		});
 	}
 
 	/** Bank Tags import form: banktag,<name>,<icon item>,<item ids…> */

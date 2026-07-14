@@ -1,0 +1,150 @@
+{
+ "serializationVersion": 10,
+ "loadouts": [
+  {
+   "name": "Loadout 1",
+   "style": {
+    "name": "Punch",
+    "type": "crush",
+    "stance": "Accurate"
+   },
+   "skills": {
+    "atk": 99,
+    "def": 99,
+    "hp": 99,
+    "magic": 99,
+    "prayer": 99,
+    "ranged": 99,
+    "str": 99,
+    "mining": 99,
+    "herblore": 99
+   },
+   "boosts": {
+    "atk": 0,
+    "def": 0,
+    "hp": 0,
+    "magic": 0,
+    "prayer": 0,
+    "ranged": 0,
+    "str": 0,
+    "mining": 0,
+    "herblore": 0
+   },
+   "equipment": {
+    "ammo": null,
+    "body": null,
+    "cape": null,
+    "feet": null,
+    "hands": null,
+    "head": null,
+    "legs": null,
+    "neck": null,
+    "ring": null,
+    "shield": null,
+    "weapon": null
+   },
+   "attackSpeed": 4,
+   "prayers": [],
+   "bonuses": {
+    "str": 0,
+    "ranged_str": 0,
+    "magic_str": 0,
+    "prayer": 0
+   },
+   "defensive": {
+    "stab": 0,
+    "slash": 0,
+    "crush": 0,
+    "magic": 0,
+    "ranged": 0
+   },
+   "offensive": {
+    "stab": 0,
+    "slash": 0,
+    "crush": 0,
+    "magic": 0,
+    "ranged": 0
+   },
+   "buffs": {
+    "potions": [],
+    "onSlayerTask": true,
+    "inWilderness": false,
+    "kandarinDiary": true,
+    "chargeSpell": false,
+    "markOfDarknessSpell": false,
+    "forinthrySurge": false,
+    "soulreaperStacks": 0,
+    "baAttackerLevel": 0,
+    "chinchompaDistance": 4,
+    "usingSunfireRunes": false
+   },
+   "spell": null
+  }
+ ],
+ "monster": {
+  "id": 415,
+  "name": "Abyssal demon",
+  "version": "Standard",
+  "image": "Abyssal demon.png",
+  "size": 1,
+  "speed": 4,
+  "style": "stab",
+  "skills": {
+   "atk": 97,
+   "def": 135,
+   "hp": 150,
+   "magic": 1,
+   "ranged": 1,
+   "str": 67
+  },
+  "offensive": {
+   "atk": 0,
+   "magic": 0,
+   "magic_str": 0,
+   "ranged": 0,
+   "ranged_str": 0,
+   "str": 0
+  },
+  "defensive": {
+   "flat_armour": 0,
+   "stab": 20,
+   "slash": 20,
+   "crush": 20,
+   "magic": 0,
+   "light": 20,
+   "standard": 20,
+   "heavy": 20
+  },
+  "attributes": [
+   "demon"
+  ],
+  "weakness": null,
+  "immunities": {
+   "burn": null
+  },
+  "is_slayer_monster": true,
+  "inputs": {
+   "isFromCoxCm": false,
+   "toaInvocationLevel": 0,
+   "toaPathLevel": 0,
+   "partyMaxCombatLevel": 126,
+   "partySumMiningLevel": 99,
+   "partyMaxHpLevel": 99,
+   "partySize": 1,
+   "monsterCurrentHp": 150,
+   "defenceReductions": {
+    "vulnerability": false,
+    "accursed": false,
+    "elderMaul": 0,
+    "dwh": 0,
+    "arclight": 0,
+    "emberlight": 0,
+    "bgs": 0,
+    "tonalztic": 0,
+    "seercull": 0,
+    "ayak": 0
+   }
+  }
+ },
+ "selectedLoadout": 0
+}
