@@ -183,10 +183,15 @@ public class IronHubPlugin extends Plugin
 	@Subscribe
 	public void onNpcLootReceived(NpcLootReceived event)
 	{
-		if (event.getNpc().getName() != null)
+		String source = event.getNpc().getName();
+		if (source == null)
 		{
-			accountState.incrementKillCount(event.getNpc().getName());
+			return;
 		}
+		accountState.incrementKillCount(source);
+		java.util.Map<Integer, Integer> items = new java.util.HashMap<>();
+		event.getItems().forEach(stack -> items.merge(stack.getId(), stack.getQuantity(), Integer::sum));
+		accountState.ingestLoot(source, items);
 	}
 
 	@Subscribe

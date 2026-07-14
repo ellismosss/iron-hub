@@ -18,4 +18,5 @@ class PersistedState
 	Set<String> unlocks = new HashSet<>();
 	Map<String, Integer> killCounts = new HashMap<>();
 	Map<String, Long> dailiesDoneAt = new HashMap<>(); // daily id -> epoch millis of manual tick
+	Map<String, Map<Integer, Integer>> lootBySource = new HashMap<>(); // npc -> item id -> total qty
 }

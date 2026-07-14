@@ -63,6 +63,9 @@ public class AccountState
 	// manual daily ticks: daily id -> epoch millis when marked done
 	private final Map<String, Long> dailiesDoneAt = new ConcurrentHashMap<>();
 
+	// aggregated loot: npc name -> item id -> total quantity (persisted)
+	private final Map<String, Map<Integer, Integer>> lootBySource = new ConcurrentHashMap<>();
+
 	// varbits modules registered interest in (diary tiers, CA points, …)
 	private final Set<Integer> watchedVarbits = ConcurrentHashMap.newKeySet();
 	private final Map<Integer, Integer> varbitValues = new ConcurrentHashMap<>();
@@ -200,6 +203,22 @@ public class AccountState
 		killCounts.merge(source, 1, Integer::sum);
 		persist();
 		notifyListeners();
+	}
+
+	/** Aggregate a loot drop into the per-source totals (client thread). */
+	public void ingestLoot(String source, Map<Integer, Integer> items)
+	{
+		Map<Integer, Integer> totals =
+			lootBySource.computeIfAbsent(source, s -> new ConcurrentHashMap<>());
+		items.forEach((id, qty) -> totals.merge(id, qty, Integer::sum));
+		persist();
+		notifyListeners();
+	}
+
+	/** Lifetime loot totals for a source (item id -> quantity). */
+	public Map<Integer, Integer> lootFor(String source)
+	{
+		return lootBySource.getOrDefault(source, Map.of());
 	}
 
 	/** Epoch millis a daily was manually ticked, or 0 if never. */
@@ -370,6 +389,9 @@ public class AccountState
 		killCounts.putAll(persisted.killCounts);
 		dailiesDoneAt.clear();
 		dailiesDoneAt.putAll(persisted.dailiesDoneAt);
+		lootBySource.clear();
+		persisted.lootBySource.forEach((src, items) ->
+			lootBySource.put(src, new ConcurrentHashMap<>(items)));
 		log.debug("activated profile {} ({} banked item stacks)", hash, bank.size());
 	}
 
@@ -386,6 +408,7 @@ public class AccountState
 		state.unlocks = new HashSet<>(unlocks);
 		state.killCounts = new HashMap<>(killCounts);
 		state.dailiesDoneAt = new HashMap<>(dailiesDoneAt);
+		lootBySource.forEach((src, items) -> state.lootBySource.put(src, new HashMap<>(items)));
 		store.save(profile, state);
 	}
 
