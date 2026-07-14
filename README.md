@@ -9,6 +9,7 @@ See [DESIGN.md](DESIGN.md) for the full design document, [design/DESIGN-PACKAGE.
 - **Dashboard** — composite account score (quests · diaries · combat achievements · QoL · collection log) with daily snapshots and trend, ranked "What now?" suggestions, active goal strip, alert chips, next best upgrades. Every component clicks through to its module.
 - **Trackers** — quests (with quest points), achievement diaries (all 48 tiers), combat achievements (points and per-tier progress from the game's own thresholds), collection log (syncs when you open the log), QoL unlock checklist.
 - **Bank brain** — bank search from anywhere, banked XP by skill and method, best-in-bank loadout solver (beta) with bank-tag export and one-click export to the OSRS Wiki DPS calculator.
+- **Loadout Lab** — exact-DPS best-in-slot sets from the gear you own, per enemy and combat style (the [Loadout Lab](https://github.com/ajkatz/runelite-loadout-lab) plugin by Andrew Katz, imported whole as a module — BSD-2-Clause, see `licenses/`).
 - **Loadout planner** — live equipped gear + inventory view; detects your slayer task and the NPC you're fighting, fetches the wiki's recommended setups for it (per combat style, with the page's tips), picks the best gear you own per slot, lets you click any slot to swap items, saves your chosen setup per task/boss, and exports to the DPS calculator (target preselected) or the Inventory Setups plugin (clipboard import — no plugin dependency).
 - **Daily loop** — herb run timer with per-patch checklist overlay, crop states with readiness prediction, dailies with reset-aware ticks, infoboxes (dailies · patches ready · run timer · slayer task), patch-ready and daily-reset notifications.
 - **Intelligence** — goal planner whose steps auto-complete from account state, supplies runway (hours of stock at your usage rate), loot & supplies per kill, emote-clue readiness.
@@ -28,6 +29,10 @@ Iron Hub makes **no external HTTP requests** unless you explicitly enable a togg
 The Shortest Path integration uses RuneLite's local `PluginMessage` event bus only — no network, no plugin dependency; Path buttons are inert if Shortest Path isn't installed.
 
 All tracked state is stored locally, per profile, under `~/.runelite/iron-hub/<account-hash>/`.
+
+## Licenses & credits
+
+Iron Hub bundles the [Loadout Lab](https://github.com/ajkatz/runelite-loadout-lab) plugin by Andrew Katz as the Loadout Lab module (BSD-2-Clause), which itself vendors code derived from best-dps and Dude Where's My Stuff. The original license texts are retained under [licenses/](licenses/).
 
 ## Development
 

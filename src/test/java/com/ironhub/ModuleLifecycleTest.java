@@ -68,14 +68,20 @@ public class ModuleLifecycleTest
 			new CollectionLogModule(state, null, null, new net.runelite.client.eventbus.EventBus(), config),
 			new ExternalSyncModule(state, null, new net.runelite.client.eventbus.EventBus(), config, null, new com.google.gson.Gson()),
 			new DashboardModule(),
-			new DeathRecoveryModule(state, null, config, null));
+			new DeathRecoveryModule(state, null, config, null),
+			new com.ironhub.modules.loadoutlab.LoadoutLabModule(
+				new com.loadoutlab.LoadoutLabPlugin(), new net.runelite.client.eventbus.EventBus(), config));
 
-		assertEquals(19, modules.size());
+		assertEquals(20, modules.size());
 
 		for (IronHubModule module : modules)
 		{
 			assertFalse("blank module name: " + module.getClass(), module.name().trim().isEmpty());
 			assertTrue("module disabled by default: " + module.getClass(), module.enabled());
+			if (module instanceof com.ironhub.modules.loadoutlab.LoadoutLabModule)
+			{
+				continue; // imported plugin needs real client services; it has its own suite
+			}
 			module.startUp();
 			module.shutDown();
 		}

@@ -1,0 +1,322 @@
+package com.loadoutlab.engine;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.loadoutlab.data.DataService;
+import com.loadoutlab.data.GearItem;
+import com.loadoutlab.data.GearSlot;
+import com.loadoutlab.data.LoadoutData;
+import com.loadoutlab.data.MonsterStats;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import org.junit.Assume;
+import org.junit.Test;
+
+/**
+ * Exports verification vectors for the official-calculator harness. Not a
+ * test of behavior - it only runs when the LOADOUT_LAB_VECTORS environment
+ * variable names an output directory (env, not -D: Gradle's forked test JVM
+ * inherits the environment but not launcher system properties):
+ *
+ *   LOADOUT_LAB_VECTORS=/tmp/x ./gradlew test --tests "*OfficialVectorExport"
+ *
+ * writes {path}/vectors.json (scenario inputs for the weirdgloop harness)
+ * and {path}/ours.json (this engine's numbers). scripts/verify_official.py
+ * orchestrates the full comparison.
+ */
+public class OfficialVectorExport
+{
+	private static final String[][] SCENARIOS = {
+		// name | monster | version | style | weapon | ammo | forced spell | extra gear (slayer helm implies on-task)
+		{"whip-goblin", "Goblin", "", "MELEE", "Abyssal whip", null},
+		// Revenant conditionals: byName resolves the Charged versions
+		// (they precede Uncharged in the corpus); the harness infers the
+		// inWilderness buff from the Revenant monster name.
+		{"craws-revdemon", "Revenant demon", "", "RANGED", "Craw's bow", null},
+		{"ursine-revdemon", "Revenant demon", "", "MELEE", "Ursine chainmace", null},
+		{"avarice-msb-revdemon", "Revenant demon", "", "RANGED", "Magic shortbow", "Amethyst arrow", null, "Amulet of avarice"},
+		{"tentacle-goblin", "Goblin", "", "MELEE", "Abyssal tentacle", null},
+		{"fang-goblin", "Goblin", "", "MELEE", "Osmumten's fang", null},
+		{"tentacle-dusk1", "Dusk", "First form", "MELEE", "Abyssal tentacle", null},
+		{"granitehammer-dusk1", "Dusk", "First form", "MELEE", "Granite hammer", null},
+		{"granitehammer-gargoyle", "Gargoyle", "Basement", "MELEE", "Granite hammer", null},
+		{"barronite-greygolem", "Grey golem", "", "MELEE", "Barronite mace", null},
+		{"eldermaul-dusk2", "Dusk", "Second form", "MELEE", "Elder maul", null},
+		{"tbow-zulrah", "Zulrah", "Serpentine", "RANGED", "Twisted bow", "Dragon arrow"},
+		{"tbow-hydra", "Alchemical Hydra", "", "RANGED", "Twisted bow", "Dragon arrow"},
+		{"tbowslayer-graardor", "General Graardor", "", "RANGED", "Twisted bow", "Dragon arrow", null, "Slayer helmet (i)"},
+		{"bofaslayer-graardor", "General Graardor", "", "RANGED", "Bow of faerdhinen", null, null, "Slayer helmet (i)"},
+		// Crystal armour scaling (crystal bow / bofa only): helm +5% acc +2.5% dmg,
+		// legs +10%/+5%, body +15%/+7.5%. Applied to the BASE roll/max hit,
+		// before salve/slayer (in-game verified by the wiki calc devs).
+		{"bofa-graardor", "General Graardor", "", "RANGED", "Bow of faerdhinen", null},
+		{"bofahelm-graardor", "General Graardor", "", "RANGED", "Bow of faerdhinen", null, null, "Crystal helm"},
+		{"bofabody-graardor", "General Graardor", "", "RANGED", "Bow of faerdhinen", null, null, "Crystal body"},
+		{"bofalegs-graardor", "General Graardor", "", "RANGED", "Bow of faerdhinen", null, null, "Crystal legs"},
+		{"bofaset-graardor", "General Graardor", "", "RANGED", "Bow of faerdhinen", null, null, "Crystal helm", "Crystal body", "Crystal legs"},
+		{"cbowset-graardor", "General Graardor", "", "RANGED", "Crystal bow", null, null, "Crystal helm", "Crystal body", "Crystal legs"},
+		// Slayer helm + crystal body/legs: flooring order (crystal before slayer) matters.
+		{"bofasetslayer-graardor", "General Graardor", "", "RANGED", "Bow of faerdhinen", null, null, "Slayer helmet (i)", "Crystal body", "Crystal legs"},
+		{"msbi-goblin", "Goblin", "", "RANGED", "Magic shortbow (i)", "Amethyst arrow"},
+		{"sang-goblin", "Goblin", "", "MAGIC", "Sanguinesti staff", null},
+		{"shadow-zulrah", "Zulrah", "Serpentine", "MAGIC", "Tumeken's shadow", null},
+		{"bonestaff-scurrius", "Scurrius", "", "MAGIC", "Bone staff", null},
+		{"whip-abyssaldemon", "Abyssal demon", "Standard", "MELEE", "Abyssal whip", null},
+		{"arclight-abyssaldemon", "Abyssal demon", "Standard", "MELEE", "Arclight", null},
+		// Tormented demons: demonbane + elemental weakness (water 30)
+		{"emberlight-td", "Tormented Demon", "1", "MELEE", "Emberlight", null},
+		{"scorchingbow-td", "Tormented Demon", "1", "RANGED", "Scorching bow", "Dragon arrow"},
+		{"bofa-td", "Tormented Demon", "1", "RANGED", "Bow of faerdhinen", null},
+		{"eyeofayak-td", "Tormented Demon", "1", "MAGIC", "Eye of ayak", null},
+		{"purging-demonbane-td", "Tormented Demon", "1", "MAGIC", "Purging staff", null, "Dark Demonbane"},
+		{"kodai-demonbane-td", "Tormented Demon", "1", "MAGIC", "Kodai wand", null, "Dark Demonbane"},
+		{"kodai-watersurge-td", "Tormented Demon", "1", "MAGIC", "Kodai wand", null, "Water Surge"},
+		{"shadow-td", "Tormented Demon", "1", "MAGIC", "Tumeken's shadow", null},
+	};
+
+	/** Sweep battery: the official engine adjudicates OUR optimizer's own
+	 * full game-best picks per style for each of these monsters. */
+	private static final String[][] SWEEP_MONSTERS = {
+		{"Goblin", ""},
+		{"Zulrah", "Serpentine"},
+		{"Alchemical Hydra", ""},
+		{"Tormented Demon", "1"},
+		{"General Graardor", ""},
+		{"Kree'arra", ""},
+		{"Vorkath", "Post-quest"},
+		{"Cerberus", ""},
+		{"Scurrius", ""},
+		{"Dusk", "First form"},
+		{"Abyssal demon", "Standard"},
+		{"Corporeal Beast", ""},
+		{"Aberrant spectre", ""},
+		{"Kalphite Queen", "Airborne"},
+	};
+
+	@Test
+	public void sweep() throws Exception
+	{
+		String dir = System.getenv("LOADOUT_LAB_VECTORS");
+		Assume.assumeNotNull(dir);
+		Assume.assumeNotNull(System.getenv("LOADOUT_LAB_SWEEP"));
+
+		LoadoutData data = new DataService().load();
+		LoadoutOptimizer optimizer = new LoadoutOptimizer();
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		List<Map<String, Object>> vectors = new ArrayList<>();
+		List<Map<String, Object>> ours = new ArrayList<>();
+
+		for (String[] m : SWEEP_MONSTERS)
+		{
+			MonsterStats monster = data.searchMonsters(m[0], 10).stream()
+				.filter(x -> m[1].isEmpty() || m[1].equalsIgnoreCase(x.getVersion()))
+				.findFirst()
+				.orElse(data.searchMonsters(m[0], 1).stream().findFirst().orElse(null));
+			if (monster == null)
+			{
+				continue;
+			}
+			for (CombatStyle style : new CombatStyle[]{CombatStyle.MELEE, CombatStyle.RANGED, CombatStyle.MAGIC})
+			{
+				OptimizationRequest request = new OptimizationRequest(
+					monster, style, PlayerLevels.MAXED,
+					prayersFor(style), null, 0,
+					CandidateMode.ALL_STANDARD, true, false,
+					OwnedItems.EMPTY, RequirementProfile.MAXED, 1);
+				List<DpsResult> results = optimizer.optimize(data, request);
+				if (results.isEmpty())
+				{
+					continue;
+				}
+				DpsResult result = results.get(0);
+				String name = (m[0] + "-" + style).toLowerCase().replace(" ", "").replace("'", "");
+
+				List<Object> gearNames = new ArrayList<>();
+				for (GearItem item : result.getLoadout().getGear().values())
+				{
+					if (item != null)
+					{
+						gearNames.add(gearRef(item));
+					}
+				}
+				Map<String, Object> vector = new LinkedHashMap<>();
+				vector.put("name", name);
+				vector.put("monster", m[0]);
+				vector.put("monsterVersion", m[1]);
+				vector.put("gear", gearNames);
+				vector.put("prayers", prayerNames(style));
+				if (!result.getSpellName().isEmpty())
+				{
+					vector.put("spell", result.getSpellName());
+					if (result.getSpellName().contains("Demonbane"))
+					{
+						vector.put("markOfDarkness", true);
+					}
+				}
+				vectors.add(vector);
+
+				Map<String, Object> mine = new LinkedHashMap<>();
+				mine.put("name", name);
+				mine.put("dps", result.getDps());
+				mine.put("maxHit", result.getMaxHit());
+				mine.put("accuracy", result.getAccuracy());
+				mine.put("attackRoll", result.getAttackRoll());
+				mine.put("weapon", result.getLoadout().getWeapon().getName());
+				ours.add(mine);
+			}
+		}
+		try (FileWriter w = new FileWriter(dir + "/vectors.json"))
+		{
+			gson.toJson(vectors, w);
+		}
+		try (FileWriter w = new FileWriter(dir + "/ours.json"))
+		{
+			gson.toJson(ours, w);
+		}
+		System.out.println("sweep exported " + vectors.size() + " vectors");
+	}
+
+	@Test
+	public void export() throws Exception
+	{
+		String dir = System.getenv("LOADOUT_LAB_VECTORS");
+		Assume.assumeNotNull(dir);
+		Assume.assumeTrue(System.getenv("LOADOUT_LAB_SWEEP") == null);
+
+		LoadoutData data = new DataService().load();
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		List<Map<String, Object>> vectors = new ArrayList<>();
+		List<Map<String, Object>> ours = new ArrayList<>();
+
+		for (String[] s : SCENARIOS)
+		{
+			if (s[4] == null)
+			{
+				continue; // placeholder rows
+			}
+			String name = s[0];
+			// Our corpus collapses combat-identical versions (and blanks the
+			// label), so fall back to the first name match; s[2] stays in
+			// the vector for the official side's exact-version lookup.
+			MonsterStats monster = data.searchMonsters(s[1], 10).stream()
+				.filter(m -> s[2] == null || s[2].isEmpty() || s[2].equalsIgnoreCase(m.getVersion()))
+				.findFirst()
+				.orElse(data.searchMonsters(s[1], 1).stream().findFirst().orElse(null));
+			GearItem weapon = byName(data, s[4]);
+			if (monster == null || weapon == null)
+			{
+				continue;
+			}
+			CombatStyle style = CombatStyle.valueOf(s[3]);
+			com.loadoutlab.data.SpellStats forcedSpell = s.length > 6 && s[6] != null
+				? data.getSpells().stream().filter(sp -> sp.getName().equalsIgnoreCase(s[6])).findFirst().orElse(null)
+				: null;
+			EnumMap<GearSlot, GearItem> gear = new EnumMap<>(GearSlot.class);
+			gear.put(GearSlot.WEAPON, weapon);
+			List<Object> gearNames = new ArrayList<>();
+			gearNames.add(gearRef(weapon));
+			if (s[5] != null)
+			{
+				GearItem ammo = byName(data, s[5]);
+				gear.put(GearSlot.AMMO, ammo);
+				gearNames.add(gearRef(ammo));
+			}
+			boolean onTask = false;
+			for (int i = 7; i < s.length; i++)
+			{
+				if (s[i] == null)
+				{
+					continue;
+				}
+				GearItem extra = byName(data, s[i]);
+				gear.put(extra.getSlot(), extra);
+				gearNames.add(gearRef(extra));
+				onTask |= s[i].toLowerCase().contains("slayer helmet");
+			}
+
+			OptimizationRequest request = new OptimizationRequest(
+				monster, style, PlayerLevels.MAXED,
+				prayersFor(style), forcedSpell, 0,
+				CandidateMode.ALL_STANDARD, true, onTask,
+				OwnedItems.EMPTY, RequirementProfile.MAXED, 1);
+			DpsResult result = new DpsCalculator().calculate(request, new Loadout(gear));
+			if (result == null)
+			{
+				continue;
+			}
+
+			Map<String, Object> vector = new LinkedHashMap<>();
+			vector.put("name", name);
+			vector.put("monster", s[1]);
+			vector.put("monsterVersion", s[2] == null ? "" : s[2]);
+			vector.put("gear", gearNames);
+			vector.put("prayers", prayerNames(style));
+			if (onTask)
+			{
+				vector.put("onSlayerTask", true);
+			}
+			String spellName = result.getSpellName();
+			if (spellName != null && !spellName.isEmpty())
+			{
+				vector.put("spell", spellName);
+				if (spellName.contains("Demonbane"))
+				{
+					vector.put("markOfDarkness", true);
+				}
+			}
+			vectors.add(vector);
+
+			Map<String, Object> mine = new LinkedHashMap<>();
+			mine.put("name", name);
+			mine.put("dps", result.getDps());
+			mine.put("maxHit", result.getMaxHit());
+			mine.put("accuracy", result.getAccuracy());
+			mine.put("attackRoll", result.getAttackRoll());
+			mine.put("spell", result.getSpellName());
+			ours.add(mine);
+		}
+
+		try (FileWriter w = new FileWriter(dir + "/vectors.json"))
+		{
+			gson.toJson(vectors, w);
+		}
+		try (FileWriter w = new FileWriter(dir + "/ours.json"))
+		{
+			gson.toJson(ours, w);
+		}
+		System.out.println("exported " + vectors.size() + " vectors to " + dir);
+	}
+
+	private static Object gearRef(GearItem item)
+	{
+		return item.getVersion().isEmpty()
+			? item.getName()
+			: new String[]{item.getName(), item.getVersion()};
+	}
+
+	private static GearItem byName(LoadoutData data, String name)
+	{
+		return data.getGearItems().stream()
+			.filter(g -> g.getName().equalsIgnoreCase(name) && g.isStandardGear())
+			.findFirst().orElse(null);
+	}
+
+	private static PrayerBonuses prayersFor(CombatStyle style)
+	{
+		return PrayerBonuses.bestAvailable(PlayerLevels.MAXED);
+	}
+
+	private static List<String> prayerNames(CombatStyle style)
+	{
+		switch (style)
+		{
+			case RANGED: return List.of("RIGOUR");
+			case MAGIC: return List.of("AUGURY", "MYSTIC_VIGOUR");
+			default: return List.of("PIETY");
+		}
+	}
+}

@@ -96,14 +96,23 @@ public class IronHubPlugin extends Plugin
 		CollectionLogModule collectionLog,
 		ExternalSyncModule externalSync,
 		DashboardModule dashboard,
-		DeathRecoveryModule deathRecovery)
+		DeathRecoveryModule deathRecovery,
+		com.ironhub.modules.loadoutlab.LoadoutLabModule loadoutLab)
 	{
 		// TODO: skills, boat — see DESIGN.md §3
 		return ImmutableSet.of(
 			gearProgression, quests, diaries, combatAchievements, qol, loadout, loot, bankTracker,
 			farmingRun, dailies, goalPlanner, whatNow, clueStash,
 			slayerOptimizer, suppliesRunway, collectionLog, externalSync,
-			dashboard, deathRecovery);
+			dashboard, deathRecovery, loadoutLab);
+	}
+
+	@Provides
+	com.loadoutlab.LoadoutLabConfig provideLoadoutLabConfig(ConfigManager configManager)
+	{
+		// the imported Loadout Lab code's @Provides isn't seen by Guice
+		// (only this plugin class is a Guice module), so bind it here
+		return configManager.getConfig(com.loadoutlab.LoadoutLabConfig.class);
 	}
 
 	@Override
