@@ -17,4 +17,5 @@ class PersistedState
 	Map<Integer, String> itemNames = new HashMap<>();
 	Set<String> unlocks = new HashSet<>();
 	Map<String, Integer> killCounts = new HashMap<>();
+	Map<String, Long> dailiesDoneAt = new HashMap<>(); // daily id -> epoch millis of manual tick
 }

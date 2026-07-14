@@ -60,6 +60,9 @@ public class AccountState
 	// works after a restart, before the bank is reopened
 	private final Map<Integer, String> itemNames = new ConcurrentHashMap<>();
 
+	// manual daily ticks: daily id -> epoch millis when marked done
+	private final Map<String, Long> dailiesDoneAt = new ConcurrentHashMap<>();
+
 	// varbits modules registered interest in (diary tiers, CA points, …)
 	private final Set<Integer> watchedVarbits = ConcurrentHashMap.newKeySet();
 	private final Map<Integer, Integer> varbitValues = new ConcurrentHashMap<>();
@@ -189,6 +192,26 @@ public class AccountState
 	{
 		killCounts.put(source, count);
 		persist();
+	}
+
+	/** Epoch millis a daily was manually ticked, or 0 if never. */
+	public long dailyDoneAt(String dailyId)
+	{
+		return dailiesDoneAt.getOrDefault(dailyId, 0L);
+	}
+
+	public void markDaily(String dailyId, boolean done)
+	{
+		if (done)
+		{
+			dailiesDoneAt.put(dailyId, System.currentTimeMillis());
+		}
+		else
+		{
+			dailiesDoneAt.remove(dailyId);
+		}
+		persist();
+		notifyListeners();
 	}
 
 	// ── event ingestion (client thread) ───────────────────────────────
@@ -337,6 +360,8 @@ public class AccountState
 		unlocks.addAll(persisted.unlocks);
 		killCounts.clear();
 		killCounts.putAll(persisted.killCounts);
+		dailiesDoneAt.clear();
+		dailiesDoneAt.putAll(persisted.dailiesDoneAt);
 		log.debug("activated profile {} ({} banked item stacks)", hash, bank.size());
 	}
 
@@ -352,6 +377,7 @@ public class AccountState
 		state.itemNames = new HashMap<>(itemNames);
 		state.unlocks = new HashSet<>(unlocks);
 		state.killCounts = new HashMap<>(killCounts);
+		state.dailiesDoneAt = new HashMap<>(dailiesDoneAt);
 		store.save(profile, state);
 	}
 
