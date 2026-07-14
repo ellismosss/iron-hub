@@ -188,7 +188,7 @@ public class LoadoutLabModule implements IronHubModule
 		headerRow.setOpaque(false);
 		headerRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 		headerRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ICON_BUTTON_SIZE + 2));
-		headerRow.add(new SectionLabel("Activity", UiTokens.FONT_SIZE_LAB_LABEL), BorderLayout.WEST);
+		headerRow.add(new SectionLabel("Activity", UiTokens.FONT_SIZE_LABEL), BorderLayout.WEST);
 		headerRow.add(button("Wiki tips",
 			"Fetch tips for this task/boss from its wiki strategy page"
 				+ " (user-initiated request); click again to hide them",
@@ -197,12 +197,12 @@ public class LoadoutLabModule implements IronHubModule
 		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 
 		activityLabel.setForeground(UiTokens.TEXT_BODY);
-		activityLabel.setFont(activityLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LAB_TEXT));
+		activityLabel.setFont(activityLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_BODY));
 		activityLabel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 		card.add(activityLabel);
 
 		tipsLabel.setForeground(UiTokens.TEXT_BODY);
-		tipsLabel.setFont(tipsLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LAB_SMALL));
+		tipsLabel.setFont(tipsLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
 		tipsLabel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 		tipsLabel.setVisible(false);
 		tipsLabel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
@@ -233,7 +233,7 @@ public class LoadoutLabModule implements IronHubModule
 		button.setBorder(javax.swing.BorderFactory.createCompoundBorder(
 			new javax.swing.border.LineBorder(UiTokens.BORDER_BUTTON),
 			new EmptyBorder(1, 6, 1, 6)));
-		button.setFont(button.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LAB_SMALL));
+		button.setFont(button.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
 		button.setToolTipText(tooltip);
 		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		button.addMouseListener(new java.awt.event.MouseAdapter()
@@ -422,7 +422,7 @@ public class LoadoutLabModule implements IronHubModule
 		if (saved != null)
 		{
 			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-			setupView.add(new SectionLabel("Saved setup", UiTokens.FONT_SIZE_LAB_LABEL));
+			setupView.add(new SectionLabel("Saved setup", UiTokens.FONT_SIZE_LABEL));
 			setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 
 			// Inventory Setups look: fixed 46x42 slot boxes, 1px gaps,
@@ -506,7 +506,7 @@ public class LoadoutLabModule implements IronHubModule
 	{
 		JLabel label = new JLabel(text);
 		label.setForeground(UiTokens.TEXT_MUTED);
-		label.setFont(label.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LAB_SMALL));
+		label.setFont(label.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
 		label.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 		return label;
 	}
@@ -572,7 +572,7 @@ public class LoadoutLabModule implements IronHubModule
 			// styled like every other Iron Hub section header (triangle glyph)
 			JPanel section = new JPanel(new BorderLayout());
 			section.setBackground(UiTokens.PANEL_BG);
-			SectionLabel header = new SectionLabel("DPS Calc", UiTokens.FONT_SIZE_LAB_LABEL);
+			SectionLabel header = new SectionLabel("DPS Calc", UiTokens.FONT_SIZE_LABEL);
 			header.setIcon(new com.ironhub.ui.components.PaintedIcon(triangle(), 10));
 			header.setIconTextGap(UiTokens.ROW_GAP);
 			header.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, UiTokens.PAD, UiTokens.PAD_TIGHT, UiTokens.PAD));

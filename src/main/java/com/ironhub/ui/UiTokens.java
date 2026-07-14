@@ -82,18 +82,16 @@ public final class UiTokens
 	public static final int BORDER_RADIUS = 2;      // maximum radius anywhere
 
 	// ── Typography (px; hierarchy via bold + color, not size jumps) ───
+	// HARD FLOOR: no text below 14px anywhere (field rule 2026-07-14) —
+	// RuneLite's RuneScape pixel font is drawn at 16px and turns illegible
+	// when the bitmap is scaled smaller. Long text ellipsizes or wraps;
+	// it never shrinks below the floor.
 	public static final float FONT_SIZE_SCORE = 17f;     // dashboard account-score figure only
-	public static final float FONT_SIZE_BODY = 12f;      // titles + body (titles bold)
-	public static final float FONT_SIZE_SECONDARY = 11f; // secondary, "why" lines
-	public static final float FONT_SIZE_LABEL = 10f;     // SECTION LABELS, needs: lines, chips
-	public static final float FONT_SIZE_TILE_LABEL = 9f; // labeled-tile names/values (panel minimum)
-	public static final float FONT_SIZE_TILE_CODE = 8f;  // two-letter sprite placeholder codes
-	// Loadout Lab type scale — the RuneScape pixel font renders too small
-	// below ~13px in-client (field request 2026-07-14), so the lab runs a
-	// step larger than the panel-wide sizes above.
-	public static final float FONT_SIZE_LAB_TEXT = 14f;  // body, buttons, card headers
-	public static final float FONT_SIZE_LAB_SMALL = 13f; // captions, info lines
-	public static final float FONT_SIZE_LAB_LABEL = 12f; // SECTION LABELS
+	public static final float FONT_SIZE_BODY = 14f;      // titles + body (titles bold)
+	public static final float FONT_SIZE_SECONDARY = 14f; // secondary, "why" lines
+	public static final float FONT_SIZE_LABEL = 14f;     // SECTION LABELS, needs: lines, chips
+	public static final float FONT_SIZE_TILE_LABEL = 14f; // labeled-tile names/values
+	public static final float FONT_SIZE_TILE_CODE = 14f;  // two-letter sprite placeholder codes
 	public static final float LETTER_SPACING_LABEL = 0.08f; // section labels (~0.08em tracking)
 	public static final float LETTER_SPACING_TITLE = 0.12f; // "IRON HUB" panel title
 
