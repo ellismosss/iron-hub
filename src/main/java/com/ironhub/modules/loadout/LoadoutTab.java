@@ -52,6 +52,9 @@ class LoadoutTab extends JPanel
 	private final okhttp3.OkHttpClient httpClient; // null in unit tests
 	private final JComboBox<String> scenario;
 	private final JPanel grid = new JPanel(new GridLayout(0, 3, UiTokens.GRID_GAP, UiTokens.GRID_GAP));
+	private final JLabel activityLine = new JLabel();
+	private final JPanel wornGrid = new JPanel(new GridLayout(0, 3, UiTokens.GRID_GAP, UiTokens.GRID_GAP));
+	private final JPanel invGrid = new JPanel(new GridLayout(7, 4, UiTokens.GRID_GAP, UiTokens.GRID_GAP));
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 	private Map<EquipmentInventorySlot, Integer> lastBest = Map.of();
 
@@ -69,6 +72,27 @@ class LoadoutTab extends JPanel
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
 		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
+
+		// current activity (slayer task + last fought NPC drive strategies)
+		activityLine.setForeground(UiTokens.TEXT_MUTED);
+		activityLine.setFont(activityLine.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
+		activityLine.setAlignmentX(LEFT_ALIGNMENT);
+		add(activityLine);
+		add(Box.createVerticalStrut(UiTokens.PAD));
+
+		// live worn equipment + inventory
+		add(new SectionLabel("Equipped"));
+		add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+		wornGrid.setOpaque(false);
+		wornGrid.setAlignmentX(LEFT_ALIGNMENT);
+		add(wornGrid);
+		add(Box.createVerticalStrut(UiTokens.PAD));
+		add(new SectionLabel("Inventory"));
+		add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+		invGrid.setOpaque(false);
+		invGrid.setAlignmentX(LEFT_ALIGNMENT);
+		add(invGrid);
+		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 
 		JPanel header = new JPanel();
 		header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
@@ -119,6 +143,8 @@ class LoadoutTab extends JPanel
 
 	private void rebuild()
 	{
+		renderActivity();
+		renderCurrent();
 		ScenariosPack.Scenario selected = pack.getScenarios().get(scenario.getSelectedIndex());
 		if (itemManager == null || clientThread == null)
 		{
@@ -132,6 +158,71 @@ class LoadoutTab extends JPanel
 				LoadoutSolver.solve(state, selected.getStyle(), itemManager::getItemStats);
 			SwingUtilities.invokeLater(() -> renderGrid(best));
 		});
+	}
+
+	private void renderActivity()
+	{
+		String task = state.getSlayerTask();
+		String fighting = state.getCombatNpcName();
+		StringBuilder line = new StringBuilder();
+		if (!task.isEmpty())
+		{
+			line.append("Task: ").append(task);
+		}
+		if (!fighting.isEmpty())
+		{
+			line.append(line.length() > 0 ? " · " : "").append("Fighting: ").append(fighting);
+		}
+		activityLine.setText(line.length() > 0 ? line.toString() : "No activity detected yet");
+	}
+
+	/** Live worn gear (slot layout) + inventory (4x7, container order). */
+	private void renderCurrent()
+	{
+		wornGrid.removeAll();
+		int[] worn = state.getEquipmentSlots();
+		for (EquipmentInventorySlot[] row : GRID)
+		{
+			for (EquipmentInventorySlot slot : row)
+			{
+				Integer id = null;
+				if (slot != null && slot.getSlotIdx() < worn.length && worn[slot.getSlotIdx()] > 0)
+				{
+					id = worn[slot.getSlotIdx()];
+				}
+				wornGrid.add(cell(slot, id));
+			}
+		}
+		wornGrid.revalidate();
+		wornGrid.repaint();
+
+		invGrid.removeAll();
+		int[] inv = state.getInventorySlots();
+		for (int i = 0; i < 28; i++)
+		{
+			int id = i < inv.length ? inv[i] : -1;
+			JPanel wrap = new JPanel();
+			wrap.setOpaque(false);
+			GridTile tile;
+			if (id > 0)
+			{
+				tile = new GridTile("", state.itemName(id), GridTile.State.OWNED, false);
+				if (itemManager != null)
+				{
+					AsyncBufferedImage sprite = itemManager.getImage(id);
+					tile.setIcon(new ImageIcon(sprite));
+					sprite.onLoaded(tile::repaint);
+				}
+			}
+			else
+			{
+				tile = new GridTile("", "empty", GridTile.State.LOCKED, false);
+			}
+			wrap.add(tile);
+			invGrid.add(wrap);
+		}
+		invGrid.revalidate();
+		invGrid.repaint();
 	}
 
 	private void renderGrid(Map<EquipmentInventorySlot, Integer> best)

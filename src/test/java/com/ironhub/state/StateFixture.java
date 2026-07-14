@@ -53,6 +53,16 @@ public final class StateFixture
 		state.ingestEquipment(contents);
 	}
 
+	public static void inventorySlots(AccountState state, int[] slots)
+	{
+		state.ingestInventorySlots(slots);
+	}
+
+	public static void equipmentSlots(AccountState state, int[] slots)
+	{
+		state.ingestEquipmentSlots(slots);
+	}
+
 	public static void profile(AccountState state, long hash)
 	{
 		state.activateProfile(hash);

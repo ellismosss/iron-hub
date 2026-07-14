@@ -184,6 +184,25 @@ public class IronHubPlugin extends Plugin
 	}
 
 	@Subscribe
+	public void onInteractingChanged(net.runelite.api.events.InteractingChanged event)
+	{
+		// remember the NPC the player is fighting — the loadout tab keys
+		// wiki strategies off it
+		if (event.getSource() != client.getLocalPlayer())
+		{
+			return;
+		}
+		if (event.getTarget() instanceof net.runelite.api.NPC)
+		{
+			net.runelite.api.NPC npc = (net.runelite.api.NPC) event.getTarget();
+			if (npc.getName() != null && npc.getCombatLevel() > 0)
+			{
+				accountState.setCombatTarget(npc.getName(), npc.getId());
+			}
+		}
+	}
+
+	@Subscribe
 	public void onActorDeath(ActorDeath event)
 	{
 		if (event.getActor() == client.getLocalPlayer() && client.getLocalPlayer() != null)

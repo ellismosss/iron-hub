@@ -115,6 +115,12 @@ public class AccountState
 	private volatile Map<Integer, Integer> bank = Map.of();
 	private volatile Map<Integer, Integer> inventory = Map.of();
 	private volatile Map<Integer, Integer> equipment = Map.of();
+	private volatile int[] inventorySlots = new int[0]; // container order, -1 = empty
+	private volatile int[] equipmentSlots = new int[0]; // EquipmentInventorySlot index order
+	private volatile boolean inventoryDirty;
+	private volatile String slayerTask = "";
+	private volatile String combatNpcName = "";
+	private volatile int combatNpcId = -1;
 
 	/** Epoch millis of the last bank snapshot; 0 = never seen a bank. */
 	@Getter
@@ -165,6 +171,55 @@ public class AccountState
 	public Map<Integer, Integer> getBankSnapshot()
 	{
 		return bank;
+	}
+
+	/** Inventory in container order (28 entries, -1 = empty); empty pre-login. */
+	public int[] getInventorySlots()
+	{
+		return inventorySlots.clone();
+	}
+
+	/** Worn equipment by EquipmentInventorySlot index (-1 = empty). */
+	public int[] getEquipmentSlots()
+	{
+		return equipmentSlots.clone();
+	}
+
+	/** Current slayer task creature name, or empty. */
+	public String getSlayerTask()
+	{
+		return slayerTask;
+	}
+
+	public void setSlayerTask(String name)
+	{
+		String value = name == null ? "" : name;
+		if (!value.equals(slayerTask))
+		{
+			slayerTask = value;
+			notifyListeners();
+		}
+	}
+
+	/** Most recently fought NPC (name, id), or empty/-1. */
+	public String getCombatNpcName()
+	{
+		return combatNpcName;
+	}
+
+	public int getCombatNpcId()
+	{
+		return combatNpcId;
+	}
+
+	public void setCombatTarget(String name, int npcId)
+	{
+		if (name != null && !name.equals(combatNpcName))
+		{
+			combatNpcName = name;
+			combatNpcId = npcId;
+			notifyListeners();
+		}
 	}
 
 	/** Display name of an item seen in the bank, or "item <id>" if unknown. */
@@ -670,10 +725,14 @@ public class AccountState
 		else if (event.getContainerId() == InventoryID.INVENTORY.getId())
 		{
 			inventory = Map.copyOf(itemsOf(event.getItemContainer()));
+			inventorySlots = slotsOf(event.getItemContainer(), 28);
+			inventoryDirty = true; // notified on a tick throttle — changes are frequent
 		}
 		else if (event.getContainerId() == InventoryID.EQUIPMENT.getId())
 		{
 			equipment = Map.copyOf(itemsOf(event.getItemContainer()));
+			equipmentSlots = slotsOf(event.getItemContainer(), 14);
+			notifyListeners(); // gear swaps are rare and loadout-relevant
 		}
 	}
 
@@ -692,6 +751,11 @@ public class AccountState
 		{
 			varbitsRefreshNeeded = false;
 			refreshWatchedVarbits();
+		}
+		if (inventoryDirty && tick % 10 == 0) // ~6s: keeps panel rebuilds sane
+		{
+			inventoryDirty = false;
+			notifyListeners();
 		}
 	}
 
@@ -752,6 +816,16 @@ public class AccountState
 	void ingestEquipment(Map<Integer, Integer> contents)
 	{
 		equipment = Map.copyOf(contents);
+	}
+
+	void ingestInventorySlots(int[] slots)
+	{
+		inventorySlots = slots.clone();
+	}
+
+	void ingestEquipmentSlots(int[] slots)
+	{
+		equipmentSlots = slots.clone();
 	}
 
 	/** Switch to a profile and load its persisted slice. */
@@ -836,11 +910,13 @@ public class AccountState
 		if (inv != null)
 		{
 			ingestInventory(itemsOf(inv));
+			inventorySlots = slotsOf(inv, 28);
 		}
 		ItemContainer equip = client.getItemContainer(InventoryID.EQUIPMENT);
 		if (equip != null)
 		{
 			ingestEquipment(itemsOf(equip));
+			equipmentSlots = slotsOf(equip, 14);
 		}
 	}
 
@@ -883,6 +959,22 @@ public class AccountState
 		{
 			notifyListeners();
 		}
+	}
+
+	/** Slot-ordered item ids (-1 = empty), padded/truncated to size. */
+	private static int[] slotsOf(ItemContainer container, int size)
+	{
+		int[] slots = new int[size];
+		java.util.Arrays.fill(slots, -1);
+		Item[] items = container.getItems();
+		for (int i = 0; i < Math.min(size, items.length); i++)
+		{
+			if (items[i].getId() > 0 && items[i].getQuantity() > 0)
+			{
+				slots[i] = items[i].getId();
+			}
+		}
+		return slots;
 	}
 
 	private static Map<Integer, Integer> itemsOf(ItemContainer container)

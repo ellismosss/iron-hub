@@ -153,11 +153,13 @@ public class SlayerOptimizerModule implements IronHubModule
 		if (creature <= 0 || client == null || clientThread == null)
 		{
 			taskName = "";
+			state.setSlayerTask("");
 			return;
 		}
 		clientThread.invoke(() ->
 		{
 			taskName = resolveTaskName(creature, bossId);
+			state.setSlayerTask(taskName); // shared: the loadout tab keys strategies off it
 			if (tab != null)
 			{
 				SwingUtilities.invokeLater(tab::rebuild);
