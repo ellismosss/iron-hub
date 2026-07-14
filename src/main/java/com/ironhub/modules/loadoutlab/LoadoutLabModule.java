@@ -83,6 +83,7 @@ public class LoadoutLabModule implements IronHubModule
 	private final JLabel tipsLabel = new JLabel();
 	private final JPanel setupView = new JPanel();
 	private String lastAutoSelected = "";
+	private String viewedSetup; // explicit Load-setup pick, wins over the activity
 	private boolean started;
 
 	@Inject
@@ -297,6 +298,38 @@ public class LoadoutLabModule implements IronHubModule
 
 	// ── remembered setups (gear + inventory + rune pouch) ─────────────
 
+	/** Save-with-name (panel button): prompts, defaults to the activity. */
+	private void saveNamedSetup()
+	{
+		String suggested = activity().isEmpty() ? "My setup" : activity();
+		String name = (String) javax.swing.JOptionPane.showInputDialog(holder,
+			"Setup name:", "Save setup", javax.swing.JOptionPane.PLAIN_MESSAGE,
+			null, null, suggested);
+		if (name != null && !name.trim().isEmpty())
+		{
+			captureSetup(name.trim());
+		}
+	}
+
+	/** Load-by-name (panel button): renders the pick under the lab. */
+	private void loadNamedSetup()
+	{
+		List<String> names = state.savedSetupNames();
+		if (names.isEmpty())
+		{
+			javax.swing.JOptionPane.showMessageDialog(holder, "No saved setups yet.");
+			return;
+		}
+		String pick = (String) javax.swing.JOptionPane.showInputDialog(holder,
+			"Setup:", "Load setup", javax.swing.JOptionPane.PLAIN_MESSAGE,
+			null, names.toArray(), names.get(0));
+		if (pick != null)
+		{
+			viewedSetup = pick;
+			renderSavedSetup();
+		}
+	}
+
 	/** Capture worn gear + inventory now; the rune pouch needs the client thread. */
 	private void saveCurrentSetup()
 	{
@@ -305,6 +338,11 @@ public class LoadoutLabModule implements IronHubModule
 		{
 			return;
 		}
+		captureSetup(activity);
+	}
+
+	private void captureSetup(String key)
+	{
 		PersistedState.SavedSetup setup = new PersistedState.SavedSetup();
 		int[] worn = state.getEquipmentSlots();
 		for (EquipmentInventorySlot slot : EquipmentInventorySlot.values())
@@ -338,12 +376,12 @@ public class LoadoutLabModule implements IronHubModule
 				}
 				setup.pouchRunes = runes;
 				setup.pouchAmounts = amounts;
-				state.saveSetup(activity, setup); // persists + notifies (re-renders)
+				state.saveSetup(key, setup); // persists + notifies (re-renders)
 			});
 		}
 		else
 		{
-			state.saveSetup(activity, setup);
+			state.saveSetup(key, setup);
 		}
 	}
 
@@ -352,7 +390,8 @@ public class LoadoutLabModule implements IronHubModule
 	private void renderSavedSetup()
 	{
 		setupView.removeAll();
-		PersistedState.SavedSetup saved = state.savedSetup(activity());
+		PersistedState.SavedSetup saved = viewedSetup != null
+			? state.savedSetup(viewedSetup) : state.savedSetup(activity());
 		if (saved != null)
 		{
 			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
@@ -503,6 +542,7 @@ public class LoadoutLabModule implements IronHubModule
 		if (lab.getPanel() != null)
 		{
 			holder.add(lab.getPanel(), BorderLayout.CENTER);
+			lab.getPanel().setSetupHooks(this::saveNamedSetup, this::loadNamedSetup);
 			onStateChanged(); // panel just arrived: apply auto-follow now
 		}
 		else

@@ -250,6 +250,14 @@ public class AccountState
 		return savedSetups.get(activity);
 	}
 
+	/** Names of all remembered setups. */
+	public java.util.List<String> savedSetupNames()
+	{
+		java.util.List<String> names = new java.util.ArrayList<>(savedSetups.keySet());
+		java.util.Collections.sort(names);
+		return names;
+	}
+
 	public void saveSetup(String activity, PersistedState.SavedSetup setup)
 	{
 		savedSetups.put(activity, setup);

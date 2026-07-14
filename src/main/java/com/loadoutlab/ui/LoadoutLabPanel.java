@@ -280,6 +280,11 @@ public class LoadoutLabPanel extends PluginPanel
 	private final MobProfile mobProfile;
 	private final ItemSearch itemSearch;
 	private final OwnedCheck ownedCheck;
+	// Iron Hub: wired by the wrapper module (named setup save/load)
+	private Runnable saveSetupHook;
+	private Runnable loadSetupHook;
+
+
 	/** Per-style card collapse: user override on top of the auto default
 	 * (collapsed when a standard deviation under the best set's dps). */
 	private final Map<CombatStyle, Boolean> cardCollapsed = new EnumMap<>(CombatStyle.class);
@@ -652,6 +657,30 @@ public class LoadoutLabPanel extends PluginPanel
 		bottomControls.add(spellbook);
 		bottomControls.add(Box.createVerticalStrut(4));
 		bottomControls.add(optimizeMode);
+		bottomControls.add(Box.createVerticalStrut(4));
+		JPanel setupButtons = new JPanel(new GridLayout(1, 2, 4, 0));
+		setupButtons.setOpaque(false);
+		JButton saveSetupButton = new JButton("Save setup");
+		saveSetupButton.setToolTipText("Save this loadout as a named setup");
+		saveSetupButton.addActionListener(e ->
+		{
+			if (saveSetupHook != null)
+			{
+				saveSetupHook.run();
+			}
+		});
+		JButton loadSetupButton = new JButton("Load setup");
+		loadSetupButton.setToolTipText("Show a previously saved setup");
+		loadSetupButton.addActionListener(e ->
+		{
+			if (loadSetupHook != null)
+			{
+				loadSetupHook.run();
+			}
+		});
+		setupButtons.add(saveSetupButton);
+		setupButtons.add(loadSetupButton);
+		bottomControls.add(setupButtons);
 		JPanel centerWrap = new JPanel(new BorderLayout());
 		centerWrap.setOpaque(false);
 		centerWrap.add(resultsScroll, BorderLayout.CENTER);
@@ -755,6 +784,12 @@ public class LoadoutLabPanel extends PluginPanel
 	 * npc id or display name. Name matching reuses the search's
 	 * punctuation-insensitive normalization. EDT only. Returns success.
 	 */
+	public void setSetupHooks(Runnable onSave, Runnable onLoad)
+	{
+		saveSetupHook = onSave;
+		loadSetupHook = onLoad;
+	}
+
 	public boolean selectExternal(String monsterName, Integer npcId)
 	{
 		if (npcId != null)
@@ -1359,6 +1394,69 @@ public class LoadoutLabPanel extends PluginPanel
 
 	/** Right-click menu on a suggested item: exclude it and recompute. A
 	 * container weapon (blowpipe) also offers its loaded ammo. */
+	/** Iron Hub: icon dropdown of slot candidates, strongest first. */
+	private void showSwapIcons(JLabel cell, com.loadoutlab.data.GearSlot slot, CombatStyle style)
+	{
+		List<GearItem> candidates = new java.util.ArrayList<>();
+		for (GearItem item : data.getGearItems(slot))
+		{
+			if (item.roughScore(style) > 0 && ownedCheck.owns(item.getId()))
+			{
+				candidates.add(item);
+			}
+		}
+		candidates.sort(java.util.Comparator.comparingDouble(
+			(GearItem item) -> -item.roughScore(style)));
+		JPopupMenu menu = new JPopupMenu();
+		JPanel grid = new JPanel(new GridLayout(0, 4, 1, 1));
+		grid.setBackground(net.runelite.client.ui.ColorScheme.DARK_GRAY_COLOR);
+		int shown = 0;
+		for (GearItem item : candidates)
+		{
+			if (shown++ >= 24)
+			{
+				break;
+			}
+			JLabel pick = new JLabel();
+			pick.setOpaque(true);
+			pick.setBackground(net.runelite.client.ui.ColorScheme.DARKER_GRAY_COLOR);
+			pick.setPreferredSize(new Dimension(46, 42));
+			pick.setHorizontalAlignment(SwingConstants.CENTER);
+			pick.setToolTipText(item.label());
+			net.runelite.client.util.AsyncBufferedImage sprite = itemManager.getImage(item.getId());
+			pick.setIcon(new javax.swing.ImageIcon(sprite));
+			sprite.onLoaded(pick::repaint);
+			pick.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+			pick.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent ev)
+				{
+					mobProfile.pin(selectedMonster.getId(), style.name(), slot, item.getId());
+					menu.setVisible(false);
+					recompute();
+				}
+			});
+			grid.add(pick);
+		}
+		if (shown == 0)
+		{
+			JLabel none = new JLabel("Nothing owned for this slot");
+			none.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 8, 4, 8));
+			grid.add(none);
+		}
+		JMenuItem clear = new JMenuItem("Reset slot to the optimizer's pick");
+		clear.addActionListener(ev ->
+		{
+			mobProfile.unpin(selectedMonster.getId(), style.name(), slot);
+			mobProfile.unpin(selectedMonster.getId(), ALL_SETS, slot);
+			recompute();
+		});
+		menu.add(grid);
+		menu.add(clear);
+		menu.show(cell, 0, cell.getHeight());
+	}
+
 	private void attachExclusionMenu(JLabel cell, List<GearItem> items)
 	{
 		attachExclusionMenu(cell, items, Collections.emptyList(), null, null);
@@ -1389,11 +1487,18 @@ public class LoadoutLabPanel extends PluginPanel
 
 			private void maybeShow(MouseEvent e)
 			{
-				// Iron Hub: left-click opens the same swap menu (pin an item
-				// via search, use what you own, exclude the suggestion)
+				// Iron Hub: any click opens the swap control
 				if (!e.isPopupTrigger()
 					&& !(e.getID() == MouseEvent.MOUSE_PRESSED && SwingUtilities.isLeftMouseButton(e)))
 				{
+					return;
+				}
+				// Iron Hub: slot cells get an instant icon dropdown of the
+				// best candidates for this slot (owned or recommended),
+				// strongest first — one click swaps it in via a pin.
+				if (pinSlot != null && pinStyle != null && selectedMonster != null)
+				{
+					showSwapIcons(cell, pinSlot, pinStyle);
 					return;
 				}
 				JPopupMenu menu = new JPopupMenu();
