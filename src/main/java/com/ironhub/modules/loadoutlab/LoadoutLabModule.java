@@ -566,6 +566,8 @@ public class LoadoutLabModule implements IronHubModule
 			lab.getPanel().setVisible(!dpsCalcCollapsed);
 			holder.add(section, BorderLayout.CENTER);
 			lab.getPanel().setSetupHooks(this::saveNamedSetup, this::loadNamedSetup);
+			lab.getPanel().setWornLookup(this::wornItemFor);
+			lab.getPanel().setDpsCalcHook(this::openDpsCalc);
 			onStateChanged(); // panel just arrived: apply auto-follow now
 		}
 		else
@@ -576,6 +578,79 @@ public class LoadoutLabModule implements IronHubModule
 		}
 		holder.revalidate();
 		holder.repaint();
+	}
+
+	/** GearSlot → currently worn item id (or null). */
+	private Integer wornItemFor(com.loadoutlab.data.GearSlot slot)
+	{
+		EquipmentInventorySlot mapped = LAB_SLOTS.get(slot.name());
+		if (mapped == null)
+		{
+			return null;
+		}
+		int[] worn = state.getEquipmentSlots();
+		int idx = mapped.getSlotIdx();
+		return idx < worn.length && worn[idx] > 0 ? worn[idx] : null;
+	}
+
+	private static final Map<String, EquipmentInventorySlot> LAB_SLOTS = Map.ofEntries(
+		Map.entry("HEAD", EquipmentInventorySlot.HEAD),
+		Map.entry("CAPE", EquipmentInventorySlot.CAPE),
+		Map.entry("NECK", EquipmentInventorySlot.AMULET),
+		Map.entry("AMMO", EquipmentInventorySlot.AMMO),
+		Map.entry("WEAPON", EquipmentInventorySlot.WEAPON),
+		Map.entry("SHIELD", EquipmentInventorySlot.SHIELD),
+		Map.entry("BODY", EquipmentInventorySlot.BODY),
+		Map.entry("LEGS", EquipmentInventorySlot.LEGS),
+		Map.entry("HANDS", EquipmentInventorySlot.GLOVES),
+		Map.entry("FEET", EquipmentInventorySlot.BOOTS),
+		Map.entry("RING", EquipmentInventorySlot.RING));
+
+	/** Open the wiki DPS calc with the lab's monster + shown setup. */
+	private void openDpsCalc(int monsterId, String monsterName,
+		Map<com.loadoutlab.data.GearSlot, Integer> loadout, boolean onSlayerTask)
+	{
+		if (httpClient == null)
+		{
+			return;
+		}
+		Map<EquipmentInventorySlot, Integer> equipment =
+			new java.util.EnumMap<>(EquipmentInventorySlot.class);
+		loadout.forEach((slot, id) ->
+		{
+			EquipmentInventorySlot mapped = LAB_SLOTS.get(slot.name());
+			if (mapped != null)
+			{
+				equipment.put(mapped, id);
+			}
+		});
+		com.google.gson.JsonObject payload = com.ironhub.modules.loadout.DpsExport.buildPayload(
+			gson, state, "Iron Hub - " + monsterName, equipment, monsterId, monsterName, onSlayerTask);
+		okhttp3.Request request = new okhttp3.Request.Builder()
+			.url(com.ironhub.modules.loadout.DpsExport.ENDPOINT)
+			.post(okhttp3.RequestBody.create(
+				okhttp3.MediaType.parse("application/json"), gson.toJson(payload)))
+			.build();
+		httpClient.newCall(request).enqueue(new okhttp3.Callback()
+		{
+			@Override
+			public void onFailure(okhttp3.Call call, java.io.IOException e)
+			{
+				log.warn("dps calc export failed", e);
+			}
+
+			@Override
+			public void onResponse(okhttp3.Call call, okhttp3.Response response) throws java.io.IOException
+			{
+				try (okhttp3.ResponseBody body = response.body())
+				{
+					String id = gson.fromJson(body.string(), com.google.gson.JsonObject.class)
+						.get("data").getAsString();
+					net.runelite.client.util.LinkBrowser.browse(
+						com.ironhub.modules.loadout.DpsExport.SHARE_URL + id);
+				}
+			}
+		});
 	}
 
 	/** Slot names → saved item ids, ordered by the OSRS layout (tests). */

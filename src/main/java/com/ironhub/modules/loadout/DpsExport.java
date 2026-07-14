@@ -20,10 +20,10 @@ import net.runelite.api.Skill;
  * The template is a captured default state (serializationVersion 10);
  * their import migrates older versions, so drift fails soft.
  */
-final class DpsExport
+public final class DpsExport
 {
-	static final String ENDPOINT = "https://tools.runescape.wiki/osrs-dps/shortlink";
-	static final String SHARE_URL = "https://dps.osrs.wiki/?id=";
+	public static final String ENDPOINT = "https://tools.runescape.wiki/osrs-dps/shortlink";
+	public static final String SHARE_URL = "https://dps.osrs.wiki/?id=";
 
 	// calculator slot keys per EquipmentInventorySlot
 	private static final Map<EquipmentInventorySlot, String> SLOT_KEYS = Map.ofEntries(
@@ -55,8 +55,14 @@ final class DpsExport
 	 * rehydrates monsters by id from its own dataset (state.tsx
 	 * updateImportedData), so id + name is all it needs.
 	 */
-	static JsonObject buildPayload(Gson gson, AccountState state, String loadoutName,
+	public static JsonObject buildPayload(Gson gson, AccountState state, String loadoutName,
 		Map<EquipmentInventorySlot, Integer> equipment, int monsterId, String monsterName)
+	{
+		return buildPayload(gson, state, loadoutName, equipment, monsterId, monsterName, true);
+	}
+
+	public static JsonObject buildPayload(Gson gson, AccountState state, String loadoutName,
+		Map<EquipmentInventorySlot, Integer> equipment, int monsterId, String monsterName, boolean onSlayerTask)
 	{
 		JsonObject data = loadTemplate(gson);
 		if (monsterId > 0 && monsterName != null)
@@ -80,6 +86,7 @@ final class DpsExport
 		skills.addProperty("mining", state.getRealLevel(Skill.MINING));
 		skills.addProperty("herblore", state.getRealLevel(Skill.HERBLORE));
 
+		loadout.getAsJsonObject("buffs").addProperty("onSlayerTask", onSlayerTask);
 		JsonObject gear = loadout.getAsJsonObject("equipment");
 		SLOT_KEYS.forEach((slot, key) ->
 		{

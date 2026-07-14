@@ -283,6 +283,26 @@ public class LoadoutLabPanel extends PluginPanel
 	// Iron Hub: wired by the wrapper module (named setup save/load)
 	private Runnable saveSetupHook;
 	private Runnable loadSetupHook;
+	private java.util.function.Function<com.loadoutlab.data.GearSlot, Integer> wornLookup;
+	private DpsCalcExport dpsCalcHook;
+	private Map<com.loadoutlab.data.GearSlot, Integer> lastShownLoadout;
+
+	/** Iron Hub: open the wiki DPS calc mirroring the shown setup. */
+	public interface DpsCalcExport
+	{
+		void open(int monsterId, String monsterName,
+			Map<com.loadoutlab.data.GearSlot, Integer> loadout, boolean onSlayerTask);
+	}
+
+	public void setWornLookup(java.util.function.Function<com.loadoutlab.data.GearSlot, Integer> lookup)
+	{
+		wornLookup = lookup;
+	}
+
+	public void setDpsCalcHook(DpsCalcExport hook)
+	{
+		dpsCalcHook = hook;
+	}
 
 
 	/** Per-style card collapse: user override on top of the auto default
@@ -436,6 +456,7 @@ public class LoadoutLabPanel extends PluginPanel
 		reloadButton.setMargin(new Insets(0, 6, 0, 6));
 		reloadButton.setToolTipText("Re-run the search for this monster");
 		reloadButton.addActionListener(e -> recompute());
+		// lastShownLoadout resets each recompute via the results rebuild
 		JButton clearSelection = new JButton("x");
 		clearSelection.setMargin(new Insets(0, 6, 0, 6));
 		clearSelection.setToolTipText("Choose a different monster");
@@ -700,6 +721,19 @@ public class LoadoutLabPanel extends PluginPanel
 		setupButtons.add(saveSetupButton);
 		setupButtons.add(loadSetupButton);
 		bottomControls.add(setupButtons);
+		bottomControls.add(Box.createVerticalStrut(4));
+		JButton openDpsCalc = new JButton("Open OSRS DPS Calc");
+		openDpsCalc.setToolTipText("Open the wiki DPS calculator with this monster and setup mirrored");
+		openDpsCalc.setAlignmentX(LEFT_ALIGNMENT);
+		openDpsCalc.addActionListener(e ->
+		{
+			if (dpsCalcHook != null && selectedMonster != null && lastShownLoadout != null)
+			{
+				dpsCalcHook.open(selectedMonster.getId(), selectedMonster.getName(),
+					lastShownLoadout, slayerTask.isSelected());
+			}
+		});
+		bottomControls.add(openDpsCalc);
 		JPanel centerWrap = new JPanel(new BorderLayout());
 		centerWrap.setOpaque(false);
 		centerWrap.add(resultsScroll, BorderLayout.CENTER);
@@ -890,7 +924,7 @@ public class LoadoutLabPanel extends PluginPanel
 			slayerTask.setToolTipText("On task: slayer helmet bonuses apply");
 		}
 		usageLog.record(monster.label());
-		selectedLabel.setText("vs " + monster.label());
+		selectedLabel.setText(monster.label());
 		selectedRow.setVisible(true);
 		String note = MonsterNotes.noteFor(monster);
 		monsterNote.setText(note == null ? "" : "<html>" + note + "</html>");
@@ -1512,12 +1546,46 @@ public class LoadoutLabPanel extends PluginPanel
 				{
 					return;
 				}
-				// Iron Hub: slot cells get an instant icon dropdown of the
-				// best candidates for this slot (owned or recommended),
-				// strongest first — one click swaps it in via a pin.
+				// Iron Hub: LEFT-click = instant icon dropdown of candidates;
+				// RIGHT-click = quick pin menu (use worn item / pin shown item)
 				if (pinSlot != null && pinStyle != null && selectedMonster != null)
 				{
-					showSwapIcons(cell, pinSlot, pinStyle);
+					if (!e.isPopupTrigger())
+					{
+						showSwapIcons(cell, pinSlot, pinStyle);
+						return;
+					}
+					JPopupMenu quick = new JPopupMenu();
+					Integer worn = wornLookup == null ? null : wornLookup.apply(pinSlot);
+					if (worn != null && worn > 0)
+					{
+						JMenuItem useCurrent = new JMenuItem("Use current (equipped item)");
+						useCurrent.addActionListener(ev ->
+						{
+							mobProfile.pin(selectedMonster.getId(), pinStyle.name(), pinSlot, worn);
+							recompute();
+						});
+						quick.add(useCurrent);
+					}
+					if (!items.isEmpty())
+					{
+						JMenuItem pinShown = new JMenuItem("Pin " + items.get(0).label() + " for this monster");
+						pinShown.addActionListener(ev ->
+						{
+							mobProfile.pin(selectedMonster.getId(), ALL_SETS, pinSlot, items.get(0).getId());
+							recompute();
+						});
+						quick.add(pinShown);
+					}
+					JMenuItem clear = new JMenuItem("Reset slot to the optimizer's pick");
+					clear.addActionListener(ev ->
+					{
+						mobProfile.unpin(selectedMonster.getId(), pinStyle.name(), pinSlot);
+						mobProfile.unpin(selectedMonster.getId(), ALL_SETS, pinSlot);
+						recompute();
+					});
+					quick.add(clear);
+					quick.show(cell, e.getX(), e.getY());
 					return;
 				}
 				JPopupMenu menu = new JPopupMenu();
@@ -1757,6 +1825,7 @@ public class LoadoutLabPanel extends PluginPanel
 
 	private void recompute()
 	{
+		lastShownLoadout = null; // recapture from the fresh results
 		if (selectedMonster == null)
 		{
 			return;
@@ -2760,6 +2829,19 @@ public class LoadoutLabPanel extends PluginPanel
 		{
 			fates = PvpRisk.assess(result.getLoadout(), specWeapon,
 				protectItem.isSelected() ? 4 : 3);
+		}
+		if (lastShownLoadout == null)
+		{
+			Map<com.loadoutlab.data.GearSlot, Integer> shown = new java.util.EnumMap<>(com.loadoutlab.data.GearSlot.class);
+			for (GearSlot slotType : GRID_ORDER)
+			{
+				GearItem shownItem = result.getLoadout().get(slotType);
+				if (shownItem != null)
+				{
+					shown.put(slotType, shownItem.getId());
+				}
+			}
+			lastShownLoadout = shown;
 		}
 		java.util.Map<GearSlot, RiskDotLabel> bySlot = new java.util.EnumMap<>(GearSlot.class);
 		for (GearSlot slotType : GRID_ORDER)
