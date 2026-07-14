@@ -1,6 +1,8 @@
 package com.ironhub.ui;
 
+import com.ironhub.data.DataPack;
 import com.ironhub.modules.IronHubModule;
+import com.ironhub.state.AccountState;
 import com.ironhub.ui.components.HubScrollPane;
 import com.ironhub.ui.components.NavHeader;
 import java.awt.BorderLayout;
@@ -38,7 +40,7 @@ public class IronHubPanel extends PluginPanel
 	private final Map<String, Component> moduleWrappers = new HashMap<>();
 
 	@Inject
-	public IronHubPanel(Set<IronHubModule> modules)
+	public IronHubPanel(Set<IronHubModule> modules, AccountState state, DataPack dataPack)
 	{
 		super(false);
 		modulesByName = modules.stream()
@@ -48,7 +50,7 @@ public class IronHubPanel extends PluginPanel
 		setBackground(UiTokens.PANEL_BG);
 
 		cardPanel.setBackground(UiTokens.PANEL_BG);
-		cardPanel.add(new HubScrollPane(new DashboardPanel(this::showModules)), CARD_DASHBOARD);
+		cardPanel.add(new HubScrollPane(new DashboardPanel(state, dataPack, this::openModule, this::showModules)), CARD_DASHBOARD);
 		cardPanel.add(new ModuleNavPanel(this::showDashboard, this::openModule), CARD_MODULES);
 		add(cardPanel, BorderLayout.CENTER);
 	}

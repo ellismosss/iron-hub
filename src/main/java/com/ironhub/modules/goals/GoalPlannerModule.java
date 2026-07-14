@@ -115,7 +115,7 @@ public class GoalPlannerModule implements IronHubModule
 		return steps;
 	}
 
-	static double progress(GoalsPack.Goal goal, AccountState state)
+	public static double progress(GoalsPack.Goal goal, AccountState state)
 	{
 		List<CompiledStep> steps = compile(goal, state);
 		return steps.stream().filter(s -> s.met).count() / (double) steps.size();

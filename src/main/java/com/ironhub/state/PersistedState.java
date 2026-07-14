@@ -34,6 +34,14 @@ class PersistedState
 		int quantity;
 	}
 
+	java.util.List<ScoreSnapshot> scoreSnapshots = new ArrayList<>(); // periodic, capped
+
+	static class ScoreSnapshot
+	{
+		long timeMs;
+		int score;
+	}
+
 	int collectionLogSlots;
 	int collectionLogTotal;
 	long collectionLogSeenMs;

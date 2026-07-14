@@ -1,15 +1,30 @@
 package com.ironhub.ui;
 
+import com.ironhub.data.BankedXpPack;
+import com.ironhub.data.DailiesPack;
+import com.ironhub.data.DataPack;
+import com.ironhub.data.GearLaddersPack;
+import com.ironhub.data.GoalsPack;
+import com.ironhub.data.HerbPatchesPack;
+import com.ironhub.data.QolPack;
+import com.ironhub.modules.dailies.DailiesModule;
+import com.ironhub.modules.dashboard.AccountScore;
+import com.ironhub.modules.farming.FarmingRunModule;
+import com.ironhub.modules.gear.GearProgressionModule;
+import com.ironhub.modules.goals.GoalPlannerModule;
+import com.ironhub.modules.suggest.WhatNowModule;
+import com.ironhub.modules.supplies.SuppliesRunwayModule;
+import com.ironhub.state.AccountState;
 import com.ironhub.ui.components.AlertChip;
 import com.ironhub.ui.components.ChipRow;
+import com.ironhub.ui.components.GridTile;
 import com.ironhub.ui.components.HubProgressBar;
-import com.ironhub.ui.components.IconButton;
 import com.ironhub.ui.components.ListRow;
 import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.components.SectionLabel;
-import com.ironhub.ui.components.SuggestionCard;
 import com.ironhub.ui.components.Status;
 import com.ironhub.ui.components.StatusGlyph;
+import com.ironhub.ui.components.SuggestionCard;
 import com.ironhub.ui.components.WrapLayout;
 import java.awt.BasicStroke;
 import java.awt.Component;
@@ -21,39 +36,88 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
 
 /**
- * Dashboard — panel home (mockup frame 1b). Stacked strips top-to-bottom by
- * decision order: header, account score, "What now?", active goal, alert
- * chips, next best upgrades, all-modules footer.
- *
- * M1: hardcoded placeholder data; real values arrive with AccountState (M2+).
+ * Dashboard — panel home (frame 1b), live: composite account score with
+ * clickable components, snapshot-driven sparkline + weekly trend, real
+ * What Now cards, active goal strip, alert chips, next best upgrades.
  */
 public class DashboardPanel extends JPanel
 {
-	public DashboardPanel(Runnable onAllModules)
+	private static final int[] BUDGETS = {5, 30, 60, 180};
+
+	private final AccountState state;
+	private final Consumer<String> openModule;
+	private final Runnable onAllModules;
+	private final QolPack qolPack;
+	private final GoalsPack goalsPack;
+	private final DailiesPack dailiesPack;
+	private final HerbPatchesPack herbPack;
+	private final GearLaddersPack gearPack;
+	private final WhatNowModule.Packs whatNowPacks;
+	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
+
+	private final JPanel content = new JPanel();
+	private int timeBudget = 2; // 1h default
+
+	public DashboardPanel(AccountState state, DataPack dataPack,
+		Consumer<String> openModule, Runnable onAllModules)
 	{
+		this.state = state;
+		this.openModule = openModule;
+		this.onAllModules = onAllModules;
+		this.qolPack = dataPack.load("qol", QolPack.class);
+		this.goalsPack = dataPack.load("goals", GoalsPack.class);
+		this.dailiesPack = dataPack.load("dailies", DailiesPack.class);
+		this.herbPack = dataPack.load("herb-patches", HerbPatchesPack.class);
+		this.gearPack = dataPack.load("gear-ladders", GearLaddersPack.class);
+		this.whatNowPacks = new WhatNowModule.Packs(dailiesPack, herbPack,
+			dataPack.load("banked-xp", BankedXpPack.class), goalsPack);
+
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
-
-		add(header());
-		add(scoreSection());
-		add(whatNowSection());
-		add(activeGoalSection());
-		add(alertsSection());
-		add(upgradesSection());
-		add(footer(onAllModules));
+		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+		content.setBackground(UiTokens.PANEL_BG);
+		content.setAlignmentX(LEFT_ALIGNMENT);
+		add(content);
 		add(Box.createVerticalGlue());
+
+		state.addListener(listener);
+		rebuild();
+	}
+
+	public void dispose()
+	{
+		state.removeListener(listener);
+	}
+
+	private void rebuild()
+	{
+		content.removeAll();
+		content.add(header());
+		content.add(scoreSection());
+		content.add(whatNowSection());
+		content.add(activeGoalSection());
+		content.add(alertsSection());
+		content.add(upgradesSection());
+		content.add(footer());
+		content.revalidate();
+		content.repaint();
 	}
 
 	private JComponent header()
@@ -74,23 +138,15 @@ public class DashboardPanel extends JPanel
 			UiTokens.LETTER_SPACING_TITLE));
 		header.add(title);
 		header.add(Box.createHorizontalGlue());
-
-		JLabel settings = new JLabel(new PaintedIcon(
-			PaintedIcon.Shape.DOTS_VERTICAL, (int) UiTokens.FONT_SIZE_BODY));
-		settings.setHorizontalAlignment(SwingConstants.CENTER);
-		settings.setForeground(UiTokens.TEXT_MUTED);
-		settings.setToolTipText("Settings");
-		settings.setPreferredSize(new Dimension(UiTokens.ICON_BUTTON_SIZE, UiTokens.ICON_BUTTON_SIZE));
-		settings.setMaximumSize(new Dimension(UiTokens.ICON_BUTTON_SIZE, UiTokens.ICON_BUTTON_SIZE));
-		settings.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		hoverForeground(settings, UiTokens.TEXT_MUTED);
-		header.add(settings);
 		return header;
 	}
 
 	private JComponent scoreSection()
 	{
 		JPanel section = strip(UiTokens.PAD);
+		Map<String, Integer> components = AccountScore.components(state, qolPack);
+		int score = AccountScore.composite(components);
+		state.maybeSnapshotScore(score);
 
 		JPanel top = row();
 		JPanel left = new JPanel();
@@ -99,33 +155,90 @@ public class DashboardPanel extends JPanel
 		left.add(new SectionLabel("Account score"));
 
 		JPanel figure = row();
-		JLabel pct = new JLabel("61%");
+		JLabel pct = new JLabel(score + "%");
 		pct.setForeground(UiTokens.TEXT_PRIMARY);
 		pct.setFont(pct.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SCORE));
 		figure.add(pct);
-		figure.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		JLabel trend = new JLabel("1.2 this wk",
-			new PaintedIcon(PaintedIcon.Shape.TRIANGLE_UP, (int) UiTokens.FONT_SIZE_LABEL),
-			SwingConstants.LEADING);
-		trend.setIconTextGap(UiTokens.PAD_TIGHT);
-		trend.setForeground(UiTokens.STATUS_OWNED);
-		trend.setFont(trend.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LABEL));
-		figure.add(trend);
+
+		double weeklyDelta = weeklyDelta(score);
+		if (weeklyDelta != 0)
+		{
+			figure.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+			boolean up = weeklyDelta > 0;
+			JLabel trend = new JLabel(String.format(java.util.Locale.ROOT, "%.1f this wk", Math.abs(weeklyDelta)),
+				new PaintedIcon(up ? PaintedIcon.Shape.TRIANGLE_UP : PaintedIcon.Shape.TRIANGLE_DOWN,
+					(int) UiTokens.FONT_SIZE_LABEL),
+				SwingConstants.LEADING);
+			trend.setIconTextGap(UiTokens.PAD_TIGHT);
+			trend.setForeground(up ? UiTokens.STATUS_OWNED : UiTokens.STATUS_WARNING);
+			trend.setFont(trend.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LABEL));
+			figure.add(trend);
+		}
 		left.add(figure);
 		left.setAlignmentY(Component.CENTER_ALIGNMENT);
 		top.add(left);
 		top.add(Box.createHorizontalGlue());
-		top.add(new Sparkline());
+		top.add(new Sparkline(state.getScoreSnapshots()));
 		section.add(top);
 		section.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 
-		JLabel components = new JLabel("quests 74 · diaries 58 · CA 41 · QoL 63 · log 22");
-		components.setForeground(UiTokens.TEXT_FAINT);
-		components.setFont(components.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
-		components.setAlignmentX(LEFT_ALIGNMENT);
-		components.setMinimumSize(new Dimension(0, 0));
-		section.add(components);
+		// component labels click through to their modules (exit criterion)
+		JPanel line = row();
+		boolean first = true;
+		for (Map.Entry<String, Integer> component : components.entrySet())
+		{
+			if (!first)
+			{
+				JLabel dot = new JLabel(" · ");
+				dot.setForeground(UiTokens.TEXT_FAINT);
+				dot.setFont(dot.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
+				line.add(dot);
+			}
+			first = false;
+			String text = component.getKey()
+				+ " " + (component.getValue() < 0 ? "-" : component.getValue());
+			JLabel label = new JLabel(text);
+			label.setForeground(UiTokens.TEXT_FAINT);
+			label.setFont(label.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
+			label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			String module = AccountScore.COMPONENT_MODULES.get(component.getKey());
+			label.setToolTipText("Open " + module);
+			label.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					openModule.accept(module);
+				}
+
+				@Override
+				public void mouseEntered(MouseEvent e)
+				{
+					label.setForeground(UiTokens.ACCENT);
+				}
+
+				@Override
+				public void mouseExited(MouseEvent e)
+				{
+					label.setForeground(UiTokens.TEXT_FAINT);
+				}
+			});
+			line.add(label);
+		}
+		line.add(Box.createHorizontalGlue());
+		section.add(line);
 		return section;
+	}
+
+	private double weeklyDelta(int score)
+	{
+		List<long[]> snapshots = state.getScoreSnapshots();
+		long weekAgo = System.currentTimeMillis() - 7L * 24 * 3_600_000;
+		return snapshots.stream()
+			.filter(s -> s[0] <= weekAgo)
+			.reduce((a, b) -> b) // latest snapshot at least a week old
+			.map(s -> (double) score - s[1])
+			.orElse(0.0);
 	}
 
 	private JComponent whatNowSection()
@@ -135,15 +248,41 @@ public class DashboardPanel extends JPanel
 		section.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 
 		ChipRow time = new ChipRow("5m", "30m", "1h", "2h+");
-		time.setSelected(2);
+		time.setSelected(timeBudget);
+		time.onChange(i ->
+		{
+			timeBudget = i;
+			rebuild();
+		});
 		section.add(time);
 		section.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 
-		section.add(new SuggestionCard(1, "Herb run", "~6 min", "7 patches ready · crops decay"));
-		section.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
-		section.add(new SuggestionCard(2, "Sepulchre laps", "40 min", "feeds 70 Agility · Bowfa goal"));
-		section.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
-		section.add(new SuggestionCard(3, "Tears of Guthix", "5 min", "weekly · resets in 2 d 4 h"));
+		List<WhatNowModule.Suggestion> suggestions =
+			WhatNowModule.suggest(state, whatNowPacks, BUDGETS[timeBudget]);
+		if (suggestions.isEmpty())
+		{
+			JLabel none = new JLabel("Nothing urgent right now.");
+			none.setForeground(UiTokens.TEXT_FAINT);
+			none.setFont(none.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
+			none.setAlignmentX(LEFT_ALIGNMENT);
+			section.add(none);
+		}
+		int rank = 1;
+		for (WhatNowModule.Suggestion suggestion : suggestions.subList(0, Math.min(3, suggestions.size())))
+		{
+			SuggestionCard card = new SuggestionCard(rank++, suggestion.title,
+				"~" + suggestion.minutes + " min", suggestion.why);
+			card.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					openModule.accept("What now?");
+				}
+			});
+			section.add(card);
+			section.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+		}
 		return section;
 	}
 
@@ -153,75 +292,184 @@ public class DashboardPanel extends JPanel
 		section.add(new SectionLabel("Active goal"));
 		section.add(Box.createVerticalStrut(5));
 
+		GoalsPack.Goal active = goalsPack.getGoals().stream()
+			.filter(g -> g.getId().equals(state.getActiveGoal()))
+			.findFirst().orElse(null);
+		if (active == null)
+		{
+			JLabel none = new JLabel("Pick a goal in the Goal planner.");
+			none.setForeground(UiTokens.TEXT_FAINT);
+			none.setFont(none.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
+			none.setAlignmentX(LEFT_ALIGNMENT);
+			none.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			none.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					openModule.accept("Goal planner");
+				}
+			});
+			section.add(none);
+			return section;
+		}
+
+		double progress = GoalPlannerModule.progress(active, state);
+		GoalPlannerModule.CompiledStep next = GoalPlannerModule.nextStep(active, state);
+
 		JPanel card = new JPanel();
 		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 		card.setBackground(UiTokens.CARD_BG);
 		card.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
 			new EmptyBorder(UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP)));
 		card.setAlignmentX(LEFT_ALIGNMENT);
+		card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		card.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				openModule.accept("Goal planner");
+			}
+		});
 
 		JPanel titleLine = row();
-		JLabel goal = new JLabel("Bow of Faerdhinen");
+		JLabel goal = new JLabel(active.getName());
 		goal.setForeground(UiTokens.TEXT_PRIMARY);
 		goal.setFont(goal.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
 		goal.setMinimumSize(new Dimension(0, 0));
 		titleLine.add(goal);
 		titleLine.add(Box.createHorizontalGlue());
-		JLabel pct = new JLabel("34%");
+		JLabel pct = new JLabel(Math.round(progress * 100) + "%");
 		pct.setForeground(UiTokens.ACCENT);
 		pct.setFont(pct.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
 		titleLine.add(pct);
 		card.add(titleLine);
 		card.add(Box.createVerticalStrut(5));
+		card.add(HubProgressBar.bar(progress));
 
-		card.add(HubProgressBar.bar(0.34));
-		card.add(Box.createVerticalStrut(5));
-
-		JPanel next = row();
-		JLabel dot = new JLabel(new StatusGlyph(Status.AVAILABLE));
-		next.add(dot);
-		next.add(Box.createHorizontalStrut(5));
-		JLabel step = new JLabel("Next: Song of the Elves");
-		step.setForeground(UiTokens.TEXT_BODY);
-		step.setFont(step.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
-		step.setMinimumSize(new Dimension(0, 0));
-		next.add(step);
-		next.add(Box.createHorizontalGlue());
-		next.add(IconButton.path(null));
-		card.add(next);
-
+		if (next != null)
+		{
+			card.add(Box.createVerticalStrut(5));
+			JPanel nextLine = row();
+			nextLine.add(new JLabel(new StatusGlyph(Status.AVAILABLE)));
+			nextLine.add(Box.createHorizontalStrut(5));
+			JLabel step = new JLabel("Next: " + next.label);
+			step.setForeground(UiTokens.TEXT_BODY);
+			step.setFont(step.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
+			step.setMinimumSize(new Dimension(0, 0));
+			nextLine.add(step);
+			nextLine.add(Box.createHorizontalGlue());
+			card.add(nextLine);
+		}
 		section.add(card);
 		return section;
 	}
 
 	private JComponent alertsSection()
 	{
+		List<JComponent> chips = new ArrayList<>();
+		int dailies = DailiesModule.outstanding(state, dailiesPack);
+		if (dailies > 0)
+		{
+			chips.add(alertChip(dailies + (dailies == 1 ? " daily" : " dailies"),
+				Status.AVAILABLE, "Dailies"));
+		}
+		int ready = FarmingRunModule.readyPatches(state, herbPack);
+		if (ready > 0)
+		{
+			chips.add(alertChip(ready + " patches ready", Status.AVAILABLE, "Farming runs"));
+		}
+		SuppliesRunwayModule.compute(state).values().stream()
+			.filter(r -> r.hoursLeft() < 6)
+			.findFirst()
+			.ifPresent(r -> chips.add(alertChip(
+				"! runway " + SuppliesRunwayModule.formatHours(r.hoursLeft()),
+				Status.WARNING, "Supplies runway")));
+		if (chips.isEmpty())
+		{
+			return new JPanel()
+			{
+				{
+					setVisible(false);
+					setMaximumSize(new Dimension(0, 0));
+				}
+			};
+		}
+
 		JPanel section = strip(UiTokens.PAD);
-		JPanel chips = new JPanel(new WrapLayout(java.awt.FlowLayout.LEFT, UiTokens.PAD_TIGHT, UiTokens.PAD_TIGHT));
-		chips.setOpaque(false);
-		chips.setAlignmentX(LEFT_ALIGNMENT);
-		chips.add(new AlertChip("4 dailies", Status.AVAILABLE));
-		chips.add(new AlertChip("7 patches ready", Status.AVAILABLE));
-		chips.add(new AlertChip("! runway 6 h", Status.WARNING));
-		section.add(chips);
+		JPanel wrap = new JPanel(new WrapLayout(java.awt.FlowLayout.LEFT, UiTokens.PAD_TIGHT, UiTokens.PAD_TIGHT));
+		wrap.setOpaque(false);
+		wrap.setAlignmentX(LEFT_ALIGNMENT);
+		chips.forEach(wrap::add);
+		section.add(wrap);
 		return section;
+	}
+
+	private AlertChip alertChip(String text, Status status, String module)
+	{
+		AlertChip chip = new AlertChip(text, status);
+		chip.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		chip.setToolTipText("Open " + module);
+		chip.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				openModule.accept(module);
+			}
+		});
+		return chip;
 	}
 
 	private JComponent upgradesSection()
 	{
+		// top obtainable-now rungs across styles and slots
+		List<String> upgrades = new ArrayList<>();
+		for (GearLaddersPack.Style style : gearPack.getStyles())
+		{
+			for (GearLaddersPack.Slot slot : style.getSlots())
+			{
+				List<GridTile.State> states =
+					GearProgressionModule.ladderStates(state, slot.getLadder());
+				int next = states.indexOf(GridTile.State.NEXT);
+				if (next >= 0)
+				{
+					upgrades.add(slot.getLadder().get(next).getName());
+				}
+			}
+		}
 		JPanel section = strip(UiTokens.PAD);
 		section.add(new SectionLabel("Next best upgrades"));
 		section.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		section.add(ListRow.available("Barrows gloves", IconButton.path(null), IconButton.wiki(null)));
-		section.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		section.add(ListRow.available("Dragon boots", IconButton.path(null), IconButton.wiki(null)));
-		section.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		section.add(ListRow.locked("Ava's assembler", "Dragon Slayer II",
-			IconButton.path(null), IconButton.wiki(null)));
+		if (upgrades.isEmpty())
+		{
+			JLabel none = new JLabel("No obtainable upgrades tracked right now.");
+			none.setForeground(UiTokens.TEXT_FAINT);
+			none.setFont(none.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
+			none.setAlignmentX(LEFT_ALIGNMENT);
+			section.add(none);
+		}
+		for (String upgrade : upgrades.subList(0, Math.min(3, upgrades.size())))
+		{
+			ListRow row = ListRow.available(upgrade);
+			row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			row.setToolTipText(upgrade + " — open Gear progression");
+			row.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					openModule.accept("Gear progression");
+				}
+			});
+			section.add(row);
+			section.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		}
 		return section;
 	}
 
-	private JComponent footer(Runnable onAllModules)
+	private JComponent footer()
 	{
 		JPanel footer = new JPanel();
 		footer.setLayout(new BoxLayout(footer, BoxLayout.X_AXIS));
@@ -272,7 +520,6 @@ public class DashboardPanel extends JPanel
 		return footer;
 	}
 
-	// a vertical section strip with bottom rule; pad = 0 for the header
 	private static JPanel strip(int pad)
 	{
 		JPanel strip = new JPanel();
@@ -294,34 +541,14 @@ public class DashboardPanel extends JPanel
 		return row;
 	}
 
-	private static void hoverForeground(JLabel label, java.awt.Color normal)
-	{
-		label.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				label.setForeground(UiTokens.ACCENT);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				label.setForeground(normal);
-			}
-		});
-	}
-
-	/** 64×20 single green polyline — trend direction only, no axes. */
+	/** 64×20 green polyline over real score snapshots; flat when sparse. */
 	private static class Sparkline extends JComponent
 	{
-		// mockup frame 1b polyline, normalized to the 64×20 viewBox
-		private static final int[][] POINTS = {
-			{1, 16}, {9, 15}, {17, 15}, {25, 13}, {33, 12}, {41, 10}, {49, 8}, {57, 7}, {63, 5},
-		};
+		private final List<long[]> snapshots;
 
-		Sparkline()
+		Sparkline(List<long[]> snapshots)
 		{
+			this.snapshots = snapshots;
 			Dimension size = new Dimension(UiTokens.SPARKLINE_WIDTH, UiTokens.SPARKLINE_HEIGHT);
 			setPreferredSize(size);
 			setMinimumSize(size);
@@ -335,12 +562,35 @@ public class DashboardPanel extends JPanel
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			g2.setColor(UiTokens.STATUS_OWNED);
 			g2.setStroke(new BasicStroke(1.5f));
-			for (int i = 1; i < POINTS.length; i++)
+
+			int w = UiTokens.SPARKLINE_WIDTH;
+			int h = UiTokens.SPARKLINE_HEIGHT;
+			if (snapshots.size() < 2)
 			{
-				g2.drawLine(POINTS[i - 1][0], POINTS[i - 1][1], POINTS[i][0], POINTS[i][1]);
+				g2.drawLine(1, h / 2, w - 1, h / 2);
+			}
+			else
+			{
+				long min = snapshots.stream().mapToLong(s -> s[1]).min().orElse(0);
+				long max = Math.max(min + 1, snapshots.stream().mapToLong(s -> s[1]).max().orElse(1));
+				int n = snapshots.size();
+				int prevX = 1;
+				int prevY = yFor(snapshots.get(0)[1], min, max, h);
+				for (int i = 1; i < n; i++)
+				{
+					int x = 1 + (int) ((w - 2) * (i / (double) (n - 1)));
+					int y = yFor(snapshots.get(i)[1], min, max, h);
+					g2.drawLine(prevX, prevY, x, y);
+					prevX = x;
+					prevY = y;
+				}
 			}
 			g2.dispose();
 		}
-	}
 
+		private static int yFor(long score, long min, long max, int h)
+		{
+			return (int) ((h - 3) - (h - 5) * ((score - min) / (double) (max - min))) + 1;
+		}
+	}
 }

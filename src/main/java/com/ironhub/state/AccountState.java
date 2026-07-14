@@ -81,6 +81,11 @@ public class AccountState
 	// region loads, so remote views predict from these)
 	private final Map<String, PersistedState.PatchSeen> herbPatchSeen = new ConcurrentHashMap<>();
 
+	/** Periodic account-score snapshots for trend sparklines, capped. */
+	public static final int MAX_SCORE_SNAPSHOTS = 60;
+	private static final long SNAPSHOT_MIN_GAP_MS = 20 * 3_600_000L; // ~daily
+	private final java.util.List<PersistedState.ScoreSnapshot> scoreSnapshots = new CopyOnWriteArrayList<>();
+
 	// collection log progress from the last log open (persisted)
 	private volatile int collectionLogSlots;
 	private volatile int collectionLogTotal;
@@ -328,6 +333,35 @@ public class AccountState
 			total += ownedCount(variant);
 		}
 		return total;
+	}
+
+	/** Score snapshots oldest-first as (timeMs, score) pairs. */
+	public java.util.List<long[]> getScoreSnapshots()
+	{
+		return scoreSnapshots.stream()
+			.map(sn -> new long[]{sn.timeMs, sn.score})
+			.collect(java.util.stream.Collectors.toList());
+	}
+
+	/** Record a snapshot at most ~daily; returns true when recorded. */
+	public boolean maybeSnapshotScore(int score)
+	{
+		PersistedState.ScoreSnapshot last = scoreSnapshots.isEmpty()
+			? null : scoreSnapshots.get(scoreSnapshots.size() - 1);
+		if (last != null && System.currentTimeMillis() - last.timeMs < SNAPSHOT_MIN_GAP_MS)
+		{
+			return false;
+		}
+		PersistedState.ScoreSnapshot snapshot = new PersistedState.ScoreSnapshot();
+		snapshot.timeMs = System.currentTimeMillis();
+		snapshot.score = score;
+		scoreSnapshots.add(snapshot);
+		while (scoreSnapshots.size() > MAX_SCORE_SNAPSHOTS)
+		{
+			scoreSnapshots.remove(0);
+		}
+		persist();
+		return true;
 	}
 
 	/** Collection log slots filled, recorded when the log was opened. */
@@ -748,6 +782,8 @@ public class AccountState
 		herbPatchSeen.putAll(persisted.herbPatchSeen);
 		selectedGoals.clear();
 		selectedGoals.addAll(persisted.selectedGoals);
+		scoreSnapshots.clear();
+		scoreSnapshots.addAll(persisted.scoreSnapshots);
 		collectionLogSlots = persisted.collectionLogSlots;
 		collectionLogTotal = persisted.collectionLogTotal;
 		collectionLogSeenMs = persisted.collectionLogSeenMs;
@@ -776,6 +812,7 @@ public class AccountState
 		state.herbPatchSeen = new HashMap<>(herbPatchSeen);
 		state.selectedGoals = new HashSet<>(selectedGoals);
 		state.activeGoal = activeGoal;
+		state.scoreSnapshots = new java.util.ArrayList<>(scoreSnapshots);
 		state.collectionLogSlots = collectionLogSlots;
 		state.collectionLogTotal = collectionLogTotal;
 		state.collectionLogSeenMs = collectionLogSeenMs;

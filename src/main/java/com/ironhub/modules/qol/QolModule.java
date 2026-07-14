@@ -74,7 +74,7 @@ public class QolModule implements IronHubModule
 	}
 
 	/** Owned > available (reqs met) > locked. Static for unit testing. */
-	static Status status(AccountState state, QolPack.Unlock unlock)
+	public static Status status(AccountState state, QolPack.Unlock unlock)
 	{
 		if (unlock.getItemIds().stream().anyMatch(id -> state.ownedCount(id) > 0))
 		{

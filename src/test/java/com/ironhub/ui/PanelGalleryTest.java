@@ -15,10 +15,16 @@ import static org.junit.Assert.assertTrue;
  */
 public class PanelGalleryTest
 {
+	@org.junit.Rule
+	public org.junit.rules.TemporaryFolder temp = new org.junit.rules.TemporaryFolder();
+
 	@Test
 	public void dashboardRendersAtPanelWidth() throws Exception
 	{
-		BufferedImage image = SwingRender.render(new DashboardPanel(null));
+		com.ironhub.state.AccountState state =
+			com.ironhub.state.StateFixture.state(temp.getRoot());
+		BufferedImage image = SwingRender.render(new DashboardPanel(state,
+			new com.ironhub.data.DataPack(new com.google.gson.Gson()), name -> {}, null));
 		assertEquals(UiTokens.PANEL_WIDTH, image.getWidth());
 		assertTrue(image.getHeight() > 300);
 		write(image, "dashboard-1b.png");

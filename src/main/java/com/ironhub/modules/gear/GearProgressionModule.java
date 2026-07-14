@@ -78,7 +78,7 @@ public class GearProgressionModule implements IronHubModule
 	 * Tile state per rung: owned; else the FIRST unowned rung with met
 	 * requirements is the next upgrade (accent); the rest are locked.
 	 */
-	static List<GridTile.State> ladderStates(AccountState state, List<GearLaddersPack.Rung> ladder)
+	public static List<GridTile.State> ladderStates(AccountState state, List<GearLaddersPack.Rung> ladder)
 	{
 		List<GridTile.State> states = new ArrayList<>();
 		boolean nextAssigned = false;

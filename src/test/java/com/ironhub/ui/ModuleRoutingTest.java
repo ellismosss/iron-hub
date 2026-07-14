@@ -32,7 +32,7 @@ public class ModuleRoutingTest
 		assertTrue(loadout.enabled());
 		assertNotNull(loadout.buildTab());
 
-		IronHubPanel panel = new IronHubPanel(Set.of((IronHubModule) loadout));
+		IronHubPanel panel = new IronHubPanel(Set.of((IronHubModule) loadout), state, new DataPack(new Gson()));
 		int before = componentCount(panel);
 		panel.openModule("Loadout");
 		assertTrue("openModule added no card", componentCount(panel) > before);
