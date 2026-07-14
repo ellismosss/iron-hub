@@ -138,6 +138,37 @@ Mechanics that matter:
   you've completed … combat task"; varps update the same tick, so a reload
   on the next tick reads fresh state.
 
+## Achievement diary task tracking
+
+- Per-task completion is **varplayer bitfields**, two 32-bit varps per
+  region (e.g. `ARDOUNGE_ACHIEVEMENT_DIARY`/`2` = 1196/1197, Kourend =
+  2085/2086; all named in gameval `VarPlayerID`). Tiers occupy contiguous
+  ascending bit ranges with holes (bits of removed/multistage subtasks are
+  skipped). The four per-region tier-complete varbits
+  (`Varbits.DIARY_*`) are separate and only flip on claim.
+- **Karamja is the exception**: its tasks are individual `ATJUN_*` varbits
+  (gameval-named), some counting (`ATJUN_EASY_BANANA` completes at ≥ 5,
+  `ATJUN_EASY_SEAWEED` at ≥ 5); Karamja Elite is varp `ATJUN_TASKS_4`
+  bits 1–5.
+- **Which bit tracks which task** was adopted from Quest Helper's diary
+  helpers at the hub-pinned commit (field-name semantics corroborated by
+  Jagex's own gameval names for Karamja). Bit order matches the in-game
+  journal order (= wiki task numbering) in 44 of 48 tiers; **four tiers
+  were reordered or extended after launch** and carry hand-verified
+  overrides in `tools/gen_diaries.py`: Ardougne Elite (#3/#4 swapped),
+  Kourend Medium (fairy-ring task shown first, bit appended last),
+  Kourend Hard (#5/#6 swapped), Karamja Medium (#7/#18/#19 rotated).
+  Never assume journal order = bit order when adding diary data.
+- Task text/requirements/rewards come from the 12 wiki diary pages (task
+  tables carry `data-diary-name`/`data-diary-tier`). Requirement bullets
+  parse into graph leaves only when unambiguous: SCP skill templates →
+  `skillb:` (or `skill:` when the wiki marks `{{Boostable|n}}` — diary
+  skill reqs are boostable unless marked), "Completion of [[X]]" links →
+  `quest:` validated against the RuneLite Quest enum, "X or Y" skill
+  alternates → `any:` paths. Lines with started/partial-quest wording,
+  item lists, or "recommended" stay display-only and never gate the
+  amber doable highlight — conservative gates beat false "doable now".
+
 ## Wiki page-name gotchas
 
 Override `wiki` in the pack when the display name isn't the page: "God capes"

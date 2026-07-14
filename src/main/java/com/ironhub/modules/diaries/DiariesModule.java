@@ -1,9 +1,16 @@
 package com.ironhub.modules.diaries;
 
 import com.ironhub.IronHubConfig;
+import com.ironhub.data.DataPack;
+import com.ironhub.data.DiariesPack;
 import com.ironhub.modules.IronHubModule;
+import com.ironhub.requirements.Requirement;
+import com.ironhub.requirements.Requirements;
 import com.ironhub.state.AccountState;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.JComponent;
@@ -11,9 +18,11 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Varbits;
 
 /**
- * Achievement diary tracker: per-region, per-tier completion from the
- * documented diary varbits. Task-level tracking and requirement diffs
- * arrive with the diary data pack. See DESIGN.md §3.11.
+ * Achievement diary tracker (DESIGN.md §3.11): per-region task list from
+ * the bundled diary pack (task completion decoded from the diary varplayer
+ * bitfields, Karamja from its per-task varbits), requirement-graph doable
+ * checks, and per-tier rewards. Tier claims still come from the documented
+ * tier varbits.
  */
 @Slf4j
 @Singleton
@@ -36,13 +45,18 @@ public class DiariesModule implements IronHubModule
 
 	private final AccountState state;
 	private final IronHubConfig config;
+	private final DataPack dataPack;
+	private DiariesPack pack;
 	private DiariesTab tab;
+	/** Parsed requirement per pack string — parse once, shared across tasks. */
+	private final Map<String, Requirement> parsedReqs = new ConcurrentHashMap<>();
 
 	@Inject
-	public DiariesModule(AccountState state, IronHubConfig config)
+	public DiariesModule(AccountState state, IronHubConfig config, DataPack dataPack)
 	{
 		this.state = state;
 		this.config = config;
+		this.dataPack = dataPack;
 	}
 
 	@Override
@@ -60,9 +74,27 @@ public class DiariesModule implements IronHubModule
 	@Override
 	public void startUp()
 	{
+		pack = dataPack.load("diaries", DiariesPack.class);
 		for (DiaryRegion region : REGIONS)
 		{
 			state.watchVarbits(region.tierVarbits);
+		}
+		for (DiariesPack.Region region : pack.regions)
+		{
+			for (DiariesPack.Tier tier : region.tiers)
+			{
+				for (DiariesPack.Task task : tier.tasks)
+				{
+					if (task.varp != null)
+					{
+						state.watchVarps(task.varp);
+					}
+					else if (task.varbit != null)
+					{
+						state.watchVarbits(task.varbit);
+					}
+				}
+			}
 		}
 	}
 
@@ -81,9 +113,80 @@ public class DiariesModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new DiariesTab(state);
+			tab = new DiariesTab(this, state);
 		}
 		return tab;
+	}
+
+	DiariesPack pack()
+	{
+		return pack;
+	}
+
+	/** Region metadata (tier claim varbits) by pack region name. */
+	static DiaryRegion regionMeta(String name)
+	{
+		return Arrays.stream(REGIONS).filter(r -> r.name.equals(name)).findFirst().orElse(null);
+	}
+
+	/** Whether the account has completed this diary task. */
+	boolean taskComplete(DiariesPack.Task task)
+	{
+		if (task.varbit != null)
+		{
+			return state.getVarbit(task.varbit) >= (task.min != null ? task.min : 1);
+		}
+		return task.varp != null && task.bit != null
+			&& ((state.getVarp(task.varp) >> task.bit) & 1) == 1;
+	}
+
+	/**
+	 * Incomplete but every parsed requirement is met at current levels —
+	 * the "you could do this now" highlight. Display-only requirement
+	 * lines (items to bring, partial quests) never gate.
+	 */
+	boolean taskDoable(DiariesPack.Task task)
+	{
+		if (taskComplete(task))
+		{
+			return false;
+		}
+		for (DiariesPack.Req req : task.reqs)
+		{
+			if (req.req != null && !parsed(req.req).isMet(state))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/** Met state for one requirement line; null when display-only. */
+	Boolean reqMet(DiariesPack.Req req)
+	{
+		return req.req == null ? null : parsed(req.req).isMet(state);
+	}
+
+	private Requirement parsed(String s)
+	{
+		return parsedReqs.computeIfAbsent(s, Requirements::parse);
+	}
+
+	/** Completed tasks in a tier. */
+	int tierDone(DiariesPack.Tier tier)
+	{
+		return (int) tier.tasks.stream().filter(this::taskComplete).count();
+	}
+
+	/** Completed tasks in a region. */
+	int regionDone(DiariesPack.Region region)
+	{
+		return region.tiers.stream().mapToInt(this::tierDone).sum();
+	}
+
+	static int regionTotal(DiariesPack.Region region)
+	{
+		return region.tiers.stream().mapToInt(t -> t.tasks.size()).sum();
 	}
 
 	/** Tiers complete for a region; a tier counts once its varbit is ≥ 1. */

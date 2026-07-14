@@ -151,10 +151,18 @@ public final class Requirements
 
 	private static Quest questByName(String name)
 	{
+		// trailing period tolerated: wiki-sourced packs strip sentence-final
+		// dots, which also strips it from names like "Another Slice of H.A.M."
+		String wanted = stripTrailingDot(name.trim());
 		return Arrays.stream(Quest.values())
-			.filter(q -> q.getName().equalsIgnoreCase(name.trim()))
+			.filter(q -> stripTrailingDot(q.getName()).equalsIgnoreCase(wanted))
 			.findFirst()
 			.orElse(null);
+	}
+
+	private static String stripTrailingDot(String s)
+	{
+		return s.endsWith(".") ? s.substring(0, s.length() - 1) : s;
 	}
 
 	private static class SkillRequirement implements Requirement
