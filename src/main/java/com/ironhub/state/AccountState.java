@@ -78,6 +78,8 @@ public class AccountState implements StateView
 	private final Map<String, PersistedState.FarmRun> farmRuns = new ConcurrentHashMap<>();
 	// per-run saved gear+inventory setups (run name -> setup), shown at the bank
 	private final Map<String, PersistedState.SavedSetup> farmRunSetups = new ConcurrentHashMap<>();
+	// preferred teleport per farm location (location id -> teleport id)
+	private final Map<String, String> farmTeleportPrefs = new ConcurrentHashMap<>();
 
 	/** Rolling consumption events for runway rates, capped. */
 	public static final int MAX_CONSUMPTION_EVENTS = 500;
@@ -440,6 +442,27 @@ public class AccountState implements StateView
 			persist();
 			notifyListeners();
 		}
+	}
+
+	/** The player's preferred teleport id for a farm location, or null (auto). */
+	public String getFarmTeleportPref(String locationId)
+	{
+		return farmTeleportPrefs.get(locationId);
+	}
+
+	/** Set (teleportId) or clear (null) the preferred teleport for a location. */
+	public void setFarmTeleportPref(String locationId, String teleportId)
+	{
+		if (teleportId == null)
+		{
+			farmTeleportPrefs.remove(locationId);
+		}
+		else
+		{
+			farmTeleportPrefs.put(locationId, teleportId);
+		}
+		persist();
+		notifyListeners();
 	}
 
 	/** The saved gear + inventory setup for a run (name), or null. */
@@ -1311,6 +1334,8 @@ public class AccountState implements StateView
 		farmRuns.putAll(persisted.farmRuns);
 		farmRunSetups.clear();
 		farmRunSetups.putAll(persisted.farmRunSetups);
+		farmTeleportPrefs.clear();
+		farmTeleportPrefs.putAll(persisted.farmTeleportPrefs);
 		consumptionLog.clear();
 		consumptionLog.addAll(persisted.consumptionLog);
 		deaths.clear();
@@ -1370,6 +1395,7 @@ public class AccountState implements StateView
 		state.herbRunsMs = new java.util.ArrayList<>(herbRunsMs);
 		state.farmRuns = new HashMap<>(farmRuns);
 		state.farmRunSetups = new HashMap<>(farmRunSetups);
+		state.farmTeleportPrefs = new HashMap<>(farmTeleportPrefs);
 		state.consumptionLog = new java.util.ArrayList<>(consumptionLog);
 		state.deaths = new java.util.ArrayList<>(deaths);
 		state.selectedGoals = new HashSet<>(selectedGoals);

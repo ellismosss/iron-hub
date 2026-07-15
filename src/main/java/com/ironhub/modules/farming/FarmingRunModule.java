@@ -653,6 +653,19 @@ public class FarmingRunModule implements IronHubModule
 	 */
 	FarmRunsPack.Teleport pickTeleport(FarmRunsPack.Location location)
 	{
+		// the player's explicit choice wins (Easy Farming-style per-location
+		// preference) — their call, even if the items aren't in hand yet
+		String preferred = state.getFarmTeleportPref(location.id);
+		if (preferred != null)
+		{
+			for (FarmRunsPack.Teleport teleport : location.teleports)
+			{
+				if (teleport.id.equals(preferred))
+				{
+					return teleport;
+				}
+			}
+		}
 		for (FarmRunsPack.Teleport teleport : location.teleports)
 		{
 			if (teleport.supplier == null && !teleport.items.isEmpty() && ownsAll(teleport))

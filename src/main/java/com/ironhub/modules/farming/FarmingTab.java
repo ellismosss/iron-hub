@@ -8,12 +8,16 @@ import com.ironhub.ui.Format;
 import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.components.IconButton;
 import com.ironhub.ui.components.ListRow;
+import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.components.SearchField;
 import com.ironhub.ui.components.SectionLabel;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -25,6 +29,7 @@ import java.util.TreeMap;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -53,6 +58,9 @@ class FarmingTab extends JPanel
 	private final JLabel stats = new JLabel();
 	private final JPanel overview = new JPanel();
 	private final JPanel runs = new JPanel();
+	private final JLabel teleportHeader = new JLabel("Teleport preferences");
+	private final JPanel teleportPanel = new JPanel();
+	private boolean teleportsOpen;
 
 	// run builder state
 	private boolean builderOpen;
@@ -94,10 +102,133 @@ class FarmingTab extends JPanel
 		runs.setOpaque(false);
 		runs.setAlignmentX(LEFT_ALIGNMENT);
 		add(runs);
+
+		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
+		add(buildTeleportSection());
 		add(Box.createVerticalGlue());
 
 		state.addListener(listener);
 		rebuild();
+	}
+
+	/** Collapsible "Teleport preferences": choose the teleport used to reach
+	 *  each patch (Easy Farming-style), overriding the owned-first auto-pick. */
+	private JPanel buildTeleportSection()
+	{
+		JPanel section = new JPanel();
+		section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
+		section.setOpaque(false);
+		section.setAlignmentX(LEFT_ALIGNMENT);
+
+		teleportHeader.setForeground(UiTokens.TEXT_MUTED);
+		teleportHeader.setFont(SectionLabel.letterSpaced(
+			teleportHeader.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LABEL),
+			UiTokens.LETTER_SPACING_LABEL));
+		teleportHeader.setIcon(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+		teleportHeader.setIconTextGap(UiTokens.ROW_GAP);
+		teleportHeader.setAlignmentX(LEFT_ALIGNMENT);
+		teleportHeader.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		teleportHeader.setToolTipText("Pick the teleport used to reach each patch");
+		teleportHeader.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				teleportsOpen = !teleportsOpen;
+				teleportHeader.setIcon(new PaintedIcon(teleportsOpen
+					? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+				teleportPanel.setVisible(teleportsOpen);
+				rebuildTeleports();
+			}
+		});
+		section.add(teleportHeader);
+
+		teleportPanel.setLayout(new BoxLayout(teleportPanel, BoxLayout.Y_AXIS));
+		teleportPanel.setOpaque(false);
+		teleportPanel.setAlignmentX(LEFT_ALIGNMENT);
+		teleportPanel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
+		teleportPanel.setVisible(false);
+		section.add(teleportPanel);
+		return section;
+	}
+
+	private void rebuildTeleports()
+	{
+		teleportPanel.removeAll();
+		if (teleportsOpen)
+		{
+			String lastCategory = "";
+			for (FarmRunsPack.Location location : module.pack().locations)
+			{
+				if (!module.isUnlocked(location))
+				{
+					continue; // no point choosing a teleport to a patch you can't use
+				}
+				if (!location.category.equals(lastCategory))
+				{
+					lastCategory = location.category;
+					JLabel header = new JLabel(location.category.toUpperCase(Locale.ROOT));
+					header.setForeground(UiTokens.TEXT_MUTED);
+					header.setFont(header.getFont().deriveFont(UiTokens.FONT_SIZE_LABEL));
+					header.setAlignmentX(LEFT_ALIGNMENT);
+					header.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 2, 0));
+					teleportPanel.add(header);
+				}
+				teleportPanel.add(teleportRow(location));
+				teleportPanel.add(Box.createVerticalStrut(2));
+			}
+		}
+		teleportPanel.revalidate();
+		teleportPanel.repaint();
+	}
+
+	/** Location name + a combo of its teleports ("Auto" = owned-first pick). */
+	private JPanel teleportRow(FarmRunsPack.Location location)
+	{
+		JPanel row = new JPanel(new BorderLayout(UiTokens.ROW_GAP, 0));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
+
+		JLabel name = new JLabel(location.name);
+		name.setForeground(UiTokens.TEXT_BODY);
+		name.setFont(name.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		name.setPreferredSize(new Dimension(82, UiTokens.BUTTON_HEIGHT));
+		name.setToolTipText(location.name);
+		row.add(name, BorderLayout.WEST);
+
+		JComboBox<String> combo = new JComboBox<>();
+		combo.setFont(combo.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		combo.addItem("Auto");
+		for (FarmRunsPack.Teleport teleport : location.teleports)
+		{
+			combo.addItem(FarmingRunOverlay.teleportLabel(teleport));
+		}
+		String pref = state.getFarmTeleportPref(location.id);
+		combo.setSelectedIndex(prefIndex(location, pref));
+		combo.addActionListener(e ->
+		{
+			int i = combo.getSelectedIndex();
+			state.setFarmTeleportPref(location.id,
+				i <= 0 ? null : location.teleports.get(i - 1).id);
+		});
+		row.add(combo, BorderLayout.CENTER);
+		return row;
+	}
+
+	private static int prefIndex(FarmRunsPack.Location location, String pref)
+	{
+		if (pref != null)
+		{
+			for (int i = 0; i < location.teleports.size(); i++)
+			{
+				if (location.teleports.get(i).id.equals(pref))
+				{
+					return i + 1; // +1 for the leading "Auto"
+				}
+			}
+		}
+		return 0;
 	}
 
 	void dispose()
@@ -111,6 +242,7 @@ class FarmingTab extends JPanel
 		rebuildTopBar();
 		rebuildOverview();
 		rebuildRuns();
+		rebuildTeleports();
 	}
 
 	/** During a run: a prominent End run button + live status, pinned to the

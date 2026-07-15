@@ -86,14 +86,15 @@ public class FarmingRunModuleTest
 		module.startTemplate("Herb run");
 		assertTrue(module.running());
 		assertEquals("Herb run", module.runName());
-		assertEquals(10, module.stops().size());
-		assertEquals("herb/farming-guild", module.nextStop().location.id);
+		// a fresh account can only reach the four ungated herb patches
+		assertEquals(4, module.stops().size());
+		assertEquals("herb/ardougne", module.nextStop().location.id);
 
 		// walk to the Falador patch (within radius)
 		assertTrue(module.markVisited(new WorldPoint(3060, 3310, 0)));
 		assertTrue(module.isVisited("herb/falador"));
 		assertEquals(1, module.visitedCount());
-		assertEquals("herb/farming-guild", module.nextStop().location.id);
+		assertEquals("herb/ardougne", module.nextStop().location.id);
 
 		// far away and wrong plane: nothing marked
 		assertFalse(module.markVisited(new WorldPoint(3200, 3200, 0)));
@@ -189,6 +190,25 @@ public class FarmingRunModuleTest
 		assertEquals(1, module.missingItems(stop).size());
 		StateFixture.equipmentSlots(state, new int[]{13126});
 		assertTrue(module.missingItems(stop).isEmpty());
+		module.shutDown();
+	}
+
+	@Test
+	public void preferredTeleportOverridesTheAutoPick()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+		FarmRunsPack.Location ardougne = module.pack().location("herb/ardougne");
+
+		// with the spellbook runes owned, auto-pick would use the spellbook
+		// teleport; the player's Ardy-cloak preference wins even unowned
+		state.setFarmTeleportPref("herb/ardougne", "Ardy_cloak");
+		assertEquals("Ardy_cloak", module.pickTeleport(ardougne).id);
+
+		// clearing the preference returns to the owned-first auto-pick
+		state.setFarmTeleportPref("herb/ardougne", null);
+		assertFalse("Ardy_cloak".equals(module.pickTeleport(ardougne).id));
 		module.shutDown();
 	}
 
