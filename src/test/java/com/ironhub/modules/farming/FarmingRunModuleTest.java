@@ -100,33 +100,33 @@ public class FarmingRunModuleTest
 		StateFixture.profile(state, 5L);
 		ConfigManager configManager = TimetrackingFixture.configManager();
 		FarmingRunModule module = module(state, configManager, null);
-		int ardougneRegion = 10548;
 		long now = Instant.now().getEpochSecond();
 
 		module.startTemplate("Herb run");
-		// a fresh account can only reach the four ungated herb patches
+		// a fresh account can only reach the four ungated herb patches; the
+		// wiki route starts at Falador
 		assertEquals(4, module.stops().size());
-		assertEquals("herb/ardougne", module.nextStop().location.id);
+		assertEquals("herb/falador", module.nextStop().location.id);
 
 		// arrival (patch still empty/harvestable) does NOT advance
 		module.refreshTracking();
-		assertEquals("herb/ardougne", module.nextStop().location.id);
+		assertEquals("herb/falador", module.nextStop().location.id);
 
 		// plant a seed there: patch reads growing — but herbs need compost, so
 		// still no advance
-		TimetrackingFixture.patch(configManager, ardougneRegion, VarbitID.FARMING_TRANSMIT_D,
+		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
 			herbValue(Produce.RANARR, CropState.GROWING, 0), now);
 		module.refreshTracking();
-		assertEquals("herb/ardougne", module.nextStop().location.id);
+		assertEquals("herb/falador", module.nextStop().location.id);
 
 		// compost at the wrong place is ignored
 		module.onCompostApplied(99999);
-		assertEquals("herb/ardougne", module.nextStop().location.id);
+		assertEquals("herb/falador", module.nextStop().location.id);
 
 		// compost at this stop: planted + composted -> advance to the next
-		module.onCompostApplied(ardougneRegion);
-		assertTrue(module.isVisited("herb/ardougne"));
-		assertEquals("herb/catherby", module.nextStop().location.id);
+		module.onCompostApplied(FALADOR_REGION);
+		assertTrue(module.isVisited("herb/falador"));
+		assertEquals("herb/ardougne", module.nextStop().location.id);
 		module.shutDown();
 	}
 
@@ -141,23 +141,23 @@ public class FarmingRunModuleTest
 		StateFixture.profile(state, 5L);
 		ConfigManager configManager = TimetrackingFixture.configManager();
 		FarmingRunModule module = module(state, configManager, null);
-		int faladorTreeRegion = 11828; // Falador's TREE patch is its own region
+		int lumbridgeTreeRegion = 12594; // first stop of the wiki tree route
 		long now = Instant.now().getEpochSecond();
 		StateFixture.bank(state, Map.of(5370, 9)); // oak saplings so tree stops survive culling
 
 		module.startTemplate("Tree run");
-		assertEquals("tree/falador", module.nextStop().location.id);
+		assertEquals("tree/lumbridge", module.nextStop().location.id);
 
-		// the Falador tree is ALREADY growing (planted last run) — must not advance
-		TimetrackingFixture.patch(configManager, faladorTreeRegion, VarbitID.FARMING_TRANSMIT_A,
+		// the Lumbridge tree is ALREADY growing (planted last run) — must not advance
+		TimetrackingFixture.patch(configManager, lumbridgeTreeRegion, VarbitID.FARMING_TRANSMIT_A,
 			treeValue(), now);
 		module.refreshTracking();
-		assertEquals("tree/falador", module.nextStop().location.id);
+		assertEquals("tree/lumbridge", module.nextStop().location.id);
 
 		// only a compost worked here moves the run on (trees gate on it too now)
-		module.onCompostApplied(faladorTreeRegion);
-		assertTrue(module.isVisited("tree/falador"));
-		assertEquals("tree/taverley", module.nextStop().location.id);
+		module.onCompostApplied(lumbridgeTreeRegion);
+		assertTrue(module.isVisited("tree/lumbridge"));
+		assertEquals("tree/varrock", module.nextStop().location.id);
 		module.shutDown();
 	}
 
@@ -170,19 +170,19 @@ public class FarmingRunModuleTest
 		FarmingRunModule module = module(state, configManager, null);
 		long now = Instant.now().getEpochSecond();
 
-		// fresh account: falador, taverley, lumbridge, varrock, gnome-stronghold
-		// are accessible (farming-guild needs 65, nemus needs a quest). With no
-		// tree saplings there's nothing to plant — the run culls to empty.
+		// fresh account: lumbridge, varrock, falador, taverley, gnome-stronghold
+		// are accessible (farming-guild needs 65, auburnvale needs a quest). With
+		// no tree saplings there's nothing to plant — the run culls to empty.
 		module.startTemplate("Tree run");
 		assertEquals(0, module.stops().size());
 		module.endRun(false);
 
-		// two oak saplings — keep only the first two accessible stops (route order)
+		// two oak saplings — keep only the first two accessible stops (wiki order)
 		StateFixture.bank(state, Map.of(5370, 2));
 		module.startTemplate("Tree run");
 		assertEquals(2, module.stops().size());
-		assertEquals("tree/falador", module.stops().get(0).location.id);
-		assertEquals("tree/taverley", module.stops().get(1).location.id);
+		assertEquals("tree/lumbridge", module.stops().get(0).location.id);
+		assertEquals("tree/varrock", module.stops().get(1).location.id);
 		module.endRun(false);
 
 		// plenty of saplings, but Falador's tree is confirmed still growing —
@@ -193,7 +193,7 @@ public class FarmingRunModuleTest
 		module.refreshTracking();
 		module.startTemplate("Tree run");
 		assertFalse(module.stops().stream().anyMatch(s -> s.location.id.equals("tree/falador")));
-		assertTrue(module.stops().stream().anyMatch(s -> s.location.id.equals("tree/taverley")));
+		assertTrue(module.stops().stream().anyMatch(s -> s.location.id.equals("tree/lumbridge")));
 		module.shutDown();
 	}
 
@@ -224,10 +224,10 @@ public class FarmingRunModuleTest
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 5L);
 		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
-		module.startTemplate("Herb run"); // ardougne, catherby, falador, kourend
+		module.startTemplate("Herb run"); // falador, ardougne, catherby, kourend
 
-		// skip through Falador: marks ardougne, catherby, falador done
-		module.markThrough("herb/falador");
+		// skip through Catherby: marks falador, ardougne, catherby done
+		module.markThrough("herb/catherby");
 		assertEquals(3, module.visitedCount());
 		assertEquals("herb/kourend", module.nextStop().location.id);
 

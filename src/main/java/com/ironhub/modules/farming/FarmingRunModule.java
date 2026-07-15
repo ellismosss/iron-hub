@@ -59,9 +59,8 @@ public class FarmingRunModule implements IronHubModule
 
 	static
 	{
-		TEMPLATES.put("Herb run", List.of("herb"));
-		TEMPLATES.put("Tree run", List.of("tree"));
-		TEMPLATES.put("Fruit tree run", List.of("fruit"));
+		// Herb / Tree / Fruit tree / Combo tree runs are curated `routes` in the
+		// pack (wiki order); only the auto-grouped combined runs live here.
 		TEMPLATES.put("Tree & fruit run", List.of("tree", "fruit"));
 		TEMPLATES.put("Hops run", List.of("hops"));
 	}
@@ -700,18 +699,20 @@ public class FarmingRunModule implements IronHubModule
 		return templateLocations(TEMPLATES.get(name));
 	}
 
-	/** All built-in run names — the category templates, then curated routes. */
+	/** All built-in run names — the curated routes (pack order: Herb, Tree,
+	 *  Fruit tree, Combo tree, …), then any auto-grouped category templates. */
 	List<String> templateNames()
 	{
-		List<String> names = new java.util.ArrayList<>(TEMPLATES.keySet());
+		List<String> names = new java.util.ArrayList<>();
 		if (pack.routes != null)
 		{
-			for (String name : pack.routes.keySet())
+			names.addAll(pack.routes.keySet());
+		}
+		for (String name : TEMPLATES.keySet())
+		{
+			if (!names.contains(name))
 			{
-				if (!names.contains(name))
-				{
-					names.add(name);
-				}
+				names.add(name);
 			}
 		}
 		return names;

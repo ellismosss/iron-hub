@@ -1,6 +1,6 @@
 {
  "source": "github.com/Speaax/Farming-Helper@dc52159 (BSD-2-Clause) + curated calquat/celastrus/Varlamore patches and routes",
- "generated": "2026-07-15",
+ "generated": "2026-07-16",
  "locations": [
   {
    "id": "herb/farming-guild",
@@ -2150,6 +2150,39 @@
   ]
  },
  "routes": {
+  "Herb run": [
+   "herb/falador",
+   "herb/morytania",
+   "herb/ardougne",
+   "herb/catherby",
+   "herb/kourend",
+   "herb/farming-guild",
+   "herb/civitas-illa-fortis",
+   "herb/troll-stronghold",
+   "herb/weiss",
+   "herb/harmony-island"
+  ],
+  "Tree run": [
+   "tree/lumbridge",
+   "tree/varrock",
+   "tree/falador",
+   "tree/taverley",
+   "tree/gnome-stronghold",
+   "tree/farming-guild",
+   "tree/auburnvale"
+  ],
+  "Fruit tree run": [
+   "fruit/gnome-stronghold",
+   "fruit/tree-gnome-village",
+   "fruit/catherby",
+   "fruit/farming-guild",
+   "fruit/lletya",
+   "fruit/brimhaven",
+   "calquat/tai-bwo-wannai",
+   "calquat/kastori",
+   "fruit/kastori",
+   "calquat/summer-shore"
+  ],
   "Combo tree run": [
    "fruit/gnome-stronghold",
    "tree/gnome-stronghold",

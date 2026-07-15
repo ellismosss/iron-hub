@@ -164,9 +164,32 @@ CURATED = [
 # categories in a specific order, which the auto-grouping templates can't
 # express. The run culler trims these to what's unlocked / ready / plantable.
 ROUTES = {
-    # Luke's optimal Combo tree run (regular + fruit + calquat + celastrus).
-    # "Start at GE" is deferred to the banking-steps spec, so this begins at
-    # the first patch.
+    # Wiki "Herb run" order (Farming_runs#Herb run): Falador, Port Phasmatys,
+    # Ardougne, Catherby, Hosidius, Farming Guild, Ortus/Civitas, Troll
+    # Stronghold, Weiss, Harmony Island.
+    "Herb run": [
+        "herb/falador", "herb/morytania", "herb/ardougne", "herb/catherby",
+        "herb/kourend", "herb/farming-guild", "herb/civitas-illa-fortis",
+        "herb/troll-stronghold", "herb/weiss", "herb/harmony-island",
+    ],
+    # Wiki "Tree run" order: Lumbridge, Varrock Palace, Falador Park, Taverley,
+    # Gnome Stronghold, Farming Guild, Auburn Valley.
+    "Tree run": [
+        "tree/lumbridge", "tree/varrock", "tree/falador", "tree/taverley",
+        "tree/gnome-stronghold", "tree/farming-guild", "tree/auburnvale",
+    ],
+    # Wiki "Fruit tree run" order (fruit + calquat): Gnome Stronghold, Tree
+    # Gnome Village, Catherby, Farming Guild, Lletya, Brimhaven, Tai Bwo Wannai
+    # calquat, Kastori calquat+fruit, The Summer Shore calquat.
+    "Fruit tree run": [
+        "fruit/gnome-stronghold", "fruit/tree-gnome-village", "fruit/catherby",
+        "fruit/farming-guild", "fruit/lletya", "fruit/brimhaven",
+        "calquat/tai-bwo-wannai", "calquat/kastori", "fruit/kastori",
+        "calquat/summer-shore",
+    ],
+    # Luke's optimal Combo tree run (regular + fruit + calquat + celastrus) =
+    # the wiki's combined tree run. "Start at GE" is deferred to the
+    # banking-steps spec, so this begins at the first patch.
     "Combo tree run": [
         "fruit/gnome-stronghold", "tree/gnome-stronghold", "fruit/tree-gnome-village",
         "tree/farming-guild", "fruit/farming-guild", "celastrus/farming-guild",
