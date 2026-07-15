@@ -76,6 +76,8 @@ public class AccountState implements StateView
 	private final java.util.List<Long> herbRunsMs = new CopyOnWriteArrayList<>();
 	// custom farm runs: name -> ordered farm-runs.json location ids
 	private final Map<String, PersistedState.FarmRun> farmRuns = new ConcurrentHashMap<>();
+	// per-run saved gear+inventory setups (run name -> setup), shown at the bank
+	private final Map<String, PersistedState.SavedSetup> farmRunSetups = new ConcurrentHashMap<>();
 
 	/** Rolling consumption events for runway rates, capped. */
 	public static final int MAX_CONSUMPTION_EVENTS = 500;
@@ -431,11 +433,67 @@ public class AccountState implements StateView
 
 	public void deleteFarmRun(String name)
 	{
-		if (farmRuns.remove(name) != null)
+		boolean changed = farmRuns.remove(name) != null;
+		changed |= farmRunSetups.remove(name) != null; // its gear+inventory setup goes too
+		if (changed)
 		{
 			persist();
 			notifyListeners();
 		}
+	}
+
+	/** The saved gear + inventory setup for a run (name), or null. */
+	public PersistedState.SavedSetup getFarmRunSetup(String name)
+	{
+		return farmRunSetups.get(name);
+	}
+
+	/** Remember the player's current gear + inventory as this run's setup;
+	 *  null clears it. */
+	public void saveFarmRunSetup(String name, PersistedState.SavedSetup setup)
+	{
+		if (setup == null)
+		{
+			farmRunSetups.remove(name);
+		}
+		else
+		{
+			farmRunSetups.put(name, setup);
+		}
+		persist();
+		notifyListeners();
+	}
+
+	/**
+	 * Snapshot the player's current worn gear and inventory (item ids +
+	 * quantities in slot order) — the "remember this setup" primitive the
+	 * farm-run bank view redisplays. Reads the live slot arrays, so it is
+	 * thread-safe and needs no client thread.
+	 * ponytail: the rune pouch isn't captured (farm teleports are tabs /
+	 * jewellery / loose runes, which already show as inventory slots); add
+	 * the pouch varbits here if a rune-pouch run ever needs it.
+	 */
+	public PersistedState.SavedSetup captureSetup()
+	{
+		PersistedState.SavedSetup setup = new PersistedState.SavedSetup();
+		int[] worn = getEquipmentSlots();
+		for (net.runelite.api.EquipmentInventorySlot slot
+			: net.runelite.api.EquipmentInventorySlot.values())
+		{
+			if (slot.getSlotIdx() < worn.length && worn[slot.getSlotIdx()] > 0)
+			{
+				setup.equipment.put(slot.name(), worn[slot.getSlotIdx()]);
+			}
+		}
+		setup.inventory = getInventorySlots();
+		setup.inventoryQty = new int[setup.inventory.length];
+		Map<Integer, Integer> quantities = getInventorySnapshot();
+		for (int i = 0; i < setup.inventory.length; i++)
+		{
+			setup.inventoryQty[i] = setup.inventory[i] > 0
+				? quantities.getOrDefault(setup.inventory[i], 1) : 0;
+		}
+		return setup;
 	}
 
 	/** Rolling consumption events (time, canonical item id, qty), oldest first. */
@@ -1251,6 +1309,8 @@ public class AccountState implements StateView
 		herbRunsMs.addAll(persisted.herbRunsMs);
 		farmRuns.clear();
 		farmRuns.putAll(persisted.farmRuns);
+		farmRunSetups.clear();
+		farmRunSetups.putAll(persisted.farmRunSetups);
 		consumptionLog.clear();
 		consumptionLog.addAll(persisted.consumptionLog);
 		deaths.clear();
@@ -1309,6 +1369,7 @@ public class AccountState implements StateView
 		state.savedSetups.putAll(savedSetups);
 		state.herbRunsMs = new java.util.ArrayList<>(herbRunsMs);
 		state.farmRuns = new HashMap<>(farmRuns);
+		state.farmRunSetups = new HashMap<>(farmRunSetups);
 		state.consumptionLog = new java.util.ArrayList<>(consumptionLog);
 		state.deaths = new java.util.ArrayList<>(deaths);
 		state.selectedGoals = new HashSet<>(selectedGoals);

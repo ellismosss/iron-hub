@@ -30,6 +30,7 @@ import org.mockito.Mockito;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class FarmingRunModuleTest
@@ -125,6 +126,41 @@ public class FarmingRunModuleTest
 		state.deleteFarmRun("Quick herbs");
 		assertTrue(state.getFarmRuns().isEmpty());
 		module.shutDown();
+	}
+
+	@Test
+	public void savedSetupCapturesGearAndInventoryAndPersists()
+	{
+		AccountState before = StateFixture.state(temp.getRoot());
+		StateFixture.profile(before, 5L);
+		// worn: a cape (slot 1) and a ring (slot 12); inventory: teleport
+		// tabs + seeds with quantities
+		int[] worn = new int[14];
+		worn[net.runelite.api.EquipmentInventorySlot.CAPE.getSlotIdx()] = 1052;
+		worn[net.runelite.api.EquipmentInventorySlot.RING.getSlotIdx()] = 13126;
+		StateFixture.equipmentSlots(before, worn);
+		StateFixture.inventorySlots(before, new int[]{8013, 5291, 5291, 0});
+		StateFixture.inventory(before, Map.of(8013, 3, 5291, 5));
+
+		com.ironhub.state.PersistedState.SavedSetup setup = before.captureSetup();
+		assertEquals((Integer) 1052, setup.equipment.get("CAPE"));
+		assertEquals((Integer) 13126, setup.equipment.get("RING"));
+		assertEquals(8013, setup.inventory[0]);
+		assertEquals(3, setup.inventoryQty[0]);
+		assertEquals(5, setup.inventoryQty[1]); // 5 grimy... seeds stacked
+		before.saveFarmRunSetup("My herbs", setup);
+
+		AccountState after = StateFixture.state(temp.getRoot());
+		StateFixture.profile(after, 5L);
+		com.ironhub.state.PersistedState.SavedSetup loaded = after.getFarmRunSetup("My herbs");
+		assertNotNull(loaded);
+		assertEquals((Integer) 1052, loaded.equipment.get("CAPE"));
+		assertEquals(8013, loaded.inventory[0]);
+
+		// deleting the run drops its setup too
+		after.saveFarmRun("My herbs", List.of("herb/falador"));
+		after.deleteFarmRun("My herbs");
+		assertNull(after.getFarmRunSetup("My herbs"));
 	}
 
 	@Test

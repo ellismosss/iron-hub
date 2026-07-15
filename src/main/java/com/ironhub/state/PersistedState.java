@@ -25,6 +25,7 @@ public class PersistedState
 	Map<String, SavedSetup> savedSetups = new HashMap<>(); // activity -> full setup (gear + inventory + rune pouch)
 	java.util.List<Long> herbRunsMs = new ArrayList<>(); // completed farm run durations
 	Map<String, FarmRun> farmRuns = new HashMap<>(); // custom run name -> ordered stops
+	Map<String, SavedSetup> farmRunSetups = new HashMap<>(); // run name -> saved gear+inventory
 
 	/** A user-built farm run: an ordered list of farm-runs.json location
 	 *  ids. Teleports are auto-picked from what the player owns at run

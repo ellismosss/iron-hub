@@ -263,6 +263,44 @@ class FarmingTab extends JPanel
 		runs.add(endButton);
 		runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 
+		// Remember this run's gear + inventory so the bank shows it (Inventory
+		// Setups style) — the whole loadout, in the right slots, to re-gather.
+		boolean hasSetup = state.getFarmRunSetup(module.runName()) != null;
+		JLabel saveSetup = secondaryButton(
+			hasSetup ? "Update bank setup" : "Save gear + inventory for the bank");
+		saveSetup.setToolTipText("Snapshot your worn gear and inventory now; it "
+			+ "shows over the bank while this run is active so you can re-stock fast");
+		saveSetup.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				state.saveFarmRunSetup(module.runName(), state.captureSetup());
+				rebuild();
+			}
+		});
+		runs.add(saveSetup);
+		if (hasSetup)
+		{
+			JLabel clear = new JLabel("Clear setup");
+			clear.setForeground(UiTokens.TEXT_MUTED);
+			clear.setFont(clear.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+			clear.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			clear.setAlignmentX(LEFT_ALIGNMENT);
+			clear.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
+			clear.addMouseListener(new java.awt.event.MouseAdapter()
+			{
+				@Override
+				public void mousePressed(java.awt.event.MouseEvent e)
+				{
+					state.saveFarmRunSetup(module.runName(), null);
+					rebuild();
+				}
+			});
+			runs.add(clear);
+		}
+		runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+
 		FarmingRunModule.Stop next = module.nextStop();
 		for (FarmingRunModule.Stop stop : module.stops())
 		{
@@ -480,6 +518,21 @@ class FarmingTab extends JPanel
 		button.setForeground(UiTokens.ACCENT_TEXT_ON);
 		button.setBorder(new LineBorder(UiTokens.ACCENT));
 		button.setFont(button.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
+		button.setAlignmentX(LEFT_ALIGNMENT);
+		button.setPreferredSize(new Dimension(0, UiTokens.BUTTON_HEIGHT));
+		button.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
+		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		return button;
+	}
+
+	private JLabel secondaryButton(String text)
+	{
+		JLabel button = new JLabel(text, javax.swing.SwingConstants.CENTER);
+		button.setOpaque(true);
+		button.setBackground(UiTokens.ICON_BUTTON_BG);
+		button.setForeground(UiTokens.TEXT_BODY);
+		button.setBorder(new LineBorder(UiTokens.BORDER_BUTTON));
+		button.setFont(button.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
 		button.setAlignmentX(LEFT_ALIGNMENT);
 		button.setPreferredSize(new Dimension(0, UiTokens.BUTTON_HEIGHT));
 		button.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));

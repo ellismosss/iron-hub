@@ -86,6 +86,7 @@ public class FarmingRunModule implements IronHubModule
 	FarmTrackingService tracking; // package-private test seam
 	private FarmingTab tab;
 	private FarmingRunOverlay overlay;
+	private FarmSetupOverlay setupOverlay;
 	private RunTimerInfoBox infoBox;
 	private final java.util.List<FarmReadyInfoBox> readyBoxes = new java.util.ArrayList<>();
 
@@ -153,6 +154,8 @@ public class FarmingRunModule implements IronHubModule
 		{
 			overlay = new FarmingRunOverlay(this);
 			overlayManager.add(overlay);
+			setupOverlay = new FarmSetupOverlay(this, state, config, itemManager, client);
+			overlayManager.add(setupOverlay);
 		}
 		if (infoBoxManager != null && itemManager != null)
 		{
@@ -173,6 +176,11 @@ public class FarmingRunModule implements IronHubModule
 		{
 			overlayManager.remove(overlay);
 			overlay = null;
+		}
+		if (setupOverlay != null)
+		{
+			overlayManager.remove(setupOverlay);
+			setupOverlay = null;
 		}
 		if (infoBox != null)
 		{
@@ -552,7 +560,7 @@ public class FarmingRunModule implements IronHubModule
 		List<FarmRunsPack.Item> missing = new java.util.ArrayList<>();
 		for (FarmRunsPack.Item item : stop.teleport.items)
 		{
-			if (carriedCanonical(item.itemId) < item.qty)
+			if (carriedCount(item.itemId) < item.qty)
 			{
 				missing.add(item);
 			}
@@ -560,7 +568,10 @@ public class FarmingRunModule implements IronHubModule
 		return missing;
 	}
 
-	private int carriedCanonical(int itemId)
+	/** How many of an item the player currently carries (inventory + worn),
+	 *  counting every ItemVariationMapping variant — a charged glory counts
+	 *  for the setup's glory slot. Package-visible for the bank overlay. */
+	int carriedCount(int itemId)
 	{
 		int base = net.runelite.client.game.ItemVariationMapping.map(itemId);
 		java.util.Set<Integer> variants = new java.util.HashSet<>(
