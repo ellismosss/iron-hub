@@ -466,18 +466,19 @@ class FarmingTab extends JPanel
 		for (FarmingRunModule.Stop stop : module.stops())
 		{
 			IconButton path = IconButton.path(() -> pathBridge.pathTo(stop.location.worldPoint()));
+			String label = module.stopLabel(stop);
 			ListRow row;
 			if (module.isVisited(stop.location.id))
 			{
-				row = ListRow.owned(stop.location.name, path);
+				row = ListRow.owned(label, path);
 			}
 			else if (next != null && stop == next)
 			{
-				row = ListRow.available(stop.location.name, path);
+				row = ListRow.available(label, path);
 			}
 			else
 			{
-				row = ListRow.locked(stop.location.name, path);
+				row = ListRow.locked(label, path);
 			}
 			row.setToolTipText(stopTooltip(stop) + " · click to skip to here");
 			if (!module.isVisited(stop.location.id))
@@ -511,7 +512,7 @@ class FarmingTab extends JPanel
 				+ (missing.size() == 1 ? " item" : " items"));
 		}
 		String patch = FarmingRunOverlay.patchState(module.patchesAt(stop.location),
-			module.runCategoryTab());
+			FarmingRunModule.categoryTab(stop.location.category));
 		if (patch != null)
 		{
 			tooltip.add(patch);
@@ -523,8 +524,8 @@ class FarmingTab extends JPanel
 	{
 		for (String template : FarmingRunModule.TEMPLATES.keySet())
 		{
-			String category = FarmingRunModule.TEMPLATES.get(template);
-			int count = module.unlockedLocations(module.pack().category(category)).size();
+			int count = module.unlockedLocations(
+				module.templateLocations(FarmingRunModule.TEMPLATES.get(template))).size();
 			runs.add(runRow(template, count + " stops", () -> module.startTemplate(template), null));
 			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}

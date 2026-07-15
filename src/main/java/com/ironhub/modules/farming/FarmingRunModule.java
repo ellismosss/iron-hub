@@ -52,17 +52,18 @@ public class FarmingRunModule implements IronHubModule
 	/** Tracking data moves on farming ticks (minutes) — re-read slowly. */
 	private static final int REFRESH_TICKS = 10;
 
-	/** The built-in run templates, keyed by display name (pack categories
-	 *  in the source plugin's route order). */
-	static final java.util.LinkedHashMap<String, String> TEMPLATES = new java.util.LinkedHashMap<>(
-		java.util.Map.of());
+	/** The built-in run templates, keyed by display name → the pack
+	 *  categories they span (one, or several for a combined run). */
+	static final java.util.LinkedHashMap<String, List<String>> TEMPLATES =
+		new java.util.LinkedHashMap<>();
 
 	static
 	{
-		TEMPLATES.put("Herb run", "herb");
-		TEMPLATES.put("Tree run", "tree");
-		TEMPLATES.put("Fruit tree run", "fruit");
-		TEMPLATES.put("Hops run", "hops");
+		TEMPLATES.put("Herb run", List.of("herb"));
+		TEMPLATES.put("Tree run", List.of("tree"));
+		TEMPLATES.put("Fruit tree run", List.of("fruit"));
+		TEMPLATES.put("Tree & fruit run", List.of("tree", "fruit"));
+		TEMPLATES.put("Hops run", List.of("hops"));
 	}
 
 	private final AccountState state;
@@ -93,7 +94,6 @@ public class FarmingRunModule implements IronHubModule
 	// run state — written on the client thread, read from EDT/overlay
 	private volatile long runStartMs;
 	private volatile String runName = "";
-	private volatile String runCategory = "";
 	private volatile List<Stop> stops = List.of();
 	private final Set<String> visited = ConcurrentHashMap.newKeySet();
 	// per-run tracking, baselined at startRun
@@ -452,18 +452,20 @@ public class FarmingRunModule implements IronHubModule
 		{
 			return;
 		}
-		if (compostable(runCategory) && !compostedHere)
+		// per-stop category, so a combined tree+fruit run gates each stop on
+		// its own patch (herb/hops wait for compost; trees/fruit don't)
+		if (compostable(next.location.category) && !compostedHere)
 		{
 			return; // planted but not yet composted — stay put
 		}
 		advanceCurrentStop();
 	}
 
-	/** True when this stop's patch (the run's category) is freshly planted
+	/** True when this stop's patch (its own category) is freshly planted
 	 *  (growing) — the seed is in the ground. */
 	private boolean plantedAt(Stop stop)
 	{
-		Tab category = runCategoryTab();
+		Tab category = categoryTab(stop.location.category);
 		if (category == null)
 		{
 			return false;
@@ -551,7 +553,6 @@ public class FarmingRunModule implements IronHubModule
 		}
 		stops = List.copyOf(resolved);
 		runName = name;
-		runCategory = locations.isEmpty() ? "" : locations.get(0).category;
 		visited.clear();
 		compostedHere = false;
 		runStartFarmingXp = state.getXp(net.runelite.api.Skill.FARMING);
@@ -586,10 +587,10 @@ public class FarmingRunModule implements IronHubModule
 		return total;
 	}
 
-	/** The Tab (patch category) this run is farming, or null. */
-	Tab runCategoryTab()
+	/** The Tab (patch category) for a pack category string, or null. */
+	static Tab categoryTab(String category)
 	{
-		switch (runCategory)
+		switch (category)
 		{
 			case "herb":
 				return Tab.HERB;
@@ -604,10 +605,77 @@ public class FarmingRunModule implements IronHubModule
 		}
 	}
 
-	/** Start a built-in template run ("Herb run", ...). */
+	/** True when this run spans more than one patch category (e.g. a
+	 *  combined tree + fruit run) — its stops then show their type. */
+	boolean multiCategory()
+	{
+		return stops.stream().map(s -> s.location.category).distinct().count() > 1;
+	}
+
+	/** Stop label for the overlay/checklist — the location, plus its patch
+	 *  type when the run mixes categories ("Farming Guild · fruit tree"). */
+	String stopLabel(Stop stop)
+	{
+		if (!multiCategory())
+		{
+			return stop.location.name;
+		}
+		String type;
+		switch (stop.location.category)
+		{
+			case "tree": type = "tree"; break;
+			case "fruit": type = "fruit tree"; break;
+			case "hops": type = "hops"; break;
+			default: type = "herb";
+		}
+		return stop.location.name + " · " + type;
+	}
+
+	/** Locations for a template's categories: one category = that category's
+	 *  route; several (a combined run) = the first category's route with
+	 *  co-located patches of the others slotted in right after (do both at a
+	 *  site in one stop-over), then the leftover single-category stops. */
+	List<FarmRunsPack.Location> templateLocations(List<String> categories)
+	{
+		if (categories.size() == 1)
+		{
+			return pack.category(categories.get(0));
+		}
+		List<FarmRunsPack.Location> out = new java.util.ArrayList<>(pack.category(categories.get(0)));
+		List<FarmRunsPack.Location> extras = new java.util.ArrayList<>();
+		for (int i = 1; i < categories.size(); i++)
+		{
+			extras.addAll(pack.category(categories.get(i)));
+		}
+		List<FarmRunsPack.Location> grouped = new java.util.ArrayList<>();
+		Set<String> placed = new java.util.HashSet<>();
+		for (FarmRunsPack.Location primary : out)
+		{
+			grouped.add(primary);
+			int region = primary.worldPoint().getRegionID();
+			for (FarmRunsPack.Location extra : extras)
+			{
+				if (!placed.contains(extra.id) && extra.worldPoint().getRegionID() == region)
+				{
+					grouped.add(extra); // same site — do both patches here
+					placed.add(extra.id);
+				}
+			}
+		}
+		for (FarmRunsPack.Location extra : extras)
+		{
+			if (!placed.contains(extra.id))
+			{
+				grouped.add(extra);
+			}
+		}
+		return grouped;
+	}
+
+	/** Start a built-in template run ("Herb run", "Tree & fruit run", ...). */
 	void startTemplate(String name)
 	{
-		startRun(name, pack.category(TEMPLATES.get(name)));
+		startRun(name, templateLocations(TEMPLATES.get(name)));
 	}
 
 	/** Start a saved custom run; unknown location ids are skipped. */
@@ -639,7 +707,6 @@ public class FarmingRunModule implements IronHubModule
 		}
 		runStartMs = 0;
 		runName = "";
-		runCategory = "";
 		stops = List.of();
 		// The run just ended — if the bank is open on the setup view, restore
 		// it now (on the client thread; the next bank open would also do it).

@@ -53,7 +53,7 @@ class FarmingRunOverlay extends OverlayPanel
 		if (next != null)
 		{
 			panelComponent.getChildren().add(LineComponent.builder()
-				.left("> " + next.location.name)
+				.left("> " + module.stopLabel(next))
 				.leftColor(Color.WHITE)
 				.right(teleportLabel(next.teleport))
 				.rightColor(UiTokens.OVERLAY_VALUE)
@@ -74,7 +74,8 @@ class FarmingRunOverlay extends OverlayPanel
 					.build());
 			}
 
-			String patch = patchState(module.patchesAt(next.location), module.runCategoryTab());
+			String patch = patchState(module.patchesAt(next.location),
+				FarmingRunModule.categoryTab(next.location.category));
 			if (patch != null)
 			{
 				panelComponent.getChildren().add(LineComponent.builder()
@@ -106,7 +107,7 @@ class FarmingRunOverlay extends OverlayPanel
 			}
 			boolean done = module.isVisited(stop.location.id);
 			panelComponent.getChildren().add(LineComponent.builder()
-				.left("· " + stop.location.name)
+				.left("· " + module.stopLabel(stop))
 				.leftColor(done ? UiTokens.CANVAS_OWNED : UiTokens.CANVAS_LOCKED)
 				.build());
 		}

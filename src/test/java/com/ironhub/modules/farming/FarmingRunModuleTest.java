@@ -134,6 +134,71 @@ public class FarmingRunModuleTest
 	}
 
 	@Test
+	public void combinedTreeAndFruitRunGroupsCoLocatedPatches()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+
+		List<FarmRunsPack.Location> combined =
+			module.templateLocations(List.of("tree", "fruit"));
+		assertEquals(14, combined.size()); // 7 tree + 7 fruit
+		// Farming Guild and Gnome Stronghold have both patches — the fruit one
+		// slots in right after its tree twin so you do both at that site
+		int fgTree = indexOf(combined, "tree/farming-guild");
+		assertEquals("fruit/farming-guild", combined.get(fgTree + 1).id);
+		int gsTree = indexOf(combined, "tree/gnome-stronghold");
+		assertEquals("fruit/gnome-stronghold", combined.get(gsTree + 1).id);
+		// fruit-only sites come after every tree site
+		assertTrue(indexOf(combined, "fruit/brimhaven")
+			> indexOf(combined, "tree/nemus-retreat"));
+		module.shutDown();
+	}
+
+	@Test
+	public void combinedRunLabelsDisambiguateThePatchType()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		StateFixture.stat(state, net.runelite.api.Skill.FARMING, 85, 8_771_558);
+		StateFixture.quest(state, net.runelite.api.Quest.CHILDREN_OF_THE_SUN,
+			net.runelite.api.QuestState.FINISHED);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+
+		module.startTemplate("Tree & fruit run");
+		assertTrue(module.multiCategory());
+		FarmingRunModule.Stop fgTree = stop(module, "tree/farming-guild");
+		FarmingRunModule.Stop fgFruit = stop(module, "fruit/farming-guild");
+		assertEquals("Farming Guild · tree", module.stopLabel(fgTree));
+		assertEquals("Farming Guild · fruit tree", module.stopLabel(fgFruit));
+
+		// a single-category run keeps the plain name
+		module.endRun(false);
+		module.startTemplate("Tree run");
+		assertFalse(module.multiCategory());
+		assertEquals("Falador", module.stopLabel(stop(module, "tree/falador")));
+		module.shutDown();
+	}
+
+	private static int indexOf(List<FarmRunsPack.Location> locations, String id)
+	{
+		for (int i = 0; i < locations.size(); i++)
+		{
+			if (locations.get(i).id.equals(id))
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	private static FarmingRunModule.Stop stop(FarmingRunModule module, String id)
+	{
+		return module.stops().stream().filter(s -> s.location.id.equals(id))
+			.findFirst().orElseThrow();
+	}
+
+	@Test
 	public void customRunsPersistAndResolve()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
