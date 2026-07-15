@@ -1,7 +1,10 @@
 # Iron Hub Goal Engine — Design
 
-Status: **design phase** (nothing here is implemented; this document is the
-blueprint). Companion to DESIGN.md (§2.2 requirement graph, §3.13 Goal
+Status: **implemented** (E1–E5 shipped in `com.ironhub.engine` +
+`PlannerTab`, July 2026 — this document remains the blueprint and the
+rationale of record; §13's roadmap is done except noted deferrals:
+sources.json folded into the gear pack for v1, measured-rate
+personalization pending live data). Companion to DESIGN.md (§2.2 requirement graph, §3.13 Goal
 Planner, §3.14 What Now) — the engine described here is the layer that turns
 those modules from trackers into a router. Appendices A–D carry the 2026
 meta research the models are calibrated against and the prior-art survey
