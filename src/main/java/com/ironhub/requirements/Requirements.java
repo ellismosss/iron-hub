@@ -41,6 +41,12 @@ public final class Requirements
 		return new QuestRequirement(quest);
 	}
 
+	/** Met once the quest is started (in progress or finished). */
+	public static Requirement questStarted(Quest quest)
+	{
+		return new QuestStartedRequirement(quest);
+	}
+
 	public static Requirement item(int itemId, int quantity)
 	{
 		return new ItemRequirement(itemId, quantity, false, null);
@@ -60,6 +66,11 @@ public final class Requirements
 	public static Requirement kc(String source, int count)
 	{
 		return new KcRequirement(source, count);
+	}
+
+	public static Requirement questPoints(int points)
+	{
+		return new QpRequirement(points);
 	}
 
 	public static Requirement text(String text)
@@ -121,6 +132,9 @@ public final class Requirements
 				case "quest":
 					Quest quest = questByName(s.substring("quest:".length()));
 					return quest != null ? quest(quest) : text(s);
+				case "queststarted": // partial-quest gates (fairy rings, diary tasks)
+					Quest started = questByName(s.substring("queststarted:".length()));
+					return started != null ? questStarted(started) : text(s);
 				case "item": // item:<id>[:qty[:display name]]
 					return new ItemRequirement(Integer.parseInt(parts[1]),
 						parts.length > 2 ? Integer.parseInt(parts[2]) : 1, false, itemLabel(parts));
@@ -131,6 +145,8 @@ public final class Requirements
 					return unlock(parts[1]);
 				case "kc":
 					return kc(parts[1], Integer.parseInt(parts[2]));
+				case "qp": // quest points (Dragon Slayer II, Barrows gloves gates)
+					return questPoints(Integer.parseInt(parts[1]));
 				default:
 					return text(s);
 			}
@@ -226,6 +242,28 @@ public final class Requirements
 		}
 	}
 
+	private static class QuestStartedRequirement implements Requirement
+	{
+		private final Quest quest;
+
+		QuestStartedRequirement(Quest quest)
+		{
+			this.quest = quest;
+		}
+
+		@Override
+		public boolean isMet(StateView state)
+		{
+			return state.getQuestState(quest) != QuestState.NOT_STARTED;
+		}
+
+		@Override
+		public String describe()
+		{
+			return "Started " + quest.getName();
+		}
+	}
+
 	private static class ItemRequirement implements Requirement
 	{
 		private final int itemId;
@@ -301,6 +339,28 @@ public final class Requirements
 		public String describe()
 		{
 			return count + "× " + source;
+		}
+	}
+
+	private static class QpRequirement implements Requirement
+	{
+		private final int points;
+
+		QpRequirement(int points)
+		{
+			this.points = points;
+		}
+
+		@Override
+		public boolean isMet(StateView state)
+		{
+			return state.getQuestPoints() >= points;
+		}
+
+		@Override
+		public String describe()
+		{
+			return points + " quest points";
 		}
 	}
 

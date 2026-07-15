@@ -1,0 +1,3104 @@
+{
+ "source": "oldschool.runescape.wiki Optimal_quest_guide/Ironman + per-quest infoboxes; length->minutes calibration curated (VS10/S25/M45/L90/VL180)",
+ "generated": "2026-07-15",
+ "quests": [
+  {
+   "name": "Learning the Ropes",
+   "enumName": "Learning the Ropes",
+   "minutes": 10,
+   "qp": 1,
+   "order": 0,
+   "reqs": [],
+   "xp": {
+    "Hitpoints": 1154
+   }
+  },
+  {
+   "name": "Cook's Assistant",
+   "enumName": "Cook's Assistant",
+   "minutes": 10,
+   "qp": 1,
+   "order": 1,
+   "reqs": [],
+   "xp": {
+    "Cooking": 300
+   }
+  },
+  {
+   "name": "Sheep Shearer",
+   "enumName": "Sheep Shearer",
+   "minutes": 10,
+   "qp": 1,
+   "order": 2,
+   "reqs": [],
+   "xp": {
+    "Crafting": 200
+   }
+  },
+  {
+   "name": "Misthalin Mystery",
+   "enumName": "Misthalin Mystery",
+   "minutes": 25,
+   "qp": 1,
+   "order": 3,
+   "reqs": [],
+   "xp": {
+    "Crafting": 600
+   }
+  },
+  {
+   "name": "The Restless Ghost",
+   "enumName": "The Restless Ghost",
+   "minutes": 25,
+   "qp": 1,
+   "order": 4,
+   "reqs": [],
+   "xp": {
+    "Prayer": 1125
+   }
+  },
+  {
+   "name": "X Marks the Spot",
+   "enumName": "X Marks the Spot",
+   "minutes": 10,
+   "qp": 1,
+   "order": 5,
+   "reqs": [],
+   "xp": {
+    "Agility": 300
+   }
+  },
+  {
+   "name": "Witch's Potion",
+   "enumName": "Witch's Potion",
+   "minutes": 10,
+   "qp": 1,
+   "order": 6,
+   "reqs": [],
+   "xp": {
+    "Magic": 325
+   }
+  },
+  {
+   "name": "Client of Kourend",
+   "enumName": "Client of Kourend",
+   "minutes": 25,
+   "qp": 1,
+   "order": 7,
+   "reqs": [
+    "quest:X Marks the Spot"
+   ],
+   "xp": {
+    "Agility": 1000
+   }
+  },
+  {
+   "name": "Pandemonium",
+   "enumName": "Pandemonium",
+   "minutes": 25,
+   "qp": 1,
+   "order": 8,
+   "reqs": [],
+   "xp": {
+    "Sailing": 400
+   }
+  },
+  {
+   "name": "Children of the Sun",
+   "enumName": "Children of the Sun",
+   "minutes": 10,
+   "qp": 1,
+   "order": 10,
+   "reqs": [],
+   "xp": {}
+  },
+  {
+   "name": "Romeo & Juliet",
+   "enumName": "Romeo & Juliet",
+   "minutes": 25,
+   "qp": 5,
+   "order": 11,
+   "reqs": [],
+   "xp": {}
+  },
+  {
+   "name": "Gertrude's Cat",
+   "enumName": "Gertrude's Cat",
+   "minutes": 10,
+   "qp": 1,
+   "order": 12,
+   "reqs": [],
+   "xp": {
+    "Cooking": 1525
+   }
+  },
+  {
+   "name": "Daddy's Home",
+   "enumName": "Daddy's Home",
+   "minutes": 25,
+   "qp": 0,
+   "order": 13,
+   "reqs": [],
+   "xp": {
+    "Construction": 944
+   }
+  },
+  {
+   "name": "Rune Mysteries",
+   "enumName": "Rune Mysteries",
+   "minutes": 25,
+   "qp": 1,
+   "order": 15,
+   "reqs": [],
+   "xp": {}
+  },
+  {
+   "name": "Tree Gnome Village",
+   "enumName": "Tree Gnome Village",
+   "minutes": 25,
+   "qp": 2,
+   "order": 16,
+   "reqs": [],
+   "xp": {
+    "Attack": 11450
+   }
+  },
+  {
+   "name": "Hazeel Cult",
+   "enumName": "Hazeel Cult",
+   "minutes": 10,
+   "qp": 1,
+   "order": 17,
+   "reqs": [],
+   "xp": {
+    "Thieving": 1500
+   }
+  },
+  {
+   "name": "Clock Tower",
+   "enumName": "Clock Tower",
+   "minutes": 10,
+   "qp": 1,
+   "order": 18,
+   "reqs": [],
+   "xp": {}
+  },
+  {
+   "name": "Monk's Friend",
+   "enumName": "Monk's Friend",
+   "minutes": 10,
+   "qp": 1,
+   "order": 19,
+   "reqs": [],
+   "xp": {
+    "Woodcutting": 2000
+   }
+  },
+  {
+   "name": "Plague City",
+   "enumName": "Plague City",
+   "minutes": 10,
+   "qp": 1,
+   "order": 20,
+   "reqs": [],
+   "xp": {
+    "Mining": 2425
+   }
+  },
+  {
+   "name": "Biohazard",
+   "enumName": "Biohazard",
+   "minutes": 25,
+   "qp": 3,
+   "order": 21,
+   "reqs": [
+    "quest:Plague City"
+   ],
+   "xp": {
+    "Thieving": 1250
+   }
+  },
+  {
+   "name": "Demon Slayer",
+   "enumName": "Demon Slayer",
+   "minutes": 25,
+   "qp": 3,
+   "order": 22,
+   "reqs": [],
+   "xp": {}
+  },
+  {
+   "name": "Enter the Abyss",
+   "enumName": "Enter the Abyss",
+   "minutes": 10,
+   "qp": 0,
+   "order": 23,
+   "reqs": [
+    "quest:Rune Mysteries"
+   ],
+   "xp": {
+    "Runecraft": 1000
+   }
+  },
+  {
+   "name": "Fight Arena",
+   "enumName": "Fight Arena",
+   "minutes": 25,
+   "qp": 2,
+   "order": 25,
+   "reqs": [],
+   "xp": {
+    "Attack": 12175,
+    "Thieving": 2175
+   }
+  },
+  {
+   "name": "Sheep Herder",
+   "enumName": "Sheep Herder",
+   "minutes": 25,
+   "qp": 4,
+   "order": 26,
+   "reqs": [],
+   "xp": {}
+  },
+  {
+   "name": "Waterfall Quest",
+   "enumName": "Waterfall Quest",
+   "minutes": 25,
+   "qp": 1,
+   "order": 28,
+   "reqs": [],
+   "xp": {
+    "Attack": 13750,
+    "Strength": 13750
+   }
+  },
+  {
+   "name": "Murder Mystery",
+   "enumName": "Murder Mystery",
+   "minutes": 25,
+   "qp": 3,
+   "order": 29,
+   "reqs": [],
+   "xp": {
+    "Crafting": 1406
+   }
+  },
+  {
+   "name": "Merlin's Crystal",
+   "enumName": "Merlin's Crystal",
+   "minutes": 25,
+   "qp": 6,
+   "order": 30,
+   "reqs": [],
+   "xp": {}
+  },
+  {
+   "name": "Holy Grail",
+   "enumName": "Holy Grail",
+   "minutes": 25,
+   "qp": 2,
+   "order": 31,
+   "reqs": [
+    "skillb:Attack:20",
+    "quest:Merlin's Crystal"
+   ],
+   "xp": {
+    "Defence": 15300,
+    "Prayer": 11000
+   }
+  },
+  {
+   "name": "Doric's Quest",
+   "enumName": "Doric's Quest",
+   "minutes": 10,
+   "qp": 1,
+   "order": 32,
+   "reqs": [],
+   "xp": {
+    "Mining": 1300
+   }
+  },
+  {
+   "name": "Druidic Ritual",
+   "enumName": "Druidic Ritual",
+   "minutes": 10,
+   "qp": 4,
+   "order": 33,
+   "reqs": [],
+   "xp": {
+    "Herblore": 250
+   }
+  },
+  {
+   "name": "Witch's House",
+   "enumName": "Witch's House",
+   "minutes": 10,
+   "qp": 4,
+   "order": 34,
+   "reqs": [],
+   "xp": {
+    "Hitpoints": 6325
+   }
+  },
+  {
+   "name": "Dwarf Cannon",
+   "enumName": "Dwarf Cannon",
+   "minutes": 25,
+   "qp": 1,
+   "order": 35,
+   "reqs": [],
+   "xp": {
+    "Crafting": 750
+   }
+  },
+  {
+   "name": "Below Ice Mountain",
+   "enumName": "Below Ice Mountain",
+   "minutes": 25,
+   "qp": 1,
+   "order": 36,
+   "reqs": [
+    "qp:16"
+   ],
+   "xp": {}
+  },
+  {
+   "name": "Black Knights' Fortress",
+   "enumName": "Black Knights' Fortress",
+   "minutes": 10,
+   "qp": 3,
+   "order": 37,
+   "reqs": [
+    "qp:12"
+   ],
+   "xp": {}
+  },
+  {
+   "name": "Pirate's Treasure",
+   "enumName": "Pirate's Treasure",
+   "minutes": 10,
+   "qp": 2,
+   "order": 38,
+   "reqs": [],
+   "xp": {}
+  },
+  {
+   "name": "The Ides of Milk",
+   "enumName": "The Ides of Milk",
+   "minutes": 25,
+   "qp": 1,
+   "order": 39,
+   "reqs": [],
+   "xp": {
+    "Prayer": 1000
+   }
+  },
+  {
+   "name": "Observatory Quest",
+   "enumName": "Observatory Quest",
+   "minutes": 25,
+   "qp": 2,
+   "order": 40,
+   "reqs": [],
+   "xp": {
+    "Crafting": 2000
+   }
+  },
+  {
+   "name": "Priest in Peril",
+   "enumName": "Priest in Peril",
+   "minutes": 25,
+   "qp": 1,
+   "order": 41,
+   "reqs": [],
+   "xp": {
+    "Prayer": 3906
+   }
+  },
+  {
+   "name": "Nature Spirit",
+   "enumName": "Nature Spirit",
+   "minutes": 25,
+   "qp": 2,
+   "order": 42,
+   "reqs": [
+    "quest:Priest in Peril",
+    "quest:The Restless Ghost"
+   ],
+   "xp": {
+    "Crafting": 3000,
+    "Defence": 2000,
+    "Hitpoints": 2000
+   }
+  },
+  {
+   "name": "Recruitment Drive",
+   "enumName": "Recruitment Drive",
+   "minutes": 25,
+   "qp": 1,
+   "order": 43,
+   "reqs": [
+    "quest:Black Knights' Fortress",
+    "quest:Druidic Ritual"
+   ],
+   "xp": {
+    "Agility": 1000,
+    "Herblore": 1000,
+    "Prayer": 1000
+   }
+  },
+  {
+   "name": "Alfred Grimhand's Barcrawl",
+   "enumName": "Alfred Grimhand's Barcrawl",
+   "minutes": 45,
+   "qp": 0,
+   "order": 44,
+   "reqs": [],
+   "xp": {}
+  },
+  {
+   "name": "Scorpion Catcher",
+   "enumName": "Scorpion Catcher",
+   "minutes": 25,
+   "qp": 1,
+   "order": 46,
+   "reqs": [
+    "skill:Prayer:31",
+    "quest:Alfred Grimhand's Barcrawl"
+   ],
+   "xp": {
+    "Strength": 6625
+   }
+  },
+  {
+   "name": "Jungle Potion",
+   "enumName": "Jungle Potion",
+   "minutes": 25,
+   "qp": 1,
+   "order": 47,
+   "reqs": [
+    "skillb:Herblore:3",
+    "quest:Druidic Ritual"
+   ],
+   "xp": {
+    "Herblore": 775
+   }
+  },
+  {
+   "name": "Vampyre Slayer",
+   "enumName": "Vampyre Slayer",
+   "minutes": 10,
+   "qp": 3,
+   "order": 48,
+   "reqs": [],
+   "xp": {
+    "Attack": 4825
+   }
+  },
+  {
+   "name": "A Porcine of Interest",
+   "enumName": "A Porcine of Interest",
+   "minutes": 10,
+   "qp": 1,
+   "order": 49,
+   "reqs": [],
+   "xp": {}
+  },
+  {
+   "name": "Rag and Bone Man I",
+   "enumName": "Rag and Bone Man I",
+   "minutes": 25,
+   "qp": 1,
+   "order": 50,
+   "reqs": [],
+   "xp": {
+    "Prayer": 500,
+    "Cooking": 500
+   }
+  },
+  {
+   "name": "Death Plateau",
+   "enumName": "Death Plateau",
+   "minutes": 25,
+   "qp": 1,
+   "order": 51,
+   "reqs": [],
+   "xp": {
+    "Attack": 3000
+   }
+  },
+  {
+   "name": "The Queen of Thieves",
+   "enumName": "The Queen of Thieves",
+   "minutes": 10,
+   "qp": 1,
+   "order": 52,
+   "reqs": [
+    "skill:Thieving:20",
+    "quest:Client of Kourend"
+   ],
+   "xp": {
+    "Thieving": 2000
+   }
+  },
+  {
+   "name": "The Depths of Despair",
+   "enumName": "The Depths of Despair",
+   "minutes": 25,
+   "qp": 1,
+   "order": 53,
+   "reqs": [
+    "skill:Agility:18",
+    "quest:Client of Kourend"
+   ],
+   "xp": {
+    "Agility": 1500
+   }
+  },
+  {
+   "name": "The Forsaken Tower",
+   "enumName": "The Forsaken Tower",
+   "minutes": 25,
+   "qp": 1,
+   "order": 54,
+   "reqs": [
+    "quest:Client of Kourend"
+   ],
+   "xp": {
+    "Mining": 500,
+    "Smithing": 500
+   }
+  },
+  {
+   "name": "Tale of the Righteous",
+   "enumName": "Tale of the Righteous",
+   "minutes": 25,
+   "qp": 1,
+   "order": 55,
+   "reqs": [
+    "skill:Strength:16",
+    "skill:Mining:10",
+    "quest:Client of Kourend"
+   ],
+   "xp": {}
+  },
+  {
+   "name": "Mountain Daughter",
+   "enumName": "Mountain Daughter",
+   "minutes": 45,
+   "qp": 2,
+   "order": 56,
+   "reqs": [
+    "skillb:Agility:20"
+   ],
+   "xp": {
+    "Attack": 1000,
+    "Prayer": 2000
+   }
+  },
+  {
+   "name": "The Grand Tree",
+   "enumName": "The Grand Tree",
+   "minutes": 45,
+   "qp": 5,
+   "order": 57,
+   "reqs": [
+    "skillb:Agility:25"
+   ],
+   "xp": {
+    "Attack": 18400,
+    "Agility": 7900,
+    "Magic": 2150
+   }
+  },
+  {
+   "name": "Tribal Totem",
+   "enumName": "Tribal Totem",
+   "minutes": 10,
+   "qp": 1,
+   "order": 58,
+   "reqs": [
+    "skillb:Thieving:21"
+   ],
+   "xp": {
+    "Thieving": 1775
+   }
+  },
+  {
+   "name": "The Dig Site",
+   "enumName": "The Dig Site",
+   "minutes": 45,
+   "qp": 2,
+   "order": 59,
+   "reqs": [
+    "skillb:Agility:10",
+    "skillb:Herblore:10",
+    "skillb:Thieving:25"
+   ],
+   "xp": {
+    "Herblore": 2000,
+    "Mining": 15300
+   }
+  },
+  {
+   "name": "The Golem",
+   "enumName": "The Golem",
+   "minutes": 25,
+   "qp": 1,
+   "order": 60,
+   "reqs": [
+    "skillb:Crafting:20",
+    "skillb:Thieving:25"
+   ],
+   "xp": {
+    "Crafting": 1000,
+    "Thieving": 1000
+   }
+  },
+  {
+   "name": "Recipe for Disaster - Another Cook's Quest",
+   "enumName": "Recipe for Disaster - Another Cook's Quest",
+   "minutes": 25,
+   "qp": 1,
+   "order": 61,
+   "reqs": [
+    "skillb:Cooking:10",
+    "quest:Cook's Assistant"
+   ],
+   "xp": {}
+  },
+  {
+   "name": "The Knight's Sword",
+   "enumName": "The Knight's Sword",
+   "minutes": 25,
+   "qp": 1,
+   "order": 62,
+   "reqs": [
+    "skillb:Mining:10"
+   ],
+   "xp": {
+    "Smithing": 12725
+   }
+  },
+  {
+   "name": "Elemental Workshop I",
+   "enumName": "Elemental Workshop I",
+   "minutes": 10,
+   "qp": 1,
+   "order": 63,
+   "reqs": [
+    "skillb:Mining:20",
+    "skillb:Smithing:20",
+    "skillb:Crafting:20"
+   ],
+   "xp": {
+    "Crafting": 5000,
+    "Smithing": 5000
+   }
+  },
+  {
+   "name": "Prince Ali Rescue",
+   "enumName": "Prince Ali Rescue",
+   "minutes": 25,
+   "qp": 3,
+   "order": 64,
+   "reqs": [],
+   "xp": {}
+  },
+  {
+   "name": "Shadow of the Storm",
+   "enumName": "Shadow of the Storm",
+   "minutes": 45,
+   "qp": 1,
+   "order": 65,
+   "reqs": [
+    "skillb:Crafting:30",
+    "quest:The Golem",
+    "quest:Demon Slayer"
+   ],
+   "xp": {
+    "Ranged": 10000
+   }
+  },
+  {
+   "name": "Prying Times",
+   "enumName": "Prying Times",
+   "minutes": 25,
+   "qp": 1,
+   "order": 66,
+   "reqs": [
+    "skill:Smithing:30",
+    "skill:Sailing:12",
+    "quest:Pandemonium",
+    "quest:The Knight's Sword"
+   ],
+   "xp": {
+    "Sailing": 800,
+    "Smithing": 1000
+   }
+  },
+  {
+   "name": "Imp Catcher",
+   "enumName": "Imp Catcher",
+   "minutes": 25,
+   "qp": 1,
+   "order": 67,
+   "reqs": [],
+   "xp": {
+    "Magic": 875
+   }
+  },
+  {
+   "name": "Elemental Workshop II",
+   "enumName": "Elemental Workshop II",
+   "minutes": 25,
+   "qp": 1,
+   "order": 68,
+   "reqs": [
+    "skillb:Magic:20",
+    "skillb:Smithing:30",
+    "quest:Elemental Workshop I"
+   ],
+   "xp": {
+    "Crafting": 7500,
+    "Smithing": 7500
+   }
+  },
+  {
+   "name": "The Ribbiting Tale of a Lily Pad Labour Dispute",
+   "enumName": "The Ribbiting Tale of a Lily Pad Labour Dispute",
+   "minutes": 10,
+   "qp": 1,
+   "order": 69,
+   "reqs": [
+    "skill:Woodcutting:15",
+    "quest:Children of the Sun"
+   ],
+   "xp": {
+    "Woodcutting": 2000
+   }
+  },
+  {
+   "name": "Lost City",
+   "enumName": "Lost City",
+   "minutes": 25,
+   "qp": 3,
+   "order": 70,
+   "reqs": [
+    "skillb:Crafting:31",
+    "skillb:Woodcutting:36"
+   ],
+   "xp": {}
+  },
+  {
+   "name": "Fairytale I - Growing Pains",
+   "enumName": "Fairytale I - Growing Pains",
+   "minutes": 45,
+   "qp": 2,
+   "order": 71,
+   "reqs": [
+    "quest:Lost City",
+    "quest:Nature Spirit"
+   ],
+   "xp": {
+    "Attack": 2000,
+    "Farming": 3500,
+    "Magic": 1000
+   }
+  },
+  {
+   "name": "Goblin Diplomacy",
+   "enumName": "Goblin Diplomacy",
+   "minutes": 10,
+   "qp": 5,
+   "order": 72,
+   "reqs": [],
+   "xp": {
+    "Crafting": 200
+   }
+  },
+  {
+   "name": "Recipe for Disaster - Wartface & Bentnoze",
+   "enumName": "Recipe for Disaster - Wartface & Bentnoze",
+   "minutes": 25,
+   "qp": 1,
+   "order": 73,
+   "reqs": [
+    "quest:Recipe for Disaster - Another Cook's Quest",
+    "quest:Goblin Diplomacy"
+   ],
+   "xp": {
+    "Cooking": 1000,
+    "Crafting": 1000,
+    "Farming": 1000
+   }
+  },
+  {
+   "name": "Sleeping Giants",
+   "enumName": "Sleeping Giants",
+   "minutes": 10,
+   "qp": 1,
+   "order": 74,
+   "reqs": [
+    "skillb:Smithing:15"
+   ],
+   "xp": {
+    "Smithing": 6000
+   }
+  },
+  {
+   "name": "Shield of Arrav",
+   "enumName": "Shield of Arrav",
+   "minutes": 25,
+   "qp": 1,
+   "order": 75,
+   "reqs": [],
+   "xp": {}
+  },
+  {
+   "name": "Creature of Fenkenstrain",
+   "enumName": "Creature of Fenkenstrain",
+   "minutes": 45,
+   "qp": 2,
+   "order": 76,
+   "reqs": [
+    "skillb:Crafting:20",
+    "skillb:Thieving:25",
+    "quest:Priest in Peril"
+   ],
+   "xp": {
+    "Thieving": 1000
+   }
+  },
+  {
+   "name": "A Soul's Bane",
+   "enumName": "A Soul's Bane",
+   "minutes": 25,
+   "qp": 1,
+   "order": 77,
+   "reqs": [],
+   "xp": {
+    "Defence": 500,
+    "Hitpoints": 500
+   }
+  },
+  {
+   "name": "The Lost Tribe",
+   "enumName": "The Lost Tribe",
+   "minutes": 25,
+   "qp": 1,
+   "order": 78,
+   "reqs": [
+    "skillb:Agility:13",
+    "skillb:Thieving:13",
+    "skillb:Mining:17",
+    "quest:Goblin Diplomacy",
+    "quest:Rune Mysteries"
+   ],
+   "xp": {
+    "Mining": 3000
+   }
+  },
+  {
+   "name": "Death to the Dorgeshuun",
+   "enumName": "Death to the Dorgeshuun",
+   "minutes": 45,
+   "qp": 1,
+   "order": 79,
+   "reqs": [
+    "skillb:Agility:23",
+    "skillb:Thieving:23",
+    "quest:The Lost Tribe"
+   ],
+   "xp": {
+    "Ranged": 2000,
+    "Thieving": 2000
+   }
+  },
+  {
+   "name": "The Giant Dwarf",
+   "enumName": "The Giant Dwarf",
+   "minutes": 45,
+   "qp": 2,
+   "order": 80,
+   "reqs": [
+    "skillb:Crafting:12",
+    "skillb:Firemaking:16",
+    "skillb:Magic:33",
+    "skillb:Thieving:14"
+   ],
+   "xp": {
+    "Crafting": 2500,
+    "Firemaking": 1500,
+    "Mining": 2500,
+    "Smithing": 2500,
+    "Thieving": 1500,
+    "Magic": 1500
+   }
+  },
+  {
+   "name": "Another Slice of H.A.M.",
+   "enumName": "Another Slice of H.A.M.",
+   "minutes": 25,
+   "qp": 1,
+   "order": 81,
+   "reqs": [
+    "skill:Attack:15",
+    "skill:Prayer:25",
+    "quest:Death to the Dorgeshuun",
+    "quest:The Giant Dwarf",
+    "quest:The Dig Site"
+   ],
+   "xp": {
+    "Mining": 3000,
+    "Prayer": 3000
+   }
+  },
+  {
+   "name": "Making History",
+   "enumName": "Making History",
+   "minutes": 25,
+   "qp": 3,
+   "order": 82,
+   "reqs": [
+    "quest:Priest in Peril",
+    "quest:The Restless Ghost"
+   ],
+   "xp": {
+    "Crafting": 1000,
+    "Prayer": 1000
+   }
+  },
+  {
+   "name": "In Search of the Myreque",
+   "enumName": "In Search of the Myreque",
+   "minutes": 25,
+   "qp": 2,
+   "order": 83,
+   "reqs": [
+    "skillb:Agility:25",
+    "quest:Nature Spirit"
+   ],
+   "xp": {
+    "Attack": 600,
+    "Crafting": 600,
+    "Defence": 600,
+    "Hitpoints": 600,
+    "Strength": 600
+   }
+  },
+  {
+   "name": "Shades of Mort'ton",
+   "enumName": "Shades of Mort'ton",
+   "minutes": 25,
+   "qp": 3,
+   "order": 84,
+   "reqs": [
+    "skillb:Crafting:20",
+    "skillb:Herblore:15",
+    "skillb:Firemaking:5",
+    "quest:Priest in Peril"
+   ],
+   "xp": {
+    "Crafting": 2000,
+    "Herblore": 2000
+   }
+  },
+  {
+   "name": "In Aid of the Myreque",
+   "enumName": "In Aid of the Myreque",
+   "minutes": 45,
+   "qp": 2,
+   "order": 85,
+   "reqs": [
+    "skillb:Agility:25",
+    "skillb:Crafting:25",
+    "skillb:Mining:15",
+    "skillb:Magic:7",
+    "quest:In Search of the Myreque"
+   ],
+   "xp": {
+    "Attack": 2000,
+    "Crafting": 2000,
+    "Defence": 2000,
+    "Strength": 2000
+   }
+  },
+  {
+   "name": "Bone Voyage",
+   "enumName": "Bone Voyage",
+   "minutes": 25,
+   "qp": 1,
+   "order": 87,
+   "reqs": [
+    "quest:The Dig Site"
+   ],
+   "xp": {}
+  },
+  {
+   "name": "Wanted!",
+   "enumName": "Wanted!",
+   "minutes": 45,
+   "qp": 1,
+   "order": 88,
+   "reqs": [
+    "qp:32",
+    "quest:Recruitment Drive",
+    "quest:The Lost Tribe",
+    "quest:Priest in Peril",
+    "quest:Enter the Abyss"
+   ],
+   "xp": {
+    "Slayer": 5000
+   }
+  },
+  {
+   "name": "The Feud",
+   "enumName": "The Feud",
+   "minutes": 45,
+   "qp": 1,
+   "order": 89,
+   "reqs": [
+    "skill:Thieving:30"
+   ],
+   "xp": {
+    "Thieving": 15000
+   }
+  },
+  {
+   "name": "Troll Stronghold",
+   "enumName": "Troll Stronghold",
+   "minutes": 25,
+   "qp": 1,
+   "order": 90,
+   "reqs": [
+    "skillb:Agility:15"
+   ],
+   "xp": {}
+  },
+  {
+   "name": "Troll Romance",
+   "enumName": "Troll Romance",
+   "minutes": 25,
+   "qp": 2,
+   "order": 91,
+   "reqs": [
+    "skillb:Agility:28",
+    "quest:Troll Stronghold"
+   ],
+   "xp": {
+    "Agility": 8000,
+    "Strength": 4000
+   }
+  },
+  {
+   "name": "Dragon Slayer I",
+   "enumName": "Dragon Slayer I",
+   "minutes": 45,
+   "qp": 2,
+   "order": 92,
+   "reqs": [
+    "qp:32"
+   ],
+   "xp": {
+    "Defence": 18650,
+    "Strength": 18650
+   }
+  },
+  {
+   "name": "Horror from the Deep",
+   "enumName": "Horror from the Deep",
+   "minutes": 25,
+   "qp": 2,
+   "order": 93,
+   "reqs": [
+    "skillb:Agility:35"
+   ],
+   "xp": {
+    "Magic": 4662,
+    "Ranged": 4662,
+    "Strength": 4662
+   }
+  },
+  {
+   "name": "Ernest the Chicken",
+   "enumName": "Ernest the Chicken",
+   "minutes": 10,
+   "qp": 4,
+   "order": 94,
+   "reqs": [],
+   "xp": {}
+  },
+  {
+   "name": "Animal Magnetism",
+   "enumName": "Animal Magnetism",
+   "minutes": 45,
+   "qp": 1,
+   "order": 95,
+   "reqs": [
+    "skill:Slayer:18",
+    "skill:Crafting:19",
+    "skill:Ranged:30",
+    "skill:Woodcutting:35",
+    "quest:The Restless Ghost",
+    "quest:Ernest the Chicken",
+    "quest:Priest in Peril"
+   ],
+   "xp": {
+    "Crafting": 1000,
+    "Fletching": 1000,
+    "Slayer": 1000,
+    "Woodcutting": 2500
+   }
+  },
+  {
+   "name": "Shilo Village",
+   "enumName": "Shilo Village",
+   "minutes": 45,
+   "qp": 2,
+   "order": 96,
+   "reqs": [
+    "skillb:Crafting:20",
+    "skillb:Agility:32",
+    "quest:Jungle Potion"
+   ],
+   "xp": {
+    "Crafting": 3875
+   }
+  },
+  {
+   "name": "Spirits of the Elid",
+   "enumName": "Spirits of the Elid",
+   "minutes": 25,
+   "qp": 2,
+   "order": 97,
+   "reqs": [
+    "skillb:Magic:33",
+    "skillb:Ranged:37",
+    "skillb:Mining:37",
+    "skillb:Thieving:37"
+   ],
+   "xp": {
+    "Magic": 1000,
+    "Prayer": 8000,
+    "Thieving": 1000
+   }
+  },
+  {
+   "name": "Icthlarin's Little Helper",
+   "enumName": "Icthlarin's Little Helper",
+   "minutes": 45,
+   "qp": 2,
+   "order": 98,
+   "reqs": [],
+   "xp": {
+    "Agility": 4000,
+    "Thieving": 4500,
+    "Woodcutting": 4000
+   }
+  },
+  {
+   "name": "Ethically Acquired Antiquities",
+   "enumName": "Ethically Acquired Antiquities",
+   "minutes": 25,
+   "qp": 1,
+   "order": 99,
+   "reqs": [
+    "skill:Thieving:25",
+    "quest:Children of the Sun",
+    "quest:Shield of Arrav"
+   ],
+   "xp": {
+    "Thieving": 6000
+   }
+  },
+  {
+   "name": "Twilight's Promise",
+   "enumName": "Twilight's Promise",
+   "minutes": 25,
+   "qp": 1,
+   "order": 100,
+   "reqs": [
+    "quest:Children of the Sun"
+   ],
+   "xp": {
+    "Thieving": 3000
+   }
+  },
+  {
+   "name": "Death on the Isle",
+   "enumName": "Death on the Isle",
+   "minutes": 45,
+   "qp": 2,
+   "order": 101,
+   "reqs": [
+    "skill:Thieving:34",
+    "skill:Agility:32",
+    "quest:Children of the Sun"
+   ],
+   "xp": {
+    "Agility": 7500,
+    "Thieving": 10000,
+    "Crafting": 5000
+   }
+  },
+  {
+   "name": "Ratcatchers",
+   "enumName": "Ratcatchers",
+   "minutes": 45,
+   "qp": 2,
+   "order": 102,
+   "reqs": [
+    "quest:Icthlarin's Little Helper"
+   ],
+   "xp": {
+    "Thieving": 4500
+   }
+  },
+  {
+   "name": "The Garden of Death",
+   "enumName": "The Garden of Death",
+   "minutes": 25,
+   "qp": 1,
+   "order": 103,
+   "reqs": [
+    "skill:Farming:20"
+   ],
+   "xp": {
+    "Farming": 10000
+   }
+  },
+  {
+   "name": "Enlightened Journey",
+   "enumName": "Enlightened Journey",
+   "minutes": 25,
+   "qp": 1,
+   "order": 104,
+   "reqs": [
+    "qp:20",
+    "skillb:Firemaking:20",
+    "skillb:Farming:30",
+    "skillb:Crafting:36"
+   ],
+   "xp": {
+    "Crafting": 2000,
+    "Farming": 3000,
+    "Firemaking": 4000,
+    "Woodcutting": 1500
+   }
+  },
+  {
+   "name": "Sea Slug",
+   "enumName": "Sea Slug",
+   "minutes": 25,
+   "qp": 1,
+   "order": 106,
+   "reqs": [
+    "skillb:Firemaking:30"
+   ],
+   "xp": {
+    "Fishing": 7175
+   }
+  },
+  {
+   "name": "Current Affairs",
+   "enumName": "Current Affairs",
+   "minutes": 25,
+   "qp": 1,
+   "order": 107,
+   "reqs": [
+    "skill:Sailing:22",
+    "skillb:Fishing:10",
+    "quest:Pandemonium"
+   ],
+   "xp": {
+    "Sailing": 1400,
+    "Fishing": 1000
+   }
+  },
+  {
+   "name": "Fishing Contest",
+   "enumName": "Fishing Contest",
+   "minutes": 10,
+   "qp": 1,
+   "order": 108,
+   "reqs": [
+    "skill:Fishing:10"
+   ],
+   "xp": {
+    "Fishing": 2437
+   }
+  },
+  {
+   "name": "Recipe for Disaster - Mountain Dwarf",
+   "enumName": "Recipe for Disaster - Mountain Dwarf",
+   "minutes": 25,
+   "qp": 1,
+   "order": 109,
+   "reqs": [
+    "quest:Recipe for Disaster - Another Cook's Quest",
+    "quest:Fishing Contest"
+   ],
+   "xp": {
+    "Cooking": 1000,
+    "Slayer": 1000
+   }
+  },
+  {
+   "name": "Ghosts Ahoy",
+   "enumName": "Ghosts Ahoy",
+   "minutes": 45,
+   "qp": 2,
+   "order": 110,
+   "reqs": [
+    "skillb:Agility:25",
+    "skillb:Cooking:20"
+   ],
+   "xp": {
+    "Prayer": 2400
+   }
+  },
+  {
+   "name": "Forgettable Tale...",
+   "enumName": "Forgettable Tale...",
+   "minutes": 90,
+   "qp": 2,
+   "order": 111,
+   "reqs": [
+    "skillb:Cooking:22",
+    "skillb:Farming:17",
+    "quest:The Giant Dwarf",
+    "quest:Fishing Contest"
+   ],
+   "xp": {
+    "Cooking": 5000,
+    "Farming": 5000
+   }
+  },
+  {
+   "name": "Garden of Tranquillity",
+   "enumName": "Garden of Tranquillity",
+   "minutes": 90,
+   "qp": 2,
+   "order": 112,
+   "reqs": [
+    "skill:Farming:25",
+    "quest:Creature of Fenkenstrain"
+   ],
+   "xp": {
+    "Farming": 5000
+   }
+  },
+  {
+   "name": "Recipe for Disaster - Evil Dave",
+   "enumName": "Recipe for Disaster - Evil Dave",
+   "minutes": 45,
+   "qp": 1,
+   "order": 113,
+   "reqs": [
+    "quest:Gertrude's Cat",
+    "quest:Recipe for Disaster - Another Cook's Quest",
+    "quest:Shadow of the Storm"
+   ],
+   "xp": {
+    "Cooking": 7000
+   }
+  },
+  {
+   "name": "Big Chompy Bird Hunting",
+   "enumName": "Big Chompy Bird Hunting",
+   "minutes": 25,
+   "qp": 2,
+   "order": 114,
+   "reqs": [
+    "skillb:Fletching:5",
+    "skillb:Cooking:30",
+    "skill:Ranged:30"
+   ],
+   "xp": {
+    "Cooking": 1470,
+    "Fletching": 262,
+    "Ranged": 735
+   }
+  },
+  {
+   "name": "Zogre Flesh Eaters",
+   "enumName": "Zogre Flesh Eaters",
+   "minutes": 25,
+   "qp": 1,
+   "order": 115,
+   "reqs": [
+    "skillb:Smithing:4",
+    "skillb:Herblore:8",
+    "skill:Ranged:30",
+    "quest:Big Chompy Bird Hunting",
+    "quest:Jungle Potion"
+   ],
+   "xp": {
+    "Fletching": 2000,
+    "Herblore": 2000,
+    "Ranged": 2000
+   }
+  },
+  {
+   "name": "Darkness of Hallowvale",
+   "enumName": "Darkness of Hallowvale",
+   "minutes": 90,
+   "qp": 2,
+   "order": 118,
+   "reqs": [
+    "skillb:Construction:5",
+    "skill:Mining:20",
+    "skillb:Thieving:22",
+    "skillb:Agility:26",
+    "skill:Crafting:32",
+    "skillb:Magic:33",
+    "skill:Strength:40",
+    "quest:In Aid of the Myreque"
+   ],
+   "xp": {
+    "Agility": 7000,
+    "Construction": 2000,
+    "Thieving": 6000,
+    "Herblore": 6000
+   }
+  },
+  {
+   "name": "Tower of Life",
+   "enumName": "Tower of Life",
+   "minutes": 45,
+   "qp": 2,
+   "order": 119,
+   "reqs": [
+    "skill:Construction:10"
+   ],
+   "xp": {
+    "Construction": 1000,
+    "Crafting": 500,
+    "Thieving": 500
+   }
+  },
+  {
+   "name": "Recipe for Disaster - Pirate Pete",
+   "enumName": "Recipe for Disaster - Pirate Pete",
+   "minutes": 45,
+   "qp": 1,
+   "order": 120,
+   "reqs": [
+    "skillb:Cooking:31",
+    "quest:Recipe for Disaster - Another Cook's Quest"
+   ],
+   "xp": {
+    "Cooking": 1000,
+    "Crafting": 1000,
+    "Fishing": 1000,
+    "Smithing": 1000
+   }
+  },
+  {
+   "name": "Tai Bwo Wannai Trio",
+   "enumName": "Tai Bwo Wannai Trio",
+   "minutes": 45,
+   "qp": 2,
+   "order": 122,
+   "reqs": [
+    "skill:Cooking:30",
+    "skillb:Fishing:5",
+    "quest:Jungle Potion"
+   ],
+   "xp": {
+    "Cooking": 5000,
+    "Fishing": 5000,
+    "Attack": 2500,
+    "Strength": 2500
+   }
+  },
+  {
+   "name": "The Tourist Trap",
+   "enumName": "The Tourist Trap",
+   "minutes": 45,
+   "qp": 2,
+   "order": 123,
+   "reqs": [
+    "skillb:Fletching:10",
+    "skillb:Smithing:20"
+   ],
+   "xp": {
+    "Smithing": 9300
+   }
+  },
+  {
+   "name": "Eadgar's Ruse",
+   "enumName": "Eadgar's Ruse",
+   "minutes": 45,
+   "qp": 1,
+   "order": 124,
+   "reqs": [
+    "skillb:Herblore:31",
+    "quest:Druidic Ritual",
+    "quest:Troll Stronghold"
+   ],
+   "xp": {
+    "Herblore": 11000
+   }
+  },
+  {
+   "name": "My Arm's Big Adventure",
+   "enumName": "My Arm's Big Adventure",
+   "minutes": 45,
+   "qp": 1,
+   "order": 125,
+   "reqs": [
+    "skillb:Farming:29",
+    "skill:Woodcutting:10",
+    "quest:Eadgar's Ruse",
+    "quest:The Feud",
+    "quest:Jungle Potion"
+   ],
+   "xp": {
+    "Farming": 5315,
+    "Herblore": 10000
+   }
+  },
+  {
+   "name": "The Fremennik Trials",
+   "enumName": "The Fremennik Trials",
+   "minutes": 45,
+   "qp": 3,
+   "order": 126,
+   "reqs": [],
+   "xp": {
+    "Agility": 2812,
+    "Attack": 2812,
+    "Crafting": 2812,
+    "Defence": 2812,
+    "Fishing": 2812,
+    "Fletching": 2812,
+    "Hitpoints": 2812,
+    "Strength": 2812,
+    "Thieving": 2812,
+    "Woodcutting": 2812
+   }
+  },
+  {
+   "name": "The Fremennik Isles",
+   "enumName": "The Fremennik Isles",
+   "minutes": 45,
+   "qp": 1,
+   "order": 127,
+   "reqs": [
+    "skillb:Construction:20",
+    "quest:The Fremennik Trials"
+   ],
+   "xp": {
+    "Construction": 5000,
+    "Crafting": 5000,
+    "Woodcutting": 10000,
+    "Strength": 20000
+   }
+  },
+  {
+   "name": "Getting Ahead",
+   "enumName": "Getting Ahead",
+   "minutes": 25,
+   "qp": 1,
+   "order": 128,
+   "reqs": [
+    "skill:Crafting:30",
+    "skill:Construction:26"
+   ],
+   "xp": {
+    "Construction": 3200,
+    "Crafting": 4000
+   }
+  },
+  {
+   "name": "Recipe for Disaster - Lumbridge Guide",
+   "enumName": "Recipe for Disaster - Lumbridge Guide",
+   "minutes": 25,
+   "qp": 1,
+   "order": 129,
+   "reqs": [
+    "skillb:Cooking:40",
+    "quest:Big Chompy Bird Hunting",
+    "quest:Biohazard",
+    "quest:Demon Slayer",
+    "quest:Murder Mystery",
+    "quest:Nature Spirit",
+    "quest:Recipe for Disaster - Another Cook's Quest",
+    "quest:Witch's House"
+   ],
+   "xp": {
+    "Magic": 2500
+   }
+  },
+  {
+   "name": "Recipe for Disaster - Skrach Uglogwee",
+   "enumName": "Recipe for Disaster - Skrach Uglogwee",
+   "minutes": 45,
+   "qp": 1,
+   "order": 130,
+   "reqs": [
+    "skillb:Cooking:41",
+    "skillb:Firemaking:20",
+    "quest:Big Chompy Bird Hunting",
+    "quest:Recipe for Disaster - Another Cook's Quest"
+   ],
+   "xp": {
+    "Crafting": 1500,
+    "Ranged": 1500,
+    "Woodcutting": 1500
+   }
+  },
+  {
+   "name": "Haunted Mine",
+   "enumName": "Haunted Mine",
+   "minutes": 25,
+   "qp": 2,
+   "order": 131,
+   "reqs": [
+    "skillb:Crafting:35",
+    "quest:Priest in Peril"
+   ],
+   "xp": {
+    "Strength": 22000
+   }
+  },
+  {
+   "name": "Watchtower",
+   "enumName": "Watchtower",
+   "minutes": 45,
+   "qp": 4,
+   "order": 133,
+   "reqs": [
+    "skillb:Magic:14",
+    "skillb:Thieving:15",
+    "skillb:Agility:25",
+    "skillb:Herblore:14",
+    "skillb:Mining:40"
+   ],
+   "xp": {
+    "Magic": 15250
+   }
+  },
+  {
+   "name": "Contact!",
+   "enumName": "Contact!",
+   "minutes": 25,
+   "qp": 1,
+   "order": 134,
+   "reqs": [
+    "quest:Prince Ali Rescue",
+    "quest:Icthlarin's Little Helper"
+   ],
+   "xp": {
+    "Magic": 14000,
+    "Thieving": 7000
+   }
+  },
+  {
+   "name": "The Eyes of Glouphrie",
+   "enumName": "The Eyes of Glouphrie",
+   "minutes": 45,
+   "qp": 2,
+   "order": 135,
+   "reqs": [
+    "skill:Construction:5",
+    "skill:Magic:46"
+   ],
+   "xp": {
+    "Construction": 250,
+    "Magic": 12000,
+    "Runecraft": 6000,
+    "Woodcutting": 2500
+   }
+  },
+  {
+   "name": "Temple of the Eye",
+   "enumName": "Temple of the Eye",
+   "minutes": 25,
+   "qp": 1,
+   "order": 136,
+   "reqs": [
+    "skill:Runecraft:10",
+    "quest:Enter the Abyss"
+   ],
+   "xp": {
+    "Runecraft": 9210
+   }
+  },
+  {
+   "name": "Olaf's Quest",
+   "enumName": "Olaf's Quest",
+   "minutes": 25,
+   "qp": 1,
+   "order": 138,
+   "reqs": [
+    "skillb:Firemaking:40",
+    "skillb:Woodcutting:50",
+    "quest:The Fremennik Trials"
+   ],
+   "xp": {
+    "Defence": 12000
+   }
+  },
+  {
+   "name": "Tears of Guthix",
+   "enumName": "Tears of Guthix",
+   "minutes": 10,
+   "qp": 1,
+   "order": 139,
+   "reqs": [
+    "qp:43",
+    "skillb:Firemaking:49",
+    "skillb:Crafting:20",
+    "skillb:Mining:20"
+   ],
+   "xp": {
+    "Crafting": 1000
+   }
+  },
+  {
+   "name": "Temple of Ikov",
+   "enumName": "Temple of Ikov",
+   "minutes": 45,
+   "qp": 1,
+   "order": 140,
+   "reqs": [
+    "skillb:Thieving:42",
+    "skill:Ranged:40"
+   ],
+   "xp": {
+    "Fletching": 8000,
+    "Ranged": 10500
+   }
+  },
+  {
+   "name": "One Small Favour",
+   "enumName": "One Small Favour",
+   "minutes": 90,
+   "qp": 2,
+   "order": 141,
+   "reqs": [
+    "skillb:Agility:36",
+    "skillb:Crafting:25",
+    "skillb:Herblore:18",
+    "skillb:Smithing:30",
+    "quest:Rune Mysteries",
+    "quest:Shilo Village"
+   ],
+   "xp": {
+    "Herblore": 20000
+   }
+  },
+  {
+   "name": "A Tail of Two Cats",
+   "enumName": "A Tail of Two Cats",
+   "minutes": 45,
+   "qp": 2,
+   "order": 142,
+   "reqs": [
+    "quest:Icthlarin's Little Helper"
+   ],
+   "xp": {
+    "Herblore": 5000
+   }
+  },
+  {
+   "name": "The Slug Menace",
+   "enumName": "The Slug Menace",
+   "minutes": 45,
+   "qp": 1,
+   "order": 143,
+   "reqs": [
+    "skill:Crafting:30",
+    "skill:Runecraft:30",
+    "skill:Slayer:30",
+    "skill:Thieving:30",
+    "quest:Wanted!",
+    "quest:Sea Slug"
+   ],
+   "xp": {
+    "Crafting": 3500,
+    "Runecraft": 3500,
+    "Thieving": 3500
+   }
+  },
+  {
+   "name": "Between a Rock...",
+   "enumName": "Between a Rock...",
+   "minutes": 45,
+   "qp": 2,
+   "order": 144,
+   "reqs": [
+    "skillb:Defence:30",
+    "skillb:Mining:40",
+    "skillb:Smithing:50",
+    "quest:Dwarf Cannon",
+    "quest:Fishing Contest"
+   ],
+   "xp": {
+    "Defence": 5000,
+    "Mining": 5000,
+    "Smithing": 5000
+   }
+  },
+  {
+   "name": "Monkey Madness I",
+   "enumName": "Monkey Madness I",
+   "minutes": 90,
+   "qp": 3,
+   "order": 145,
+   "reqs": [
+    "quest:The Grand Tree",
+    "quest:Tree Gnome Village"
+   ],
+   "xp": {
+    "Attack": 35000,
+    "Defence": 35000,
+    "Hitpoints": 20000,
+    "Strength": 20000
+   }
+  },
+  {
+   "name": "Cold War",
+   "enumName": "Cold War",
+   "minutes": 45,
+   "qp": 1,
+   "order": 146,
+   "reqs": [
+    "skill:Hunter:10",
+    "skill:Agility:30",
+    "skill:Crafting:30",
+    "skill:Construction:34",
+    "skill:Thieving:15"
+   ],
+   "xp": {
+    "Agility": 5000,
+    "Construction": 1500,
+    "Crafting": 2000
+   }
+  },
+  {
+   "name": "The Ascent of Arceuus",
+   "enumName": "The Ascent of Arceuus",
+   "minutes": 25,
+   "qp": 1,
+   "order": 147,
+   "reqs": [
+    "skill:Hunter:12",
+    "quest:Client of Kourend"
+   ],
+   "xp": {
+    "Runecraft": 500,
+    "Hunter": 1500
+   }
+  },
+  {
+   "name": "Eagles' Peak",
+   "enumName": "Eagles' Peak",
+   "minutes": 25,
+   "qp": 2,
+   "order": 148,
+   "reqs": [
+    "skillb:Hunter:27"
+   ],
+   "xp": {
+    "Hunter": 2500
+   }
+  },
+  {
+   "name": "Underground Pass",
+   "enumName": "Underground Pass",
+   "minutes": 90,
+   "qp": 5,
+   "order": 149,
+   "reqs": [
+    "skillb:Ranged:25",
+    "quest:Biohazard"
+   ],
+   "xp": {
+    "Agility": 3000,
+    "Attack": 3000
+   }
+  },
+  {
+   "name": "Skippy and the Mogres",
+   "enumName": "Skippy and the Mogres",
+   "minutes": 10,
+   "qp": 0,
+   "order": 150,
+   "reqs": [
+    "skillb:Cooking:20"
+   ],
+   "xp": {}
+  },
+  {
+   "name": "Rag and Bone Man II",
+   "enumName": "Rag and Bone Man II",
+   "minutes": 45,
+   "qp": 1,
+   "order": 151,
+   "reqs": [
+    "skillb:Slayer:40",
+    "skill:Defence:20"
+   ],
+   "xp": {
+    "Prayer": 5000
+   }
+  },
+  {
+   "name": "Lair of Tarn Razorlor",
+   "enumName": "Lair of Tarn Razorlor",
+   "minutes": 45,
+   "qp": 0,
+   "order": 152,
+   "reqs": [
+    "skill:Slayer:40"
+   ],
+   "xp": {
+    "Slayer": 5000
+   }
+  },
+  {
+   "name": "Rum Deal",
+   "enumName": "Rum Deal",
+   "minutes": 45,
+   "qp": 2,
+   "order": 153,
+   "reqs": [
+    "skillb:Crafting:42",
+    "skillb:Farming:40",
+    "skillb:Prayer:47",
+    "skill:Slayer:42",
+    "skillb:Fishing:50",
+    "quest:Zogre Flesh Eaters",
+    "quest:Priest in Peril"
+   ],
+   "xp": {
+    "Farming": 7000,
+    "Fishing": 7000,
+    "Prayer": 7000
+   }
+  },
+  {
+   "name": "Cabin Fever",
+   "enumName": "Cabin Fever",
+   "minutes": 25,
+   "qp": 2,
+   "order": 154,
+   "reqs": [
+    "skill:Agility:42",
+    "skill:Crafting:45",
+    "skill:Smithing:50",
+    "skill:Ranged:40",
+    "quest:Pirate's Treasure",
+    "quest:Rum Deal"
+   ],
+   "xp": {
+    "Agility": 7000,
+    "Crafting": 7000,
+    "Smithing": 7000
+   }
+  },
+  {
+   "name": "His Faithful Servants",
+   "enumName": "His Faithful Servants",
+   "minutes": 10,
+   "qp": 0,
+   "order": 155,
+   "reqs": [
+    "quest:Priest in Peril"
+   ],
+   "xp": {
+    "Prayer": 20000
+   }
+  },
+  {
+   "name": "The Great Brain Robbery",
+   "enumName": "The Great Brain Robbery",
+   "minutes": 45,
+   "qp": 2,
+   "order": 156,
+   "reqs": [
+    "skill:Crafting:16",
+    "skill:Construction:30",
+    "skill:Prayer:50",
+    "quest:Creature of Fenkenstrain",
+    "quest:Cabin Fever",
+    "quest:Recipe for Disaster - Pirate Pete"
+   ],
+   "xp": {
+    "Construction": 2000,
+    "Crafting": 3000,
+    "Prayer": 6000,
+    "Herblore": 5000
+   }
+  },
+  {
+   "name": "Scrambled!",
+   "enumName": "Scrambled!",
+   "minutes": 25,
+   "qp": 1,
+   "order": 157,
+   "reqs": [
+    "skill:Construction:38",
+    "skill:Cooking:36",
+    "skill:Smithing:35",
+    "quest:Children of the Sun"
+   ],
+   "xp": {
+    "Smithing": 5000,
+    "Cooking": 5000,
+    "Construction": 5000
+   }
+  },
+  {
+   "name": "The Hand in the Sand",
+   "enumName": "The Hand in the Sand",
+   "minutes": 25,
+   "qp": 1,
+   "order": 158,
+   "reqs": [
+    "skill:Thieving:17",
+    "skill:Crafting:49"
+   ],
+   "xp": {
+    "Thieving": 1000
+   }
+  },
+  {
+   "name": "Enakhra's Lament",
+   "enumName": "Enakhra's Lament",
+   "minutes": 45,
+   "qp": 2,
+   "order": 159,
+   "reqs": [
+    "skill:Crafting:50",
+    "skillb:Firemaking:45",
+    "skill:Prayer:43",
+    "skillb:Magic:39"
+   ],
+   "xp": {
+    "Crafting": 7000,
+    "Firemaking": 7000,
+    "Mining": 7000,
+    "Magic": 7000
+   }
+  },
+  {
+   "name": "Meat and Greet",
+   "enumName": "Meat and Greet",
+   "minutes": 25,
+   "qp": 1,
+   "order": 160,
+   "reqs": [
+    "quest:Children of the Sun"
+   ],
+   "xp": {
+    "Cooking": 8000
+   }
+  },
+  {
+   "name": "Heroes' Quest",
+   "enumName": "Heroes' Quest",
+   "minutes": 45,
+   "qp": 1,
+   "order": 161,
+   "reqs": [
+    "qp:55",
+    "skillb:Cooking:53",
+    "skillb:Fishing:53",
+    "skillb:Herblore:25",
+    "skillb:Mining:50",
+    "quest:Shield of Arrav",
+    "quest:Lost City",
+    "quest:Merlin's Crystal",
+    "quest:Dragon Slayer I"
+   ],
+   "xp": {
+    "Attack": 3075,
+    "Cooking": 2825,
+    "Defence": 3075,
+    "Firemaking": 1575,
+    "Fishing": 2725,
+    "Herblore": 1325,
+    "Hitpoints": 3075,
+    "Mining": 2575,
+    "Ranged": 2075,
+    "Smithing": 2257,
+    "Strength": 3075,
+    "Woodcutting": 1575
+   }
+  },
+  {
+   "name": "Throne of Miscellania",
+   "enumName": "Throne of Miscellania",
+   "minutes": 45,
+   "qp": 1,
+   "order": 162,
+   "reqs": [
+    "quest:Heroes' Quest",
+    "quest:The Fremennik Trials"
+   ],
+   "xp": {}
+  },
+  {
+   "name": "Royal Trouble",
+   "enumName": "Royal Trouble",
+   "minutes": 45,
+   "qp": 1,
+   "order": 163,
+   "reqs": [
+    "skillb:Agility:40",
+    "skillb:Slayer:40",
+    "quest:Throne of Miscellania"
+   ],
+   "xp": {
+    "Agility": 5000,
+    "Hitpoints": 5000,
+    "Slayer": 5000
+   }
+  },
+  {
+   "name": "Desert Treasure I",
+   "enumName": "Desert Treasure I",
+   "minutes": 90,
+   "qp": 3,
+   "order": 164,
+   "reqs": [
+    "skill:Thieving:53",
+    "skill:Magic:50",
+    "skillb:Firemaking:50",
+    "skill:Slayer:10",
+    "quest:The Dig Site",
+    "quest:Temple of Ikov",
+    "quest:The Tourist Trap",
+    "quest:Troll Stronghold",
+    "quest:Priest in Peril",
+    "quest:Waterfall Quest"
+   ],
+   "xp": {
+    "Magic": 20000
+   }
+  },
+  {
+   "name": "A Taste of Hope",
+   "enumName": "A Taste of Hope",
+   "minutes": 45,
+   "qp": 1,
+   "order": 165,
+   "reqs": [
+    "skill:Crafting:48",
+    "skill:Agility:45",
+    "skill:Attack:40",
+    "skill:Herblore:40",
+    "skill:Slayer:38",
+    "quest:Darkness of Hallowvale"
+   ],
+   "xp": {
+    "Herblore": 7500
+   }
+  },
+  {
+   "name": "Family Crest",
+   "enumName": "Family Crest",
+   "minutes": 45,
+   "qp": 1,
+   "order": 166,
+   "reqs": [
+    "skillb:Mining:40",
+    "skillb:Smithing:40",
+    "skillb:Magic:59",
+    "skillb:Crafting:40"
+   ],
+   "xp": {}
+  },
+  {
+   "name": "Legends' Quest",
+   "enumName": "Legends' Quest",
+   "minutes": 90,
+   "qp": 4,
+   "order": 167,
+   "reqs": [
+    "qp:107",
+    "skillb:Agility:50",
+    "skillb:Crafting:50",
+    "skillb:Herblore:45",
+    "skillb:Magic:56",
+    "skillb:Mining:52",
+    "skillb:Prayer:42",
+    "skillb:Smithing:50",
+    "skillb:Strength:50",
+    "skillb:Thieving:50",
+    "skillb:Woodcutting:50",
+    "quest:Family Crest",
+    "quest:Heroes' Quest",
+    "quest:Shilo Village",
+    "quest:Underground Pass",
+    "quest:Waterfall Quest"
+   ],
+   "xp": {
+    "Herblore": 120000
+   }
+  },
+  {
+   "name": "Recipe for Disaster - Sir Amik Varze",
+   "enumName": "Recipe for Disaster - Sir Amik Varze",
+   "minutes": 45,
+   "qp": 1,
+   "order": 168,
+   "reqs": [
+    "qp:107",
+    "quest:Family Crest",
+    "quest:Heroes' Quest",
+    "quest:Recipe for Disaster - Another Cook's Quest",
+    "quest:Shilo Village",
+    "quest:Underground Pass",
+    "quest:Waterfall Quest"
+   ],
+   "xp": {
+    "Cooking": 4000,
+    "Hitpoints": 4000
+   }
+  },
+  {
+   "name": "Curse of the Empty Lord",
+   "enumName": "Curse of the Empty Lord",
+   "minutes": 45,
+   "qp": 0,
+   "order": 169,
+   "reqs": [
+    "skill:Thieving:53",
+    "skill:Prayer:31",
+    "queststarted:Desert Treasure I"
+   ],
+   "xp": {
+    "Herblore": 10000
+   }
+  },
+  {
+   "name": "The General's Shadow",
+   "enumName": "The General's Shadow",
+   "minutes": 45,
+   "qp": 0,
+   "order": 170,
+   "reqs": [
+    "quest:Fight Arena"
+   ],
+   "xp": {
+    "Slayer": 2000
+   }
+  },
+  {
+   "name": "Land of the Goblins",
+   "enumName": "Land of the Goblins",
+   "minutes": 45,
+   "qp": 2,
+   "order": 176,
+   "reqs": [
+    "skill:Agility:38",
+    "skill:Fishing:40",
+    "skill:Thieving:45",
+    "skill:Herblore:48",
+    "quest:Another Slice of H.A.M.",
+    "quest:Fishing Contest"
+   ],
+   "xp": {
+    "Herblore": 8000,
+    "Thieving": 8000,
+    "Fishing": 8000,
+    "Agility": 8000
+   }
+  },
+  {
+   "name": "Fairytale II - Cure a Queen",
+   "enumName": "Fairytale II - Cure a Queen",
+   "minutes": 45,
+   "qp": 2,
+   "order": 177,
+   "reqs": [
+    "skill:Thieving:40",
+    "skillb:Farming:49",
+    "skillb:Herblore:57",
+    "quest:Fairytale I - Growing Pains"
+   ],
+   "xp": {
+    "Herblore": 3500,
+    "Thieving": 2500
+   }
+  },
+  {
+   "name": "A Kingdom Divided",
+   "enumName": "A Kingdom Divided",
+   "minutes": 90,
+   "qp": 2,
+   "order": 178,
+   "reqs": [
+    "skill:Agility:54",
+    "skill:Thieving:52",
+    "skill:Woodcutting:52",
+    "skill:Herblore:50",
+    "skill:Mining:42",
+    "skill:Crafting:38",
+    "skill:Magic:35",
+    "quest:The Depths of Despair",
+    "quest:The Queen of Thieves",
+    "quest:The Ascent of Arceuus",
+    "quest:The Forsaken Tower",
+    "quest:Tale of the Righteous"
+   ],
+   "xp": {
+    "Herblore": 20000
+   }
+  },
+  {
+   "name": "The Heart of Darkness",
+   "enumName": "The Heart of Darkness",
+   "minutes": 45,
+   "qp": 2,
+   "order": 179,
+   "reqs": [
+    "skill:Mining:55",
+    "skill:Thieving:48",
+    "skill:Slayer:48",
+    "skill:Agility:46",
+    "quest:Twilight's Promise"
+   ],
+   "xp": {
+    "Mining": 8000,
+    "Thieving": 8000,
+    "Slayer": 8000,
+    "Agility": 8000
+   }
+  },
+  {
+   "name": "Perilous Moons",
+   "enumName": "Perilous Moons",
+   "minutes": 45,
+   "qp": 2,
+   "order": 180,
+   "reqs": [
+    "skill:Slayer:48",
+    "skill:Hunter:20",
+    "skill:Fishing:20",
+    "skill:Runecraft:20",
+    "skill:Construction:10",
+    "quest:Twilight's Promise"
+   ],
+   "xp": {
+    "Slayer": 40000,
+    "Runecraft": 5000,
+    "Hunter": 5000,
+    "Fishing": 5000
+   }
+  },
+  {
+   "name": "Recipe for Disaster - King Awowogei",
+   "enumName": "Recipe for Disaster - King Awowogei",
+   "minutes": 90,
+   "qp": 1,
+   "order": 181,
+   "reqs": [
+    "skillb:Cooking:70",
+    "skill:Agility:48",
+    "quest:Monkey Madness I",
+    "quest:Recipe for Disaster - Another Cook's Quest"
+   ],
+   "xp": {
+    "Agility": 10000,
+    "Cooking": 10000
+   }
+  },
+  {
+   "name": "Regicide",
+   "enumName": "Regicide",
+   "minutes": 90,
+   "qp": 3,
+   "order": 182,
+   "reqs": [
+    "skill:Crafting:10",
+    "skillb:Agility:56",
+    "quest:Underground Pass"
+   ],
+   "xp": {
+    "Agility": 13750
+   }
+  },
+  {
+   "name": "Roving Elves",
+   "enumName": "Roving Elves",
+   "minutes": 25,
+   "qp": 1,
+   "order": 183,
+   "reqs": [
+    "skillb:Agility:56",
+    "quest:Regicide",
+    "quest:Waterfall Quest"
+   ],
+   "xp": {
+    "Strength": 10000
+   }
+  },
+  {
+   "name": "Mourning's End Part I",
+   "enumName": "Mourning's End Part I",
+   "minutes": 45,
+   "qp": 2,
+   "order": 184,
+   "reqs": [
+    "skill:Ranged:60",
+    "skill:Thieving:50",
+    "quest:Roving Elves",
+    "quest:Big Chompy Bird Hunting",
+    "quest:Sheep Herder"
+   ],
+   "xp": {
+    "Hitpoints": 25000,
+    "Thieving": 40000
+   }
+  },
+  {
+   "name": "Mourning's End Part II",
+   "enumName": "Mourning's End Part II",
+   "minutes": 90,
+   "qp": 2,
+   "order": 185,
+   "reqs": [
+    "quest:Mourning's End Part I"
+   ],
+   "xp": {
+    "Agility": 60000
+   }
+  },
+  {
+   "name": "Lunar Diplomacy",
+   "enumName": "Lunar Diplomacy",
+   "minutes": 90,
+   "qp": 2,
+   "order": 186,
+   "reqs": [
+    "skill:Herblore:5",
+    "skill:Crafting:61",
+    "skill:Defence:40",
+    "skill:Firemaking:49",
+    "skill:Magic:65",
+    "skill:Mining:60",
+    "skill:Woodcutting:55",
+    "quest:The Fremennik Trials",
+    "quest:Lost City",
+    "quest:Rune Mysteries",
+    "quest:Shilo Village"
+   ],
+   "xp": {
+    "Magic": 5000,
+    "Runecraft": 5000
+   }
+  },
+  {
+   "name": "What Lies Below",
+   "enumName": "What Lies Below",
+   "minutes": 25,
+   "qp": 1,
+   "order": 187,
+   "reqs": [
+    "skill:Runecraft:35",
+    "quest:Rune Mysteries"
+   ],
+   "xp": {
+    "Defence": 2000,
+    "Runecraft": 8000,
+    "Crafting": 4000,
+    "Hunter": 4000,
+    "Prayer": 4000,
+    "Slayer": 4000,
+    "Smithing": 4000
+   }
+  },
+  {
+   "name": "King's Ransom",
+   "enumName": "King's Ransom",
+   "minutes": 45,
+   "qp": 1,
+   "order": 188,
+   "reqs": [
+    "skill:Magic:45",
+    "skill:Defence:65",
+    "quest:Black Knights' Fortress",
+    "quest:Holy Grail",
+    "quest:Murder Mystery",
+    "quest:One Small Favour"
+   ],
+   "xp": {
+    "Defence": 33000,
+    "Magic": 5000,
+    "Herblore": 5000
+   }
+  },
+  {
+   "name": "Swan Song",
+   "enumName": "Swan Song",
+   "minutes": 45,
+   "qp": 2,
+   "order": 190,
+   "reqs": [
+    "qp:100",
+    "skillb:Magic:66",
+    "skillb:Cooking:62",
+    "skillb:Fishing:62",
+    "skillb:Smithing:45",
+    "skillb:Firemaking:42",
+    "skillb:Crafting:40",
+    "quest:One Small Favour",
+    "quest:Garden of Tranquillity"
+   ],
+   "xp": {
+    "Fishing": 50000,
+    "Magic": 15000,
+    "Prayer": 10000
+   }
+  },
+  {
+   "name": "Recipe for Disaster - Culinaromancer",
+   "enumName": "Recipe for Disaster - Culinaromancer",
+   "minutes": 25,
+   "qp": 1,
+   "order": 191,
+   "reqs": [
+    "qp:175",
+    "quest:Desert Treasure I",
+    "quest:Horror from the Deep",
+    "quest:Recipe for Disaster - Evil Dave",
+    "quest:Recipe for Disaster - Wartface & Bentnoze",
+    "quest:Recipe for Disaster - Lumbridge Guide",
+    "quest:Recipe for Disaster - Mountain Dwarf",
+    "quest:Recipe for Disaster - Pirate Pete",
+    "quest:Recipe for Disaster - Sir Amik Varze",
+    "quest:Recipe for Disaster - Skrach Uglogwee",
+    "quest:Recipe for Disaster - King Awowogei"
+   ],
+   "xp": {
+    "Herblore": 20000
+   }
+  },
+  {
+   "name": "Grim Tales",
+   "enumName": "Grim Tales",
+   "minutes": 45,
+   "qp": 1,
+   "order": 192,
+   "reqs": [
+    "skillb:Farming:45",
+    "skillb:Herblore:52",
+    "skillb:Thieving:58",
+    "skillb:Agility:59",
+    "skillb:Woodcutting:71",
+    "quest:Witch's House"
+   ],
+   "xp": {
+    "Agility": 25000,
+    "Herblore": 15000,
+    "Hitpoints": 5000,
+    "Farming": 10000,
+    "Thieving": 25000,
+    "Woodcutting": 60000
+   }
+  },
+  {
+   "name": "Dream Mentor",
+   "enumName": "Dream Mentor",
+   "minutes": 45,
+   "qp": 2,
+   "order": 193,
+   "reqs": [
+    "quest:Lunar Diplomacy",
+    "quest:Eadgar's Ruse"
+   ],
+   "xp": {
+    "Magic": 10000,
+    "Hitpoints": 15000
+   }
+  },
+  {
+   "name": "At First Light",
+   "enumName": "At First Light",
+   "minutes": 25,
+   "qp": 1,
+   "order": 194,
+   "reqs": [
+    "skill:Hunter:46",
+    "skill:Herblore:30",
+    "skill:Construction:27",
+    "quest:Children of the Sun",
+    "quest:Eagles' Peak"
+   ],
+   "xp": {
+    "Hunter": 4500,
+    "Construction": 800,
+    "Herblore": 500
+   }
+  },
+  {
+   "name": "Defender of Varrock",
+   "enumName": "Defender of Varrock",
+   "minutes": 45,
+   "qp": 2,
+   "order": 195,
+   "reqs": [
+    "skill:Smithing:55",
+    "skill:Hunter:52",
+    "quest:Shield of Arrav",
+    "quest:Temple of Ikov",
+    "quest:Below Ice Mountain",
+    "quest:Family Crest",
+    "quest:Garden of Tranquillity",
+    "quest:What Lies Below",
+    "quest:Romeo & Juliet",
+    "quest:Demon Slayer"
+   ],
+   "xp": {
+    "Smithing": 15000,
+    "Hunter": 15000,
+    "Herblore": 5000
+   }
+  },
+  {
+   "name": "Devious Minds",
+   "enumName": "Devious Minds",
+   "minutes": 25,
+   "qp": 1,
+   "order": 201,
+   "reqs": [
+    "skillb:Smithing:65",
+    "skill:Runecraft:50",
+    "skillb:Fletching:50",
+    "quest:Wanted!",
+    "quest:Troll Stronghold",
+    "quest:Doric's Quest"
+   ],
+   "xp": {
+    "Fletching": 5000,
+    "Runecraft": 5000,
+    "Smithing": 6500
+   }
+  },
+  {
+   "name": "The Final Dawn",
+   "enumName": "The Final Dawn",
+   "minutes": 90,
+   "qp": 3,
+   "order": 202,
+   "reqs": [
+    "skill:Thieving:66",
+    "skill:Runecraft:52",
+    "skill:Fletching:52",
+    "quest:The Heart of Darkness",
+    "quest:Perilous Moons"
+   ],
+   "xp": {
+    "Runecraft": 25000,
+    "Thieving": 55000,
+    "Fletching": 25000
+   }
+  },
+  {
+   "name": "Shadows of Custodia",
+   "enumName": "Shadows of Custodia",
+   "minutes": 25,
+   "qp": 2,
+   "order": 203,
+   "reqs": [
+    "skill:Slayer:54",
+    "skill:Fishing:45",
+    "skill:Construction:41",
+    "skill:Hunter:36",
+    "quest:Children of the Sun"
+   ],
+   "xp": {
+    "Slayer": 10000,
+    "Hunter": 4000,
+    "Fishing": 3000,
+    "Construction": 3000
+   }
+  },
+  {
+   "name": "The Path of Glouphrie",
+   "enumName": "The Path of Glouphrie",
+   "minutes": 45,
+   "qp": 2,
+   "order": 204,
+   "reqs": [
+    "skill:Strength:60",
+    "skill:Slayer:56",
+    "skill:Thieving:56",
+    "skill:Ranged:47",
+    "skill:Agility:45",
+    "quest:The Eyes of Glouphrie",
+    "quest:Waterfall Quest",
+    "quest:Tree Gnome Village"
+   ],
+   "xp": {
+    "Strength": 30000,
+    "Slayer": 20000,
+    "Thieving": 5000,
+    "Magic": 5000
+   }
+  },
+  {
+   "name": "The Fremennik Exiles",
+   "enumName": "The Fremennik Exiles",
+   "minutes": 45,
+   "qp": 2,
+   "order": 205,
+   "reqs": [
+    "skill:Crafting:65",
+    "skill:Slayer:60",
+    "skill:Smithing:60",
+    "skill:Fishing:60",
+    "skill:Runecraft:55",
+    "skillb:Mining:60",
+    "quest:The Fremennik Isles",
+    "quest:Lunar Diplomacy",
+    "quest:Mountain Daughter",
+    "quest:Heroes' Quest"
+   ],
+   "xp": {
+    "Slayer": 50000,
+    "Crafting": 50000,
+    "Runecraft": 30000
+   }
+  },
+  {
+   "name": "Sins of the Father",
+   "enumName": "Sins of the Father",
+   "minutes": 90,
+   "qp": 2,
+   "order": 206,
+   "reqs": [
+    "skill:Woodcutting:62",
+    "skill:Fletching:60",
+    "skill:Crafting:56",
+    "skill:Agility:52",
+    "skill:Attack:50",
+    "skill:Slayer:50",
+    "skill:Magic:49",
+    "quest:Vampyre Slayer",
+    "quest:A Taste of Hope"
+   ],
+   "xp": {
+    "Herblore": 90000
+   }
+  },
+  {
+   "name": "Beneath Cursed Sands",
+   "enumName": "Beneath Cursed Sands",
+   "minutes": 45,
+   "qp": 2,
+   "order": 207,
+   "reqs": [
+    "skill:Agility:62",
+    "skill:Crafting:55",
+    "skill:Firemaking:55",
+    "quest:Contact!"
+   ],
+   "xp": {
+    "Agility": 20000
+   }
+  },
+  {
+   "name": "The Curse of Arrav",
+   "enumName": "The Curse of Arrav",
+   "minutes": 45,
+   "qp": 2,
+   "order": 208,
+   "reqs": [
+    "skill:Mining:64",
+    "skill:Ranged:62",
+    "skill:Thieving:62",
+    "skill:Agility:61",
+    "skill:Strength:58",
+    "skillb:Slayer:37",
+    "quest:Defender of Varrock",
+    "quest:Troll Romance"
+   ],
+   "xp": {
+    "Mining": 40000,
+    "Thieving": 40000,
+    "Agility": 40000
+   }
+  },
+  {
+   "name": "Making Friends with My Arm",
+   "enumName": "Making Friends with My Arm",
+   "minutes": 45,
+   "qp": 2,
+   "order": 209,
+   "reqs": [
+    "skill:Firemaking:66",
+    "skillb:Mining:72",
+    "skillb:Construction:35",
+    "skillb:Agility:68",
+    "quest:My Arm's Big Adventure",
+    "quest:Swan Song",
+    "quest:Cold War",
+    "quest:Romeo & Juliet"
+   ],
+   "xp": {
+    "Construction": 10000,
+    "Firemaking": 40000,
+    "Mining": 50000,
+    "Agility": 50000
+   }
+  },
+  {
+   "name": "Troubled Tortugans",
+   "enumName": "Troubled Tortugans",
+   "minutes": 45,
+   "qp": 1,
+   "order": 210,
+   "reqs": [
+    "skill:Slayer:51",
+    "skill:Construction:48",
+    "skill:Sailing:45",
+    "skill:Hunter:45",
+    "skill:Woodcutting:40",
+    "skill:Crafting:34",
+    "quest:Pandemonium"
+   ],
+   "xp": {
+    "Slayer": 8000,
+    "Sailing": 10000
+   }
+  },
+  {
+   "name": "The Red Reef",
+   "enumName": "The Red Reef",
+   "minutes": 45,
+   "qp": 2,
+   "order": 211,
+   "reqs": [
+    "skill:Sailing:52",
+    "skill:Smithing:48",
+    "quest:Troubled Tortugans"
+   ],
+   "xp": {
+    "Smithing": 5000,
+    "Sailing": 15000
+   }
+  },
+  {
+   "name": "Monkey Madness II",
+   "enumName": "Monkey Madness II",
+   "minutes": 180,
+   "qp": 4,
+   "order": 212,
+   "reqs": [
+    "skill:Slayer:69",
+    "skill:Crafting:70",
+    "skill:Hunter:60",
+    "skill:Agility:55",
+    "skill:Thieving:55",
+    "skill:Firemaking:60",
+    "quest:Enlightened Journey",
+    "quest:The Eyes of Glouphrie",
+    "quest:Troll Stronghold",
+    "quest:Watchtower"
+   ],
+   "xp": {
+    "Agility": 60000,
+    "Hunter": 50000,
+    "Slayer": 80000,
+    "Thieving": 50000,
+    "Magic": 100000
+   }
+  },
+  {
+   "name": "A Night at the Theatre",
+   "enumName": "A Night at the Theatre",
+   "minutes": 45,
+   "qp": 2,
+   "order": 214,
+   "reqs": [
+    "quest:A Taste of Hope"
+   ],
+   "xp": {
+    "Magic": 80000
+   }
+  },
+  {
+   "name": "Dragon Slayer II",
+   "enumName": "Dragon Slayer II",
+   "minutes": 180,
+   "qp": 5,
+   "order": 215,
+   "reqs": [
+    "qp:200",
+    "skill:Magic:75",
+    "skill:Smithing:70",
+    "skill:Mining:68",
+    "skill:Crafting:62",
+    "skill:Agility:60",
+    "skill:Thieving:60",
+    "skill:Construction:50",
+    "skill:Hitpoints:50",
+    "quest:Legends' Quest",
+    "quest:Dream Mentor",
+    "quest:A Tail of Two Cats",
+    "quest:Animal Magnetism",
+    "quest:Ghosts Ahoy",
+    "quest:Bone Voyage",
+    "quest:Client of Kourend"
+   ],
+   "xp": {
+    "Smithing": 80000,
+    "Mining": 60000,
+    "Agility": 50000,
+    "Thieving": 50000,
+    "Strength": 100000
+   }
+  },
+  {
+   "name": "Secrets of the North",
+   "enumName": "Secrets of the North",
+   "minutes": 45,
+   "qp": 2,
+   "order": 216,
+   "reqs": [
+    "skill:Agility:69",
+    "skill:Thieving:64",
+    "skill:Hunter:56",
+    "quest:Making Friends with My Arm",
+    "quest:The General's Shadow",
+    "quest:Devious Minds",
+    "quest:Hazeel Cult"
+   ],
+   "xp": {
+    "Agility": 60000,
+    "Thieving": 50000,
+    "Hunter": 40000
+   }
+  },
+  {
+   "name": "While Guthix Sleeps",
+   "enumName": "While Guthix Sleeps",
+   "minutes": 180,
+   "qp": 5,
+   "order": 217,
+   "reqs": [
+    "qp:180",
+    "skill:Thieving:72",
+    "skill:Magic:67",
+    "skill:Agility:66",
+    "skill:Farming:65",
+    "skill:Herblore:65",
+    "skill:Hunter:62",
+    "skillb:Firemaking:49",
+    "quest:Defender of Varrock",
+    "quest:The Path of Glouphrie",
+    "quest:Fight Arena",
+    "quest:Dream Mentor",
+    "quest:The Hand in the Sand",
+    "quest:Wanted!",
+    "quest:Temple of the Eye",
+    "quest:Tears of Guthix",
+    "quest:Nature Spirit",
+    "quest:A Tail of Two Cats"
+   ],
+   "xp": {
+    "Thieving": 80000,
+    "Farming": 75000,
+    "Herblore": 75000,
+    "Hunter": 50000
+   }
+  },
+  {
+   "name": "Song of the Elves",
+   "enumName": "Song of the Elves",
+   "minutes": 180,
+   "qp": 4,
+   "order": 218,
+   "reqs": [
+    "skill:Agility:70",
+    "skill:Construction:70",
+    "skill:Farming:70",
+    "skill:Herblore:70",
+    "skill:Hunter:70",
+    "skill:Mining:70",
+    "skill:Smithing:70",
+    "skill:Woodcutting:70",
+    "quest:Mourning's End Part II",
+    "quest:Making History",
+    "quest:Druidic Ritual"
+   ],
+   "xp": {
+    "Agility": 40000,
+    "Construction": 40000,
+    "Farming": 40000,
+    "Herblore": 40000,
+    "Hunter": 40000,
+    "Mining": 40000,
+    "Smithing": 40000,
+    "Woodcutting": 40000
+   }
+  },
+  {
+   "name": "Desert Treasure II - The Fallen Empire",
+   "enumName": "Desert Treasure II - The Fallen Empire",
+   "minutes": 180,
+   "qp": 5,
+   "order": 219,
+   "reqs": [
+    "skill:Firemaking:75",
+    "skill:Magic:75",
+    "skill:Thieving:70",
+    "skill:Herblore:62",
+    "skill:Runecraft:60",
+    "skill:Construction:60",
+    "quest:Desert Treasure I",
+    "quest:Secrets of the North",
+    "quest:Enakhra's Lament",
+    "quest:Temple of the Eye",
+    "quest:The Garden of Death",
+    "quest:Below Ice Mountain",
+    "quest:His Faithful Servants"
+   ],
+   "xp": {
+    "Prayer": 300000
+   }
+  },
+  {
+   "name": "The Blood Moon Rises",
+   "enumName": "The Blood Moon Rises",
+   "minutes": 180,
+   "qp": 4,
+   "order": 220,
+   "reqs": [
+    "skill:Slayer:74",
+    "skill:Woodcutting:74",
+    "skill:Smithing:72",
+    "skill:Cooking:72",
+    "skill:Fletching:70",
+    "skillb:Mining:66",
+    "skillb:Hunter:65",
+    "skillb:Crafting:64",
+    "skillb:Herblore:64",
+    "skillb:Magic:57",
+    "quest:A Night at the Theatre",
+    "quest:Sins of the Father"
+   ],
+   "xp": {
+    "Slayer": 180000
+   }
+  },
+  {
+   "name": "The Corsair Curse",
+   "enumName": "The Corsair Curse",
+   "minutes": 25,
+   "qp": 2,
+   "order": 221,
+   "reqs": [],
+   "xp": {}
+  }
+ ]
+}

@@ -51,10 +51,15 @@ public final class CostModel
 		{
 			return Double.NaN;
 		}
-		// methods usable in this projection, sorted by threshold
+		// methods usable in this projection, sorted by threshold; daily
+		// methods live on the background lane, never in active hours
 		List<MethodsPack.Method> unlocked = new ArrayList<>();
 		for (MethodsPack.Method method : ladder.methods)
 		{
+			if ("daily".equals(method.style))
+			{
+				continue;
+			}
 			if (method.req == null || method.req.isEmpty() || parsed(method.req).isMet(view))
 			{
 				unlocked.add(method);

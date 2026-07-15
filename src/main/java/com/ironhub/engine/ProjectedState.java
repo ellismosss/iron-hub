@@ -27,6 +27,7 @@ public class ProjectedState implements StateView
 	private final Set<String> unlocksAdded = new HashSet<>();
 	private final Map<Integer, Integer> itemsDelta = new HashMap<>(); // raw id → qty
 	private final Map<String, Integer> kcDelta = new HashMap<>();
+	private int questPointsAdded;
 
 	public ProjectedState(StateView base)
 	{
@@ -42,6 +43,7 @@ public class ProjectedState implements StateView
 		copy.unlocksAdded.addAll(unlocksAdded);
 		copy.itemsDelta.putAll(itemsDelta);
 		copy.kcDelta.putAll(kcDelta);
+		copy.questPointsAdded = questPointsAdded;
 		return copy;
 	}
 
@@ -65,7 +67,17 @@ public class ProjectedState implements StateView
 
 	public void completeQuest(Quest quest)
 	{
-		questsDone.add(quest);
+		completeQuest(quest, 0);
+	}
+
+	/** Complete a quest and credit its quest points (idempotent per quest). */
+	public void completeQuest(Quest quest, int questPoints)
+	{
+		boolean alreadyFinished = getQuestState(quest) == QuestState.FINISHED;
+		if (questsDone.add(quest) && !alreadyFinished)
+		{
+			questPointsAdded += questPoints;
+		}
 	}
 
 	public void addUnlock(String key)
@@ -132,6 +144,12 @@ public class ProjectedState implements StateView
 			}
 		}
 		return Math.max(0, base.canonicalStock(itemId) + delta);
+	}
+
+	@Override
+	public int getQuestPoints()
+	{
+		return base.getQuestPoints() + questPointsAdded;
 	}
 
 	@Override

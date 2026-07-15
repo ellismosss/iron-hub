@@ -29,5 +29,8 @@ public interface StateView
 
 	boolean isUnlocked(String key);
 
+	/** Quest points from the last quest refresh. */
+	int getQuestPoints();
+
 	int getKillCount(String source);
 }

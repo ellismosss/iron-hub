@@ -1,0 +1,927 @@
+{
+ "source": "curated ironman method seed per ENGINE-DESIGN.md Appendix A (OSRS wiki Ironman_Guide pages, July 2026); practical rates, not WOM max-efficiency EHP",
+ "generated": "2026-07-15",
+ "skills": [
+  {
+   "skill": "Attack",
+   "methods": [
+    {
+     "id": "attack_gemstone_crabs",
+     "name": "Gemstone crabs",
+     "startXp": 0,
+     "rate": 25000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Gemstone_crab",
+     "req": "quest:Children of the Sun"
+    },
+    {
+     "id": "attack_sand_crabs",
+     "name": "Sand crabs",
+     "startXp": 0,
+     "rate": 20000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Sand_Crab"
+    },
+    {
+     "id": "attack_slayer_melee",
+     "name": "Slayer tasks (melee)",
+     "startXp": 37209,
+     "rate": 35000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer"
+    },
+    {
+     "id": "attack_nmz",
+     "name": "Nightmare Zone",
+     "startXp": 737600,
+     "rate": 78000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Nightmare_Zone",
+     "req": "qp:100"
+    },
+    {
+     "id": "attack_sulphur_naguas",
+     "name": "Sulphur naguas",
+     "startXp": 737600,
+     "rate": 130000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Sulphur_Nagua",
+     "req": "quest:Perilous Moons"
+    }
+   ],
+   "bonuses": [
+    {
+     "originSkill": "Attack",
+     "bonusSkill": "Hitpoints",
+     "startXp": 0,
+     "endXp": 200000000,
+     "ratio": 0.33
+    }
+   ]
+  },
+  {
+   "skill": "Strength",
+   "methods": [
+    {
+     "id": "strength_gemstone_crabs",
+     "name": "Gemstone crabs",
+     "startXp": 0,
+     "rate": 25000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Gemstone_crab",
+     "req": "quest:Children of the Sun"
+    },
+    {
+     "id": "strength_sand_crabs",
+     "name": "Sand crabs",
+     "startXp": 0,
+     "rate": 20000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Sand_Crab"
+    },
+    {
+     "id": "strength_slayer_melee",
+     "name": "Slayer tasks (melee)",
+     "startXp": 37209,
+     "rate": 35000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer"
+    },
+    {
+     "id": "strength_nmz",
+     "name": "Nightmare Zone",
+     "startXp": 737600,
+     "rate": 82000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Nightmare_Zone",
+     "req": "qp:100"
+    },
+    {
+     "id": "strength_sulphur_naguas",
+     "name": "Sulphur naguas",
+     "startXp": 737600,
+     "rate": 135000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Sulphur_Nagua",
+     "req": "quest:Perilous Moons"
+    }
+   ],
+   "bonuses": [
+    {
+     "originSkill": "Strength",
+     "bonusSkill": "Hitpoints",
+     "startXp": 0,
+     "endXp": 200000000,
+     "ratio": 0.33
+    }
+   ]
+  },
+  {
+   "skill": "Defence",
+   "methods": [
+    {
+     "id": "defence_gemstone_crabs",
+     "name": "Gemstone crabs",
+     "startXp": 0,
+     "rate": 25000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Gemstone_crab",
+     "req": "quest:Children of the Sun"
+    },
+    {
+     "id": "defence_slayer_melee",
+     "name": "Slayer tasks (defensive)",
+     "startXp": 37209,
+     "rate": 30000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer"
+    },
+    {
+     "id": "defence_nmz",
+     "name": "Nightmare Zone",
+     "startXp": 737600,
+     "rate": 75000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Nightmare_Zone",
+     "req": "qp:100"
+    }
+   ],
+   "bonuses": [
+    {
+     "originSkill": "Defence",
+     "bonusSkill": "Hitpoints",
+     "startXp": 0,
+     "endXp": 200000000,
+     "ratio": 0.33
+    }
+   ]
+  },
+  {
+   "skill": "Hitpoints",
+   "methods": [
+    {
+     "id": "hitpoints_via_combat",
+     "name": "Trained via combat (1/3 rate)",
+     "startXp": 0,
+     "rate": 9000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Hitpoints"
+    },
+    {
+     "id": "hitpoints_via_combat_late",
+     "name": "Trained via combat (late rates)",
+     "startXp": 737600,
+     "rate": 30000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Hitpoints"
+    }
+   ]
+  },
+  {
+   "skill": "Ranged",
+   "methods": [
+    {
+     "id": "ranged_dorgeshuun_crabs",
+     "name": "Dorgeshuun crossbow at crabs",
+     "startXp": 10813,
+     "rate": 22000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Ranged",
+     "req": "quest:The Lost Tribe"
+    },
+    {
+     "id": "ranged_red_chins",
+     "name": "Red chinchompas (MM1 tunnels)",
+     "startXp": 166614,
+     "rate": 90000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Ranged",
+     "req": "skillb:Hunter:63"
+    },
+    {
+     "id": "ranged_black_chins",
+     "name": "Black chinchompas",
+     "startXp": 449403,
+     "rate": 150000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Ranged",
+     "req": "skillb:Hunter:73"
+    },
+    {
+     "id": "ranged_nmz_ranged",
+     "name": "Nightmare Zone (ranged)",
+     "startXp": 737600,
+     "rate": 60000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Nightmare_Zone",
+     "req": "qp:100"
+    }
+   ],
+   "bonuses": [
+    {
+     "originSkill": "Ranged",
+     "bonusSkill": "Hitpoints",
+     "startXp": 0,
+     "endXp": 200000000,
+     "ratio": 0.33
+    }
+   ]
+  },
+  {
+   "skill": "Magic",
+   "methods": [
+    {
+     "id": "magic_crab_autocast",
+     "name": "Autocast at gemstone crabs",
+     "startXp": 0,
+     "rate": 15000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Magic",
+     "req": "quest:Children of the Sun"
+    },
+    {
+     "id": "magic_high_alch",
+     "name": "High Level Alchemy + misc casts",
+     "startXp": 166614,
+     "rate": 65000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/High_Level_Alchemy"
+    },
+    {
+     "id": "magic_bursting",
+     "name": "Bursting slayer tasks",
+     "startXp": 737600,
+     "rate": 85000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Magic",
+     "req": "quest:Desert Treasure I"
+    }
+   ]
+  },
+  {
+   "skill": "Prayer",
+   "methods": [
+    {
+     "id": "prayer_ensouled_heads",
+     "name": "Ensouled heads (Arceuus)",
+     "startXp": 0,
+     "rate": 90000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ensouled_head",
+     "req": "skillb:Magic:16"
+    },
+    {
+     "id": "prayer_bone_shards",
+     "name": "Blessed bone shards (libation bowl)",
+     "startXp": 13352,
+     "rate": 130000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Blessed_bone_shards",
+     "req": "quest:Children of the Sun"
+    },
+    {
+     "id": "prayer_chaos_altar",
+     "name": "Chaos altar dragon bones (wildy)",
+     "startXp": 13352,
+     "rate": 250000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Chaos_temple_(hut)"
+    }
+   ]
+  },
+  {
+   "skill": "Runecraft",
+   "methods": [
+    {
+     "id": "runecraft_gotr",
+     "name": "Guardians of the Rift",
+     "startXp": 1151,
+     "rate": 35000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Guardians_of_the_Rift",
+     "req": "quest:Temple of the Eye"
+    },
+    {
+     "id": "runecraft_blood_runes",
+     "name": "Blood runes (Arceuus)",
+     "startXp": 1475551,
+     "rate": 38000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Blood_rune"
+    },
+    {
+     "id": "runecraft_soul_runes",
+     "name": "Soul runes (Arceuus)",
+     "startXp": 5346298,
+     "rate": 45000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Soul_rune"
+    }
+   ]
+  },
+  {
+   "skill": "Construction",
+   "methods": [
+    {
+     "id": "construction_mahogany_homes",
+     "name": "Mahogany Homes",
+     "startXp": 0,
+     "rate": 60000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Mahogany_Homes"
+    },
+    {
+     "id": "construction_oak_larders",
+     "name": "Oak larders",
+     "startXp": 18235,
+     "rate": 150000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Construction"
+    },
+    {
+     "id": "construction_teak_benches",
+     "name": "Teak benches + demon butler",
+     "startXp": 123640,
+     "rate": 300000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Construction",
+     "req": "skillb:Magic:45"
+    }
+   ]
+  },
+  {
+   "skill": "Agility",
+   "methods": [
+    {
+     "id": "agility_rooftops",
+     "name": "Rooftop courses",
+     "startXp": 0,
+     "rate": 42000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Agility"
+    },
+    {
+     "id": "agility_colossal_wyrm",
+     "name": "Colossal Wyrm course",
+     "startXp": 101314,
+     "rate": 38000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Colossal_Wyrm_Agility_Course",
+     "req": "quest:Children of the Sun"
+    },
+    {
+     "id": "agility_sepulchre",
+     "name": "Hallowed Sepulchre",
+     "startXp": 899228,
+     "rate": 75000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hallowed_Sepulchre",
+     "req": "quest:Sins of the Father"
+    },
+    {
+     "id": "agility_prifddinas",
+     "name": "Prifddinas course (+shards)",
+     "startXp": 1210391,
+     "rate": 62000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Prifddinas_Agility_Course",
+     "req": "quest:Song of the Elves"
+    }
+   ]
+  },
+  {
+   "skill": "Herblore",
+   "methods": [
+    {
+     "id": "herblore_potions",
+     "name": "Potions from farm-run herbs",
+     "startXp": 8730,
+     "rate": 60000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Herblore"
+    },
+    {
+     "id": "herblore_mixology",
+     "name": "Mastering Mixology",
+     "startXp": 273718,
+     "rate": 70000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Mastering_Mixology",
+     "req": "quest:Children of the Sun"
+    }
+   ]
+  },
+  {
+   "skill": "Thieving",
+   "methods": [
+    {
+     "id": "thieving_fruit_stalls",
+     "name": "Fruit stalls (Hosidius)",
+     "startXp": 7833,
+     "rate": 35000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Thieving"
+    },
+    {
+     "id": "thieving_blackjacking",
+     "name": "Blackjacking",
+     "startXp": 61495,
+     "rate": 150000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Blackjacking",
+     "req": "quest:The Feud"
+    },
+    {
+     "id": "thieving_ardy_knights",
+     "name": "Ardougne knights",
+     "startXp": 166614,
+     "rate": 80000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Thieving"
+    },
+    {
+     "id": "thieving_gem_stalls",
+     "name": "Varlamore gem stalls",
+     "startXp": 1210391,
+     "rate": 160000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Thieving",
+     "req": "quest:Children of the Sun"
+    }
+   ]
+  },
+  {
+   "skill": "Crafting",
+   "methods": [
+    {
+     "id": "crafting_gem_cutting",
+     "name": "Gem cutting",
+     "startXp": 20212,
+     "rate": 40000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Crafting"
+    },
+    {
+     "id": "crafting_glassblowing",
+     "name": "Superglass Make + lantern lenses",
+     "startXp": 67966,
+     "rate": 75000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Crafting",
+     "req": "any:skillb:Magic:77&quest:Lunar Diplomacy"
+    },
+    {
+     "id": "crafting_battlestaves",
+     "name": "Battlestaves (orb charging)",
+     "startXp": 150851,
+     "rate": 50000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Crafting",
+     "req": "skillb:Magic:66"
+    }
+   ]
+  },
+  {
+   "skill": "Fletching",
+   "methods": [
+    {
+     "id": "fletching_headless_arrows",
+     "name": "Headless arrows / darts",
+     "startXp": 0,
+     "rate": 50000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fletching"
+    },
+    {
+     "id": "fletching_vale_totems",
+     "name": "Vale Totems (willow+)",
+     "startXp": 9720,
+     "rate": 60000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Vale_Totems",
+     "req": "quest:Children of the Sun"
+    },
+    {
+     "id": "fletching_vale_totems_yew",
+     "name": "Vale Totems (yew)",
+     "startXp": 737600,
+     "rate": 250000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Vale_Totems",
+     "req": "any:quest:Children of the Sun&skillb:Woodcutting:60"
+    },
+    {
+     "id": "fletching_vale_totems_magic",
+     "name": "Vale Totems (magic)",
+     "startXp": 1210391,
+     "rate": 400000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Vale_Totems",
+     "req": "any:quest:Children of the Sun&skillb:Woodcutting:75"
+    }
+   ]
+  },
+  {
+   "skill": "Slayer",
+   "methods": [
+    {
+     "id": "slayer_early_tasks",
+     "name": "Turael/Mazchna tasks",
+     "startXp": 0,
+     "rate": 15000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer"
+    },
+    {
+     "id": "slayer_mid_tasks",
+     "name": "Konar/Nieve tasks",
+     "startXp": 37209,
+     "rate": 30000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer"
+    },
+    {
+     "id": "slayer_high_tasks",
+     "name": "Duradel tasks + bursting",
+     "startXp": 737600,
+     "rate": 55000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer"
+    },
+    {
+     "id": "slayer_elite_tasks",
+     "name": "Block-list optimized tasks",
+     "startXp": 3258562,
+     "rate": 70000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer"
+    }
+   ],
+   "bonuses": [
+    {
+     "originSkill": "Slayer",
+     "bonusSkill": "Hitpoints",
+     "startXp": 0,
+     "endXp": 200000000,
+     "ratio": 1.1
+    }
+   ]
+  },
+  {
+   "skill": "Hunter",
+   "methods": [
+    {
+     "id": "hunter_bird_snares",
+     "name": "Bird snares / early traps",
+     "startXp": 0,
+     "rate": 12000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Hunter"
+    },
+    {
+     "id": "hunter_birdhouses",
+     "name": "Birdhouse runs",
+     "startXp": 387,
+     "rate": 300000,
+     "style": "daily",
+     "source": "oldschool.runescape.wiki/w/Birdhouse_trapping",
+     "req": "quest:Bone Voyage"
+    },
+    {
+     "id": "hunter_salamanders",
+     "name": "Salamanders",
+     "startXp": 12020,
+     "rate": 45000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Hunter"
+    },
+    {
+     "id": "hunter_rumours",
+     "name": "Hunter rumours",
+     "startXp": 67966,
+     "rate": 60000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_Guild",
+     "req": "quest:Children of the Sun"
+    },
+    {
+     "id": "hunter_red_chins_hunt",
+     "name": "Red chinchompas",
+     "startXp": 368575,
+     "rate": 90000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Hunter"
+    },
+    {
+     "id": "hunter_herbiboar",
+     "name": "Herbiboar",
+     "startXp": 1986037,
+     "rate": 120000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Herbiboar",
+     "req": "any:quest:Bone Voyage&skillb:Herblore:31"
+    }
+   ]
+  },
+  {
+   "skill": "Mining",
+   "methods": [
+    {
+     "id": "mining_iron_ore",
+     "name": "Iron ore (powermine)",
+     "startXp": 2406,
+     "rate": 35000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Mining"
+    },
+    {
+     "id": "mining_motherlode",
+     "name": "Motherlode Mine",
+     "startXp": 13352,
+     "rate": 40000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Motherlode_Mine"
+    },
+    {
+     "id": "mining_calcified",
+     "name": "Calcified rocks (+prayer shards)",
+     "startXp": 41156,
+     "rate": 45000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Calcified_rocks",
+     "req": "quest:Perilous Moons"
+    },
+    {
+     "id": "mining_granite_3t",
+     "name": "3-tick granite",
+     "startXp": 61495,
+     "rate": 95000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Mining"
+    },
+    {
+     "id": "mining_volcanic_mine",
+     "name": "Volcanic Mine",
+     "startXp": 737600,
+     "rate": 80000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Volcanic_Mine",
+     "req": "quest:Bone Voyage"
+    }
+   ]
+  },
+  {
+   "skill": "Smithing",
+   "methods": [
+    {
+     "id": "smithing_foundry",
+     "name": "Giants' Foundry",
+     "startXp": 2406,
+     "rate": 80000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Giants'_Foundry",
+     "req": "skillb:Smithing:15"
+    },
+    {
+     "id": "smithing_foundry_high",
+     "name": "Giants' Foundry (high tiers)",
+     "startXp": 273718,
+     "rate": 180000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Giants'_Foundry"
+    },
+    {
+     "id": "smithing_blast_furnace_gold",
+     "name": "Blast Furnace gold (gauntlets)",
+     "startXp": 37209,
+     "rate": 250000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Blast_Furnace",
+     "req": "quest:Family Crest"
+    }
+   ]
+  },
+  {
+   "skill": "Fishing",
+   "methods": [
+    {
+     "id": "fishing_fly_fishing",
+     "name": "Fly fishing (powerfish)",
+     "startXp": 4463,
+     "rate": 28000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing"
+    },
+    {
+     "id": "fishing_barbarian",
+     "name": "Barbarian fishing",
+     "startXp": 224443,
+     "rate": 68000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Barbarian_Fishing",
+     "req": "any:skillb:Agility:30&skillb:Strength:30"
+    },
+    {
+     "id": "fishing_karambwans",
+     "name": "Karambwans (banked cooking)",
+     "startXp": 449403,
+     "rate": 30000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing",
+     "req": "quest:Tai Bwo Wannai Trio"
+    },
+    {
+     "id": "fishing_minnows",
+     "name": "Minnows",
+     "startXp": 2421055,
+     "rate": 48000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Minnow"
+    }
+   ],
+   "bonuses": [
+    {
+     "originSkill": "Fishing",
+     "bonusSkill": "Agility",
+     "startXp": 224443,
+     "endXp": 200000000,
+     "ratio": 0.088
+    },
+    {
+     "originSkill": "Fishing",
+     "bonusSkill": "Strength",
+     "startXp": 224443,
+     "endXp": 200000000,
+     "ratio": 0.088
+    }
+   ]
+  },
+  {
+   "skill": "Cooking",
+   "methods": [
+    {
+     "id": "cooking_trout_salmon",
+     "name": "Trout/salmon",
+     "startXp": 2406,
+     "rate": 45000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Cooking"
+    },
+    {
+     "id": "cooking_karambwans_cook",
+     "name": "Karambwans",
+     "startXp": 449403,
+     "rate": 130000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Cooking",
+     "req": "quest:Tai Bwo Wannai Trio"
+    },
+    {
+     "id": "cooking_jugs_of_wine",
+     "name": "Jugs of wine",
+     "startXp": 605006,
+     "rate": 300000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Cooking"
+    }
+   ]
+  },
+  {
+   "skill": "Firemaking",
+   "methods": [
+    {
+     "id": "firemaking_burn_logs",
+     "name": "Log burning ladder",
+     "startXp": 0,
+     "rate": 40000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Firemaking"
+    },
+    {
+     "id": "firemaking_wintertodt",
+     "name": "Wintertodt",
+     "startXp": 101314,
+     "rate": 200000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Wintertodt"
+    }
+   ]
+  },
+  {
+   "skill": "Woodcutting",
+   "methods": [
+    {
+     "id": "woodcutting_trees_oaks",
+     "name": "Trees and oaks",
+     "startXp": 0,
+     "rate": 30000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Woodcutting"
+    },
+    {
+     "id": "woodcutting_teaks_2t",
+     "name": "Teaks (tick manipulation)",
+     "startXp": 22394,
+     "rate": 120000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Woodcutting"
+    },
+    {
+     "id": "woodcutting_sulliusceps",
+     "name": "Sulliusceps",
+     "startXp": 449403,
+     "rate": 105000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Sulliuscep",
+     "req": "quest:Bone Voyage"
+    },
+    {
+     "id": "woodcutting_redwoods",
+     "name": "Redwoods",
+     "startXp": 5346298,
+     "rate": 60000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Redwood_tree"
+    }
+   ]
+  },
+  {
+   "skill": "Farming",
+   "methods": [
+    {
+     "id": "farming_allotments",
+     "name": "Allotments and low-level runs",
+     "startXp": 0,
+     "rate": 15000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Farming_training"
+    },
+    {
+     "id": "farming_tithe_farm",
+     "name": "Tithe Farm",
+     "startXp": 20212,
+     "rate": 40000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Tithe_Farm"
+    },
+    {
+     "id": "farming_herb_runs",
+     "name": "Herb runs",
+     "startXp": 16444,
+     "rate": 500000,
+     "style": "daily",
+     "source": "oldschool.runescape.wiki/w/Farming_training"
+    },
+    {
+     "id": "farming_tree_runs",
+     "name": "Tree/fruit tree runs",
+     "startXp": 2406,
+     "rate": 900000,
+     "style": "daily",
+     "source": "oldschool.runescape.wiki/w/Farming_training"
+    }
+   ]
+  },
+  {
+   "skill": "Sailing",
+   "methods": [
+    {
+     "id": "sailing_charting",
+     "name": "Sea charting + couriers",
+     "startXp": 0,
+     "rate": 10000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Sailing_training",
+     "req": "quest:Pandemonium"
+    },
+    {
+     "id": "sailing_barracuda_t1",
+     "name": "Barracuda Trials (Tempor Tantrum)",
+     "startXp": 13352,
+     "rate": 22000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Sailing_training",
+     "req": "quest:Pandemonium"
+    },
+    {
+     "id": "sailing_barracuda_t2",
+     "name": "Barracuda Trials (Jubbly Jive)",
+     "startXp": 166614,
+     "rate": 75000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Sailing_training",
+     "req": "quest:Pandemonium"
+    },
+    {
+     "id": "sailing_barracuda_t3",
+     "name": "Barracuda Trials (Gwenith Glide)",
+     "startXp": 899228,
+     "rate": 140000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Sailing_training",
+     "req": "any:quest:Pandemonium&quest:Regicide"
+    }
+   ]
+  }
+ ]
+}

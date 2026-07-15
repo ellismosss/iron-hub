@@ -1,0 +1,73 @@
+{
+	"$schema": "./schemas/effects.schema.json",
+	"source": "curated from ENGINE-DESIGN.md Appendix B §2 (July 2026 progression research); travel factor is a coarse global multiplier by design — per-route pathing is Shortest Path's job",
+	"generated": "2026-07-15",
+	"baseTravelFactor": 1.6,
+	"minTravelFactor": 1.0,
+	"effects": [
+		{
+			"id": "graceful",
+			"name": "Graceful outfit",
+			"active": "item:11850",
+			"travelDelta": 0.1,
+			"note": "run energy regeneration on every errand",
+			"provenance": "oldschool.runescape.wiki/w/Graceful"
+		},
+		{
+			"id": "fairy_rings",
+			"name": "Fairy rings",
+			"active": "queststarted:Fairytale II - Cure a Queen",
+			"travelDelta": 0.25,
+			"note": "near-universal travel network; the single best discount-per-hour unlock",
+			"provenance": "oldschool.runescape.wiki/w/Fairy_ring"
+		},
+		{
+			"id": "spirit_trees",
+			"name": "Spirit trees",
+			"active": "quest:Tree Gnome Village",
+			"travelDelta": 0.05,
+			"note": "gnome network travel",
+			"provenance": "oldschool.runescape.wiki/w/Spirit_tree"
+		},
+		{
+			"id": "gnome_glider",
+			"name": "Gnome gliders",
+			"active": "quest:The Grand Tree",
+			"travelDelta": 0.05,
+			"note": "map-wide glider travel",
+			"provenance": "oldschool.runescape.wiki/w/Gnome_glider"
+		},
+		{
+			"id": "ancient_magicks",
+			"name": "Ancient Magicks teleports",
+			"active": "quest:Desert Treasure I",
+			"travelDelta": 0.05,
+			"note": "spellbook teleports plus burst slayer",
+			"provenance": "oldschool.runescape.wiki/w/Ancient_Magicks"
+		},
+		{
+			"id": "lunar_spellbook",
+			"name": "Lunar spellbook",
+			"active": "quest:Lunar Diplomacy",
+			"travelDelta": 0.05,
+			"note": "utility casts (Fertile Soil, teleports) on farm-shaped errands",
+			"provenance": "oldschool.runescape.wiki/w/Lunar_spellbook"
+		},
+		{
+			"id": "elven_overpass",
+			"name": "Prifddinas access",
+			"active": "quest:Song of the Elves",
+			"travelDelta": 0.05,
+			"note": "teleport crystal + western hub",
+			"provenance": "oldschool.runescape.wiki/w/Prifddinas"
+		},
+		{
+			"id": "dramen_staff",
+			"name": "Lost City access",
+			"active": "quest:Lost City",
+			"travelDelta": 0.05,
+			"note": "dramen staff for the ring network (paired with fairy_rings)",
+			"provenance": "oldschool.runescape.wiki/w/Dramen_staff"
+		}
+	]
+}
