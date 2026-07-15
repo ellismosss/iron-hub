@@ -412,13 +412,21 @@ public class FarmingRunModule implements IronHubModule
 
 	void endRun(boolean complete)
 	{
-		if (running() && complete)
+		boolean wasRunning = running();
+		if (wasRunning && complete)
 		{
 			state.recordHerbRun(System.currentTimeMillis() - runStartMs);
 		}
 		runStartMs = 0;
 		runName = "";
 		stops = List.of();
+		// The overlay's right-click end and the auto-complete both land here
+		// off the tab's own button; refresh the sidebar so it isn't stale.
+		// (recordHerbRun already notifies for a completed run.)
+		if (wasRunning && !complete && tab != null)
+		{
+			SwingUtilities.invokeLater(tab::rebuild);
+		}
 	}
 
 	boolean running()

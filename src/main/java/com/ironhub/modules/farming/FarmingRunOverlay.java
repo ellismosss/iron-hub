@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.util.List;
 import java.util.Locale;
 import java.util.StringJoiner;
+import net.runelite.api.MenuAction;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;
@@ -18,10 +19,12 @@ import net.runelite.client.ui.overlay.components.LineComponent;
  * any teleport items you are not carrying (red), the live patch states at
  * that stop, then the remaining stop checklist. Shown only during a run;
  * display-only ("&gt;" = next, "·" elsewhere — ASCII-safe glyphs).
+ * Right-click ends the run early without opening the sidebar.
  */
 class FarmingRunOverlay extends OverlayPanel
 {
 	private static final int WIDTH = 170; // within the 250×200 budget
+	private static final String MENU_TARGET = "Farm run";
 
 	private final FarmingRunModule module;
 
@@ -29,6 +32,10 @@ class FarmingRunOverlay extends OverlayPanel
 	{
 		this.module = module;
 		setPosition(OverlayPosition.TOP_LEFT);
+		// Only reachable by right-clicking the overlay, which is drawn only
+		// during a run — so the entry can live here unconditionally.
+		addMenuEntry(MenuAction.RUNELITE_OVERLAY, "End run", MENU_TARGET,
+			e -> module.endRun(false)); // client thread; abandoned = not recorded
 	}
 
 	@Override
