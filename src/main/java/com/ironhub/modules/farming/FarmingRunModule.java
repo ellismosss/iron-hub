@@ -597,6 +597,14 @@ public class FarmingRunModule implements IronHubModule
 				return Tab.CALQUAT;
 			case "celastrus":
 				return Tab.CELASTRUS;
+			case "hardwood":
+				return Tab.HARDWOOD;
+			case "bush":
+				return Tab.BUSH;
+			case "allotment":
+				return Tab.ALLOTMENT;
+			case "flower":
+				return Tab.FLOWER;
 			default:
 				return null;
 		}
@@ -625,6 +633,10 @@ public class FarmingRunModule implements IronHubModule
 			case "hops": type = "hops"; break;
 			case "calquat": type = "calquat"; break;
 			case "celastrus": type = "celastrus"; break;
+			case "hardwood": type = "hardwood"; break;
+			case "bush": type = "bush"; break;
+			case "allotment": type = "allotment"; break;
+			case "flower": type = "flower"; break;
 			default: type = "herb";
 		}
 		return stop.location.name + " · " + type;

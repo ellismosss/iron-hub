@@ -162,6 +162,49 @@ public class FarmingRunModuleTest
 	}
 
 	@Test
+	public void hopAndBushRunInterleavesHopsAndBushes()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+		assertTrue(module.templateNames().contains("Hop and bush run"));
+
+		// hops and bushes plant seeds (no sapling list) — never sapling-culled
+		module.startTemplate("Hop and bush run");
+		assertEquals("bush/champions-guild", module.stops().get(0).location.id);
+		assertTrue(module.multiCategory());
+		assertTrue(module.stops().stream().anyMatch(s -> s.location.category.equals("hops")));
+		assertTrue(module.stops().stream().anyMatch(s -> s.location.category.equals("bush")));
+		// Etceteria bush needs the Fremennik Trials — culled for a fresh account
+		assertFalse(module.stops().stream().anyMatch(s -> s.location.id.equals("bush/etceteria")));
+		module.shutDown();
+	}
+
+	@Test
+	public void hardwoodRunGatesOnAccessAndSaplings()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+		assertTrue(module.templateNames().contains("Hardwood tree run"));
+
+		// fresh account: no Fossil Island access and no saplings -> nothing to do
+		module.startTemplate("Hardwood tree run");
+		assertEquals(0, module.stops().size());
+		module.endRun(false);
+
+		// Bone Voyage + teak saplings -> the Fossil Island stop is in; Locus Oasis
+		// still needs Varlamore access, Anglers' Retreat needs its quest/levels
+		StateFixture.quest(state, net.runelite.api.Quest.BONE_VOYAGE,
+			net.runelite.api.QuestState.FINISHED);
+		StateFixture.bank(state, Map.of(21477, 2)); // teak saplings
+		module.startTemplate("Hardwood tree run");
+		assertTrue(module.stops().stream().anyMatch(s -> s.location.id.equals("hardwood/fossil-island")));
+		assertFalse(module.stops().stream().anyMatch(s -> s.location.id.equals("hardwood/locus-oasis")));
+		module.shutDown();
+	}
+
+	@Test
 	public void runIsCulledToOwnedSaplingsAndAwayFromGrowingPatches()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());

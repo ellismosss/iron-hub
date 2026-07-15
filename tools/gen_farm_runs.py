@@ -120,6 +120,7 @@ SAPLINGS = {
               "PLANTPOT_PALM_SAPLING", "PLANTPOT_DRAGONFRUIT_SAPLING"],
     "calquat": ["PLANTPOT_CALQUAT_SAPLING"],
     "celastrus": ["PLANTPOT_CELASTRUS_TREE_SAPLING"],
+    "hardwood": ["PLANTPOT_TEAK_SAPLING", "PLANTPOT_MAHOGANY_SAPLING"],
 }
 
 # Curated additions — calquat / celastrus / specific Varlamore patches the
@@ -158,6 +159,84 @@ CURATED = [
     {"id": "calquat/summer-shore", "category": "calquat", "name": "The Great Conch",
      "point": (3160, 2400, 0), "reqs": ["quest:Children of the Sun", "skill:Farming:72"],
      "teleports": VARLAMORE_TELEPORTS},
+    # Hardwood tree run (Fossil Island / Locus Oasis / Anglers' Retreat).
+    {"id": "hardwood/fossil-island", "category": "hardwood", "name": "Fossil Island",
+     "point": (3702, 3810, 0), "reqs": ["quest:Bone Voyage"],
+     "teleports": [
+         {"id": "Digsite_pendant", "category": "ITEM",
+          "description": "Digsite pendant to Fossil Island.",
+          "supplier": None, "items": [("NECKLACE_OF_DIGSITE_5", 1)]},
+         {"id": "Fairy_Ring", "category": "FAIRY_RING", "description": "Fairy ring, then run.",
+          "supplier": "fairyRing", "items": []},
+         {"id": "None", "category": "NONE",
+          "description": "No teleport - travel there on your own.",
+          "supplier": None, "items": []},
+     ]},
+    {"id": "hardwood/locus-oasis", "category": "hardwood", "name": "Locus Oasis",
+     "point": (1690, 2970, 0), "reqs": ["quest:Children of the Sun"],
+     "teleports": [
+         {"id": "Quetzal_whistle", "category": "ITEM",
+          "description": "Quetzal whistle to the Hunter Guild, then run.",
+          "supplier": None, "items": [("HG_QUETZALWHISTLE_BASIC", 1)]},
+         {"id": "Fairy_Ring", "category": "FAIRY_RING", "description": "Fairy ring ajp, then run.",
+          "supplier": "fairyRing", "items": []},
+         {"id": "None", "category": "NONE",
+          "description": "No teleport - travel there on your own.",
+          "supplier": None, "items": []},
+     ]},
+    {"id": "hardwood/anglers-retreat", "category": "hardwood", "name": "Anglers' Retreat",
+     "point": (2465, 2710, 0),
+     "reqs": ["quest:The Ribbiting Tale of a Lily Pad Labour Dispute",
+              "skill:Construction:50", "skill:Sailing:51"],
+     "teleports": [
+         {"id": "None", "category": "NONE",
+          "description": "Travel via Corsair Cove and use the rowboat.",
+          "supplier": None, "items": []},
+     ]},
+    # Bush patches for the Hop and bush run (hops patches already exist).
+    {"id": "bush/champions-guild", "category": "bush", "name": "Champions' Guild",
+     "point": (3182, 3357, 0), "reqs": [],
+     "teleports": [
+         {"id": "Chronicle", "category": "ITEM",
+          "description": "Chronicle teleport to the Champions' Guild.",
+          "supplier": None, "items": [("CHRONICLE", 1)]},
+         {"id": "Combat_bracelet", "category": "ITEM",
+          "description": "Combat bracelet to the Champions' Guild.",
+          "supplier": None, "items": [("JEWL_BRACELET_OF_COMBAT", 1)]},
+         {"id": "None", "category": "NONE",
+          "description": "No teleport - travel there on your own.",
+          "supplier": None, "items": []},
+     ]},
+    {"id": "bush/ardougne-monastery", "category": "bush", "name": "Ardougne Monastery",
+     "point": (2612, 3226, 0), "reqs": [], "copy": "herb/ardougne"},
+    {"id": "bush/etceteria", "category": "bush", "name": "Etceteria",
+     "point": (2612, 3872, 0), "reqs": ["quest:The Fremennik Trials"],
+     "teleports": [
+         {"id": "Ring_of_Wealth", "category": "ITEM",
+          "description": "Ring of wealth to Miscellania, run north-east.",
+          "supplier": None, "items": [("RING_OF_WEALTH", 1)]},
+         {"id": "Fairy_Ring", "category": "FAIRY_RING",
+          "description": "Fairy ring cip, then run east.",
+          "supplier": "fairyRing", "items": []},
+         {"id": "None", "category": "NONE",
+          "description": "No teleport - travel there on your own.",
+          "supplier": None, "items": []},
+     ]},
+    {"id": "bush/farming-guild", "category": "bush", "name": "Farming Guild",
+     "point": (1232, 3736, 0), "reqs": ["skill:Farming:45"], "copy": "tree/farming-guild"},
+    {"id": "bush/rimmington", "category": "bush", "name": "Rimmington",
+     "point": (2938, 3212, 0), "reqs": [],
+     "teleports": [
+         {"id": "Portal_Nexus", "category": "PORTAL_NEXUS",
+          "description": "House portal redirected to Rimmington.",
+          "supplier": "house", "items": []},
+         {"id": "Rimmington_Tele_Tab", "category": "ITEM",
+          "description": "Rimmington teleport tablet.",
+          "supplier": None, "items": [("NZONE_TELETAB_RIMMINGTON", 1)]},
+         {"id": "None", "category": "NONE",
+          "description": "No teleport - travel there on your own.",
+          "supplier": None, "items": []},
+     ]},
 ]
 
 # Named curated routes (ordered location ids) — the "one plan" runs that cross
@@ -197,6 +276,16 @@ ROUTES = {
         "fruit/catherby", "fruit/brimhaven", "calquat/tai-bwo-wannai",
         "fruit/lletya", "fruit/kastori", "calquat/kastori", "tree/auburnvale",
         "calquat/summer-shore",
+    ],
+    # Wiki "Hardwood tree run": Fossil Island, Locus Oasis, Anglers' Retreat.
+    "Hardwood tree run": [
+        "hardwood/fossil-island", "hardwood/locus-oasis", "hardwood/anglers-retreat",
+    ],
+    # Wiki "Hop and bush run" — interleaved hop and bush patches in route order.
+    "Hop and bush run": [
+        "bush/champions-guild", "hops/lumbridge", "bush/ardougne-monastery",
+        "hops/seers-village", "hops/aldarin", "bush/etceteria", "hops/yanille",
+        "bush/farming-guild", "bush/rimmington", "hops/entrana",
     ],
 }
 

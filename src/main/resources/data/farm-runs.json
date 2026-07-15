@@ -2122,6 +2122,394 @@
      "items": []
     }
    ]
+  },
+  {
+   "id": "hardwood/fossil-island",
+   "category": "hardwood",
+   "name": "Fossil Island",
+   "point": {
+    "x": 3702,
+    "y": 3810,
+    "plane": 0
+   },
+   "reqs": [
+    "quest:Bone Voyage"
+   ],
+   "teleports": [
+    {
+     "id": "Digsite_pendant",
+     "category": "ITEM",
+     "description": "Digsite pendant to Fossil Island.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 11194,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Fairy_Ring",
+     "category": "FAIRY_RING",
+     "description": "Fairy ring, then run.",
+     "supplier": "fairyRing",
+     "items": []
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "hardwood/locus-oasis",
+   "category": "hardwood",
+   "name": "Locus Oasis",
+   "point": {
+    "x": 1690,
+    "y": 2970,
+    "plane": 0
+   },
+   "reqs": [
+    "quest:Children of the Sun"
+   ],
+   "teleports": [
+    {
+     "id": "Quetzal_whistle",
+     "category": "ITEM",
+     "description": "Quetzal whistle to the Hunter Guild, then run.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 29271,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Fairy_Ring",
+     "category": "FAIRY_RING",
+     "description": "Fairy ring ajp, then run.",
+     "supplier": "fairyRing",
+     "items": []
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "hardwood/anglers-retreat",
+   "category": "hardwood",
+   "name": "Anglers' Retreat",
+   "point": {
+    "x": 2465,
+    "y": 2710,
+    "plane": 0
+   },
+   "reqs": [
+    "quest:The Ribbiting Tale of a Lily Pad Labour Dispute",
+    "skill:Construction:50",
+    "skill:Sailing:51"
+   ],
+   "teleports": [
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "Travel via Corsair Cove and use the rowboat.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "bush/champions-guild",
+   "category": "bush",
+   "name": "Champions' Guild",
+   "point": {
+    "x": 3182,
+    "y": 3357,
+    "plane": 0
+   },
+   "reqs": [],
+   "teleports": [
+    {
+     "id": "Chronicle",
+     "category": "ITEM",
+     "description": "Chronicle teleport to the Champions' Guild.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 13660,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Combat_bracelet",
+     "category": "ITEM",
+     "description": "Combat bracelet to the Champions' Guild.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 11126,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "bush/ardougne-monastery",
+   "category": "bush",
+   "name": "Ardougne Monastery",
+   "point": {
+    "x": 2612,
+    "y": 3226,
+    "plane": 0
+   },
+   "reqs": [],
+   "teleports": [
+    {
+     "id": "Portal_Nexus",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Ardougne with Portal Nexus, and run north.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Ardougne_teleport",
+     "category": "SPELLBOOK",
+     "description": "Teleport to Ardougne with standard spellbook, and run north.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 563,
+       "qty": 2
+      },
+      {
+       "itemId": 555,
+       "qty": 2
+      }
+     ]
+    },
+    {
+     "id": "Ardougne_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Ardougne with Ardougne tele tab, and run north.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 8011,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Ardy_cloak",
+     "category": "ITEM",
+     "description": "Teleport to Ardougne Farm with Ardougne cloak.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 13122,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Skills_Necklace",
+     "category": "ITEM",
+     "description": "Teleport to Fishing guild with Skills necklace, and run east.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 11111,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Fishing_Skillcape",
+     "category": "ITEM",
+     "description": "Teleport to Fishing Guild with Fishing skillcape, and run east to the Ardougne herb patch.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 9798,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "bush/etceteria",
+   "category": "bush",
+   "name": "Etceteria",
+   "point": {
+    "x": 2612,
+    "y": 3872,
+    "plane": 0
+   },
+   "reqs": [
+    "quest:The Fremennik Trials"
+   ],
+   "teleports": [
+    {
+     "id": "Ring_of_Wealth",
+     "category": "ITEM",
+     "description": "Ring of wealth to Miscellania, run north-east.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 2572,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Fairy_Ring",
+     "category": "FAIRY_RING",
+     "description": "Fairy ring cip, then run east.",
+     "supplier": "fairyRing",
+     "items": []
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "bush/farming-guild",
+   "category": "bush",
+   "name": "Farming Guild",
+   "point": {
+    "x": 1232,
+    "y": 3736,
+    "plane": 0
+   },
+   "reqs": [
+    "skill:Farming:45"
+   ],
+   "teleports": [
+    {
+     "id": "Jewellery_box",
+     "category": "JEWELLERY_BOX",
+     "description": "Teleport to Farming Guild with Jewellery box.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Skills_Necklace",
+     "category": "ITEM",
+     "description": "Teleport to Farming guild using Skills necklace.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 11111,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Spirit_Tree",
+     "category": "SPIRIT_TREE",
+     "description": "Use a Spirit Tree and teleport to the Farming Guild.",
+     "supplier": null,
+     "items": []
+    },
+    {
+     "id": "Fairy_Ring",
+     "category": "FAIRY_RING",
+     "description": "Use a Fairy Ring (CIR) to teleport near the Farming Guild.",
+     "supplier": "fairyRing",
+     "items": []
+    },
+    {
+     "id": "Farming_Skillcape",
+     "category": "ITEM",
+     "description": "Teleport to Farming Guild using Farming skillcape.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 9810,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "bush/rimmington",
+   "category": "bush",
+   "name": "Rimmington",
+   "point": {
+    "x": 2938,
+    "y": 3212,
+    "plane": 0
+   },
+   "reqs": [],
+   "teleports": [
+    {
+     "id": "Portal_Nexus",
+     "category": "PORTAL_NEXUS",
+     "description": "House portal redirected to Rimmington.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Rimmington_Tele_Tab",
+     "category": "ITEM",
+     "description": "Rimmington teleport tablet.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 11741,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
   }
  ],
  "saplings": {
@@ -2147,6 +2535,10 @@
   ],
   "celastrus": [
    22856
+  ],
+  "hardwood": [
+   21477,
+   21480
   ]
  },
  "routes": {
@@ -2202,6 +2594,23 @@
    "calquat/kastori",
    "tree/auburnvale",
    "calquat/summer-shore"
+  ],
+  "Hardwood tree run": [
+   "hardwood/fossil-island",
+   "hardwood/locus-oasis",
+   "hardwood/anglers-retreat"
+  ],
+  "Hop and bush run": [
+   "bush/champions-guild",
+   "hops/lumbridge",
+   "bush/ardougne-monastery",
+   "hops/seers-village",
+   "hops/aldarin",
+   "bush/etceteria",
+   "hops/yanille",
+   "bush/farming-guild",
+   "bush/rimmington",
+   "hops/entrana"
   ]
  }
 }

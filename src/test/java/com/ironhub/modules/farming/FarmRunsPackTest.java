@@ -22,13 +22,17 @@ import static org.junit.Assert.assertTrue;
  */
 public class FarmRunsPackTest
 {
-	private static final Map<String, PatchImplementation> CATEGORY_IMPLEMENTATIONS = Map.of(
-		"herb", PatchImplementation.HERB,
-		"tree", PatchImplementation.TREE,
-		"fruit", PatchImplementation.FRUIT_TREE,
-		"hops", PatchImplementation.HOPS,
-		"calquat", PatchImplementation.CALQUAT,
-		"celastrus", PatchImplementation.CELASTRUS);
+	private static final Map<String, PatchImplementation> CATEGORY_IMPLEMENTATIONS = Map.ofEntries(
+		Map.entry("herb", PatchImplementation.HERB),
+		Map.entry("tree", PatchImplementation.TREE),
+		Map.entry("fruit", PatchImplementation.FRUIT_TREE),
+		Map.entry("hops", PatchImplementation.HOPS),
+		Map.entry("calquat", PatchImplementation.CALQUAT),
+		Map.entry("celastrus", PatchImplementation.CELASTRUS),
+		Map.entry("hardwood", PatchImplementation.HARDWOOD_TREE),
+		Map.entry("bush", PatchImplementation.BUSH),
+		Map.entry("allotment", PatchImplementation.ALLOTMENT),
+		Map.entry("flower", PatchImplementation.FLOWER));
 
 	@Test
 	public void everyStopSitsOnARegionWithItsPatch()
