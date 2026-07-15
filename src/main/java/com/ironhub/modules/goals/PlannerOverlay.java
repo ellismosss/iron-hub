@@ -37,8 +37,7 @@ class PlannerOverlay extends OverlayPanel
 	private final IronHubConfig config;
 
 	// render-thread bookkeeping (all reads/writes on the client thread)
-	private String lastHeadId;
-	private String lastHeadName;
+	private Action lastHead;
 	private long anchorXpRemaining;
 	private long flashUntilMs;
 	private String completedName;
@@ -147,24 +146,49 @@ class PlannerOverlay extends OverlayPanel
 		return super.render(graphics);
 	}
 
-	/** Detect head changes; a vanished old head means it completed → flash. */
+	/**
+	 * Detect head changes. A vanished old head flashes green only when the
+	 * account really satisfies it — a head also vanishes when its goal is
+	 * removed, and that must never read as "Done".
+	 */
 	private void trackHead(Plan plan, Plan.Step head, long now)
 	{
 		String headId = head == null ? null : head.action.id;
-		if (java.util.Objects.equals(headId, lastHeadId))
+		if (java.util.Objects.equals(headId, lastHead == null ? null : lastHead.id))
 		{
 			return;
 		}
-		if (lastHeadId != null && (plan == null || plan.steps.stream()
-			.noneMatch(s -> s.action.id.equals(lastHeadId))))
+		if (lastHead != null
+			&& (plan == null || plan.steps.stream().noneMatch(s -> s.action.id.equals(lastHead.id)))
+			&& satisfied(lastHead))
 		{
-			completedName = lastHeadName;
+			completedName = lastHead.name;
 			flashUntilMs = now + FLASH_MS;
 		}
-		lastHeadId = headId;
-		lastHeadName = head == null ? null : head.action.name;
+		lastHead = head == null ? null : head.action;
 		anchorXpRemaining = head != null && head.action.kind == Action.Kind.TRAIN
 			? head.trainXpRemaining : 0;
+	}
+
+	/** Does the live account satisfy this action's outcome? */
+	private boolean satisfied(Action action)
+	{
+		switch (action.kind)
+		{
+			case TRAIN:
+				return state.getRealLevel(action.trainSkill) >= action.trainToLevel;
+			case QUEST:
+				return com.ironhub.requirements.Requirements.parse(
+					(action.startOnly ? "queststarted:" : "quest:") + action.questName).isMet(state);
+			case KILL:
+				return state.getKillCount(action.kcSource) >= action.kcTarget;
+			case OBTAIN:
+				return action.itemId > 0 && state.canonicalStock(action.itemId) > 0;
+			case MANUAL:
+				return action.unlockKey != null && state.isUnlocked(action.unlockKey);
+			default:
+				return false;
+		}
 	}
 
 	/** "Mark done" only appears while the head is a manual step. */

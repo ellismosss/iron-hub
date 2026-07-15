@@ -133,6 +133,64 @@ public class PlannerOverlayTest
 	}
 
 	@Test
+	public void removingAGoalNeverFlashesDone() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 24L);
+		state.addCustomGoal("custom:skill:agility:5", "Agility 5", "skill:Agility:5");
+		GoalPlannerModule module = module(state);
+		waitForSteps(module);
+
+		PlannerOverlay overlay = new PlannerOverlay(module, state, new IronHubConfig()
+		{
+		});
+		BufferedImage image = new BufferedImage(300, 240, BufferedImage.TYPE_INT_ARGB);
+		assertNotNull(render(overlay, image)); // head registered
+
+		GoalPlannerModule.removeGoal(state, "custom:skill:agility:5");
+		waitForEmptyPlan(module);
+		// head vanished but was NOT completed — no flash, overlay hides
+		assertNull(render(overlay, image));
+		module.shutDown();
+	}
+
+	@Test
+	public void completingTheHeadFlashesDone() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 25L);
+		state.addCustomGoal("custom:skill:agility:5", "Agility 5", "skill:Agility:5");
+		GoalPlannerModule module = module(state);
+		waitForSteps(module);
+
+		PlannerOverlay overlay = new PlannerOverlay(module, state, new IronHubConfig()
+		{
+		});
+		BufferedImage image = new BufferedImage(300, 240, BufferedImage.TYPE_INT_ARGB);
+		assertNotNull(render(overlay, image)); // head registered
+
+		StateFixture.stat(state, Skill.AGILITY, 5, Experience.getXpForLevel(5));
+		waitForEmptyPlan(module);
+		// the head really completed — the green Done flash renders alone
+		assertNotNull(render(overlay, image));
+		module.shutDown();
+	}
+
+	private static void waitForEmptyPlan(GoalPlannerModule module) throws InterruptedException
+	{
+		for (int i = 0; i < 50; i++)
+		{
+			com.ironhub.engine.Plan plan = module.currentPlan();
+			if (plan != null && plan.steps.isEmpty())
+			{
+				return;
+			}
+			Thread.sleep(100);
+		}
+		throw new AssertionError("plan never emptied");
+	}
+
+	@Test
 	public void liveMathIsHonest()
 	{
 		// TRAIN with a rate: banked-aware xp over rate
