@@ -274,3 +274,24 @@ Farm-run stop coordinates and teleport tables come from Easy Farming
 vendored FarmingWorld by the stop's region, because the source plugin's
 own labels overclaim (its catalog marks flower/allotment at herb-only
 spots like Weiss).
+
+**Farm-run patch unlock requirements** (data/farm-runs.json `reqs`, curated
+from the wiki — Easy Farming does NOT encode them; its "requirements" are
+teleport-item requirements). Verified: Harmony Island's herb patch needs
+the **Elite Morytania Diary** (not a quest — the island is reachable via
+The Great Brain Robbery, but the *patches* are diary-locked); Troll
+Stronghold = My Arm's Big Adventure; Weiss = Making Friends with My Arm;
+Farming Guild herb/tree = 65 Farming, fruit tree = 85; Morytania/Canifis =
+Priest in Peril started; Civitas/Nemus/Kastori/Aldarin = Children of the Sun
+(Varlamore); Lletya = Mourning's End Part I started. Quest tokens are
+validated against the RuneLite Quest enum at generation.
+
+**Advancing a run stop** (matches Easy Farming's FarmingStepHandler): a
+stop is done once the patch is PLANTED — its crop state reads GROWING via
+the vendored predictor — and, for herb/hops, COMPOSTED. Compost has no
+varbit; it's detected from the chat message "You treat the … with
+(ultra|super|)compost." (the core CompostTracker's pattern), attributed to
+the current stop by the player's region. Trees/fruit trees take no compost
+(pay the farmer instead), so they advance on planted alone. Never advance
+on mere arrival/proximity — that both fires too early and can skip a patch
+you pass near, desyncing the guide from Shortest Path.
