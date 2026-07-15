@@ -14,17 +14,23 @@ public class Plan
 	{
 		public final String methodId;
 		public final String name;
+		public final double hours;      // this method's total for the step
 		public final double deltaHours; // vs the chosen method (+slower)
 		public final String style;
 		public final int rate; // xp/hr
+		/** Materials this alternative would consume (may be empty). */
+		public final List<Resource> resources;
 
-		public Alternative(String methodId, String name, double deltaHours, String style, int rate)
+		public Alternative(String methodId, String name, double hours, double deltaHours,
+			String style, int rate, List<Resource> resources)
 		{
 			this.methodId = methodId;
 			this.name = name;
+			this.hours = hours;
 			this.deltaHours = deltaHours;
 			this.style = style;
 			this.rate = rate;
+			this.resources = resources;
 		}
 	}
 

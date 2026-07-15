@@ -15,6 +15,7 @@ public class EnginePacks
 	public final MethodsPack methods;
 	public final EffectsPack effects;
 	public final GearProgressionPack gear;
+	public final com.ironhub.data.BoostsPack boosts;
 
 	private final Map<String, QuestsPack.QuestEntry> questByName = new HashMap<>();
 	private final Map<Integer, GearProgressionPack.Item> gearByCanonicalId = new HashMap<>();
@@ -23,10 +24,17 @@ public class EnginePacks
 	public EnginePacks(QuestsPack quests, MethodsPack methods, EffectsPack effects,
 		GearProgressionPack gear)
 	{
+		this(quests, methods, effects, gear, null);
+	}
+
+	public EnginePacks(QuestsPack quests, MethodsPack methods, EffectsPack effects,
+		GearProgressionPack gear, com.ironhub.data.BoostsPack boosts)
+	{
 		this.quests = quests;
 		this.methods = methods;
 		this.effects = effects;
 		this.gear = gear;
+		this.boosts = boosts;
 		if (quests != null)
 		{
 			quests.quests.forEach(q -> questByName.put(normalize(q.name), q));

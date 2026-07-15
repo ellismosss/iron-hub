@@ -733,6 +733,9 @@ class PlannerTab extends JPanel
 				text.setForeground(UiTokens.TEXT_BODY);
 				text.setFont(text.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
 				text.setMinimumSize(new Dimension(0, 0));
+				String hover = alternativeHover(alt);
+				text.setToolTipText(hover);
+				row.setToolTipText(hover);
 				row.add(text);
 				row.add(Box.createHorizontalGlue());
 				JLabel prefer = new JLabel("prefer");
@@ -907,7 +910,9 @@ class PlannerTab extends JPanel
 			}
 			if (candidates.isEmpty())
 			{
-				addResults.add(mutedNote("No matches. Try \"agility 70\" or an item name."));
+				String hint = skillHint(q);
+				addResults.add(mutedNote(hint != null ? hint
+					: "No matches. Try \"agility 70\", an item, or a goal name."));
 			}
 		}
 		addResults.revalidate();
@@ -917,7 +922,8 @@ class PlannerTab extends JPanel
 	private List<GoalsPack.Goal> searchCandidates(String q)
 	{
 		List<GoalsPack.Goal> out = new ArrayList<>();
-		// "skill level" form → a custom skill-target goal
+		// "skill level" form → a custom skill-target goal (real level: the
+		// player asked for the level itself, boosts don't satisfy it)
 		java.util.regex.Matcher m = java.util.regex.Pattern
 			.compile("([a-z]+)\\s+(\\d{1,2})").matcher(q);
 		if (m.matches())
@@ -930,17 +936,20 @@ class PlannerTab extends JPanel
 					if (level >= 2 && level <= 99)
 					{
 						GoalsPack.Goal goal = new GoalsPack.Goal();
-						goal.setId("skill:" + skill.getName().toLowerCase(Locale.ROOT) + ":" + level);
+						goal.setId("custom:skill:" + skill.getName().toLowerCase(Locale.ROOT)
+							+ ":" + level);
 						goal.setName(skill.getName() + " " + level);
 						GoalsPack.Step step = new GoalsPack.Step();
 						step.setLabel(skill.getName() + " to " + level);
-						step.setRequirement("skillb:" + skill.getName() + ":" + level);
+						step.setRequirement("skill:" + skill.getName() + ":" + level);
 						goal.setSteps(List.of(step));
+						goal.setAchieved(List.of("skill:" + skill.getName() + ":" + level));
 						out.add(goal);
 					}
 				}
 			}
 		}
+		// pack goals + already-tracked synthetics not yet selected
 		for (GoalsPack.Goal goal : GoalPlannerModule.allGoals(modulePack(), moduleGear(), state))
 		{
 			if (out.size() >= 6)
@@ -953,7 +962,41 @@ class PlannerTab extends JPanel
 				out.add(goal);
 			}
 		}
+		// every gear-chart item is searchable, selected or not
+		for (com.ironhub.data.GearProgressionPack.Phase phase : moduleGear().getPhases())
+		{
+			for (com.ironhub.data.GearProgressionPack.Group group : phase.getGroups())
+			{
+				for (com.ironhub.data.GearProgressionPack.Item item : group.getItems())
+				{
+					if (out.size() >= 8)
+					{
+						return out;
+					}
+					if (!state.getSelectedGoals().contains(item.goalId())
+						&& item.getName().toLowerCase(Locale.ROOT).contains(q)
+						&& out.stream().noneMatch(g -> g.getId().equals(item.goalId())))
+					{
+						out.add(GoalPlannerModule.toGoal(item));
+					}
+				}
+			}
+		}
 		return out;
+	}
+
+	/** A bare skill name typed alone → nudge toward the "skill level" form. */
+	private String skillHint(String q)
+	{
+		for (Skill skill : Skill.values())
+		{
+			if (skill.getName().toLowerCase(Locale.ROOT).startsWith(q))
+			{
+				return "Add a level, e.g. \"" + skill.getName().toLowerCase(Locale.ROOT)
+					+ " 70\"";
+			}
+		}
+		return null;
 	}
 
 	private JComponent candidateRow(GoalsPack.Goal candidate)
@@ -1066,7 +1109,15 @@ class PlannerTab extends JPanel
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
-				state.selectGoal(candidate.getId(), true);
+				if (candidate.getId().startsWith("custom:"))
+				{
+					state.addCustomGoal(candidate.getId(), candidate.getName(),
+						candidate.getSteps().get(0).getRequirement());
+				}
+				else
+				{
+					state.selectGoal(candidate.getId(), true);
+				}
 				previewCandidate = null;
 				preview = null;
 				addSearch.setText("");
@@ -1148,6 +1199,29 @@ class PlannerTab extends JPanel
 			names.add(plan != null ? plan.goalNames.getOrDefault(id, id) : id);
 		}
 		return String.join(", ", names);
+	}
+
+	/** Hover card for an alternative: the full method picture, resources
+	 * included, so switching is an informed choice before "prefer". */
+	private String alternativeHover(Plan.Alternative alt)
+	{
+		StringBuilder html = new StringBuilder("<html><b>").append(alt.name).append("</b>");
+		html.append("<br>").append(compactXp(alt.rate)).append(" xp/hr · ").append(alt.style);
+		html.append("<br>").append(timeText(alt.hours)).append(" total (")
+			.append(alt.deltaHours >= 0 ? "+" : "-")
+			.append(String.format(Locale.ROOT, "%.1fh", Math.abs(alt.deltaHours)))
+			.append(" vs suggested)");
+		for (Plan.Resource resource : alt.resources)
+		{
+			html.append("<br>").append(resource.name).append(" \u00d7")
+				.append(formatCount(resource.needed)).append(" — ")
+				.append(resource.missing == 0
+					? formatCount(resource.banked) + " banked, covered"
+					: formatCount(resource.banked) + " banked, "
+						+ formatCount(resource.missing) + " short");
+		}
+		html.append("<br><i>click prefer to use this method</i></html>");
+		return html.toString();
 	}
 
 	private static JComponent mutedNote(String text)

@@ -295,7 +295,7 @@ public class Router
 			// count as banked xp, so crediting them again would double-count
 			long grossRemaining = Math.max(0, targetXp - projection.getXp(node.trainSkill));
 			resources = resources(method, grossRemaining);
-			alternatives = alternatives(node, projection, bankRemaining, method);
+			alternatives = alternatives(node, projection, bankRemaining, method, grossRemaining);
 		}
 		String why = why(node, projection, hours);
 		applyEffects(node, projection, bankRemaining);
@@ -419,7 +419,7 @@ public class Router
 	}
 
 	private List<Plan.Alternative> alternatives(Action node, ProjectedState projection,
-		Map<Skill, Long> bankRemaining, MethodsPack.Method chosen)
+		Map<Skill, Long> bankRemaining, MethodsPack.Method chosen, long grossRemaining)
 	{
 		MethodsPack.SkillLadder ladder = packs.methods.ladder(node.trainSkill);
 		if (ladder == null || chosen == null)
@@ -443,8 +443,9 @@ public class Router
 				constraints.bannedMethods, forced);
 			if (!Double.isNaN(hours) && !Double.isNaN(chosenHours))
 			{
-				out.add(new Plan.Alternative(method.id, method.name, hours - chosenHours,
-					method.style, method.rate));
+				out.add(new Plan.Alternative(method.id, method.name, hours,
+					hours - chosenHours, method.style, method.rate,
+					resources(method, grossRemaining)));
 			}
 		}
 		out.sort(Comparator.comparingDouble(a -> a.deltaHours));

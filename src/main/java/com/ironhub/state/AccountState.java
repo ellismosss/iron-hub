@@ -104,6 +104,7 @@ public class AccountState implements StateView
 	private final Map<String, String> plannerPreferred = new ConcurrentHashMap<>();
 	private volatile double lastPlanHours;
 	private volatile boolean plannerRouteChapters;
+	private final Map<String, PersistedState.CustomGoal> customGoals = new ConcurrentHashMap<>();
 
 	/** Recent deaths, oldest first, capped. */
 	public static final int MAX_DEATHS = 10;
@@ -695,6 +696,44 @@ public class AccountState implements StateView
 		notifyListeners();
 	}
 
+	/** Custom (user-typed) goal seeds for the goal planner. */
+	public Map<String, PersistedState.CustomGoal> getCustomGoals()
+	{
+		return java.util.Collections.unmodifiableMap(customGoals);
+	}
+
+	/** Add a user-typed goal (id "custom:...") to the planner. */
+	public void addCustomGoal(String goalId, String name, String req)
+	{
+		PersistedState.CustomGoal seed = new PersistedState.CustomGoal();
+		seed.name = name;
+		seed.req = req;
+		customGoals.put(goalId, seed);
+		if (selectedGoals.contains(goalId))
+		{
+			persist();
+			notifyListeners();
+		}
+		else
+		{
+			selectGoal(goalId, true); // persists + notifies
+		}
+	}
+
+	public void removeCustomGoal(String goalId)
+	{
+		customGoals.remove(goalId);
+		if (selectedGoals.contains(goalId))
+		{
+			selectGoal(goalId, false); // persists + notifies
+		}
+		else
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
 	/** Route view layout: chapter headers on, or pure execution order. */
 	public boolean isPlannerRouteChapters()
 	{
@@ -1140,6 +1179,8 @@ public class AccountState implements StateView
 		plannerPreferred.putAll(persisted.plannerPreferred);
 		lastPlanHours = persisted.lastPlanHours;
 		plannerRouteChapters = persisted.plannerRouteChapters;
+		customGoals.clear();
+		customGoals.putAll(persisted.customGoals);
 		scoreSnapshots.clear();
 		scoreSnapshots.addAll(persisted.scoreSnapshots);
 		collectionLogSlots = persisted.collectionLogSlots;
@@ -1180,6 +1221,7 @@ public class AccountState implements StateView
 		state.plannerPreferred = new HashMap<>(plannerPreferred);
 		state.lastPlanHours = lastPlanHours;
 		state.plannerRouteChapters = plannerRouteChapters;
+		state.customGoals = new HashMap<>(customGoals);
 		state.scoreSnapshots = new java.util.ArrayList<>(scoreSnapshots);
 		state.collectionLogSlots = collectionLogSlots;
 		state.collectionLogTotal = collectionLogTotal;

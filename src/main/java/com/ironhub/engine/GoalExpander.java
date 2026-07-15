@@ -28,11 +28,15 @@ public class GoalExpander
 	private final StateView state;
 	private final EnginePacks packs;
 	private final ActionDag dag = new ActionDag();
+	/** Usable temporary boost headroom per skill (crystal saw, stews…). */
+	private final java.util.Map<Skill, Integer> boosts;
 
 	private GoalExpander(StateView state, EnginePacks packs)
 	{
 		this.state = state;
 		this.packs = packs;
+		this.boosts = packs.boosts == null ? java.util.Map.of()
+			: com.ironhub.requirements.Boosts.available(packs.boosts, state);
 	}
 
 	public static ActionDag expand(List<GoalsPack.Goal> goals, StateView state, EnginePacks packs)
@@ -59,7 +63,7 @@ public class GoalExpander
 			boolean manual = Requirements.isManual(Requirements.parse(req));
 			boolean met = manual
 				? state.isUnlocked("goalstep:" + goal.getId() + ":" + i)
-				: Requirements.parse(req).isMet(state);
+				: Requirements.parse(req).isMetWithBoosts(state, boosts);
 			if (met)
 			{
 				continue;
@@ -100,9 +104,12 @@ public class GoalExpander
 		switch (parts[0].toLowerCase(Locale.ROOT))
 		{
 			case "skill":
+				addTrain(Skill.valueOf(parts[1].toUpperCase(Locale.ROOT)),
+					Integer.parseInt(parts[2]), false, goalId, out);
+				break;
 			case "skillb":
 				addTrain(Skill.valueOf(parts[1].toUpperCase(Locale.ROOT)),
-					Integer.parseInt(parts[2]), goalId, out);
+					Integer.parseInt(parts[2]), true, goalId, out);
 				break;
 			case "quest":
 				addQuest(req.substring("quest:".length()), false, goalId, out);
@@ -131,22 +138,31 @@ public class GoalExpander
 		return out;
 	}
 
-	private void addTrain(Skill skill, int level, String goalId, Set<String> out)
+	private void addTrain(Skill skill, int level, boolean boostable, String goalId, Set<String> out)
 	{
-		if (state.getRealLevel(skill) >= level)
+		// boostable gates train only to (level - headroom): nobody trains
+		// Construction to 91 for the jewellery box when saw+stew cover +8 —
+		// the same semantics the gear chart's boost-ready state uses
+		int target = level;
+		if (boostable)
+		{
+			target = Math.max(1, level - boosts.getOrDefault(skill, 0));
+		}
+		if (state.getRealLevel(skill) >= target)
 		{
 			return;
 		}
 		// one node per demanded level: a quest needing 25 Ranged must not
 		// wait on another goal's 60 — levels chain in a post-pass instead
-		String id = "train:" + skill.getName() + ":" + level;
+		String id = "train:" + skill.getName() + ":" + target;
 		Action node = dag.get(id);
 		if (node == null)
 		{
 			node = dag.getOrAdd(new Action(id, Action.Kind.TRAIN,
-				skill.getName() + " to " + level));
+				skill.getName() + " to " + target
+					+ (target < level ? " (boost to " + level + ")" : "")));
 			node.trainSkill = skill;
-			node.trainToLevel = level;
+			node.trainToLevel = target;
 		}
 		node.neededBy.add(goalId);
 		out.add(id);

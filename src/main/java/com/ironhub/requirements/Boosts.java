@@ -1,7 +1,7 @@
 package com.ironhub.requirements;
 
 import com.ironhub.data.BoostsPack;
-import com.ironhub.state.AccountState;
+import com.ironhub.state.StateView;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -23,7 +23,7 @@ public final class Boosts
 	}
 
 	/** Max usable boost per skill given the account's available sources. */
-	public static Map<Skill, Integer> available(BoostsPack pack, AccountState state)
+	public static Map<Skill, Integer> available(BoostsPack pack, StateView state)
 	{
 		Map<Skill, Integer> visible = new EnumMap<>(Skill.class);
 		Map<Skill, Integer> invisible = new EnumMap<>(Skill.class);
@@ -47,7 +47,7 @@ public final class Boosts
 	}
 
 	/** Names of the available sources that boost a skill (tooltips). */
-	public static List<String> describe(BoostsPack pack, AccountState state, Skill skill)
+	public static List<String> describe(BoostsPack pack, StateView state, Skill skill)
 	{
 		List<String> names = new ArrayList<>();
 		for (BoostsPack.Boost boost : pack.getBoosts())

@@ -36,7 +36,8 @@ public class GoalExpanderTest
 			dataPack.load("quests", QuestsPack.class),
 			dataPack.load("methods", MethodsPack.class),
 			dataPack.load("effects", EffectsPack.class),
-			dataPack.load("gear-progression", GearProgressionPack.class));
+			dataPack.load("gear-progression", GearProgressionPack.class),
+			dataPack.load("boosts", com.ironhub.data.BoostsPack.class));
 	}
 
 	private static GoalsPack.Goal goal(String id, String... reqs)
@@ -136,6 +137,35 @@ public class GoalExpanderTest
 		assertEquals("goalstep:bowfa:1", manual.unlockKey);
 		// checklist order: the shard grind waits on SotE
 		assertTrue(manual.dependsOn.contains("quest:Song of the Elves"));
+	}
+
+	@Test
+	public void boostableGatesTrainOnlyToTheBoostedLevel()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.stat(state, Skill.CONSTRUCTION, 80, Experience.getXpForLevel(80));
+		// crystal saw (+3, item-gated) + spicy stew (+5, Evil Dave quest)
+		StateFixture.bank(state, java.util.Map.of(9625, 1));
+		StateFixture.quest(state, Quest.RECIPE_FOR_DISASTER__EVIL_DAVE, QuestState.FINISHED);
+
+		// the ornate jewellery box case: nobody trains to 91 with saw+stew
+		ActionDag dag = GoalExpander.expand(List.of(
+			goal("box", "skillb:Construction:91")), state, packs());
+		assertNull(dag.get("train:Construction:91"));
+		Action boosted = dag.get("train:Construction:83");
+		assertNotNull("expected a train-to-83 node: 91 - saw(3) - stew(5)", boosted);
+		assertTrue(boosted.name.contains("boost to 91"));
+
+		// already at 83: nothing to train at all
+		StateFixture.stat(state, Skill.CONSTRUCTION, 83, Experience.getXpForLevel(83));
+		ActionDag met = GoalExpander.expand(List.of(
+			goal("box", "skillb:Construction:91")), state, packs());
+		assertEquals(0, met.size());
+
+		// non-boostable demands are untouched by boosts
+		ActionDag strict = GoalExpander.expand(List.of(
+			goal("real", "skill:Construction:91")), state, packs());
+		assertNotNull(strict.get("train:Construction:91"));
 	}
 
 	@Test

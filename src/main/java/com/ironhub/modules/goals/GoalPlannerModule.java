@@ -85,7 +85,8 @@ public class GoalPlannerModule implements IronHubModule
 			dataPack.load("quests", com.ironhub.data.QuestsPack.class),
 			dataPack.load("methods", com.ironhub.data.MethodsPack.class),
 			dataPack.load("effects", com.ironhub.data.EffectsPack.class),
-			gearPack);
+			gearPack,
+			dataPack.load("boosts", com.ironhub.data.BoostsPack.class));
 		state.addListener(stateListener);
 		engineActive = true;
 		requestReplan();
@@ -291,6 +292,10 @@ public class GoalPlannerModule implements IronHubModule
 		{
 			state.removeDiaryGoal(goalId.substring("diary:".length()));
 		}
+		else if (goalId.startsWith("custom:"))
+		{
+			state.removeCustomGoal(goalId);
+		}
 		else
 		{
 			state.selectGoal(goalId, false);
@@ -371,6 +376,21 @@ public class GoalPlannerModule implements IronHubModule
 		return goal;
 	}
 
+	/** A user-typed goal ("Agility 70"): one detectable step, achieved
+	 * when its requirement holds. */
+	public static GoalsPack.Goal toCustomGoal(String goalId, com.ironhub.state.PersistedState.CustomGoal seed)
+	{
+		GoalsPack.Goal goal = new GoalsPack.Goal();
+		goal.setId(goalId);
+		goal.setName(seed.name);
+		GoalsPack.Step step = new GoalsPack.Step();
+		step.setLabel(seed.name);
+		step.setRequirement(seed.req);
+		goal.setSteps(List.of(step));
+		goal.setAchieved(List.of(seed.req));
+		return goal;
+	}
+
 	/** Pack goals plus a synthetic goal per targeted gear-chart item and
 	 * per combat/diary task added from its module tab. */
 	public static List<GoalsPack.Goal> allGoals(GoalsPack goals,
@@ -402,6 +422,13 @@ public class GoalPlannerModule implements IronHubModule
 			if (state.getSelectedGoals().contains("diary:" + slug))
 			{
 				all.add(toDiaryGoal(slug, seed));
+			}
+		});
+		state.getCustomGoals().forEach((goalId, seed) ->
+		{
+			if (state.getSelectedGoals().contains(goalId))
+			{
+				all.add(toCustomGoal(goalId, seed));
 			}
 		});
 		return all;

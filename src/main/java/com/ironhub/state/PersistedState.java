@@ -71,6 +71,15 @@ public class PersistedState
 	Map<String, String> plannerPreferred = new HashMap<>(); // skill -> preferred method id
 	double lastPlanHours;                            // known hours at last replan (session diffs)
 	boolean plannerRouteChapters;                    // Route view: chapter headers (default flat order)
+	Map<String, CustomGoal> customGoals = new HashMap<>(); // goal id -> seed (add-goal skill targets)
+
+	/** A user-typed goal from the add-goal search ("Agility 70"): one
+	 * requirement string, achieved when it holds. */
+	public static class CustomGoal
+	{
+		public String name;
+		public String req;
+	}
 
 	/**
 	 * An achievement diary task added to the goal planner, keyed by its
