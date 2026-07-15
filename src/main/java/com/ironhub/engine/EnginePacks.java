@@ -18,6 +18,7 @@ public class EnginePacks
 
 	private final Map<String, QuestsPack.QuestEntry> questByName = new HashMap<>();
 	private final Map<Integer, GearProgressionPack.Item> gearByCanonicalId = new HashMap<>();
+	private final Map<String, String> gearNameByMarkKey = new HashMap<>();
 
 	public EnginePacks(QuestsPack quests, MethodsPack methods, EffectsPack effects,
 		GearProgressionPack gear)
@@ -40,6 +41,7 @@ public class EnginePacks
 						gearByCanonicalId.putIfAbsent(
 							ItemVariationMapping.map(item.getItemId()), item);
 					}
+					gearNameByMarkKey.putIfAbsent(item.markKey(), item.getName());
 				})));
 		}
 	}
@@ -52,6 +54,25 @@ public class EnginePacks
 	public GearProgressionPack.Item gearItem(int itemId)
 	{
 		return gearByCanonicalId.get(ItemVariationMapping.map(itemId));
+	}
+
+	/** Human name for an unlock key, or null when unknown. */
+	public String unlockDisplayName(String key)
+	{
+		String gear = gearNameByMarkKey.get(key);
+		if (gear != null)
+		{
+			return "Obtain " + gear;
+		}
+		if (key.startsWith("diarytask_"))
+		{
+			return "Diary task (see Diaries tab)";
+		}
+		if (key.startsWith("catask_"))
+		{
+			return "Combat task (see Combat achievements tab)";
+		}
+		return null;
 	}
 
 	private static String normalize(String name)

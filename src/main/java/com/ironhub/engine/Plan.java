@@ -60,6 +60,8 @@ public class Plan
 	}
 
 	public final List<Step> steps = new ArrayList<>();
+	/** Goal id → display name for every goal this plan serves. */
+	public final java.util.Map<String, String> goalNames = new java.util.LinkedHashMap<>();
 	public double knownHours;
 	public int unknownCount;
 	public final List<String> degraded = new ArrayList<>();

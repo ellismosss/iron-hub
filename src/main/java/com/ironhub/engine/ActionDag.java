@@ -20,6 +20,8 @@ public class ActionDag
 {
 	private final Map<String, Action> nodes = new LinkedHashMap<>();
 	public final List<String> degraded = new ArrayList<>();
+	/** Goal id → display name, for user-facing text (ids never render). */
+	public final Map<String, String> goalNames = new LinkedHashMap<>();
 
 	public Action get(String id)
 	{

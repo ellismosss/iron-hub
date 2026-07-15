@@ -40,6 +40,8 @@ public class GoalExpander
 		GoalExpander expander = new GoalExpander(state, packs);
 		for (GoalsPack.Goal goal : goals)
 		{
+			expander.dag.goalNames.put(goal.getId(),
+				goal.getName() != null ? goal.getName() : goal.getId());
 			expander.expandGoal(goal);
 		}
 		expander.chainTrainLevels();
@@ -119,7 +121,9 @@ public class GoalExpander
 				addQuestPointFill(Integer.parseInt(parts[1]), goalId, out);
 				break;
 			case "unlock":
-				out.add(manualNode(parts[1], label != null ? label : parts[1], goalId).id);
+				String display = label != null ? label : packs.unlockDisplayName(parts[1]);
+				out.add(manualNode(parts[1],
+					display != null ? display : parts[1].replace('_', ' '), goalId).id);
 				break;
 			default:
 				out.add(manualNode("manualreq:" + req, label != null ? label : req, goalId).id);

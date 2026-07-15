@@ -281,7 +281,7 @@ class PlannerTab extends JPanel
 			+ (step.action.neededBy.size() == 1 ? " goal" : " goals"));
 		serves.setForeground(UiTokens.TEXT_MUTED);
 		serves.setFont(serves.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-		serves.setToolTipText(String.join(", ", step.action.neededBy));
+		serves.setToolTipText(servedGoalNames(step));
 		foot.add(serves);
 		foot.add(Box.createHorizontalGlue());
 		String wiki = wikiPage(step);
@@ -555,7 +555,8 @@ class PlannerTab extends JPanel
 		name.setForeground(UiTokens.TEXT_BODY);
 		name.setFont(name.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		name.setMinimumSize(new Dimension(0, 0));
-		name.setToolTipText(step.why);
+		name.setToolTipText(step.action.neededBy.size() > 1
+			? step.why + " — serves: " + servedGoalNames(step) : step.why);
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
 		row.add(timeLabel(step, UiTokens.TEXT_MUTED, false));
@@ -1034,6 +1035,18 @@ class PlannerTab extends JPanel
 		area.setBorder(new EmptyBorder(2, 0, 2, 0));
 		area.setAlignmentX(LEFT_ALIGNMENT);
 		return area;
+	}
+
+	/** Display names for the goals a step serves (ids never render). */
+	private String servedGoalNames(Plan.Step step)
+	{
+		Plan plan = latestPlan != null ? latestPlan : displayedPlan;
+		List<String> names = new ArrayList<>();
+		for (String id : step.action.neededBy)
+		{
+			names.add(plan != null ? plan.goalNames.getOrDefault(id, id) : id);
+		}
+		return String.join(", ", names);
 	}
 
 	private static JComponent mutedNote(String text)

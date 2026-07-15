@@ -32,6 +32,7 @@ public class Router
 	private final EnginePacks packs;
 	private final PlanConstraints constraints;
 	private final Map<Skill, Long> bankedXp;
+	private Map<String, String> goalNames = Map.of();
 
 	public Router(StateView base, EnginePacks packs, PlanConstraints constraints,
 		Map<Skill, Long> bankedXp)
@@ -46,6 +47,8 @@ public class Router
 	{
 		Plan plan = new Plan();
 		plan.degraded.addAll(dag.degraded);
+		plan.goalNames.putAll(dag.goalNames);
+		this.goalNames = dag.goalNames;
 		ProjectedState projection = new ProjectedState(base);
 		Map<Skill, Long> bankRemaining = new HashMap<>(bankedXp);
 
@@ -410,7 +413,7 @@ public class Router
 
 	private String why(Action node, ProjectedState projection, double hours)
 	{
-		String goals = String.join(", ", node.neededBy);
+		String goals = displayGoals(node);
 		switch (node.kind)
 		{
 			case QUEST:
@@ -440,6 +443,17 @@ public class Router
 			default:
 				return "Serves " + goals;
 		}
+	}
+
+	/** Human goal names, never raw ids like "gear:marble_portal_nexus". */
+	private String displayGoals(Action node)
+	{
+		List<String> names = new ArrayList<>();
+		for (String id : node.neededBy)
+		{
+			names.add(goalNames.getOrDefault(id, id));
+		}
+		return String.join(", ", names);
 	}
 
 	private String chapter(Action node)
