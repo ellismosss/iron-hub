@@ -479,7 +479,21 @@ class FarmingTab extends JPanel
 			{
 				row = ListRow.locked(stop.location.name, path);
 			}
-			row.setToolTipText(stopTooltip(stop));
+			row.setToolTipText(stopTooltip(stop) + " · click to skip to here");
+			if (!module.isVisited(stop.location.id))
+			{
+				row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+				String id = stop.location.id;
+				row.addMouseListener(new MouseAdapter()
+				{
+					@Override
+					public void mousePressed(MouseEvent e)
+					{
+						module.markThrough(id); // manual advance / skip
+						rebuild();
+					}
+				});
+			}
 			runs.add(row);
 			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}

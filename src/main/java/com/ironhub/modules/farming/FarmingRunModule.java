@@ -22,8 +22,6 @@ import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.ItemID;
-import net.runelite.api.Player;
-import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.config.ConfigManager;
@@ -43,16 +41,14 @@ import net.runelite.client.util.ImageUtil;
  * behaviour — every patch category, bird houses and the farming contract
  * predicted from the core plugin's persisted data via the vendored engine
  * (rl/, see FarmTrackingService) — plus per-category ready infoboxes
- * (Time Tracking Reminder parity), the run timer with its proximity
- * checklist, and persisted run history.
+ * (Time Tracking Reminder parity), guided runs that advance a stop once
+ * its seed is planted (and, for herb/hops, composted), and persisted run
+ * history.
  */
 @Slf4j
 @Singleton
 public class FarmingRunModule implements IronHubModule
 {
-	/** A patch counts as visited within this many tiles. */
-	static final int VISIT_RADIUS = 12;
-
 	/** Tracking data moves on farming ticks (minutes) — re-read slowly. */
 	private static final int REFRESH_TICKS = 10;
 
@@ -108,6 +104,11 @@ public class FarmingRunModule implements IronHubModule
 	 *  this run". Stable ids from gameval UNIDENTIFIED_&lt;herb&gt;. */
 	private static final Set<Integer> GRIMY_HERBS = Set.of(
 		199, 201, 203, 205, 207, 209, 211, 213, 215, 217, 219, 2485, 3049, 3051, 30094);
+
+	/** "You treat the herb patch with ultracompost." — the vendored
+	 *  CompostTracker's pattern; a compost applied to any patch. */
+	private static final java.util.regex.Pattern COMPOST_APPLIED = java.util.regex.Pattern.compile(
+		"You treat the .+ with (?:ultra|super|)compost\\.");
 
 	// tracking refresh (client thread)
 	private int refreshTick;
@@ -297,19 +298,37 @@ public class FarmingRunModule implements IronHubModule
 			trackingDirty = false;
 			refreshTracking();
 		}
-		if (!running() || client == null)
+		// the patch may have finished growing/been planted since last check
+		checkAdvance();
+	}
+
+	/**
+	 * Compost applied to a patch — the final step of working a herb/hops
+	 * patch. If it happened at the current stop, remember it (the stop
+	 * advances once the seed is also planted, mirroring Easy Farming).
+	 */
+	@Subscribe
+	public void onChatMessage(net.runelite.api.events.ChatMessage event)
+	{
+		if (!running() || (event.getType() != net.runelite.api.ChatMessageType.GAMEMESSAGE
+			&& event.getType() != net.runelite.api.ChatMessageType.SPAM))
 		{
 			return;
 		}
-		Player player = client.getLocalPlayer();
-		if (player == null)
+		if (COMPOST_APPLIED.matcher(event.getMessage()).find())
 		{
-			return;
+			onCompostApplied(playerRegion());
 		}
-		if (markVisited(player.getWorldLocation()) && tab != null)
+	}
+
+	/** -1 when the player isn't known (headless tests). */
+	private int playerRegion()
+	{
+		if (client == null || client.getLocalPlayer() == null)
 		{
-			SwingUtilities.invokeLater(tab::rebuild);
+			return -1;
 		}
+		return client.getLocalPlayer().getWorldLocation().getRegionID();
 	}
 
 	/** Re-read the core plugin's data; notify fresh readiness; repaint the
@@ -323,6 +342,7 @@ public class FarmingRunModule implements IronHubModule
 		tracking.refresh();
 		sharedReadyPatches = tracking.readyPatchCount();
 		notifyTransitions();
+		checkAdvance(); // the current stop's patch may now read as planted
 
 		String fingerprint = fingerprint();
 		if (!fingerprint.equals(lastFingerprint))
@@ -389,24 +409,117 @@ public class FarmingRunModule implements IronHubModule
 		}
 	}
 
-	/** Mark any stop within range as visited; ends the run when all done
-	 *  and routes the path bridge to the next stop otherwise. */
-	boolean markVisited(WorldPoint playerLocation)
+	/** Compost applied at the current stop (herb/hops) — reset when the stop
+	 *  advances, like Easy Farming's per-location composted flag. */
+	private volatile boolean compostedHere;
+
+	/** Categories where the run waits for compost before advancing; trees
+	 *  and fruit trees take no compost (the farmer is paid instead). */
+	private static boolean compostable(String category)
+	{
+		return "herb".equals(category) || "hops".equals(category);
+	}
+
+	/** Record a compost at the current stop (region-attributed; -1 = unknown,
+	 *  attributed to the current stop). Advances if the seed is also planted. */
+	void onCompostApplied(int playerRegion)
+	{
+		Stop next = nextStop();
+		if (next == null)
+		{
+			return;
+		}
+		if (playerRegion == -1 || playerRegion == next.location.worldPoint().getRegionID())
+		{
+			compostedHere = true;
+			checkAdvance();
+		}
+	}
+
+	/**
+	 * Advance the current stop once the player has done the work there —
+	 * the patch is planted (growing) and, for herb/hops, composted. Not on
+	 * arrival. Ends the run when the last stop is done. Client thread.
+	 */
+	void checkAdvance()
+	{
+		if (!running())
+		{
+			return;
+		}
+		Stop next = nextStop();
+		if (next == null || !plantedAt(next))
+		{
+			return;
+		}
+		if (compostable(runCategory) && !compostedHere)
+		{
+			return; // planted but not yet composted — stay put
+		}
+		advanceCurrentStop();
+	}
+
+	/** True when this stop's patch (the run's category) is freshly planted
+	 *  (growing) — the seed is in the ground. */
+	private boolean plantedAt(Stop stop)
+	{
+		Tab category = runCategoryTab();
+		if (category == null)
+		{
+			return false;
+		}
+		for (StopPatch patch : patchesAt(stop.location))
+		{
+			if (patch.category == category)
+			{
+				return patch.view == PatchView.GROWING || patch.view == PatchView.PREDICTED_READY;
+			}
+		}
+		return false;
+	}
+
+	private void advanceCurrentStop()
+	{
+		Stop next = nextStop();
+		if (next == null)
+		{
+			return;
+		}
+		visited.add(next.location.id);
+		compostedHere = false;
+		if (visited.size() == stops.size())
+		{
+			endRun(true);
+		}
+		else
+		{
+			routeToNext(); // keep the path bridge on the true next stop
+			if (tab != null)
+			{
+				SwingUtilities.invokeLater(tab::rebuild);
+			}
+		}
+	}
+
+	/**
+	 * Manual advance from the sidebar: mark this stop and every stop before
+	 * it done ("I'm past here"). The escape hatch for a patch you skip or
+	 * don't compost.
+	 */
+	void markThrough(String locationId)
 	{
 		boolean changed = false;
 		for (Stop stop : stops)
 		{
-			WorldPoint point = stop.location.worldPoint();
-			if (!visited.contains(stop.location.id)
-				&& point.getPlane() == playerLocation.getPlane()
-				&& point.distanceTo2D(playerLocation) <= VISIT_RADIUS)
+			changed |= visited.add(stop.location.id);
+			if (stop.location.id.equals(locationId))
 			{
-				visited.add(stop.location.id);
-				changed = true;
+				break;
 			}
 		}
 		if (changed)
 		{
+			compostedHere = false;
 			if (visited.size() == stops.size())
 			{
 				endRun(true);
@@ -415,8 +528,11 @@ public class FarmingRunModule implements IronHubModule
 			{
 				routeToNext();
 			}
+			if (tab != null)
+			{
+				SwingUtilities.invokeLater(tab::rebuild);
+			}
 		}
-		return changed;
 	}
 
 	// ── run control + reads ───────────────────────────────────────────
@@ -437,6 +553,7 @@ public class FarmingRunModule implements IronHubModule
 		runName = name;
 		runCategory = locations.isEmpty() ? "" : locations.get(0).category;
 		visited.clear();
+		compostedHere = false;
 		runStartFarmingXp = state.getXp(net.runelite.api.Skill.FARMING);
 		runStartHerbCount = currentHerbCount();
 		runStartMs = System.currentTimeMillis();

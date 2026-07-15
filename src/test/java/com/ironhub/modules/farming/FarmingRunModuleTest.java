@@ -17,7 +17,6 @@ import java.util.Map;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.Notifier;
 import net.runelite.client.config.ConfigManager;
@@ -78,33 +77,57 @@ public class FarmingRunModuleTest
 	}
 
 	@Test
-	public void proximityMarksStopsAndCompletesTheRun()
+	public void advancesOnPlantThenCompostNotOnArrival()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 5L);
-		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+		ConfigManager configManager = TimetrackingFixture.configManager();
+		FarmingRunModule module = module(state, configManager, null);
+		int ardougneRegion = 10548;
+		long now = Instant.now().getEpochSecond();
+
 		module.startTemplate("Herb run");
-		assertTrue(module.running());
-		assertEquals("Herb run", module.runName());
 		// a fresh account can only reach the four ungated herb patches
 		assertEquals(4, module.stops().size());
 		assertEquals("herb/ardougne", module.nextStop().location.id);
 
-		// walk to the Falador patch (within radius)
-		assertTrue(module.markVisited(new WorldPoint(3060, 3310, 0)));
-		assertTrue(module.isVisited("herb/falador"));
-		assertEquals(1, module.visitedCount());
+		// arrival (patch still empty/harvestable) does NOT advance
+		module.refreshTracking();
 		assertEquals("herb/ardougne", module.nextStop().location.id);
 
-		// far away and wrong plane: nothing marked
-		assertFalse(module.markVisited(new WorldPoint(3200, 3200, 0)));
-		assertFalse(module.markVisited(new WorldPoint(2670, 3374, 1)));
+		// plant a seed there: patch reads growing — but herbs need compost, so
+		// still no advance
+		TimetrackingFixture.patch(configManager, ardougneRegion, VarbitID.FARMING_TRANSMIT_D,
+			herbValue(Produce.RANARR, CropState.GROWING, 0), now);
+		module.refreshTracking();
+		assertEquals("herb/ardougne", module.nextStop().location.id);
 
-		// visit the rest — run auto-completes and records a duration
-		for (FarmingRunModule.Stop stop : module.stops())
-		{
-			module.markVisited(stop.location.worldPoint());
-		}
+		// compost at the wrong place is ignored
+		module.onCompostApplied(99999);
+		assertEquals("herb/ardougne", module.nextStop().location.id);
+
+		// compost at this stop: planted + composted -> advance to the next
+		module.onCompostApplied(ardougneRegion);
+		assertTrue(module.isVisited("herb/ardougne"));
+		assertEquals("herb/catherby", module.nextStop().location.id);
+		module.shutDown();
+	}
+
+	@Test
+	public void manualSkipMarksThroughAndCanCompleteTheRun()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+		module.startTemplate("Herb run"); // ardougne, catherby, falador, kourend
+
+		// skip through Falador: marks ardougne, catherby, falador done
+		module.markThrough("herb/falador");
+		assertEquals(3, module.visitedCount());
+		assertEquals("herb/kourend", module.nextStop().location.id);
+
+		// skip the last: the run completes and is recorded
+		module.markThrough("herb/kourend");
 		assertFalse(module.running());
 		assertEquals(1, state.getHerbRunsMs().size());
 		module.shutDown();
@@ -290,7 +313,7 @@ public class FarmingRunModuleTest
 		// overlay renders within its 250x200 budget
 		StateFixture.bank(state, Map.of(13126, 1)); // Explorer's ring planned
 		module.startTemplate("Herb run");
-		module.markVisited(module.pack().location("herb/farming-guild").worldPoint());
+		module.markThrough("herb/ardougne"); // one stop done, for the mid-run render
 		SwingUtilities.invokeAndWait(((FarmingTab) tab)::rebuild); // Swing is single-threaded
 		java.awt.image.BufferedImage active = SwingRender.render((JPanel) tab);
 		javax.imageio.ImageIO.write(active, "png", new java.io.File("build/reports/farming-run-active.png"));
