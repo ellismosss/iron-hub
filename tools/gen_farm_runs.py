@@ -96,6 +96,23 @@ LOCATION_REQS = {
     "hops/aldarin": ["quest:Children of the Sun"],
 }
 
+# Saplings plantable in each patch category — the plant-pot form the player
+# carries on a run (client ItemID constants, resolved to ids below). The run
+# culler checks ownership of these to drop stops you can't plant. Herb/hops
+# plant seeds directly and aren't listed here, so their stops are never
+# sapling-culled (assume-yes when we can't check).
+SAPLINGS = {
+    "tree": ["PLANTPOT_OAK_SAPLING", "PLANTPOT_WILLOW_SAPLING",
+             "PLANTPOT_MAPLE_SAPLING", "PLANTPOT_YEW_SAPLING",
+             "PLANTPOT_MAGIC_TREE_SAPLING"],
+    "fruit": ["PLANTPOT_APPLE_SAPLING", "PLANTPOT_BANANA_SAPLING",
+              "PLANTPOT_ORANGE_SAPLING", "PLANTPOT_CURRY_SAPLING",
+              "PLANTPOT_PINEAPPLE_SAPLING", "PLANTPOT_PAPAYA_SAPLING",
+              "PLANTPOT_PALM_SAPLING", "PLANTPOT_DRAGONFRUIT_SAPLING"],
+    "calquat": ["PLANTPOT_CALQUAT_SAPLING"],
+    "celastrus": ["PLANTPOT_CELASTRUS_TREE_SAPLING"],
+}
+
 POINT = re.compile(r"PATCH_POINT = new WorldPoint\((\d+),\s*(\d+),\s*(\d+)\)")
 NAME = re.compile(r'new Location\(\s*[^;]*?,\s*"([^"]+)",\s*(?:true|false)', re.DOTALL)
 TELEPORT = re.compile(
@@ -226,15 +243,26 @@ def main():
     total_teleports = sum(len(l["teleports"]) for l in locations)
     assert total_teleports > 100, f"only {total_teleports} teleports parsed"
 
+    saplings = {}
+    for category, names in SAPLINGS.items():
+        ids = []
+        for n in names:
+            if n not in item_ids:
+                raise SystemExit(f"unknown gameval ItemID.{n} in SAPLINGS[{category}]")
+            ids.append(item_ids[n])
+        saplings[category] = ids
+
     pack = {
         "source": f"github.com/Speaax/Farming-Helper@{COMMIT[:7]} (BSD-2-Clause)",
         "generated": datetime.date.today().isoformat(),
         "locations": locations,
+        "saplings": saplings,
     }
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(pack, f, indent=1, ensure_ascii=False)
         f.write("\n")
-    print(f"wrote {OUT}: {len(locations)} locations, {total_teleports} teleport options")
+    print(f"wrote {OUT}: {len(locations)} locations, {total_teleports} teleport options, "
+          f"{sum(len(v) for v in saplings.values())} saplings")
 
 
 if __name__ == "__main__":

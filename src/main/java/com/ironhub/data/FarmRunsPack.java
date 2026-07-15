@@ -19,8 +19,19 @@ public class FarmRunsPack
 	public String source;
 	public String generated;
 	public List<Location> locations;
+	/** Saplings plantable per patch category (item ids) — the run culler
+	 *  checks ownership. Categories not listed (herb/hops) are never
+	 *  sapling-culled. */
+	public Map<String, List<Integer>> saplings;
 
 	private transient Map<String, Location> byId;
+
+	/** Sapling item ids for a category, or null when the category plants
+	 *  seeds directly (herb/hops) and shouldn't be sapling-culled. */
+	public List<Integer> saplings(String category)
+	{
+		return saplings == null ? null : saplings.get(category);
+	}
 
 	public Location location(String id)
 	{

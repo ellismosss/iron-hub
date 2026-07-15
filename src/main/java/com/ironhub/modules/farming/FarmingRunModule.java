@@ -541,12 +541,9 @@ public class FarmingRunModule implements IronHubModule
 	void startRun(String name, List<FarmRunsPack.Location> locations)
 	{
 		List<Stop> resolved = new java.util.ArrayList<>();
-		for (FarmRunsPack.Location location : locations)
+		for (FarmRunsPack.Location location : cull(locations))
 		{
-			if (isUnlocked(location)) // locked patches never enter a run
-			{
-				resolved.add(new Stop(location, pickTeleport(location)));
-			}
+			resolved.add(new Stop(location, pickTeleport(location)));
 		}
 		stops = List.copyOf(resolved);
 		runName = name;
@@ -791,6 +788,77 @@ public class FarmingRunModule implements IronHubModule
 			}
 		}
 		return out;
+	}
+
+	/**
+	 * Trim a run to the stops worth doing right now (Luke's "dynamically cull
+	 * unnecessary steps"): drop a stop that is locked, whose patch is
+	 * confirmed still growing (nothing to do — assume ready when unsure), or
+	 * that you hold no sapling to (re)plant at. When short on saplings for a
+	 * category, keep only as many of its stops as you can plant, in route
+	 * order. Herb/hops plant seeds directly (no sapling list), so they are
+	 * never sapling-culled — only the lock/growing checks apply.
+	 */
+	List<FarmRunsPack.Location> cull(List<FarmRunsPack.Location> locations)
+	{
+		List<FarmRunsPack.Location> out = new java.util.ArrayList<>();
+		java.util.Map<String, Integer> saplingBudget = new java.util.HashMap<>();
+		for (FarmRunsPack.Location location : locations)
+		{
+			if (!isUnlocked(location))
+			{
+				continue; // no access to the patch (quest/diary/level gate)
+			}
+			if (confirmedGrowing(location))
+			{
+				continue; // still maturing from a previous run — nothing to do here
+			}
+			List<Integer> saplings = pack.saplings(location.category);
+			if (saplings != null)
+			{
+				int budget = saplingBudget.computeIfAbsent(location.category,
+					c -> ownedSaplings(saplings));
+				if (budget <= 0)
+				{
+					continue; // out of saplings of this type — can't plant here
+				}
+				saplingBudget.put(location.category, budget - 1);
+			}
+			out.add(location);
+		}
+		return out;
+	}
+
+	/** True only when we're certain the stop's own-category patch is still
+	 *  growing (GROWING with a future estimate) — nothing to do there this
+	 *  run. Ready/empty/dead/diseased/unknown all read as "assume doable". */
+	private boolean confirmedGrowing(FarmRunsPack.Location location)
+	{
+		Tab category = categoryTab(location.category);
+		if (category == null)
+		{
+			return false;
+		}
+		for (StopPatch patch : patchesAt(location))
+		{
+			if (patch.category == category)
+			{
+				return patch.view == PatchView.GROWING;
+			}
+		}
+		return false;
+	}
+
+	/** Saplings owned across bank + inventory + worn for a category (bank
+	 *  counts — you can withdraw before the run). */
+	private int ownedSaplings(List<Integer> saplingIds)
+	{
+		int total = 0;
+		for (int id : saplingIds)
+		{
+			total += state.ownedCount(id);
+		}
+		return total;
 	}
 
 	AccountState state()

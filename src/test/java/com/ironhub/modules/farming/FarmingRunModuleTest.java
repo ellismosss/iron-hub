@@ -66,13 +66,15 @@ public class FarmingRunModuleTest
 		throw new IllegalStateException("no herb varbit value");
 	}
 
-	/** First tree varbit value that decodes to a real sapling still growing. */
+	/** A tree varbit value for a real sapling freshly planted (stage 0 growing)
+	 *  — decodes to the GROWING view, not the past-estimate PREDICTED_READY. */
 	private static int treeValue()
 	{
 		for (int value = 0; value < 256; value++)
 		{
 			PatchState state = PatchImplementation.TREE.forVarbitValue(value);
 			if (state != null && state.getCropState() == CropState.GROWING
+				&& state.getStage() == 0
 				&& state.getProduce() != Produce.WEEDS && state.getProduce().getItemID() > 0)
 			{
 				return value;
@@ -141,6 +143,7 @@ public class FarmingRunModuleTest
 		FarmingRunModule module = module(state, configManager, null);
 		int faladorTreeRegion = 11828; // Falador's TREE patch is its own region
 		long now = Instant.now().getEpochSecond();
+		StateFixture.bank(state, Map.of(5370, 9)); // oak saplings so tree stops survive culling
 
 		module.startTemplate("Tree run");
 		assertEquals("tree/falador", module.nextStop().location.id);
@@ -155,6 +158,42 @@ public class FarmingRunModuleTest
 		module.onCompostApplied(faladorTreeRegion);
 		assertTrue(module.isVisited("tree/falador"));
 		assertEquals("tree/taverley", module.nextStop().location.id);
+		module.shutDown();
+	}
+
+	@Test
+	public void runIsCulledToOwnedSaplingsAndAwayFromGrowingPatches()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		ConfigManager configManager = TimetrackingFixture.configManager();
+		FarmingRunModule module = module(state, configManager, null);
+		long now = Instant.now().getEpochSecond();
+
+		// fresh account: falador, taverley, lumbridge, varrock, gnome-stronghold
+		// are accessible (farming-guild needs 65, nemus needs a quest). With no
+		// tree saplings there's nothing to plant — the run culls to empty.
+		module.startTemplate("Tree run");
+		assertEquals(0, module.stops().size());
+		module.endRun(false);
+
+		// two oak saplings — keep only the first two accessible stops (route order)
+		StateFixture.bank(state, Map.of(5370, 2));
+		module.startTemplate("Tree run");
+		assertEquals(2, module.stops().size());
+		assertEquals("tree/falador", module.stops().get(0).location.id);
+		assertEquals("tree/taverley", module.stops().get(1).location.id);
+		module.endRun(false);
+
+		// plenty of saplings, but Falador's tree is confirmed still growing —
+		// that stop drops out (nothing to harvest yet), the rest stay
+		StateFixture.bank(state, Map.of(5370, 9));
+		TimetrackingFixture.patch(configManager, 11828, VarbitID.FARMING_TRANSMIT_A,
+			treeValue(), now);
+		module.refreshTracking();
+		module.startTemplate("Tree run");
+		assertFalse(module.stops().stream().anyMatch(s -> s.location.id.equals("tree/falador")));
+		assertTrue(module.stops().stream().anyMatch(s -> s.location.id.equals("tree/taverley")));
 		module.shutDown();
 	}
 
@@ -229,6 +268,8 @@ public class FarmingRunModuleTest
 		StateFixture.stat(state, net.runelite.api.Skill.FARMING, 85, 8_771_558);
 		StateFixture.quest(state, net.runelite.api.Quest.CHILDREN_OF_THE_SUN,
 			net.runelite.api.QuestState.FINISHED);
+		// enough saplings that no stop is sapling-culled (5370 oak, 5496 apple)
+		StateFixture.bank(state, Map.of(5370, 20, 5496, 20));
 		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
 
 		module.startTemplate("Tree & fruit run");
@@ -444,7 +485,9 @@ public class FarmingRunModuleTest
 		// overlay renders within its 250x200 budget
 		StateFixture.bank(state, Map.of(13126, 1)); // Explorer's ring planned
 		module.startTemplate("Herb run");
-		module.markThrough("herb/ardougne"); // one stop done, for the mid-run render
+		// ardougne is culled (its patch reads growing above), so mark the first
+		// surviving stop through for the mid-run render
+		module.markThrough(module.stops().get(0).location.id);
 		SwingUtilities.invokeAndWait(((FarmingTab) tab)::rebuild); // Swing is single-threaded
 		java.awt.image.BufferedImage active = SwingRender.render((JPanel) tab);
 		javax.imageio.ImageIO.write(active, "png", new java.io.File("build/reports/farming-run-active.png"));
