@@ -163,4 +163,10 @@ public class ProjectedState implements StateView
 	{
 		return base.getKillCount(source) + kcDelta.getOrDefault(source, 0);
 	}
+
+	@Override
+	public int getVarbit(int varbitId)
+	{
+		return base.getVarbit(varbitId); // diary claims etc. are not simulated
+	}
 }

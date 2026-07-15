@@ -84,11 +84,17 @@ class PlannerTab extends JPanel
 		onPlanUpdated(module.currentPlan());
 	}
 
+	private final net.runelite.client.game.ItemManager itemManager;
+	private final net.runelite.client.game.SkillIconManager skillIconManager;
+
 	PlannerTab(GoalPlannerModule module, AccountState state, GoalsPack pack,
-		GearProgressionPack gearPack, net.runelite.client.game.ItemManager itemManager)
+		GearProgressionPack gearPack, net.runelite.client.game.ItemManager itemManager,
+		net.runelite.client.game.SkillIconManager skillIconManager)
 	{
 		this.module = module;
 		this.state = state;
+		this.itemManager = itemManager;
+		this.skillIconManager = skillIconManager;
 		this.goalsTab = new GoalsTab(state, pack, gearPack, itemManager);
 
 		setLayout(new BorderLayout());
@@ -587,13 +593,25 @@ class PlannerTab extends JPanel
 		row.add(glyph);
 		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 
-		JLabel name = new JLabel(step.action.name
+		javax.swing.Icon rowIcon = stepIcon(step);
+		String shortTitle = step.action.kind == Action.Kind.TRAIN && rowIcon != null
+			? "to " + step.action.trainToLevel + gatesSuffix(step)
+			: step.action.name;
+		JLabel name = new JLabel(shortTitle
 			+ (step.action.neededBy.size() > 1 ? "  ×" + step.action.neededBy.size() : ""));
+		if (rowIcon != null)
+		{
+			name.setIcon(rowIcon);
+			name.setIconTextGap(UiTokens.PAD_TIGHT);
+		}
 		name.setForeground(UiTokens.TEXT_BODY);
 		name.setFont(name.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		name.setMinimumSize(new Dimension(0, 0));
-		name.setToolTipText(step.action.neededBy.size() > 1
-			? step.why + " — serves: " + servedGoalNames(step) : step.why);
+		String hover = "<html><b>" + step.action.name + "</b><br>" + step.why
+			+ (step.action.neededBy.size() > 1
+				? "<br>serves: " + servedGoalNames(step) : "") + "</html>";
+		name.setToolTipText(hover);
+		row.setToolTipText(hover);
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
 		row.add(timeLabel(step, UiTokens.TEXT_MUTED, false));
@@ -759,6 +777,31 @@ class PlannerTab extends JPanel
 			}
 		}
 
+		if (step.action.kind == Action.Kind.OBTAIN)
+		{
+			GearProgressionPack.Item gearItem = moduleGearItem(step.action.itemId);
+			if (gearItem != null && gearItem.getRequirements() != null
+				&& !gearItem.getRequirements().isEmpty())
+			{
+				card.add(Box.createVerticalStrut(UiTokens.PAD));
+				card.add(new SectionLabel("Requirements"));
+				for (String raw : gearItem.getRequirements())
+				{
+					com.ironhub.requirements.Requirement parsed =
+						com.ironhub.requirements.Requirements.parse(raw);
+					boolean met = !com.ironhub.requirements.Requirements.isManual(parsed)
+						&& parsed.isMet(state);
+					JLabel line = new JLabel("· " + parsed.describe());
+					line.setForeground(met ? UiTokens.STATUS_OWNED : UiTokens.TEXT_MUTED);
+					line.setFont(line.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+					line.setAlignmentX(LEFT_ALIGNMENT);
+					line.setMinimumSize(new Dimension(0, 0));
+					line.setToolTipText(parsed.describe() + (met ? " — met" : " — not yet"));
+					card.add(line);
+				}
+			}
+		}
+
 		card.add(Box.createVerticalStrut(UiTokens.PAD));
 		JPanel buttons = new JPanel(new java.awt.GridLayout(1, 3, UiTokens.PAD_TIGHT, 0));
 		buttons.setOpaque(false);
@@ -771,6 +814,11 @@ class PlannerTab extends JPanel
 		{
 			buttons.add(flatButton("Ban method",
 				() -> state.togglePlannerBan(step.methodId), UiTokens.STATUS_WARNING));
+		}
+		else if (step.action.kind == Action.Kind.MANUAL && step.action.unlockKey != null)
+		{
+			buttons.add(flatButton("Mark done",
+				() -> state.setUnlocked(step.action.unlockKey, true), UiTokens.STATUS_OWNED));
 		}
 		else
 		{
@@ -809,6 +857,12 @@ class PlannerTab extends JPanel
 			JMenuItem ban = new JMenuItem("Ban " + step.methodName);
 			ban.addActionListener(e -> state.togglePlannerBan(step.methodId));
 			menu.add(ban);
+		}
+		if (step.action.kind == Action.Kind.MANUAL && step.action.unlockKey != null)
+		{
+			JMenuItem done = new JMenuItem("Mark as done");
+			done.addActionListener(e -> state.setUnlocked(step.action.unlockKey, true));
+			menu.add(done);
 		}
 		String wiki = wikiPage(step);
 		if (wiki != null)
@@ -1142,6 +1196,30 @@ class PlannerTab extends JPanel
 		return goalsTab.gearPack();
 	}
 
+	private GearProgressionPack.Item moduleGearItem(int itemId)
+	{
+		if (itemId <= 0)
+		{
+			return null;
+		}
+		for (GearProgressionPack.Phase phase : moduleGear().getPhases())
+		{
+			for (GearProgressionPack.Group group : phase.getGroups())
+			{
+				for (GearProgressionPack.Item item : group.getItems())
+				{
+					if (item.getItemId() != null
+						&& net.runelite.client.game.ItemVariationMapping.map(item.getItemId())
+							== net.runelite.client.game.ItemVariationMapping.map(itemId))
+					{
+						return item;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
 	private com.ironhub.data.MethodsPack moduleMethods()
 	{
 		return module.methodsPack();
@@ -1187,6 +1265,62 @@ class PlannerTab extends JPanel
 		area.setBorder(new EmptyBorder(2, 0, 2, 0));
 		area.setAlignmentX(LEFT_ALIGNMENT);
 		return area;
+	}
+
+	/** Icon for a route row: skill icon for training, item sprite for
+	 * obtain steps, the serving goal's sprite for kills/manual steps. */
+	private javax.swing.Icon stepIcon(Plan.Step step)
+	{
+		if (step.action.kind == Action.Kind.TRAIN && skillIconManager != null)
+		{
+			java.awt.image.BufferedImage image =
+				skillIconManager.getSkillImage(step.action.trainSkill, true);
+			return new javax.swing.ImageIcon(
+				image.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH));
+		}
+		if (itemManager == null)
+		{
+			return null;
+		}
+		Integer itemId = null;
+		if (step.action.kind == Action.Kind.OBTAIN && step.action.itemId > 0)
+		{
+			itemId = step.action.itemId;
+		}
+		else if (step.action.kind == Action.Kind.KILL || step.action.kind == Action.Kind.MANUAL)
+		{
+			Plan plan = latestPlan != null ? latestPlan : displayedPlan;
+			if (plan != null)
+			{
+				for (String goalId : step.action.neededBy)
+				{
+					itemId = plan.goalIcons.get(goalId);
+					if (itemId != null)
+					{
+						break;
+					}
+				}
+			}
+		}
+		if (itemId == null)
+		{
+			return null;
+		}
+		net.runelite.client.util.AsyncBufferedImage image = itemManager.getImage(itemId);
+		return new javax.swing.ImageIcon(
+			image.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH));
+	}
+
+	/** " · gates <first goal>" when the row has room to say so. */
+	private String gatesSuffix(Plan.Step step)
+	{
+		Plan plan = latestPlan != null ? latestPlan : displayedPlan;
+		if (plan == null || step.action.neededBy.isEmpty())
+		{
+			return "";
+		}
+		String first = step.action.neededBy.iterator().next();
+		return " · " + plan.goalNames.getOrDefault(first, first);
 	}
 
 	/** Display names for the goals a step serves (ids never render). */

@@ -858,7 +858,7 @@
                 "magic"
               ],
               "requirements": [
-                "Hard Western Provinces diary",
+                "diary:Western Provinces:Hard",
                 "skill:Prayer:22",
                 "skill:Attack:42",
                 "skill:Strength:42",
@@ -1155,7 +1155,7 @@
               ],
               "requirements": [
                 "quest:Dragon Slayer II",
-                "kc:Vorkath:1",
+                "kc:Vorkath:50",
                 "skill:Ranged:70",
                 "item:10499:1:Ava's accumulator"
               ],
@@ -1182,7 +1182,7 @@
                 "utility"
               ],
               "requirements": [
-                "Elite Lumbridge & Draynor diary"
+                "diary:Lumbridge & Draynor:Elite"
               ],
               "wiki": "Explorer's_ring",
               "exact": true
@@ -1493,7 +1493,7 @@
                 "utility"
               ],
               "requirements": [
-                "Elite Desert diary"
+                "diary:Desert:Elite"
               ],
               "wiki": "Desert_amulet",
               "exact": true
@@ -1505,7 +1505,7 @@
                 "utility"
               ],
               "requirements": [
-                "Elite Kourend & Kebos diary"
+                "diary:Kourend & Kebos:Elite"
               ],
               "wiki": "Rada's_blessing",
               "exact": true

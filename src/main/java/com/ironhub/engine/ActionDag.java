@@ -22,6 +22,8 @@ public class ActionDag
 	public final List<String> degraded = new ArrayList<>();
 	/** Goal id → display name, for user-facing text (ids never render). */
 	public final Map<String, String> goalNames = new LinkedHashMap<>();
+	/** Goal id → icon item id (nullable), for row icons. */
+	public final Map<String, Integer> goalIcons = new LinkedHashMap<>();
 
 	public Action get(String id)
 	{

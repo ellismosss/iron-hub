@@ -48,6 +48,7 @@ public class Router
 		Plan plan = new Plan();
 		plan.degraded.addAll(dag.degraded);
 		plan.goalNames.putAll(dag.goalNames);
+		plan.goalIcons.putAll(dag.goalIcons);
 		this.goalNames = dag.goalNames;
 		ProjectedState projection = new ProjectedState(base);
 		Map<Skill, Long> bankRemaining = new HashMap<>(bankedXp);
@@ -477,9 +478,19 @@ public class Router
 			case TRAIN:
 				return "Gates " + goals;
 			case KILL:
-				return node.kcTarget + " kills needed for " + goals;
+				return "Up to " + node.kcTarget + " kills for " + goals
+					+ " — the drop usually lands sooner";
 			case MANUAL:
-				return "Can't detect this — tick it when done. Serves " + goals;
+				if (node.unlockKey == null)
+				{
+					return "Detected automatically when you claim it. Serves " + goals;
+				}
+				if (node.unlockKey.startsWith("gearmark_"))
+				{
+					return "POH furniture can't be detected — right-click to mark built"
+						+ " (also on the gear chart). Serves " + goals;
+				}
+				return "Can't detect this — right-click to mark done. Serves " + goals;
 			case OBTAIN:
 			default:
 				return "Serves " + goals;

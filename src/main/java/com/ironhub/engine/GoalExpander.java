@@ -46,6 +46,10 @@ public class GoalExpander
 		{
 			expander.dag.goalNames.put(goal.getId(),
 				goal.getName() != null ? goal.getName() : goal.getId());
+			if (goal.icon() != null)
+			{
+				expander.dag.goalIcons.put(goal.getId(), goal.icon());
+			}
 			expander.expandGoal(goal);
 		}
 		expander.chainTrainLevels();
@@ -94,6 +98,13 @@ public class GoalExpander
 	private Set<String> expandRequirement(String req, String goalId, String label)
 	{
 		Set<String> out = new LinkedHashSet<>();
+		// already satisfied (owned item, claimed diary, boosted level…):
+		// nothing to plan — an owned Arclight must never become a step
+		com.ironhub.requirements.Requirement parsed = Requirements.parse(req);
+		if (!Requirements.isManual(parsed) && parsed.isMetWithBoosts(state, boosts))
+		{
+			return out;
+		}
 		String lower = req.toLowerCase(Locale.ROOT);
 		if (lower.startsWith("any:"))
 		{
@@ -132,6 +143,15 @@ public class GoalExpander
 				out.add(manualNode(parts[1],
 					display != null ? display : parts[1].replace('_', ' '), goalId).id);
 				break;
+			case "diary": // detected via claim varbit — no tick key needed
+			{
+				Action node = dag.getOrAdd(new Action("diarytier:" + parts[1] + ":" + parts[2],
+					Action.Kind.MANUAL, parsed.describe()));
+				node.manualText = parsed.describe();
+				node.neededBy.add(goalId);
+				out.add(node.id);
+				break;
+			}
 			default:
 				out.add(manualNode("manualreq:" + req, label != null ? label : req, goalId).id);
 		}

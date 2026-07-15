@@ -33,4 +33,7 @@ public interface StateView
 	int getQuestPoints();
 
 	int getKillCount(String source);
+
+	/** Last seen value of a watched varbit (0 until first refresh). */
+	int getVarbit(int varbitId);
 }

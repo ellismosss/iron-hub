@@ -169,6 +169,35 @@ public class GoalExpanderTest
 	}
 
 	@Test
+	public void ownedItemsNeverBecomeObtainSteps()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		// holding an Arclight: a goal requiring it must not plan obtaining it
+		StateFixture.equipment(state, java.util.Map.of(19675, 1));
+		ActionDag dag = GoalExpander.expand(List.of(
+			goal("g", "item:19675")), state, packs());
+		assertEquals(0, dag.size());
+	}
+
+	@Test
+	public void diaryClaimsAreDetectedNotManual()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		// unclaimed: a detected diary node (no tick key), not a manual one
+		ActionDag dag = GoalExpander.expand(List.of(
+			goal("ring", "diary:Lumbridge & Draynor:Elite")), state, packs());
+		Action node = dag.get("diarytier:Lumbridge & Draynor:Elite");
+		assertNotNull(node);
+		assertNull(node.unlockKey);
+
+		// claimed: nothing to plan
+		StateFixture.varbit(state, net.runelite.api.Varbits.DIARY_LUMBRIDGE_ELITE, 1);
+		ActionDag claimed = GoalExpander.expand(List.of(
+			goal("ring", "diary:Lumbridge & Draynor:Elite")), state, packs());
+		assertEquals(0, claimed.size());
+	}
+
+	@Test
 	public void dagIsAcyclicAndFullyOrderable()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());

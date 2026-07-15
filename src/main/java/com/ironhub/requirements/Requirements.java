@@ -14,8 +14,9 @@ import net.runelite.api.Skill;
  *
  * Data packs express requirements as compact strings:
  * {@code skill:<Skill>:<level>} · {@code quest:<name>} ·
- * {@code item:<itemId>[:qty]} · {@code unlock:<key>} ·
- * {@code kc:<source>:<count>}. Anything unparseable becomes a manual
+ * {@code queststarted:<name>} · {@code item:<itemId>[:qty]} ·
+ * {@code unlock:<key>} · {@code kc:<source>:<count>} · {@code qp:<n>} ·
+ * {@code diary:<Region>:<Tier>}. Anything unparseable becomes a manual
  * (free-text) requirement that is never auto-met — the UI shows those as
  * "check manually" rather than guessing.
  */
@@ -71,6 +72,50 @@ public final class Requirements
 	public static Requirement questPoints(int points)
 	{
 		return new QpRequirement(points);
+	}
+
+	/** Achievement diary tier claim (detected via the claim varbit). */
+	public static Requirement diary(String region, String tier)
+	{
+		Integer varbit = DIARY_CLAIM_VARBITS.get(
+			region.trim().toLowerCase() + ":" + tier.trim().toLowerCase());
+		return varbit != null ? new DiaryRequirement(region.trim(), tier.trim(), varbit)
+			: text(tier + " " + region + " diary");
+	}
+
+	/**
+	 * Region:tier → claim varbit. Mirrors the diaries module's region
+	 * table (kept here because the graph cannot depend on modules).
+	 */
+	private static final java.util.Map<String, Integer> DIARY_CLAIM_VARBITS = buildDiaryVarbits();
+
+	private static java.util.Map<String, Integer> buildDiaryVarbits()
+	{
+		java.util.Map<String, Integer> map = new java.util.HashMap<>();
+		String[] tiers = {"easy", "medium", "hard", "elite"};
+		Object[][] regions = {
+			{"ardougne", new int[]{net.runelite.api.Varbits.DIARY_ARDOUGNE_EASY, net.runelite.api.Varbits.DIARY_ARDOUGNE_MEDIUM, net.runelite.api.Varbits.DIARY_ARDOUGNE_HARD, net.runelite.api.Varbits.DIARY_ARDOUGNE_ELITE}},
+			{"desert", new int[]{net.runelite.api.Varbits.DIARY_DESERT_EASY, net.runelite.api.Varbits.DIARY_DESERT_MEDIUM, net.runelite.api.Varbits.DIARY_DESERT_HARD, net.runelite.api.Varbits.DIARY_DESERT_ELITE}},
+			{"falador", new int[]{net.runelite.api.Varbits.DIARY_FALADOR_EASY, net.runelite.api.Varbits.DIARY_FALADOR_MEDIUM, net.runelite.api.Varbits.DIARY_FALADOR_HARD, net.runelite.api.Varbits.DIARY_FALADOR_ELITE}},
+			{"fremennik", new int[]{net.runelite.api.Varbits.DIARY_FREMENNIK_EASY, net.runelite.api.Varbits.DIARY_FREMENNIK_MEDIUM, net.runelite.api.Varbits.DIARY_FREMENNIK_HARD, net.runelite.api.Varbits.DIARY_FREMENNIK_ELITE}},
+			{"kandarin", new int[]{net.runelite.api.Varbits.DIARY_KANDARIN_EASY, net.runelite.api.Varbits.DIARY_KANDARIN_MEDIUM, net.runelite.api.Varbits.DIARY_KANDARIN_HARD, net.runelite.api.Varbits.DIARY_KANDARIN_ELITE}},
+			{"karamja", new int[]{net.runelite.api.Varbits.DIARY_KARAMJA_EASY, net.runelite.api.Varbits.DIARY_KARAMJA_MEDIUM, net.runelite.api.Varbits.DIARY_KARAMJA_HARD, net.runelite.api.Varbits.DIARY_KARAMJA_ELITE}},
+			{"kourend & kebos", new int[]{net.runelite.api.Varbits.DIARY_KOUREND_EASY, net.runelite.api.Varbits.DIARY_KOUREND_MEDIUM, net.runelite.api.Varbits.DIARY_KOUREND_HARD, net.runelite.api.Varbits.DIARY_KOUREND_ELITE}},
+			{"lumbridge & draynor", new int[]{net.runelite.api.Varbits.DIARY_LUMBRIDGE_EASY, net.runelite.api.Varbits.DIARY_LUMBRIDGE_MEDIUM, net.runelite.api.Varbits.DIARY_LUMBRIDGE_HARD, net.runelite.api.Varbits.DIARY_LUMBRIDGE_ELITE}},
+			{"morytania", new int[]{net.runelite.api.Varbits.DIARY_MORYTANIA_EASY, net.runelite.api.Varbits.DIARY_MORYTANIA_MEDIUM, net.runelite.api.Varbits.DIARY_MORYTANIA_HARD, net.runelite.api.Varbits.DIARY_MORYTANIA_ELITE}},
+			{"varrock", new int[]{net.runelite.api.Varbits.DIARY_VARROCK_EASY, net.runelite.api.Varbits.DIARY_VARROCK_MEDIUM, net.runelite.api.Varbits.DIARY_VARROCK_HARD, net.runelite.api.Varbits.DIARY_VARROCK_ELITE}},
+			{"western provinces", new int[]{net.runelite.api.Varbits.DIARY_WESTERN_EASY, net.runelite.api.Varbits.DIARY_WESTERN_MEDIUM, net.runelite.api.Varbits.DIARY_WESTERN_HARD, net.runelite.api.Varbits.DIARY_WESTERN_ELITE}},
+			{"wilderness", new int[]{net.runelite.api.Varbits.DIARY_WILDERNESS_EASY, net.runelite.api.Varbits.DIARY_WILDERNESS_MEDIUM, net.runelite.api.Varbits.DIARY_WILDERNESS_HARD, net.runelite.api.Varbits.DIARY_WILDERNESS_ELITE}},
+		};
+		for (Object[] region : regions)
+		{
+			int[] varbits = (int[]) region[1];
+			for (int i = 0; i < tiers.length; i++)
+			{
+				map.put(region[0] + ":" + tiers[i], varbits[i]);
+			}
+		}
+		return map;
 	}
 
 	public static Requirement text(String text)
@@ -147,6 +192,8 @@ public final class Requirements
 					return kc(parts[1], Integer.parseInt(parts[2]));
 				case "qp": // quest points (Dragon Slayer II, Barrows gloves gates)
 					return questPoints(Integer.parseInt(parts[1]));
+				case "diary": // diary:<Region>:<Tier> — met once the tier is claimed
+					return diary(parts[1], parts[2]);
 				default:
 					return text(s);
 			}
@@ -339,6 +386,32 @@ public final class Requirements
 		public String describe()
 		{
 			return count + "× " + source;
+		}
+	}
+
+	private static class DiaryRequirement implements Requirement
+	{
+		private final String region;
+		private final String tier;
+		private final int claimVarbit;
+
+		DiaryRequirement(String region, String tier, int claimVarbit)
+		{
+			this.region = region;
+			this.tier = tier;
+			this.claimVarbit = claimVarbit;
+		}
+
+		@Override
+		public boolean isMet(StateView state)
+		{
+			return state.getVarbit(claimVarbit) >= 1;
+		}
+
+		@Override
+		public String describe()
+		{
+			return tier + " " + region + " Diary";
 		}
 	}
 

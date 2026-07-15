@@ -28,6 +28,7 @@ public class GoalPlannerModule implements IronHubModule
 	private final IronHubConfig config;
 	private final DataPack dataPack;
 	private final net.runelite.client.game.ItemManager itemManager; // null in headless tests
+	private final net.runelite.client.game.SkillIconManager skillIconManager; // null in headless tests
 	private GoalsPack pack;
 	private com.ironhub.data.GearProgressionPack gearPack;
 	private com.ironhub.data.BankedXpPack bankedPack;
@@ -53,14 +54,23 @@ public class GoalPlannerModule implements IronHubModule
 	private final Runnable stateListener = this::requestReplan;
 	private volatile boolean engineActive;
 
-	@Inject
+	/** Test convenience (headless: no icon managers). */
 	public GoalPlannerModule(AccountState state, IronHubConfig config, DataPack dataPack,
 		net.runelite.client.game.ItemManager itemManager)
+	{
+		this(state, config, dataPack, itemManager, null);
+	}
+
+	@Inject
+	public GoalPlannerModule(AccountState state, IronHubConfig config, DataPack dataPack,
+		net.runelite.client.game.ItemManager itemManager,
+		net.runelite.client.game.SkillIconManager skillIconManager)
 	{
 		this.state = state;
 		this.config = config;
 		this.dataPack = dataPack;
 		this.itemManager = itemManager;
+		this.skillIconManager = skillIconManager;
 	}
 
 	@Override
@@ -118,7 +128,7 @@ public class GoalPlannerModule implements IronHubModule
 			{
 				startUp();
 			}
-			tab = new PlannerTab(this, state, pack, gearPack, itemManager);
+			tab = new PlannerTab(this, state, pack, gearPack, itemManager, skillIconManager);
 			if (currentPlan != null)
 			{
 				tab.onPlanUpdated(currentPlan);
