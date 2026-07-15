@@ -89,6 +89,10 @@ public class PlannerTabTest
 		StateFixture.profile(state, 5L);
 		StateFixture.stat(state, Skill.AGILITY, 56, Experience.getXpForLevel(56));
 		StateFixture.stat(state, Skill.THIEVING, 44, Experience.getXpForLevel(44));
+		StateFixture.stat(state, Skill.CONSTRUCTION, 55, Experience.getXpForLevel(55));
+		StateFixture.stat(state, Skill.MAGIC, 60, Experience.getXpForLevel(60));
+		StateFixture.bank(state, java.util.Map.of(
+			net.runelite.api.gameval.ItemID.PLANK_TEAK, 450));
 		state.selectGoal("bowfa", true);
 		state.selectGoal("barrows_gloves", true);
 
@@ -109,9 +113,11 @@ public class PlannerTabTest
 
 		File reports = new File("build/reports");
 		reports.mkdirs();
-		// expand the first TRAIN step so the render shows the explain card
+		// expand a resource-bearing TRAIN step so the render shows the card
 		plan.steps.stream()
 			.filter(st -> st.action.kind == com.ironhub.engine.Action.Kind.TRAIN)
+			.sorted((a, b) -> Integer.compare(
+				b.resources.size(), a.resources.size()))
 			.findFirst()
 			.ifPresent(st -> {
 				try

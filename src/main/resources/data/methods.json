@@ -253,7 +253,15 @@
      "startXp": 166614,
      "rate": 65000,
      "style": "semi",
-     "source": "oldschool.runescape.wiki/w/High_Level_Alchemy"
+     "source": "oldschool.runescape.wiki/w/High_Level_Alchemy",
+     "xpEach": 65.0,
+     "inputs": [
+      {
+       "itemId": 561,
+       "qty": 1,
+       "name": "Nature rune"
+      }
+     ]
     },
     {
      "id": "magic_bursting",
@@ -301,7 +309,15 @@
      "startXp": 13352,
      "rate": 250000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Chaos_temple_(hut)"
+     "source": "oldschool.runescape.wiki/w/Chaos_temple_(hut)",
+     "xpEach": 252.0,
+     "inputs": [
+      {
+       "itemId": 536,
+       "qty": 1,
+       "name": "Dragon bones"
+      }
+     ]
     }
    ]
   },
@@ -360,7 +376,15 @@
      "startXp": 18235,
      "rate": 150000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Construction"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Construction",
+     "xpEach": 480.0,
+     "inputs": [
+      {
+       "itemId": 8778,
+       "qty": 8,
+       "name": "Oak plank"
+      }
+     ]
     },
     {
      "id": "construction_teak_benches",
@@ -369,7 +393,15 @@
      "rate": 300000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Ironman_Guide/Construction",
-     "req": "skillb:Magic:45"
+     "req": "skillb:Magic:45",
+     "xpEach": 90.0,
+     "inputs": [
+      {
+       "itemId": 8780,
+       "qty": 1,
+       "name": "Teak plank"
+      }
+     ]
     }
    ]
   },
@@ -762,7 +794,15 @@
      "rate": 250000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Blast_Furnace",
-     "req": "quest:Family Crest"
+     "req": "quest:Family Crest",
+     "xpEach": 56.2,
+     "inputs": [
+      {
+       "itemId": 444,
+       "qty": 1,
+       "name": "Gold ore"
+      }
+     ]
     }
    ]
   },
@@ -855,7 +895,15 @@
      "rate": 130000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Ironman_Guide/Cooking",
-     "req": "quest:Tai Bwo Wannai Trio"
+     "req": "quest:Tai Bwo Wannai Trio",
+     "xpEach": 190.0,
+     "inputs": [
+      {
+       "itemId": 3142,
+       "qty": 1,
+       "name": "Raw karambwan"
+      }
+     ]
     },
     {
      "id": "cooking_jugs_of_wine",
@@ -863,7 +911,20 @@
      "startXp": 605006,
      "rate": 300000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Cooking"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Cooking",
+     "xpEach": 200.0,
+     "inputs": [
+      {
+       "itemId": 1987,
+       "qty": 1,
+       "name": "Grapes"
+      },
+      {
+       "itemId": 1937,
+       "qty": 1,
+       "name": "Jug of water"
+      }
+     ]
     }
    ]
   },

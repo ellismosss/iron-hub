@@ -29,6 +29,19 @@ def xp_for_level(level):
     return total
 
 
+# method id -> (xp per action, [(itemId, qty, name)]) for methods whose
+# consumables are well-known wiki constants; the planner derives "planks
+# needed" from these. Only high-confidence values — no guesses.
+CONSUMES = {
+    "construction_oak_larders": (480.0, [(8778, 8, "Oak plank")]),
+    "construction_teak_benches": (90.0, [(8780, 1, "Teak plank")]),
+    "prayer_chaos_altar": (252.0, [(536, 1, "Dragon bones")]),
+    "cooking_karambwans_cook": (190.0, [(3142, 1, "Raw karambwan")]),
+    "cooking_jugs_of_wine": (200.0, [(1987, 1, "Grapes"), (1937, 1, "Jug of water")]),
+    "smithing_blast_furnace_gold": (56.2, [(444, 1, "Gold ore")]),
+    "magic_high_alch": (65.0, [(561, 1, "Nature rune")]),
+}
+
 # skill -> [(id, name, startLevel, rate, req, style, source_page)]
 SEED = {
     "Attack": [
@@ -220,6 +233,13 @@ def main():
             }
             if req:
                 method["req"] = req
+            consumes = CONSUMES.get(method["id"])
+            if consumes:
+                method["xpEach"] = consumes[0]
+                method["inputs"] = [
+                    {"itemId": item, "qty": qty, "name": name}
+                    for item, qty, name in consumes[1]
+                ]
             methods.append(method)
         ladder = {"skill": skill, "methods": methods}
         if BONUSES.get(skill):

@@ -28,6 +28,25 @@ public class Plan
 		}
 	}
 
+	/** A consumable this step needs: how many, how many you own, the gap. */
+	public static class Resource
+	{
+		public final int itemId;
+		public final String name;
+		public final long needed;
+		public final long banked;
+		public final long missing;
+
+		public Resource(int itemId, String name, long needed, long banked)
+		{
+			this.itemId = itemId;
+			this.name = name;
+			this.needed = needed;
+			this.banked = banked;
+			this.missing = Math.max(0, needed - banked);
+		}
+	}
+
 	public static class Step
 	{
 		public final Action action;
@@ -46,6 +65,8 @@ public class Plan
 		public final int trainFromLevel;
 		/** XP still to gain when this step starts (after banked xp). */
 		public final long trainXpRemaining;
+		/** Materials the chosen method consumes for this step (may be empty). */
+		public final List<Resource> resources;
 		public final List<Alternative> alternatives;
 		public final boolean pinned;
 		public final boolean snoozed;
@@ -53,6 +74,7 @@ public class Plan
 		public Step(Action action, double hours, String why, String chapter,
 			String methodName, String methodId, String methodStyle,
 			int methodRate, int trainFromLevel, long trainXpRemaining,
+			List<Resource> resources,
 			List<Alternative> alternatives, boolean pinned, boolean snoozed)
 		{
 			this.action = action;
@@ -65,6 +87,7 @@ public class Plan
 			this.methodRate = methodRate;
 			this.trainFromLevel = trainFromLevel;
 			this.trainXpRemaining = trainXpRemaining;
+			this.resources = resources;
 			this.alternatives = alternatives;
 			this.pinned = pinned;
 			this.snoozed = snoozed;

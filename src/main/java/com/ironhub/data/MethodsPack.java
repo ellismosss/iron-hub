@@ -47,6 +47,18 @@ public class MethodsPack
 		public String style;
 		/** Provenance (wiki page / WOM config), mandatory. */
 		public String source;
+		/** XP per action, when the method consumes materials (0 = n/a). */
+		public double xpEach;
+		/** Materials consumed per action (null when none/unknown). */
+		public List<Input> inputs;
+	}
+
+	/** One consumable a method eats per action. */
+	public static class Input
+	{
+		public int itemId;
+		public int qty;
+		public String name;
 	}
 
 	/** Byproduct xp: training origin pays bonusSkill at ratio (WOM bonuses). */

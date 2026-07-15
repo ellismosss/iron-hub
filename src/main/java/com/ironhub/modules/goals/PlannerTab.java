@@ -689,6 +689,33 @@ class PlannerTab extends JPanel
 			}
 		}
 
+		if (!step.resources.isEmpty())
+		{
+			card.add(Box.createVerticalStrut(UiTokens.PAD));
+			SectionLabel resHeader = new SectionLabel("Resources");
+			resHeader.setToolTipText("Counts what your bank, inventory and equipment"
+				+ " already hold (last bank snapshot)");
+			card.add(resHeader);
+			for (Plan.Resource resource : step.resources)
+			{
+				JLabel need = new JLabel(resource.name + " \u00d7" + formatCount(resource.needed));
+				need.setForeground(UiTokens.TEXT_PRIMARY);
+				need.setFont(need.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
+				need.setAlignmentX(LEFT_ALIGNMENT);
+				card.add(need);
+				boolean covered = resource.missing == 0;
+				JLabel stock = new JLabel(covered
+					? formatCount(resource.banked) + " banked — covered"
+					: formatCount(resource.banked) + " banked · "
+						+ formatCount(resource.missing) + " short");
+				stock.setForeground(covered ? UiTokens.STATUS_OWNED : UiTokens.STATUS_AVAILABLE);
+				stock.setFont(stock.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+				stock.setAlignmentX(LEFT_ALIGNMENT);
+				card.add(stock);
+				card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			}
+		}
+
 		if (!step.alternatives.isEmpty())
 		{
 			card.add(Box.createVerticalStrut(UiTokens.PAD));
@@ -1173,6 +1200,12 @@ class PlannerTab extends JPanel
 			return "?";
 		}
 		return "~" + compactHours(hours);
+	}
+
+	/** 912 → "912", 12400 → "12,400". */
+	private static String formatCount(long count)
+	{
+		return String.format(Locale.ROOT, "%,d", count);
 	}
 
 	/** 75000 → "75k", 1200000 → "1.2m". */

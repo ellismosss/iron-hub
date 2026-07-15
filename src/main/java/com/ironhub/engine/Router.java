@@ -276,6 +276,7 @@ public class Router
 		int methodRate = 0;
 		int trainFromLevel = 0;
 		long trainXpRemaining = 0;
+		List<Plan.Resource> resources = List.of();
 		List<Plan.Alternative> alternatives = List.of();
 		if (node.kind == Action.Kind.TRAIN)
 		{
@@ -290,12 +291,16 @@ public class Router
 			long startXp = Math.min(targetXp, projection.getXp(node.trainSkill)
 				+ Math.max(0, bankRemaining.getOrDefault(node.trainSkill, 0L)));
 			trainXpRemaining = Math.max(0, targetXp - startXp);
+			// resource counts use the GROSS span: banked planks/bones already
+			// count as banked xp, so crediting them again would double-count
+			long grossRemaining = Math.max(0, targetXp - projection.getXp(node.trainSkill));
+			resources = resources(method, grossRemaining);
 			alternatives = alternatives(node, projection, bankRemaining, method);
 		}
 		String why = why(node, projection, hours);
 		applyEffects(node, projection, bankRemaining);
 		return new Plan.Step(node, hours, why, chapter(node), methodName, methodId, methodStyle,
-			methodRate, trainFromLevel, trainXpRemaining,
+			methodRate, trainFromLevel, trainXpRemaining, resources,
 			alternatives, constraints.pinned.contains(node.id), constraints.snoozed.contains(node.id));
 	}
 
@@ -387,6 +392,30 @@ public class Router
 				}
 				break;
 		}
+	}
+
+	/**
+	 * Materials the chosen method consumes to cover the remaining xp, vs
+	 * what the bank/inventory/equipment already hold (canonical counts,
+	 * live snapshot — the same stock the banked-xp module reads). Needs
+	 * are computed from the gross xp span: the owned stock is subtracted
+	 * exactly once, here — banked-xp credit covers the same items.
+	 */
+	private List<Plan.Resource> resources(MethodsPack.Method method, long xpRemaining)
+	{
+		if (method == null || method.xpEach <= 0 || method.inputs == null
+			|| method.inputs.isEmpty() || xpRemaining <= 0)
+		{
+			return List.of();
+		}
+		long actions = (long) Math.ceil(xpRemaining / method.xpEach);
+		List<Plan.Resource> out = new ArrayList<>();
+		for (MethodsPack.Input input : method.inputs)
+		{
+			out.add(new Plan.Resource(input.itemId, input.name,
+				actions * input.qty, base.canonicalStock(input.itemId)));
+		}
+		return out;
 	}
 
 	private List<Plan.Alternative> alternatives(Action node, ProjectedState projection,

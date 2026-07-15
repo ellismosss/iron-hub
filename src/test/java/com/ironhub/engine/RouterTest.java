@@ -187,6 +187,31 @@ public class RouterTest
 	}
 
 	@Test
+	public void trainResourcesCountNeededVsBanked()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.stat(state, Skill.CONSTRUCTION, 70,
+			Experience.getXpForLevel(70));
+		StateFixture.stat(state, Skill.MAGIC, 70, Experience.getXpForLevel(70));
+		StateFixture.bank(state, java.util.Map.of(
+			net.runelite.api.gameval.ItemID.PLANK_TEAK, 300));
+
+		Plan plan = plan(state, PlanConstraints.none(), goal("g", "skillb:Construction:72"));
+		Plan.Step step = plan.steps.get(indexOf(plan, "train:Construction:72"));
+		assertEquals("Teak benches + demon butler", step.methodName);
+		assertEquals(1, step.resources.size());
+		Plan.Resource planks = step.resources.get(0);
+
+		// gross 70->72 span at 90 xp/plank; the 300 banked planks subtract
+		// exactly once (their banked-xp credit covers the same items)
+		long expected = (long) Math.ceil(
+			(Experience.getXpForLevel(72) - Experience.getXpForLevel(70)) / 90.0);
+		assertEquals(expected, planks.needed);
+		assertEquals(300, planks.banked);
+		assertEquals(expected - 300, planks.missing);
+	}
+
+	@Test
 	public void fullGoalsPackRoutesUnderTheBudget()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
