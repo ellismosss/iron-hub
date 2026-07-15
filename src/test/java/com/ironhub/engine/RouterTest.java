@@ -38,7 +38,9 @@ public class RouterTest
 			DATA.load("quests", QuestsPack.class),
 			DATA.load("methods", MethodsPack.class),
 			DATA.load("effects", EffectsPack.class),
-			DATA.load("gear-progression", GearProgressionPack.class));
+			DATA.load("gear-progression", GearProgressionPack.class),
+			DATA.load("boosts", com.ironhub.data.BoostsPack.class),
+			DATA.load("diaries", com.ironhub.data.DiariesPack.class));
 	}
 
 	private static GoalsPack.Goal goal(String id, String... reqs)
@@ -231,6 +233,20 @@ public class RouterTest
 		assertEquals(8, planks.needed);
 		assertEquals(5, planks.banked);
 		assertEquals(3, planks.missing);
+	}
+
+	@Test
+	public void qolObtainStepsCarrySourcedHours()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.stat(state, Skill.CONSTRUCTION, 50, Experience.getXpForLevel(50));
+		// plank sack: 350 carpenter points, wiki-sourced ~3.5h expectation
+		Plan plan = plan(state, PlanConstraints.none(),
+			goal("sack", "item:" + net.runelite.api.gameval.ItemID.PLANK_SACK));
+		Plan.Step step = plan.steps.get(indexOf(plan, "obtain:plank_sack"));
+		assertNotNull(step);
+		assertEquals(3.5, step.hours, 0.01);
+		assertTrue(step.why.contains("carpenter points"));
 	}
 
 	@Test

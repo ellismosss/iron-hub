@@ -16,6 +16,7 @@ public class EnginePacks
 	public final EffectsPack effects;
 	public final GearProgressionPack gear;
 	public final com.ironhub.data.BoostsPack boosts;
+	public final com.ironhub.data.DiariesPack diaries;
 
 	private final Map<String, QuestsPack.QuestEntry> questByName = new HashMap<>();
 	private final Map<Integer, GearProgressionPack.Item> gearByCanonicalId = new HashMap<>();
@@ -25,17 +26,25 @@ public class EnginePacks
 	public EnginePacks(QuestsPack quests, MethodsPack methods, EffectsPack effects,
 		GearProgressionPack gear)
 	{
-		this(quests, methods, effects, gear, null);
+		this(quests, methods, effects, gear, null, null);
 	}
 
 	public EnginePacks(QuestsPack quests, MethodsPack methods, EffectsPack effects,
 		GearProgressionPack gear, com.ironhub.data.BoostsPack boosts)
+	{
+		this(quests, methods, effects, gear, boosts, null);
+	}
+
+	public EnginePacks(QuestsPack quests, MethodsPack methods, EffectsPack effects,
+		GearProgressionPack gear, com.ironhub.data.BoostsPack boosts,
+		com.ironhub.data.DiariesPack diaries)
 	{
 		this.quests = quests;
 		this.methods = methods;
 		this.effects = effects;
 		this.gear = gear;
 		this.boosts = boosts;
+		this.diaries = diaries;
 		if (quests != null)
 		{
 			quests.quests.forEach(q -> questByName.put(normalize(q.name), q));
@@ -64,6 +73,119 @@ public class EnginePacks
 	public GearProgressionPack.Item gearItem(int itemId)
 	{
 		return gearByCanonicalId.get(ItemVariationMapping.map(itemId));
+	}
+
+	/**
+	 * Aggregated requirement strings for a whole diary tier: the max
+	 * demanded level per skill plus every quest, from the diaries pack.
+	 * This is what lets "Elite Lumbridge Diary" place correctly in the
+	 * route instead of floating requirement-free.
+	 */
+	public java.util.List<String> diaryTierReqs(String region, String tier)
+	{
+		com.ironhub.data.DiariesPack.Tier found = diaryTier(region, tier);
+		if (found == null)
+		{
+			return java.util.List.of();
+		}
+		java.util.Map<String, Integer> skills = new java.util.TreeMap<>();
+		java.util.Map<String, Boolean> boostable = new HashMap<>();
+		java.util.Set<String> quests = new java.util.LinkedHashSet<>();
+		for (com.ironhub.data.DiariesPack.Task task : found.tasks)
+		{
+			for (com.ironhub.data.DiariesPack.Req req : task.reqs)
+			{
+				if (req.req == null)
+				{
+					continue;
+				}
+				collectDiaryLeaf(req.req, skills, boostable, quests);
+			}
+		}
+		java.util.List<String> out = new java.util.ArrayList<>();
+		skills.forEach((skill, level) -> out.add(
+			(boostable.getOrDefault(skill, true) ? "skillb:" : "skill:") + skill + ":" + level));
+		out.addAll(quests);
+		return out;
+	}
+
+	private static void collectDiaryLeaf(String req, java.util.Map<String, Integer> skills,
+		java.util.Map<String, Boolean> boostable, java.util.Set<String> quests)
+	{
+		if (req.startsWith("any:"))
+		{
+			// alternative paths: skip for tier aggregation (either works)
+			return;
+		}
+		String[] parts = req.split(":");
+		if ((parts[0].equals("skill") || parts[0].equals("skillb")) && parts.length >= 3)
+		{
+			int level = Integer.parseInt(parts[2]);
+			if (level > skills.getOrDefault(parts[1], 0))
+			{
+				skills.put(parts[1], level);
+				boostable.put(parts[1], parts[0].equals("skillb"));
+			}
+		}
+		else if (parts[0].equals("quest"))
+		{
+			quests.add(req);
+		}
+	}
+
+	/** A single diary task's requirement strings, looked up by flag slug. */
+	public java.util.List<String> diaryTaskReqs(String slug)
+	{
+		if (diaries == null)
+		{
+			return java.util.List.of();
+		}
+		for (com.ironhub.data.DiariesPack.Region region : diaries.regions)
+		{
+			for (com.ironhub.data.DiariesPack.Tier tier : region.tiers)
+			{
+				for (com.ironhub.data.DiariesPack.Task task : tier.tasks)
+				{
+					String taskSlug = task.varbit != null
+						? "vb" + task.varbit : task.varp + "_" + task.bit;
+					if (taskSlug.equals(slug))
+					{
+						java.util.List<String> out = new java.util.ArrayList<>();
+						for (com.ironhub.data.DiariesPack.Req req : task.reqs)
+						{
+							if (req.req != null)
+							{
+								out.add(req.req);
+							}
+						}
+						return out;
+					}
+				}
+			}
+		}
+		return java.util.List.of();
+	}
+
+	private com.ironhub.data.DiariesPack.Tier diaryTier(String region, String tier)
+	{
+		if (diaries == null)
+		{
+			return null;
+		}
+		for (com.ironhub.data.DiariesPack.Region r : diaries.regions)
+		{
+			if (r.name.equalsIgnoreCase(region.trim()))
+			{
+				for (com.ironhub.data.DiariesPack.Tier t : r.tiers)
+				{
+					if (t.tier.equalsIgnoreCase(tier.trim()))
+					{
+						return t;
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	/** The gear entry behind a manual mark key, or null. */

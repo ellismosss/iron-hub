@@ -70,6 +70,10 @@ public class GearProgressionPack
 		private List<String> requirements; // Requirements.parse() form
 		/** POH build materials from the wiki Recipe (bankable items only). */
 		private List<Material> materials;
+		/** Expected hours to obtain from its source (null = unknown). */
+		private Double hours;
+		/** Human obtainment line ("350 carpenter points · Mahogany Homes"). */
+		private String sourceNote;
 		private String wiki; // wiki page override; defaults to name
 
 		/** Icon item id regardless of detection mode. */

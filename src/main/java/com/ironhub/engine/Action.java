@@ -45,6 +45,8 @@ public class Action
 	public String manualText;
 	/** Build/craft materials this action consumes (POH furniture etc.). */
 	public java.util.List<com.ironhub.data.GearProgressionPack.Material> materials;
+	/** Expected hours to obtain, from the gear pack (null = unknown). */
+	public Double obtainHours;
 
 	public Action(String id, Kind kind, String name)
 	{

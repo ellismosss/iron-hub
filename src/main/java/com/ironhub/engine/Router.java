@@ -1,5 +1,6 @@
 package com.ironhub.engine;
 
+import com.ironhub.data.GearProgressionPack;
 import com.ironhub.data.MethodsPack;
 import com.ironhub.data.QuestsPack;
 import com.ironhub.state.StateView;
@@ -337,6 +338,8 @@ public class Router
 				// kills-per-hour has no honest source yet — unknown, never invented
 				return Double.NaN;
 			case OBTAIN:
+				return node.obtainHours != null && node.obtainHours > 0
+					? node.obtainHours : Double.NaN;
 			case MANUAL:
 			default:
 				return Double.NaN;
@@ -512,6 +515,15 @@ public class Router
 				}
 				return "Can't detect this — right-click to mark done. Serves " + goals;
 			case OBTAIN:
+			{
+				GearProgressionPack.Item gearItem = node.itemId > 0
+					? packs.gearItem(node.itemId) : null;
+				if (gearItem != null && gearItem.getSourceNote() != null)
+				{
+					return gearItem.getSourceNote() + ". Serves " + goals;
+				}
+				return "Serves " + goals;
+			}
 			default:
 				return "Serves " + goals;
 		}

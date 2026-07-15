@@ -3,7 +3,7 @@
   "version": 1,
   "unlocks": [
     {"id": "herb_sack", "name": "Herb sack", "itemIds": [13226], "requirements": ["250 Tithe Farm points"]},
-    {"id": "seed_box", "name": "Seed box", "itemIds": [13639], "requirements": ["400 Tithe Farm points"]},
+    {"id": "seed_box", "name": "Seed box", "itemIds": [13639], "requirements": ["250 Tithe Farm points"]},
     {"id": "coal_bag", "name": "Coal bag", "itemIds": [12019], "requirements": ["100 golden nuggets (Motherlode Mine)"]},
     {"id": "gem_bag", "name": "Gem bag", "itemIds": [12020], "requirements": ["100 golden nuggets (Motherlode Mine)"]},
     {"id": "rune_pouch", "name": "Rune pouch", "itemIds": [12791], "requirements": ["750 Slayer reward points"]},

@@ -140,6 +140,14 @@
 														}
 													}
 												}
+											},
+											"hours": {
+												"type": "number",
+												"exclusiveMinimum": 0
+											},
+											"sourceNote": {
+												"type": "string",
+												"minLength": 1
 											}
 										},
 										"oneOf": [

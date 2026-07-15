@@ -96,7 +96,8 @@ public class GoalPlannerModule implements IronHubModule
 			dataPack.load("methods", com.ironhub.data.MethodsPack.class),
 			dataPack.load("effects", com.ironhub.data.EffectsPack.class),
 			gearPack,
-			dataPack.load("boosts", com.ironhub.data.BoostsPack.class));
+			dataPack.load("boosts", com.ironhub.data.BoostsPack.class),
+			dataPack.load("diaries", com.ironhub.data.DiariesPack.class));
 		state.addListener(stateListener);
 		engineActive = true;
 		requestReplan();
@@ -194,6 +195,18 @@ public class GoalPlannerModule implements IronHubModule
 	com.ironhub.data.QuestsPack.QuestEntry questEntry(String name)
 	{
 		return enginePacks == null || name == null ? null : enginePacks.quest(name);
+	}
+
+	java.util.List<String> diaryTierReqs(String region, String tier)
+	{
+		return enginePacks == null ? java.util.List.of()
+			: enginePacks.diaryTierReqs(region, tier);
+	}
+
+	java.util.List<String> diaryTaskReqs(String slug)
+	{
+		return enginePacks == null ? java.util.List.of()
+			: enginePacks.diaryTaskReqs(slug);
 	}
 
 	/** The latest computed plan (null until the first replan lands). */

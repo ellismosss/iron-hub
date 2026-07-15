@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -37,7 +38,8 @@ public class GoalExpanderTest
 			dataPack.load("methods", MethodsPack.class),
 			dataPack.load("effects", EffectsPack.class),
 			dataPack.load("gear-progression", GearProgressionPack.class),
-			dataPack.load("boosts", com.ironhub.data.BoostsPack.class));
+			dataPack.load("boosts", com.ironhub.data.BoostsPack.class),
+			dataPack.load("diaries", com.ironhub.data.DiariesPack.class));
 	}
 
 	private static GoalsPack.Goal goal(String id, String... reqs)
@@ -195,6 +197,21 @@ public class GoalExpanderTest
 		ActionDag claimed = GoalExpander.expand(List.of(
 			goal("ring", "diary:Lumbridge & Draynor:Elite")), state, packs());
 		assertEquals(0, claimed.size());
+	}
+
+	@Test
+	public void diaryTierGoalsCarryAggregatedRequirements()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		ActionDag dag = GoalExpander.expand(List.of(
+			goal("ring", "diary:Lumbridge & Draynor:Elite")), state, packs());
+		Action tier = dag.get("diarytier:Lumbridge & Draynor:Elite");
+		assertNotNull(tier);
+		// the tier's hardest demands gate it (81 Craft w/ QP cape path skipped,
+		// but 76+ skills and quest chains must appear as dependencies)
+		assertFalse("tier should depend on its skill demands", tier.dependsOn.isEmpty());
+		boolean hasTrain = tier.dependsOn.stream().anyMatch(d -> d.startsWith("train:"));
+		assertTrue("expected TRAIN dependencies, got: " + tier.dependsOn, hasTrain);
 	}
 
 	@Test

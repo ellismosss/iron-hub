@@ -145,9 +145,21 @@ public class GoalExpander
 				break;
 			case "diary": // detected via claim varbit — no tick key needed
 			{
-				Action node = dag.getOrAdd(new Action("diarytier:" + parts[1] + ":" + parts[2],
-					Action.Kind.MANUAL, parsed.describe()));
-				node.manualText = parsed.describe();
+				Action node = dag.get("diarytier:" + parts[1] + ":" + parts[2]);
+				if (node == null)
+				{
+					node = dag.getOrAdd(new Action("diarytier:" + parts[1] + ":" + parts[2],
+						Action.Kind.MANUAL, parsed.describe()));
+					node.manualText = parsed.describe();
+					// the tier's aggregated demands place it honestly in the route
+					for (String tierReq : packs.diaryTierReqs(parts[1], parts[2]))
+					{
+						for (String dep : expandRequirement(tierReq, goalId, null))
+						{
+							node.dependsOn.add(dep);
+						}
+					}
+				}
 				node.neededBy.add(goalId);
 				out.add(node.id);
 				break;
@@ -274,6 +286,7 @@ public class GoalExpander
 		if (gearItem != null)
 		{
 			node.materials = gearItem.getMaterials();
+			node.obtainHours = gearItem.getHours();
 		}
 		node.neededBy.add(goalId);
 		out.add(id);
@@ -362,6 +375,17 @@ public class GoalExpander
 			if (gearItem != null)
 			{
 				node.materials = gearItem.getMaterials();
+			}
+			if (unlockKey.startsWith("diarytask_"))
+			{
+				// the individual diary task's own requirements gate it
+				for (String req : packs.diaryTaskReqs(unlockKey.substring("diarytask_".length())))
+				{
+					for (String dep : expandRequirement(req, goalId, null))
+					{
+						node.dependsOn.add(dep);
+					}
+				}
 			}
 		}
 		node.neededBy.add(goalId);

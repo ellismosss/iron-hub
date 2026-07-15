@@ -297,12 +297,11 @@ class PlannerTab extends JPanel
 		serves.setToolTipText(servedGoalNames(step));
 		foot.add(serves);
 		foot.add(Box.createHorizontalGlue());
-		String wiki = wikiPage(step);
-		if (wiki != null)
+		String nowWiki = wikiUrl(step);
+		if (nowWiki != null)
 		{
 			foot.add(new com.ironhub.ui.components.IconButton("W", "Open the wiki page",
-				() -> LinkBrowser.browse("https://oldschool.runescape.wiki/w/"
-					+ wiki.replace(' ', '_'))));
+				() -> LinkBrowser.browse(nowWiki)));
 		}
 		card.add(foot);
 		MouseAdapter open = new MouseAdapter()
@@ -614,6 +613,13 @@ class PlannerTab extends JPanel
 		row.setToolTipText(hover);
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
+		String rowWiki = wikiUrl(step);
+		if (rowWiki != null)
+		{
+			row.add(new com.ironhub.ui.components.IconButton("W", "Open the wiki page",
+				() -> LinkBrowser.browse(rowWiki)));
+			row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		}
 		row.add(timeLabel(step, UiTokens.TEXT_MUTED, false));
 
 		MouseAdapter click = new MouseAdapter()
@@ -683,6 +689,13 @@ class PlannerTab extends JPanel
 		name.setToolTipText(step.action.name);
 		title.add(name);
 		title.add(Box.createHorizontalGlue());
+		String cardWiki = wikiUrl(step);
+		if (cardWiki != null)
+		{
+			title.add(new com.ironhub.ui.components.IconButton("W", "Open the wiki page",
+				() -> LinkBrowser.browse(cardWiki)));
+			title.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		}
 		title.add(timeLabel(step, UiTokens.ACCENT, true));
 		card.add(title);
 
@@ -804,6 +817,17 @@ class PlannerTab extends JPanel
 				module.questEntry(step.action.questName);
 			reqStrings = entry == null ? null : entry.reqs;
 		}
+		else if (step.action.id.startsWith("diarytier:"))
+		{
+			String[] parts = step.action.id.split(":");
+			reqStrings = module.diaryTierReqs(parts[1], parts[2]);
+		}
+		else if (step.action.kind == Action.Kind.MANUAL && step.action.unlockKey != null
+			&& step.action.unlockKey.startsWith("diarytask_"))
+		{
+			reqStrings = module.diaryTaskReqs(
+				step.action.unlockKey.substring("diarytask_".length()));
+		}
 		if (true)
 		{
 			if (reqStrings != null && !reqStrings.isEmpty())
@@ -812,17 +836,7 @@ class PlannerTab extends JPanel
 				card.add(new SectionLabel("Requirements"));
 				for (String raw : reqStrings)
 				{
-					com.ironhub.requirements.Requirement parsed =
-						com.ironhub.requirements.Requirements.parse(raw);
-					boolean met = !com.ironhub.requirements.Requirements.isManual(parsed)
-						&& parsed.isMet(state);
-					JLabel line = new JLabel("· " + parsed.describe());
-					line.setForeground(met ? UiTokens.STATUS_OWNED : UiTokens.TEXT_MUTED);
-					line.setFont(line.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-					line.setAlignmentX(LEFT_ALIGNMENT);
-					line.setMinimumSize(new Dimension(0, 0));
-					line.setToolTipText(parsed.describe() + (met ? " — met" : " — not yet"));
-					card.add(line);
+					card.add(requirementLine(raw));
 				}
 			}
 		}
@@ -889,12 +903,11 @@ class PlannerTab extends JPanel
 			done.addActionListener(e -> state.setUnlocked(step.action.unlockKey, true));
 			menu.add(done);
 		}
-		String wiki = wikiPage(step);
-		if (wiki != null)
+		String menuWiki = wikiUrl(step);
+		if (menuWiki != null)
 		{
 			JMenuItem open = new JMenuItem("Open wiki");
-			open.addActionListener(e -> LinkBrowser.browse(
-				"https://oldschool.runescape.wiki/w/" + wiki.replace(' ', '_')));
+			open.addActionListener(e -> LinkBrowser.browse(menuWiki));
 			menu.add(open);
 		}
 		return menu;
@@ -1326,6 +1339,8 @@ class PlannerTab extends JPanel
 		bundledIcon("/data/icons/combat_achievements.png");
 	private static final javax.swing.Icon DIARY_ICON =
 		bundledIcon("/data/icons/achievement_diaries.png");
+	private static final javax.swing.Icon QUEST_ICON =
+		bundledIcon("/data/icons/quest_point.png");
 
 	/** The CA/diary badge for a goal id, or null. */
 	private static javax.swing.Icon goalBadge(String goalId)
@@ -1351,6 +1366,10 @@ class PlannerTab extends JPanel
 				skillIconManager.getSkillImage(step.action.trainSkill, true);
 			return new javax.swing.ImageIcon(
 				image.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH));
+		}
+		if (step.action.kind == Action.Kind.QUEST)
+		{
+			return QUEST_ICON;
 		}
 		if (itemManager == null)
 		{
@@ -1446,6 +1465,46 @@ class PlannerTab extends JPanel
 		return html.toString();
 	}
 
+	/** One requirement line: skill icon + level for skill leaves, text
+	 * otherwise; green when met, muted when not. */
+	private JComponent requirementLine(String raw)
+	{
+		com.ironhub.requirements.Requirement parsed =
+			com.ironhub.requirements.Requirements.parse(raw);
+		boolean met = !com.ironhub.requirements.Requirements.isManual(parsed)
+			&& parsed.isMet(state);
+		String text = "· " + parsed.describe();
+		javax.swing.Icon icon = null;
+		String[] parts = raw.split(":");
+		if ((parts[0].equalsIgnoreCase("skill") || parts[0].equalsIgnoreCase("skillb"))
+			&& parts.length >= 3 && skillIconManager != null)
+		{
+			for (Skill skill : Skill.values())
+			{
+				if (skill.getName().equalsIgnoreCase(parts[1]))
+				{
+					icon = new javax.swing.ImageIcon(skillIconManager
+						.getSkillImage(skill, true)
+						.getScaledInstance(-1, 15, java.awt.Image.SCALE_SMOOTH));
+					text = parts[2];
+					break;
+				}
+			}
+		}
+		JLabel line = new JLabel(text);
+		if (icon != null)
+		{
+			line.setIcon(icon);
+			line.setIconTextGap(UiTokens.PAD_TIGHT);
+		}
+		line.setForeground(met ? UiTokens.STATUS_OWNED : UiTokens.TEXT_MUTED);
+		line.setFont(line.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		line.setAlignmentX(LEFT_ALIGNMENT);
+		line.setMinimumSize(new Dimension(0, 0));
+		line.setToolTipText(parsed.describe() + (met ? " — met" : " — not yet"));
+		return line;
+	}
+
 	private static JComponent mutedNote(String text)
 	{
 		JLabel note = new JLabel(text);
@@ -1535,14 +1594,56 @@ class PlannerTab extends JPanel
 
 	private String wikiPage(Plan.Step step)
 	{
-		if (step.action.kind == Action.Kind.QUEST)
+		switch (step.action.kind)
 		{
-			return step.action.questName;
+			case QUEST:
+				return step.action.questName;
+			case KILL:
+				return step.action.kcSource;
+			case OBTAIN:
+			{
+				GearProgressionPack.Item item = moduleGearItem(step.action.itemId);
+				return item != null ? item.wikiPage() : null;
+			}
+			case MANUAL:
+				if (step.action.id.startsWith("diarytier:"))
+				{
+					return step.action.id.split(":")[1] + " Diary";
+				}
+				if (step.action.unlockKey != null && step.action.unlockKey.startsWith("gearmark_"))
+				{
+					GearProgressionPack.Item item =
+						moduleGearItemByMark(step.action.unlockKey);
+					return item != null ? item.wikiPage() : null;
+				}
+				return null;
+			case TRAIN:
+			default:
+				return null;
 		}
-		if (step.action.kind == Action.Kind.KILL)
+	}
+
+	/** Wiki URL for a step: pages for content, the method's source for training. */
+	private String wikiUrl(Plan.Step step)
+	{
+		if (step.action.kind == Action.Kind.TRAIN)
 		{
-			return step.action.kcSource;
+			com.ironhub.data.MethodsPack.SkillLadder ladder = moduleMethods() == null
+				? null : moduleMethods().ladder(step.action.trainSkill);
+			if (ladder != null && step.methodId != null)
+			{
+				for (com.ironhub.data.MethodsPack.Method method : ladder.methods)
+				{
+					if (method.id.equals(step.methodId))
+					{
+						return "https://" + method.source;
+					}
+				}
+			}
+			return null;
 		}
-		return null;
+		String page = wikiPage(step);
+		return page == null ? null
+			: "https://oldschool.runescape.wiki/w/" + page.replace(' ', '_');
 	}
 }

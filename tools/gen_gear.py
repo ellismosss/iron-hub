@@ -76,13 +76,17 @@ QUESTS = {q.strip().lower() for q in open(os.path.join(os.path.dirname(__file__)
 CATS = {'melee', 'ranged', 'magic', 'utility', 'poh', 'boat'}
 missing = []
 
-def I(name, const, cats, reqs=(), wiki=None, exact=False, implies=()):
+def I(name, const, cats, reqs=(), wiki=None, exact=False, implies=(), hours=None, source_note=None):
     """Detectable item: const is both icon and ownership detection."""
     e = _entry(name, const, None, cats, reqs, wiki)
     if exact:
         e['exact'] = True
     if implies:
         e['implies'] = list(implies)
+    if hours is not None:
+        e['hours'] = hours
+    if source_note is not None:
+        e['sourceNote'] = source_note
     return e
 
 def M(name, icon_const, cats, reqs=(), wiki=None, iconfile=None, implies=()):
@@ -130,7 +134,8 @@ phases = [
     ),
     G('[L1] Foundations',
       I("Amulet of strength", 'AMULET_OF_STRENGTH', ['melee'], ['skill:Crafting:50', 'skill:Magic:49']),
-      I("Rune pouch", 'RUNE_POUCH', ['utility']),
+      I("Rune pouch", 'RUNE_POUCH', ['utility'],
+        source_note='750 slayer points — accrues from normal slayer tasks'),
       I("Adamant scimitar", 'ADAMANT_SCIMITAR', ['melee'], ['quest:The Feud']),
       I("Proselyte hauberk", 'PROSELYTE_HAUBERK', ['melee'], ['quest:The Slug Menace', 'skill:Defence:30', 'skill:Prayer:20']),
       I("Rune platebody", 'RUNE_PLATEBODY', ['melee'], ['quest:Dragon Slayer I', 'skill:Defence:40']),
@@ -169,8 +174,10 @@ phases = [
       I("Dramen staff", 'DRAMEN_STAFF', ['utility'], ['quest:Lost City'], 'Fairy_ring'),
       I("Kharedst's memoirs", 'KHAREDSTS_MEMOIRS', ['utility'], ['quest:Client of Kourend'], "Kharedst's_memoirs"),
       I("Imcando hammer", 'IMCANDO_HAMMER', ['utility'], ['quest:Below Ice Mountain']),
-      I("Coal bag", 'COAL_BAG_12019', ['utility'], ['skill:Mining:30']),
-      I("Gem bag", 'GEM_BAG_12020', ['utility'], ['skill:Mining:30']),
+      I("Coal bag", 'COAL_BAG_12019', ['utility'], ['skill:Mining:30'],
+        hours=6, source_note='100 golden nuggets · Motherlode Mine'),
+      I("Gem bag", 'GEM_BAG_12020', ['utility'], ['skill:Mining:30'],
+        hours=6, source_note='100 golden nuggets · Motherlode Mine'),
     ),
   ]},
   {'phase': 2, 'name': 'Mid game', 'groups': [
@@ -225,13 +232,19 @@ phases = [
       I("Red chinchompa", 'RED_CHINCHOMPA', ['ranged'], ['skill:Hunter:63', 'skill:Ranged:55']),
     ),
     G('Convenience grinds',
-      I("Fish barrel", 'FISH_BARREL', ['utility'], ['skill:Fishing:35']),
-      I("Tackle box", 'TACKLE_BOX', ['utility'], ['skill:Fishing:35']),
+      I("Fish barrel", 'FISH_BARREL', ['utility'], ['skill:Fishing:35'],
+        hours=10, source_note='Tempoross reward pool · ~1/400 per permit roll'),
+      I("Tackle box", 'TACKLE_BOX', ['utility'], ['skill:Fishing:35'],
+        hours=10, source_note='Tempoross reward pool · ~1/400 per permit roll'),
       I("Gem sack", 'GEM_SACK', ['utility'], ['item:12020:1:Gem bag'], implies=['Gem bag']),
-      I("Plank sack", 'PLANK_SACK', ['utility']),
-      I("Amy's saw", 'AMYS_SAW', ['utility'], [], "Amy's_saw"),
-      I("Seed box", 'SEED_BOX', ['utility'], ['skill:Farming:34']),
-      I("Herb sack", 'HERB_SACK', ['utility']),
+      I("Plank sack", 'PLANK_SACK', ['utility'], ['skillb:Construction:20'],
+        hours=3.5, source_note='350 carpenter points · Mahogany Homes Reward Shop'),
+      I("Amy's saw", 'AMYS_SAW', ['utility'], ['skillb:Construction:20'], "Amy's_saw",
+        hours=5, source_note='500 carpenter points · Mahogany Homes Reward Shop'),
+      I("Seed box", 'SEED_BOX', ['utility'], ['skill:Farming:34'],
+        hours=2.5, source_note='250 Tithe Farm points · Farmer Gricoller'),
+      I("Herb sack", 'HERB_SACK', ['utility'], ['skillb:Farming:34'],
+        hours=2.5, source_note='250 Tithe Farm points (or 750 slayer points)'),
       I("Divine rune pouch", 'DIVINE_RUNE_POUCH', ['utility'], ['quest:Beneath Cursed Sands', 'skill:Crafting:75', 'item:12791:1:Rune pouch'], implies=['Rune pouch']),
       I("Fletching knife", 'FLETCHING_KNIFE', ['utility']),
       I("Basic quetzal whistle", 'BASIC_QUETZAL_WHISTLE', ['utility'], ['skill:Hunter:46']),

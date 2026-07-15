@@ -70,7 +70,8 @@
               "categories": [
                 "utility"
               ],
-              "requirements": []
+              "requirements": [],
+              "sourceNote": "750 slayer points \u2014 accrues from normal slayer tasks"
             },
             {
               "name": "Adamant scimitar",
@@ -400,7 +401,9 @@
               ],
               "requirements": [
                 "skillb:Mining:30"
-              ]
+              ],
+              "hours": 6,
+              "sourceNote": "100 golden nuggets \u00b7 Motherlode Mine"
             },
             {
               "name": "Gem bag",
@@ -410,7 +413,9 @@
               ],
               "requirements": [
                 "skillb:Mining:30"
-              ]
+              ],
+              "hours": 6,
+              "sourceNote": "100 golden nuggets \u00b7 Motherlode Mine"
             }
           ]
         }
@@ -910,7 +915,9 @@
               ],
               "requirements": [
                 "skillb:Fishing:35"
-              ]
+              ],
+              "hours": 10,
+              "sourceNote": "Tempoross reward pool \u00b7 ~1/400 per permit roll"
             },
             {
               "name": "Tackle box",
@@ -920,7 +927,9 @@
               ],
               "requirements": [
                 "skillb:Fishing:35"
-              ]
+              ],
+              "hours": 10,
+              "sourceNote": "Tempoross reward pool \u00b7 ~1/400 per permit roll"
             },
             {
               "name": "Gem sack",
@@ -941,7 +950,11 @@
               "categories": [
                 "utility"
               ],
-              "requirements": []
+              "requirements": [
+                "skillb:Construction:20"
+              ],
+              "hours": 3.5,
+              "sourceNote": "350 carpenter points \u00b7 Mahogany Homes Reward Shop"
             },
             {
               "name": "Amy's saw",
@@ -949,8 +962,12 @@
               "categories": [
                 "utility"
               ],
-              "requirements": [],
-              "wiki": "Amy's_saw"
+              "requirements": [
+                "skillb:Construction:20"
+              ],
+              "wiki": "Amy's_saw",
+              "hours": 5,
+              "sourceNote": "500 carpenter points \u00b7 Mahogany Homes Reward Shop"
             },
             {
               "name": "Seed box",
@@ -960,7 +977,9 @@
               ],
               "requirements": [
                 "skill:Farming:34"
-              ]
+              ],
+              "hours": 2.5,
+              "sourceNote": "250 Tithe Farm points \u00b7 Farmer Gricoller"
             },
             {
               "name": "Herb sack",
@@ -968,7 +987,11 @@
               "categories": [
                 "utility"
               ],
-              "requirements": []
+              "requirements": [
+                "skillb:Farming:34"
+              ],
+              "hours": 2.5,
+              "sourceNote": "250 Tithe Farm points (or 750 slayer points)"
             },
             {
               "name": "Divine rune pouch",
