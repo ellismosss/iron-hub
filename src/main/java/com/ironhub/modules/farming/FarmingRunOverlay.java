@@ -22,7 +22,9 @@ import net.runelite.client.ui.overlay.components.LineComponent;
  */
 class FarmingRunOverlay extends OverlayPanel
 {
-	private static final int WIDTH = 165; // within the 250×200 budget
+	private static final int WIDTH = 190; // within the 250×200 budget; fits mixed-run labels
+	/** Cap the upcoming-stop list so a long run stays within the 200px budget. */
+	private static final int MAX_UPCOMING = 6;
 
 	private final FarmingRunModule module;
 
@@ -99,16 +101,36 @@ class FarmingRunOverlay extends OverlayPanel
 			.left(progress.toString()).leftColor(UiTokens.OVERLAY_VALUE)
 			.build());
 
+		// Upcoming stops only (done ones are counted in the progress line), and
+		// only the next few — a long run (the combo tree run is 18 stops) would
+		// otherwise overflow the 200px overlay budget. The sidebar tab carries
+		// the full, scrollable checklist.
+		int shown = 0;
+		int remaining = 0;
 		for (FarmingRunModule.Stop stop : module.stops())
 		{
-			if (next != null && stop == next)
+			if (module.isVisited(stop.location.id) || stop == next)
 			{
-				continue; // already headlined above
+				continue; // done, or already headlined above
 			}
-			boolean done = module.isVisited(stop.location.id);
+			if (shown < MAX_UPCOMING)
+			{
+				panelComponent.getChildren().add(LineComponent.builder()
+					.left("· " + module.stopLabel(stop))
+					.leftColor(UiTokens.CANVAS_LOCKED)
+					.build());
+				shown++;
+			}
+			else
+			{
+				remaining++;
+			}
+		}
+		if (remaining > 0)
+		{
 			panelComponent.getChildren().add(LineComponent.builder()
-				.left("· " + module.stopLabel(stop))
-				.leftColor(done ? UiTokens.CANVAS_OWNED : UiTokens.CANVAS_LOCKED)
+				.left("  …+" + remaining + " more")
+				.leftColor(UiTokens.CANVAS_LOCKED)
 				.build());
 		}
 		return super.render(graphics);

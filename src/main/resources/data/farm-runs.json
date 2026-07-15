@@ -1,5 +1,5 @@
 {
- "source": "github.com/Speaax/Farming-Helper@dc52159 (BSD-2-Clause)",
+ "source": "github.com/Speaax/Farming-Helper@dc52159 (BSD-2-Clause) + curated calquat/celastrus/Varlamore patches and routes",
  "generated": "2026-07-15",
  "locations": [
   {
@@ -1048,9 +1048,9 @@
    ]
   },
   {
-   "id": "tree/nemus-retreat",
+   "id": "tree/auburnvale",
    "category": "tree",
-   "name": "Nemus Retreat",
+   "name": "Auburnvale",
    "point": {
     "x": 1366,
     "y": 3321,
@@ -1932,6 +1932,196 @@
      "items": []
     }
    ]
+  },
+  {
+   "id": "celastrus/farming-guild",
+   "category": "celastrus",
+   "name": "Farming Guild",
+   "point": {
+    "x": 1245,
+    "y": 3752,
+    "plane": 0
+   },
+   "reqs": [
+    "skill:Farming:85"
+   ],
+   "teleports": [
+    {
+     "id": "Jewellery_box",
+     "category": "JEWELLERY_BOX",
+     "description": "Teleport to Farming Guild with Jewellery box.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Skills_Necklace",
+     "category": "ITEM",
+     "description": "Teleport to Farming guild using Skills necklace.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 11111,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Spirit_Tree",
+     "category": "SPIRIT_TREE",
+     "description": "Use a Spirit Tree and teleport to the Farming Guild.",
+     "supplier": null,
+     "items": []
+    },
+    {
+     "id": "Fairy_Ring",
+     "category": "FAIRY_RING",
+     "description": "Use a Fairy Ring (CIR) to teleport near the Farming Guild.",
+     "supplier": "fairyRing",
+     "items": []
+    },
+    {
+     "id": "Farming_Skillcape",
+     "category": "ITEM",
+     "description": "Teleport to Farming Guild using Farming skillcape.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 9810,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "calquat/tai-bwo-wannai",
+   "category": "calquat",
+   "name": "Tai Bwo Wannai",
+   "point": {
+    "x": 2796,
+    "y": 3101,
+    "plane": 0
+   },
+   "reqs": [
+    "skill:Farming:72"
+   ],
+   "teleports": [
+    {
+     "id": "Fairy_Ring",
+     "category": "FAIRY_RING",
+     "description": "Fairy ring code CKR, beside the patch.",
+     "supplier": "fairyRing",
+     "items": []
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "calquat/kastori",
+   "category": "calquat",
+   "name": "Kastori",
+   "point": {
+    "x": 1352,
+    "y": 3054,
+    "plane": 0
+   },
+   "reqs": [
+    "quest:Children of the Sun",
+    "skill:Farming:72"
+   ],
+   "teleports": [
+    {
+     "id": "Quetzal_whistle",
+     "category": "ITEM",
+     "description": "Quetzal whistle (basic/enhanced/perfected).",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 29271,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Pendant_of_Ates",
+     "category": "ITEM",
+     "description": "Pendant of Ates.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 29893,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "calquat/summer-shore",
+   "category": "calquat",
+   "name": "The Great Conch",
+   "point": {
+    "x": 3160,
+    "y": 2400,
+    "plane": 0
+   },
+   "reqs": [
+    "quest:Children of the Sun",
+    "skill:Farming:72"
+   ],
+   "teleports": [
+    {
+     "id": "Quetzal_whistle",
+     "category": "ITEM",
+     "description": "Quetzal whistle (basic/enhanced/perfected).",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 29271,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Pendant_of_Ates",
+     "category": "ITEM",
+     "description": "Pendant of Ates.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 29893,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
   }
  ],
  "saplings": {
@@ -1957,6 +2147,28 @@
   ],
   "celastrus": [
    22856
+  ]
+ },
+ "routes": {
+  "Combo tree run": [
+   "fruit/gnome-stronghold",
+   "tree/gnome-stronghold",
+   "fruit/tree-gnome-village",
+   "tree/farming-guild",
+   "fruit/farming-guild",
+   "celastrus/farming-guild",
+   "tree/lumbridge",
+   "tree/varrock",
+   "tree/falador",
+   "tree/taverley",
+   "fruit/catherby",
+   "fruit/brimhaven",
+   "calquat/tai-bwo-wannai",
+   "fruit/lletya",
+   "fruit/kastori",
+   "calquat/kastori",
+   "tree/auburnvale",
+   "calquat/summer-shore"
   ]
  }
 }

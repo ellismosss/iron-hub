@@ -282,9 +282,42 @@ the **Elite Morytania Diary** (not a quest — the island is reachable via
 The Great Brain Robbery, but the *patches* are diary-locked); Troll
 Stronghold = My Arm's Big Adventure; Weiss = Making Friends with My Arm;
 Farming Guild herb/tree = 65 Farming, fruit tree = 85; Morytania/Canifis =
-Priest in Peril started; Civitas/Nemus/Kastori/Aldarin = Children of the Sun
-(Varlamore); Lletya = Mourning's End Part I started. Quest tokens are
-validated against the RuneLite Quest enum at generation.
+Priest in Peril started; Civitas/Auburnvale/Kastori/Aldarin = Children of the
+Sun (Varlamore); Lletya = Mourning's End Part I started. Calquat needs 72
+Farming (Tai Bwo Wannai / Kastori / The Great Conch), celastrus needs 85 (Farming
+Guild high tier). Quest tokens are validated against the RuneLite Quest enum at
+generation.
+
+**Curated routes + new patch data** (data/farm-runs.json `routes` +
+curated locations, tools/gen_farm_runs.py). Easy Farming's tables cover
+herb/tree/fruit/hops only, so calquat (Tai Bwo Wannai, Kastori, **The Great
+Conch** = the wiki's third calquat site, which Luke calls "Summer Shore" —
+an instanced region so its live state may not always resolve) and the
+Farming Guild **celastrus** patch are hand-added, with tiles placed in the
+vendored FarmingWorld's PRIMARY region for that patch (FarmRunsPackTest
+proves every stop's tile sits in a region carrying its patch type — the
+Farming Guild's tree/fruit/celastrus all report region 4922). Easy Farming's
+"Nemus Retreat" tree is the game's **Auburnvale** patch (same region 5427) —
+renamed at generation (NAME_OVERRIDE) so the id is tree/auburnvale, keeping
+its richer teleport list, rather than curating a duplicate. `routes` holds
+Luke's optimal **Combo tree run** (regular + fruit + calquat + celastrus, 18
+stops in a fixed order the auto-grouping templates can't express); its "Start
+at GE" step is deferred to the banking-steps spec.
+
+**Culling a run to what's worth doing** (Luke's Combo-tree-run spec —
+FarmingRunModule.cull, applied at startRun to every run). Drop a stop when:
+it's locked (the graph reqs above); its own-category patch is **confirmed
+still growing** (the vendored predictor's GROWING view — nothing to harvest
+yet; ready/empty/dead/diseased/unknown all read as "assume doable", Luke's
+"100% confirmed no, otherwise assume yes"); or you hold no **sapling** to
+plant there. When short on saplings for a type, keep only as many of its
+stops as you can plant, in route order ("cull down to sapling count").
+Saplings plantable per category are a generated pack section
+(FarmRunsPack.saplings, from client ItemID constants —
+tree/fruit/calquat/celastrus). Herb/hops plant seeds directly (no sapling
+list) so they're never sapling-culled — only the lock/growing checks apply.
+The overlay caps its upcoming-stop list (MAX_UPCOMING) so an 18-stop run
+stays within the 200px budget; the sidebar tab carries the full checklist.
 
 **Advancing a run stop** (matches Easy Farming's FarmingStepHandler): a
 stop is done once the patch is PLANTED — its crop state reads GROWING via

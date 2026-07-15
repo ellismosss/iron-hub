@@ -522,10 +522,9 @@ class FarmingTab extends JPanel
 
 	private void buildRunPicker()
 	{
-		for (String template : FarmingRunModule.TEMPLATES.keySet())
+		for (String template : module.templateNames())
 		{
-			int count = module.unlockedLocations(
-				module.templateLocations(FarmingRunModule.TEMPLATES.get(template))).size();
+			int count = module.unlockedLocations(module.runLocations(template)).size();
 			runs.add(runRow(template, count + " stops", () -> module.startTemplate(template), null));
 			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}

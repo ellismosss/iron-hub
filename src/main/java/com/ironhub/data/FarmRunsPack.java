@@ -23,8 +23,17 @@ public class FarmRunsPack
 	 *  checks ownership. Categories not listed (herb/hops) are never
 	 *  sapling-culled. */
 	public Map<String, List<Integer>> saplings;
+	/** Named curated routes: run name → ordered location ids (crosses
+	 *  categories in a fixed order the auto-grouping templates can't express). */
+	public Map<String, List<String>> routes;
 
 	private transient Map<String, Location> byId;
+
+	/** Ordered location ids of a named route, or null. */
+	public List<String> route(String name)
+	{
+		return routes == null ? null : routes.get(name);
+	}
 
 	/** Sapling item ids for a category, or null when the category plants
 	 *  seeds directly (herb/hops) and shouldn't be sapling-culled. */

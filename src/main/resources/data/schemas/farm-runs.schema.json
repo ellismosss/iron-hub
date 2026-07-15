@@ -6,7 +6,8 @@
 		"source",
 		"generated",
 		"locations",
-		"saplings"
+		"saplings",
+		"routes"
 	],
 	"additionalProperties": false,
 	"properties": {
@@ -21,6 +22,17 @@
 				"items": {
 					"type": "integer",
 					"minimum": 1
+				}
+			}
+		},
+		"routes": {
+			"type": "object",
+			"additionalProperties": {
+				"type": "array",
+				"minItems": 1,
+				"items": {
+					"type": "string",
+					"pattern": "^(herb|tree|fruit|hops|calquat|celastrus)/[a-z0-9-]+$"
 				}
 			}
 		},
@@ -45,7 +57,7 @@
 				"properties": {
 					"id": {
 						"type": "string",
-						"pattern": "^(herb|tree|fruit|hops)/[a-z0-9-]+$"
+						"pattern": "^(herb|tree|fruit|hops|calquat|celastrus)/[a-z0-9-]+$"
 					},
 					"reqs": {
 						"type": "array",
@@ -59,7 +71,9 @@
 							"herb",
 							"tree",
 							"fruit",
-							"hops"
+							"hops",
+							"calquat",
+							"celastrus"
 						]
 					},
 					"name": {

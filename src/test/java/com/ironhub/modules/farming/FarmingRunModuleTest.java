@@ -256,7 +256,7 @@ public class FarmingRunModuleTest
 		assertEquals("fruit/gnome-stronghold", combined.get(gsTree + 1).id);
 		// fruit-only sites come after every tree site
 		assertTrue(indexOf(combined, "fruit/brimhaven")
-			> indexOf(combined, "tree/nemus-retreat"));
+			> indexOf(combined, "tree/auburnvale"));
 		module.shutDown();
 	}
 
@@ -284,6 +284,51 @@ public class FarmingRunModuleTest
 		module.startTemplate("Tree run");
 		assertFalse(module.multiCategory());
 		assertEquals("Falador", module.stopLabel(stop(module, "tree/falador")));
+		module.shutDown();
+	}
+
+	@Test
+	public void comboTreeRunFollowsTheCuratedRouteAndSpansCategories() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		StateFixture.stat(state, net.runelite.api.Skill.FARMING, 85, 8_771_558);
+		StateFixture.quest(state, net.runelite.api.Quest.CHILDREN_OF_THE_SUN,
+			net.runelite.api.QuestState.FINISHED);
+		// a sapling of every category so nothing is sapling-culled
+		StateFixture.bank(state, Map.of(5370, 20, 5496, 20, 5503, 20, 22856, 20));
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+
+		assertTrue(module.templateNames().contains("Combo tree run"));
+		module.startTemplate("Combo tree run");
+		assertTrue(module.multiCategory());
+
+		// the curated order is preserved through culling — fruit tree first,
+		// then its tree twin at the Gnome Stronghold
+		assertEquals("fruit/gnome-stronghold", module.stops().get(0).location.id);
+		assertEquals("tree/gnome-stronghold", module.stops().get(1).location.id);
+
+		// the run genuinely spans calquat and celastrus, and labels its types
+		assertTrue(module.stops().stream().anyMatch(s -> s.location.category.equals("calquat")));
+		assertTrue(module.stops().stream().anyMatch(s -> s.location.category.equals("celastrus")));
+		assertEquals("Farming Guild · celastrus",
+			module.stopLabel(stop(module, "celastrus/farming-guild")));
+
+		// a long run's overlay must still fit the 250x200 budget (capped list)
+		FarmingRunOverlay overlay = new FarmingRunOverlay(module);
+		java.awt.image.BufferedImage canvas = new java.awt.image.BufferedImage(
+			300, 300, java.awt.image.BufferedImage.TYPE_INT_RGB);
+		java.awt.Graphics2D g = canvas.createGraphics();
+		g.setColor(new java.awt.Color(58, 66, 48));
+		g.fillRect(0, 0, 300, 300);
+		g.setFont(net.runelite.client.ui.FontManager.getRunescapeSmallFont());
+		java.awt.Dimension size = overlay.render(g);
+		g.dispose();
+		assertNotNull(size);
+		assertTrue("combo overlay height " + size.height, size.height <= 200);
+		java.io.File out = new java.io.File("build/reports/farming-run-combo-overlay.png");
+		out.getParentFile().mkdirs();
+		javax.imageio.ImageIO.write(canvas, "png", out);
 		module.shutDown();
 	}
 

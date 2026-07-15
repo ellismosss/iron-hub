@@ -26,7 +26,9 @@ public class FarmRunsPackTest
 		"herb", PatchImplementation.HERB,
 		"tree", PatchImplementation.TREE,
 		"fruit", PatchImplementation.FRUIT_TREE,
-		"hops", PatchImplementation.HOPS);
+		"hops", PatchImplementation.HOPS,
+		"calquat", PatchImplementation.CALQUAT,
+		"celastrus", PatchImplementation.CELASTRUS);
 
 	@Test
 	public void everyStopSitsOnARegionWithItsPatch()
@@ -57,6 +59,25 @@ public class FarmRunsPackTest
 				+ " (found " + present + ")", present.contains(wanted));
 			assertTrue(location.id + " has no teleports", !location.teleports.isEmpty());
 		}
-		assertTrue(pack.locations.size() >= 29);
+		assertTrue(pack.locations.size() >= 33);
+	}
+
+	@Test
+	public void curatedRoutesReferenceRealLocations()
+	{
+		FarmRunsPack pack = new DataPack(new Gson()).load("farm-runs", FarmRunsPack.class);
+		Set<String> ids = new HashSet<>();
+		for (FarmRunsPack.Location location : pack.locations)
+		{
+			ids.add(location.id);
+		}
+		assertNotNull("Combo tree run route missing", pack.route("Combo tree run"));
+		for (Map.Entry<String, java.util.List<String>> route : pack.routes.entrySet())
+		{
+			for (String id : route.getValue())
+			{
+				assertTrue(route.getKey() + " references unknown id " + id, ids.contains(id));
+			}
+		}
 	}
 }

@@ -594,6 +594,10 @@ public class FarmingRunModule implements IronHubModule
 				return Tab.FRUIT_TREE;
 			case "hops":
 				return Tab.HOPS;
+			case "calquat":
+				return Tab.CALQUAT;
+			case "celastrus":
+				return Tab.CELASTRUS;
 			default:
 				return null;
 		}
@@ -620,6 +624,8 @@ public class FarmingRunModule implements IronHubModule
 			case "tree": type = "tree"; break;
 			case "fruit": type = "fruit tree"; break;
 			case "hops": type = "hops"; break;
+			case "calquat": type = "calquat"; break;
+			case "celastrus": type = "celastrus"; break;
 			default: type = "herb";
 		}
 		return stop.location.name + " · " + type;
@@ -666,10 +672,49 @@ public class FarmingRunModule implements IronHubModule
 		return grouped;
 	}
 
-	/** Start a built-in template run ("Herb run", "Tree & fruit run", ...). */
+	/** Start a built-in run ("Herb run", "Tree & fruit run", "Combo tree run"). */
 	void startTemplate(String name)
 	{
-		startRun(name, templateLocations(TEMPLATES.get(name)));
+		startRun(name, runLocations(name));
+	}
+
+	/** Locations for a run name: a curated route (the pack's ordered ids, e.g.
+	 *  the Combo tree run) if defined, else the template's auto-grouped
+	 *  category locations. Culling happens later, in startRun. */
+	List<FarmRunsPack.Location> runLocations(String name)
+	{
+		List<String> route = pack.route(name);
+		if (route != null)
+		{
+			List<FarmRunsPack.Location> out = new java.util.ArrayList<>();
+			for (String id : route)
+			{
+				FarmRunsPack.Location location = pack.location(id);
+				if (location != null)
+				{
+					out.add(location);
+				}
+			}
+			return out;
+		}
+		return templateLocations(TEMPLATES.get(name));
+	}
+
+	/** All built-in run names — the category templates, then curated routes. */
+	List<String> templateNames()
+	{
+		List<String> names = new java.util.ArrayList<>(TEMPLATES.keySet());
+		if (pack.routes != null)
+		{
+			for (String name : pack.routes.keySet())
+			{
+				if (!names.contains(name))
+				{
+					names.add(name);
+				}
+			}
+		}
+		return names;
 	}
 
 	/** Start a saved custom run; unknown location ids are skipped. */
