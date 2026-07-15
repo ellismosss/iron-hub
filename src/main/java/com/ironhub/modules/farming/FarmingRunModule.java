@@ -81,12 +81,16 @@ public class FarmingRunModule implements IronHubModule
 	private final net.runelite.client.Notifier notifier; // null in unit tests
 	private final ConfigManager configManager;     // null in unit tests
 	private final ItemManager itemManager;         // null in unit tests
+	private final net.runelite.client.callback.ClientThread clientThread; // null in unit tests
+	private final net.runelite.client.plugins.banktags.BankTagsService bankTagsService; // null in tests
+	private final net.runelite.client.plugins.banktags.TagManager tagManager; // null in tests
+	private final net.runelite.client.plugins.banktags.tabs.LayoutManager layoutManager; // null in tests
 
 	private FarmRunsPack pack;
 	FarmTrackingService tracking; // package-private test seam
+	private FarmBankLayout bankLayout;
 	private FarmingTab tab;
 	private FarmingRunOverlay overlay;
-	private FarmSetupOverlay setupOverlay;
 	private RunTimerInfoBox infoBox;
 	private final java.util.List<FarmReadyInfoBox> readyBoxes = new java.util.ArrayList<>();
 
@@ -112,7 +116,11 @@ public class FarmingRunModule implements IronHubModule
 		OverlayManager overlayManager, InfoBoxManager infoBoxManager,
 		Provider<com.ironhub.IronHubPlugin> plugin, IronHubConfig config,
 		ShortestPathBridge pathBridge, DataPack dataPack, net.runelite.client.Notifier notifier,
-		ConfigManager configManager, ItemManager itemManager)
+		ConfigManager configManager, ItemManager itemManager,
+		net.runelite.client.callback.ClientThread clientThread,
+		net.runelite.client.plugins.banktags.BankTagsService bankTagsService,
+		net.runelite.client.plugins.banktags.TagManager tagManager,
+		net.runelite.client.plugins.banktags.tabs.LayoutManager layoutManager)
 	{
 		this.notifier = notifier;
 		this.state = state;
@@ -126,6 +134,10 @@ public class FarmingRunModule implements IronHubModule
 		this.dataPack = dataPack;
 		this.configManager = configManager;
 		this.itemManager = itemManager;
+		this.clientThread = clientThread;
+		this.bankTagsService = bankTagsService;
+		this.tagManager = tagManager;
+		this.layoutManager = layoutManager;
 	}
 
 	@Override
@@ -149,13 +161,12 @@ public class FarmingRunModule implements IronHubModule
 			tracking = new FarmTrackingService(client, itemManager, configManager,
 				configManager.getConfig(TimeTrackingConfig.class), notifier);
 		}
+		bankLayout = new FarmBankLayout(bankTagsService, tagManager, layoutManager, itemManager);
 		eventBus.register(this);
 		if (overlayManager != null)
 		{
 			overlay = new FarmingRunOverlay(this);
 			overlayManager.add(overlay);
-			setupOverlay = new FarmSetupOverlay(this, state, config, itemManager, client);
-			overlayManager.add(setupOverlay);
 		}
 		if (infoBoxManager != null && itemManager != null)
 		{
@@ -177,11 +188,6 @@ public class FarmingRunModule implements IronHubModule
 			overlayManager.remove(overlay);
 			overlay = null;
 		}
-		if (setupOverlay != null)
-		{
-			overlayManager.remove(setupOverlay);
-			setupOverlay = null;
-		}
 		if (infoBox != null)
 		{
 			infoBoxManager.removeInfoBox(infoBox);
@@ -192,6 +198,11 @@ public class FarmingRunModule implements IronHubModule
 			infoBoxManager.removeInfoBox(box);
 		}
 		readyBoxes.clear();
+		if (bankLayout != null)
+		{
+			bankLayout.clear(); // shutDown runs on the client thread
+			bankLayout = null;
+		}
 		if (tab != null)
 		{
 			tab.dispose();
@@ -242,6 +253,31 @@ public class FarmingRunModule implements IronHubModule
 		{
 			trackingDirty = true;
 		}
+	}
+
+	/**
+	 * The bank is (re)building — reorganise it into the active run's saved
+	 * setup, or restore it if there's nothing to show. Client thread, and
+	 * the only place the bank layout is applied so it stays in lockstep with
+	 * the real bank rebuild.
+	 */
+	@Subscribe
+	public void onScriptPreFired(net.runelite.api.events.ScriptPreFired event)
+	{
+		if (event.getScriptId() != net.runelite.api.ScriptID.BANKMAIN_INIT || bankLayout == null)
+		{
+			return;
+		}
+		if (config.farmBankSetup() && running())
+		{
+			com.ironhub.state.PersistedState.SavedSetup setup = state.getFarmRunSetup(runName);
+			if (setup != null)
+			{
+				bankLayout.apply(runName, setup);
+				return;
+			}
+		}
+		bankLayout.clear();
 	}
 
 	@Subscribe
@@ -428,9 +464,15 @@ public class FarmingRunModule implements IronHubModule
 		runStartMs = 0;
 		runName = "";
 		stops = List.of();
-		// The overlay's right-click end and the auto-complete both land here
-		// off the tab's own button; refresh the sidebar so it isn't stale.
-		// (recordHerbRun already notifies for a completed run.)
+		// The run just ended — if the bank is open on the setup view, restore
+		// it now (on the client thread; the next bank open would also do it).
+		if (wasRunning && bankLayout != null && bankLayout.isApplied() && clientThread != null)
+		{
+			clientThread.invoke(bankLayout::clear);
+		}
+		// Auto-complete lands here off the tab's own button; refresh the
+		// sidebar so it isn't stale. (recordHerbRun already notifies a
+		// completed run; the tab's End run button rebuilds itself.)
 		if (wasRunning && !complete && tab != null)
 		{
 			SwingUtilities.invokeLater(tab::rebuild);

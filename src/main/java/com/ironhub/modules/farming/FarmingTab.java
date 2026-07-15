@@ -49,6 +49,7 @@ class FarmingTab extends JPanel
 	private final ShortestPathBridge pathBridge;
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 
+	private final JPanel topBar = new JPanel();
 	private final JLabel stats = new JLabel();
 	private final JPanel overview = new JPanel();
 	private final JPanel runs = new JPanel();
@@ -66,6 +67,13 @@ class FarmingTab extends JPanel
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
 		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
+
+		// The active-run cockpit lives at the very top so End run is the
+		// first thing you see during a run, not buried under the overview.
+		topBar.setLayout(new BoxLayout(topBar, BoxLayout.Y_AXIS));
+		topBar.setOpaque(false);
+		topBar.setAlignmentX(LEFT_ALIGNMENT);
+		add(topBar);
 
 		add(new SectionLabel("Patch overview"));
 		add(Box.createVerticalStrut(UiTokens.ROW_GAP));
@@ -100,8 +108,41 @@ class FarmingTab extends JPanel
 	void rebuild()
 	{
 		stats.setText(FarmingRunModule.statsLine(state.getHerbRunsMs()));
+		rebuildTopBar();
 		rebuildOverview();
 		rebuildRuns();
+	}
+
+	/** During a run: a prominent End run button + live status, pinned to the
+	 *  top of the tab. Empty otherwise. */
+	private void rebuildTopBar()
+	{
+		topBar.removeAll();
+		if (module.running())
+		{
+			JLabel end = primaryButton("End run");
+			end.setToolTipText("Stop " + module.runName() + " now (an abandoned run isn't logged)");
+			end.addMouseListener(new java.awt.event.MouseAdapter()
+			{
+				@Override
+				public void mousePressed(java.awt.event.MouseEvent e)
+				{
+					module.endRun(false);
+					rebuild();
+				}
+			});
+			topBar.add(end);
+			topBar.add(Box.createVerticalStrut(2));
+			JLabel status = new JLabel(module.runName() + " · "
+				+ module.visitedCount() + "/" + module.stops().size() + " stops");
+			status.setForeground(UiTokens.TEXT_MUTED);
+			status.setFont(status.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+			status.setAlignmentX(LEFT_ALIGNMENT);
+			topBar.add(status);
+			topBar.add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
+		}
+		topBar.revalidate();
+		topBar.repaint();
 	}
 
 	// ── patch overview (all categories + bird houses + contract) ──────
@@ -250,26 +291,14 @@ class FarmingTab extends JPanel
 
 	private void buildActiveRun()
 	{
-		JLabel endButton = primaryButton("End run (" + module.runName() + ")");
-		endButton.addMouseListener(new java.awt.event.MouseAdapter()
-		{
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
-			{
-				module.endRun(false); // abandoned runs are not recorded
-				rebuild();
-			}
-		});
-		runs.add(endButton);
-		runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-
+		// End run lives in the top bar; here we keep the setup control + stops.
 		// Remember this run's gear + inventory so the bank shows it (Inventory
 		// Setups style) — the whole loadout, in the right slots, to re-gather.
 		boolean hasSetup = state.getFarmRunSetup(module.runName()) != null;
 		JLabel saveSetup = secondaryButton(
-			hasSetup ? "Update bank setup" : "Save gear + inventory for the bank");
-		saveSetup.setToolTipText("Snapshot your worn gear and inventory now; it "
-			+ "shows over the bank while this run is active so you can re-stock fast");
+			hasSetup ? "Update bank setup" : "Save gear + inventory as bank setup");
+		saveSetup.setToolTipText("Snapshot your worn gear and inventory now; while this "
+			+ "run is active, opening the bank lays it out for you to re-stock fast");
 		saveSetup.addMouseListener(new java.awt.event.MouseAdapter()
 		{
 			@Override

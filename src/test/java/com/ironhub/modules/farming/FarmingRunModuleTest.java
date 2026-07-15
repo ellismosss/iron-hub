@@ -48,7 +48,7 @@ public class FarmingRunModuleTest
 	{
 		FarmingRunModule module = new FarmingRunModule(state, null, new EventBus(),
 			null, null, null, config, null, new DataPack(new Gson()), notifier,
-			configManager, null);
+			configManager, null, null, null, null, null);
 		module.startUp();
 		return module;
 	}
@@ -276,8 +276,6 @@ public class FarmingRunModuleTest
 		javax.imageio.ImageIO.write(active, "png", new java.io.File("build/reports/farming-run-active.png"));
 
 		FarmingRunOverlay overlay = new FarmingRunOverlay(module);
-		assertEquals(1, overlay.getMenuEntries().size());
-		assertEquals("End run", overlay.getMenuEntries().get(0).getOption());
 		java.awt.image.BufferedImage canvas = new java.awt.image.BufferedImage(
 			300, 260, java.awt.image.BufferedImage.TYPE_INT_RGB);
 		java.awt.Graphics2D g = canvas.createGraphics();
