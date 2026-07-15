@@ -94,6 +94,24 @@ public class PlannerOverlayTest
 		{
 		});
 		BufferedImage image = new BufferedImage(300, 240, BufferedImage.TYPE_INT_ARGB);
+		render(overlay, image); // register the head, first gauge sight
+
+		// simulate live xp drops so the session block (gained, xp/hr,
+		// actions left, moving bar) is part of the reviewed render
+		com.ironhub.engine.Plan.Step head = module.currentPlan().head();
+		if (head.action.kind == com.ironhub.engine.Action.Kind.TRAIN)
+		{
+			Skill skill = head.action.trainSkill;
+			long xp = state.getXp(skill);
+			int level = state.getRealLevel(skill);
+			for (int drop = 1; drop <= 3; drop++)
+			{
+				Thread.sleep(350);
+				StateFixture.stat(state, skill, level, (int) xp + drop * 90);
+				render(overlay, image);
+			}
+		}
+
 		Graphics2D g = image.createGraphics();
 		g.setColor(new java.awt.Color(0x35, 0x2F, 0x24)); // game-canvas stand-in
 		g.fillRect(0, 0, image.getWidth(), image.getHeight());
@@ -193,7 +211,6 @@ public class PlannerOverlayTest
 	@Test
 	public void liveMathIsHonest()
 	{
-		// TRAIN with a rate: banked-aware xp over rate
 		com.ironhub.engine.Action train = new com.ironhub.engine.Action(
 			"train:Agility:70", com.ironhub.engine.Action.Kind.TRAIN, "Agility to 70");
 		train.trainSkill = Skill.AGILITY;
@@ -201,20 +218,84 @@ public class PlannerOverlayTest
 		com.ironhub.engine.Plan.Step step = new com.ironhub.engine.Plan.Step(
 			train, 4.0, "", "", "Rooftops", "m", "active", 50_000, 56, 100_000,
 			java.util.List.of(), java.util.List.of(), false, false);
-		assertEquals(2.0, PlannerOverlay.etaHours(step), 0.001);
 
-		// no rate → the routed hours pass through, NaN stays honest
+		// measured pace wins while xp flows; falls back to the pack rate
+		assertEquals(0.5, PlannerOverlay.ttlHours(step, 200_000), 0.001);
+		assertEquals(2.0, PlannerOverlay.ttlHours(step, Double.NaN), 0.001);
+
+		// no rate at all → the routed hours pass through, NaN stays honest
 		com.ironhub.engine.Plan.Step unknown = new com.ironhub.engine.Plan.Step(
 			train, Double.NaN, "", "", null, null, null, 0, 56, 100_000,
 			java.util.List.of(), java.util.List.of(), false, false);
-		assertTrue(Double.isNaN(PlannerOverlay.etaHours(unknown)));
+		assertTrue(Double.isNaN(PlannerOverlay.ttlHours(unknown, Double.NaN)));
 
-		// progress bar: forward-only, clamped
-		assertEquals(0.0, PlannerOverlay.stepFraction(100_000, 100_000), 0.001);
-		assertEquals(0.25, PlannerOverlay.stepFraction(100_000, 75_000), 0.001);
-		assertEquals(1.0, PlannerOverlay.stepFraction(100_000, 0), 0.001);
-		assertEquals(1.0, PlannerOverlay.stepFraction(0, 0), 0.001);
-		assertEquals(0.0, PlannerOverlay.stepFraction(100_000, 150_000), 0.001);
+		// bar: live-xp progress from the session anchor, forward-only, clamped
+		assertEquals(0.0, PlannerOverlay.stepFraction(100_000, 100_000, 200_000), 0.001);
+		assertEquals(0.5, PlannerOverlay.stepFraction(100_000, 150_000, 200_000), 0.001);
+		assertEquals(1.0, PlannerOverlay.stepFraction(100_000, 250_000, 200_000), 0.001);
+		assertEquals(0.0, PlannerOverlay.stepFraction(100_000, 50_000, 200_000), 0.001);
+		assertEquals(1.0, PlannerOverlay.stepFraction(200_000, 100_000, 200_000), 0.001);
+	}
+
+	@Test
+	public void theBarSurvivesBanking()
+	{
+		// banking replans and shifts banked-xp credit, but live xp is
+		// untouched — the anchor is per step id and first-write-wins
+		PlannerOverlay overlay = new PlannerOverlay(null, null, null);
+		assertEquals(1_000_000, overlay.anchorFor("train:Construction:72", 1_000_000));
+		assertEquals(1_000_000, overlay.anchorFor("train:Construction:72", 1_004_500));
+		// same live xp → same fraction no matter what the plan recomputed
+		double before = PlannerOverlay.stepFraction(1_000_000, 1_050_000, 1_100_000);
+		double after = PlannerOverlay.stepFraction(
+			overlay.anchorFor("train:Construction:72", 1_050_000), 1_050_000, 1_100_000);
+		assertEquals(before, after, 0.0001);
+	}
+
+	@Test
+	public void xpGaugeMeasuresTheSession()
+	{
+		PlannerOverlay.XpGauge gauge = new PlannerOverlay.XpGauge();
+		long t0 = 1_000_000;
+		gauge.observe(Skill.AGILITY, 1_000, t0);           // first sight
+		gauge.observe(Skill.AGILITY, 1_000, t0 + 1_000);   // idle
+		assertEquals(0, gauge.gained());
+
+		gauge.observe(Skill.AGILITY, 1_050, t0 + 2_000);   // first drop
+		assertEquals(50, gauge.gained());
+		assertTrue("one drop is not a rate", Double.isNaN(gauge.xpPerHour()));
+
+		gauge.observe(Skill.AGILITY, 1_100, t0 + 62_000);  // +50 after 60s
+		assertEquals(100, gauge.gained());
+		assertEquals(3_000.0, gauge.xpPerHour(), 1);
+		assertEquals(50, gauge.medianDrop());
+
+		// a 10-minute break counts as only the 3-minute cap
+		gauge.observe(Skill.AGILITY, 1_150, t0 + 662_000);
+		assertEquals(1_500.0, gauge.xpPerHour(), 1);
+
+		// switching skills starts a fresh session
+		gauge.observe(Skill.FLETCHING, 9_000, t0 + 700_000);
+		assertEquals(0, gauge.gained());
+		assertTrue(Double.isNaN(gauge.xpPerHour()));
+	}
+
+	@Test
+	public void dropsIdentifyTheRealMethod()
+	{
+		com.ironhub.data.MethodsPack pack = new DataPack(new Gson())
+			.load("methods", com.ironhub.data.MethodsPack.class);
+
+		// teak bench drop = 6 planks x 90 xp — a clean multiple names it
+		assertEquals("construction_teak_benches",
+			PlannerOverlay.matchMethod(pack, Skill.CONSTRUCTION, 540).id);
+		assertEquals("construction_oak_larders",
+			PlannerOverlay.matchMethod(pack, Skill.CONSTRUCTION, 480).id);
+		assertEquals("prayer_chaos_altar",
+			PlannerOverlay.matchMethod(pack, Skill.PRAYER, 252).id);
+		// no xpEach data in the ladder → no invented name
+		assertNull(PlannerOverlay.matchMethod(pack, Skill.FLETCHING, 15));
+		assertNull(PlannerOverlay.matchMethod(pack, Skill.CONSTRUCTION, 0));
 	}
 
 	private static void waitForSteps(GoalPlannerModule module) throws InterruptedException
