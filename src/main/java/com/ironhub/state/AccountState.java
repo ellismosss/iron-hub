@@ -98,6 +98,12 @@ public class AccountState implements StateView
 	private volatile String activeGoal = "";
 	private final Map<String, PersistedState.CaGoal> caGoals = new ConcurrentHashMap<>();
 	private final Map<String, PersistedState.DiaryGoal> diaryGoals = new ConcurrentHashMap<>();
+	// collection log (persisted): obtained slots, ranking skips, sync baseline
+	private final Set<Integer> clogObtained = ConcurrentHashMap.newKeySet();
+	private final Set<Integer> clogSkipped = ConcurrentHashMap.newKeySet();
+	private volatile int clogBaseline = -1;
+	private volatile long clogSyncedMs;
+	private final Map<String, PersistedState.ClogGoal> clogGoals = new ConcurrentHashMap<>();
 	private final Set<String> plannerPins = ConcurrentHashMap.newKeySet();
 	private final Set<String> plannerSnoozes = ConcurrentHashMap.newKeySet();
 	private final Set<String> plannerBans = ConcurrentHashMap.newKeySet();
@@ -616,6 +622,115 @@ public class AccountState implements StateView
 	{
 		diaryGoals.remove(slug);
 		String goalId = "diary:" + slug;
+		if (selectedGoals.contains(goalId))
+		{
+			selectGoal(goalId, false); // persists + notifies
+		}
+		else
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	// ── collection log (obtained slots, ranking skips, sync baseline) ─
+
+	/** Canonical item ids of every log slot seen obtained (chat drops +
+	 *  widget harvests). */
+	public Set<Integer> getClogObtained()
+	{
+		return java.util.Collections.unmodifiableSet(clogObtained);
+	}
+
+	/** Merge newly observed slots into the obtained set (canonical ids);
+	 *  persists and notifies only when something was actually new. */
+	public void markClogObtained(java.util.Collection<Integer> canonicalIds)
+	{
+		if (clogObtained.addAll(canonicalIds))
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	/** Activity indices hidden from the TTNS ranking. */
+	public Set<Integer> getClogSkipped()
+	{
+		return java.util.Collections.unmodifiableSet(clogSkipped);
+	}
+
+	public void setClogSkipped(int activityIndex, boolean skipped)
+	{
+		if (skipped ? clogSkipped.add(activityIndex) : clogSkipped.remove(activityIndex))
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	/** The player's COLLECTION_COUNT at the last full sync; -1 = never. */
+	public int getClogBaseline()
+	{
+		return clogBaseline;
+	}
+
+	public long getClogSyncedMs()
+	{
+		return clogSyncedMs;
+	}
+
+	/** A full widget sync completed: our data is known-complete at this
+	 *  count. */
+	public void recordClogFullSync(int playerCount)
+	{
+		clogBaseline = playerCount;
+		clogSyncedMs = System.currentTimeMillis();
+		persist();
+		notifyListeners();
+	}
+
+	/** A live drop advanced the player's count by one — keep the baseline
+	 *  in lockstep so it doesn't read as drift. No-op until first sync. */
+	public void bumpClogBaseline()
+	{
+		if (clogBaseline >= 0)
+		{
+			clogBaseline++;
+			persist();
+		}
+	}
+
+	/** Collection-log goal seeds (slot item id → snapshot). */
+	public Map<String, PersistedState.ClogGoal> getClogGoals()
+	{
+		return java.util.Collections.unmodifiableMap(clogGoals);
+	}
+
+	/** Add a log slot to the goal planner (id "clog:&lt;itemId&gt;"). */
+	public void addClogGoal(int itemId, String name, String activity, java.util.List<String> reqs)
+	{
+		PersistedState.ClogGoal seed = new PersistedState.ClogGoal();
+		seed.name = name;
+		seed.activity = activity;
+		seed.reqs = new java.util.ArrayList<>(reqs);
+		clogGoals.put(String.valueOf(itemId), seed);
+		String goalId = "clog:" + itemId;
+		if (selectedGoals.contains(goalId))
+		{
+			persist();
+			notifyListeners();
+		}
+		else
+		{
+			selectGoal(goalId, true); // persists + notifies
+		}
+	}
+
+	/** Remove a log slot from the goal planner. */
+	public void removeClogGoal(int itemId)
+	{
+		clogGoals.remove(String.valueOf(itemId));
+		String goalId = "clog:" + itemId;
 		if (selectedGoals.contains(goalId))
 		{
 			selectGoal(goalId, false); // persists + notifies
@@ -1169,6 +1284,14 @@ public class AccountState implements StateView
 		caGoals.putAll(persisted.caGoals);
 		diaryGoals.clear();
 		diaryGoals.putAll(persisted.diaryGoals);
+		clogObtained.clear();
+		clogObtained.addAll(persisted.clogObtained);
+		clogSkipped.clear();
+		clogSkipped.addAll(persisted.clogSkipped);
+		clogBaseline = persisted.clogBaseline;
+		clogSyncedMs = persisted.clogSyncedMs;
+		clogGoals.clear();
+		clogGoals.putAll(persisted.clogGoals);
 		plannerPins.clear();
 		plannerPins.addAll(persisted.plannerPins);
 		plannerSnoozes.clear();
@@ -1215,6 +1338,11 @@ public class AccountState implements StateView
 		state.activeGoal = activeGoal;
 		state.caGoals = new HashMap<>(caGoals);
 		state.diaryGoals = new HashMap<>(diaryGoals);
+		state.clogObtained = new HashSet<>(clogObtained);
+		state.clogSkipped = new HashSet<>(clogSkipped);
+		state.clogBaseline = clogBaseline;
+		state.clogSyncedMs = clogSyncedMs;
+		state.clogGoals = new HashMap<>(clogGoals);
 		state.plannerPins = new HashSet<>(plannerPins);
 		state.plannerSnoozes = new HashSet<>(plannerSnoozes);
 		state.plannerBans = new HashSet<>(plannerBans);

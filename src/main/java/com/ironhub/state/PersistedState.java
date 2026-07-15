@@ -47,6 +47,24 @@ public class PersistedState
 	int collectionLogSlots;
 	int collectionLogTotal;
 	long collectionLogSeenMs;
+	Set<Integer> clogObtained = new HashSet<>(); // canonical log-slot item ids seen obtained
+	Set<Integer> clogSkipped = new HashSet<>();  // activity indices hidden from the TTNS ranking
+	int clogBaseline = -1;   // player's COLLECTION_COUNT at the last full sync (-1 = never synced)
+	long clogSyncedMs;       // when the last full sync completed
+	Map<String, ClogGoal> clogGoals = new HashMap<>(); // slot item id -> goal-planner seed
+
+	/**
+	 * A collection-log slot added to the goal planner. Display data and the
+	 * source activity's requirement strings are snapshotted at add time;
+	 * completion is proven by the {@code clogitem_<id>} unlock flag the
+	 * collection-log module marks when the slot is seen obtained.
+	 */
+	public static class ClogGoal
+	{
+		public String name;
+		public String activity;
+		public java.util.List<String> reqs = new ArrayList<>();
+	}
 	Set<String> selectedGoals = new HashSet<>();
 	String activeGoal = "";
 	Map<String, CaGoal> caGoals = new HashMap<>(); // CA task id -> goal-planner seed
