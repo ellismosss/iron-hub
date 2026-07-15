@@ -2510,6 +2510,1433 @@
      "items": []
     }
    ]
+  },
+  {
+   "id": "allotment/falador",
+   "category": "allotment",
+   "name": "Falador",
+   "point": {
+    "x": 3058,
+    "y": 3307,
+    "plane": 0
+   },
+   "reqs": [],
+   "teleports": [
+    {
+     "id": "Portal_Nexus",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Falador with Portal Nexus, and run south-east.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Explorers_ring",
+     "category": "ITEM",
+     "description": "Teleport to Falador with Explorers ring, and run slightly north.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 13126,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Falador_Teleport",
+     "category": "SPELLBOOK",
+     "description": "Teleport to Falador with standard spellbook, and run south-east.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 556,
+       "qty": 3
+      },
+      {
+       "itemId": 563,
+       "qty": 1
+      },
+      {
+       "itemId": 555,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Falador_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Falador with Falador Tele Tab, and run south-east.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 8009,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Draynor_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Draynor Manor with Draynor Manor Tele Tab, and run south-west.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 19615,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Amulet_of_Glory",
+     "category": "ITEM",
+     "description": "Teleport to Draynor Village with Amulet of Glory, and run west to the patch.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 1706,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Spirit_Tree_Port_Sarim",
+     "category": "SPIRIT_TREE",
+     "description": "Use a Spirit Tree and teleport to Port Sarim, then run to the Falador herb patch.",
+     "supplier": null,
+     "items": []
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "flower/falador",
+   "category": "flower",
+   "name": "Falador",
+   "point": {
+    "x": 3058,
+    "y": 3307,
+    "plane": 0
+   },
+   "reqs": [],
+   "teleports": [
+    {
+     "id": "Portal_Nexus",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Falador with Portal Nexus, and run south-east.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Explorers_ring",
+     "category": "ITEM",
+     "description": "Teleport to Falador with Explorers ring, and run slightly north.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 13126,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Falador_Teleport",
+     "category": "SPELLBOOK",
+     "description": "Teleport to Falador with standard spellbook, and run south-east.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 556,
+       "qty": 3
+      },
+      {
+       "itemId": 563,
+       "qty": 1
+      },
+      {
+       "itemId": 555,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Falador_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Falador with Falador Tele Tab, and run south-east.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 8009,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Draynor_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Draynor Manor with Draynor Manor Tele Tab, and run south-west.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 19615,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Amulet_of_Glory",
+     "category": "ITEM",
+     "description": "Teleport to Draynor Village with Amulet of Glory, and run west to the patch.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 1706,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Spirit_Tree_Port_Sarim",
+     "category": "SPIRIT_TREE",
+     "description": "Use a Spirit Tree and teleport to Port Sarim, then run to the Falador herb patch.",
+     "supplier": null,
+     "items": []
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "allotment/morytania",
+   "category": "allotment",
+   "name": "Morytania",
+   "point": {
+    "x": 3601,
+    "y": 3525,
+    "plane": 0
+   },
+   "reqs": [
+    "queststarted:Priest in Peril"
+   ],
+   "teleports": [
+    {
+     "id": "Ectophial",
+     "category": "ITEM",
+     "description": "Teleport to Morytania with Ectophial and run West to the patch.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 4251,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Fairy_Ring",
+     "category": "FAIRY_RING",
+     "description": "Use a Fairy Ring (ALQ) to teleport to the Haunted Woods, and run to the patch.",
+     "supplier": "fairyRing",
+     "items": []
+    },
+    {
+     "id": "Portal_Nexus_Fenkenstrain",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Fenkenstrain's Castle with Portal Nexus, and run west to the Morytania herb patch.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Portal_Nexus_Canifis",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Canifis with Portal Nexus, and run east to the Morytania herb patch.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "flower/morytania",
+   "category": "flower",
+   "name": "Morytania",
+   "point": {
+    "x": 3601,
+    "y": 3525,
+    "plane": 0
+   },
+   "reqs": [
+    "queststarted:Priest in Peril"
+   ],
+   "teleports": [
+    {
+     "id": "Ectophial",
+     "category": "ITEM",
+     "description": "Teleport to Morytania with Ectophial and run West to the patch.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 4251,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Fairy_Ring",
+     "category": "FAIRY_RING",
+     "description": "Use a Fairy Ring (ALQ) to teleport to the Haunted Woods, and run to the patch.",
+     "supplier": "fairyRing",
+     "items": []
+    },
+    {
+     "id": "Portal_Nexus_Fenkenstrain",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Fenkenstrain's Castle with Portal Nexus, and run west to the Morytania herb patch.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Portal_Nexus_Canifis",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Canifis with Portal Nexus, and run east to the Morytania herb patch.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "allotment/ardougne",
+   "category": "allotment",
+   "name": "Ardougne",
+   "point": {
+    "x": 2670,
+    "y": 3374,
+    "plane": 0
+   },
+   "reqs": [],
+   "teleports": [
+    {
+     "id": "Portal_Nexus",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Ardougne with Portal Nexus, and run north.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Ardougne_teleport",
+     "category": "SPELLBOOK",
+     "description": "Teleport to Ardougne with standard spellbook, and run north.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 563,
+       "qty": 2
+      },
+      {
+       "itemId": 555,
+       "qty": 2
+      }
+     ]
+    },
+    {
+     "id": "Ardougne_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Ardougne with Ardougne tele tab, and run north.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 8011,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Ardy_cloak",
+     "category": "ITEM",
+     "description": "Teleport to Ardougne Farm with Ardougne cloak.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 13122,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Skills_Necklace",
+     "category": "ITEM",
+     "description": "Teleport to Fishing guild with Skills necklace, and run east.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 11111,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Fishing_Skillcape",
+     "category": "ITEM",
+     "description": "Teleport to Fishing Guild with Fishing skillcape, and run east to the Ardougne herb patch.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 9798,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "flower/ardougne",
+   "category": "flower",
+   "name": "Ardougne",
+   "point": {
+    "x": 2670,
+    "y": 3374,
+    "plane": 0
+   },
+   "reqs": [],
+   "teleports": [
+    {
+     "id": "Portal_Nexus",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Ardougne with Portal Nexus, and run north.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Ardougne_teleport",
+     "category": "SPELLBOOK",
+     "description": "Teleport to Ardougne with standard spellbook, and run north.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 563,
+       "qty": 2
+      },
+      {
+       "itemId": 555,
+       "qty": 2
+      }
+     ]
+    },
+    {
+     "id": "Ardougne_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Ardougne with Ardougne tele tab, and run north.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 8011,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Ardy_cloak",
+     "category": "ITEM",
+     "description": "Teleport to Ardougne Farm with Ardougne cloak.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 13122,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Skills_Necklace",
+     "category": "ITEM",
+     "description": "Teleport to Fishing guild with Skills necklace, and run east.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 11111,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Fishing_Skillcape",
+     "category": "ITEM",
+     "description": "Teleport to Fishing Guild with Fishing skillcape, and run east to the Ardougne herb patch.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 9798,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "allotment/catherby",
+   "category": "allotment",
+   "name": "Catherby",
+   "point": {
+    "x": 2813,
+    "y": 3463,
+    "plane": 0
+   },
+   "reqs": [],
+   "teleports": [
+    {
+     "id": "Portal_Nexus_Catherby",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Catherby with Portal Nexus.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Portal_Nexus_Camelot",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Camelot with Portal Nexus.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Camelot_Teleport",
+     "category": "SPELLBOOK",
+     "description": "Teleport to Camelot using the standard spellbook, and run east to Catherby herb patch.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 556,
+       "qty": 5
+      },
+      {
+       "itemId": 563,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Camelot_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Camelot using a Camelot tele tab, and run east to Catherby herb patch.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 8010,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Catherby_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Catherby using Catherby teleport tab.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 24961,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "flower/catherby",
+   "category": "flower",
+   "name": "Catherby",
+   "point": {
+    "x": 2813,
+    "y": 3463,
+    "plane": 0
+   },
+   "reqs": [],
+   "teleports": [
+    {
+     "id": "Portal_Nexus_Catherby",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Catherby with Portal Nexus.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Portal_Nexus_Camelot",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Camelot with Portal Nexus.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Camelot_Teleport",
+     "category": "SPELLBOOK",
+     "description": "Teleport to Camelot using the standard spellbook, and run east to Catherby herb patch.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 556,
+       "qty": 5
+      },
+      {
+       "itemId": 563,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Camelot_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Camelot using a Camelot tele tab, and run east to Catherby herb patch.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 8010,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Catherby_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Catherby using Catherby teleport tab.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 24961,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "allotment/kourend",
+   "category": "allotment",
+   "name": "Kourend",
+   "point": {
+    "x": 1738,
+    "y": 3550,
+    "plane": 0
+   },
+   "reqs": [],
+   "teleports": [
+    {
+     "id": "Xerics_Talisman",
+     "category": "ITEM",
+     "description": "Teleport to Kourend with Xeric's Talisman.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 13393,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Mounted_Xerics",
+     "category": "MOUNTED_XERICS",
+     "description": "Teleport to Kourend with Xeric's Talisman in PoH.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Hosidius_POH_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Hosidius with Hosidius POH Tab.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 19651,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Normal_POH_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Hosidius with a regular POH Tab (requires POH set to Hosidius).",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "flower/kourend",
+   "category": "flower",
+   "name": "Kourend",
+   "point": {
+    "x": 1738,
+    "y": 3550,
+    "plane": 0
+   },
+   "reqs": [],
+   "teleports": [
+    {
+     "id": "Xerics_Talisman",
+     "category": "ITEM",
+     "description": "Teleport to Kourend with Xeric's Talisman.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 13393,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Mounted_Xerics",
+     "category": "MOUNTED_XERICS",
+     "description": "Teleport to Kourend with Xeric's Talisman in PoH.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Hosidius_POH_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Hosidius with Hosidius POH Tab.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 19651,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Normal_POH_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Hosidius with a regular POH Tab (requires POH set to Hosidius).",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "allotment/farming-guild",
+   "category": "allotment",
+   "name": "Farming Guild",
+   "point": {
+    "x": 1238,
+    "y": 3726,
+    "plane": 0
+   },
+   "reqs": [
+    "skill:Farming:45"
+   ],
+   "teleports": [
+    {
+     "id": "Jewellery_box",
+     "category": "JEWELLERY_BOX",
+     "description": "Teleport to Farming guild with Jewellery box.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Skills_Necklace",
+     "category": "ITEM",
+     "description": "Teleport to Farming guild using Skills necklace.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 11111,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Spirit_Tree",
+     "category": "SPIRIT_TREE",
+     "description": "Use a Spirit Tree and teleport to the Farming Guild.",
+     "supplier": null,
+     "items": []
+    },
+    {
+     "id": "Fairy_Ring",
+     "category": "FAIRY_RING",
+     "description": "Use a Fairy Ring (CIR) to teleport near the Farming Guild.",
+     "supplier": "fairyRing",
+     "items": []
+    },
+    {
+     "id": "Farming_Skillcape",
+     "category": "ITEM",
+     "description": "Teleport to the Farming Guild with Farming skillcape.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 9810,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "flower/farming-guild",
+   "category": "flower",
+   "name": "Farming Guild",
+   "point": {
+    "x": 1238,
+    "y": 3726,
+    "plane": 0
+   },
+   "reqs": [
+    "skill:Farming:45"
+   ],
+   "teleports": [
+    {
+     "id": "Jewellery_box",
+     "category": "JEWELLERY_BOX",
+     "description": "Teleport to Farming guild with Jewellery box.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Skills_Necklace",
+     "category": "ITEM",
+     "description": "Teleport to Farming guild using Skills necklace.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 11111,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Spirit_Tree",
+     "category": "SPIRIT_TREE",
+     "description": "Use a Spirit Tree and teleport to the Farming Guild.",
+     "supplier": null,
+     "items": []
+    },
+    {
+     "id": "Fairy_Ring",
+     "category": "FAIRY_RING",
+     "description": "Use a Fairy Ring (CIR) to teleport near the Farming Guild.",
+     "supplier": "fairyRing",
+     "items": []
+    },
+    {
+     "id": "Farming_Skillcape",
+     "category": "ITEM",
+     "description": "Teleport to the Farming Guild with Farming skillcape.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 9810,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "allotment/harmony-island",
+   "category": "allotment",
+   "name": "Harmony Island",
+   "point": {
+    "x": 3789,
+    "y": 2837,
+    "plane": 0
+   },
+   "reqs": [
+    "quest:The Great Brain Robbery"
+   ],
+   "teleports": [
+    {
+     "id": "Portal_Nexus",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Harmony with Portal Nexus.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Harmony_Tele_tab",
+     "category": "ITEM",
+     "description": "Teleport to Harmony with Harmony Tele Tab.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 19625,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "allotment/civitas-illa-fortis",
+   "category": "allotment",
+   "name": "Civitas illa Fortis",
+   "point": {
+    "x": 1586,
+    "y": 3099,
+    "plane": 0
+   },
+   "reqs": [
+    "quest:Children of the Sun"
+   ],
+   "teleports": [
+    {
+     "id": "Portal_Nexus",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Civitas illa Fortis with Portal Nexus.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Civitas_Teleport",
+     "category": "SPELLBOOK",
+     "description": "Teleport to Civitas illa Fortis with standard spellbook, and run west.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 563,
+       "qty": 2
+      },
+      {
+       "itemId": 557,
+       "qty": 1
+      },
+      {
+       "itemId": 554,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Civitas_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Civitas illa Fortis with Civitas teleport tab, and run west.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 28824,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Quetzal_whistle",
+     "category": "ITEM",
+     "description": "Teleport to the Hunter's Guild with the quetzal whistle, and run north.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 29271,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Hunter_Skillcape",
+     "category": "ITEM",
+     "description": "Teleport to Civitas illa Fortis with Hunter skillcape.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 9948,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "flower/civitas-illa-fortis",
+   "category": "flower",
+   "name": "Civitas illa Fortis",
+   "point": {
+    "x": 1586,
+    "y": 3099,
+    "plane": 0
+   },
+   "reqs": [
+    "quest:Children of the Sun"
+   ],
+   "teleports": [
+    {
+     "id": "Portal_Nexus",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Civitas illa Fortis with Portal Nexus.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Civitas_Teleport",
+     "category": "SPELLBOOK",
+     "description": "Teleport to Civitas illa Fortis with standard spellbook, and run west.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 563,
+       "qty": 2
+      },
+      {
+       "itemId": 557,
+       "qty": 1
+      },
+      {
+       "itemId": 554,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Civitas_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Civitas illa Fortis with Civitas teleport tab, and run west.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 28824,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Quetzal_whistle",
+     "category": "ITEM",
+     "description": "Teleport to the Hunter's Guild with the quetzal whistle, and run north.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 29271,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Hunter_Skillcape",
+     "category": "ITEM",
+     "description": "Teleport to Civitas illa Fortis with Hunter skillcape.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 9948,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "compost/catherby",
+   "category": "compost",
+   "name": "Catherby",
+   "point": {
+    "x": 2813,
+    "y": 3463,
+    "plane": 0
+   },
+   "reqs": [],
+   "teleports": [
+    {
+     "id": "Portal_Nexus_Catherby",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Catherby with Portal Nexus.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Portal_Nexus_Camelot",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Camelot with Portal Nexus.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Camelot_Teleport",
+     "category": "SPELLBOOK",
+     "description": "Teleport to Camelot using the standard spellbook, and run east to Catherby herb patch.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 556,
+       "qty": 5
+      },
+      {
+       "itemId": 563,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Camelot_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Camelot using a Camelot tele tab, and run east to Catherby herb patch.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 8010,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Catherby_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Catherby using Catherby teleport tab.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 24961,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "compost/ardougne",
+   "category": "compost",
+   "name": "Ardougne",
+   "point": {
+    "x": 2670,
+    "y": 3374,
+    "plane": 0
+   },
+   "reqs": [],
+   "teleports": [
+    {
+     "id": "Portal_Nexus",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Ardougne with Portal Nexus, and run north.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Ardougne_teleport",
+     "category": "SPELLBOOK",
+     "description": "Teleport to Ardougne with standard spellbook, and run north.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 563,
+       "qty": 2
+      },
+      {
+       "itemId": 555,
+       "qty": 2
+      }
+     ]
+    },
+    {
+     "id": "Ardougne_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Ardougne with Ardougne tele tab, and run north.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 8011,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Ardy_cloak",
+     "category": "ITEM",
+     "description": "Teleport to Ardougne Farm with Ardougne cloak.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 13122,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Skills_Necklace",
+     "category": "ITEM",
+     "description": "Teleport to Fishing guild with Skills necklace, and run east.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 11111,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Fishing_Skillcape",
+     "category": "ITEM",
+     "description": "Teleport to Fishing Guild with Fishing skillcape, and run east to the Ardougne herb patch.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 9798,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "compost/falador",
+   "category": "compost",
+   "name": "Falador",
+   "point": {
+    "x": 3058,
+    "y": 3307,
+    "plane": 0
+   },
+   "reqs": [],
+   "teleports": [
+    {
+     "id": "Portal_Nexus",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Falador with Portal Nexus, and run south-east.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Explorers_ring",
+     "category": "ITEM",
+     "description": "Teleport to Falador with Explorers ring, and run slightly north.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 13126,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Falador_Teleport",
+     "category": "SPELLBOOK",
+     "description": "Teleport to Falador with standard spellbook, and run south-east.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 556,
+       "qty": 3
+      },
+      {
+       "itemId": 563,
+       "qty": 1
+      },
+      {
+       "itemId": 555,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Falador_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Falador with Falador Tele Tab, and run south-east.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 8009,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Draynor_Tele_Tab",
+     "category": "ITEM",
+     "description": "Teleport to Draynor Manor with Draynor Manor Tele Tab, and run south-west.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 19615,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Amulet_of_Glory",
+     "category": "ITEM",
+     "description": "Teleport to Draynor Village with Amulet of Glory, and run west to the patch.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 1706,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Spirit_Tree_Port_Sarim",
+     "category": "SPIRIT_TREE",
+     "description": "Use a Spirit Tree and teleport to Port Sarim, then run to the Falador herb patch.",
+     "supplier": null,
+     "items": []
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "compost/morytania",
+   "category": "compost",
+   "name": "Morytania",
+   "point": {
+    "x": 3601,
+    "y": 3525,
+    "plane": 0
+   },
+   "reqs": [
+    "queststarted:Priest in Peril"
+   ],
+   "teleports": [
+    {
+     "id": "Ectophial",
+     "category": "ITEM",
+     "description": "Teleport to Morytania with Ectophial and run West to the patch.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 4251,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Fairy_Ring",
+     "category": "FAIRY_RING",
+     "description": "Use a Fairy Ring (ALQ) to teleport to the Haunted Woods, and run to the patch.",
+     "supplier": "fairyRing",
+     "items": []
+    },
+    {
+     "id": "Portal_Nexus_Fenkenstrain",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Fenkenstrain's Castle with Portal Nexus, and run west to the Morytania herb patch.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Portal_Nexus_Canifis",
+     "category": "PORTAL_NEXUS",
+     "description": "Teleport to Canifis with Portal Nexus, and run east to the Morytania herb patch.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
   }
  ],
  "saplings": {
@@ -2611,6 +4038,37 @@
    "bush/farming-guild",
    "bush/rimmington",
    "hops/entrana"
+  ],
+  "Allotment, flower, and herb run": [
+   "allotment/falador",
+   "flower/falador",
+   "herb/falador",
+   "allotment/morytania",
+   "flower/morytania",
+   "herb/morytania",
+   "allotment/ardougne",
+   "flower/ardougne",
+   "herb/ardougne",
+   "allotment/catherby",
+   "flower/catherby",
+   "herb/catherby",
+   "allotment/kourend",
+   "flower/kourend",
+   "herb/kourend",
+   "allotment/farming-guild",
+   "flower/farming-guild",
+   "herb/farming-guild",
+   "allotment/harmony-island",
+   "herb/harmony-island",
+   "allotment/civitas-illa-fortis",
+   "flower/civitas-illa-fortis",
+   "herb/civitas-illa-fortis"
+  ],
+  "Supercompost run": [
+   "compost/catherby",
+   "compost/ardougne",
+   "compost/falador",
+   "compost/morytania"
   ]
  }
 }

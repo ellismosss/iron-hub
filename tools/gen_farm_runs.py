@@ -239,6 +239,55 @@ CURATED = [
      ]},
 ]
 
+# Allotment/flower/herb run companions: each herb area also carries allotment
+# and (usually) flower patches in the same region (presence verified against
+# the vendored FarmingWorld). We generate those stops by reusing the herb
+# stop's tile + teleports, adjusting only the category and access reqs. Luke's
+# established pattern (the combo tree run) lists co-located patches as separate
+# stops, so allotment/flower/herb become separate stops per area too.
+AFH_AREAS = [
+    ("herb/falador", ["allotment", "flower"]),
+    ("herb/morytania", ["allotment", "flower"]),
+    ("herb/ardougne", ["allotment", "flower"]),
+    ("herb/catherby", ["allotment", "flower"]),
+    ("herb/kourend", ["allotment", "flower"]),
+    ("herb/farming-guild", ["allotment", "flower"]),
+    ("herb/harmony-island", ["allotment"]),          # Harmony has no flower patch
+    ("herb/civitas-illa-fortis", ["allotment", "flower"]),
+    # Prifddinas is omitted: its vendored region (13151) is instanced/off-map,
+    # so no real tile both paths correctly AND matches its patch region.
+]
+# reqs override per generated companion id (default = copy the herb area's reqs)
+COMPANION_REQS = {
+    "allotment/farming-guild": ["skill:Farming:45"],  # low tier, not the 65 herb tier
+    "flower/farming-guild": ["skill:Farming:45"],
+    "allotment/harmony-island": ["quest:The Great Brain Robbery"],  # island access
+}
+# Supercompost run: fill the compost bins at the basic allotment areas. Each of
+# these regions carries a COMPOST bin; the Farming Guild's BIG compost bin (45)
+# is omitted to keep every stop a plain COMPOST patch.
+SUPERCOMPOST_AREAS = ["herb/catherby", "herb/ardougne", "herb/falador", "herb/morytania"]
+
+
+def companions(by_id):
+    """Allotment/flower/compost stops copied from their herb area's tile."""
+    out = []
+    plans = [(hid, c) for hid, cats in AFH_AREAS for c in cats]
+    plans += [(hid, "compost") for hid in SUPERCOMPOST_AREAS]
+    for herb_id, category in plans:
+        herb = by_id[herb_id]
+        cid = category + "/" + herb_id.split("/", 1)[1]
+        out.append({
+            "id": cid,
+            "category": category,
+            "name": herb["name"],
+            "point": dict(herb["point"]),
+            "reqs": COMPANION_REQS.get(cid, list(herb["reqs"])),
+            "teleports": [dict(t) for t in herb["teleports"]],
+        })
+    return out
+
+
 # Named curated routes (ordered location ids) — the "one plan" runs that cross
 # categories in a specific order, which the auto-grouping templates can't
 # express. The run culler trims these to what's unlocked / ready / plantable.
@@ -286,6 +335,24 @@ ROUTES = {
         "bush/champions-guild", "hops/lumbridge", "bush/ardougne-monastery",
         "hops/seers-village", "hops/aldarin", "bush/etceteria", "hops/yanille",
         "bush/farming-guild", "bush/rimmington", "hops/entrana",
+    ],
+    # Wiki "Allotment, flower, and herb run" — allotment + flower + herb at each
+    # co-located area (separate stops per patch), in the wiki's order.
+    "Allotment, flower, and herb run": [
+        "allotment/falador", "flower/falador", "herb/falador",
+        "allotment/morytania", "flower/morytania", "herb/morytania",
+        "allotment/ardougne", "flower/ardougne", "herb/ardougne",
+        "allotment/catherby", "flower/catherby", "herb/catherby",
+        "allotment/kourend", "flower/kourend", "herb/kourend",
+        "allotment/farming-guild", "flower/farming-guild", "herb/farming-guild",
+        "allotment/harmony-island", "herb/harmony-island",
+        "allotment/civitas-illa-fortis", "flower/civitas-illa-fortis",
+        "herb/civitas-illa-fortis",
+    ],
+    # Wiki "Supercompost run" — fill the compost bins at the allotment areas
+    # (a manual bin-filling activity, not a plant/harvest run).
+    "Supercompost run": [
+        "compost/catherby", "compost/ardougne", "compost/falador", "compost/morytania",
     ],
 }
 
@@ -442,9 +509,12 @@ def main():
             "teleports": curated_teleports(spec, by_id, item_ids),
         })
 
+    companion_locations = companions(by_id)
+    locations.extend(companion_locations)
+
     ids = [loc["id"] for loc in locations]
     assert len(ids) == len(set(ids)), "duplicate location ids"
-    assert len(locations) == len(LOCATIONS) + len(CURATED)
+    assert len(locations) == len(LOCATIONS) + len(CURATED) + len(companion_locations)
     validate_quest_tokens(locations)
     unknown = set(LOCATION_REQS) - set(ids)
     assert not unknown, f"LOCATION_REQS has ids not in the pack: {unknown}"
@@ -474,7 +544,8 @@ def main():
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(pack, f, indent=1, ensure_ascii=False)
         f.write("\n")
-    print(f"wrote {OUT}: {len(locations)} locations ({len(CURATED)} curated), "
+    print(f"wrote {OUT}: {len(locations)} locations "
+          f"({len(CURATED)} curated, {len(companion_locations)} companions), "
           f"{total_teleports} teleport options, {len(ROUTES)} routes, "
           f"{sum(len(v) for v in saplings.values())} saplings")
 

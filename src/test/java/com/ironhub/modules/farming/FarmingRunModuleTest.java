@@ -162,6 +162,48 @@ public class FarmingRunModuleTest
 	}
 
 	@Test
+	public void allotmentFlowerHerbRunSpansAllThreeAtEachArea()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+		assertTrue(module.templateNames().contains("Allotment, flower, and herb run"));
+
+		module.startTemplate("Allotment, flower, and herb run");
+		assertTrue(module.multiCategory());
+		// Falador first: allotment, flower, then herb (all plant seeds, not
+		// saplings, so nothing is sapling-culled)
+		assertEquals("allotment/falador", module.stops().get(0).location.id);
+		assertEquals("flower/falador", module.stops().get(1).location.id);
+		assertEquals("herb/falador", module.stops().get(2).location.id);
+		assertTrue(module.stops().stream().anyMatch(s -> s.location.category.equals("allotment")));
+		assertTrue(module.stops().stream().anyMatch(s -> s.location.category.equals("flower")));
+		assertEquals("Falador · allotment", module.stopLabel(stop(module, "allotment/falador")));
+		module.shutDown();
+	}
+
+	@Test
+	public void supercompostRunIsAManualCompostBinChecklist()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+		assertTrue(module.templateNames().contains("Supercompost run"));
+
+		module.startTemplate("Supercompost run");
+		// Port Phasmatys needs Priest in Peril, so a fresh account gets three
+		// compost-bin stops; the run is a single category with plain labels
+		assertEquals(3, module.stops().size());
+		assertFalse(module.multiCategory());
+		assertEquals("compost/catherby", module.stops().get(0).location.id);
+		assertEquals("Catherby", module.stopLabel(stop(module, "compost/catherby")));
+		// compost bins have no crop, so they never auto-advance — only markThrough
+		module.markThrough("compost/ardougne");
+		assertEquals(2, module.visitedCount());
+		module.shutDown();
+	}
+
+	@Test
 	public void hopAndBushRunInterleavesHopsAndBushes()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
