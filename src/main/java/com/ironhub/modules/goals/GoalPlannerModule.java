@@ -341,6 +341,10 @@ public class GoalPlannerModule implements IronHubModule
 		{
 			state.removeDiaryGoal(goalId.substring("diary:".length()));
 		}
+		else if (goalId.startsWith("clog:"))
+		{
+			state.removeClogGoal(Integer.parseInt(goalId.substring("clog:".length())));
+		}
 		else if (goalId.startsWith("custom:"))
 		{
 			state.removeCustomGoal(goalId);
@@ -425,6 +429,36 @@ public class GoalPlannerModule implements IronHubModule
 		return goal;
 	}
 
+	/**
+	 * A collection-log slot added from the collection log tab: the source
+	 * activity's requirements become steps, then obtaining the slot itself —
+	 * proven by the {@code clogitem_<id>} unlock the collection-log module
+	 * marks when the slot is seen obtained (chat drop or Log Sync).
+	 */
+	public static GoalsPack.Goal toClogGoal(String itemId, com.ironhub.state.PersistedState.ClogGoal seed)
+	{
+		String proof = "unlock:clogitem_" + itemId;
+		GoalsPack.Goal goal = new GoalsPack.Goal();
+		goal.setId("clog:" + itemId);
+		goal.setName(seed.name);
+		goal.setIconItemId(Integer.parseInt(itemId));
+		List<GoalsPack.Step> steps = new ArrayList<>();
+		for (String raw : seed.reqs)
+		{
+			GoalsPack.Step step = new GoalsPack.Step();
+			step.setLabel(Requirements.parse(raw).describe());
+			step.setRequirement(raw);
+			steps.add(step);
+		}
+		GoalsPack.Step obtain = new GoalsPack.Step();
+		obtain.setLabel("Obtain " + seed.name + " (" + seed.activity + ")");
+		obtain.setRequirement(proof);
+		steps.add(obtain);
+		goal.setSteps(steps);
+		goal.setAchieved(List.of(proof));
+		return goal;
+	}
+
 	/** A user-typed goal ("Agility 70"): one detectable step, achieved
 	 * when its requirement holds. */
 	public static GoalsPack.Goal toCustomGoal(String goalId, com.ironhub.state.PersistedState.CustomGoal seed)
@@ -471,6 +505,13 @@ public class GoalPlannerModule implements IronHubModule
 			if (state.getSelectedGoals().contains("diary:" + slug))
 			{
 				all.add(toDiaryGoal(slug, seed));
+			}
+		});
+		state.getClogGoals().forEach((itemId, seed) ->
+		{
+			if (state.getSelectedGoals().contains("clog:" + itemId))
+			{
+				all.add(toClogGoal(itemId, seed));
 			}
 		});
 		state.getCustomGoals().forEach((goalId, seed) ->
