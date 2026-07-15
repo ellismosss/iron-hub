@@ -188,3 +188,48 @@ Override `wiki` in the pack when the display name isn't the page: "God capes"
 "Jewellery box" (lower-case b), POH altars live under "Occult altar" /
 "Altar space". Set items (Barrows, crystal, Masori, oathplate, Virtus,
 Ancestral) have per-set overview pages that read better than per-piece ones.
+
+## Collection log detection (module: collectionlog, pack: clog.json)
+
+Three signals, all read-only, all ported from Log Adviser (BSD-2):
+
+- **`VarPlayerID.COLLECTION_COUNT`** — the game's own live count of unique
+  slots obtained. It is the truth for "how many", but says nothing about
+  *which* slots. We watch it via `AccountState.watchVarps`.
+- **Chat**: `"New item added to your collection log: <name>"`
+  (GAMEMESSAGE/SPAM) fires per new unlock. Names resolve against the pack's
+  slot names — with two gotchas: the Tithe Farm "Farmer's shirt/jacket"
+  slot chats as either "Farmer's jacket" or "Farmer's shirt" (never the
+  slash form → `chatNames` aliases), and Body-type-B characters receive the
+  odd item ids (13641/13643/13645/13647) which map onto the Body-type-A
+  slot ids the tables carry (`aliases`).
+- **Widget scripts**: script **7797** fires once when the collection log
+  interface is built (attach the Log Sync button there; another plugin
+  handling 7797 may `deleteAllChildren()` after us — re-attach next cycle
+  AND self-heal on GameTick). Script **4100** is the per-item callback the
+  interface fires for every OBTAINED slot as pages render — browsing the
+  log passively leaks obtained ids. Script **2240** walks the entire log
+  and re-fires 4100 for every obtained item; the Log Sync button presses
+  the game's own Search toggle (`menuAction` on
+  `InterfaceID.Collection.SEARCH_TOGGLE`) then runs 2240 — one click
+  imports the whole log. Large logs stream 4100s over several ticks:
+  settle 3 ticks after the last one before consuming the harvest.
+
+**Why a baseline instead of comparing counts:** our obtained set counts
+only slots the pack knows; after a game update adds new slots, "pack-known
+obtained == varp" would never hold again and the sync nudge would nag
+forever. Instead we pin the varp value at the last full sync as a
+baseline, bump it by one per live chat drop, and only call the data stale
+when the varp moves PAST the baseline (slots gained while the plugin was
+off or before install).
+
+**Zero-attempt drop rows** (`attempts: 0`, e.g. Brimhaven-voucher Graceful
+recolours) are purchase/threshold slots, not drops — they never enter the
+rate buckets but still count toward an activity's slot totals. An activity
+whose every remaining item is zero-attempt has no rankable estimate and
+drops out of the ranking (upstream behaviour).
+
+The log window title ("Collection Log - 246/1,568") is still parsed on
+open — it is the only game-truth source for the TOTAL slot count (the
+varp only gives the obtained count, and the pack's slot list drifts from
+the live game between regenerations).
