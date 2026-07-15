@@ -364,10 +364,11 @@ class FarmingTab extends JPanel
 			tooltip.add("missing " + missing.size()
 				+ (missing.size() == 1 ? " item" : " items"));
 		}
-		String patches = FarmingRunOverlay.patchLine(module.patchesAt(stop.location));
-		if (!patches.isEmpty())
+		String patch = FarmingRunOverlay.patchState(module.patchesAt(stop.location),
+			module.runCategoryTab());
+		if (patch != null)
 		{
-			tooltip.add(patches);
+			tooltip.add(patch);
 		}
 		return tooltip.toString();
 	}

@@ -1,6 +1,7 @@
 package com.ironhub.modules.farming;
 
 import com.ironhub.data.FarmRunsPack;
+import com.ironhub.modules.farming.rl.Tab;
 import com.ironhub.ui.UiTokens;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -13,15 +14,15 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;
 
 /**
- * Farm run overlay (frame 3b, grown Quest-Helper-style over the pack):
- * title + elapsed timer, the current stop with its auto-picked teleport,
- * any teleport items you are not carrying (red), the live patch states at
- * that stop, then the remaining stop checklist. Shown only during a run;
- * display-only ("&gt;" = next, "·" elsewhere — ASCII-safe glyphs).
+ * Farm run overlay (frame 3b): the essentials only — run + timer, the
+ * current stop with its teleport and any teleport items you're missing,
+ * that stop's patch state (this run's category only, e.g. just the herb
+ * patch), a progress + XP/herbs line, then the ordered stop checklist.
+ * Shown only during a run; display-only ("&gt;" = next, "·" done/upcoming).
  */
 class FarmingRunOverlay extends OverlayPanel
 {
-	private static final int WIDTH = 170; // within the 250×200 budget
+	private static final int WIDTH = 165; // within the 250×200 budget
 
 	private final FarmingRunModule module;
 
@@ -73,15 +74,29 @@ class FarmingRunOverlay extends OverlayPanel
 					.build());
 			}
 
-			String patches = patchLine(module.patchesAt(next.location));
-			if (!patches.isEmpty())
+			String patch = patchState(module.patchesAt(next.location), module.runCategoryTab());
+			if (patch != null)
 			{
 				panelComponent.getChildren().add(LineComponent.builder()
-					.left(patches)
-					.leftColor(UiTokens.CANVAS_LOCKED)
+					.left("Patch").leftColor(UiTokens.CANVAS_LOCKED)
+					.right(patch).rightColor(UiTokens.CANVAS_LOCKED)
 					.build());
 			}
 		}
+
+		StringJoiner progress = new StringJoiner(" · ");
+		progress.add(module.visitedCount() + "/" + module.stops().size());
+		if (module.farmingXpGained() > 0)
+		{
+			progress.add("+" + String.format(Locale.ROOT, "%,d", module.farmingXpGained()) + " xp");
+		}
+		if (module.herbsHarvested() > 0)
+		{
+			progress.add(module.herbsHarvested() + " herbs");
+		}
+		panelComponent.getChildren().add(LineComponent.builder()
+			.left(progress.toString()).leftColor(UiTokens.OVERLAY_VALUE)
+			.build());
 
 		for (FarmingRunModule.Stop stop : module.stops())
 		{
@@ -95,11 +110,6 @@ class FarmingRunOverlay extends OverlayPanel
 				.leftColor(done ? UiTokens.CANVAS_OWNED : UiTokens.CANVAS_LOCKED)
 				.build());
 		}
-
-		panelComponent.getChildren().add(LineComponent.builder()
-			.left(module.visitedCount() + " of " + module.stops().size() + " done")
-			.leftColor(UiTokens.CANVAS_LOCKED)
-			.build());
 		return super.render(graphics);
 	}
 
@@ -109,25 +119,22 @@ class FarmingRunOverlay extends OverlayPanel
 		return teleport.id.replace('_', ' ');
 	}
 
-	/** "Herb ready · Flower empty" — live states at the stop; patches the
-	 *  tracker has never seen stay silent instead of shouting unknown. */
-	static String patchLine(List<FarmingRunModule.StopPatch> patches)
+	/** This run's patch state at a stop (e.g. "growing") — only the run's
+	 *  own category, so a herb run never lists flower/allotment patches.
+	 *  Null when unseen or the category isn't tracked here. */
+	static String patchState(List<FarmingRunModule.StopPatch> patches, Tab category)
 	{
-		StringJoiner joiner = new StringJoiner(" · ");
+		if (category == null)
+		{
+			return null;
+		}
 		for (FarmingRunModule.StopPatch patch : patches)
 		{
-			if (patch.view == FarmingRunModule.PatchView.UNKNOWN)
+			if (patch.category == category && patch.view != FarmingRunModule.PatchView.UNKNOWN)
 			{
-				continue;
+				return patch.view.name().toLowerCase(Locale.ROOT).replace('_', ' ');
 			}
-			joiner.add(shortCategory(patch.category.getName()) + " "
-				+ patch.view.name().toLowerCase(Locale.ROOT).replace('_', ' '));
 		}
-		return joiner.toString();
-	}
-
-	private static String shortCategory(String name)
-	{
-		return name.replace(" Patches", "").replace(" Patch", "");
+		return null;
 	}
 }

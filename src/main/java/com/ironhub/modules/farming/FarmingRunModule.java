@@ -97,8 +97,17 @@ public class FarmingRunModule implements IronHubModule
 	// run state — written on the client thread, read from EDT/overlay
 	private volatile long runStartMs;
 	private volatile String runName = "";
+	private volatile String runCategory = "";
 	private volatile List<Stop> stops = List.of();
 	private final Set<String> visited = ConcurrentHashMap.newKeySet();
+	// per-run tracking, baselined at startRun
+	private volatile int runStartFarmingXp;
+	private volatile int runStartHerbCount;
+
+	/** Grimy (farmable) herb ids — a harvest of any counts toward "herbs
+	 *  this run". Stable ids from gameval UNIDENTIFIED_&lt;herb&gt;. */
+	private static final Set<Integer> GRIMY_HERBS = Set.of(
+		199, 201, 203, 205, 207, 209, 211, 213, 215, 217, 219, 2485, 3049, 3051, 30094);
 
 	// tracking refresh (client thread)
 	private int refreshTick;
@@ -423,9 +432,56 @@ public class FarmingRunModule implements IronHubModule
 		}
 		stops = List.copyOf(resolved);
 		runName = name;
+		runCategory = locations.isEmpty() ? "" : locations.get(0).category;
 		visited.clear();
+		runStartFarmingXp = state.getXp(net.runelite.api.Skill.FARMING);
+		runStartHerbCount = currentHerbCount();
 		runStartMs = System.currentTimeMillis();
 		routeToNext();
+	}
+
+	/** Farming xp gained since this run started. */
+	int farmingXpGained()
+	{
+		return Math.max(0, state.getXp(net.runelite.api.Skill.FARMING) - runStartFarmingXp);
+	}
+
+	/** Grimy herbs picked up since this run started (approx: current carried
+	 *  grimy count minus the start baseline). */
+	int herbsHarvested()
+	{
+		return Math.max(0, currentHerbCount() - runStartHerbCount);
+	}
+
+	private int currentHerbCount()
+	{
+		int total = 0;
+		for (java.util.Map.Entry<Integer, Integer> slot : state.getInventorySnapshot().entrySet())
+		{
+			if (GRIMY_HERBS.contains(slot.getKey()))
+			{
+				total += slot.getValue();
+			}
+		}
+		return total;
+	}
+
+	/** The Tab (patch category) this run is farming, or null. */
+	Tab runCategoryTab()
+	{
+		switch (runCategory)
+		{
+			case "herb":
+				return Tab.HERB;
+			case "tree":
+				return Tab.TREE;
+			case "fruit":
+				return Tab.FRUIT_TREE;
+			case "hops":
+				return Tab.HOPS;
+			default:
+				return null;
+		}
 	}
 
 	/** Start a built-in template run ("Herb run", ...). */
@@ -463,6 +519,7 @@ public class FarmingRunModule implements IronHubModule
 		}
 		runStartMs = 0;
 		runName = "";
+		runCategory = "";
 		stops = List.of();
 		// The run just ended — if the bank is open on the setup view, restore
 		// it now (on the client thread; the next bank open would also do it).

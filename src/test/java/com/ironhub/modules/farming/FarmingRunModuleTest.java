@@ -275,6 +275,13 @@ public class FarmingRunModuleTest
 		java.awt.image.BufferedImage active = SwingRender.render((JPanel) tab);
 		javax.imageio.ImageIO.write(active, "png", new java.io.File("build/reports/farming-run-active.png"));
 
+		// gained some Farming xp and grimy herbs SINCE the run started, so
+		// the overlay's progress line shows the tracking
+		StateFixture.stat(state, net.runelite.api.Skill.FARMING, 80, 2_200_000);
+		StateFixture.inventory(state, Map.of(207, 6)); // 6 grimy ranarr
+		assertTrue(module.farmingXpGained() > 0);
+		assertEquals(6, module.herbsHarvested());
+
 		FarmingRunOverlay overlay = new FarmingRunOverlay(module);
 		java.awt.image.BufferedImage canvas = new java.awt.image.BufferedImage(
 			300, 260, java.awt.image.BufferedImage.TYPE_INT_RGB);
