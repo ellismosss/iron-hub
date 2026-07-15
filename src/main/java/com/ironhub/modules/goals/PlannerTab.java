@@ -70,6 +70,8 @@ class PlannerTab extends JPanel
 
 	/** The plan the Route list currently shows (never silently replaced). */
 	private Plan displayedPlan;
+	/** Set when the player changes a constraint: their own action applies. */
+	private boolean applyNextPlan;
 	/** The freshest plan from the engine (may await an explicit apply). */
 	private Plan latestPlan;
 	private String expandedStepId;
@@ -153,9 +155,10 @@ class PlannerTab extends JPanel
 			return;
 		}
 		latestPlan = plan;
-		if (displayedPlan == null)
+		if (displayedPlan == null || applyNextPlan)
 		{
 			displayedPlan = plan;
+			applyNextPlan = false;
 		}
 		rebuildAll();
 	}
@@ -613,13 +616,6 @@ class PlannerTab extends JPanel
 		row.setToolTipText(hover);
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
-		String rowWiki = wikiUrl(step);
-		if (rowWiki != null)
-		{
-			row.add(new com.ironhub.ui.components.IconButton("W", "Open the wiki page",
-				() -> LinkBrowser.browse(rowWiki)));
-			row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		}
 		row.add(timeLabel(step, UiTokens.TEXT_MUTED, false));
 
 		MouseAdapter click = new MouseAdapter()
@@ -689,13 +685,6 @@ class PlannerTab extends JPanel
 		name.setToolTipText(step.action.name);
 		title.add(name);
 		title.add(Box.createHorizontalGlue());
-		String cardWiki = wikiUrl(step);
-		if (cardWiki != null)
-		{
-			title.add(new com.ironhub.ui.components.IconButton("W", "Open the wiki page",
-				() -> LinkBrowser.browse(cardWiki)));
-			title.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		}
 		title.add(timeLabel(step, UiTokens.ACCENT, true));
 		card.add(title);
 
@@ -739,6 +728,16 @@ class PlannerTab extends JPanel
 			for (Plan.Resource resource : step.resources)
 			{
 				JLabel need = new JLabel(resource.name + " \u00d7" + formatCount(resource.needed));
+				if (itemManager != null && resource.itemId > 0)
+				{
+					net.runelite.client.util.AsyncBufferedImage image =
+						itemManager.getImage(resource.itemId);
+					Runnable apply = () -> need.setIcon(new javax.swing.ImageIcon(
+						image.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH)));
+					apply.run();
+					image.onLoaded(apply);
+					need.setIconTextGap(UiTokens.PAD_TIGHT);
+				}
 				need.setForeground(UiTokens.TEXT_PRIMARY);
 				need.setFont(need.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
 				need.setAlignmentX(LEFT_ALIGNMENT);
@@ -789,7 +788,8 @@ class PlannerTab extends JPanel
 					@Override
 					public void mousePressed(MouseEvent e)
 					{
-						state.setPlannerPreferred(step.action.trainSkill.getName(), alt.methodId);
+						constraintAction(() -> state.setPlannerPreferred(
+							step.action.trainSkill.getName(), alt.methodId));
 					}
 				});
 				row.add(prefer);
@@ -846,13 +846,13 @@ class PlannerTab extends JPanel
 		buttons.setOpaque(false);
 		buttons.setAlignmentX(LEFT_ALIGNMENT);
 		buttons.add(flatButton(step.pinned ? "Unpin" : "Pin next",
-			() -> state.togglePlannerPin(step.action.id), UiTokens.ACCENT));
+			() -> constraintAction(() -> state.togglePlannerPin(step.action.id)), UiTokens.ACCENT));
 		buttons.add(flatButton(step.snoozed ? "Unsnooze" : "Snooze",
-			() -> state.togglePlannerSnooze(step.action.id), UiTokens.TEXT_BODY));
+			() -> constraintAction(() -> state.togglePlannerSnooze(step.action.id)), UiTokens.TEXT_BODY));
 		if (step.methodId != null)
 		{
 			buttons.add(flatButton("Ban method",
-				() -> state.togglePlannerBan(step.methodId), UiTokens.STATUS_WARNING));
+				() -> constraintAction(() -> state.togglePlannerBan(step.methodId)), UiTokens.STATUS_WARNING));
 		}
 		else if (step.action.kind == Action.Kind.MANUAL && step.action.unlockKey != null)
 		{
@@ -886,15 +886,15 @@ class PlannerTab extends JPanel
 	{
 		JPopupMenu menu = new JPopupMenu();
 		JMenuItem pin = new JMenuItem(step.pinned ? "Unpin" : "Pin next");
-		pin.addActionListener(e -> state.togglePlannerPin(step.action.id));
+		pin.addActionListener(e -> constraintAction(() -> state.togglePlannerPin(step.action.id)));
 		menu.add(pin);
 		JMenuItem snooze = new JMenuItem(step.snoozed ? "Unsnooze" : "Snooze");
-		snooze.addActionListener(e -> state.togglePlannerSnooze(step.action.id));
+		snooze.addActionListener(e -> constraintAction(() -> state.togglePlannerSnooze(step.action.id)));
 		menu.add(snooze);
 		if (step.methodId != null)
 		{
 			JMenuItem ban = new JMenuItem("Ban " + step.methodName);
-			ban.addActionListener(e -> state.togglePlannerBan(step.methodId));
+			ban.addActionListener(e -> constraintAction(() -> state.togglePlannerBan(step.methodId)));
 			menu.add(ban);
 		}
 		if (step.action.kind == Action.Kind.MANUAL && step.action.unlockKey != null)
@@ -1378,10 +1378,28 @@ class PlannerTab extends JPanel
 		Integer itemId = null;
 		if (step.action.kind == Action.Kind.OBTAIN && step.action.itemId > 0)
 		{
+			GearProgressionPack.Item gearItem = moduleGearItem(step.action.itemId);
+			if (gearItem != null && gearItem.getIconFile() != null)
+			{
+				return bundledIcon("/data/icons/" + gearItem.getIconFile());
+			}
 			itemId = step.action.itemId;
 		}
 		else if (step.action.kind == Action.Kind.KILL || step.action.kind == Action.Kind.MANUAL)
 		{
+			if (step.action.unlockKey != null && step.action.unlockKey.startsWith("gearmark_"))
+			{
+				GearProgressionPack.Item gearItem =
+					moduleGearItemByMark(step.action.unlockKey);
+				if (gearItem != null && gearItem.getIconFile() != null)
+				{
+					return bundledIcon("/data/icons/" + gearItem.getIconFile());
+				}
+				if (gearItem != null)
+				{
+					itemId = gearItem.icon();
+				}
+			}
 			if (step.action.id.startsWith("diarytier:")
 				|| step.action.unlockKey != null && step.action.unlockKey.startsWith("diarytask_"))
 			{
@@ -1503,6 +1521,14 @@ class PlannerTab extends JPanel
 		line.setMinimumSize(new Dimension(0, 0));
 		line.setToolTipText(parsed.describe() + (met ? " — met" : " — not yet"));
 		return line;
+	}
+
+	/** Run a player constraint change: their own action applies the next
+	 * plan without the update banner (which guards external changes). */
+	private void constraintAction(Runnable action)
+	{
+		applyNextPlan = true;
+		action.run();
 	}
 
 	private static JComponent mutedNote(String text)
