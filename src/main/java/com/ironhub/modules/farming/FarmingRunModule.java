@@ -2,7 +2,7 @@ package com.ironhub.modules.farming;
 
 import com.ironhub.IronHubConfig;
 import com.ironhub.data.DataPack;
-import com.ironhub.data.HerbPatchesPack;
+import com.ironhub.data.FarmRunsPack;
 import com.ironhub.integrations.ShortestPathBridge;
 import com.ironhub.modules.IronHubModule;
 import com.ironhub.modules.farming.rl.PatchPrediction;
@@ -56,13 +56,18 @@ public class FarmingRunModule implements IronHubModule
 	/** Tracking data moves on farming ticks (minutes) — re-read slowly. */
 	private static final int REFRESH_TICKS = 10;
 
-	// letters map data-pack entries to the documented transmit varbits
-	static final java.util.Map<String, Integer> TRANSMIT_VARBITS = java.util.Map.of(
-		"A", VarbitID.FARMING_TRANSMIT_A,
-		"B", VarbitID.FARMING_TRANSMIT_B,
-		"C", VarbitID.FARMING_TRANSMIT_C,
-		"D", VarbitID.FARMING_TRANSMIT_D,
-		"E", VarbitID.FARMING_TRANSMIT_E);
+	/** The built-in run templates, keyed by display name (pack categories
+	 *  in the source plugin's route order). */
+	static final java.util.LinkedHashMap<String, String> TEMPLATES = new java.util.LinkedHashMap<>(
+		java.util.Map.of());
+
+	static
+	{
+		TEMPLATES.put("Herb run", "herb");
+		TEMPLATES.put("Tree run", "tree");
+		TEMPLATES.put("Fruit tree run", "fruit");
+		TEMPLATES.put("Hops run", "hops");
+	}
 
 	private final AccountState state;
 	private final Client client;
@@ -77,7 +82,7 @@ public class FarmingRunModule implements IronHubModule
 	private final ConfigManager configManager;     // null in unit tests
 	private final ItemManager itemManager;         // null in unit tests
 
-	private HerbPatchesPack pack;
+	private FarmRunsPack pack;
 	FarmTrackingService tracking; // package-private test seam
 	private FarmingTab tab;
 	private FarmingRunOverlay overlay;
@@ -86,6 +91,8 @@ public class FarmingRunModule implements IronHubModule
 
 	// run state — written on the client thread, read from EDT/overlay
 	private volatile long runStartMs;
+	private volatile String runName = "";
+	private volatile List<Stop> stops = List.of();
 	private final Set<String> visited = ConcurrentHashMap.newKeySet();
 
 	// tracking refresh (client thread)
@@ -135,7 +142,7 @@ public class FarmingRunModule implements IronHubModule
 	@Override
 	public void startUp()
 	{
-		pack = dataPack.load("herb-patches", HerbPatchesPack.class);
+		pack = dataPack.load("farm-runs", FarmRunsPack.class);
 		if (tracking == null && configManager != null)
 		{
 			tracking = new FarmTrackingService(client, itemManager, configManager,
@@ -314,33 +321,93 @@ public class FarmingRunModule implements IronHubModule
 		return sb.toString();
 	}
 
-	/** Mark any patch within range as visited; ends the run when all done. */
+	/** One resolved stop of the active run: the location plus the best
+	 *  teleport the player can actually use (Easy Farming improved — no
+	 *  per-location config forest, ownership picks the teleport). */
+	static class Stop
+	{
+		final FarmRunsPack.Location location;
+		final FarmRunsPack.Teleport teleport;
+
+		Stop(FarmRunsPack.Location location, FarmRunsPack.Teleport teleport)
+		{
+			this.location = location;
+			this.teleport = teleport;
+		}
+	}
+
+	/** Mark any stop within range as visited; ends the run when all done
+	 *  and routes the path bridge to the next stop otherwise. */
 	boolean markVisited(WorldPoint playerLocation)
 	{
 		boolean changed = false;
-		for (HerbPatchesPack.Patch patch : patches())
+		for (Stop stop : stops)
 		{
-			if (!visited.contains(patch.getId())
-				&& patch.getLocation().getPlane() == playerLocation.getPlane()
-				&& patch.getLocation().distanceTo2D(playerLocation) <= VISIT_RADIUS)
+			WorldPoint point = stop.location.worldPoint();
+			if (!visited.contains(stop.location.id)
+				&& point.getPlane() == playerLocation.getPlane()
+				&& point.distanceTo2D(playerLocation) <= VISIT_RADIUS)
 			{
-				visited.add(patch.getId());
+				visited.add(stop.location.id);
 				changed = true;
 			}
 		}
-		if (changed && visited.size() == patches().size())
+		if (changed)
 		{
-			endRun(true);
+			if (visited.size() == stops.size())
+			{
+				endRun(true);
+			}
+			else
+			{
+				routeToNext();
+			}
 		}
 		return changed;
 	}
 
 	// ── run control + reads ───────────────────────────────────────────
 
-	void startRun()
+	/** Start a run over the given pack locations (a template category or a
+	 *  custom run's resolved ids), auto-picking each stop's teleport. */
+	void startRun(String name, List<FarmRunsPack.Location> locations)
 	{
+		List<Stop> resolved = new java.util.ArrayList<>();
+		for (FarmRunsPack.Location location : locations)
+		{
+			resolved.add(new Stop(location, pickTeleport(location)));
+		}
+		stops = List.copyOf(resolved);
+		runName = name;
 		visited.clear();
 		runStartMs = System.currentTimeMillis();
+		routeToNext();
+	}
+
+	/** Start a built-in template run ("Herb run", ...). */
+	void startTemplate(String name)
+	{
+		startRun(name, pack.category(TEMPLATES.get(name)));
+	}
+
+	/** Start a saved custom run; unknown location ids are skipped. */
+	void startCustom(String name)
+	{
+		com.ironhub.state.PersistedState.FarmRun run = state.getFarmRuns().get(name);
+		if (run == null)
+		{
+			return;
+		}
+		List<FarmRunsPack.Location> locations = new java.util.ArrayList<>();
+		for (String id : run.locationIds)
+		{
+			FarmRunsPack.Location location = pack.location(id);
+			if (location != null)
+			{
+				locations.add(location);
+			}
+		}
+		startRun(name, locations);
 	}
 
 	void endRun(boolean complete)
@@ -350,6 +417,8 @@ public class FarmingRunModule implements IronHubModule
 			state.recordHerbRun(System.currentTimeMillis() - runStartMs);
 		}
 		runStartMs = 0;
+		runName = "";
+		stops = List.of();
 	}
 
 	boolean running()
@@ -362,9 +431,14 @@ public class FarmingRunModule implements IronHubModule
 		return running() ? System.currentTimeMillis() - runStartMs : 0;
 	}
 
-	boolean isVisited(String patchId)
+	String runName()
 	{
-		return visited.contains(patchId);
+		return runName;
+	}
+
+	boolean isVisited(String locationId)
+	{
+		return visited.contains(locationId);
 	}
 
 	int visitedCount()
@@ -372,15 +446,20 @@ public class FarmingRunModule implements IronHubModule
 		return visited.size();
 	}
 
-	/** First unvisited patch in route order, or null. */
-	HerbPatchesPack.Patch nextPatch()
+	/** First unvisited stop in route order, or null. */
+	Stop nextStop()
 	{
-		return patches().stream().filter(p -> !visited.contains(p.getId())).findFirst().orElse(null);
+		return stops.stream().filter(s -> !visited.contains(s.location.id)).findFirst().orElse(null);
 	}
 
-	List<HerbPatchesPack.Patch> patches()
+	List<Stop> stops()
 	{
-		return pack.getPatches();
+		return stops;
+	}
+
+	FarmRunsPack pack()
+	{
+		return pack;
 	}
 
 	AccountState state()
@@ -391,6 +470,109 @@ public class FarmingRunModule implements IronHubModule
 	FarmTrackingService tracking()
 	{
 		return tracking;
+	}
+
+	/** Item display name for overlay copy (client thread), or a fallback. */
+	String itemName(int itemId)
+	{
+		if (itemManager == null)
+		{
+			return "item " + itemId;
+		}
+		return itemManager.getItemComposition(itemId).getName();
+	}
+
+	/** Send the path bridge toward the next unvisited stop (no-op when the
+	 *  integration is off or the run is done). */
+	private void routeToNext()
+	{
+		Stop next = nextStop();
+		if (next != null && pathBridge != null)
+		{
+			pathBridge.pathTo(next.location.worldPoint());
+		}
+	}
+
+	// ── teleport selection (ownership beats configuration) ───────────
+
+	/**
+	 * The best teleport the player can actually use, in the pack's order:
+	 * first one whose items are all owned (bank counts — you can withdraw
+	 * before the run), then access-based options (house portal, fairy
+	 * ring), then the walk-there fallback.
+	 */
+	FarmRunsPack.Teleport pickTeleport(FarmRunsPack.Location location)
+	{
+		for (FarmRunsPack.Teleport teleport : location.teleports)
+		{
+			if (teleport.supplier == null && !teleport.items.isEmpty() && ownsAll(teleport))
+			{
+				return teleport;
+			}
+		}
+		for (FarmRunsPack.Teleport teleport : location.teleports)
+		{
+			if (teleport.supplier != null)
+			{
+				return teleport;
+			}
+		}
+		return location.teleports.get(location.teleports.size() - 1);
+	}
+
+	private boolean ownsAll(FarmRunsPack.Teleport teleport)
+	{
+		for (FarmRunsPack.Item item : teleport.items)
+		{
+			// canonical: any charge/variant of a glory or ring counts
+			if (state.canonicalStock(item.itemId) < item.qty)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Items the player is NOT carrying for this stop's teleport (inventory
+	 * + worn only — the run is live, the bank is behind you).
+	 * ponytail: runes inside a rune pouch read as missing; watching the
+	 * RUNE_POUCH varbits would fix that if it grates.
+	 */
+	List<FarmRunsPack.Item> missingItems(Stop stop)
+	{
+		List<FarmRunsPack.Item> missing = new java.util.ArrayList<>();
+		for (FarmRunsPack.Item item : stop.teleport.items)
+		{
+			if (carriedCanonical(item.itemId) < item.qty)
+			{
+				missing.add(item);
+			}
+		}
+		return missing;
+	}
+
+	private int carriedCanonical(int itemId)
+	{
+		int base = net.runelite.client.game.ItemVariationMapping.map(itemId);
+		java.util.Set<Integer> variants = new java.util.HashSet<>(
+			net.runelite.client.game.ItemVariationMapping.getVariations(base));
+		int total = 0;
+		for (java.util.Map.Entry<Integer, Integer> slot : state.getInventorySnapshot().entrySet())
+		{
+			if (variants.contains(slot.getKey()))
+			{
+				total += slot.getValue();
+			}
+		}
+		for (int worn : state.getEquipmentSlots())
+		{
+			if (variants.contains(worn))
+			{
+				total++;
+			}
+		}
+		return total;
 	}
 
 	// ── patch views over the vendored predictions ─────────────────────
@@ -407,16 +589,44 @@ public class FarmingRunModule implements IronHubModule
 		UNKNOWN
 	}
 
-	/** Live prediction for a pack patch, or null without data. */
-	PatchPrediction prediction(HerbPatchesPack.Patch patch)
+	/** The farming patches at a stop with their live views: every vendored
+	 *  world patch in the stop's region. */
+	List<StopPatch> patchesAt(FarmRunsPack.Location location)
 	{
-		return tracking == null ? null
-			: tracking.predict(patch.getRegionId(), TRANSMIT_VARBITS.get(patch.getVarbit()));
+		List<StopPatch> out = new java.util.ArrayList<>();
+		if (tracking == null)
+		{
+			return out;
+		}
+		int region = location.worldPoint().getRegionID();
+		long now = Instant.now().getEpochSecond();
+		for (java.util.Map.Entry<Tab, java.util.Set<com.ironhub.modules.farming.rl.FarmingPatch>> entry
+			: tracking.tracker().getTabData())
+		{
+			for (com.ironhub.modules.farming.rl.FarmingPatch patch : entry.getValue())
+			{
+				if (patch.getRegion().getRegionID() == region)
+				{
+					PatchPrediction prediction = tracking.tracker().predictPatch(patch);
+					out.add(new StopPatch(entry.getKey(), viewOf(prediction, now)));
+				}
+			}
+		}
+		out.sort(java.util.Comparator.comparing(sp -> sp.category.ordinal()));
+		return out;
 	}
 
-	PatchView view(HerbPatchesPack.Patch patch)
+	/** One patch at a run stop: its category and live view. */
+	static class StopPatch
 	{
-		return viewOf(prediction(patch), Instant.now().getEpochSecond());
+		final Tab category;
+		final PatchView view;
+
+		StopPatch(Tab category, PatchView view)
+		{
+			this.category = category;
+			this.view = view;
+		}
 	}
 
 	/** Map a vendored prediction onto the display vocabulary — static for
@@ -451,22 +661,6 @@ public class FarmingRunModule implements IronHubModule
 			default:
 				return PatchView.UNKNOWN;
 		}
-	}
-
-	/** Herb patches ready or predicted ready — the herb section header. */
-	int readyCount()
-	{
-		long now = Instant.now().getEpochSecond();
-		int ready = 0;
-		for (HerbPatchesPack.Patch patch : patches())
-		{
-			PatchView view = viewOf(prediction(patch), now);
-			if (view == PatchView.READY || view == PatchView.PREDICTED_READY)
-			{
-				ready++;
-			}
-		}
-		return ready;
 	}
 
 	/** Patches harvestable across the whole farming world right now —

@@ -72,8 +72,10 @@ public class AccountState implements StateView
 	private final Map<String, Map<String, Integer>> savedLoadouts = new ConcurrentHashMap<>();
 	private final Map<String, PersistedState.SavedSetup> savedSetups = new ConcurrentHashMap<>();
 
-	// completed herb run durations, persisted (avg/best/count stats)
+	// completed farm run durations, persisted (avg/best/count stats)
 	private final java.util.List<Long> herbRunsMs = new CopyOnWriteArrayList<>();
+	// custom farm runs: name -> ordered farm-runs.json location ids
+	private final Map<String, PersistedState.FarmRun> farmRuns = new ConcurrentHashMap<>();
 
 	/** Rolling consumption events for runway rates, capped. */
 	public static final int MAX_CONSUMPTION_EVENTS = 500;
@@ -410,6 +412,30 @@ public class AccountState implements StateView
 		herbRunsMs.add(durationMs);
 		persist();
 		notifyListeners();
+	}
+
+	/** Custom farm runs (name -> ordered location ids), insertion order. */
+	public Map<String, PersistedState.FarmRun> getFarmRuns()
+	{
+		return java.util.Collections.unmodifiableMap(farmRuns);
+	}
+
+	public void saveFarmRun(String name, java.util.List<String> locationIds)
+	{
+		PersistedState.FarmRun run = new PersistedState.FarmRun();
+		run.locationIds = new java.util.ArrayList<>(locationIds);
+		farmRuns.put(name, run);
+		persist();
+		notifyListeners();
+	}
+
+	public void deleteFarmRun(String name)
+	{
+		if (farmRuns.remove(name) != null)
+		{
+			persist();
+			notifyListeners();
+		}
 	}
 
 	/** Rolling consumption events (time, canonical item id, qty), oldest first. */
@@ -1223,6 +1249,8 @@ public class AccountState implements StateView
 		savedSetups.putAll(persisted.savedSetups);
 		herbRunsMs.clear();
 		herbRunsMs.addAll(persisted.herbRunsMs);
+		farmRuns.clear();
+		farmRuns.putAll(persisted.farmRuns);
 		consumptionLog.clear();
 		consumptionLog.addAll(persisted.consumptionLog);
 		deaths.clear();
@@ -1280,6 +1308,7 @@ public class AccountState implements StateView
 		savedLoadouts.forEach((activity, slots) -> state.savedLoadouts.put(activity, new HashMap<>(slots)));
 		state.savedSetups.putAll(savedSetups);
 		state.herbRunsMs = new java.util.ArrayList<>(herbRunsMs);
+		state.farmRuns = new HashMap<>(farmRuns);
 		state.consumptionLog = new java.util.ArrayList<>(consumptionLog);
 		state.deaths = new java.util.ArrayList<>(deaths);
 		state.selectedGoals = new HashSet<>(selectedGoals);

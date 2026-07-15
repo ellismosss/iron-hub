@@ -1,24 +1,33 @@
 package com.ironhub.modules.farming;
 
-import com.ironhub.data.HerbPatchesPack;
+import com.ironhub.data.FarmRunsPack;
 import com.ironhub.integrations.ShortestPathBridge;
-import com.ironhub.modules.farming.rl.PatchPrediction;
 import com.ironhub.modules.farming.rl.Tab;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.Format;
 import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.components.IconButton;
 import com.ironhub.ui.components.ListRow;
+import com.ironhub.ui.components.SearchField;
 import com.ironhub.ui.components.SectionLabel;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.TreeMap;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -26,12 +35,12 @@ import javax.swing.border.LineBorder;
 import net.runelite.client.plugins.timetracking.SummaryState;
 
 /**
- * Farming tab content (frame 2e): full-width primary Start/End run button,
- * run-history stats line, a Time Tracking-style patch overview (every
- * category with data, bird houses, the farming contract — each with its
- * ready state or ETA), and the herb-run patch rows with Path buttons.
- * All predictions come from the core Time Tracking plugin's data via
- * FarmTrackingService.
+ * Farming tab content (frame 2e): a Time Tracking-style patch overview
+ * (every category with data, bird houses, the farming contract), then the
+ * run planner — built-in template runs, saved custom runs, a compact run
+ * builder, and the live stop checklist while a run is active. Teleports
+ * are auto-picked from what the player owns; each stop row's tooltip
+ * carries the teleport, missing items and live patch states.
  */
 class FarmingTab extends JPanel
 {
@@ -40,11 +49,14 @@ class FarmingTab extends JPanel
 	private final ShortestPathBridge pathBridge;
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 
-	private final JLabel runButton = new JLabel("", javax.swing.SwingConstants.CENTER);
 	private final JLabel stats = new JLabel();
-	private final JLabel readyCount = new JLabel();
 	private final JPanel overview = new JPanel();
-	private final JPanel list = new JPanel();
+	private final JPanel runs = new JPanel();
+
+	// run builder state
+	private boolean builderOpen;
+	private final JTextField builderName = new SearchField("Run name…");
+	private final Set<String> builderSelection = new LinkedHashSet<>();
 
 	FarmingTab(AccountState state, FarmingRunModule module, ShortestPathBridge pathBridge)
 	{
@@ -55,41 +67,6 @@ class FarmingTab extends JPanel
 		setBackground(UiTokens.PANEL_BG);
 		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
 
-		// primary button: accent bg, dark bold text (1a §6)
-		runButton.setOpaque(true);
-		runButton.setBackground(UiTokens.ACCENT);
-		runButton.setForeground(UiTokens.ACCENT_TEXT_ON);
-		runButton.setBorder(new LineBorder(UiTokens.ACCENT));
-		runButton.setFont(runButton.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
-		runButton.setAlignmentX(LEFT_ALIGNMENT);
-		runButton.setPreferredSize(new Dimension(0, UiTokens.BUTTON_HEIGHT));
-		runButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
-		runButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		runButton.addMouseListener(new java.awt.event.MouseAdapter()
-		{
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
-			{
-				if (module.running())
-				{
-					module.endRun(false); // abandoned runs are not recorded
-				}
-				else
-				{
-					module.startRun();
-				}
-				rebuild();
-			}
-		});
-		add(runButton);
-		add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-
-		stats.setForeground(UiTokens.TEXT_FAINT);
-		stats.setFont(stats.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
-		stats.setAlignmentX(LEFT_ALIGNMENT);
-		add(stats);
-		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
-
 		add(new SectionLabel("Patch overview"));
 		add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 		overview.setLayout(new BoxLayout(overview, BoxLayout.Y_AXIS));
@@ -98,22 +75,17 @@ class FarmingTab extends JPanel
 		add(overview);
 		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 
-		JPanel patchHeader = new JPanel();
-		patchHeader.setLayout(new BoxLayout(patchHeader, BoxLayout.X_AXIS));
-		patchHeader.setOpaque(false);
-		patchHeader.setAlignmentX(LEFT_ALIGNMENT);
-		patchHeader.add(new SectionLabel("Herb patches"));
-		patchHeader.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		patchHeader.add(Box.createHorizontalGlue());
-		readyCount.setForeground(UiTokens.STATUS_AVAILABLE);
-		readyCount.setFont(readyCount.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
-		patchHeader.add(readyCount);
-		add(patchHeader);
+		add(new SectionLabel("Runs"));
+		add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		stats.setForeground(UiTokens.TEXT_FAINT);
+		stats.setFont(stats.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
+		stats.setAlignmentX(LEFT_ALIGNMENT);
+		add(stats);
 		add(Box.createVerticalStrut(UiTokens.ROW_GAP));
-		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
-		list.setBackground(UiTokens.PANEL_BG);
-		list.setAlignmentX(LEFT_ALIGNMENT);
-		add(list);
+		runs.setLayout(new BoxLayout(runs, BoxLayout.Y_AXIS));
+		runs.setOpaque(false);
+		runs.setAlignmentX(LEFT_ALIGNMENT);
+		add(runs);
 		add(Box.createVerticalGlue());
 
 		state.addListener(listener);
@@ -127,22 +99,9 @@ class FarmingTab extends JPanel
 
 	void rebuild()
 	{
-		runButton.setText(module.running() ? "End run" : "Start herb run");
 		stats.setText(FarmingRunModule.statsLine(state.getHerbRunsMs()));
-		readyCount.setText(module.readyCount() + " of " + module.patches().size() + " ready");
-
 		rebuildOverview();
-
-		HerbPatchesPack.Patch next = module.nextPatch();
-		list.removeAll();
-		for (HerbPatchesPack.Patch patch : module.patches())
-		{
-			IconButton path = IconButton.path(() -> pathBridge.pathTo(patch.getLocation()));
-			list.add(patchRow(patch, next, path));
-			list.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		}
-		list.revalidate();
-		list.repaint();
+		rebuildRuns();
 	}
 
 	// ── patch overview (all categories + bird houses + contract) ──────
@@ -272,57 +231,260 @@ class FarmingTab extends JPanel
 		return label;
 	}
 
-	// ── herb run rows ─────────────────────────────────────────────────
+	// ── runs (templates, saved runs, builder, live checklist) ─────────
 
-	private ListRow patchRow(HerbPatchesPack.Patch patch, HerbPatchesPack.Patch next, IconButton path)
+	private void rebuildRuns()
 	{
+		runs.removeAll();
 		if (module.running())
 		{
-			if (module.isVisited(patch.getId()))
+			buildActiveRun();
+		}
+		else
+		{
+			buildRunPicker();
+		}
+		runs.revalidate();
+		runs.repaint();
+	}
+
+	private void buildActiveRun()
+	{
+		JLabel endButton = primaryButton("End run (" + module.runName() + ")");
+		endButton.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
 			{
-				return ListRow.owned(patch.getName(), path);
+				module.endRun(false); // abandoned runs are not recorded
+				rebuild();
 			}
-			if (next != null && next.getId().equals(patch.getId()))
+		});
+		runs.add(endButton);
+		runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+
+		FarmingRunModule.Stop next = module.nextStop();
+		for (FarmingRunModule.Stop stop : module.stops())
+		{
+			IconButton path = IconButton.path(() -> pathBridge.pathTo(stop.location.worldPoint()));
+			ListRow row;
+			if (module.isVisited(stop.location.id))
 			{
-				return ListRow.available(patch.getName(), path);
+				row = ListRow.owned(stop.location.name, path);
 			}
-			return ListRow.locked(patch.getName(), path);
+			else if (next != null && stop == next)
+			{
+				row = ListRow.available(stop.location.name, path);
+			}
+			else
+			{
+				row = ListRow.locked(stop.location.name, path);
+			}
+			row.setToolTipText(stopTooltip(stop));
+			runs.add(row);
+			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		}
+	}
+
+	/** "Explorers ring · Missing: Law rune · Herb ready" for a stop row. */
+	private String stopTooltip(FarmingRunModule.Stop stop)
+	{
+		StringJoiner tooltip = new StringJoiner(" · ");
+		tooltip.add(FarmingRunOverlay.teleportLabel(stop.teleport));
+		List<FarmRunsPack.Item> missing = module.missingItems(stop);
+		if (!missing.isEmpty())
+		{
+			tooltip.add("missing " + missing.size()
+				+ (missing.size() == 1 ? " item" : " items"));
+		}
+		String patches = FarmingRunOverlay.patchLine(module.patchesAt(stop.location));
+		if (!patches.isEmpty())
+		{
+			tooltip.add(patches);
+		}
+		return tooltip.toString();
+	}
+
+	private void buildRunPicker()
+	{
+		for (String template : FarmingRunModule.TEMPLATES.keySet())
+		{
+			String category = FarmingRunModule.TEMPLATES.get(template);
+			int count = module.pack().category(category).size();
+			runs.add(runRow(template, count + " stops", () -> module.startTemplate(template), null));
+			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
 
-		PatchPrediction prediction = module.prediction(patch);
-		String produce = prediction == null ? "" : prediction.getProduce().getName();
-		ListRow row;
-		switch (FarmingRunModule.viewOf(prediction, Instant.now().getEpochSecond()))
+		for (String name : new TreeMap<>(state.getFarmRuns()).keySet())
 		{
-			case READY:
-				row = ListRow.available(patch.getName(), path);
-				row.setToolTipText(patch.getName() + " — " + produce + " ready");
-				break;
-			case PREDICTED_READY:
-				row = ListRow.available(patch.getName(), path);
-				row.setToolTipText(patch.getName() + " — " + produce + " predicted ready");
-				break;
-			case GROWING:
-				row = ListRow.locked(patch.getName(), path);
-				long seconds = Math.max(60, prediction.getDoneEstimate() - Instant.now().getEpochSecond());
-				row.setToolTipText(patch.getName() + " — " + produce + " ready in ~"
-					+ Format.hours(seconds / 3600.0));
-				break;
-			case DISEASED:
-				row = ListRow.warning(patch.getName(), "diseased", path);
-				break;
-			case DEAD:
-				row = ListRow.warning(patch.getName(), "dead", path);
-				break;
-			case EMPTY:
-				row = ListRow.locked(patch.getName(), path);
-				row.setToolTipText(patch.getName() + " — empty");
-				break;
-			default:
-				row = ListRow.locked(patch.getName(), path);
-				row.setToolTipText(patch.getName() + " — not seen yet");
+			int count = state.getFarmRuns().get(name).locationIds.size();
+			runs.add(runRow(name, count + " stops", () -> module.startCustom(name),
+				() -> state.deleteFarmRun(name)));
+			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
+
+		JLabel newRun = new JLabel(builderOpen ? "Cancel new run" : "New custom run…");
+		newRun.setForeground(UiTokens.ACCENT);
+		newRun.setFont(newRun.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		newRun.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		newRun.setAlignmentX(LEFT_ALIGNMENT);
+		newRun.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				builderOpen = !builderOpen;
+				if (!builderOpen)
+				{
+					builderSelection.clear();
+					builderName.setText("");
+				}
+				rebuildRuns();
+			}
+		});
+		runs.add(newRun);
+		if (builderOpen)
+		{
+			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			buildRunBuilder();
+		}
+	}
+
+	/** A run row: name + stop count, click to start, optional delete. */
+	private JPanel runRow(String name, String detail, Runnable start, Runnable delete)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setBackground(UiTokens.CARD_BG);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
+			new EmptyBorder(0, UiTokens.ROW_GAP, 0, UiTokens.ROW_GAP)));
+		row.setPreferredSize(new Dimension(0, UiTokens.ROW_HEIGHT));
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT));
+		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		row.setToolTipText("Start " + name + " — teleports are picked from what you own");
+
+		JLabel label = new JLabel(name);
+		label.setForeground(UiTokens.TEXT_PRIMARY);
+		label.setFont(label.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
+		label.setMinimumSize(new Dimension(0, 0));
+		row.add(label);
+		row.add(Box.createHorizontalGlue());
+		JLabel count = new JLabel(detail);
+		count.setForeground(UiTokens.TEXT_MUTED);
+		count.setFont(count.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		row.add(count);
+		if (delete != null)
+		{
+			row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+			row.add(new IconButton("×", "Delete this run", () ->
+			{
+				delete.run();
+				rebuild();
+			}));
+		}
+		row.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				if (SwingUtilities.isLeftMouseButton(e))
+				{
+					start.run();
+					rebuild();
+				}
+			}
+		});
 		return row;
+	}
+
+	/** Compact builder: name, one checkbox per pack location (route order
+	 *  within each category), Save. */
+	private void buildRunBuilder()
+	{
+		builderName.setAlignmentX(LEFT_ALIGNMENT);
+		runs.add(builderName);
+		runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+
+		String lastCategory = "";
+		for (FarmRunsPack.Location location : module.pack().locations)
+		{
+			if (!location.category.equals(lastCategory))
+			{
+				lastCategory = location.category;
+				JLabel header = new JLabel(location.category.toUpperCase(Locale.ROOT));
+				header.setForeground(UiTokens.TEXT_MUTED);
+				header.setFont(SectionLabel.letterSpaced(
+					header.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LABEL),
+					UiTokens.LETTER_SPACING_LABEL));
+				header.setAlignmentX(LEFT_ALIGNMENT);
+				header.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 2, 0));
+				runs.add(header);
+			}
+			JCheckBox box = new JCheckBox(location.name, builderSelection.contains(location.id));
+			box.setOpaque(false);
+			box.setForeground(UiTokens.TEXT_BODY);
+			box.setFont(box.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+			box.setAlignmentX(LEFT_ALIGNMENT);
+			box.addActionListener(e ->
+			{
+				if (box.isSelected())
+				{
+					builderSelection.add(location.id);
+				}
+				else
+				{
+					builderSelection.remove(location.id);
+				}
+			});
+			runs.add(box);
+		}
+
+		runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		JLabel save = primaryButton("Save run");
+		save.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				String name = builderName.getText().trim();
+				if (name.isEmpty() || builderSelection.isEmpty()
+					|| FarmingRunModule.TEMPLATES.containsKey(name))
+				{
+					return;
+				}
+				// keep the pack's route order, not click order
+				List<String> ordered = new ArrayList<>();
+				for (FarmRunsPack.Location location : module.pack().locations)
+				{
+					if (builderSelection.contains(location.id))
+					{
+						ordered.add(location.id);
+					}
+				}
+				state.saveFarmRun(name, ordered);
+				builderOpen = false;
+				builderSelection.clear();
+				builderName.setText("");
+				rebuild();
+			}
+		});
+		runs.add(save);
+	}
+
+	private JLabel primaryButton(String text)
+	{
+		JLabel button = new JLabel(text, javax.swing.SwingConstants.CENTER);
+		button.setOpaque(true);
+		button.setBackground(UiTokens.ACCENT);
+		button.setForeground(UiTokens.ACCENT_TEXT_ON);
+		button.setBorder(new LineBorder(UiTokens.ACCENT));
+		button.setFont(button.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
+		button.setAlignmentX(LEFT_ALIGNMENT);
+		button.setPreferredSize(new Dimension(0, UiTokens.BUTTON_HEIGHT));
+		button.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
+		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		return button;
 	}
 
 	@Override

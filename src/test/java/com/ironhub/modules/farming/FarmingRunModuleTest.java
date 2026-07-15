@@ -3,7 +3,7 @@ package com.ironhub.modules.farming;
 import com.google.gson.Gson;
 import com.ironhub.IronHubConfig;
 import com.ironhub.data.DataPack;
-import com.ironhub.data.HerbPatchesPack;
+import com.ironhub.data.FarmRunsPack;
 import com.ironhub.modules.farming.rl.CropState;
 import com.ironhub.modules.farming.rl.PatchImplementation;
 import com.ironhub.modules.farming.rl.PatchState;
@@ -13,8 +13,10 @@ import com.ironhub.state.StateFixture;
 import com.ironhub.ui.SwingRender;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.Notifier;
@@ -75,31 +77,82 @@ public class FarmingRunModuleTest
 	}
 
 	@Test
-	public void proximityMarksPatchesAndCompletesTheRun()
+	public void proximityMarksStopsAndCompletesTheRun()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 5L);
 		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
-		module.startRun();
+		module.startTemplate("Herb run");
 		assertTrue(module.running());
+		assertEquals("Herb run", module.runName());
+		assertEquals(10, module.stops().size());
+		assertEquals("herb/farming-guild", module.nextStop().location.id);
 
-		// walk to Falador patch (within radius)
-		assertTrue(module.markVisited(new WorldPoint(3060, 3313, 0)));
-		assertTrue(module.isVisited("falador"));
+		// walk to the Falador patch (within radius)
+		assertTrue(module.markVisited(new WorldPoint(3060, 3310, 0)));
+		assertTrue(module.isVisited("herb/falador"));
 		assertEquals(1, module.visitedCount());
-		assertEquals("ardougne", module.nextPatch().getId());
+		assertEquals("herb/farming-guild", module.nextStop().location.id);
 
 		// far away and wrong plane: nothing marked
 		assertFalse(module.markVisited(new WorldPoint(3200, 3200, 0)));
 		assertFalse(module.markVisited(new WorldPoint(2670, 3374, 1)));
 
 		// visit the rest — run auto-completes and records a duration
-		for (HerbPatchesPack.Patch patch : module.patches())
+		for (FarmingRunModule.Stop stop : module.stops())
 		{
-			module.markVisited(patch.getLocation());
+			module.markVisited(stop.location.worldPoint());
 		}
 		assertFalse(module.running());
 		assertEquals(1, state.getHerbRunsMs().size());
+		module.shutDown();
+	}
+
+	@Test
+	public void customRunsPersistAndResolve()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+		state.saveFarmRun("Quick herbs", List.of("herb/falador", "herb/catherby", "no/such-place"));
+
+		module.startCustom("Quick herbs");
+		assertTrue(module.running());
+		assertEquals(2, module.stops().size()); // the unknown id is skipped
+		assertEquals("herb/falador", module.stops().get(0).location.id);
+		module.endRun(false);
+
+		state.deleteFarmRun("Quick herbs");
+		assertTrue(state.getFarmRuns().isEmpty());
+		module.shutDown();
+	}
+
+	@Test
+	public void teleportsArePickedFromWhatYouOwn()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+		FarmRunsPack.Location falador = module.pack().location("herb/falador");
+
+		// nothing owned: fall back to an access-based option (house portal)
+		assertEquals("house", module.pickTeleport(falador).supplier);
+
+		// an Explorer's ring in the BANK is enough to plan around
+		StateFixture.bank(state, Map.of(13126, 1));
+		assertEquals("Explorers_ring", module.pickTeleport(falador).id);
+
+		// with only a charged glory banked, variation mapping matches the
+		// pack's Glory(1) requirement and the glory option is picked
+		StateFixture.bank(state, Map.of(1712, 1));
+		assertEquals("Amulet_of_Glory", module.pickTeleport(falador).id);
+
+		// carrying nothing: the ring teleport reads as missing until worn
+		StateFixture.bank(state, Map.of(13126, 1));
+		FarmingRunModule.Stop stop = new FarmingRunModule.Stop(falador, module.pickTeleport(falador));
+		assertEquals(1, module.missingItems(stop).size());
+		StateFixture.equipmentSlots(state, new int[]{13126});
+		assertTrue(module.missingItems(stop).isEmpty());
 		module.shutDown();
 	}
 
@@ -118,7 +171,6 @@ public class FarmingRunModuleTest
 		module.refreshTracking();
 		Mockito.verifyNoInteractions(notifier);
 		assertEquals(1, FarmingRunModule.sharedReadyPatches());
-		assertEquals(1, module.readyCount());
 
 		// harvested + replanted: re-arms
 		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
@@ -141,7 +193,7 @@ public class FarmingRunModuleTest
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
-		module.startRun();
+		module.startTemplate("Herb run");
 		module.endRun(false);
 		assertTrue(state.getHerbRunsMs().isEmpty());
 		module.shutDown();
@@ -177,6 +229,30 @@ public class FarmingRunModuleTest
 		java.io.File out = new java.io.File("build/reports/farming-tab.png");
 		out.getParentFile().mkdirs();
 		javax.imageio.ImageIO.write(image, "png", out);
+
+		// mid-run: the stop checklist replaces the run picker, and the
+		// overlay renders within its 250x200 budget
+		StateFixture.bank(state, Map.of(13126, 1)); // Explorer's ring planned
+		module.startTemplate("Herb run");
+		module.markVisited(module.pack().location("herb/farming-guild").worldPoint());
+		SwingUtilities.invokeAndWait(((FarmingTab) tab)::rebuild); // Swing is single-threaded
+		java.awt.image.BufferedImage active = SwingRender.render((JPanel) tab);
+		javax.imageio.ImageIO.write(active, "png", new java.io.File("build/reports/farming-run-active.png"));
+
+		FarmingRunOverlay overlay = new FarmingRunOverlay(module);
+		java.awt.image.BufferedImage canvas = new java.awt.image.BufferedImage(
+			300, 260, java.awt.image.BufferedImage.TYPE_INT_RGB);
+		java.awt.Graphics2D g = canvas.createGraphics();
+		g.setColor(new java.awt.Color(58, 66, 48));
+		g.fillRect(0, 0, 300, 260);
+		g.setFont(net.runelite.client.ui.FontManager.getRunescapeSmallFont());
+		java.awt.Dimension size = overlay.render(g);
+		g.dispose();
+		assertNotNull(size);
+		assertTrue("overlay width " + size.width, size.width <= 250);
+		assertTrue("overlay height " + size.height, size.height <= 200);
+		javax.imageio.ImageIO.write(canvas, "png",
+			new java.io.File("build/reports/farming-run-overlay.png"));
 		module.shutDown();
 	}
 }

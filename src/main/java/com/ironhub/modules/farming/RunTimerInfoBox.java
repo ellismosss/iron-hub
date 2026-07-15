@@ -39,7 +39,7 @@ class RunTimerInfoBox extends InfoBox
 	@Override
 	public String getTooltip()
 	{
-		return "herb run · " + module.visitedCount() + "/" + module.patches().size()
+		return module.runName() + " · " + module.visitedCount() + "/" + module.stops().size()
 			+ " · " + FarmingRunModule.statsLine(module.state().getHerbRunsMs());
 	}
 }

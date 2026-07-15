@@ -23,7 +23,16 @@ public class PersistedState
 	Map<String, Map<Integer, Integer>> suppliesBySource = new HashMap<>(); // npc -> canonical item id -> consumed qty
 	Map<String, Map<String, Integer>> savedLoadouts = new HashMap<>(); // activity -> equipment slot name -> item id
 	Map<String, SavedSetup> savedSetups = new HashMap<>(); // activity -> full setup (gear + inventory + rune pouch)
-	java.util.List<Long> herbRunsMs = new ArrayList<>(); // completed herb run durations
+	java.util.List<Long> herbRunsMs = new ArrayList<>(); // completed farm run durations
+	Map<String, FarmRun> farmRuns = new HashMap<>(); // custom run name -> ordered stops
+
+	/** A user-built farm run: an ordered list of farm-runs.json location
+	 *  ids. Teleports are auto-picked from what the player owns at run
+	 *  time, never stored. */
+	public static class FarmRun
+	{
+		public java.util.List<String> locationIds = new ArrayList<>();
+	}
 	java.util.List<DeathRecord> deaths = new ArrayList<>(); // most recent last, capped
 
 	java.util.List<ConsumptionEvent> consumptionLog = new ArrayList<>(); // rolling, capped

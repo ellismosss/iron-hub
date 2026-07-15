@@ -1,22 +1,27 @@
 package com.ironhub.modules.farming;
 
-import com.ironhub.data.HerbPatchesPack;
+import com.ironhub.data.FarmRunsPack;
 import com.ironhub.ui.UiTokens;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.util.List;
+import java.util.Locale;
+import java.util.StringJoiner;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;
 
 /**
- * Herb run overlay (frame 3b): title + elapsed timer, per-patch checklist,
- * footer count. Shown only during a run; display-only. Marker glyphs stay
- * ASCII-safe for the RuneScape font ("&gt;" = next, "·" elsewhere).
+ * Farm run overlay (frame 3b, grown Quest-Helper-style over the pack):
+ * title + elapsed timer, the current stop with its auto-picked teleport,
+ * any teleport items you are not carrying (red), the live patch states at
+ * that stop, then the remaining stop checklist. Shown only during a run;
+ * display-only ("&gt;" = next, "·" elsewhere — ASCII-safe glyphs).
  */
 class FarmingRunOverlay extends OverlayPanel
 {
-	private static final int WIDTH = 150; // within the 250×200 budget
+	private static final int WIDTH = 170; // within the 250×200 budget
 
 	private final FarmingRunModule module;
 
@@ -38,27 +43,91 @@ class FarmingRunOverlay extends OverlayPanel
 		panelComponent.setPreferredSize(new Dimension(WIDTH, 0));
 
 		panelComponent.getChildren().add(LineComponent.builder()
-			.left("Herb run").leftColor(Color.WHITE)
+			.left(module.runName()).leftColor(Color.WHITE)
 			.right(FarmingRunModule.formatDuration(module.elapsedMs()))
 			.rightColor(UiTokens.OVERLAY_VALUE)
 			.build());
 
-		HerbPatchesPack.Patch next = module.nextPatch();
-		for (HerbPatchesPack.Patch patch : module.patches())
+		FarmingRunModule.Stop next = module.nextStop();
+		if (next != null)
 		{
-			boolean done = module.isVisited(patch.getId());
-			boolean isNext = !done && next != null && next.getId().equals(patch.getId());
 			panelComponent.getChildren().add(LineComponent.builder()
-				.left((isNext ? "> " : "· ") + patch.getName())
-				.leftColor(done ? UiTokens.CANVAS_OWNED
-					: isNext ? Color.WHITE : UiTokens.CANVAS_LOCKED)
+				.left("> " + next.location.name)
+				.leftColor(Color.WHITE)
+				.right(teleportLabel(next.teleport))
+				.rightColor(UiTokens.OVERLAY_VALUE)
+				.build());
+
+			List<FarmRunsPack.Item> missing = module.missingItems(next);
+			if (!missing.isEmpty())
+			{
+				StringJoiner names = new StringJoiner(", ");
+				for (FarmRunsPack.Item item : missing)
+				{
+					names.add(module.itemName(item.itemId)
+						+ (item.qty > 1 ? " x" + item.qty : ""));
+				}
+				panelComponent.getChildren().add(LineComponent.builder()
+					.left("Missing: " + names)
+					.leftColor(UiTokens.CANVAS_WARNING)
+					.build());
+			}
+
+			String patches = patchLine(module.patchesAt(next.location));
+			if (!patches.isEmpty())
+			{
+				panelComponent.getChildren().add(LineComponent.builder()
+					.left(patches)
+					.leftColor(UiTokens.CANVAS_LOCKED)
+					.build());
+			}
+		}
+
+		for (FarmingRunModule.Stop stop : module.stops())
+		{
+			if (next != null && stop == next)
+			{
+				continue; // already headlined above
+			}
+			boolean done = module.isVisited(stop.location.id);
+			panelComponent.getChildren().add(LineComponent.builder()
+				.left("· " + stop.location.name)
+				.leftColor(done ? UiTokens.CANVAS_OWNED : UiTokens.CANVAS_LOCKED)
 				.build());
 		}
 
 		panelComponent.getChildren().add(LineComponent.builder()
-			.left(module.visitedCount() + " of " + module.patches().size() + " done")
+			.left(module.visitedCount() + " of " + module.stops().size() + " done")
 			.leftColor(UiTokens.CANVAS_LOCKED)
 			.build());
 		return super.render(graphics);
+	}
+
+	/** "Explorers ring" from the pack's enum-ish id ("Explorers_ring"). */
+	static String teleportLabel(FarmRunsPack.Teleport teleport)
+	{
+		return teleport.id.replace('_', ' ');
+	}
+
+	/** "Herb ready · Flower empty" — live states at the stop; patches the
+	 *  tracker has never seen stay silent instead of shouting unknown. */
+	static String patchLine(List<FarmingRunModule.StopPatch> patches)
+	{
+		StringJoiner joiner = new StringJoiner(" · ");
+		for (FarmingRunModule.StopPatch patch : patches)
+		{
+			if (patch.view == FarmingRunModule.PatchView.UNKNOWN)
+			{
+				continue;
+			}
+			joiner.add(shortCategory(patch.category.getName()) + " "
+				+ patch.view.name().toLowerCase(Locale.ROOT).replace('_', ' '));
+		}
+		return joiner.toString();
+	}
+
+	private static String shortCategory(String name)
+	{
+		return name.replace(" Patches", "").replace(" Patch", "");
 	}
 }

@@ -1,0 +1,205 @@
+#!/usr/bin/env python3
+"""Generate data/farm-runs.json from Easy Farming's location tables.
+
+Easy Farming (github.com/Speaax/Farming-Helper, BSD-2 — see
+licenses/easy-farming-LICENSE) encodes each farm-run stop as a Java
+LocationData class: the patch tile, and every teleport option with its
+in-game description and item requirements. We extract that data into one
+pack so Iron Hub's run planner can rank teleports by what the player
+actually owns instead of forcing a per-location config choice.
+
+What the pack does NOT carry (improved on Easy Farming):
+  - patch types per location — resolved live from the vendored
+    FarmingWorld by the stop's region, so Weiss never claims a flower
+    patch it doesn't have;
+  - their interface/widget ids and highlight metadata — Iron Hub guides
+    through its run overlay + Shortest Path, not click highlighting.
+
+Teleports whose items come from a config-dependent supplier in their
+code (house teleport, fairy ring) carry "supplier": "house"/"fairyRing"
+and an empty item list — availability for those is access-based, not
+item-based.
+
+Item ids resolve through the gameval ItemID constants (javap over the
+runelite-api jar in the local Gradle cache); an unknown constant aborts.
+
+Usage:
+  python3 tools/gen_farm_runs.py
+
+Sources fetched from the pinned hub commit, cached under
+tools/.cache-farmruns/ (gitignored).
+"""
+import datetime
+import glob
+import json
+import os
+import re
+import subprocess
+import urllib.request
+
+COMMIT = "dc52159eec4f8e0d43237a596c19939b8cd6ff04"  # plugin-hub pinned commit
+BASE = (f"https://raw.githubusercontent.com/Speaax/Farming-Helper/{COMMIT}/"
+        "src/main/java/com/easyfarming/locations/")
+UA = "IronHub RuneLite plugin data generator (github.com/ellismosss/iron-hub; info@ellismoss.co.uk)"
+CACHE = os.path.join(os.path.dirname(__file__), ".cache-farmruns")
+OUT = "src/main/resources/data/farm-runs.json"
+
+# (category, subdir, class, route order) — LocationCatalog.rebuild() order.
+LOCATIONS = [
+    ("herb", "", "FarmingGuildLocationData"),
+    ("herb", "", "ArdougneLocationData"),
+    ("herb", "", "CatherbyLocationData"),
+    ("herb", "", "FaladorLocationData"),
+    ("herb", "", "HarmonyLocationData"),
+    ("herb", "", "KourendLocationData"),
+    ("herb", "", "MorytaniaLocationData"),
+    ("herb", "", "TrollStrongholdLocationData"),
+    ("herb", "", "WeissLocationData"),
+    ("herb", "", "CivitasLocationData"),
+    ("tree", "tree/", "FarmingGuildTreeLocationData"),
+    ("tree", "tree/", "FaladorTreeLocationData"),
+    ("tree", "tree/", "TaverleyTreeLocationData"),
+    ("tree", "tree/", "LumbridgeTreeLocationData"),
+    ("tree", "tree/", "VarrockTreeLocationData"),
+    ("tree", "tree/", "GnomeStrongholdTreeLocationData"),
+    ("tree", "tree/", "NemusRetreatTreeLocationData"),
+    ("fruit", "fruittree/", "FarmingGuildFruitTreeLocationData"),
+    ("fruit", "fruittree/", "BrimhavenFruitTreeLocationData"),
+    ("fruit", "fruittree/", "CatherbyFruitTreeLocationData"),
+    ("fruit", "fruittree/", "LletyaFruitTreeLocationData"),
+    ("fruit", "fruittree/", "GnomeStrongholdFruitTreeLocationData"),
+    ("fruit", "fruittree/", "TreeGnomeVillageFruitTreeLocationData"),
+    ("fruit", "fruittree/", "KastoriFruitTreeLocationData"),
+    ("hops", "hops/", "LumbridgeHopsLocationData"),
+    ("hops", "hops/", "SeersVillageHopsLocationData"),
+    ("hops", "hops/", "YanilleHopsLocationData"),
+    ("hops", "hops/", "EntranaHopsLocationData"),
+    ("hops", "hops/", "AldarinHopsLocationData"),
+]
+
+POINT = re.compile(r"PATCH_POINT = new WorldPoint\((\d+),\s*(\d+),\s*(\d+)\)")
+NAME = re.compile(r'new Location\(\s*[^;]*?,\s*"([^"]+)",\s*(?:true|false)', re.DOTALL)
+TELEPORT = re.compile(
+    r'new Teleport\(\s*"([^"]+)",\s*Teleport\.Category\.(\w+),\s*"([^"]+)",', re.DOTALL)
+NONE_TELEPORT = re.compile(r'Teleport\.none\(')
+ITEM = re.compile(r"ItemRequirement\(ItemID\.(\w+),\s*(\d+)\)")
+
+
+def gameval_item_ids() -> dict:
+    jars = glob.glob(os.path.expanduser(
+        "~/.gradle/caches/modules-2/files-2.1/net.runelite/runelite-api/*/*/runelite-api-*.jar"))
+    jars = [j for j in jars if "sources" not in j and "javadoc" not in j]
+    if not jars:
+        raise SystemExit("no runelite-api jar in the Gradle cache — run a build first")
+    out = subprocess.run(
+        ["javap", "-classpath", sorted(jars)[-1], "-constants", "net.runelite.api.gameval.ItemID"],
+        capture_output=True, text=True, check=True).stdout
+    ids = {}
+    for m in re.finditer(r"public static final int (\w+) = (\d+);", out):
+        ids[m.group(1)] = int(m.group(2))
+    if len(ids) < 10000:
+        raise SystemExit(f"suspiciously small gameval ItemID dump: {len(ids)}")
+    return ids
+
+
+def fetch(subdir: str, name: str) -> str:
+    os.makedirs(CACHE, exist_ok=True)
+    cached = os.path.join(CACHE, name + ".java")
+    if not os.path.exists(cached):
+        req = urllib.request.Request(BASE + subdir + name + ".java", headers={"User-Agent": UA})
+        with urllib.request.urlopen(req) as resp:
+            body = resp.read().decode("utf-8")
+        with open(cached, "w", encoding="utf-8") as f:
+            f.write(body)
+    with open(cached, encoding="utf-8") as f:
+        return f.read()
+
+
+def teleport_blocks(source: str):
+    """Each `new Teleport(...)` call body, brace/paren balanced."""
+    for m in TELEPORT.finditer(source):
+        depth = 1
+        i = source.index("(", m.start()) + 1
+        while depth > 0:
+            if source[i] == "(":
+                depth += 1
+            elif source[i] == ")":
+                depth -= 1
+            i += 1
+        yield m.group(1), m.group(2), m.group(3), source[m.start():i]
+
+
+def parse_location(category: str, cls: str, source: str, item_ids: dict) -> dict:
+    point = POINT.search(source)
+    name = NAME.search(source)
+    if not point or not name:
+        raise SystemExit(f"could not parse patch point/name from {cls}")
+
+    teleports = []
+    for enum_option, tele_category, description, block in teleport_blocks(source):
+        supplier = None
+        if "houseTeleportSupplier.get()" in block:
+            supplier = "house"
+        elif "fairyRingSupplier.get()" in block:
+            supplier = "fairyRing"
+        items = []
+        for item in ITEM.finditer(block):
+            if item.group(1) not in item_ids:
+                raise SystemExit(f"unknown gameval ItemID.{item.group(1)} in {cls}")
+            items.append({"itemId": item_ids[item.group(1)], "qty": int(item.group(2))})
+        teleports.append({
+            "id": enum_option,
+            "category": tele_category,
+            "description": description,
+            "supplier": supplier,
+            "items": items,
+        })
+    if NONE_TELEPORT.search(source):
+        teleports.append({
+            "id": "None",
+            "category": "NONE",
+            "description": "No teleport - travel there on your own.",
+            "supplier": None,
+            "items": [],
+        })
+    if not teleports:
+        raise SystemExit(f"no teleports parsed from {cls}")
+
+    return {
+        "id": category + "/" + re.sub(r"[^a-z0-9]+", "-", name.group(1).lower()).strip("-"),
+        "category": category,
+        "name": name.group(1),
+        "point": {
+            "x": int(point.group(1)),
+            "y": int(point.group(2)),
+            "plane": int(point.group(3)),
+        },
+        "teleports": teleports,
+    }
+
+
+def main():
+    item_ids = gameval_item_ids()
+    locations = []
+    for category, subdir, cls in LOCATIONS:
+        locations.append(parse_location(category, cls, fetch(subdir, cls), item_ids))
+
+    ids = [loc["id"] for loc in locations]
+    assert len(ids) == len(set(ids)), "duplicate location ids"
+    assert len(locations) == len(LOCATIONS)
+    total_teleports = sum(len(l["teleports"]) for l in locations)
+    assert total_teleports > 100, f"only {total_teleports} teleports parsed"
+
+    pack = {
+        "source": f"github.com/Speaax/Farming-Helper@{COMMIT[:7]} (BSD-2-Clause)",
+        "generated": datetime.date.today().isoformat(),
+        "locations": locations,
+    }
+    with open(OUT, "w", encoding="utf-8") as f:
+        json.dump(pack, f, indent=1, ensure_ascii=False)
+        f.write("\n")
+    print(f"wrote {OUT}: {len(locations)} locations, {total_teleports} teleport options")
+
+
+if __name__ == "__main__":
+    main()
