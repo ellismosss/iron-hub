@@ -42,6 +42,7 @@ public class GoalExpander
 		{
 			expander.expandGoal(goal);
 		}
+		expander.chainTrainLevels();
 		expander.dag.breakCycles();
 		return expander.dag;
 	}
@@ -132,16 +133,40 @@ public class GoalExpander
 		{
 			return;
 		}
-		String id = "train:" + skill.getName();
+		// one node per demanded level: a quest needing 25 Ranged must not
+		// wait on another goal's 60 — levels chain in a post-pass instead
+		String id = "train:" + skill.getName() + ":" + level;
 		Action node = dag.get(id);
 		if (node == null)
 		{
-			node = dag.getOrAdd(new Action(id, Action.Kind.TRAIN, skill.getName() + " training"));
+			node = dag.getOrAdd(new Action(id, Action.Kind.TRAIN,
+				skill.getName() + " to " + level));
 			node.trainSkill = skill;
+			node.trainToLevel = level;
 		}
-		node.trainToLevel = Math.max(node.trainToLevel, level);
 		node.neededBy.add(goalId);
 		out.add(id);
+	}
+
+	/** Chain each skill's train nodes: reaching 60 implies passing 25. */
+	private void chainTrainLevels()
+	{
+		java.util.Map<Skill, java.util.List<Action>> bySkill = new java.util.EnumMap<>(Skill.class);
+		for (Action node : dag.nodes())
+		{
+			if (node.kind == Action.Kind.TRAIN)
+			{
+				bySkill.computeIfAbsent(node.trainSkill, s -> new ArrayList<>()).add(node);
+			}
+		}
+		for (java.util.List<Action> nodes : bySkill.values())
+		{
+			nodes.sort(Comparator.comparingInt(n -> n.trainToLevel));
+			for (int i = 1; i < nodes.size(); i++)
+			{
+				nodes.get(i).dependsOn.add(nodes.get(i - 1).id);
+			}
+		}
 	}
 
 	private void addQuest(String name, boolean startOnly, String goalId, Set<String> out)

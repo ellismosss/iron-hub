@@ -71,7 +71,7 @@ public class GoalExpanderTest
 		assertTrue(sote.dependsOn.contains("quest:Mourning's End Part II"));
 		assertNotNull(dag.get("quest:Roving Elves")); // transitive chain
 		// SotE's 70 Agility and base70s' 70 Agility are ONE node, tagged twice
-		Action agility = dag.get("train:Agility");
+		Action agility = dag.get("train:Agility:70");
 		assertNotNull(agility);
 		assertEquals(70, agility.trainToLevel);
 		assertTrue(agility.neededBy.contains("bowfa"));
@@ -79,12 +79,14 @@ public class GoalExpanderTest
 	}
 
 	@Test
-	public void trainNodesMergeToTheMaximumAskedLevel()
+	public void trainLevelsChainInsteadOfOverMerging()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		ActionDag dag = GoalExpander.expand(List.of(
 			goal("a", "skill:Fishing:70"), goal("b", "skillb:Fishing:81")), state, packs());
-		assertEquals(81, dag.get("train:Fishing").trainToLevel);
+		// a 70 demand must not wait on the 81 demand; 81 passes through 70
+		assertNotNull(dag.get("train:Fishing:70"));
+		assertTrue(dag.get("train:Fishing:81").dependsOn.contains("train:Fishing:70"));
 	}
 
 	@Test
@@ -97,7 +99,7 @@ public class GoalExpanderTest
 		ActionDag dag = GoalExpander.expand(List.of(
 			goal("bowfa", "quest:Song of the Elves", "skill:Agility:70")), state, packs());
 		assertNull(dag.get("quest:Song of the Elves"));
-		assertNull(dag.get("train:Agility"));
+		assertNull(dag.get("train:Agility:70"));
 		assertEquals(0, dag.size());
 	}
 
@@ -154,7 +156,7 @@ public class GoalExpanderTest
 		// Herblore 70 is far cheaper than Slayer 85 from scratch
 		ActionDag dag = GoalExpander.expand(List.of(
 			goal("g", "any:skillb:Slayer:85|skillb:Herblore:70")), state, packs());
-		assertNotNull(dag.get("train:Herblore"));
-		assertNull(dag.get("train:Slayer"));
+		assertNotNull(dag.get("train:Herblore:70"));
+		assertNull(dag.get("train:Slayer:85"));
 	}
 }

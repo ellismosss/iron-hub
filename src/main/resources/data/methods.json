@@ -181,6 +181,14 @@
    "skill": "Ranged",
    "methods": [
     {
+     "id": "ranged_shortbow_crabs",
+     "name": "Shortbow at crabs",
+     "startXp": 0,
+     "rate": 15000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Ranged"
+    },
+    {
      "id": "ranged_dorgeshuun_crabs",
      "name": "Dorgeshuun crossbow at crabs",
      "startXp": 10813,
@@ -262,6 +270,14 @@
    "skill": "Prayer",
    "methods": [
     {
+     "id": "prayer_bury_bones",
+     "name": "Buried bones from combat",
+     "startXp": 0,
+     "rate": 30000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Prayer_training"
+    },
+    {
      "id": "prayer_ensouled_heads",
      "name": "Ensouled heads (Arceuus)",
      "startXp": 0,
@@ -292,6 +308,14 @@
   {
    "skill": "Runecraft",
    "methods": [
+    {
+     "id": "runecraft_low_altars",
+     "name": "Air/earth runes",
+     "startXp": 0,
+     "rate": 8000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Runecraft_training"
+    },
     {
      "id": "runecraft_gotr",
      "name": "Guardians of the Rift",
@@ -393,6 +417,15 @@
    "skill": "Herblore",
    "methods": [
     {
+     "id": "herblore_attack_potions",
+     "name": "Attack potions",
+     "startXp": 174,
+     "rate": 20000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Herblore",
+     "req": "quest:Druidic Ritual"
+    },
+    {
      "id": "herblore_potions",
      "name": "Potions from farm-run herbs",
      "startXp": 8730,
@@ -414,6 +447,14 @@
   {
    "skill": "Thieving",
    "methods": [
+    {
+     "id": "thieving_men_stalls",
+     "name": "Men and cake stalls",
+     "startXp": 0,
+     "rate": 10000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Thieving"
+    },
     {
      "id": "thieving_fruit_stalls",
      "name": "Fruit stalls (Hosidius)",
@@ -453,6 +494,14 @@
   {
    "skill": "Crafting",
    "methods": [
+    {
+     "id": "crafting_leather_glass",
+     "name": "Leather and molten glass",
+     "startXp": 0,
+     "rate": 20000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Crafting"
+    },
     {
      "id": "crafting_gem_cutting",
      "name": "Gem cutting",
@@ -627,6 +676,14 @@
    "skill": "Mining",
    "methods": [
     {
+     "id": "mining_copper_tin",
+     "name": "Copper and tin",
+     "startXp": 0,
+     "rate": 8000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Mining"
+    },
+    {
      "id": "mining_iron_ore",
      "name": "Iron ore (powermine)",
      "startXp": 2406,
@@ -674,6 +731,14 @@
    "skill": "Smithing",
    "methods": [
     {
+     "id": "smithing_bronze_iron",
+     "name": "Bronze/iron smithing",
+     "startXp": 0,
+     "rate": 8000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Smithing"
+    },
+    {
      "id": "smithing_foundry",
      "name": "Giants' Foundry",
      "startXp": 2406,
@@ -704,6 +769,14 @@
   {
    "skill": "Fishing",
    "methods": [
+    {
+     "id": "fishing_shrimp_sardine",
+     "name": "Shrimp and sardines",
+     "startXp": 0,
+     "rate": 8000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing"
+    },
     {
      "id": "fishing_fly_fishing",
      "name": "Fly fishing (powerfish)",
@@ -759,6 +832,14 @@
   {
    "skill": "Cooking",
    "methods": [
+    {
+     "id": "cooking_basic_food",
+     "name": "Basic food",
+     "startXp": 0,
+     "rate": 15000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Cooking"
+    },
     {
      "id": "cooking_trout_salmon",
      "name": "Trout/salmon",

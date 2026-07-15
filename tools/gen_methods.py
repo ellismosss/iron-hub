@@ -55,6 +55,7 @@ SEED = {
         ("via_combat_late", "Trained via combat (late rates)", 70, 30000, None, "semi", "Hitpoints"),
     ],
     "Ranged": [
+        ("shortbow_crabs", "Shortbow at crabs", 1, 15000, None, "semi", "Ironman_Guide/Ranged"),
         ("dorgeshuun_crabs", "Dorgeshuun crossbow at crabs", 28, 22000, "quest:The Lost Tribe", "semi", "Ironman_Guide/Ranged"),
         ("red_chins", "Red chinchompas (MM1 tunnels)", 55, 90000, "skillb:Hunter:63", "active", "Ironman_Guide/Ranged"),
         ("black_chins", "Black chinchompas", 65, 150000, "skillb:Hunter:73", "active", "Ironman_Guide/Ranged"),
@@ -66,11 +67,13 @@ SEED = {
         ("bursting", "Bursting slayer tasks", 70, 85000, "quest:Desert Treasure I", "active", "Ironman_Guide/Magic"),
     ],
     "Prayer": [
+        ("bury_bones", "Buried bones from combat", 1, 30000, None, "active", "Prayer_training"),
         ("ensouled_heads", "Ensouled heads (Arceuus)", 1, 90000, "skillb:Magic:16", "active", "Ensouled_head"),
         ("bone_shards", "Blessed bone shards (libation bowl)", 30, 130000, "quest:Children of the Sun", "semi", "Blessed_bone_shards"),
         ("chaos_altar", "Chaos altar dragon bones (wildy)", 30, 250000, None, "active", "Chaos_temple_(hut)"),
     ],
     "Runecraft": [
+        ("low_altars", "Air/earth runes", 1, 8000, None, "active", "Runecraft_training"),
         ("gotr", "Guardians of the Rift", 10, 35000, "quest:Temple of the Eye", "active", "Guardians_of_the_Rift"),
         ("blood_runes", "Blood runes (Arceuus)", 77, 38000, None, "afk", "Blood_rune"),
         ("soul_runes", "Soul runes (Arceuus)", 90, 45000, None, "afk", "Soul_rune"),
@@ -87,16 +90,19 @@ SEED = {
         ("prifddinas", "Prifddinas course (+shards)", 75, 62000, "quest:Song of the Elves", "active", "Prifddinas_Agility_Course"),
     ],
     "Herblore": [
+        ("attack_potions", "Attack potions", 3, 20000, "quest:Druidic Ritual", "active", "Ironman_Guide/Herblore"),
         ("potions", "Potions from farm-run herbs", 26, 60000, None, "semi", "Ironman_Guide/Herblore"),
         ("mixology", "Mastering Mixology", 60, 70000, "quest:Children of the Sun", "active", "Mastering_Mixology"),
     ],
     "Thieving": [
+        ("men_stalls", "Men and cake stalls", 1, 10000, None, "active", "Ironman_Guide/Thieving"),
         ("fruit_stalls", "Fruit stalls (Hosidius)", 25, 35000, None, "active", "Ironman_Guide/Thieving"),
         ("blackjacking", "Blackjacking", 45, 150000, "quest:The Feud", "active", "Blackjacking"),
         ("ardy_knights", "Ardougne knights", 55, 80000, None, "semi", "Ironman_Guide/Thieving"),
         ("gem_stalls", "Varlamore gem stalls", 75, 160000, "quest:Children of the Sun", "active", "Ironman_Guide/Thieving"),
     ],
     "Crafting": [
+        ("leather_glass", "Leather and molten glass", 1, 20000, None, "active", "Ironman_Guide/Crafting"),
         ("gem_cutting", "Gem cutting", 34, 40000, None, "afk", "Ironman_Guide/Crafting"),
         ("glassblowing", "Superglass Make + lantern lenses", 46, 75000, "any:skillb:Magic:77&quest:Lunar Diplomacy", "semi", "Ironman_Guide/Crafting"),
         ("battlestaves", "Battlestaves (orb charging)", 54, 50000, "skillb:Magic:66", "active", "Ironman_Guide/Crafting"),
@@ -122,6 +128,7 @@ SEED = {
         ("herbiboar", "Herbiboar", 80, 120000, "any:quest:Bone Voyage&skillb:Herblore:31", "active", "Herbiboar"),
     ],
     "Mining": [
+        ("copper_tin", "Copper and tin", 1, 8000, None, "active", "Ironman_Guide/Mining"),
         ("iron_ore", "Iron ore (powermine)", 15, 35000, None, "active", "Ironman_Guide/Mining"),
         ("motherlode", "Motherlode Mine", 30, 40000, None, "semi", "Motherlode_Mine"),
         ("calcified", "Calcified rocks (+prayer shards)", 41, 45000, "quest:Perilous Moons", "afk", "Calcified_rocks"),
@@ -129,17 +136,20 @@ SEED = {
         ("volcanic_mine", "Volcanic Mine", 70, 80000, "quest:Bone Voyage", "active", "Volcanic_Mine"),
     ],
     "Smithing": [
+        ("bronze_iron", "Bronze/iron smithing", 1, 8000, None, "active", "Ironman_Guide/Smithing"),
         ("foundry", "Giants' Foundry", 15, 80000, "skillb:Smithing:15", "active", "Giants'_Foundry"),
         ("foundry_high", "Giants' Foundry (high tiers)", 60, 180000, None, "active", "Giants'_Foundry"),
         ("blast_furnace_gold", "Blast Furnace gold (gauntlets)", 40, 250000, "quest:Family Crest", "active", "Blast_Furnace"),
     ],
     "Fishing": [
+        ("shrimp_sardine", "Shrimp and sardines", 1, 8000, None, "active", "Ironman_Guide/Fishing"),
         ("fly_fishing", "Fly fishing (powerfish)", 20, 28000, None, "active", "Ironman_Guide/Fishing"),
         ("barbarian", "Barbarian fishing", 58, 68000, "any:skillb:Agility:30&skillb:Strength:30", "active", "Barbarian_Fishing"),
         ("karambwans", "Karambwans (banked cooking)", 65, 30000, "quest:Tai Bwo Wannai Trio", "semi", "Ironman_Guide/Fishing"),
         ("minnows", "Minnows", 82, 48000, None, "semi", "Minnow"),
     ],
     "Cooking": [
+        ("basic_food", "Basic food", 1, 15000, None, "active", "Ironman_Guide/Cooking"),
         ("trout_salmon", "Trout/salmon", 15, 45000, None, "active", "Ironman_Guide/Cooking"),
         ("karambwans_cook", "Karambwans", 65, 130000, "quest:Tai Bwo Wannai Trio", "active", "Ironman_Guide/Cooking"),
         ("jugs_of_wine", "Jugs of wine", 68, 300000, None, "active", "Ironman_Guide/Cooking"),

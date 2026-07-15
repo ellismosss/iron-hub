@@ -40,6 +40,18 @@ public final class CostModel
 	public static double trainHours(Skill skill, int targetLevel, StateView view,
 		MethodsPack methods, long bankedXp)
 	{
+		return trainHours(skill, targetLevel, view, methods, bankedXp,
+			java.util.Set.of(), java.util.Map.of());
+	}
+
+	/**
+	 * Train cost honoring the player's taste: banned method ids never
+	 * used; a preferred method id (per skill) wins any band it can serve.
+	 */
+	public static double trainHours(Skill skill, int targetLevel, StateView view,
+		MethodsPack methods, long bankedXp,
+		java.util.Set<String> bannedMethods, java.util.Map<String, String> preferredMethods)
+	{
 		long targetXp = Experience.getXpForLevel(Math.min(99, targetLevel));
 		long startXp = Math.min(targetXp, currentXp(skill, view) + Math.max(0, bankedXp));
 		if (startXp >= targetXp)
@@ -54,9 +66,10 @@ public final class CostModel
 		// methods usable in this projection, sorted by threshold; daily
 		// methods live on the background lane, never in active hours
 		List<MethodsPack.Method> unlocked = new ArrayList<>();
+		String preferred = preferredMethods.get(skill.getName());
 		for (MethodsPack.Method method : ladder.methods)
 		{
-			if ("daily".equals(method.style))
+			if ("daily".equals(method.style) || bannedMethods.contains(method.id))
 			{
 				continue;
 			}
@@ -75,7 +88,7 @@ public final class CostModel
 		long position = startXp;
 		while (position < targetXp)
 		{
-			MethodsPack.Method best = bestAt(unlocked, position);
+			MethodsPack.Method best = bestAt(unlocked, position, preferred);
 			if (best == null || best.rate <= 0)
 			{
 				return Double.NaN; // no sourced rate for this stretch
@@ -87,18 +100,93 @@ public final class CostModel
 		return hours;
 	}
 
-	/** Best-rate method whose threshold is at or below this xp. */
-	private static MethodsPack.Method bestAt(List<MethodsPack.Method> unlocked, long xp)
+	/** Best-rate method whose threshold is at or below this xp; a
+	 * player-preferred method wins any band it can serve. */
+	private static MethodsPack.Method bestAt(List<MethodsPack.Method> unlocked, long xp,
+		String preferredId)
 	{
 		MethodsPack.Method best = null;
 		for (MethodsPack.Method method : unlocked)
 		{
-			if (method.startXp <= xp && (best == null || method.rate > best.rate))
+			if (method.startXp > xp)
+			{
+				continue;
+			}
+			if (method.id.equals(preferredId))
+			{
+				return method;
+			}
+			if (best == null || method.rate > best.rate)
 			{
 				best = method;
 			}
 		}
 		return best;
+	}
+
+	/** The method a fresh hour of training would use right now. */
+	public static MethodsPack.Method currentMethod(Skill skill, StateView view,
+		MethodsPack methods, java.util.Set<String> bannedMethods,
+		java.util.Map<String, String> preferredMethods)
+	{
+		MethodsPack.SkillLadder ladder = methods == null ? null : methods.ladder(skill);
+		if (ladder == null || ladder.methods == null)
+		{
+			return null;
+		}
+		List<MethodsPack.Method> unlocked = new ArrayList<>();
+		String preferred = preferredMethods.get(skill.getName());
+		for (MethodsPack.Method method : ladder.methods)
+		{
+			if ("daily".equals(method.style) || bannedMethods.contains(method.id))
+			{
+				continue;
+			}
+			if (method.req == null || method.req.isEmpty() || parsed(method.req).isMet(view))
+			{
+				unlocked.add(method);
+			}
+		}
+		return bestAt(unlocked, currentXp(skill, view), preferred);
+	}
+
+	/** Global travel multiplier for quest-shaped actions in this projection. */
+	public static double travelFactor(StateView view, com.ironhub.data.EffectsPack effects)
+	{
+		if (effects == null)
+		{
+			return 1.0;
+		}
+		double factor = effects.baseTravelFactor;
+		for (com.ironhub.data.EffectsPack.Effect effect : effects.effects)
+		{
+			if (parsed(effect.active).isMet(view))
+			{
+				factor -= effect.travelDelta;
+			}
+		}
+		return Math.max(effects.minTravelFactor, factor);
+	}
+
+	/** Credit cross-skill byproduct xp for training origin over an xp span. */
+	public static void applyBonuses(Skill origin, long trainedXp, ProjectedState projection,
+		MethodsPack methods)
+	{
+		MethodsPack.SkillLadder ladder = methods == null ? null : methods.ladder(origin);
+		if (ladder == null || ladder.bonuses == null)
+		{
+			return;
+		}
+		for (MethodsPack.Bonus bonus : ladder.bonuses)
+		{
+			for (Skill skill : Skill.values())
+			{
+				if (skill.getName().equalsIgnoreCase(bonus.bonusSkill))
+				{
+					projection.addXp(skill, (long) (trainedXp * bonus.ratio));
+				}
+			}
+		}
 	}
 
 	private static long nextThreshold(List<MethodsPack.Method> unlocked, long xp, long cap)
