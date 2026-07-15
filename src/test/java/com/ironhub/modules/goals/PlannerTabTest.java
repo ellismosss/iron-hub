@@ -109,6 +109,20 @@ public class PlannerTabTest
 
 		File reports = new File("build/reports");
 		reports.mkdirs();
+		// expand the first TRAIN step so the render shows the explain card
+		plan.steps.stream()
+			.filter(st -> st.action.kind == com.ironhub.engine.Action.Kind.TRAIN)
+			.findFirst()
+			.ifPresent(st -> {
+				try
+				{
+					javax.swing.SwingUtilities.invokeAndWait(
+						() -> ((PlannerTab) tab).expandForTest(st.action.id));
+				}
+				catch (Exception ignored)
+				{
+				}
+			});
 		String[] names = {"planner-today.png", "planner-route.png", "planner-goals.png"};
 		for (int view = 0; view < 3; view++)
 		{

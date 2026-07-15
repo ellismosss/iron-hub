@@ -103,6 +103,7 @@ public class AccountState implements StateView
 	private final Set<String> plannerBans = ConcurrentHashMap.newKeySet();
 	private final Map<String, String> plannerPreferred = new ConcurrentHashMap<>();
 	private volatile double lastPlanHours;
+	private volatile boolean plannerRouteChapters;
 
 	/** Recent deaths, oldest first, capped. */
 	public static final int MAX_DEATHS = 10;
@@ -694,6 +695,18 @@ public class AccountState implements StateView
 		notifyListeners();
 	}
 
+	/** Route view layout: chapter headers on, or pure execution order. */
+	public boolean isPlannerRouteChapters()
+	{
+		return plannerRouteChapters;
+	}
+
+	public void setPlannerRouteChapters(boolean chapters)
+	{
+		plannerRouteChapters = chapters;
+		persist(); // view preference — no replan needed, no notify
+	}
+
 	/** Known plan hours recorded at the last replan (for session diffs). */
 	public double getLastPlanHours()
 	{
@@ -1126,6 +1139,7 @@ public class AccountState implements StateView
 		plannerPreferred.clear();
 		plannerPreferred.putAll(persisted.plannerPreferred);
 		lastPlanHours = persisted.lastPlanHours;
+		plannerRouteChapters = persisted.plannerRouteChapters;
 		scoreSnapshots.clear();
 		scoreSnapshots.addAll(persisted.scoreSnapshots);
 		collectionLogSlots = persisted.collectionLogSlots;
@@ -1165,6 +1179,7 @@ public class AccountState implements StateView
 		state.plannerBans = new HashSet<>(plannerBans);
 		state.plannerPreferred = new HashMap<>(plannerPreferred);
 		state.lastPlanHours = lastPlanHours;
+		state.plannerRouteChapters = plannerRouteChapters;
 		state.scoreSnapshots = new java.util.ArrayList<>(scoreSnapshots);
 		state.collectionLogSlots = collectionLogSlots;
 		state.collectionLogTotal = collectionLogTotal;

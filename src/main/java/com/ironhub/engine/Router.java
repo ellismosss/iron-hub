@@ -273,6 +273,9 @@ public class Router
 		String methodId = null;
 		String methodStyle = node.kind == Action.Kind.QUEST || node.kind == Action.Kind.KILL
 			? "active" : null;
+		int methodRate = 0;
+		int trainFromLevel = 0;
+		long trainXpRemaining = 0;
 		List<Plan.Alternative> alternatives = List.of();
 		if (node.kind == Action.Kind.TRAIN)
 		{
@@ -281,11 +284,18 @@ public class Router
 			methodName = method == null ? null : method.name;
 			methodId = method == null ? null : method.id;
 			methodStyle = method == null ? null : method.style;
+			methodRate = method == null ? 0 : method.rate;
+			trainFromLevel = projection.getRealLevel(node.trainSkill);
+			long targetXp = net.runelite.api.Experience.getXpForLevel(Math.min(99, node.trainToLevel));
+			long startXp = Math.min(targetXp, projection.getXp(node.trainSkill)
+				+ Math.max(0, bankRemaining.getOrDefault(node.trainSkill, 0L)));
+			trainXpRemaining = Math.max(0, targetXp - startXp);
 			alternatives = alternatives(node, projection, bankRemaining, method);
 		}
 		String why = why(node, projection, hours);
 		applyEffects(node, projection, bankRemaining);
 		return new Plan.Step(node, hours, why, chapter(node), methodName, methodId, methodStyle,
+			methodRate, trainFromLevel, trainXpRemaining,
 			alternatives, constraints.pinned.contains(node.id), constraints.snoozed.contains(node.id));
 	}
 
@@ -404,7 +414,8 @@ public class Router
 				constraints.bannedMethods, forced);
 			if (!Double.isNaN(hours) && !Double.isNaN(chosenHours))
 			{
-				out.add(new Plan.Alternative(method.id, method.name, hours - chosenHours, method.style));
+				out.add(new Plan.Alternative(method.id, method.name, hours - chosenHours,
+					method.style, method.rate));
 			}
 		}
 		out.sort(Comparator.comparingDouble(a -> a.deltaHours));

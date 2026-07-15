@@ -132,6 +132,13 @@ class PlannerTab extends JPanel
 		showView(index);
 	}
 
+	/** Test seam: expand a step's explain card in Route. */
+	void expandForTest(String actionId)
+	{
+		expandedStepId = actionId;
+		rebuildRoute();
+	}
+
 	/** New plan from the engine. Today follows live; Route waits for apply. */
 	void onPlanUpdated(Plan plan)
 	{
@@ -292,7 +299,7 @@ class PlannerTab extends JPanel
 					+ wiki.replace(' ', '_'))));
 		}
 		card.add(foot);
-		card.addMouseListener(new MouseAdapter()
+		MouseAdapter open = new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent e)
@@ -302,7 +309,15 @@ class PlannerTab extends JPanel
 				expandedStepId = step.action.id;
 				rebuildRoute();
 			}
-		});
+		};
+		clickAnywhere(card, open);
+		for (java.awt.Component sub : card.getComponents())
+		{
+			if (sub instanceof JPanel)
+			{
+				clickAnywhere((JComponent) sub, open);
+			}
+		}
 		card.setMaximumSize(new Dimension(Integer.MAX_VALUE, card.getPreferredSize().height));
 		return card;
 	}
@@ -399,9 +414,31 @@ class PlannerTab extends JPanel
 		}
 		else
 		{
-			routeView.add(horizonRow(plan));
+			JPanel head = row();
+			JLabel total = new JLabel("All goals · " + totalText(plan));
+			total.setForeground(UiTokens.TEXT_PRIMARY);
+			total.setFont(total.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
+			total.setToolTipText("Steps are listed in the order the planner recommends doing them");
+			head.add(total);
+			head.add(Box.createHorizontalGlue());
+			routeView.add(head);
 			routeView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 
+			JPanel layoutRow = row();
+			layoutRow.add(Box.createHorizontalGlue());
+			SegmentedControl layout = new SegmentedControl(false, "Order", "Chapters");
+			layout.setSelected(state.isPlannerRouteChapters() ? 1 : 0);
+			layout.setToolTipText("Same recommended order either way — Chapters only adds section headers");
+			layout.onChange(i ->
+			{
+				state.setPlannerRouteChapters(i == 1);
+				rebuildRoute();
+			});
+			layoutRow.add(layout);
+			routeView.add(layoutRow);
+			routeView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+
+			boolean chapters = state.isPlannerRouteChapters();
 			String chapter = null;
 			int position = 0;
 			List<Plan.Step> snoozed = new ArrayList<>();
@@ -421,7 +458,7 @@ class PlannerTab extends JPanel
 			{
 				Plan.Step step = active.get(index);
 				position++;
-				if (!step.chapter.equals(chapter))
+				if (chapters && !step.chapter.equals(chapter))
 				{
 					chapter = step.chapter;
 					routeView.add(chapterHeader(active, index));
@@ -561,7 +598,7 @@ class PlannerTab extends JPanel
 		row.add(Box.createHorizontalGlue());
 		row.add(timeLabel(step, UiTokens.TEXT_MUTED, false));
 
-		row.addMouseListener(new MouseAdapter()
+		MouseAdapter click = new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent e)
@@ -585,8 +622,24 @@ class PlannerTab extends JPanel
 					rebuildRoute();
 				}
 			}
-		});
+		};
+		clickAnywhere(row, click);
 		return row;
+	}
+
+	/** Attach a click to a container AND its passive children — labels with
+	 * tooltips register their own listeners and would swallow clicks. */
+	private static void clickAnywhere(JComponent container, MouseAdapter click)
+	{
+		container.addMouseListener(click);
+		for (java.awt.Component child : container.getComponents())
+		{
+			if (child instanceof com.ironhub.ui.components.IconButton)
+			{
+				continue; // keeps its own action
+			}
+			child.addMouseListener(click);
+		}
 	}
 
 	/** The explain card (frame 4b): why + serves + alternatives + constraints. */
@@ -594,7 +647,7 @@ class PlannerTab extends JPanel
 	{
 		JPanel card = column(UiTokens.CARD_BG);
 		card.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_BUTTON),
-			new EmptyBorder(UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP)));
+			new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD)));
 
 		JPanel title = row();
 		JLabel name = new JLabel(position + ". " + step.action.name);
@@ -609,17 +662,36 @@ class PlannerTab extends JPanel
 		card.add(wrapText(step.why, UiTokens.TEXT_BODY, UiTokens.CARD_BG));
 		if (step.methodName != null)
 		{
-			JLabel basis = new JLabel("via " + step.methodName
-				+ (step.methodStyle != null ? " · " + step.methodStyle : ""));
-			basis.setForeground(UiTokens.TEXT_FAINT);
-			basis.setFont(basis.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-			basis.setAlignmentX(LEFT_ALIGNMENT);
-			card.add(basis);
+			card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			card.add(new SectionLabel("Suggested method"));
+			JLabel method = new JLabel(step.methodName);
+			method.setForeground(UiTokens.TEXT_PRIMARY);
+			method.setFont(method.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
+			method.setAlignmentX(LEFT_ALIGNMENT);
+			card.add(method);
+			String rateLine = (step.methodRate > 0 ? compactXp(step.methodRate) + " xp/hr" : "rate unknown")
+				+ (step.methodStyle != null ? " · " + step.methodStyle : "");
+			JLabel rate = new JLabel(rateLine);
+			rate.setForeground(UiTokens.TEXT_BODY);
+			rate.setFont(rate.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+			rate.setAlignmentX(LEFT_ALIGNMENT);
+			card.add(rate);
+			if (step.trainXpRemaining > 0)
+			{
+				JLabel span = new JLabel(step.trainFromLevel + " to " + step.action.trainToLevel
+					+ " · " + compactXp(step.trainXpRemaining) + " xp to go");
+				span.setForeground(UiTokens.TEXT_MUTED);
+				span.setFont(span.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+				span.setAlignmentX(LEFT_ALIGNMENT);
+				span.setToolTipText("From your level when this step starts — earlier plan steps"
+					+ " (quest xp, banked xp) are already credited");
+				card.add(span);
+			}
 		}
 
 		if (!step.alternatives.isEmpty())
 		{
-			card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			card.add(Box.createVerticalStrut(UiTokens.PAD));
 			card.add(new SectionLabel("Alternatives"));
 			for (Plan.Alternative alt : step.alternatives)
 			{
@@ -628,7 +700,7 @@ class PlannerTab extends JPanel
 				row.setBackground(new Color(0x25, 0x25, 0x25));
 				row.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
 					new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP)));
-				JLabel text = new JLabel(alt.name + " · "
+				JLabel text = new JLabel(alt.name + " · " + compactXp(alt.rate) + "/hr · "
 					+ String.format(Locale.ROOT, "%s%.1fh", alt.deltaHours >= 0 ? "+" : "-",
 						Math.abs(alt.deltaHours)) + " · " + alt.style);
 				text.setForeground(UiTokens.TEXT_BODY);
@@ -657,7 +729,7 @@ class PlannerTab extends JPanel
 			}
 		}
 
-		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		card.add(Box.createVerticalStrut(UiTokens.PAD));
 		JPanel buttons = new JPanel(new java.awt.GridLayout(1, 3, UiTokens.PAD_TIGHT, 0));
 		buttons.setOpaque(false);
 		buttons.setAlignmentX(LEFT_ALIGNMENT);
@@ -679,7 +751,7 @@ class PlannerTab extends JPanel
 
 		card.setMaximumSize(new Dimension(Integer.MAX_VALUE, card.getPreferredSize().height));
 		card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		card.addMouseListener(new MouseAdapter()
+		MouseAdapter collapse = new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent e)
@@ -687,7 +759,9 @@ class PlannerTab extends JPanel
 				expandedStepId = null;
 				rebuildRoute();
 			}
-		});
+		};
+		card.addMouseListener(collapse);
+		clickAnywhere(title, collapse);
 		return card;
 	}
 
@@ -1099,6 +1173,20 @@ class PlannerTab extends JPanel
 			return "?";
 		}
 		return "~" + compactHours(hours);
+	}
+
+	/** 75000 → "75k", 1200000 → "1.2m". */
+	private static String compactXp(long xp)
+	{
+		if (xp >= 1_000_000)
+		{
+			return String.format(Locale.ROOT, "%.1fm", xp / 1_000_000.0);
+		}
+		if (xp >= 1_000)
+		{
+			return Math.round(xp / 1000.0) + "k";
+		}
+		return String.valueOf(xp);
 	}
 
 	private static String compactHours(double hours)

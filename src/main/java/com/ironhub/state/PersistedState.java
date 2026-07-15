@@ -70,6 +70,7 @@ public class PersistedState
 	Set<String> plannerBans = new HashSet<>();      // methods.json ids never suggested
 	Map<String, String> plannerPreferred = new HashMap<>(); // skill -> preferred method id
 	double lastPlanHours;                            // known hours at last replan (session diffs)
+	boolean plannerRouteChapters;                    // Route view: chapter headers (default flat order)
 
 	/**
 	 * An achievement diary task added to the goal planner, keyed by its

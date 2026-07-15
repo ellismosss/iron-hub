@@ -189,6 +189,10 @@ class GoalsTab extends JPanel
 		pct.setForeground(UiTokens.ACCENT);
 		pct.setFont(pct.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
 		title.add(pct);
+		title.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		title.add(new com.ironhub.ui.components.IconButton("\u00d7",
+			"Remove from your goals",
+			() -> GoalPlannerModule.removeGoal(state, goal.getId())));
 		card.add(title);
 		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		card.add(HubProgressBar.bar(progress));
@@ -265,7 +269,8 @@ class GoalsTab extends JPanel
 	{
 		int pct = (int) Math.round(GoalPlannerModule.progress(goal, state) * 100);
 		ListRow row = selected
-			? ListRow.available(goal.getName())
+			? ListRow.available(goal.getName(), new com.ironhub.ui.components.IconButton("\u00d7",
+				"Remove from your goals", () -> GoalPlannerModule.removeGoal(state, goal.getId())))
 			: ListRow.locked(goal.getName());
 		applyIcon(goal, row::setNameIcon);
 		row.setToolTipText(selected

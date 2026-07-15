@@ -276,6 +276,27 @@ public class GoalPlannerModule implements IronHubModule
 		}
 	}
 
+	/**
+	 * Remove a goal wherever it lives: CA/diary goals drop their module
+	 * seed (which also deselects); everything else — pack goals, gear
+	 * targets, custom skill goals — simply deselects.
+	 */
+	public static void removeGoal(AccountState state, String goalId)
+	{
+		if (goalId.startsWith("ca:"))
+		{
+			state.removeCaGoal(Integer.parseInt(goalId.substring(3)));
+		}
+		else if (goalId.startsWith("diary:"))
+		{
+			state.removeDiaryGoal(goalId.substring("diary:".length()));
+		}
+		else
+		{
+			state.selectGoal(goalId, false);
+		}
+	}
+
 	// ── gear-chart targets as synthetic goals ─────────────────────────
 
 	/**
