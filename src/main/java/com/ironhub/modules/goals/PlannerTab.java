@@ -1574,7 +1574,7 @@ class PlannerTab extends JPanel
 		return time;
 	}
 
-	private static String timeText(double hours)
+	static String timeText(double hours)
 	{
 		if (Double.isNaN(hours))
 		{
@@ -1584,13 +1584,13 @@ class PlannerTab extends JPanel
 	}
 
 	/** 912 → "912", 12400 → "12,400". */
-	private static String formatCount(long count)
+	static String formatCount(long count)
 	{
 		return String.format(Locale.ROOT, "%,d", count);
 	}
 
 	/** 75000 → "75k", 1200000 → "1.2m". */
-	private static String compactXp(long xp)
+	static String compactXp(long xp)
 	{
 		if (xp >= 1_000_000)
 		{
@@ -1603,7 +1603,7 @@ class PlannerTab extends JPanel
 		return String.valueOf(xp);
 	}
 
-	private static String compactHours(double hours)
+	static String compactHours(double hours)
 	{
 		if (hours < 0.95)
 		{

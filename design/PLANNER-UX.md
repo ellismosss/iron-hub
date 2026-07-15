@@ -232,7 +232,9 @@ shared-×N badge (plain text, fine).
   preview in add-goal, passive-lane card, since-last-session strip,
   completion chat messages.
 - **P2**: weekly recap, taste settings page (ban list review, afk
-  slider), Now overlay (3x family: active step + timer), estimate-vs-
+  slider), Now overlay (3x family: active step + timer) — IMPLEMENTED
+  as `PlannerOverlay` (live ETA + step-progress bar + method/resources
+  + Next/Goal context, right-click snooze/mark-done), estimate-vs-
   actual on completion, critical-path ticks.
 
 ## 8. Open questions for Luke

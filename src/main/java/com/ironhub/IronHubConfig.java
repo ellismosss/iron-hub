@@ -151,6 +151,9 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "labFollowActivity", name = "Loadout Lab follows activity", description = "Automatically select your slayer task or most recently fought/killed NPC in Loadout Lab", section = modulesSection, position = 23)
 	default boolean labFollowActivity() { return true; }
 
+	@ConfigItem(keyName = "plannerOverlay", name = "Goal overlay", description = "On-screen overlay that follows your current plan step (part of the Goal planner)", section = modulesSection, position = 24)
+	default boolean plannerOverlay() { return true; }
+
 	@ConfigItem(keyName = "discordWebhookUrl", name = "Discord webhook URL", description = "Opt-in: milestone notifications (log slots, uniques, pets, levels, goals)", section = integrationsSection, position = 5)
 	default String discordWebhookUrl() { return ""; }
 }

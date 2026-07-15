@@ -29,6 +29,8 @@ public class GoalPlannerModule implements IronHubModule
 	private final DataPack dataPack;
 	private final net.runelite.client.game.ItemManager itemManager; // null in headless tests
 	private final net.runelite.client.game.SkillIconManager skillIconManager; // null in headless tests
+	private final net.runelite.client.ui.overlay.OverlayManager overlayManager; // null in headless tests
+	private PlannerOverlay overlay;
 	private GoalsPack pack;
 	private com.ironhub.data.GearProgressionPack gearPack;
 	private com.ironhub.data.BankedXpPack bankedPack;
@@ -54,23 +56,25 @@ public class GoalPlannerModule implements IronHubModule
 	private final Runnable stateListener = this::requestReplan;
 	private volatile boolean engineActive;
 
-	/** Test convenience (headless: no icon managers). */
+	/** Test convenience (headless: no icon/overlay managers). */
 	public GoalPlannerModule(AccountState state, IronHubConfig config, DataPack dataPack,
 		net.runelite.client.game.ItemManager itemManager)
 	{
-		this(state, config, dataPack, itemManager, null);
+		this(state, config, dataPack, itemManager, null, null);
 	}
 
 	@Inject
 	public GoalPlannerModule(AccountState state, IronHubConfig config, DataPack dataPack,
 		net.runelite.client.game.ItemManager itemManager,
-		net.runelite.client.game.SkillIconManager skillIconManager)
+		net.runelite.client.game.SkillIconManager skillIconManager,
+		net.runelite.client.ui.overlay.OverlayManager overlayManager)
 	{
 		this.state = state;
 		this.config = config;
 		this.dataPack = dataPack;
 		this.itemManager = itemManager;
 		this.skillIconManager = skillIconManager;
+		this.overlayManager = overlayManager;
 	}
 
 	@Override
@@ -100,6 +104,11 @@ public class GoalPlannerModule implements IronHubModule
 			dataPack.load("diaries", com.ironhub.data.DiariesPack.class));
 		state.addListener(stateListener);
 		engineActive = true;
+		if (overlayManager != null)
+		{
+			overlay = new PlannerOverlay(this, state, config);
+			overlayManager.add(overlay);
+		}
 		requestReplan();
 	}
 
@@ -109,6 +118,11 @@ public class GoalPlannerModule implements IronHubModule
 		engineActive = false;
 		state.removeListener(stateListener);
 		sharedPlan = null; // never leak a stale plan across profiles/lifecycles
+		if (overlay != null)
+		{
+			overlayManager.remove(overlay);
+			overlay = null;
+		}
 		if (pendingReplan != null)
 		{
 			pendingReplan.cancel(false);
