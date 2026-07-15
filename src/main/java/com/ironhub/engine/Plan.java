@@ -35,18 +35,24 @@ public class Plan
 		public final String chapter;
 		/** Method used for TRAIN steps (null otherwise). */
 		public final String methodName;
+		public final String methodId;
+		/** active | semi | afk | daily style of the chosen method. */
+		public final String methodStyle;
 		public final List<Alternative> alternatives;
 		public final boolean pinned;
 		public final boolean snoozed;
 
 		public Step(Action action, double hours, String why, String chapter,
-			String methodName, List<Alternative> alternatives, boolean pinned, boolean snoozed)
+			String methodName, String methodId, String methodStyle,
+			List<Alternative> alternatives, boolean pinned, boolean snoozed)
 		{
 			this.action = action;
 			this.hours = hours;
 			this.why = why;
 			this.chapter = chapter;
 			this.methodName = methodName;
+			this.methodId = methodId;
+			this.methodStyle = methodStyle;
 			this.alternatives = alternatives;
 			this.pinned = pinned;
 			this.snoozed = snoozed;

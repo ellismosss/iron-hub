@@ -137,6 +137,18 @@ public class WhatNowModule implements IronHubModule
 	{
 		List<Suggestion> candidates = new ArrayList<>();
 
+		// the goal engine's plan head is the top "do next" card — one brain,
+		// two windows (ENGINE-DESIGN §10)
+		com.ironhub.engine.Plan plan = GoalPlannerModule.sharedPlan();
+		com.ironhub.engine.Plan.Step head = plan == null ? null : plan.head();
+		if (head != null)
+		{
+			int minutes = Double.isNaN(head.hours) ? 60
+				: Math.max(5, (int) Math.round(head.hours * 60));
+			candidates.add(candidate("Plan: " + head.action.name, head.why,
+				minutes, 4.0, 1.0, budgetMinutes));
+		}
+
 		int ready = FarmingRunModule.readyPatches(state, packs.herbPatches);
 		if (ready > 0)
 		{

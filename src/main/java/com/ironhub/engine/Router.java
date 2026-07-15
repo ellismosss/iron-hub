@@ -267,18 +267,23 @@ public class Router
 	{
 		double hours = duration(node, projection, bankRemaining, false);
 		String methodName = null;
+		String methodId = null;
+		String methodStyle = node.kind == Action.Kind.QUEST || node.kind == Action.Kind.KILL
+			? "active" : null;
 		List<Plan.Alternative> alternatives = List.of();
 		if (node.kind == Action.Kind.TRAIN)
 		{
 			MethodsPack.Method method = CostModel.currentMethod(node.trainSkill, projection,
 				packs.methods, constraints.bannedMethods, constraints.preferredMethods);
 			methodName = method == null ? null : method.name;
+			methodId = method == null ? null : method.id;
+			methodStyle = method == null ? null : method.style;
 			alternatives = alternatives(node, projection, bankRemaining, method);
 		}
 		String why = why(node, projection, hours);
 		applyEffects(node, projection, bankRemaining);
-		return new Plan.Step(node, hours, why, chapter(node), methodName, alternatives,
-			constraints.pinned.contains(node.id), constraints.snoozed.contains(node.id));
+		return new Plan.Step(node, hours, why, chapter(node), methodName, methodId, methodStyle,
+			alternatives, constraints.pinned.contains(node.id), constraints.snoozed.contains(node.id));
 	}
 
 	double duration(Action node, ProjectedState projection,

@@ -60,6 +60,16 @@ class GoalsTab extends JPanel
 		rebuild();
 	}
 
+	GoalsPack pack()
+	{
+		return pack;
+	}
+
+	com.ironhub.data.GearProgressionPack gearPack()
+	{
+		return gearPack;
+	}
+
 	void dispose()
 	{
 		state.removeListener(listener);

@@ -98,6 +98,11 @@ public class AccountState implements StateView
 	private volatile String activeGoal = "";
 	private final Map<String, PersistedState.CaGoal> caGoals = new ConcurrentHashMap<>();
 	private final Map<String, PersistedState.DiaryGoal> diaryGoals = new ConcurrentHashMap<>();
+	private final Set<String> plannerPins = ConcurrentHashMap.newKeySet();
+	private final Set<String> plannerSnoozes = ConcurrentHashMap.newKeySet();
+	private final Set<String> plannerBans = ConcurrentHashMap.newKeySet();
+	private final Map<String, String> plannerPreferred = new ConcurrentHashMap<>();
+	private volatile double lastPlanHours;
 
 	/** Recent deaths, oldest first, capped. */
 	public static final int MAX_DEATHS = 10;
@@ -620,6 +625,87 @@ public class AccountState implements StateView
 		}
 	}
 
+	/** The player's standing planner constraints (pins/snoozes/bans/prefs). */
+	public com.ironhub.engine.PlanConstraints plannerConstraints()
+	{
+		com.ironhub.engine.PlanConstraints constraints = new com.ironhub.engine.PlanConstraints();
+		constraints.pinned.addAll(plannerPins);
+		constraints.snoozed.addAll(plannerSnoozes);
+		constraints.bannedMethods.addAll(plannerBans);
+		constraints.preferredMethods.putAll(plannerPreferred);
+		return constraints;
+	}
+
+	public boolean isPlannerPinned(String actionId)
+	{
+		return plannerPins.contains(actionId);
+	}
+
+	public boolean isPlannerSnoozed(String actionId)
+	{
+		return plannerSnoozes.contains(actionId);
+	}
+
+	/** Toggle a pin (clears any snooze on the same action). */
+	public void togglePlannerPin(String actionId)
+	{
+		if (!plannerPins.remove(actionId))
+		{
+			plannerPins.add(actionId);
+			plannerSnoozes.remove(actionId);
+		}
+		persist();
+		notifyListeners();
+	}
+
+	/** Toggle a snooze (clears any pin on the same action). */
+	public void togglePlannerSnooze(String actionId)
+	{
+		if (!plannerSnoozes.remove(actionId))
+		{
+			plannerSnoozes.add(actionId);
+			plannerPins.remove(actionId);
+		}
+		persist();
+		notifyListeners();
+	}
+
+	public void togglePlannerBan(String methodId)
+	{
+		if (!plannerBans.remove(methodId))
+		{
+			plannerBans.add(methodId);
+		}
+		persist();
+		notifyListeners();
+	}
+
+	public void setPlannerPreferred(String skillName, String methodId)
+	{
+		if (methodId == null)
+		{
+			plannerPreferred.remove(skillName);
+		}
+		else
+		{
+			plannerPreferred.put(skillName, methodId);
+		}
+		persist();
+		notifyListeners();
+	}
+
+	/** Known plan hours recorded at the last replan (for session diffs). */
+	public double getLastPlanHours()
+	{
+		return lastPlanHours;
+	}
+
+	public void recordPlanHours(double hours)
+	{
+		lastPlanHours = hours;
+		persist(); // no notify: recording the plan must not trigger a replan
+	}
+
 	/** Mark many unlock flags at once (one persist + one notify). */
 	public void setUnlockedBulk(java.util.Collection<String> keys)
 	{
@@ -1031,6 +1117,15 @@ public class AccountState implements StateView
 		caGoals.putAll(persisted.caGoals);
 		diaryGoals.clear();
 		diaryGoals.putAll(persisted.diaryGoals);
+		plannerPins.clear();
+		plannerPins.addAll(persisted.plannerPins);
+		plannerSnoozes.clear();
+		plannerSnoozes.addAll(persisted.plannerSnoozes);
+		plannerBans.clear();
+		plannerBans.addAll(persisted.plannerBans);
+		plannerPreferred.clear();
+		plannerPreferred.putAll(persisted.plannerPreferred);
+		lastPlanHours = persisted.lastPlanHours;
 		scoreSnapshots.clear();
 		scoreSnapshots.addAll(persisted.scoreSnapshots);
 		collectionLogSlots = persisted.collectionLogSlots;
@@ -1065,6 +1160,11 @@ public class AccountState implements StateView
 		state.activeGoal = activeGoal;
 		state.caGoals = new HashMap<>(caGoals);
 		state.diaryGoals = new HashMap<>(diaryGoals);
+		state.plannerPins = new HashSet<>(plannerPins);
+		state.plannerSnoozes = new HashSet<>(plannerSnoozes);
+		state.plannerBans = new HashSet<>(plannerBans);
+		state.plannerPreferred = new HashMap<>(plannerPreferred);
+		state.lastPlanHours = lastPlanHours;
 		state.scoreSnapshots = new java.util.ArrayList<>(scoreSnapshots);
 		state.collectionLogSlots = collectionLogSlots;
 		state.collectionLogTotal = collectionLogTotal;

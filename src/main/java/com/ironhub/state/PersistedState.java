@@ -65,6 +65,11 @@ public class PersistedState
 	}
 
 	Map<String, DiaryGoal> diaryGoals = new HashMap<>(); // task slug -> goal-planner seed
+	Set<String> plannerPins = new HashSet<>();      // action ids pinned to the front
+	Set<String> plannerSnoozes = new HashSet<>();   // action ids sunk to the end
+	Set<String> plannerBans = new HashSet<>();      // methods.json ids never suggested
+	Map<String, String> plannerPreferred = new HashMap<>(); // skill -> preferred method id
+	double lastPlanHours;                            // known hours at last replan (session diffs)
 
 	/**
 	 * An achievement diary task added to the goal planner, keyed by its
