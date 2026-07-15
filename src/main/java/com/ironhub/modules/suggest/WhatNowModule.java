@@ -5,7 +5,6 @@ import com.ironhub.data.BankedXpPack;
 import com.ironhub.data.DailiesPack;
 import com.ironhub.data.DataPack;
 import com.ironhub.data.GoalsPack;
-import com.ironhub.data.HerbPatchesPack;
 import com.ironhub.modules.IronHubModule;
 import com.ironhub.modules.bank.BankedXp;
 import com.ironhub.modules.dailies.DailiesModule;
@@ -43,17 +42,14 @@ public class WhatNowModule implements IronHubModule
 	public static class Packs
 	{
 		final DailiesPack dailies;
-		final HerbPatchesPack herbPatches;
 		final BankedXpPack bankedXp;
 		final GoalsPack goals;
 		final com.ironhub.data.GearProgressionPack gearProgression;
 
-		public Packs(DailiesPack dailies, HerbPatchesPack herbPatches,
-			BankedXpPack bankedXp, GoalsPack goals,
+		public Packs(DailiesPack dailies, BankedXpPack bankedXp, GoalsPack goals,
 			com.ironhub.data.GearProgressionPack gearProgression)
 		{
 			this.dailies = dailies;
-			this.herbPatches = herbPatches;
 			this.bankedXp = bankedXp;
 			this.goals = goals;
 			this.gearProgression = gearProgression;
@@ -104,7 +100,6 @@ public class WhatNowModule implements IronHubModule
 			{
 				packs = new Packs(
 					dataPack.load("dailies", DailiesPack.class),
-					dataPack.load("herb-patches", HerbPatchesPack.class),
 					dataPack.load("banked-xp", BankedXpPack.class),
 					dataPack.load("goals", GoalsPack.class),
 					dataPack.load("gear-progression", com.ironhub.data.GearProgressionPack.class));
@@ -149,10 +144,10 @@ public class WhatNowModule implements IronHubModule
 				minutes, 4.0, 1.0, budgetMinutes));
 		}
 
-		int ready = FarmingRunModule.readyPatches(state, packs.herbPatches);
+		int ready = FarmingRunModule.sharedReadyPatches();
 		if (ready > 0)
 		{
-			candidates.add(candidate("Herb run", ready + " patches ready", 6,
+			candidates.add(candidate("Farm run", ready + " patches ready", 6,
 				3.0, 1.0 + ready / 10.0, budgetMinutes));
 		}
 

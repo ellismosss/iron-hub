@@ -4,17 +4,26 @@ import com.google.gson.Gson;
 import com.ironhub.IronHubConfig;
 import com.ironhub.data.DataPack;
 import com.ironhub.data.HerbPatchesPack;
+import com.ironhub.modules.farming.rl.CropState;
+import com.ironhub.modules.farming.rl.PatchImplementation;
+import com.ironhub.modules.farming.rl.PatchState;
+import com.ironhub.modules.farming.rl.Produce;
 import com.ironhub.state.AccountState;
 import com.ironhub.state.StateFixture;
 import com.ironhub.ui.SwingRender;
+import java.time.Instant;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.gameval.VarbitID;
+import net.runelite.client.Notifier;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -23,6 +32,8 @@ import static org.junit.Assert.assertTrue;
 
 public class FarmingRunModuleTest
 {
+	private static final int FALADOR_REGION = 12083;
+
 	@Rule
 	public TemporaryFolder temp = new TemporaryFolder();
 
@@ -30,12 +41,27 @@ public class FarmingRunModuleTest
 	{
 	};
 
-	private FarmingRunModule module(AccountState state)
+	private FarmingRunModule module(AccountState state, ConfigManager configManager, Notifier notifier)
 	{
 		FarmingRunModule module = new FarmingRunModule(state, null, new EventBus(),
-			null, null, null, config, null, new DataPack(new Gson()), null);
+			null, null, null, config, null, new DataPack(new Gson()), notifier,
+			configManager, null);
 		module.startUp();
 		return module;
+	}
+
+	private static int herbValue(Produce produce, CropState cropState, int stage)
+	{
+		for (int value = 0; value < 256; value++)
+		{
+			PatchState state = PatchImplementation.HERB.forVarbitValue(value);
+			if (state != null && state.getProduce() == produce
+				&& state.getCropState() == cropState && state.getStage() == stage)
+			{
+				return value;
+			}
+		}
+		throw new IllegalStateException("no herb varbit value");
 	}
 
 	@Test
@@ -53,7 +79,7 @@ public class FarmingRunModuleTest
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 5L);
-		FarmingRunModule module = module(state);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
 		module.startRun();
 		assertTrue(module.running());
 
@@ -78,28 +104,43 @@ public class FarmingRunModuleTest
 	}
 
 	@Test
-	public void readyPatchesNotifyOnceUntilRearmed()
+	public void readinessNotifiesOncePerTransitionAndNeverOnLogin()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
-		FarmingRunModule module = module(state);
+		ConfigManager configManager = TimetrackingFixture.configManager();
+		Notifier notifier = Mockito.mock(Notifier.class);
 
-		state.recordHerbPatch("falador", "HARVESTABLE", "Ranarr", 0);
-		assertEquals(List.of("Falador"), module.newlyReadyPatches());
-		assertTrue(module.newlyReadyPatches().isEmpty()); // once only
+		// stored state is ALREADY harvestable before the module starts —
+		// the first refresh must seed silently, never replay old readiness
+		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
+			herbValue(Produce.RANARR, CropState.HARVESTABLE, 0), Instant.now().getEpochSecond());
+		FarmingRunModule module = module(state, configManager, notifier);
+		module.refreshTracking();
+		Mockito.verifyNoInteractions(notifier);
+		assertEquals(1, FarmingRunModule.sharedReadyPatches());
+		assertEquals(1, module.readyCount());
 
-		// harvested and replanted: re-arms, growing does not notify
-		state.recordHerbPatch("falador", "GROWING", "Ranarr", 0);
-		assertTrue(module.newlyReadyPatches().isEmpty());
-		state.recordHerbPatch("falador", "HARVESTABLE", "Ranarr", 0);
-		assertEquals(List.of("Falador"), module.newlyReadyPatches());
+		// harvested + replanted: re-arms
+		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
+			herbValue(Produce.RANARR, CropState.GROWING, 0), Instant.now().getEpochSecond());
+		module.refreshTracking();
+		Mockito.verifyNoInteractions(notifier);
+
+		// grows back to harvestable: exactly one notification
+		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
+			herbValue(Produce.RANARR, CropState.HARVESTABLE, 0), Instant.now().getEpochSecond());
+		module.refreshTracking();
+		module.refreshTracking();
+		Mockito.verify(notifier, Mockito.times(1)).notify("Herb Patches ready to harvest.");
 		module.shutDown();
+		assertEquals(0, FarmingRunModule.sharedReadyPatches());
 	}
 
 	@Test
 	public void abandonedRunsAreNotRecorded()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
-		FarmingRunModule module = module(state);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
 		module.startRun();
 		module.endRun(false);
 		assertTrue(state.getHerbRunsMs().isEmpty());
@@ -110,7 +151,25 @@ public class FarmingRunModuleTest
 	public void tabRendersHeadless() throws Exception
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
-		FarmingRunModule module = module(state);
+		ConfigManager configManager = TimetrackingFixture.configManager();
+		long now = Instant.now().getEpochSecond();
+		// one ready herb patch, one growing, and seeded bird houses
+		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
+			herbValue(Produce.RANARR, CropState.HARVESTABLE, 0), now);
+		TimetrackingFixture.patch(configManager, 10548, VarbitID.FARMING_TRANSMIT_D,
+			herbValue(Produce.RANARR, CropState.GROWING, 0), now);
+		int seeded = 0;
+		while (com.ironhub.modules.farming.rl.hunter.BirdHouseState.fromVarpValue(seeded)
+			!= com.ironhub.modules.farming.rl.hunter.BirdHouseState.SEEDED)
+		{
+			seeded++;
+		}
+		TimetrackingFixture.birdHouse(configManager,
+			com.ironhub.modules.farming.rl.hunter.BirdHouseSpace.MEADOW_NORTH.getVarp(),
+			seeded, now - 10 * 60);
+
+		FarmingRunModule module = module(state, configManager, null);
+		module.refreshTracking();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
 		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);

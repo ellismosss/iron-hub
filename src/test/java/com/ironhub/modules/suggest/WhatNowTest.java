@@ -6,7 +6,6 @@ import com.ironhub.data.BankedXpPack;
 import com.ironhub.data.DailiesPack;
 import com.ironhub.data.DataPack;
 import com.ironhub.data.GoalsPack;
-import com.ironhub.data.HerbPatchesPack;
 import com.ironhub.modules.suggest.WhatNowModule.Suggestion;
 import com.ironhub.state.AccountState;
 import com.ironhub.state.StateFixture;
@@ -33,7 +32,6 @@ public class WhatNowTest
 	private final DataPack packs = new DataPack(new Gson());
 	private final WhatNowModule.Packs all = new WhatNowModule.Packs(
 		packs.load("dailies", DailiesPack.class),
-		packs.load("herb-patches", HerbPatchesPack.class),
 		packs.load("banked-xp", BankedXpPack.class),
 		packs.load("goals", GoalsPack.class),
 		packs.load("gear-progression", com.ironhub.data.GearProgressionPack.class));
@@ -44,8 +42,7 @@ public class WhatNowTest
 		AccountState state = StateFixture.state(temp.getRoot());
 
 		// ready patches + a slayer task + banked xp + an active goal
-		state.recordHerbPatch("falador", "HARVESTABLE", "Ranarr", 0);
-		state.recordHerbPatch("catherby", "HARVESTABLE", "Ranarr", 0);
+		com.ironhub.modules.farming.TimetrackingFixture.publishReadyPatches(2);
 		StateFixture.varp(state, VarPlayer.SLAYER_TASK_SIZE, 40);
 		StateFixture.bank(state, Map.of(536, 500)); // dragon bones
 		state.selectGoal("dragon_defender", true);
@@ -53,7 +50,7 @@ public class WhatNowTest
 		List<Suggestion> suggestions = WhatNowModule.suggest(state, all, 60);
 		assertTrue(suggestions.size() >= 4);
 		// herb run outranks everything at high impact + ready urgency
-		assertEquals("Herb run", suggestions.get(0).title);
+		assertEquals("Farm run", suggestions.get(0).title);
 		// every suggestion explains itself
 		suggestions.forEach(s -> assertTrue(s.title, !s.why.isEmpty()));
 	}
@@ -63,10 +60,10 @@ public class WhatNowTest
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.varp(state, VarPlayer.SLAYER_TASK_SIZE, 200); // ~100 min task
-		state.recordHerbPatch("falador", "HARVESTABLE", "Ranarr", 0);
+		com.ironhub.modules.farming.TimetrackingFixture.publishReadyPatches(1);
 
 		List<Suggestion> five = WhatNowModule.suggest(state, all, 5);
-		assertEquals("Herb run", five.get(0).title); // 6 min fits-ish; slayer demoted
+		assertEquals("Farm run", five.get(0).title); // 6 min fits-ish; slayer demoted
 		assertTrue(five.get(five.size() - 1).title.contains("slayer"));
 	}
 
@@ -85,7 +82,7 @@ public class WhatNowTest
 	public void tabRendersHeadless() throws Exception
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
-		state.recordHerbPatch("falador", "HARVESTABLE", "Ranarr", 0);
+		com.ironhub.modules.farming.TimetrackingFixture.publishReadyPatches(1);
 		StateFixture.varp(state, VarPlayer.SLAYER_TASK_SIZE, 40);
 		StateFixture.stat(state, Skill.ATTACK, 50, 0);
 		state.selectGoal("dragon_defender", true);

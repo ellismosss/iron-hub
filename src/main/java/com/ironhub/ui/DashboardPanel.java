@@ -5,7 +5,6 @@ import com.ironhub.data.DailiesPack;
 import com.ironhub.data.DataPack;
 import com.ironhub.data.GearLaddersPack;
 import com.ironhub.data.GoalsPack;
-import com.ironhub.data.HerbPatchesPack;
 import com.ironhub.data.QolPack;
 import com.ironhub.modules.dailies.DailiesModule;
 import com.ironhub.modules.dashboard.AccountScore;
@@ -67,7 +66,6 @@ public class DashboardPanel extends JPanel
 	private final QolPack qolPack;
 	private final GoalsPack goalsPack;
 	private final DailiesPack dailiesPack;
-	private final HerbPatchesPack herbPack;
 	private final GearLaddersPack gearPack;
 	private final com.ironhub.data.GearProgressionPack gearProgressionPack;
 	private final WhatNowModule.Packs whatNowPacks;
@@ -85,10 +83,9 @@ public class DashboardPanel extends JPanel
 		this.qolPack = dataPack.load("qol", QolPack.class);
 		this.goalsPack = dataPack.load("goals", GoalsPack.class);
 		this.dailiesPack = dataPack.load("dailies", DailiesPack.class);
-		this.herbPack = dataPack.load("herb-patches", HerbPatchesPack.class);
 		this.gearPack = dataPack.load("gear-ladders", GearLaddersPack.class);
 		this.gearProgressionPack = dataPack.load("gear-progression", com.ironhub.data.GearProgressionPack.class);
-		this.whatNowPacks = new WhatNowModule.Packs(dailiesPack, herbPack,
+		this.whatNowPacks = new WhatNowModule.Packs(dailiesPack,
 			dataPack.load("banked-xp", BankedXpPack.class), goalsPack, gearProgressionPack);
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -378,7 +375,7 @@ public class DashboardPanel extends JPanel
 			chips.add(alertChip(dailies + (dailies == 1 ? " daily" : " dailies"),
 				Status.AVAILABLE, "Dailies"));
 		}
-		int ready = FarmingRunModule.readyPatches(state, herbPack);
+		int ready = FarmingRunModule.sharedReadyPatches();
 		if (ready > 0)
 		{
 			chips.add(alertChip(ready + " patches ready", Status.AVAILABLE, "Farming runs"));

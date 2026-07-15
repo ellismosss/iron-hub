@@ -5,8 +5,12 @@ import com.ironhub.data.DataPack;
 import com.ironhub.data.HerbPatchesPack;
 import com.ironhub.integrations.ShortestPathBridge;
 import com.ironhub.modules.IronHubModule;
+import com.ironhub.modules.farming.rl.PatchPrediction;
+import com.ironhub.modules.farming.rl.Produce;
+import com.ironhub.modules.farming.rl.Tab;
 import com.ironhub.state.AccountState;
 import java.awt.image.BufferedImage;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,22 +21,30 @@ import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.ItemID;
 import net.runelite.api.Player;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.gameval.VarbitID;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.gameval.VarbitID;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
+import net.runelite.client.plugins.timetracking.SummaryState;
+import net.runelite.client.plugins.timetracking.TimeTrackingConfig;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.util.ImageUtil;
 
 /**
- * Farming runs (DESIGN.md §3.8, frames 2e/3b): run timer with per-patch
- * checklist, patch-visit detection by proximity, and a persisted run
- * history (avg/best/count). Crop-stage varbit tracking (ready/diseased)
- * arrives incrementally per the risk register.
+ * Farming runs (DESIGN.md §3.8, frames 2e/3b): the full Time Tracking
+ * behaviour — every patch category, bird houses and the farming contract
+ * predicted from the core plugin's persisted data via the vendored engine
+ * (rl/, see FarmTrackingService) — plus per-category ready infoboxes
+ * (Time Tracking Reminder parity), the run timer with its proximity
+ * checklist, and persisted run history.
  */
 @Slf4j
 @Singleton
@@ -41,9 +53,11 @@ public class FarmingRunModule implements IronHubModule
 	/** A patch counts as visited within this many tiles. */
 	static final int VISIT_RADIUS = 12;
 
-	// farming transmit varbits only sync while the patch's region is
-	// loaded; letters map data-pack entries to the documented constants
-	private static final java.util.Map<String, Integer> TRANSMIT_VARBITS = java.util.Map.of(
+	/** Tracking data moves on farming ticks (minutes) — re-read slowly. */
+	private static final int REFRESH_TICKS = 10;
+
+	// letters map data-pack entries to the documented transmit varbits
+	static final java.util.Map<String, Integer> TRANSMIT_VARBITS = java.util.Map.of(
 		"A", VarbitID.FARMING_TRANSMIT_A,
 		"B", VarbitID.FARMING_TRANSMIT_B,
 		"C", VarbitID.FARMING_TRANSMIT_C,
@@ -60,27 +74,37 @@ public class FarmingRunModule implements IronHubModule
 	private final ShortestPathBridge pathBridge;
 	private final DataPack dataPack;
 	private final net.runelite.client.Notifier notifier; // null in unit tests
+	private final ConfigManager configManager;     // null in unit tests
+	private final ItemManager itemManager;         // null in unit tests
 
 	private HerbPatchesPack pack;
+	FarmTrackingService tracking; // package-private test seam
 	private FarmingTab tab;
 	private FarmingRunOverlay overlay;
 	private RunTimerInfoBox infoBox;
-	private PatchesReadyInfoBox readyInfoBox;
-	private final Runnable patchObserver = this::observePatches;
+	private final java.util.List<FarmReadyInfoBox> readyBoxes = new java.util.ArrayList<>();
 
 	// run state — written on the client thread, read from EDT/overlay
 	private volatile long runStartMs;
 	private final Set<String> visited = ConcurrentHashMap.newKeySet();
 
-	// notification bookkeeping (client thread)
+	// tracking refresh (client thread)
+	private int refreshTick;
+	private volatile boolean trackingDirty = true;
+	private String lastFingerprint = "";
+	/** Cross-module read seam (WhatNow, Dashboard): patches ready now. */
+	private static volatile int sharedReadyPatches;
+
+	// notification bookkeeping (client thread): category -> already notified
 	private final Set<String> notifiedReady = ConcurrentHashMap.newKeySet();
-	private int notifyTick;
+	private boolean firstRefresh = true;
 
 	@Inject
 	public FarmingRunModule(AccountState state, Client client, EventBus eventBus,
 		OverlayManager overlayManager, InfoBoxManager infoBoxManager,
 		Provider<com.ironhub.IronHubPlugin> plugin, IronHubConfig config,
-		ShortestPathBridge pathBridge, DataPack dataPack, net.runelite.client.Notifier notifier)
+		ShortestPathBridge pathBridge, DataPack dataPack, net.runelite.client.Notifier notifier,
+		ConfigManager configManager, ItemManager itemManager)
 	{
 		this.notifier = notifier;
 		this.state = state;
@@ -92,6 +116,8 @@ public class FarmingRunModule implements IronHubModule
 		this.config = config;
 		this.pathBridge = pathBridge;
 		this.dataPack = dataPack;
+		this.configManager = configManager;
+		this.itemManager = itemManager;
 	}
 
 	@Override
@@ -110,31 +136,32 @@ public class FarmingRunModule implements IronHubModule
 	public void startUp()
 	{
 		pack = dataPack.load("herb-patches", HerbPatchesPack.class);
-		pack.getPatches().forEach(p ->
-			state.watchVarbits(TRANSMIT_VARBITS.get(p.getVarbit())));
-		state.addListener(patchObserver);
+		if (tracking == null && configManager != null)
+		{
+			tracking = new FarmTrackingService(client, itemManager, configManager,
+				configManager.getConfig(TimeTrackingConfig.class), notifier);
+		}
 		eventBus.register(this);
 		if (overlayManager != null)
 		{
 			overlay = new FarmingRunOverlay(this);
 			overlayManager.add(overlay);
 		}
-		if (infoBoxManager != null)
+		if (infoBoxManager != null && itemManager != null)
 		{
 			BufferedImage icon = ImageUtil.loadImageResource(com.ironhub.IronHubPlugin.class, "/icon.png");
 			infoBox = new RunTimerInfoBox(icon, plugin.get(), this);
 			infoBoxManager.addInfoBox(infoBox);
-			readyInfoBox = new PatchesReadyInfoBox(icon, plugin.get(), this);
-			infoBoxManager.addInfoBox(readyInfoBox);
+			addReadyInfoBoxes();
 		}
 	}
 
 	@Override
 	public void shutDown()
 	{
-		state.removeListener(patchObserver);
 		eventBus.unregister(this);
 		runStartMs = 0;
+		sharedReadyPatches = 0;
 		if (overlay != null)
 		{
 			overlayManager.remove(overlay);
@@ -145,11 +172,11 @@ public class FarmingRunModule implements IronHubModule
 			infoBoxManager.removeInfoBox(infoBox);
 			infoBox = null;
 		}
-		if (readyInfoBox != null)
+		for (FarmReadyInfoBox box : readyBoxes)
 		{
-			infoBoxManager.removeInfoBox(readyInfoBox);
-			readyInfoBox = null;
+			infoBoxManager.removeInfoBox(box);
 		}
+		readyBoxes.clear();
 		if (tab != null)
 		{
 			tab.dispose();
@@ -167,18 +194,48 @@ public class FarmingRunModule implements IronHubModule
 		return tab;
 	}
 
+	/** One render-gated infobox per patch category, plus bird houses and
+	 *  the farming contract — visible only while that thing is ready. */
+	private void addReadyInfoBoxes()
+	{
+		Plugin owner = plugin.get();
+		for (Tab category : FarmTrackingService.CATEGORIES)
+		{
+			readyBoxes.add(new FarmReadyInfoBox(itemManager.getImage(category.getItemID()), owner,
+				category.getName() + " ready",
+				() -> config.farmingReadyInfoboxes() && tracking != null && tracking.harvestable(category)));
+		}
+		readyBoxes.add(new FarmReadyInfoBox(itemManager.getImage(Tab.BIRD_HOUSE.getItemID()), owner,
+			"Bird houses ready",
+			() -> config.farmingReadyInfoboxes() && tracking != null
+				&& (tracking.birdHouseSummary() == SummaryState.COMPLETED
+					|| tracking.birdHouseSummary() == SummaryState.EMPTY)));
+		readyBoxes.add(new FarmReadyInfoBox(itemManager.getImage(ItemID.SEED_PACK), owner,
+			"Farming contract ready",
+			() -> config.farmingReadyInfoboxes() && tracking != null && tracking.contractReady()));
+		for (FarmReadyInfoBox box : readyBoxes)
+		{
+			infoBoxManager.addInfoBox(box);
+		}
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event)
+	{
+		// the core Time Tracking plugin just recorded new data — re-read soon
+		if (TimeTrackingConfig.CONFIG_GROUP.equals(event.getGroup()))
+		{
+			trackingDirty = true;
+		}
+	}
+
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
-		if (++notifyTick % 20 == 0) // ~12 s — prediction moves slowly
+		if (trackingDirty || ++refreshTick % REFRESH_TICKS == 0)
 		{
-			for (String name : newlyReadyPatches())
-			{
-				if (notifier != null && config.notifyPatchReady())
-				{
-					notifier.notify("Herb patch ready: " + name);
-				}
-			}
+			trackingDirty = false;
+			refreshTracking();
 		}
 		if (!running() || client == null)
 		{
@@ -195,28 +252,66 @@ public class FarmingRunModule implements IronHubModule
 		}
 	}
 
-	/**
-	 * Patches newly ready since the last check; each notifies once and
-	 * re-arms when it stops being ready (harvested/replanted).
-	 */
-	java.util.List<String> newlyReadyPatches()
+	/** Re-read the core plugin's data; notify fresh readiness; repaint the
+	 *  tab only when the picture actually changed. Client thread. */
+	void refreshTracking()
 	{
-		long now = System.currentTimeMillis();
-		java.util.List<String> fresh = new java.util.ArrayList<>();
-		for (HerbPatchesPack.Patch patch : patches())
+		if (tracking == null)
 		{
-			PatchView view = predict(state.herbPatchSeen(patch.getId()), now);
-			boolean ready = view == PatchView.READY || view == PatchView.PREDICTED_READY;
-			if (ready && notifiedReady.add(patch.getId()))
+			return;
+		}
+		tracking.refresh();
+		sharedReadyPatches = tracking.readyPatchCount();
+		notifyTransitions();
+
+		String fingerprint = fingerprint();
+		if (!fingerprint.equals(lastFingerprint))
+		{
+			lastFingerprint = fingerprint;
+			if (tab != null)
 			{
-				fresh.add(patch.getName());
+				SwingUtilities.invokeLater(tab::rebuild);
+			}
+		}
+	}
+
+	/** One notification per category per readiness transition; re-arms when
+	 *  the category stops being ready (harvested/replanted). The first
+	 *  refresh seeds silently so login never replays old readiness. */
+	private void notifyTransitions()
+	{
+		for (Tab category : FarmTrackingService.CATEGORIES)
+		{
+			boolean ready = tracking.harvestable(category);
+			if (ready && notifiedReady.add(category.name()))
+			{
+				if (!firstRefresh && notifier != null && config.notifyPatchReady())
+				{
+					notifier.notify(category.getName() + " ready to harvest.");
+				}
 			}
 			else if (!ready)
 			{
-				notifiedReady.remove(patch.getId());
+				notifiedReady.remove(category.name());
 			}
 		}
-		return fresh;
+		firstRefresh = false;
+	}
+
+	private String fingerprint()
+	{
+		StringBuilder sb = new StringBuilder();
+		for (Tab category : FarmTrackingService.CATEGORIES)
+		{
+			sb.append(tracking.summary(category)).append(':')
+				.append(tracking.completionTime(category)).append(':')
+				.append(tracking.harvestable(category)).append(';');
+		}
+		sb.append(tracking.birdHouseSummary()).append(':')
+			.append(tracking.birdHouseCompletionTime()).append(';')
+			.append(tracking.contract().getContractName()).append(':')
+			.append(tracking.contract().getSummary());
+		return sb.toString();
 	}
 
 	/** Mark any patch within range as visited; ends the run when all done. */
@@ -293,35 +388,14 @@ public class FarmingRunModule implements IronHubModule
 		return state;
 	}
 
-	/**
-	 * Observe herb patches in the player's current region: the transmit
-	 * varbit only carries this region's patch, so attribute by region id.
-	 * Runs off AccountState notifications on the client thread.
-	 */
-	private void observePatches()
+	FarmTrackingService tracking()
 	{
-		if (client == null || !client.isClientThread() || client.getLocalPlayer() == null)
-		{
-			return;
-		}
-		int region = client.getLocalPlayer().getWorldLocation().getRegionID();
-		for (HerbPatchesPack.Patch patch : patches())
-		{
-			if (patch.getRegionId() == region)
-			{
-				int value = state.getVarbit(TRANSMIT_VARBITS.get(patch.getVarbit()));
-				HerbPatchDecoder.Seen seen = HerbPatchDecoder.decode(value);
-				if (seen.state != HerbPatchDecoder.State.UNKNOWN
-					&& state.recordHerbPatch(patch.getId(), seen.state.name(), seen.herb, seen.stage)
-					&& tab != null)
-				{
-					SwingUtilities.invokeLater(tab::rebuild);
-				}
-			}
-		}
+		return tracking;
 	}
 
-	/** Predicted patch view for display — static for testing. */
+	// ── patch views over the vendored predictions ─────────────────────
+
+	/** Display states for one patch — the tab/overlay vocabulary. */
 	enum PatchView
 	{
 		READY,
@@ -333,13 +407,31 @@ public class FarmingRunModule implements IronHubModule
 		UNKNOWN
 	}
 
-	static PatchView predict(AccountState.HerbPatchSeen seen, long now)
+	/** Live prediction for a pack patch, or null without data. */
+	PatchPrediction prediction(HerbPatchesPack.Patch patch)
 	{
-		if (seen == null)
+		return tracking == null ? null
+			: tracking.predict(patch.getRegionId(), TRANSMIT_VARBITS.get(patch.getVarbit()));
+	}
+
+	PatchView view(HerbPatchesPack.Patch patch)
+	{
+		return viewOf(prediction(patch), Instant.now().getEpochSecond());
+	}
+
+	/** Map a vendored prediction onto the display vocabulary — static for
+	 *  tests. PREDICTED_READY = growing but past its computed final tick. */
+	static PatchView viewOf(PatchPrediction prediction, long nowSeconds)
+	{
+		if (prediction == null)
 		{
 			return PatchView.UNKNOWN;
 		}
-		switch (HerbPatchDecoder.State.valueOf(seen.state))
+		if (prediction.getProduce() == Produce.WEEDS || prediction.getProduce().getItemID() < 0)
+		{
+			return PatchView.EMPTY;
+		}
+		switch (prediction.getCropState())
 		{
 			case HARVESTABLE:
 				return PatchView.READY;
@@ -350,33 +442,44 @@ public class FarmingRunModule implements IronHubModule
 			case EMPTY:
 				return PatchView.EMPTY;
 			case GROWING:
-				return now >= readyAtMs(seen) ? PatchView.PREDICTED_READY : PatchView.GROWING;
+				if (prediction.getStage() == prediction.getStages() - 1
+					|| (prediction.getDoneEstimate() > 0 && prediction.getDoneEstimate() <= nowSeconds))
+				{
+					return PatchView.PREDICTED_READY;
+				}
+				return PatchView.GROWING;
 			default:
 				return PatchView.UNKNOWN;
 		}
 	}
 
-	/** Earliest time a growing patch could be harvestable. */
-	static long readyAtMs(AccountState.HerbPatchSeen seen)
-	{
-		int stagesLeft = HerbPatchDecoder.GROWING_STAGES - seen.stage;
-		return seen.timeMs + (long) stagesLeft * HerbPatchDecoder.STAGE_MINUTES * 60_000;
-	}
-
-	/** Patches ready or predicted ready — drives the infobox. */
+	/** Herb patches ready or predicted ready — the herb section header. */
 	int readyCount()
 	{
-		return readyPatches(state, pack);
+		long now = Instant.now().getEpochSecond();
+		int ready = 0;
+		for (HerbPatchesPack.Patch patch : patches())
+		{
+			PatchView view = viewOf(prediction(patch), now);
+			if (view == PatchView.READY || view == PatchView.PREDICTED_READY)
+			{
+				ready++;
+			}
+		}
+		return ready;
 	}
 
-	/** Pure ready-count over a pack — shared with the What Now engine. */
-	public static int readyPatches(AccountState state, HerbPatchesPack pack)
+	/** Patches harvestable across the whole farming world right now —
+	 *  published by the last refresh for WhatNow and the dashboard. */
+	public static int sharedReadyPatches()
 	{
-		long now = System.currentTimeMillis();
-		return (int) pack.getPatches().stream()
-			.map(p -> predict(state.herbPatchSeen(p.getId()), now))
-			.filter(v -> v == PatchView.READY || v == PatchView.PREDICTED_READY)
-			.count();
+		return sharedReadyPatches;
+	}
+
+	/** Test seam (TimetrackingFixture): publish without a live refresh. */
+	static void publishSharedReadyPatches(int count)
+	{
+		sharedReadyPatches = count;
 	}
 
 	/** "5:40" from millis — static for testing. */

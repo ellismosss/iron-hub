@@ -184,7 +184,6 @@ public class PlannerTabTest
 		com.ironhub.modules.suggest.WhatNowModule.Packs packs =
 			new com.ironhub.modules.suggest.WhatNowModule.Packs(
 				data.load("dailies", com.ironhub.data.DailiesPack.class),
-				data.load("herb-patches", com.ironhub.data.HerbPatchesPack.class),
 				data.load("banked-xp", com.ironhub.data.BankedXpPack.class),
 				data.load("goals", com.ironhub.data.GoalsPack.class),
 				data.load("gear-progression", com.ironhub.data.GearProgressionPack.class));

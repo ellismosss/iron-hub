@@ -145,6 +145,8 @@ def patch(content: str, name: str, tag: str) -> str:
     content = content.replace("\tint getTickRate()", "\tpublic int getTickRate()")
     content = content.replace("\tCollection<FarmingRegion> getRegionsForLocation(",
         "\tpublic Collection<FarmingRegion> getRegionsForLocation(")
+    content = content.replace("\tstatic BirdHouseState fromVarpValue(",
+        "\tpublic static BirdHouseState fromVarpValue(")
 
     if name == "FarmingContractManager":
         content = content.replace("\tpublic void setContract",

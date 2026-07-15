@@ -2,26 +2,36 @@ package com.ironhub.modules.farming;
 
 import com.ironhub.data.HerbPatchesPack;
 import com.ironhub.integrations.ShortestPathBridge;
+import com.ironhub.modules.farming.rl.PatchPrediction;
+import com.ironhub.modules.farming.rl.Tab;
 import com.ironhub.state.AccountState;
+import com.ironhub.ui.Format;
 import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.components.IconButton;
 import com.ironhub.ui.components.ListRow;
 import com.ironhub.ui.components.SectionLabel;
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.time.Instant;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import net.runelite.client.plugins.timetracking.SummaryState;
 
 /**
  * Farming tab content (frame 2e): full-width primary Start/End run button,
- * run-history stats line, herb patch rows with Path buttons. Patch
- * readiness states arrive with crop varbit mapping.
+ * run-history stats line, a Time Tracking-style patch overview (every
+ * category with data, bird houses, the farming contract — each with its
+ * ready state or ETA), and the herb-run patch rows with Path buttons.
+ * All predictions come from the core Time Tracking plugin's data via
+ * FarmTrackingService.
  */
 class FarmingTab extends JPanel
 {
@@ -33,6 +43,7 @@ class FarmingTab extends JPanel
 	private final JLabel runButton = new JLabel("", javax.swing.SwingConstants.CENTER);
 	private final JLabel stats = new JLabel();
 	private final JLabel readyCount = new JLabel();
+	private final JPanel overview = new JPanel();
 	private final JPanel list = new JPanel();
 
 	FarmingTab(AccountState state, FarmingRunModule module, ShortestPathBridge pathBridge)
@@ -79,11 +90,20 @@ class FarmingTab extends JPanel
 		add(stats);
 		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 
+		add(new SectionLabel("Patch overview"));
+		add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+		overview.setLayout(new BoxLayout(overview, BoxLayout.Y_AXIS));
+		overview.setOpaque(false);
+		overview.setAlignmentX(LEFT_ALIGNMENT);
+		add(overview);
+		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
+
 		JPanel patchHeader = new JPanel();
 		patchHeader.setLayout(new BoxLayout(patchHeader, BoxLayout.X_AXIS));
 		patchHeader.setOpaque(false);
 		patchHeader.setAlignmentX(LEFT_ALIGNMENT);
 		patchHeader.add(new SectionLabel("Herb patches"));
+		patchHeader.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 		patchHeader.add(Box.createHorizontalGlue());
 		readyCount.setForeground(UiTokens.STATUS_AVAILABLE);
 		readyCount.setFont(readyCount.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
@@ -109,24 +129,152 @@ class FarmingTab extends JPanel
 	{
 		runButton.setText(module.running() ? "End run" : "Start herb run");
 		stats.setText(FarmingRunModule.statsLine(state.getHerbRunsMs()));
-
-		long now = System.currentTimeMillis();
 		readyCount.setText(module.readyCount() + " of " + module.patches().size() + " ready");
+
+		rebuildOverview();
 
 		HerbPatchesPack.Patch next = module.nextPatch();
 		list.removeAll();
 		for (HerbPatchesPack.Patch patch : module.patches())
 		{
 			IconButton path = IconButton.path(() -> pathBridge.pathTo(patch.getLocation()));
-			list.add(patchRow(patch, next, now, path));
+			list.add(patchRow(patch, next, path));
 			list.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
 		list.revalidate();
 		list.repaint();
 	}
 
-	private ListRow patchRow(HerbPatchesPack.Patch patch, HerbPatchesPack.Patch next,
-		long now, IconButton path)
+	// ── patch overview (all categories + bird houses + contract) ──────
+
+	private void rebuildOverview()
+	{
+		overview.removeAll();
+		FarmTrackingService tracking = module.tracking();
+
+		if (tracking == null || tracking.coreTrackingDisabled())
+		{
+			overview.add(hint("Enable the core Time Tracking plugin — Iron Hub "
+				+ "reads its patch data.", UiTokens.STATUS_AVAILABLE));
+		}
+		else if (!tracking.hasAnyData())
+		{
+			overview.add(hint("No tracking data yet. The Time Tracking plugin "
+				+ "records each patch as you visit it.", UiTokens.TEXT_FAINT));
+		}
+
+		if (tracking == null)
+		{
+			overview.revalidate();
+			overview.repaint();
+			return;
+		}
+
+		long now = Instant.now().getEpochSecond();
+		for (Tab category : FarmTrackingService.CATEGORIES)
+		{
+			SummaryState summary = tracking.summary(category);
+			if (summary == SummaryState.UNKNOWN)
+			{
+				continue; // never seen — don't render 20 empty rows
+			}
+			overview.add(overviewRow(category.getName(),
+				statusText(summary, tracking.harvestable(category),
+					tracking.completionTime(category), now),
+				statusColor(summary, tracking.harvestable(category))));
+			overview.add(Box.createVerticalStrut(2));
+		}
+
+		SummaryState birds = tracking.birdHouseSummary();
+		if (birds != SummaryState.UNKNOWN)
+		{
+			boolean ready = birds == SummaryState.COMPLETED || birds == SummaryState.EMPTY;
+			overview.add(overviewRow("Bird houses",
+				birds == SummaryState.EMPTY ? "Empty"
+					: statusText(birds, ready, tracking.birdHouseCompletionTime(), now),
+				ready ? UiTokens.STATUS_AVAILABLE : UiTokens.TEXT_MUTED));
+			overview.add(Box.createVerticalStrut(2));
+		}
+
+		if (tracking.contract().hasContract())
+		{
+			boolean ready = tracking.contractReady();
+			overview.add(overviewRow("Contract · " + tracking.contract().getContractName(),
+				ready ? "Ready" : "Growing",
+				ready ? UiTokens.STATUS_AVAILABLE : UiTokens.TEXT_MUTED));
+		}
+
+		overview.revalidate();
+		overview.repaint();
+	}
+
+	/** "Ready" / ETA ("2h 10m") / "Empty" for one category. */
+	static String statusText(SummaryState summary, boolean harvestable, long completionTime, long now)
+	{
+		if (harvestable || summary == SummaryState.COMPLETED)
+		{
+			return "Ready";
+		}
+		if (summary == SummaryState.EMPTY)
+		{
+			return "Empty";
+		}
+		if (summary == SummaryState.IN_PROGRESS && completionTime > now)
+		{
+			return Format.hours((completionTime - now) / 3600.0);
+		}
+		return "Ready";
+	}
+
+	private static Color statusColor(SummaryState summary, boolean harvestable)
+	{
+		if (harvestable || summary == SummaryState.COMPLETED)
+		{
+			return UiTokens.STATUS_AVAILABLE;
+		}
+		if (summary == SummaryState.EMPTY)
+		{
+			return UiTokens.TEXT_FAINT;
+		}
+		return UiTokens.TEXT_MUTED;
+	}
+
+	private JPanel overviewRow(String name, String value, Color valueColor)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setBackground(UiTokens.CARD_BG);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
+			new EmptyBorder(0, UiTokens.ROW_GAP, 0, UiTokens.ROW_GAP)));
+		row.setPreferredSize(new Dimension(0, UiTokens.ROW_HEIGHT_DENSE));
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT_DENSE));
+		JLabel label = new JLabel(name);
+		label.setForeground(UiTokens.TEXT_BODY);
+		label.setFont(label.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		label.setMinimumSize(new Dimension(0, 0));
+		row.add(label);
+		row.add(Box.createHorizontalGlue());
+		JLabel status = new JLabel(value);
+		status.setForeground(valueColor);
+		status.setFont(status.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
+		row.add(status);
+		return row;
+	}
+
+	private JLabel hint(String text, Color color)
+	{
+		JLabel label = new JLabel("<html>" + text + "</html>");
+		label.setForeground(color);
+		label.setFont(label.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		label.setAlignmentX(LEFT_ALIGNMENT);
+		label.setBorder(new EmptyBorder(0, 0, UiTokens.PAD_TIGHT, 0));
+		return label;
+	}
+
+	// ── herb run rows ─────────────────────────────────────────────────
+
+	private ListRow patchRow(HerbPatchesPack.Patch patch, HerbPatchesPack.Patch next, IconButton path)
 	{
 		if (module.running())
 		{
@@ -141,22 +289,24 @@ class FarmingTab extends JPanel
 			return ListRow.locked(patch.getName(), path);
 		}
 
-		AccountState.HerbPatchSeen seen = state.herbPatchSeen(patch.getId());
+		PatchPrediction prediction = module.prediction(patch);
+		String produce = prediction == null ? "" : prediction.getProduce().getName();
 		ListRow row;
-		switch (FarmingRunModule.predict(seen, now))
+		switch (FarmingRunModule.viewOf(prediction, Instant.now().getEpochSecond()))
 		{
 			case READY:
 				row = ListRow.available(patch.getName(), path);
-				row.setToolTipText(patch.getName() + " — " + seen.herb + " ready");
+				row.setToolTipText(patch.getName() + " — " + produce + " ready");
 				break;
 			case PREDICTED_READY:
 				row = ListRow.available(patch.getName(), path);
-				row.setToolTipText(patch.getName() + " — " + seen.herb + " predicted ready");
+				row.setToolTipText(patch.getName() + " — " + produce + " predicted ready");
 				break;
 			case GROWING:
 				row = ListRow.locked(patch.getName(), path);
-				long minutes = Math.max(1, (FarmingRunModule.readyAtMs(seen) - now) / 60_000);
-				row.setToolTipText(patch.getName() + " — " + seen.herb + " ready ~ in " + minutes + " min");
+				long seconds = Math.max(60, prediction.getDoneEstimate() - Instant.now().getEpochSecond());
+				row.setToolTipText(patch.getName() + " — " + produce + " ready in ~"
+					+ Format.hours(seconds / 3600.0));
 				break;
 			case DISEASED:
 				row = ListRow.warning(patch.getName(), "diseased", path);

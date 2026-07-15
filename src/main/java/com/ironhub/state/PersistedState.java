@@ -26,7 +26,6 @@ public class PersistedState
 	java.util.List<Long> herbRunsMs = new ArrayList<>(); // completed herb run durations
 	java.util.List<DeathRecord> deaths = new ArrayList<>(); // most recent last, capped
 
-	Map<String, PatchSeen> herbPatchSeen = new HashMap<>(); // patch id -> last observed state
 	java.util.List<ConsumptionEvent> consumptionLog = new ArrayList<>(); // rolling, capped
 
 	static class ConsumptionEvent
@@ -113,13 +112,6 @@ public class PersistedState
 		public String tier;
 	}
 
-	static class PatchSeen
-	{
-		String state;
-		String herb;
-		int stage;
-		long timeMs;
-	}
 
 	static class DeathRecord
 	{

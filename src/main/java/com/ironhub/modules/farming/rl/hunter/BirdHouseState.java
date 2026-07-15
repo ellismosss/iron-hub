@@ -46,7 +46,7 @@ public enum BirdHouseState
 	/**
 	 * Gets the {@code BirdHouseState} corresponding to the given {@code VarPlayer} value.
 	 */
-	static BirdHouseState fromVarpValue(int varp)
+	public static BirdHouseState fromVarpValue(int varp)
 	{
 		if (varp < 0 || varp > BirdHouse.values().length * 3)
 		{

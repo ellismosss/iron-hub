@@ -81,19 +81,22 @@ public interface IronHubConfig extends Config
 	)
 	String notificationsSection = "notifications";
 
-	@ConfigItem(keyName = "notifyPatchReady", name = "Herb patch ready", description = "Notify when a herb patch is ready or predicted ready", section = notificationsSection, position = 1)
+	@ConfigItem(keyName = "notifyPatchReady", name = "Patches ready", description = "Notify when a patch category (herbs, trees, ...) becomes ready to harvest", section = notificationsSection, position = 1)
 	default boolean notifyPatchReady() { return true; }
 
-	@ConfigItem(keyName = "notifyDailyReset", name = "Daily reset", description = "Notify at the daily reset when dailies are outstanding", section = notificationsSection, position = 2)
+	@ConfigItem(keyName = "farmingReadyInfoboxes", name = "Ready infoboxes", description = "Show an infobox while a patch category, your bird houses or the farming contract is ready", section = notificationsSection, position = 2)
+	default boolean farmingReadyInfoboxes() { return true; }
+
+	@ConfigItem(keyName = "notifyDailyReset", name = "Daily reset", description = "Notify at the daily reset when dailies are outstanding", section = notificationsSection, position = 3)
 	default boolean notifyDailyReset() { return true; }
 
-	@ConfigItem(keyName = "runwayWarningHours", name = "Runway warning (hours)", description = "Warn when a consumable's runway drops below this many hours", section = notificationsSection, position = 3)
+	@ConfigItem(keyName = "runwayWarningHours", name = "Runway warning (hours)", description = "Warn when a consumable's runway drops below this many hours", section = notificationsSection, position = 4)
 	default int runwayWarningHours() { return 6; }
 
-	@ConfigItem(keyName = "caTierGoal", name = "CA tier goal", description = "Combat Achievements tier to work toward; Auto advances to the next incomplete tier", section = notificationsSection, position = 4)
+	@ConfigItem(keyName = "caTierGoal", name = "CA tier goal", description = "Combat Achievements tier to work toward; Auto advances to the next incomplete tier", section = notificationsSection, position = 5)
 	default CaTierGoal caTierGoal() { return CaTierGoal.AUTO; }
 
-	@ConfigItem(keyName = "caGoalMessages", name = "CA goal progress in chat", description = "On completing a combat task, show points progress toward your tier goal in the chatbox", section = notificationsSection, position = 5)
+	@ConfigItem(keyName = "caGoalMessages", name = "CA goal progress in chat", description = "On completing a combat task, show points progress toward your tier goal in the chatbox", section = notificationsSection, position = 6)
 	default boolean caGoalMessages() { return true; }
 
 	enum CaTierGoal

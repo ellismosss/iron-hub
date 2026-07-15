@@ -79,10 +79,6 @@ public class AccountState implements StateView
 	public static final int MAX_CONSUMPTION_EVENTS = 500;
 	private final java.util.List<PersistedState.ConsumptionEvent> consumptionLog = new CopyOnWriteArrayList<>();
 
-	// last observed herb patch states (farming varbits only sync when the
-	// region loads, so remote views predict from these)
-	private final Map<String, PersistedState.PatchSeen> herbPatchSeen = new ConcurrentHashMap<>();
-
 	/** Periodic account-score snapshots for trend sparklines, capped. */
 	public static final int MAX_SCORE_SNAPSHOTS = 60;
 	private static final long SNAPSHOT_MIN_GAP_MS = 20 * 3_600_000L; // ~daily
@@ -896,51 +892,6 @@ public class AccountState implements StateView
 		notifyListeners();
 	}
 
-	/** Record an observed herb patch state; returns true when it changed. */
-	public boolean recordHerbPatch(String patchId, String state, String herb, int stage)
-	{
-		PersistedState.PatchSeen previous = herbPatchSeen.get(patchId);
-		if (previous != null && previous.state.equals(state)
-			&& previous.herb.equals(herb) && previous.stage == stage)
-		{
-			return false;
-		}
-		PersistedState.PatchSeen seen = new PersistedState.PatchSeen();
-		seen.state = state;
-		seen.herb = herb;
-		seen.stage = stage;
-		seen.timeMs = System.currentTimeMillis();
-		herbPatchSeen.put(patchId, seen);
-		persist();
-		notifyListeners();
-		return true;
-	}
-
-	/** Last observed herb patch state, or null if never seen. */
-	public HerbPatchSeen herbPatchSeen(String patchId)
-	{
-		PersistedState.PatchSeen seen = herbPatchSeen.get(patchId);
-		return seen == null ? null
-			: new HerbPatchSeen(seen.state, seen.herb, seen.stage, seen.timeMs);
-	}
-
-	/** Immutable last-seen view for modules. */
-	public static class HerbPatchSeen
-	{
-		public final String state;
-		public final String herb;
-		public final int stage;
-		public final long timeMs;
-
-		HerbPatchSeen(String state, String herb, int stage, long timeMs)
-		{
-			this.state = state;
-			this.herb = herb;
-			this.stage = stage;
-			this.timeMs = timeMs;
-		}
-	}
-
 	/** Death of the local player: capture location + carried items. */
 	public void recordDeath(net.runelite.api.coords.WorldPoint where)
 	{
@@ -1276,8 +1227,6 @@ public class AccountState implements StateView
 		consumptionLog.addAll(persisted.consumptionLog);
 		deaths.clear();
 		deaths.addAll(persisted.deaths);
-		herbPatchSeen.clear();
-		herbPatchSeen.putAll(persisted.herbPatchSeen);
 		selectedGoals.clear();
 		selectedGoals.addAll(persisted.selectedGoals);
 		caGoals.clear();
@@ -1333,7 +1282,6 @@ public class AccountState implements StateView
 		state.herbRunsMs = new java.util.ArrayList<>(herbRunsMs);
 		state.consumptionLog = new java.util.ArrayList<>(consumptionLog);
 		state.deaths = new java.util.ArrayList<>(deaths);
-		state.herbPatchSeen = new HashMap<>(herbPatchSeen);
 		state.selectedGoals = new HashSet<>(selectedGoals);
 		state.activeGoal = activeGoal;
 		state.caGoals = new HashMap<>(caGoals);
