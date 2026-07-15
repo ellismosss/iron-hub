@@ -1,0 +1,59 @@
+{{Infobox Construction
+|version1 = Regular
+|version2 = Frozen
+|name1 = Restoration pool
+|name2 = Frozen restoration pool
+|image1 = [[File:Restoration pool built.png|250px]]
+|image2 = [[File:Restoration pool (Goblin decorations) built.png|250px]]
+|icon1 = [[File:Restoration pool icon.png]]
+|icon2 = N/A
+|furniturename1 = Pool of Restoration
+|furniturename2 = Frozen Pool of Restoration
+|release1 = [[25 August]] [[2016]]
+|release2 = [[9 December]] [[2020]]
+|update1 = The Construction Expansion
+|update2 = Christmas 2020
+|level = 65
+|experience1 = 706
+|experience2 = 0
+|room = [[Superior garden]]
+|hotspot = [[Pool space]]
+|flatpack = No
+|examine1 = A special mixture that restores special attack.
+|examine2 = A crack in the ice lets you access the special mixture that restores special attack.
+|id1 = 29237
+|id2 = 40844
+|itemid = 20639
+}}
+The '''restoration pool''' can be built in the [[pool space]] of the [[superior garden]] in a [[player-owned house]]. It requires 65 [[Construction]] to build and gives 706 [[experience]] when built. The player must have a [[hammer]] and a [[saw]] in their inventory to build it, and the items cannot be noted. The lowest Construction level required to build the pool is 60 with the use of a +5 [[Temporary skill boost|boost]] from a [[spicy stew]] due to the superior garden requiring 65 and the same spicy stew boost. Rooms in player-owned houses cannot be built with the [[crystal saw]]'s boost.
+
+Players can restore their [[Special attacks|special attack]] energy using this pool. This cannot be done if the player was recently in [[Player killing|PvP]] combat; attempting to do so produces the message, ''"You can't drink from the pool during combat."''
+
+The [[goblin decorations]] can be used on the pool to make a frozen restoration pool; note the decorations must be removed before upgrading the pools.
+
+==Creation==
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 65
+|skill1boostable = Yes
+|skill1exp = 706
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Limestone brick
+|mat1quantity = 5
+|mat2 = Bucket of water
+|mat2quantity = 5
+|mat3 = Soul rune
+|mat3quantity = 1000
+|mat4 = Body rune
+|mat4quantity = 1000
+|output1 = Restoration pool
+|output1pic = Restoration pool icon
+|output1cost = No
+}}
+
+==Products==
+{{Uses material list|Restoration pool}}
+
+{{Superior garden}}

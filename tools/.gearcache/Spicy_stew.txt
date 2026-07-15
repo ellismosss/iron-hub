@@ -1,0 +1,299 @@
+{{External|rs}}
+{{Infobox Item
+|name = Spicy stew
+|image = [[File:Spicy stew.png]]
+|release = [[15 March]] [[2006]]
+|update = Hundredth Quest - Recipe for Disaster!
+|members = Yes
+|quest = [[Recipe for Disaster]]
+|tradeable = No
+|equipable = No
+|stackable = No
+|noteable = No
+|options = Eat, Smell, Destroy
+|destroy = You can make another one by adding evil spices to ordinary stew.
+|examine = It's a meat and potato stew with fancy seasoning.
+|value = 20
+|weight = 1.500
+|id = 7479
+}}
+[[File:Spicy stew detail.png|left|130px]]
+'''Spicy stews''' are [[stew]]s with special coloured [[Spice (disambiguation)|spices]] (from [[Hell-Rat|Hell-Rats]]) added to the stew. They are [[members only]] and can temporarily increase or decrease a player's [[skill]] levels.
+
+Spicy stews are available only to those who have completed the [[Freeing Evil Dave]] [[subquest]] in [[Recipe for Disaster]].
+
+[[Evil Dave]]'s spicy stew, or 'EVIL STEW OF DOOM' as he calls it, requires all 4 colours of spice and can [[boost]] or decrease a wide number of skills which can be -5 to +5. Each of the four colours of spice affects its own specific set of skills, so players making spicy stew after the quest usually only use one colour of spice, to get a temporary boost in a particular skill.
+
+As with all [[temporary skill boost]]s, the spicy stew's level boost can be extended by making use of the [[Preserve]] [[prayer]]. 
+
+==Making the spicy stew==
+*First, obtain a regular [[stew]] (easily purchased from the Grand Exchange, the [[Warriors' Guild]], or the pub in [[Auburnvale]]).
+*Get the spices.
+**Get a [[cat]] (or [[hellcat]]) to chase the [[hell-rat]]s.
+**Go to [[Evil Dave's basement]] in the house west of the [[Edgeville]] bank.
+**When the cat successfully captures a hellrat, it will drop a spice shaker, one of 4 colours, which may have up to 4 doses of that colour in it. After the Evil Dave subquest for [[Recipe for Disaster]] has been completed, you can gather spices much more quickly, using a cat ([[Wily cat|wily]] is best) to attack the [[hell-rat behemoth]]s. These will always give a 4 dose of the specific colour spice they are guarding. 
+***Bring any type of [[fish]] or [[Bucket of milk]]/[[Bottomless milk bucket]] to heal your cat if they are going to die. 
+****You may use the fish or bucket on the curtain or the cat directly. 
+****'''Tips:''' 
+*****[[Raw salmon]] and [[Raw trout|trout]] can be looted in [[Barbarian Village]] on a busy [[server]], or [[raw karambwanji]] can be caught near Shilo Village; which are stackable and don't require banking. They do not have a quest requirement. 
+*****The bottomless milk bucket from [[Brutus]] is another great alternative, and can be filled up with one overnight 6hr session beyond what any account will reasonably use.)
+*Add up to 3 doses of a colour spice to the regular stew to get a spicy stew.
+
+==Spices==
+Each colour spice affects different skill levels by giving them a temporary increase or reduction, similar to taking a [[potions|potion]] except that the effects are random every time. The number of doses added of a colour will determine how much the skills affected by that colour can gain or lose, as noted in the table. This is the ''maximum'' number of levels gained or lost. For example, if a [[stew]] contains two doses of [[red spice]], each of the skills affected by red spice may gain or lose between 0 and 3 levels. Evil Dave's spicy stew (for the quest) takes all 4 coloured spices and needs to be approved by Evil Dave. You can make and eat spicy stew with only one colour of spice in it.
+
+'''Note:''' The maximum positive skill boost for eating multiple spicy stews cannot exceed the maximum boost for one stew of that type (see [[#Eating multiple stews|Eating multiple stews]] below).
+
+{| class="wikitable" style="text-align:center;"
+! Number of Doses
+! Skill Boost Range
+! Smells like
+|-
+| 1
+| -1 to +1
+| A little
+|-
+| 2
+| -3 to +3
+| Some
+|-
+| 3
+| -5 to +5
+| A lot
+|}
+
+'''Locations of each spice:'''
+
+{| class="wikitable" style="text-align:center;"
+!
+! Spice
+! Hell-Rat Behemoth Location
+|-
+| [[File:Red spice (4).png]]
+|[[Red spice|Red]]
+| Northern-most Room
+|-
+| [[File:Orange spice (4).png]]
+|[[Orange spice|Orange]]
+| North-western Room
+|-
+| [[File:Yellow spice (4).png]]
+|[[Yellow spice|Yellow]]
+| South-western Room
+|-
+| [[File:Brown spice (4).png]]
+|[[Brown spice|Brown]]
+| Southern-most Room
+|}
+{{Map:Spicy stew spices}}
+'''Note:''' Each successful cat fight will always give you a 4 dose spice [''ex. ''Brown spice (4)].
+
+If going for a boost (that can be done at [[Ferox Enclave]], such as making potions), it is recommended to use the [[Pool of Refreshment]] at Ferox Enclave to restore any negative stats in between stews. If you have an action that has to be done at a specific location, such as [[thieving]] from a particular chest, you will need to stat-boost there. You could bring spices for multiple stews, and take a dose of [[Super restore]] or use a [[Sunlight moth (item)|Sunlight moth]] in between attempts to return any negative stats. You could also wait a minute or two with the [[Rapid Restore]] [[prayer]] on to remove the negative bonus. Alternatively, if the player has built a [[Fancy rejuvenation pool]] or [[Ornate rejuvenation pool]] in their player-owned house, using the pool to restore drained stats may be desirable.
+
+Each boosted skill is random; if you get a +5 boost, it will not be +5 in all the skills that spice boosts. For example, if you use the red spice, the [[Attack]] stat might get a +4 boost, while the [[Strength]] stat might get -2.
+{{clear|left}}
+=== Skills affected ===
+The skills affected by each colour of spice are as follows:
+
+{{Spicy stew table}}
+
+==Eating multiple stews==
+Only one spicy stew can be made at a time, but the player can have several normal [[stew]]s in their inventory along with several spices and mix the next one right after consuming the previously-made spicy stew.
+
+As with all player temporary skill boosts, spicy stews will not boost higher than the player's natural skill level plus the (maximum) regular boost amount (+5 in the case of a spicy stew). Stew boosts applied to drained stats are only applied with respect to the drained skill level, so restore a drained skill before attempting another stew boost. Stew boosts applied to an already boosted skill can only boost according to the natural skill level; boosts do not accumulate, but larger boosts will replace smaller ones, so there is no risk nor advantage to attempting a stew boost on an already boosted skill.
+
+This boost gain limitation also applies to other player temporary boosts. However, some other boosts will stack with spicy stews, although not many. [[Crystal saw]]s stack with stews (and with any other boost) because they do not actually boost your level; they simply allow you to build most constructed items ''as if'' your skill were three levels higher than it actually is, so they can be used with spicy stews for a maximum possible boost of +8.
+
+When trying to obtain a boost, it is important to note where the [[Temporary skill boost#Boost cycle|timer]] is for your skills to decay back to their normal levels. '''It is important to note that combat and non-combat skills do not share the same timer'''. To get the most time for the boost, players can increase another non-combat stat with another cheap method such as a [[garden pie]] or [[Dragon axe]]'s [[special attack]], then wait until those boosted stat drop, which will mean there will be another 60 seconds until the next drop. Players may also choose to activate the [[Preserve]] prayer if unlocked, which will extend the duration of stat boosts by 50%.
+
+How useful spicy stew is for any given skill depends on what boost you could have used without the stew, and how much effort it would have taken you to train an extra level in the skill instead. For many skills, at a low level, you may find that the time and effort of collecting enough spices to receive a +5 boost - for the one-off task you need to perform - is so much that it would have been almost as quick to train two extra levels and settle for a +3 boost, which is likely to require far fewer attempts to get. Whether it is worth it depends also on what alternative boosts are available. For example, [[Runecraft]] can be raised +2 by speaking with [[Oldak]], but beyond that the only boost that exists is a spicy stew, so aiming for the +3, +4, and +5 are valuable uses for the stew. For [[Agility]] and [[Fishing]] on the other hand, +5 boosts are easily obtainable with [[pies]], so for these skills the stew is of relatively little value. These boosts may be useful for [[Achievement Diary]] tasks where, for example, getting from level 91 to 96 via training will be time-consuming.
+
+==Probability==
+When a stew is eaten, two rolls are made per affected stat. The first roll determines whether it's a positive or a negative bonus. The second roll is a range, 0 to (2N-1) inclusive, where N is the number of spices in the stew. As a result of these two rolls, the boost distribution is nearly uniform, with the only exception being 0 (due to positive and negative 0 being identical).
+
+Because of this, it can sometimes be more efficient to use more spice doses per stew. For a desired boost of +3, using 3-dose stews instead of 2-dose stews requires 12.5% fewer spice doses.
+
+{| class="wikitable" style="text-align:center;"
+! rowspan="2" style=width:40px |Spice<br>Doses
+! colspan="13" |Chance of exactly +X boost
+|-
+!-5!!-4!!-3!!-2!!-1!!0!!+1!!+2!!+3!!+4!!+5
+|-
+!1
+| -||-||-||-||25%||50%||25%||-||-||-||-
+|-
+!2
+| -||-||12.5%||12.5%||12.5%||25%||12.5%||12.5%||12.5%||-||-
+|-
+!3
+|8.3%||8.3%||8.3%||8.3%||8.3%||16.7%||8.3%||8.3%||8.3%||8.3%||8.3%
+|}
+
+{| class="wikitable" style="text-align:center;width:500px"
+! rowspan="2" style=width:40px|Spice<br>Doses
+! colspan="7" |Chance of at least +X boost
+|-
+!&#8804;0!!&#8805;+1!!&#8805;+2!!&#8805;+3!!&#8805;+4!!+5
+|-
+!1
+|75%||25%||-||-||-||-
+|-
+!2
+|62.5%||37.5%||25%||12.5%||-||-
+|-
+!3
+|58.3%||41.7%||33.3%||25%||16.7%||8.3%
+|}
+
+{| class="wikitable" style="text-align:center;width:500px"
+! rowspan="2" style=width:40px|Spice<br>Doses
+! colspan="6" |Average Spice Doses needed for +X boost
+|-
+!&#8805;+1!!&#8805;+2!!&#8805;+3!!&#8805;+4!!+5
+|-
+!1
+||'''4'''||-||-||-||-
+|-
+!2
+||5.3||'''8'''||16||-||-
+|-
+!3
+||7.2||9||'''12'''||'''18'''||'''36'''
+|}
+
+=== Probability vs guaranteed boosts ===
+The following table combines the above tables with a comparison to the best guaranteed boosts in a skill. ''Italics'' indicate a non-consumable item which may be significantly more expensive than other sources of temporary boosts.
+
+{| class="wikitable" style="text-align:center"
+! Spice !! Skill !! colspan=2 | Guaranteed boost !! Doses !! Chance of ≥X !! Average doses
+|-
+| rowspan=8 | [[File:Red spice (4).png]] [[Red spice|Red]]
+| {{SCP|Attack}} || ≥+5 || [[Super attack]] || - || 0% || -
+|-
+| {{SCP|Strength}} || ≥+5 || [[Super strength]] || - || 0% || -
+|-
+| {{SCP|Defence}} || ≥+5 || [[Super defence]] || - || 0% || -
+|-
+| {{SCP|Ranged|1-9}} || +4 || rowspan=2 | [[Ranging potion]] || 3 || 8.3% || 36
+|-
+| {{SCP|Ranged|10+}} || ≥+5 || - || 0% || -
+|-
+| {{SCP|Magic|1-24}} || +4 || [[Magic potion]] || 3 || 8.3% || 36
+|-
+| {{SCP|Magic|25+}} || ≥+5 || [[Forgotten brew]] || - || 0% || -
+|-
+| {{SCP|Magic|10+}} || ≥+5 || ''[[Saturated heart]]'' || - || 0% || -
+|-
+| rowspan=19 | [[File:Orange spice (4).png]] [[Orange spice|Orange]]
+| {{SCP|Smithing}} || +4 || [[Kovac's grog]] || 3 || 8.3% || 36
+|-
+| {{SCP|Crafting}} || +4 || [[Mushroom pie]] || 3 || 8.3% || 36
+|-
+| {{SCP|Fletching}} || +4 || [[Dragonfruit pie]] || 3 || 8.3% || 36
+|-
+| rowspan=2 | {{SCP|Runecraft}}
+| rowspan=2 | +1 
+| rowspan=2 | [[Metztonalli white]]
+| 2 || 25% || 8
+|-
+| 3 || 33.3% || 9
+|-
+| {{SCP|Cooking|1-19}} || +2 || [[Whirlpool surprise]] || 3 || 25% || 12
+|-
+| {{SCP|Cooking|20-39}} || +2
+| rowspan=4 | [[Chef's delight (m)]] || 3 || 25% || 12
+|-
+| {{SCP|Cooking|40-59}} || +3 || 3 || 16.7% || 18
+|-
+| {{SCP|Cooking|60-79}} || +4 || 3 || 8.3% || 36
+|- 
+| {{SCP|Cooking|80+}} || +5 || - || 0% || -
+|-
+| rowspan=3 | {{SCP|Construction|1-5}}
+| rowspan=3 colspan=2 | None
+| 1 || 25% || 4
+|-
+| 2 || 37.5% || 5.3
+|-
+| 3 || 41.7% || 7.2
+|-
+| rowspan=2 | {{SCP|Construction|6-22}}
+| rowspan=2 | +1
+| rowspan=2 | [[Cup of tea (clay)]]
+| 2 || 25% || 8
+|-
+| 3 || 33.3% || 9
+|-
+| {{SCP|Construction|23-66}} || +2 || [[Cup of tea (porcelain)]] || 3 || 25% || 12
+|-
+| {{SCP|Construction|67+}} || +3 || [[Cup of tea (trimmed)]] || 3 || 16.7% || 18
+|-
+| rowspan=2 | {{SCP|Firemaking}}
+| rowspan=2 | +1 
+| rowspan=2 | [[Chilhuac red ]]
+| 2 || 25% || 8
+|-
+| 3 || 33.3% || 9
+|-
+| rowspan=14 | [[File:Yellow spice (4).png]] [[Yellow spice|Yellow]]
+|-
+| {{SCP|Agility}} || +5 || [[Summer pie]] || - || 0% || -
+|-
+| {{SCP|Hunter}} || +6 || [[Super hunter potion]] || - || 0% || -
+|-
+| {{SCP|Slayer}} || +5 || [[Wild pie]] || - || 0% || -
+|-
+| rowspan=2 | {{SCP|Thieving|1-44}}
+| rowspan=2 | +1 
+| rowspan=2 | [[Bandit's brew]]
+| 2 || 25% || 8
+|-
+| 3 || 33.3% || 9
+|-
+| {{SCP|Thieving|45-64}} || +2 || [[Autumn sq'irkjuice]] || 3 || 25% || 12
+|-
+| {{SCP|Thieving|65+}} || +3 || [[Summer sq'irkjuice]] || 3 || 16.7% || 18
+|-
+| {{SCP|Prayer}} || +2 || [[Nature Grotto]] altar || 3 || 25% || 12
+|-
+| rowspan=3 | {{SCP|Sailing|1-30}}
+| rowspan=3 colspan=2 | None
+| 1 || 25% || 4
+|-
+| 2 || 37.5% || 5.3
+|-
+| 3 || 41.7% || 7.2
+|-
+| {{SCP|Sailing|30-77}} || +3 || [[Whirlpool surprise]] || 3 || 16.7% || 18
+|-
+| {{SCP|Sailing|78+}} || +4 || [[Horizon's lure]] || 3 || 8.3% || 36
+|-
+| rowspan=7 | [[File:Brown spice (4).png]] [[Brown spice|Brown]]
+| rowspan=2 | {{SCP|Woodcutting}} || +2 || [[Axeman's folly(m)]] || 3 || 25% || 12
+|-
+| +3 || ''[[Dragon axe]]'' ({{SCP|Attack|60+}}) || 3 || 16.7% || 18
+|-
+| {{SCP|Farming}} || +3 || [[Garden pie]] || 3 || 16.7% || 18
+|-
+| {{SCP|Fishing}} || +6 || [[Super fishing potion]] || - || 0% || -
+|-
+| rowspan=2 | {{SCP|Mining}} || +2 || [[Dwarven stout(m)]] || 3 || 25% || 12
+|-
+| +3 || ''[[Dragon pickaxe]]'' ({{SCP|Attack|60+}}) || 3 || 16.7% || 18
+|-
+| {{SCP|Herblore}} || +4 || [[Botanical pie]] || 3 || 8.3% || 36
+|}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 12 February 2007
+|update = A sq'irk a day...
+|change = The "Drop" option was replaced with a "Destroy" option.
+}}
+{{Subject changes footer}}
+
+{{Freeing Evil Dave}}
+{{Bowls}}
+[[Category:Food]]
+[[Category:Temporary skill boost]]

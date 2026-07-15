@@ -298,6 +298,16 @@ public class Router
 			resources = resources(method, grossRemaining);
 			alternatives = alternatives(node, projection, bankRemaining, method, grossRemaining);
 		}
+		else if (node.materials != null && !node.materials.isEmpty())
+		{
+			List<Plan.Resource> out = new ArrayList<>();
+			for (com.ironhub.data.GearProgressionPack.Material material : node.materials)
+			{
+				out.add(new Plan.Resource(material.getItemId(), material.getName(),
+					material.getQty(), base.canonicalStock(material.getItemId())));
+			}
+			resources = out;
+		}
 		String why = why(node, projection, hours);
 		applyEffects(node, projection, bankRemaining);
 		return new Plan.Step(node, hours, why, chapter(node), methodName, methodId, methodStyle,
@@ -489,6 +499,16 @@ public class Router
 				{
 					return "POH furniture can't be detected — right-click to mark built"
 						+ " (also on the gear chart). Serves " + goals;
+				}
+				if (node.unlockKey.startsWith("catask_"))
+				{
+					return "Completes automatically when the task is done in-game"
+						+ " (Combat achievements tab). Serves " + goals;
+				}
+				if (node.unlockKey.startsWith("diarytask_"))
+				{
+					return "Completes automatically when the task is done in-game"
+						+ " (Diaries tab). Serves " + goals;
 				}
 				return "Can't detect this — right-click to mark done. Serves " + goals;
 			case OBTAIN:

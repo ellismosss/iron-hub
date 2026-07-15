@@ -1,0 +1,93 @@
+{{External|rs}}
+{{Infobox Construction
+|name = Basic jewellery box
+|image = [[File:Basic jewellery box built.png|200px]]
+|icon = [[File:Basic jewellery box icon.png]]
+|furniturename = Basic Jewellery Box
+|release = [[25 August]] [[2016]]
+|update = The Construction Expansion
+|level = 81
+|experience = 605
+|room = [[Achievement Gallery]]
+|hotspot = [[Jewellery box space]]
+|flatpack = No
+|options = Teleport Menu, [previous teleport destination], Remove
+|examine = A steel box featuring some enchanted sapphire and emerald jewellery.
+|id = 37492,37493,37494,37495,37496,37497,37498,37499,37500,50710
+|itemid = 20626
+}}
+The '''basic jewellery box''' can be built in the [[jewellery box space]] of the [[achievement gallery]] in a [[player-owned house]]. It requires 81 [[Construction]] to build and gives 605 [[experience]] when built. The player must have a [[hammer]] and a [[saw]] in their inventory to build it.
+
+The basic jewellery box is often built as a cheaper and easier alternative to replenish health, prayer, and run energy (but not special attack) than a [[fancy rejuvenation pool]] or [[desert amulet 4]]; due to the ability to use the [[Ferox Enclave]] teleport provided by the [[ring of dueling]] to allow easy access to the [[free-for-all portal]] and the [[Pool of Refreshment|pool of refreshment]]. The lowest level a basic jewellery box can be made is level 75 Construction, as level 80 Construction is needed to build the achievement gallery with a +5 boost from a [[spicy stew]]. The +3 boost from a [[crystal saw]] cannot be used to build the achievement gallery, however this boost can be used to build any level of jewellery box.
+
+==Creation==
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 81
+|skill1boostable = Yes
+|skill1exp = 605
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Bolt of cloth
+|mat2 = Steel bar
+|mat3 = Ring of dueling(8)
+|mat3quantity = 3
+|mat4 = Games necklace(8)
+|mat4quantity = 3
+|output1 = Basic jewellery box
+|output1pic = Basic jewellery box icon
+|output1cost = 0
+}}
+
+==Products==
+{{Uses material list|Basic jewellery box}}
+
+==Locations==
+The box will allow players to teleport to the following locations (keyboard shortcuts included):
+{|class="wikitable" style="text-align:left;"
+!Item
+!Location
+|-
+| rowspan="4" |{{plink|Ring of dueling}}
+|1. [[Emir's Arena]]
+|-
+|2. [[Castle Wars]] Arena
+|-
+|3. [[Ferox Enclave]]
+|-
+|4. [[Fortis Colosseum]]
+|-
+| rowspan="5" |{{plink|Games necklace}}
+|5. [[Burthorpe]]
+|-
+|6. [[Barbarian Outpost]]
+|-
+|7. [[Corporeal Beast]]
+|-
+|8. [[Chasm of Tears]]
+|-
+|9. [[Wintertodt Camp]]
+|}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 10 July 2024
+|update = While Guthix Sleeps
+|change = Jewellery boxes now refer to the previous teleport destination as "[[Emir's Arena]]" rather than "PvP Arena" in the options menu.
+}}
+{{Subject changes
+|date = 23 July 2020
+|update = Poll 71 and Ferox Enclave Updates
+|change = Jewellery boxes now correctly refers to the previous teleport destination as "[[Ferox Enclave]]" rather than "Clan Wars" in the options menu.
+}}
+{{Subject changes
+|date = 5 December 2019
+|update = Game Improvements and Nightmare Beta Changes
+|poll = Old School Content Poll 69: Game Improvements
+|change = Players can now teleport to their previous destination by right-clicking the jewellery box.
+}}
+{{Subject changes footer}}
+
+{{Achievement gallery}}

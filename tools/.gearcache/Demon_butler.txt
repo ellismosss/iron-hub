@@ -1,0 +1,93 @@
+{{Otheruses|def=no|the Butler's Bell relic butler|Demon butler (Butler's Bell)|the NPC in Yama's Lair|Demon butler (Demonic Pacts League)}}
+{{External|rs}}
+{{Infobox NPC
+|version1 = Normal
+|version2 = Demonic Pacts outfit
+|name = Demon butler
+|image1 = [[File:Demon butler.png|120px]]
+|image2 = [[File:Demon butler (Demonic Pacts League).png|120px]]
+|release1 = [[31 May]] [[2006]]
+|release2 = [[15 April]] [[2026]]
+|update1 = PLAYER-OWNED HOUSES!
+|update2 = Leagues VI: Demonic Pacts - Launches Today!
+|members = Yes
+|race = [[Demon]]
+|location = [[Player-owned house]] or [[Servants' Guild]]
+|shop = None
+|gender = Male
+|options = Talk-to
+|examine1 = Blimey, a Demon Butler!
+|examine2 = Blimey, a Demon Butler!
+|map = {{Map|name=Demon butler|x=2667|y=3332|plane=0|r=6|mtype=square}}
+|id1 = 229,7331
+|id2 = 15636,15637,15711
+|leagueRegion = Kandarin
+}}
+{{Synced switch
+|version1 = [[File:Demon butler chathead.png|left]]
+|version2 = [[File:Demon butler (Demonic Pacts League) chathead.png|left]]
+}}
+
+'''Alathazdrar''' the '''demon butler''' is a [[servant]] that players with at least level 50 [[Construction]] can hire to do various services in their [[player-owned house]]. Alathazdrar has the highest wage at {{Coins|10000}}. Players must pay him the wage every eight uses of his services making him cost {{Coins|{{#expr:10000/8 round 0}}}} per service. Alathazdrar has inventory space for 26 items and a trip time of 12 [[game tick|ticks]] (7.2 seconds).
+
+If asked to serve dinner, he will provide [[curry]] for players seated at a table in a [[dining room]].
+
+Players can use the [[Demonic pacts demon butler scroll]] to unlock an alternative outfit for him, and can make him wear it by talking to him.
+
+==History==
+Alathazdrar began his trade as a servant to [[demon]] lords; his previous clients include [[Thammaron]] and [[Delrith]]. He has also spent some time as ferryman in the Grim Underworld. However, he claims to have grown tired of "the incessant shadows and hellfire" and as a result departed from the Underworld to seek out [[human]] employers. Alathazdrar ended up as a member of the Servants' Guild in Ardougne, and is the most accomplished servant for hire there.
+
+==Hiring==
+{{Hiring servants|Alathazdrar}}
+
+==Services==
+{{Servant services|name=The demon butler|food=curry}}
+
+At current prices, it will result in a net profit of {{Coins|(8*{{GEP|curry}})-10000}} if all eight services are used to get curry.
+
+==Use in Construction==
+When a player builds [[oak larder]]s to train Construction and has noted planks and 8 planks (unnoted) remaining in their inventory, the Demon Butler can take 24 planks to be unnoted and return timely, whilst the player builds the next larder. This allows the player to continuously build larders for Construction experience. Depending on latency and skill, some players might find it easier to have him bring them 16 oak planks per trip instead. This can also be done with 16 (unnoted) planks remaining if you are quick enough. Have the Demon Butler bring back 24 planks and it is possible to make 2 larders and remove them in time before he returns.
+
+== Payment ==
+Servants only accept money directly from the player's inventory or by storing coins in a [[servant's money bag]].
+
+After using a servant's paid services eight times, players are required to either pay or fire them. The servant cannot be used for anything else before the payment is made; the servant will temporarily keep the items and will not give them until the player pays. Any items that the servant is holding will be deposited in the bank if the player leaves the house or if the servant is fired.
+
+==Dialogue==
+{{hastranscript|NPC}}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 22 November 2018
+|update = Bird Nest Balancing and PvP Changes
+|change = Players may now fire their servants by talking to the chief servant in Ardougne.
+}}
+{{Subject changes
+|date = 6 November 2006
+|update = Enlightened Journey
+|change = The NPC was graphically updated.
+}}
+{{Subject changes footer}}
+===Gallery (historical)===
+{|style="text-align: center" cellpadding="15"
+|[[File:Demon butler (historical).png|center|300x150px]]
+|[[File:Demon butler.png|center|300x150px]]
+|-
+|[[File:Demon butler chathead (historical).png|center]]
+|[[File:Demon butler chathead.png|center]]
+|-
+|31 May 2006 –<br/>6 November 2006
+|6 November 2006 –<br/>present
+|}
+
+==Trivia==
+*He has a similar appearance and chathead to [[Sergeant Damien]], the [[Drill Demon|drill demon]].
+*Alathazdrar is one of the very few demons in [[Old School RuneScape|''Old School RuneScape'']] who is friendly to players.
+
+==References==
+{{Reflist}}
+
+{{Servants}}
+{{Demons}}
+{{East Ardougne}}

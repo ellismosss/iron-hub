@@ -1,0 +1,81 @@
+{{Infobox Construction
+|version1 = Regular
+|version2 = Christmas
+|version3 = Raging Echoes
+|name = Spirit tree & fairy ring
+|image1 = [[File:Spirit tree & fairy ring.png|200px]]
+|image2 = [[File:Spirit tree & fairy ring (Goblin decorations) built.png|200px]]
+|image3 = [[File:Spiritual Fairy Tree (Raging Echoes) built.png|200px]]
+|icon1 = [[File:Spirit tree & fairy ring icon.png]]
+|icon2 = [[File:Spirit tree (Construction, Christmas) icon.png]]
+|icon3 = [[File:Spirit tree & fairy ring (Raging Echoes) icon.png]]
+|furniturename = Spiritual Fairy Tree
+|release1 = [[25 August]] [[2016]]
+|release2 = [[9 December]] [[2020]]
+|release3 = [[15 January]] [[2025]]
+|update1 = The Construction Expansion
+|update2 = Christmas 2020
+|update3 = Leagues V: Raging Echos Rewards Are Here
+|level = 95 (83 [[Farming]])
+|experience1 = 1,770 (885 [[Farming]], 885 [[Construction]])
+|experience2 = 0
+|experience3 = 0
+|room = [[Superior garden]]
+|hotspot = [[Teleport space]]
+|flatpack = No
+|examine1 = A young sentient tree surrounded by a fairy ring.
+|examine2 = An old sentient tree surrounded by a fairy ring.
+|examine3 = A young sentient tree, imbued with raging spirits and surrounded by a fairy ring.
+|id1 = 29229
+|id2 = 40779
+|id3 = 27097
+|itemid1 = 20637
+|itemid2 = 30495
+|itemid3 = 30500
+}}
+The '''spirit tree & fairy ring''' can be built in the [[teleport space]] of the [[superior garden]] in a [[player-owned house]]. It requires 95 [[Construction]], 83 [[Farming]], and a [[watering can]] to build and when built, it gives 885 Construction and Farming [[experience]]. Players can teleport to other [[fairy rings]] and [[spirit trees]] using this teleportation space. Other players can use the tree-ring, provided they have met the requirements to do so. This does not count towards the number of spirit trees a player may own.
+
+A set of [[goblin decorations]] can be used on the tree to make a Christmas-themed spiritual fairy tree, or a [[Raging echoes spirit tree scroll]] to make a [[Raging Echoes League]]-themed tree. Using a [[spade]] on the tree while in building mode allows the player to rotate it. The [[Raging echoes spirit tree scroll]] can be removed by attempting to remove the spirit tree in build mode.
+
+The minimum levels a spirit tree & fairy ring can be built at are 90 Construction (with use of a [[spicy stew]]) and 78 Farming (also with the use of a spicy stew). A [[crystal saw]] cannot be used. Otherwise, the alternative is making 2 superior gardens and planting the [[Spirit tree (Construction)|tree]] and [[Fairy ring (Construction)|fairy ring]] separately, which requires level 75 Construction and 85 Construction respectively.
+
+Compared with an ordinary [[Fairy ring (Construction)|fairy ring]] in a player-owned-house, the spirit tree & fairy ring does not have a right-click favourites menu. The loss of this feature may be a reason to prefer a separate ring and tree as opposed to the combined version.
+
+==Creation==
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 95
+|skill1boostable = Yes
+|skill1exp = 885
+|skill2 = Farming
+|skill2lvl = 83
+|skill2boostable = Yes
+|skill2exp = 885
+|members = Yes
+|ticks = 5
+|tools = Watering can
+|mat1 = Spirit sapling
+|mat1cost = 0
+|mat2 = Mushroom
+|mat2quantity = 10
+|mat2quantitynote = Mushrooms must be unnoted.
+|mat3 = Fairy enchantment
+|mat3cost = 100
+|output1 = Spirit tree & fairy ring
+|output1pic = Spirit tree & fairy ring icon
+|output1cost = 0
+}}
+
+==Dialogue==
+{{hastranscript|npc|Transcript:Spirit tree (Construction)}}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 22 January 2025
+|update = Bank QoL & Mini Menu Improvements
+|change = Players can now use a spade on their PoH spirit tree to rotate it.
+}}
+{{Subject changes footer}}
+
+{{Superior garden}}

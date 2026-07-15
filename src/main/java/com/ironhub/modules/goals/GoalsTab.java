@@ -76,8 +76,36 @@ class GoalsTab extends JPanel
 	}
 
 	/** Item sprite (scaled to row height) applied async; no-op headless. */
+	private static javax.swing.Icon bundledIcon(String resource)
+	{
+		java.net.URL url = GoalsTab.class.getResource(resource);
+		if (url == null)
+		{
+			return null;
+		}
+		javax.swing.ImageIcon icon = new javax.swing.ImageIcon(url);
+		return new javax.swing.ImageIcon(
+			icon.getImage().getScaledInstance(-1, 15, java.awt.Image.SCALE_SMOOTH));
+	}
+
+	private static final javax.swing.Icon CA_ICON =
+		bundledIcon("/data/icons/combat_achievements.png");
+	private static final javax.swing.Icon DIARY_ICON =
+		bundledIcon("/data/icons/achievement_diaries.png");
+
 	private void applyIcon(GoalsPack.Goal goal, java.util.function.Consumer<javax.swing.Icon> setter)
 	{
+		// CA and diary goals wear their system's wiki badge
+		if (goal.getId().startsWith("ca:") && CA_ICON != null)
+		{
+			setter.accept(CA_ICON);
+			return;
+		}
+		if (goal.getId().startsWith("diary:") && DIARY_ICON != null)
+		{
+			setter.accept(DIARY_ICON);
+			return;
+		}
 		Integer itemId = goal.icon();
 		if (itemId == null || itemManager == null)
 		{

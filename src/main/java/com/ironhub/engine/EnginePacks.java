@@ -20,6 +20,7 @@ public class EnginePacks
 	private final Map<String, QuestsPack.QuestEntry> questByName = new HashMap<>();
 	private final Map<Integer, GearProgressionPack.Item> gearByCanonicalId = new HashMap<>();
 	private final Map<String, String> gearNameByMarkKey = new HashMap<>();
+	private final Map<String, GearProgressionPack.Item> gearByMarkKey = new HashMap<>();
 
 	public EnginePacks(QuestsPack quests, MethodsPack methods, EffectsPack effects,
 		GearProgressionPack gear)
@@ -50,6 +51,7 @@ public class EnginePacks
 							ItemVariationMapping.map(item.getItemId()), item);
 					}
 					gearNameByMarkKey.putIfAbsent(item.markKey(), item.getName());
+					gearByMarkKey.putIfAbsent(item.markKey(), item);
 				})));
 		}
 	}
@@ -62,6 +64,12 @@ public class EnginePacks
 	public GearProgressionPack.Item gearItem(int itemId)
 	{
 		return gearByCanonicalId.get(ItemVariationMapping.map(itemId));
+	}
+
+	/** The gear entry behind a manual mark key, or null. */
+	public GearProgressionPack.Item gearItemByMarkKey(String key)
+	{
+		return gearByMarkKey.get(key);
 	}
 
 	/** Human name for an unlock key, or null when unknown. */

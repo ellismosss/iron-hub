@@ -1,0 +1,127 @@
+{{Infobox Construction
+|version1 = Regular
+|version2 = Raging Echoes
+|name = Crystalline portal nexus
+|image1 = [[File:Crystalline portal nexus built.gif]]
+|image2 = [[File:Crystalline portal nexus (Raging Echoes) built.gif]]
+|icon1 = [[File:Crystalline portal nexus icon.png]]
+|icon2 = [[File:Crystalline portal nexus (Raging Echoes) icon.png]]
+|furniturename = Portal Nexus
+|release1 = [[8 November]] [[2018]]
+|release2 = [[15 January]] [[2025]]
+|update1 = The Portal Nexus
+|update2 = Leagues V: Raging Echos Rewards Are Here
+|level = 92
+|experience1 = 2,600
+|experience2 = 0
+|room = [[Portal nexus]]
+|hotspot = [[Portal nexus space]]
+|flatpack = No
+|examine1 = A gateway to your dreams.
+|examine2 = A raging gateway to your dreams.
+|id1 = 33410
+|id2 = 56075
+|itemid1 = 22707
+|itemid2 = 30497
+}}
+The '''crystalline portal nexus''' can be built in the [[portal nexus space]] of the [[portal nexus]] in a [[player-owned house]]. It requires 92 [[Construction]] to build and gives 2,600 [[experience]] when built. The player must have a [[hammer]] and a [[saw]] in their inventory to build it, meaning it can be built at 84 construction through the use of a [[crystal saw]] and a +5 [[spicy stew]] boost.
+
+The crystalline portal nexus can be directed to '''forty-one''' locations of a player's choosing, in which each destination directed requires 1,000 times the required [[runes]] for casting the [[teleport]] spell. Refer to the [[Portal nexus#Adding a teleport|Adding a teleport]] page for estimated rune cost per teleport and relevant information on upgrading.
+
+The crystalline portal nexus can be redecorated into a [[Raging Echoes League]]-themed portal nexus by using the [[Raging echoes nexus scroll]] on it.
+
+==Creation==
+===Upgrade===
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 92
+|skill1boostable = Yes
+|skill1exp = 2,600
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Gilded portal nexus
+|mat1pic = Gilded portal nexus icon
+|mat1cost = 0
+|mat2 = Magic stone
+|mat2quantity = 2
+|mat3 = Gold leaf
+|mat3quantity = 2
+|output1 = Crystalline portal nexus
+|output1pic = Crystalline portal nexus icon
+|output1cost = 0
+|output1subtxt = Upgrade
+}}
+
+===Total===
+''The experience shown is the total amount accumulated from the base furniture to this built furniture.''
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 92
+|skill1boostable = Yes
+|skill1exp = 7,200
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Marble block
+|mat1quantity = 8
+|mat2 = Magic stone
+|mat2quantity = 2
+|mat3 = Gold leaf
+|mat3quantity = 4
+|output1 = Crystalline portal nexus
+|output1pic = Crystalline portal nexus icon
+|output1cost = 0
+|output1subtxt = Total
+}}
+
+==Gallery==
+<gallery>
+File:Crystalline portal nexus built.png|Static render of the crystalline portal nexus
+File:Crystalline portal nexus (Raging Echoes) built.png|Static render of the Raging Echoes League crystalline portal nexus
+</gallery>
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 25 February 2026
+|update = Cow Boss is Out Today!
+|change = The amount of destinations that can be added has been increased from 31 to 41.
+}}
+{{Subject changes
+|date = 19 November 2025
+|update = Sailing is OUT TODAY!
+|change = The sizes of portal nexuses have been decreased.
+}}
+{{Subject changes
+|date = 3 April 2024
+|update = Varlamore Tweaks & Drop Rates
+|change = The amount of destinations that can be added has been increased from 30 to 31.
+}}
+{{Subject changes footer}}
+
+===Gallery (historical)===
+<tabber>
+Regular=
+{|style="text-align: center" cellpadding="15"
+|[[File:Crystalline portal nexus built v1.png|center|300x150px]]
+|[[File:Crystalline portal nexus built.png|center|300x150px]]
+|-
+|8 Nov 2018 –<br/>19 Nov 2025
+|19 Nov 2025 –<br/>present
+|}
+|-|
+Raging Echoes=
+{|style="text-align: center" cellpadding="15"
+|[[File:Crystalline portal nexus (Raging Echoes) built v1.png.png|center|300x150px]]
+|[[File:Crystalline portal nexus (Raging Echoes) built.png|center|300x150px]]
+|-
+|15 Jan 2025 –<br/>19 Nov 2025
+|19 Nov 2025 –<br/>present
+|}
+</tabber>
+
+==Trivia==
+*In the original [[update:Poll Blog: Portal Nexus and More!|Developer's Blog]], it was stated that the crystalline portal nexus would grant 2,060 experience when built, rather than 2,600. In addition, it was supposed to cost the player one [[gold leaf]] instead of two. These are most likely oversights.
+
+{{Portal nexus}}

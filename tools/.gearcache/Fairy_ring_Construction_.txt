@@ -1,0 +1,42 @@
+{{Infobox Construction
+|name = Fairy ring
+|image = [[File:Fairy ring built.png|280px]]
+|icon = [[File:Fairy ring (Construction) icon.png]]
+|furniturename = Fairy ring
+|release = [[25 August]] [[2016]]
+|update = The Construction Expansion
+|level = 85
+|experience = 535
+|room = [[Superior garden]]
+|hotspot = [[Teleport space]]
+|flatpack = No
+|examine = Don't eat any!
+|id = 29228
+|itemid = 20636
+}}
+The '''fairy ring''' is built in the [[teleport space]] of the [[superior garden]] in a [[player-owned house]]. It requires 85 [[Construction]] to build, the [[crystal saw]] boost '''cannot''' be used because no saw is required to build it, but other visible [[Construction boost]]s can be used, making it possible to build at 80 Construction with a +5 boost from [[spicy stew]] or at 82 with a +3 boost from a [[Cup of tea (trimmed)]]. It also requires a [[watering can]] with at least one dose of water, a [[fairy enchantment]], and 10 '''unnoted''' [[mushroom]]s. When built, it yields 535 Construction [[experience]]. If desired, multiple fairy rings are possible in a POH. 
+
+The ring can be used as a place where players can teleport to other [[fairy rings]]. Other players can use the ring, provided they have met the requirements to do so. The code to reach this ring is {{Fairycode|DIQ}}, which only works if the player has one in their house.
+
+The [[fairy enchantment]] required to plant the fairy ring can be purchased from [[Fairy Fixit's Fairy Enchantment]]. Doing so requires full completion of [[Fairytale II - Cure a Queen]].
+
+==Creation==
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 85
+|skill1boostable = Yes 
+|skill1exp = 535
+|members = Yes
+|ticks = 5
+|tools = Watering can
+|mat1 = Mushroom
+|mat1quantity = 10
+|mat2 = Fairy enchantment
+|mat2cost = 100
+|output1 = Fairy ring (Construction)
+|output1pic = Fairy ring (Construction) icon
+|output1txt = Fairy ring
+|output1cost = 0
+}}
+
+{{Superior garden}}

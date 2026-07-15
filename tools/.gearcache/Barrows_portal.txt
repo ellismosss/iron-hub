@@ -1,0 +1,182 @@
+{{External|rs}}
+{{Otheruses|the multi-portal room|the more expensive single-portal room|Portal nexus}}
+{{Infobox Room
+|name = Portal chamber
+|image = [[File:Portal chamber built.png|300px]]
+|release = [[31 May]] [[2006]]
+|update = PLAYER-OWNED HOUSES!
+|icon = [[File:Portal chamber icon.png]]
+|level = 50
+|cost = 100000
+|doors = s
+}}
+A '''portal chamber''' is a room that can be built in a [[player-owned house]]. It requires level 50 [[Construction]] and costs {{Coins|100000}}. Within a Portal Chamber, players can use their [[Magic]] skill to build portals that they and their guests can use to [[Teleportation|teleport]] to various locations around [[Gielinor]].
+
+There are 2 [[hotspot]]s available:
+*[[Centrepiece space]]
+*[[Portal space]]
+
+==Centrepiece==
+A focal centrepiece is required for the house owner to direct the portals. The higher level [[greater teleport focus]] is for cosmetic purpose only, meaning just a [[teleport focus]] will suffice for creating and using all portals. It can be removed after directing portals, to avoid having to walk around it on the way to the portals. The [[scrying pool]] can be used to gaze into areas the player would be teleported to, excluding locations in the [[Wilderness]], where it would instead state the amount of players within the vicinity in the chatbox.
+
+{| class="wikitable lighttable align-left-3" style="text-align:center;"
+!{{SCP|Construction}} Level
+!colspan=2|Centrepiece
+!Materials
+!Experience
+!Cost
+|-
+|50
+|{{plinkt|Teleport focus|pic=Teleport focus icon}}
+|{{plink|Limestone brick}} x2
+|40
+|{{Coins|{{GEP|Limestone brick|2}}}}
+|-
+|65
+|{{plinkt|Greater teleport focus|pic=Greater teleport focus icon}}
+|{{plink|Marble block}}
+|500
+|{{Coins|{{GEP|Marble block}}}}
+|-
+|80
+|{{plinkt|Scrying pool|pic=Scrying pool icon}}
+|{{plink|Marble block}} x4
+|2,000
+|{{Coins|{{GEP|Marble block|4}}}}
+|}
+
+==Portals==
+''The higher tier versions are just cosmetic upgrades.''
+{| class="wikitable lighttable align-left-3" style="text-align:center;"
+!{{SCP|Construction}} Level
+!colspan=2|Portal frame
+!Materials
+!Experience
+!Cost
+|-
+|50
+|{{ilinkt|Teak portal}}
+|{{plink|Teak plank}} x3
+|270
+|{{Coins|{{GEP|Teak plank|3}}}}
+|-
+|65
+|{{ilinkt|Mahogany portal}}
+|{{plink|Mahogany plank}} x3
+|420
+|{{Coins|{{GEP|Mahogany plank|3}}}}
+|-
+|80
+|{{ilinkt|Marble portal}}
+|{{plink|Marble block}} x3
+|1,500
+|{{Coins|{{GEP|Marble block|3}}}}
+|-
+|80
+|{{ilinkt|Raging echoes portal}}{{Efn|The raging echoes portal is an upgrade from an existing marble portal.}}
+|{{plink|Raging echoes portal scroll}} x1
+|0
+|{{Coins|{{GEP|Raging echoes portal scroll}}}}
+|}
+{{Notelist}}
+
+==Directing a portal==
+The house owner can use the centrepiece to direct portals to a specific teleport destination. The table below shows the possible locations and their costs.
+[[File:Directing portal.gif|frame|A player directing a portal to a specific location.]]
+[[File:Portal chamber portal replace.gif|frame|A portal being directed to a new location]]
+Notes:
+
+*Using the centrepiece will provide a list of portals numbered 1 to 3.
+** Location 1 is the portal to the left of the door when walking into the portal chamber.
+** Location 2 is directly opposite of the door. 
+** Location 3 is the portal to the right of the door when walking into the portal chamber.
+*Assigning a portal to a teleport destination costs 100 times the runes for that particular [[Teleportation spells|teleport spell]].
+*Directing a portal requires the same Magic level and quest requirements as casting the spell.
+*The caster does '''not''' need to be on the same spellbook as the teleport spell they are directing, provided they have unlocked it. For example, a player can direct a portal to [[The Forgotten Cemetery]] even if they are on the [[standard spellbook]], as long as they have spoken to [[Tyss]] at the [[Dark Altar]].
+*[[Elemental staves]] and runes in a [[rune pouch]] '''cannot''' be used.
+*[[Temporary skill boosts#Magic|Temporary skill boosts]] such as a [[magic potion]] or [[imbued heart]] '''can''' be used to direct a portal higher than the caster's Magic level.
+*Directing a portal grants five times the Magic [[experience]] that would be gained from casting the spell once. For example, a [[Camelot Teleport]] normally grants 55.5 experience, so directing a portal to Camelot will grant 277.5 experience.
+*The house owner does '''not''' have to be in building mode to direct a portal.
+*If a portal frame or centrepiece is removed, the portals themselves are saved and will return as soon as another portal frame or centrepiece is built in the same place. The runes do not have to be provided again.
+*'''Replacing''' a teleport with another one does not refund the runes and will require them again if you wish to switch back.
+<!-- THIS PAGE IS LISTING RUNE COSTS FOR THE PORTAL CHAMBER (x100), NOT THE PORTAL NEXUS (x1000) -->
+{{:Portal chamber/Portal costs}}
+
+==Notes==
+*[[Poison]]ed players who go through a portal will have their poison cured upon arriving at their destination. This is because poison is always cured when leaving a player-owned house, as otherwise a sneaky house owner could poison another player in their [[combat ring]] and expel them right before they die in order to try to steal their items in a time with more punitive [[Death#Changes|death mechanics]].
+*With a little patience or luck, players can use a [[spicy stew]] to boost their Construction by 5 in order to construct the Portal Chamber with as low as 45 Construction. Then they can use the [[crystal saw]]'s invisible +3 boost to construct the teleport focus and portals before their boosted level falls below 47.
+*Building the same portal twice and switching the destination (e.g. switching Varrock to the Grand Exchange with the medium [[Varrock diary]]) on one of them will cause both portals' destinations to switch.
+*The following teleport spells cannot currently be made into portals:
+**{{plink|Teleport to House}}
+**{{plink|Teleport to Target}}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 25 February 2026
+|update = Cow Boss is Out Today!
+|poll = Getting Around Poll
+|change = The following teleport spells can now be added as portals:
+* Trollheim Teleport
+* Paddewwa Teleport
+* Lassar Teleport
+* Dareeyak Teleport
+* Ourania Teleport
+* Barbarian Teleport
+* Khazard Teleport
+* Ice Plateau Teleport
+* Respawn Teleport
+* Teleport to Boat
+}}
+{{Subject changes
+|date = 14 May 2025
+|update = Yama, the Master of Pacts: Out Today
+|change = Combination runes can now be used for either of their respective elemental rune to direct portals that require them.
+}}
+{{Subject changes
+|date = 12 February 2025
+|update = Royal Titans Feedback & 12th Birthday Celebrations
+|change = Fixed a bug that occurred when switching out a Draynor Manor teleport from a teak portal.
+}}
+{{Subject changes
+|date = 6 March 2024
+|update = Miscellaneous Quality of Life Changes
+|change = "Scry" mode once again allows players to view the vicinity of a specific teleport location, except for locations in the Wilderness.
+}}
+{{Subject changes
+|change = Lumbridge Graveyard teleport has been replaced with an Arceuus Library teleport.
+|date = 28 April 2021
+|update = Arceuus Spellbook Beta and A Kingdom Divided Preparation
+}}
+{{Subject changes
+|date = 7 April 2021
+|update = Collection Log Improvements and The Last of Poll 74
+|change = The [[scrying pool]] and [[portal nexus]]'s "Scry" mode will now only reveal how many players are in a specific teleport location instead of letting players see the areas directly.
+}}
+{{Subject changes
+|date = 16 January 2020
+|update = Twisted League Reward Shop and Game Improvements
+|poll = Old School Content Poll 69: Game Improvements
+|change = Arceuus and Weiss teleports added to the portal nexus and Portal Room.
+}}
+{{Subject changes
+|change = The following teleport spells can now be added as portals:
+*Lunar Isle
+*Senntisten
+*Annakarl
+*Waterbirth
+*Fishing Guild
+*Ape Atoll
+*Kourend
+|update = Duel Arena Improvements
+|date = 29 September 2016
+}}
+{{Subject changes
+|date = 21 May 2015
+|update = World Switcher & RotG (i)
+|change = Mahogany camelot portals in POHs no longer default to the Seers bank coordinates.
+}}
+{{Subject changes footer}}
+
+{{Portal chamber}}
+{{House}}

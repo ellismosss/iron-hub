@@ -1,0 +1,92 @@
+{{External|rs=Spirit tree (player-owned house)}}
+{{Infobox Construction
+|version1 = Regular
+|version2 = Christmas
+|version3 = Raging Echoes
+|name1 = Spirit tree
+|name2 = Christmas-Spirit Tree
+|name3 = Spirit Tree
+|image1 = [[File:Spirit tree (Construction).png|220px]]
+|image2 = [[File:Spirit Tree (Goblin decorations) built.png|220px]]
+|image3 = [[File:Spirit Tree (Raging Echoes) built.png|220px]]
+|icon1 = [[File:Spirit tree (Construction) icon.png]]
+|icon2 = [[File:Spirit tree (Construction, Christmas) icon.png]]
+|icon3 = [[File:Spirit tree (Construction, Raging Echoes) icon.png]]
+|furniturename1 = Spirit Tree
+|furniturename2 = Christmas-Spirit Tree
+|furniturename3 = Spirit Tree
+|release1 = [[25 August]] [[2016]]
+|release2 = [[9 December]] [[2020]]
+|release3 = [[15 January]] [[2025]]
+|update1 = The Construction Expansion
+|update2 = Christmas 2020
+|update3 = Leagues V: Raging Echos Rewards Are Here
+|level = 75 (83 [[Farming]])
+|experience1 = 350 (350 [[Farming]])
+|experience2 = 0
+|experience3 = 0
+|room = [[Superior garden]]
+|hotspot = [[Teleport space]]
+|flatpack = No
+|examine1 = A young sentient tree.
+|examine2 = Enjoying the festive spirits.
+|examine3 = A young sentient tree, imbued with raging spirits.
+|id1 = 29227
+|id2 = 40778
+|id3 = 44936
+|itemid1 = 20635
+|itemid2 = 30495
+|itemid3 = 30496
+}}
+[[File:Spirit tree (young) chathead.png|left]]
+A '''spirit tree''' can be built in the [[teleport space]] of the [[superior garden]] in a [[player-owned house]]. It requires 75 [[Construction]], 83 [[Farming]], and a [[watering can]]. Both skills requirements are [[boost]]able, however the [[crystal saw]] will not work. When built, it gives 350 Construction and [[Farming]] [[experience]].
+
+A set of [[goblin decorations]] can be used on the tree to make a Christmas-themed spirit tree, or a [[Raging echoes spirit tree scroll]] to make a [[Raging Echoes League]]-themed tree. Using a [[spade]] on the tree while in building mode allows the player to rotate it.
+
+Trees can be planted without completing [[Tree Gnome Village]], but can not be used to [[Teleportation|teleport]] to or from other [[spirit tree]]s before completing the quest. Other players can also use the tree, provided they have completed the quest.
+
+Protecting the sapling is not needed to build the spirit tree in the player-owned house, and it does not count towards the number of spirit trees a player may own.
+
+The spirit tree '''grows immediately''' and may be used for travel directly after planting. Removing the spirit tree does not return the spirit sapling or seed.
+
+==Creation==
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 75
+|skill1boostable = Yes 
+|skill1exp = 350
+|skill2 = Farming
+|skill2lvl = 83
+|skill2boostable = Yes 
+|skill2exp = 350
+|members = Yes
+|ticks = 5
+|tools = Watering can
+|mat1 = Spirit sapling
+|mat1cost = 0
+|output1 = Spirit tree (Construction)
+|output1pic = Spirit tree (Construction) icon
+|output1txt = Spirit tree
+|output1cost = 0
+}}
+
+==Dialogue==
+{{hastranscript|NPC}}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 22 January 2025
+|update = Bank QoL & Mini Menu Improvements
+|change = Players can now use a spade on their PoH spirit tree to rotate it.
+}}
+{{Subject changes footer}}
+
+==Trivia==
+*When converted into any variant, the chathead when speaking to it will still look like the normal version.
+*When rotating the spirit tree with a spade, the tree will undergo immense amounts of pain due to the process temporarily severing its connection to the [[Anima Mundi]]. According to a video by [[Mod Rice]] (who implemented the feature), this is a reference to the fact that adding the ability to rotate spirit trees was equally painful due to the [[player-owned house]] code being hard to work with.{{CiteReddit|author=Mod Rice|url=https://www.reddit.com/r/2007scape/comments/1i7eod4/comment/m8m2odc/|title= Who... Who came up with this dialogue?|quote=[May I ask, why? Their screams of agony haunt my every waking moment.] I've filmed a short film that explains it all. I just need to edit and clear it.|date=22 January 2025|archiveurl=https://archive.ph/63Kih|archivedate=13 September 2025}}{{CiteVideo|author=Mod Rice|title=PoH_SpiritTree|url=https://www.youtube.com/watch?v=miC6Bt68UY0|date=25 January 2025|site=YouTube|notes=The video is presented in the style of {{WP|Found footage (film technique)|found footage}}, and depicts Rice's sanity deteriorate while attempting to figure out how to implement the ability to rotate the spirit tree without breaking other features. For example, the ability to rotate the tree is added at 7:00, though doing so results in the player being unable to remove it; Mod Ash explains at 8:50 that the reason behind this is because "The game compares the rotation of the furniture to its hotspot to ensure it's deleting the right thing. Rotating the tree breaks this relationship."}}
+
+==References==
+{{Reflist}}
+
+{{Superior garden}}

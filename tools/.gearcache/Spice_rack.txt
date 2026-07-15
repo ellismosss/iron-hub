@@ -1,0 +1,71 @@
+{{Infobox Construction
+|name = Spice Rack
+|image = [[File:Spice Rack built.png|300px]]
+|icon = [[File:Spice rack icon.png]]
+|furniturename = Spice Rack
+|release = [[23 January]] [[2020]]
+|update = Wiki Integration
+|level = 60
+|experience = 374
+|room = [[Kitchen]]
+|hotspot = [[Spice rack space]]
+|flatpack = No
+|options = Store, Take, Check, Remove
+|examine = Rack used to store spices.
+|id = 37621
+|itemid = 24479
+}}
+The '''spice rack''' can be built in the [[spice rack space]] of the [[kitchen]] in a [[player-owned house]]. It requires 60 [[Construction]] to build and gives 374 [[experience]] when built.
+
+Players can use the spice rack to store up to 2,147,483,647 doses of [[Brown spice|brown]], [[Orange spice|orange]], [[Red spice|red]], and [[yellow spice]]s. The amount of spices a player withdraws will always be placed into new shakers. It can be interacted with both in and out of building mode.
+
+No other types of spices such as [[gnome spice]] nor [[spice]] can be stored in the spice rack.
+
+If the '''kitchen''' is destroyed and later rebuilt, any spices stored in the spice rack will '''not be lost'''. Rebuilding the spice rack will restore access to the previously stored spices.
+
+==Creation==
+''The four doses of each spice noted in the materials are only used to create the spice rack.  These doses are consumed in the spice rack's creation.  '''Additional spices are needed in order to have spices available for use. The spice rack does not give you free spices!'''''
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 60
+|skill1boostable = Yes
+|skill1exp = 374
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Teak plank
+|mat1quantity = 3
+|mat2 = Soft clay
+|mat2quantity = 6
+|mat3 = Brown spice (4)
+|mat3cost = 0
+|mat4 = Orange spice (4)
+|mat4cost = 0
+|mat5 = Red spice (4)
+|mat5cost = 0
+|mat6 = Yellow spice (4)
+|mat6cost = 0
+|output1 = Spice rack
+|output1pic = Spice rack icon
+|output1cost = 0
+}}
+
+==Uses==
+Spicy stews can be used to affect the following skills:
+
+{{Spicy stew table}}
+
+==Transcript==
+{{Hastranscript|scenery}}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 21 June 2023
+|update = More Poll 79 Changes
+|poll = Old School Content Poll 79: Quality of Life
+|change = [[Ultimate Ironmen]] can now use the spice rack.
+}}
+{{Subject changes footer}}
+
+{{Kitchen}}

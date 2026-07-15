@@ -1,0 +1,54 @@
+{{External|rs}}
+{{otheruses|the amulet of glory when mounted in a player-owned house|the equipable amulet|Amulet of glory}}
+{{Infobox Construction
+|name = Amulet of Glory
+|image = [[File:Amulet of Glory built.png|200px]]
+|icon = [[File:Amulet of Glory (mounted) icon.png]]
+|furniturename = Amulet of Glory
+|release = [[31 May]] [[2006]]
+|update = PLAYER-OWNED HOUSES!
+|level = 47
+|experience = 290
+|room = [[Quest Hall]]
+|hotspot = [[Guild trophy space]]
+|flatpack = No
+|examine = An Amulet of Glory, symbol of a member of the Heroes' Guild.
+|id = 13523
+|itemid = 8283
+}}
+A mounted '''amulet of glory''' can be built in the [[guild trophy space]] of the [[quest Hall]] in a [[player-owned house]]. It requires 47 [[Construction]] to build and gives 290 [[experience]] when built. The player must have a [[hammer]] and a [[saw]] in their inventory to build it.
+
+Players can rub the mounted amulet to teleport to [[Edgeville]], [[Karamja]] ([[Musa Point]] [[Banana plantation]]), [[Draynor Village]], and [[Al Kharid]] (inside the [[Al Kharid Palace|palace]]). These are the same destinations as the teleports for an amulet of glory, but the mounted amulet of glory has unlimited teleport charges.
+
+'''Note''': When the mounted amulet object is destroyed, the amulet of glory is returned. If the quest hall room is removed with the mounted amulet object still in place, the amulet of glory will not be returned.
+
+==Creation==
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 47
+|skill1boostable = Yes
+|skill1exp = 290
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Teak plank
+|mat1quantity = 3
+|mat2 = Amulet of glory
+|mat2itemnote = Must be uncharged. [[Amulet of glory (t)]] will not work.
+|output1 = Amulet of Glory (mounted)
+|output1pic = Amulet of Glory (mounted) icon
+|output1txt = Amulet of Glory
+|output1cost = 0
+}}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 26 June 2014
+|update = Midsummer Event
+|poll = Old School feature poll - Rewarding Rewards
+|change = Mounted amulets of glory now list teleport locations on the right click menu. Click zone increase.
+}}
+{{Subject changes footer}}
+
+{{Hall (quest trophies)}}

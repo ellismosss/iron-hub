@@ -1,0 +1,151 @@
+{{Redirect|Altar of the Occult|the altar in the [[Old School Museum]]|Altar of the Occult (Old School Museum)}}
+{{Infobox Construction
+|name = Occult altar
+|image = [[File:Occult altar built.png|250px]]
+|icon = [[File:Occult altar icon.png]]
+|furniturename = Altar of the Occult
+|release = [[25 August]] [[2016]]
+|update = The Construction Expansion
+|level = 90
+|experience = 3,445
+|room = [[Achievement Gallery]]
+|hotspot = [[Altar space]]
+|flatpack = No
+|options = Venerate, Standard, Lunar, Arceuus, Remove
+|examine = An altar of the occult, imbued with ancient, cosmic and dark magic.
+|id = 31858, 31859, 31860, 31861
+|itemid = 20620, 20621, 20622
+}}
+[[File:Occult altar built animated.webp|thumb|left|200px|The animation of the Altar of the Occult.]]
+The '''occult altar''' can be built in the [[Altar_space#Achievement_Gallery|altar space]] of the [[achievement gallery]] in a [[player-owned house]]. It requires 90 [[Construction]] to build and gives 3,445 [[experience]] when built. The player must have a [[hammer]] and a [[saw]] in their inventory to build it.
+
+Players can switch their spellbook to one of the following: the [[Arceuus spellbook]], [[Lunar spellbook]], [[Standard spells|standard spellbook]], or [[Ancient Magicks]]. Other players can use the altar, provided they have the requirements to access those spellbooks.
+
+In order to build the occult altar, players must right-click upgrade from the altar they have built, with the required materials dependent on the altar built. For example, upgrading the [[Ancient altar]] to the occult altar will require 1 [[lunar signet]], 10,000 [[astral rune]]s, 1 [[Arceuus signet]], 5,000 [[blood rune]]s, and 5,000 [[soul rune]]s.
+
+The [[crystal saw]] boost is applicable, making the minimum requirement level 82 Construction with a +5 boost from an orange [[spicy stew]].
+
+For the Dark altar and Lunar altar, although the recipes list that [[Pharaoh's sceptre (uncharged)]] can be used, a sceptre with any charge level will be acceptable.
+
+==Creation==
+===Upgrade===
+{{Switch infobox
+|text1 = Ancient altar
+|item1 = {{Recipe
+|skill1 = Construction
+|skill1lvl = 90
+|skill1boostable = Yes
+|skill1exp = 3,445
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Ancient altar
+|mat1pic = Ancient altar icon
+|mat1cost = 0
+|mat2 = Blood rune
+|mat2quantity = 5000
+|mat3 = Soul rune
+|mat3quantity = 5000
+|mat4 = Astral rune
+|mat4quantity = 10000
+|mat5 = Arceuus signet
+|mat5cost = 0
+|mat6 = Lunar signet
+|mat6cost = 2
+|output1 = Occult altar
+|output1pic = Occult altar icon
+|output1cost = 0
+|output1subtxt = Upgrade - Ancient altar
+}}
+|text2 = Dark altar
+|item2 = {{Recipe
+|skill1 = Construction
+|skill1lvl = 90
+|skill1boostable = Yes
+|skill1exp = 3,445
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Dark altar (Construction)
+|mat1pic = Dark altar (Construction) icon
+|mat1txt = Dark altar
+|mat1cost = 0
+|mat2 = Pharaoh's sceptre (uncharged)
+|mat3 = Astral rune
+|mat3quantity = 10000
+|mat4 = Ancient signet
+|mat4cost = 0
+|mat5 = Lunar signet
+|mat5cost = 2
+|output1 = Occult altar
+|output1pic = Occult altar icon
+|output1cost = 0
+|output1subtxt = Upgrade - Dark altar
+}}
+|text3 = Lunar altar
+|item3 = {{Recipe
+|skill1 = Construction
+|skill1lvl = 90
+|skill1boostable = Yes
+|skill1exp = 3,445
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Lunar altar
+|mat1pic = Lunar altar icon
+|mat1cost = 0
+|mat2 = Pharaoh's sceptre (uncharged)
+|mat3 = Blood rune
+|mat3quantity = 5000
+|mat4 = Soul rune
+|mat4quantity = 5000
+|mat5 = Ancient signet
+|mat5cost = 0
+|mat6 = Arceuus signet
+|mat6cost = 0
+|output1 = Occult altar
+|output1pic = Occult altar icon
+|output1cost = 0
+|output1subtxt = Upgrade - Lunar altar
+}}
+}}
+
+===Total===
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 90
+|skill1boostable = Yes
+|skill1exp = 3,445
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Limestone brick
+|mat1quantity = 10
+|mat2 = Magic stone
+|mat3 = Pharaoh's sceptre (uncharged)
+|mat4 = Blood rune
+|mat4quantity = 5000
+|mat5 = Soul rune
+|mat5quantity = 5000
+|mat6 = Astral rune
+|mat6quantity = 10000
+|mat7 = Ancient signet
+|mat7cost = 0
+|mat8 = Arceuus signet
+|mat8cost = 0
+|mat9 = Lunar signet
+|mat9cost = 2
+|output1 = Occult altar
+|output1pic = Occult altar icon
+|output1cost = 0
+|output1subtxt = Total
+}}
+
+==Trivia==
+* During development, the altar was called "Altar of the Gods". It was presumably changed as only the [[Ancient Magicks]] are associated with a [[god]] — [[Zaros]].
+* The books on the altar contain Morse code, which can be translated, from left to right, as: "cosmic comic" in the [[Lunar altar|Lunar book]]; and "darkaess{{sic}} corrupts" in the [[Dark altar (Construction)|Dark book]]. 
+** The misspelling of "darkness" may be an intentional reference to [[Arceuus]], as it is pronounced in a similar fashion — ''(dar-KAY-us)''. 
+** The "A" (<span style="font-family: monospace; font-size: 40%; vertical-align: 3ex; white-space: pre-wrap;">&#9604; &#9604;&#9604;&#9604;</span>) may simply be a mirrored misspelling of "N" (<span style="font-family: monospace; font-size: 40%; vertical-align: 3ex; white-space: pre-wrap;">&#9604;&#9604;&#9604; &#9604;</span>).
+* Runes in a rune pouch do not count toward the requirement to build this item. They must be moved from the pouch to the inventory.
+
+{{Achievement gallery}}

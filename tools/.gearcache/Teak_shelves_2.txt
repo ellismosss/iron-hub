@@ -1,0 +1,67 @@
+{{External|rs}}
+{{Infobox Construction
+|version1 = Utensils
+|version2 = Dishware
+|name = Teak shelves 2
+|image1 = [[File:Teak shelves 2 (utensils) built.png|150px]]
+|image2 = [[File:Teak shelves 2 (dishware) built.png|150px]]
+|icon = [[File:Teak shelves 2 icon.png]]
+|furniturename = Shelves
+|release = [[31 May]] [[2006]]
+|update = PLAYER-OWNED HOUSES!
+|level = 67
+|experience = 930
+|room = [[Kitchen]]
+|hotspot = [[Shelf space]]
+|flatpack = No
+|examine1 = Shelves full of kitchen utensils.
+|examine2 = Shelves full of plates and tea cups.
+|id1 = 13551
+|id2 = 13558
+|itemid = 8229
+|leagueRegion = General
+}}
+The '''teak shelves 2''' can be built in the [[shelf space]] of the [[kitchen]] in a [[player-owned house]]. It requires 67 [[Construction]] to build and, when built, gives 930 [[experience]]. The player must have a [[hammer]] and a [[saw]] in their inventory to build it.
+
+These shelves provide an unlimited amount of [[kettle]]s, [[teapot (trimmed)|trimmed porcelain teapots]], [[Porcelain cup (trimmed)|trimmed porcelain cups]], [[empty beer glass]]es, [[cake tin]]s, [[bowl]]s, [[pie dish]]es, [[empty pot]]s, and [[chef's hat]]s. There are three shelves along two adjacent walls to take from, but despite the different appearances and different examine text, they all offer the same items. Items can be taken from the shelves with building mode on or off.
+
+The [[Cup of tea (Player-owned house)|tea]] made using the cup from this shelf provides a construction boost of +3. This is the maximum boost for tea out of all of the shelves. Note that this tea requires 20 cooking to make.
+
+It should be noted that the tea and any materials used to make it cannot be taken out of the player's house.
+
+==Creation==
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 67
+|skill1boostable = Yes
+|skill1exp = 930
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Teak plank
+|mat1quantity = 3
+|mat2 = Soft clay
+|mat2quantity = 6
+|mat3 = Gold leaf
+|mat3quantity = 2
+|output1 = Teak shelves 2
+|output1pic = Teak shelves 2 icon
+|output1cost = 0
+}}
+
+==Loot==
+Each time the shelves are searched, the player may select any of the following:
+
+{{DropsTableHead|leagueRegion=General}}
+{{DropsLineSkill|name=Kettle|quantity=1|rarity=Always|skill=Construction|level=67}}
+{{DropsLineSkill|name=Teapot (trimmed)|quantity=1|rarity=Always|skill=Construction|level=67}}
+{{DropsLineSkill|name=Porcelain cup (trimmed)|quantity=1|rarity=Always|skill=Construction|level=67}}
+{{DropsLineSkill|name=Beer glass (Player-owned house)|quantity=1|rarity=Always|skill=Construction|level=67}}
+{{DropsLineSkill|name=Cake tin|quantity=1|rarity=Always|skill=Construction|level=67}}
+{{DropsLineSkill|name=Bowl|quantity=1|rarity=Always|skill=Construction|level=67}}
+{{DropsLineSkill|name=Pie dish|quantity=1|rarity=Always|skill=Construction|level=67}}
+{{DropsLineSkill|name=Pot|quantity=1|rarity=Always|skill=Construction|level=67}}
+{{DropsLineSkill|name=Chef's hat|quantity=1|rarity=Always|skill=Construction|level=67}}
+{{DropsTableBottom}}
+
+{{Kitchen}}

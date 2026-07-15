@@ -43,6 +43,8 @@ public class Action
 	public String unlockKey;
 	/** Free-text for manual steps (the plan shows a tick-box). */
 	public String manualText;
+	/** Build/craft materials this action consumes (POH furniture etc.). */
+	public java.util.List<com.ironhub.data.GearProgressionPack.Material> materials;
 
 	public Action(String id, Kind kind, String name)
 	{

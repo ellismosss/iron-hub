@@ -1,0 +1,53 @@
+{{External|rs=Obelisk (player-owned housing)}}
+{{Infobox Construction
+|name = Obelisk
+|image = [[File:Obelisk (Construction) built.png|90px]]
+|icon = [[File:Obelisk (Construction) icon.png]]
+|furniturename = Obelisk
+|release = [[23 November]] [[2017]]
+|update = Mage Arena II, Revenant Caves & Deadman Beta
+|level = 80
+|experience = 3,000
+|room = [[Superior garden]]
+|hotspot = [[Teleport space]]
+|flatpack = No
+|examine = I wonder what this does...
+|id = 31554
+|itemid = 21788
+}}
+The '''obelisk''' can be built in the [[Teleport space]] of the [[Superior garden]] in a [[player-owned house]]. It requires 80 [[Construction]] to build and gives 3,000 [[experience]] when built.
+
+Players '''cannot''' teleport to the house obelisk from a [[Wilderness Obelisk]].
+
+Like the obelisks in the [[Wilderness]], the obelisk will teleport players to a random location unless they have completed the [[hard Wilderness Diary]], in which case they will be able to select the teleport destination.
+
+Unlike the Wilderness obelisks where there is a short delay before it teleports the player, this obelisk instantly teleports the player; however, it individually teleports players, whereas the Wilderness counterparts teleport all players in its range.
+
+Building the Obelisk requires having a [[hammer]] and [[saw]] in the inventory. This allows the [[crystal saw]]'s boost to work, making it possible for players with 72 Construction level to build the Obelisk along with the +5 boost from a [[spicy stew]] made with [[orange spice]].
+
+==Creation==
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 80
+|skill1boostable = Yes
+|skill1exp = 3,000
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Ancient crystal
+|mat1quantity = 4
+|mat2 = Marble block
+|mat2quantity = 4
+|output1 = Obelisk (Construction)
+|output1pic = Obelisk (Construction) icon
+|output1txt = Obelisk
+|output1cost = 0
+}}
+
+==Gallery==
+<gallery>
+File:Wilderness Obelisk interface.png|The interface showing all Wilderness obelisk teleports.
+File:Obelisk (Construction) warning interface.png|Warning interface when attempting to activate the obelisk.
+</gallery>
+
+{{Superior garden}}

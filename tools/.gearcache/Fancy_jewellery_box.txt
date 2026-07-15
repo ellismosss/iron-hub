@@ -1,0 +1,148 @@
+{{External|rs}}
+{{Infobox Construction
+|name = Fancy jewellery box
+|image = [[File:Fancy jewellery box built.png|200px]]
+|icon = [[File:Fancy jewellery box icon.png]]
+|furniturename = Fancy Jewellery Box
+|release = [[25 August]] [[2016]]
+|update = The Construction Expansion
+|level = 86
+|experience = 1,350
+|room = [[Achievement gallery]]
+|hotspot = [[Jewellery box space]]
+|flatpack = No
+|options = Teleport Menu, [previous teleport destination], Remove
+|examine = A fancy steel box featuring some enchanted sapphire, emerald and dragonstone jewellery.
+|id = 37501,37502,37503,37504,37505,37506,37507,37508,37509,37510,37511,37512,37513,37514,37515,37516,37517,37518,37519,50711
+|itemid = 20627
+}}
+
+The '''fancy jewellery box''' can be built in the [[jewellery box space]] of the [[achievement gallery]] in a [[player-owned house]]. It requires 86 [[Construction]] to build and gives 1,350 [[experience]] when built. The player must have a [[hammer]] and a [[saw]] in their inventory to build it.
+
+Players using the [[crystal saw]] (+3) and a [[spicy stew]] with three doses of [[orange spice]] (+5) can build the fancy jewellery box at level 78 Construction.
+
+==Creation==
+===Upgrade===
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 86
+|skill1boostable = yes
+|skill1exp = 1,350
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Basic jewellery box
+|mat1pic = Basic jewellery box icon
+|mat1cost = 0
+|mat2 = Gold leaf
+|mat3 = Combat bracelet(4)
+|mat3quantity = 5
+|mat4 = Skills necklace(4)
+|mat4quantity = 5
+|output1 = Fancy jewellery box
+|output1pic = Fancy jewellery box icon
+|output1cost = 0
+|output1subtxt = Upgrade
+}}
+
+===Total===
+''The experience shown is the total amount accumulated from the base furniture to this built furniture.''
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 86
+|skill1boostable = Yes
+|skill1exp = 1,955
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Bolt of cloth
+|mat2 = Steel bar
+|mat3 = Gold leaf
+|mat4 = Ring of dueling(8)
+|mat4quantity = 3
+|mat5 = Games necklace(8)
+|mat5quantity = 3
+|mat6 = Combat bracelet(4)
+|mat6quantity = 5
+|mat7 = Skills necklace(4)
+|mat7quantity = 5
+|output1 = Fancy jewellery box
+|output1pic = Fancy jewellery box icon
+|output1cost = 0
+|output1subtxt = Total
+}}
+
+==Products==
+{{Uses material list|Fancy jewellery box}}
+
+==Locations==
+The box will allow players to teleport to the following locations (keyboard shortcuts included):
+
+{|class="wikitable" style="text-align:left;"
+!Item
+!Location
+|-
+| rowspan="4" |{{plink|Ring of dueling}}
+|1. [[Emir's Arena]]
+|-
+|2. [[Castle Wars]] Arena
+|-
+|3. [[Ferox Enclave]]
+|-
+|4. [[Fortis Colosseum]]
+|-
+| rowspan="5" |{{plink|Games necklace}}
+|5. [[Burthorpe]]
+|-
+|6. [[Barbarian Outpost]]
+|-
+|7. [[Corporeal Beast]]
+|-
+|8. [[Chasm of Tears]]
+|-
+|9. [[Wintertodt Camp]]
+|-
+| rowspan="4" |{{plink|Combat bracelet}}
+|A. [[Warriors' Guild]]
+|-
+|B. [[Champions' Guild]]
+|-
+|C. [[Edgeville Monastery]]
+|-
+|D. [[Ranging Guild]]
+|-
+| rowspan="6" |{{plink|Skills necklace}}
+|E. [[Fishing Guild]]
+|-
+|F. [[Mining Guild]]
+|-
+|G. [[Crafting Guild]]
+|-
+|H. [[Cooks' Guild]]
+|-
+|I. [[Woodcutting Guild]]
+|-
+|J. [[Farming Guild]]
+|}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 10 July 2024
+|update = While Guthix Sleeps
+|change = Jewellery boxes now refer to the previous teleport destination as "[[Emir's Arena]]" rather than "PvP Arena" in the options menu.
+}}
+{{Subject changes
+|date = 23 July 2020
+|update = Poll 71 and Ferox Enclave Updates
+|change = Jewellery boxes now correctly refers to the previous teleport destination as "[[Ferox Enclave]]" rather than "Clan Wars" in the options menu.
+}}
+{{Subject changes
+|date = 5 December 2019
+|update = Game Improvements and Nightmare Beta Changes
+|poll = Old School Content Poll 69: Game Improvements
+|change = Players can now teleport to their previous destination by right-clicking the jewellery box.
+}}
+{{Subject changes footer}}
+
+{{Achievement gallery}}

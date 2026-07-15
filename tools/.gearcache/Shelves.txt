@@ -1,0 +1,82 @@
+{{External|rs}}
+{{disambig}}
+'''Shelves''' are construction items that are built in the kitchen of [[player-owned house]]s. This may refer to:
+
+{|class="wikitable" style="text-align:center;"
+!colspan=2|Shelf
+!Level
+!Materials
+!Experience
+![[GE]] price
+|-
+|[[File:Wooden shelves 1 icon.png]]
+|[[Wooden shelves 1]]
+|6
+|3 [[Plank]]s, 3 [[nails]]
+|87
+|{{coins|{{GEP|Plank|3}} + {{GEP|Steel nails|3}}}}
+|-
+|[[File:Wooden shelves 2 icon.png]]
+|[[Wooden shelves 2]]
+|12
+|3 [[Plank]]s, 3 [[nails]],<br/>6 pieces of [[soft clay]]
+|147
+|{{coins|{{GEP|Plank|3}} + {{GEP|Steel nails|3}} + {{GEP|Soft clay|6}}}}
+|-
+|[[File:Wooden shelves 3 icon.png]]
+|[[Wooden shelves 3]]
+|23
+|3 [[Plank]]s, 3 [[nails]],<br/>6 pieces of [[soft clay]]
+|147
+|{{coins|{{GEP|Plank|3}} + {{GEP|Steel nails|3}} + {{GEP|Soft clay|6}}}}
+|-
+|[[File:Oak shelves 1 icon.png]]
+|[[Oak shelves 1]]
+|34
+|3 [[Oak plank]]s,<br/>6 pieces of [[soft clay]]
+|240
+|{{coins|{{GEP|Oak plank|3}} + {{GEP|Soft clay|6}}}}
+|-
+|[[File:Oak shelves 2 icon.png]]
+|[[Oak shelves 2]]
+|45
+|3 [[Oak plank]]s,<br/>6 pieces of [[soft clay]]
+|240
+|{{coins|{{GEP|Oak plank|3}} + {{GEP|Soft clay|6}}}}
+|-
+|[[File:Teak shelves 1 icon.png]]
+|[[Teak shelves 1]]
+|56
+|3 [[Teak plank]]s,<br/>6 pieces of [[soft clay]]
+|330
+|{{coins|{{GEP|Teak plank|3}} + {{GEP|Soft clay|6}}}}
+|-
+|[[File:Teak shelves 2 icon.png]]
+|[[Teak shelves 2]]
+|67
+|3 [[Teak plank]]s, 2 [[Gold leaf|gold leaves]],<br/>6 pieces of [[soft clay]]
+|930
+|{{coins|{{GEP|Teak plank|3}} + {{GEP|Gold leaf|2}} + {{GEP|Soft clay|6}}}}
+|}
+Shelves are also a common scenery element, such as:
+{| class="wikitable" style="text-align:center;"
+! colspan="2" |Shelf
+|-
+|[[File:Shelves (Sins of the Father).png|width=60x60]]
+|[[Shelves (Sins of the Father)]]
+|-
+|[[File:Shelves (Port Piscarilius, 1).png|width=77x77]]
+|[[Shelves (Port Piscarilius)]]
+|-
+|[[File:Shelves (Recruitment Drive, 1).png|width=94x94]]
+|[[Shelves (Recruitment Drive)]]
+|-
+|[[File:Shelves (Getting Ahead).png|width=94x94]]
+|[[Shelves (Getting Ahead)]]
+|-
+|[[File:Shelves (Apothecary,_1).png|width=94x94]]
+|[[Shelves (Apothecary)]]
+|-
+|[[File:Shelves (Sorceress's house).png|width=94x94]]
+|[[Shelves (Sorceress's house)]]
+|}

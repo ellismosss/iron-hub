@@ -1,0 +1,101 @@
+{{Infobox Construction
+|version1 = Regular
+|version2 = Frozen
+|name1 = Fancy rejuvenation pool
+|name2 = Frozen fancy rejuvenation pool
+|image1 = [[File:Fancy rejuvenation pool built.png|250px]]
+|image2 = [[File:Fancy rejuvenation pool (Goblin decorations) built.png|250px]]
+|icon1 = [[File:Fancy rejuvenation pool icon.png]]
+|icon2 = N/A
+|furniturename1 = Fancy pool of Rejuvenation
+|furniturename2 = Frozen fancy pool of Rejuvenation
+|release1 = [[25 August]] [[2016]]
+|release2 = [[9 December]] [[2020]]
+|update1 = The Construction Expansion
+|update2 = Christmas 2020
+|level = 85
+|experience1 = 1,950
+|experience2 = 0
+|room = [[Superior garden]]
+|hotspot = [[Pool space]]
+|flatpack = No
+|examine1 = A special mixture that restores special attack, run energy, prayer and all stats.
+|examine2 = A crack in the ice lets you access the special mixture that restores special attack, run energy, prayer and all stats.
+|id1 = 29240
+|id2 = 40847
+|itemid = 20642
+}}
+The '''fancy rejuvenation pool''' can be built in the [[pool space]] of the [[superior garden]] in a [[player-owned house]]. It requires 85 [[Construction]] (or 77 with a [[crystal saw]] and a [[spicy stew]]) to upgrade the [[rejuvenation pool]]. The player must have a [[hammer]] and a [[saw]] in their inventory to build it, which gives 1,950 [[Construction]] [[experience]].
+
+Players can restore their [[Special attacks|special attack]], [[Energy|run energy]], [[prayer points]], and any reduced [[stats]] (excluding [[Hitpoints]]) using this pool. This cannot be done if the player was recently in [[Player killing|PvP]] combat; attempting to do so produces the message, ''"You can't drink from the pool during combat."''
+
+The [[goblin decorations]] can be used on the pool to make a frozen fancy rejuvenation pool; note the decorations must be removed before upgrading the pools.
+
+==Creation==
+===Upgrade===
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 85
+|skill1boostable = Yes
+|skill1exp = 1,950
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Rejuvenation pool
+|mat1pic = Rejuvenation pool icon
+|mat1cost = 0
+|mat2 = Marble block
+|mat2quantity = 2
+|mat3 = Super restore(4)
+|mat3quantity = 10
+|output1 = Fancy rejuvenation pool
+|output1pic = Fancy rejuvenation pool icon
+|output1cost = No
+|output1subtxt = Upgrade
+}}
+
+===Total===
+''The experience shown is the total amount accumulated from the base furniture to this built furniture.''
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 85
+|skill1boostable = yes 
+|skill1exp = 4,406
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Limestone brick
+|mat1quantity = 5
+|mat2 = Bucket of water
+|mat2quantity = 5
+|mat3 = Soul rune
+|mat3quantity = 1000
+|mat4 = Body rune
+|mat4quantity = 1000
+|mat5 = Stamina potion(4)
+|mat5quantity = 10
+|mat6 = Prayer potion(4)
+|mat6quantity = 10
+|mat7 = Marble block
+|mat7quantity = 2
+|mat8 = Super restore(4)
+|mat8quantity = 10
+|output1 = Fancy rejuvenation pool
+|output1pic = Fancy rejuvenation pool icon
+|output1cost = 0
+|output1subtxt = Total
+}}
+
+==Products==
+{{Uses material list|Fancy rejuvenation pool}}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 5 April 2023
+|update = Easter 2023
+|change = Recharging [[Prayer]] at the pool will now reset the timer on any [[Prayer points|prayer point]] draining effects. 
+}}
+{{Subject changes footer}}
+
+{{Superior garden}}

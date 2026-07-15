@@ -6,7 +6,66 @@ resolved against the javap dump (itemids.txt) — an unknown constant aborts
 the run, so a typo'd id can never ship. Quest requirement names are checked
 against the Quest enum display names (questnames.txt).
 """
-import json, os, re, sys
+import json, os, re, sys, time, urllib.parse, urllib.request
+
+UA = "IronHub RuneLite plugin data generator (github.com/ellismosss/iron-hub; info@ellismoss.co.uk)"
+
+
+def fetch_pages(titles, cache_dir):
+    """Batch-fetch wiki page wikitext, cached per title."""
+    out = {}
+    to_fetch = []
+    for t in titles:
+        cached = os.path.join(cache_dir, re.sub(r"[^A-Za-z0-9]+", "_", t) + ".txt")
+        if os.path.exists(cached):
+            out[t] = open(cached, encoding="utf-8").read()
+        else:
+            to_fetch.append(t)
+    for i in range(0, len(to_fetch), 50):
+        batch = to_fetch[i:i + 50]
+        url = ("https://oldschool.runescape.wiki/api.php?"
+               + urllib.parse.urlencode({
+                   "action": "query", "prop": "revisions", "rvprop": "content",
+                   "rvslots": "main", "redirects": "1", "format": "json",
+                   "formatversion": "2", "titles": "|".join(batch)}))
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req) as resp:
+            data = json.load(resp)
+        time.sleep(1)
+        normalized = {}
+        for n in data["query"].get("normalized", []) + data["query"].get("redirects", []):
+            normalized[n["from"]] = n["to"]
+        by_title = {p["title"]: p for p in data["query"]["pages"]}
+        for t in batch:
+            page = by_title.get(normalized.get(t.replace("_", " "), t.replace("_", " ")))
+            if page and "revisions" in page:
+                text = page["revisions"][0]["slots"]["main"]["content"]
+                out[t] = text
+                os.makedirs(cache_dir, exist_ok=True)
+                cached = os.path.join(cache_dir, re.sub(r"[^A-Za-z0-9]+", "_", t) + ".txt")
+                open(cached, "w", encoding="utf-8").write(text)
+    return out
+
+
+def parse_recipe_materials(wikitext):
+    """Materials from the page's first {{Recipe}}: [(name, qty)]."""
+    m = re.search(r"\{\{Recipe(.*?)\n\}\}", wikitext, re.DOTALL)
+    if not m:
+        return []
+    block = m.group(1)
+    mats = []
+    for i in range(1, 9):
+        nm = re.search(r"\|\s*mat%d\s*=\s*([^\n|]+)" % i, block)
+        if not nm:
+            break
+        qm = re.search(r"\|\s*mat%dquantity\s*=\s*([\d,]+)" % i, block)
+        qty = int(qm.group(1).replace(",", "")) if qm else 1
+        mats.append((nm.group(1).strip(), qty))
+    return mats
+
+
+def normalize_item_name(name):
+    return re.sub(r"[^A-Za-z0-9]+", "_", name.upper()).strip("_")
 
 IDS = {}
 for line in open(os.path.join(os.path.dirname(__file__), 'itemids.txt')):
@@ -416,6 +475,43 @@ if missing:
 
 out = os.path.join(os.path.dirname(__file__), '../src/main/resources/data/gear-progression.json')
 with open(out, 'w') as f:
+    # ── POH build materials from the wiki (manual entries only) ──
+    _here = os.path.dirname(os.path.abspath(__file__))
+    item_names = json.load(open(os.path.join(_here, '../src/main/resources/data/index/item-names.json')))
+    cache_dir = sys.argv[1] if len(sys.argv) > 1 else os.path.join(_here, '.gearcache')
+    manual_entries = []
+    for phase in pack['phases']:
+        for group in phase['groups']:
+            for entry in group['items']:
+                if entry.get('itemId') is None and entry.get('wiki'):
+                    manual_entries.append(entry)
+    # the entry's own name usually has the Recipe; the wiki field often
+    # points at a hub page (Jewellery box, Altar space) for chart linking
+    titles = []
+    for e in manual_entries:
+        titles.append(e['name'].replace(' ', '_'))
+        titles.append(e['wiki'])
+    pages = fetch_pages(list(dict.fromkeys(titles)), cache_dir)
+    # predecessor furniture appears as Recipe "materials" — the gear chain
+    # covers those tiers; they are not bankable items
+    furniture = {e['name'].lower() for e in manual_entries}
+    furniture.update({"rejuvenation pool", "ancient altar", "restoration pool", "gilded portal nexus", "portal nexus"})
+    for entry in manual_entries:
+        text = pages.get(entry['name'].replace(' ', '_')) or pages.get(entry['wiki'])
+        if not text or "mat1" not in text:
+            text = pages.get(entry['wiki']) if text != pages.get(entry['wiki']) else text
+        if not text:
+            continue
+        materials = []
+        for name, qty in parse_recipe_materials(text):
+            if name.lower() in furniture:
+                continue
+            item_id = item_names.get(normalize_item_name(name))
+            if item_id is None:
+                continue
+            materials.append({"itemId": item_id, "qty": qty, "name": name})
+        if materials:
+            entry['materials'] = materials
     json.dump(pack, f, indent=2)
     f.write('\n')
 n = sum(len(g['items']) for p in phases for g in p['groups'])

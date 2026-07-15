@@ -1,0 +1,47 @@
+{{otheruses|the digsite pendant when mounted in a player-owned house|the equipable amulet|Digsite pendant}}
+{{Infobox Construction
+|name = Mounted digsite pendant
+|image = [[File:Mounted digsite pendant built.png|250px]]
+|icon = [[File:Mounted digsite pendant icon.png]]
+|furniturename = Digsite Pendant
+|release = [[8 November]] [[2018]]
+|update = The Portal Nexus
+|level = 82
+|experience = 800
+|room = [[Portal nexus]]
+|hotspot = [[Amulet space]]
+|flatpack = No
+|examine = A pendant with magical properties.
+|id = 33416, 33417, 33418, 33420
+|itemid = 22709
+}}
+A '''mounted digsite pendant''' can be built in the [[Amulet space]] of the [[portal nexus]] in a [[player-owned house]]. It requires 82 [[Construction]] to build (74 with a [[crystal saw]] and a [[spicy stew]]). The player must have a [[hammer]] and a [[saw]] in their inventory to build it. When built, it gives 800 [[experience]].
+
+Players can right-click the ''Configure'' option to select which destination becomes the left-click option. These are the same destinations as the teleports for the [[Digsite pendant]], but the mounted pendant has unlimited teleport charges.
+
+Only one mounted digsite pendant can be built at a time.
+
+'''Note''': When the mounted pendant is destroyed, a Digsite pendant with one charge remaining is returned. If the portal nexus room is removed with the mounted pendant still in place, it will not be returned.
+
+==Creation==
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 82
+|skill1boostable = Yes
+|skill1exp = 800
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Mahogany plank
+|mat2 = Gold leaf
+|mat3 = Curator's medallion
+|mat3cost = {{GEP|Ruby|250}}+{{GEP|Cosmic rune|100}}+{{GEP|Fire rune|500}}
+|mat3costnote = Value calculated based on the GE value of 250 rubies, 100 cosmic runes, and 500 fire runes
+|output1 = Mounted digsite pendant
+|output1pic = Mounted digsite pendant icon
+}}
+
+==Trivia==
+*Even though the mounted pendant requires the [[curator's medallion]] to build, the medallion itself is not mounted; rather, a Digsite pendant is mounted instead, despite not needing the pendant itself to build it.
+
+{{Portal nexus}}

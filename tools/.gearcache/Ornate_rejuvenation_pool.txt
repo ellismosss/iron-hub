@@ -1,0 +1,131 @@
+{{Infobox Construction
+|version1 = Regular
+|version2 = Frozen
+|version3 = Fiery
+|name1 = Ornate rejuvenation pool
+|name2 = Frozen ornate rejuvenation pool
+|name3 = Trailblazer reloaded rejuvenation pool
+|image1 = [[File:Ornate rejuvenation pool built.png|250px]]
+|image2 = [[File:Ornate rejuvenation pool (Goblin decorations) built.png|250px]]
+|image3 = [[File:Fiery Ornate Pool of Rejuvenation built.png|250px]]
+|icon1 = [[File:Ornate rejuvenation pool icon.png]]
+|icon2 = [[File:Ornate rejuvenation pool icon.png]]
+|icon3 = [[File:Trailblazer reloaded rejuvenation pool.png]]
+|furniturename1 = Ornate pool of Rejuvenation
+|furniturename2 = Frozen ornate pool of Rejuvenation
+|furniturename3 = Fiery Ornate Pool of Rejuvenation
+|release1 = [[25 August]] [[2016]]
+|release2 = [[9 December]] [[2020]]
+|release3 = [[29 November]] [[2023]]
+|update1 = The Construction Expansion
+|update2 = Christmas 2020
+|update3 = Chambers of Xeric Changes
+|level = 90
+|experience1 = 3,107
+|experience2 = 0
+|experience3 = 0
+|room = [[Superior garden]]
+|hotspot = [[Pool space]]
+|flatpack = No
+|options1 = Drink
+|options2 = Drink, Remove-decorations
+|options3 = Drink, Revert
+|examine1 = A special mixture that makes you feel like a brand new person.
+|examine2 = Don't get your tongue stuck!
+|examine3 = An eternal flame of rejuvination{{sic}}.
+|id1 = 29241
+|id2 = 40848
+|id3 = 49993
+|itemid = 20643
+}}
+The '''ornate rejuvenation pool''' can be built in the [[pool space]] of the [[superior garden]] in a [[player-owned house]]. It requires 90 [[Construction]] to upgrade the [[fancy rejuvenation pool]] and gives 3,107 [[experience]] when built. The player must have a [[hammer]] and a [[saw]] to build it. Using a +5 [[Temporary skill boost|boost]] from a [[spicy stew]] and the +3 boost from the [[crystal saw]], one can build the ornate rejuvenation pool at 82 Construction.
+
+Players can restore their [[hitpoints]], [[Special attacks|special attack]], [[surge potion]] cooldown, [[Energy|run energy]], [[prayer points]], and any reduced [[stats]], as well as cure [[disease]], [[venom]], [[poison]], and [[bleed]]. The pool will not remove the [[Corruption (status)|corruption]] status effect. This cannot be done if the player was recently in [[Player killing|PvP]] combat; attempting to do so produces the message, ''"You can't drink from the pool during combat."''
+
+For [[Ironman Mode|ironmen]], level 87 [[Herblore]] (boostable) and completion of [[Regicide]] is also required up to the point of reaching the [[Tyras Camp]], as the only source of [[anti-venom]] is to create it through Herblore using [[Zulrah's scales]].
+
+It is extremely popular among players, as it functions similarly to the [[Pool of Refreshment|pools of refreshment]] (with [[Ring of dueling|rings of dueling]]) and the [[Elidinis Statuette]] (with the [[desert amulet 4]]) in the player's own house and requires a much lower time investment than the desert amulet 4.
+
+The [[goblin decorations]] can be used on the pool to make a frozen ornate rejuvenation pool; note the decorations must be removed before upgrading the pools. A [[Trailblazer reloaded rejuvenation pool scroll]] can also be used on the pool to give it a fiery appearance.
+
+==Creation==
+===Upgrade===
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 90
+|skill1boostable = Yes
+|skill1exp = 3,107
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Fancy rejuvenation pool
+|mat1pic = Fancy rejuvenation pool icon
+|mat1cost = 0
+|mat2 = Gold leaf
+|mat2quantity = 5
+|mat3 = Anti-venom(4)
+|mat3quantity = 10
+|mat4 = Blood rune
+|mat4quantity = 1000
+|output1 = Ornate rejuvenation pool
+|output1pic = Ornate rejuvenation pool icon
+|output1cost = No
+|output1subtxt = Upgrade
+}}
+
+===Total===
+''The experience shown is the total amount accumulated from the base furniture to this built furniture.''
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 90
+|skill1boostable = Yes
+|skill1exp = 7,513
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Limestone brick
+|mat1quantity = 5
+|mat2 = Bucket of water
+|mat2quantity = 5
+|mat3 = Soul rune
+|mat3quantity = 1000
+|mat4 = Body rune
+|mat4quantity = 1000
+|mat5 = Stamina potion(4)
+|mat5quantity = 10
+|mat6 = Prayer potion(4)
+|mat6quantity = 10
+|mat7 = Marble block
+|mat7quantity = 2
+|mat8 = Super restore(4)
+|mat8quantity = 10
+|mat9 = Gold leaf
+|mat9quantity = 5
+|mat10 = Anti-venom(4)
+|mat10quantity = 10
+|mat11 = Blood rune
+|mat11quantity = 1000
+|output1 = Ornate rejuvenation pool
+|output1pic = Ornate rejuvenation pool icon
+|output1cost = 0
+|output1subtxt = Total
+}}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 14 May 2025
+|update = Yama, the Master of Pacts: Out Today
+|change = The ornate rejuvenation pool now also resets the [[surge potion]] cooldown timer.
+}}
+{{Subject changes
+|date = 5 April 2023
+|update = Easter 2023
+|change = Recharging [[Prayer]] at the pool will now reset the timer on any [[Prayer points|prayer point]] draining effects. 
+}}
+{{Subject changes footer}}
+
+==Trivia==
+* On the day before release, it was shown on the weekly community stream that the pool would require 10 [[anti-venom+]] instead of regular anti-venom. This was changed before release upon player feedback.
+
+{{Superior garden}}

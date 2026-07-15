@@ -1,0 +1,76 @@
+{{External|rs}}
+{{otheruses|the stand built in the [[workshop]] of a [[player-owned house]]}}
+{{Infobox Construction
+|name = Armour stand
+|image = [[File:Armour stand built.png|200px]]
+|icon = [[File:Armour stand icon.png]]
+|furniturename = Armour repair stand
+|release = [[31 May]] [[2006]]
+|update = PLAYER-OWNED HOUSES!
+|level = 55
+|experience = 500
+|room = [[Workshop]]
+|hotspot = [[Repair space]]
+|flatpack = No
+|examine = You can repair armour here.
+|id = 6802
+|itemid = 8391
+}}
+The '''armour stand''' can be built in the [[repair space]] of the [[workshop]] in a [[player-owned house]]. It requires 55 [[Construction]] to build, granting 500 Construction [[experience]]. The player must have a [[hammer]] and a [[saw]] in their inventory to build it.
+
+This piece of furniture is useful in its ability to repair armours such as [[Barrows equipment]].
+
+It can also be used to repair [[damaged armour]].
+
+==Creation==
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 55
+|skill1boostable = Yes
+|skill1exp = 500
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Oak plank
+|mat1quantity = 8
+|mat2 = Limestone brick
+|output1 = Armour stand
+|output1pic = Armour stand icon
+|output1cost = 0
+}}
+
+==Repair cost breakdown==
+It costs less to repair Barrows or Moons of Peril equipment at an armour stand compared to paying [[Bob]] in [[Lumbridge]]. Stat boosts do affect the price of repair. The formula used to calculate the cost at a repair stand is:
+
+<math>\text{Cost}_\text{AS} = \text{Cost}_\text{NPC} \times \left(1-\frac{\text{Smithing Level}}{200}\right)</math>
+
+A player with a [[Smithing]] level of 60, for instance, would pay 70% of normal cost:
+
+<math>1- \frac{60}{200} = \frac{70}{100}</math>
+
+Simply put, every 2 Smithing levels reduces the repair cost by 1% when compared to an NPC vendor. At level 99 this equals roughly 50% in savings.
+
+[[Damaged armour]] can also be repaired at an armour stand and give a player a platebody of a random metal from bronze to mithril. [[Broken armour]] can also be repaired at the stand and give a player a [[platelegs]] or [[plateskirt]] of random metal, from [[Bronze platebody|bronze]] to [[Mithril platebody|mithril]]. There is a chance with either armour types of breaking it beyond repair.
+
+==Barrows item repairs calculator==
+The following calculator can be used to see how [[Smithing]] level and boosts affects the repair cost of Barrows items.
+{{Calculator:Barrows item repair}}
+
+==Moons item repairs calculator==
+The following calculator can be used to see how [[Smithing]] level and boosts affects the repair cost of Moons items.
+{{Calculator:Moons item repair}}
+
+==Dialogue==
+{{Hastranscript|scenery}}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 19 September 2013
+|update = Patch Notes (19 September 2013)
+|change = Player-owned house armour stands will no longer overcharge you for repairing Barrows kit.
+}}
+{{Subject changes footer}}
+
+{{Repair}}
+{{Workshop}}

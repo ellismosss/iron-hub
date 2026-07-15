@@ -1,0 +1,95 @@
+{{External|rs=Obelisk (Wilderness)}}
+{{Confuse|Obelisk (Construction)}}
+{{Infobox Scenery
+|version1 = Unactivated
+|version2 = Activated
+|name = Obelisk
+|image1 = [[File:Obelisk (Wilderness, unactivated).png|250x250px]]
+|image2 = [[File:Obelisk (Wilderness, activated).png|250x250px]]
+|release = [[24 April]] [[2006]]
+|update = Wilderness graphical update
+|members = Yes
+|quest = No
+|location = [[Wilderness]]
+|options1 = Activate, Teleport to Destination, Set Destination
+|options2 = None
+|examine1 = I wonder what this does...
+|examine2 = It's glowing!
+|map = {{Map|group=1|3156,3748|zoom=-1|plane=0|mapID=0}}
+|id1 = 14826,14827,14828,14829,14830,14831
+|id2 = 14825
+}}
+'''Wilderness obelisks''' are [[Members|members'-only]] [[teleportation]] devices in the Wilderness. There are six obelisks in total. Two are under level 20 Wilderness and a further one is between 20-30, totalling three obelisks within the range wherein conventional teleports are usable. The remaining three obelisks are found at level 35+ Wilderness. 
+
+The obelisks are all the same, occupying a 5x5 area with four obelisks to the corners and a 3x3 grid in the centre. In order to teleport, the player must first touch one of the obelisks, then stand in the 3x3 grid in the centre to teleport after a short delay. This will teleport everyone in the 3x3 grid regardless if they activated it or not, following rules set by the first player who activated it. The obelisk will only teleport players who are not under the effects of a [[Tele Block]]. The location that the obelisk will send the player(s) in is completely random, and players may even be teleported to the same location. Once teleportation is complete, players will be notified with the message {{mes|Ancient magic teleports you somewhere in the Wilderness!}} 
+[[File:Wilderness Obelisk interface.png|thumb|300px|The interface showing all Wilderness obelisk teleports.]]
+
+After collecting the rewards from the Hard [[Wilderness Diary]], players will be able to select the location that the obelisk can teleport them. To do this, players must first right-click the obelisk for "Set Destination" and then pick the obelisk they wish to teleport to in the subsequent interface. Then, after a destination is selected, they must right-click for the "Teleport to Destination" option to be teleported there. If the player does not do this (or another player activates it), they will follow rules that were applied by the first player to activate the obelisk.
+
+Players should be careful when activating an obelisk, as three of the obelisks are in [[multicombat area]]s and it is possible to be ambushed by multiple players after teleportation. Obelisks can also be used by [[player killer]]s to keep a victim in place or teleport them to one of the three multicombat areas, which can spell a quick death.
+
+[[File:Wilderness Obelisk.png|thumb|250px|The obelisks as seen together]]
+Players can also teleport to these obelisks using an [[Obelisk (Construction)|Obelisk]] found in their [[player-owned house]], which follow the same behaviour of those found in the Wilderness.
+
+==Locations==
+{|class="wikitable" style="text-align: center;"
+!Wilderness Level
+!Location
+!Teleport usable?
+![[Multicombat area|Multicombat?]]
+|-
+|{{NA}}
+|In the [[superior garden]] of a [[player-owned house]]<ref>The obelisk in a player-owned house can only be used to teleport to the Wilderness and cannot be teleported to from other obelisks.</ref>
+|{{Yes}}
+|{{NA}}
+|-
+|13
+|{{Map|name=Wilderness Obelisk|x=3156|y=3620|r=4|caption=South-east of the [[Ferox Enclave]]|mtype=square|group=1}}
+|{{Yes}}
+|{{Yes}}
+|-
+|18-19
+|{{Map|name=Wilderness Obelisk|x=3227|y=3667|r=4|caption=East of the [[Graveyard of Shadows]]|mtype=square|group=1}}
+|{{Yes}}
+|{{Yes}}
+|-
+|27
+|{{Map|name=Wilderness Obelisk|x=3035|y=3732|r=4|caption=South of the [[Wilderness God Wars Dungeon]] entrance|mtype=square|group=1}}
+|{{Maybe|Yes}}<ref>Only by items mentioned [[Level 30 teleport|here]]</ref>
+|{{No}}
+|-
+|35
+|{{Map|name=Wilderness Obelisk|x=3106|y=3794|r=4|caption=South of the [[Lava Maze]]|mtype=square|group=1}}
+|{{No}}
+|{{No}}
+|-
+|44
+|{{Map|name=Wilderness Obelisk|x=2980|y=3867|r=4|caption=West of the [[Lava Maze]]|mtype=square|group=1}}
+|{{No}}
+|{{No}}
+|-
+|50
+|{{Map|name=Wilderness Obelisk|x=3307|y=3916|r=4|caption=Near the [[Rogues' Castle]] and the [[Chaos Elemental]]|mtype=square|group=1}}
+|{{No}}
+|{{Yes}}
+|}
+<references/>
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 25 February 2016
+|update = Grapes & PvP poll features
+|poll = Quality of Life - Top 10 PvP Suggestions
+|change = Wilderness obelisks no longer require clicking through a menu to choose a destination. Now left-click travel will take players to a random destination. With the hard Wilderness Diary complete, there is an option to set a 'favourite' destination for the portals and another teleports you to that favourite.
+}}
+{{Subject changes
+|date = 5 March 2015
+|update = Achievement Diaries
+|poll = Old School Achievement Diary Rewards Poll
+|change = You can now choose which obelisk you would like to teleport to if you have completed the [[Wilderness Hard Diary]].
+}}
+{{Subject changes footer}}
+
+{{Obelisk}}
+[[Category:Wilderness]]

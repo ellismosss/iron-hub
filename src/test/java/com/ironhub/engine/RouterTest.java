@@ -212,6 +212,28 @@ public class RouterTest
 	}
 
 	@Test
+	public void pohBuildsCarryMaterialResources()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.stat(state, Skill.CONSTRUCTION, 55, Experience.getXpForLevel(55));
+		StateFixture.bank(state, java.util.Map.of(
+			net.runelite.api.gameval.ItemID.PLANK_OAK, 5));
+
+		// the armour stand gear goal: manual build step carries its wiki
+		// Recipe materials as needed/banked/missing resources
+		Plan plan = plan(state, PlanConstraints.none(),
+			goal("stand", "unlock:gearmark_armour_stand"));
+		Plan.Step step = plan.steps.get(indexOf(plan, "manual:gearmark_armour_stand"));
+		assertNotNull(step);
+		assertEquals(2, step.resources.size());
+		Plan.Resource planks = step.resources.stream()
+			.filter(r -> r.name.equals("Oak plank")).findFirst().orElseThrow(AssertionError::new);
+		assertEquals(8, planks.needed);
+		assertEquals(5, planks.banked);
+		assertEquals(3, planks.missing);
+	}
+
+	@Test
 	public void fullGoalsPackRoutesUnderTheBudget()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());

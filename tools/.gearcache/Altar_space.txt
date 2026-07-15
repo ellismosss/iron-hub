@@ -1,0 +1,175 @@
+{{External|rs}}
+{{Infobox Scenery
+|version1 = Chapel
+|version2 = Achievement Gallery
+|name = Altar space
+|image1 = [[File:Altar space (Chapel).png|250px]]
+|image2 = [[File:Altar space (Achievement Gallery).png|250px]]
+|release1 = [[31 May]] [[2006]]
+|release2 = [[25 August]] [[2016]]
+|update1 = PLAYER-OWNED HOUSES!
+|update2 = The Construction Expansion
+|members = Yes
+|quest = No
+|location1 = [[Player-owned house]] ([[chapel]])
+|location2 = [[Player-owned house]] ([[achievement gallery]])
+|options = Build
+|examine1 = You can build an altar here.
+|examine2 = You can add a magical altar here.
+|map = No
+|id1 = 15270
+|id2 = 29140
+}}
+'''Altar space''' is a [[hotspot]] in the [[Chapel]] and [[Achievement Gallery]] of a [[player-owned house]] that is only visible to the player when in [[building mode]].
+
+==Chapel==
+Altars can be used to recharge [[Prayer]] points, and provide a place to sacrifice [[bones]] for greater Prayer [[experience]] than burying them.
+
+===Creation Menu===
+{|class="wikitable align-left-4" style="text-align:center;"
+!rowspan=2|Key<ref>Press this key on your keyboard while in the Creation Menu to build this item.</ref>
+!rowspan=2|{{SCP|Construction}} Level
+!rowspan=2 colspan=2|Altar
+!rowspan=2|Materials
+!rowspan=2|Experience
+!rowspan=2|Cost
+!colspan=3|XP multiplier with # of burners lit
+|-
+!0
+!1
+!2
+|-
+|1
+|45
+|{{plinkt|Oak altar|pic=Oak altar icon}}
+|{{plink|Oak plank}} x4
+|240
+|{{Coins|{{GEP|Oak plank|4}}}}
+|100%
+|150%
+|200%
+|-
+|2
+|50
+|{{plinkt|Teak altar|pic=Teak altar icon}}
+|{{plink|Teak plank}} x4
+|360
+|{{Coins|{{GEP|Teak plank|4}}}}
+|110%
+|160%
+|210%
+|-
+|3
+|56
+|{{plinkt|Cloth altar|pic=Cloth altar icon}}
+|{{plink|Teak plank}} x4<br/>{{plink|Bolt of cloth}} x2
+|390
+|{{Coins|{{GEP|Teak plank|4}} + {{GEP|Bolt of cloth|2}}}}
+|125%
+|175%
+|225%
+|-
+|4
+|60
+|{{plinkt|Mahogany altar|pic=Mahogany altar icon}}
+|{{plink|Mahogany plank}} x4<br/>{{plink|Bolt of cloth}} x2
+|590
+|{{Coins|{{GEP|Mahogany plank|4}} + {{GEP|Bolt of cloth|2}}}}
+|150%
+|200%
+|250%
+|-
+|5
+|64
+|{{plinkt|Limestone altar|pic=Limestone altar icon}}
+|{{plink|Mahogany plank}} x6<br/>{{plink|Bolt of cloth}} x2<br/>{{plink|Limestone brick}} x2
+|910
+|{{Coins|{{GEP|Mahogany plank|6}} + {{GEP|Bolt of cloth|2}} + {{GEP|Limestone brick|2}}}}
+|175%
+|225%
+|275%
+|-
+|6
+|70
+|{{plinkt|Marble altar|pic=Marble altar icon}}
+|{{plink|Marble block}} x2<br/>{{plink|Bolt of cloth}} x2
+|1,030
+|{{Coins|{{GEP|Marble block|2}} + {{GEP|Bolt of cloth|2}}}}
+|200%
+|250%
+|300%
+|-
+|7
+|75
+|{{plinkt|Gilded altar|pic=Gilded altar icon}}
+|{{plink|Marble block}} x2<br/>{{plink|Bolt of cloth}} x2<br/>{{plink|Gold leaf}} x4
+|2,230
+|{{Coins|{{GEP|Marble block|2}} + {{GEP|Bolt of cloth|2}} + {{GEP|Gold leaf|4}}}}
+|250%
+|300%
+|350%
+|}
+{{Reflist}}
+
+==Achievement Gallery==
+===Uses===
+{| class="wikitable align-center-1"
+|-
+!colspan=2|Item
+!Use<ref>Using the altar to swap to the spellbook requires the requisite quest to be completed.</ref>
+|-
+|{{plinkt|Ancient altar|pic=Ancient altar icon}}
+|Allows the player to swap between the [[Ancient Magicks|Ancient Magick]] and [[Standard spells|Standard]] spellbooks.
+|-
+|{{plinkt|Lunar altar|pic=Lunar altar icon}}
+|Allows the player to swap between the [[Lunar spells|Lunar]] and [[Standard spells|Standard]] spellbooks.
+|-
+|{{plinkt|Dark altar (Construction)|pic=Dark altar (Construction) icon|txt=Dark altar}}
+|Allows the player to swap between the [[Arceuus spells|Arceuus]] and [[Standard spells|Standard]] spellbooks.
+|-
+|{{plinkt|Occult altar|pic=Occult altar icon}}
+|Allows the player to swap between all [[spellbook]]s.
+|}
+{{Reflist}}
+
+===Creation Menu===
+{|class="wikitable align-left-4" style="text-align:center;"
+!Key<ref>Press this key on your keyboard while in the Creation Menu to build this item.</ref>
+!{{SCP|Construction}} Level
+!colspan=2|Altar
+!Materials
+!Experience
+!Cost
+|-
+|1
+|80
+|{{plinkt|Ancient altar|pic=Ancient altar icon}}
+|{{plink|Limestone brick}} x10<br/>{{plink|Magic stone}}<br/>{{plink|Ancient signet}}<br/>{{plink|Pharaoh's sceptre}}
+|1,490
+|{{Coins|{{GEP|Limestone brick|10}} + {{GEP|Magic stone}} + {{GEP|Pharaoh's sceptre (uncharged)}}}}
+|-
+|2
+|80
+|{{plinkt|Lunar altar|pic=Lunar altar icon}}
+|{{plink|Limestone brick}} x10<br/>{{plink|Magic stone}}<br/>{{plink|Lunar signet}}<br/>{{plink|Astral rune}} x10,000
+|1,957
+|{{Coins|{{GEP|Limestone brick|10}} + {{GEP|Magic stone}} + {{GEP|Astral rune|10000}} + 2}}
+|-
+|3
+|80
+|{{plinkt|Dark altar (Construction)|pic=Dark altar (Construction) icon|txt=Dark altar}}
+|{{plink|Limestone brick}} x10<br/>{{plink|Magic stone}}<br/>{{plink|Arceuus signet}}<br/>{{plink|Blood rune}} x5,000<br/>{{plink|Soul rune}} x5,000
+|3,888
+|{{Coins|{{GEP|Limestone brick|10}} + {{GEP|Magic stone}} + {{GEP|Blood rune|5000}} + {{GEP|Soul rune|5000}}}}
+|-
+|4
+|90
+|{{plinkt|Occult altar|pic=Occult altar icon}}
+|{{plink|Limestone brick}} x10<br/>{{plink|Magic stone}}<br/>All secondary items (signets, runes, sceptre)<ref>If an altar is built already, the magic stone, limestone brick, and current secondary items are not needed anymore. The remaining items needed are those from the two missing altars not built.</ref>
+|3,445
+|{{Coins|{{GEP|Limestone brick|10}} + {{GEP|Magic stone}} + {{GEP|Blood rune|5000}} + {{GEP|Soul rune|5000}} + {{GEP|Astral rune|10000}} + 2 + {{GEP|Pharaoh's sceptre (uncharged)}}}}
+|}
+{{Reflist}}
+
+{{Chapel}}
+{{Achievement gallery}}

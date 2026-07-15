@@ -1,0 +1,201 @@
+{{External|rs}}
+{{Otheruses|def=no|the jewellery box in the [[Old School Museum]]|Ornate Jewellery Box (Old School Museum)}}
+{{Infobox Construction
+|name = Ornate jewellery box
+|image = [[File:Ornate jewellery box built.png|200px]]
+|icon = [[File:Ornate jewellery box icon.png]]
+|furniturename = Ornate Jewellery Box
+|release = [[25 August]] [[2016]]
+|update = The Construction Expansion
+|level = 91
+|experience = 2,680
+|room = [[Achievement Gallery]]
+|hotspot = [[Jewellery box space]]
+|flatpack = No
+|options = Teleport Menu, [previous teleport destination], Remove
+|examine = An ornate steel box featuring many enchanted sapphire, emerald and dragonstone jewellery.
+|id = 37520,37521,37522,37523,37524,37525,37526,37527,37528,37529,37530,37531,37532,37533,37534,37535,37536,37537,37538,37539,37540,37541,37542,37543,37544,37545,37546,50712
+|itemid = 20628
+}}
+
+The '''ornate jewellery box''' can be built as an upgrade to the [[fancy jewellery box]] in the [[jewellery box space]] of the [[achievement gallery]] in a [[player-owned house]]. It requires 91 [[Construction]] to build and gives 2,680 [[experience]] when built. The player must have a [[hammer]] and a [[saw]] in their inventory to build it, and the required jewellery must be unnoted.
+
+Players using the [[crystal saw]] (+3) and a [[spicy stew]] with three doses of [[orange spice]] (+5) can build the ornate jewellery box at as low as level 83 Construction. If not using spicy stews, the lowest level with a consistent boost is level 85 Construction, using the [[crystal saw]] (+3) and [[Teak shelves 2|teak shelves]] to make a [[Cup of tea (trimmed)|cup of tea]] (+3).
+
+==Creation==
+===Upgrade===
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 91
+|skill1boostable = Yes
+|skill1exp = 2,680
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Fancy jewellery box
+|mat1pic = Fancy jewellery box icon
+|mat1cost = 0
+|mat2 = Gold leaf
+|mat2quantity = 2
+|mat3 = Ring of wealth (5)
+|mat3quantity = 8
+|mat4 = Amulet of glory(4)
+|mat4quantity = 8
+|mat4itemnote = Amulets of glory may have more than four charges.
+|output1 = Ornate jewellery box
+|output1pic = Ornate jewellery box icon
+|output1cost = 0
+|output1subtxt = Upgrade
+}}
+
+===Total===
+''The experience shown is the total amount accumulated from the base furniture to this built furniture.''
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 91
+|skill1boostable = Yes
+|skill1exp = 4,635
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Bolt of cloth
+|mat2 = Steel bar
+|mat3 = Gold leaf
+|mat3quantity = 3
+|mat4 = Ring of dueling(8)
+|mat4quantity = 3
+|mat5 = Games necklace(8)
+|mat5quantity = 3
+|mat6 = Combat bracelet(4)
+|mat6quantity = 5
+|mat7 = Skills necklace(4)
+|mat7quantity = 5
+|mat8 = Ring of wealth (5)
+|mat8quantity = 8
+|mat9 = Amulet of glory(4)
+|mat9quantity = 8
+|mat9itemnote = Amulets of glory may have more than four charges.
+|output1 = Ornate jewellery box
+|output1pic = Ornate jewellery box icon
+|output1cost = 0
+|output1subtxt = Total
+}}
+
+==Locations==
+The box will allow players to teleport to the following locations (keyboard shortcuts included):
+
+{|class="wikitable" style="text-align:left;"
+!Item
+!Location
+!Map
+|-
+| rowspan="4" |{{plink|Ring of dueling}}
+|1. [[Emir's Arena]]
+|{{Map|3315,3235|r=2|width=200|height=200|mtype=square}}
+|-
+|2. [[Castle Wars]] Arena
+|{{Map|2440,3090|r=2|width=200|height=200|mtype=square}}
+|-
+|3. [[Ferox Enclave]]
+|{{Map|3151,3635|r=2|width=200|height=200|mtype=square}}
+|-
+|4. [[Fortis Colosseum]]{{Efn|Unlocked upon reaching [[Glory|Hero status]] in the Colosseum.|group=L}}
+|{{Map|1793,3107|r=2|width=200|height=200|mtype=square}}
+|-
+| rowspan="5" |{{plink|Games necklace}}
+|5. [[Burthorpe]]
+|{{Map|2898,3553|r=2|width=200|height=200|mtype=square}}
+|-
+|6. [[Barbarian Outpost]]
+|{{Map|2520,3571|r=2|width=200|height=200|mtype=square}}
+|-
+|7. [[Corporeal Beast]]
+|{{Map|2967,4254|r=2|mapID=10031|width=200|height=200|mtype=square}}
+|-
+|8. [[Chasm of Tears]]
+|{{Map|3245,9500|mapID=10146|r=2|width=200|height=200|mtype=square}}
+|-
+|9. [[Wintertodt Camp]]
+|{{Map|1631,3940|r=4|width=200|height=200|mtype=square}}
+|-
+| rowspan="4" |{{plink|Combat bracelet}}
+|A. [[Warriors' Guild]]
+|{{Map|2865,3546|r=2|width=200|height=200|mtype=square}}
+|-
+|B. [[Champions' Guild]]
+|{{Map|3192,3368|r=2|width=200|height=200|mtype=square}}
+|-
+|C. [[Edgeville Monastery]]
+|{{Map|3052,3490|r=2|width=200|height=200|mtype=square}}
+|-
+|D. [[Ranging Guild]]
+|{{Map|2653,3439|r=2|width=200|height=200|mtype=square}}
+|-
+| rowspan="6" |{{plink|Skills necklace}}
+|E. [[Fishing Guild]]
+|{{Map|2611,3390|r=2|width=200|height=200|mtype=square}}
+|-
+|F. [[Mining Guild]]
+|{{Map|3046,9735|mapID=6|r=2|width=200|height=200|mtype=square}}
+|-
+|G. [[Crafting Guild]]
+|{{Map|2933,3295|r=2|width=200|height=200|mtype=square}}
+|-
+|H. [[Cooks' Guild]]
+|{{Map|3144,3438|r=2|width=200|height=200|mtype=square}}
+|-
+|I. [[Woodcutting Guild]]
+|{{Map|1662,3505|r=2|width=200|height=200|mtype=square}}
+|-
+|J. [[Farming Guild]]
+|{{Map|1248,3719|r=2|width=200|height=200|mtype=square}}
+|-
+| rowspan="4" |{{plink|Ring of wealth}}
+|K. [[Miscellania]]
+|{{Map|2534,3862|r=2|width=200|height=200|mtype=square}}
+|-
+|L. [[Grand Exchange]]
+|{{Map|3163,3478|r=2|width=200|height=200|mtype=square}}
+|-
+|M. [[Falador Park]]
+|{{Map|2995,3375|r=2|width=200|height=200|mtype=square}}
+|-
+|N. [[Dondakan the Dwarf|Dondakan's Rock]]
+|{{Map|2824,10168|mapID=10|r=2|width=200|height=200|mtype=square}}
+|-
+| rowspan="4" |{{plink|Amulet of glory}}
+|O. [[Edgeville]]
+|{{Map|3087,3496|r=2|width=200|height=200|mtype=square}}
+|-
+|P. [[Karamja]]
+|{{Map|2918,3176|r=2|width=200|height=200|mtype=square}}
+|-
+|Q. [[Draynor Village]]
+|{{Map|3105,3251|r=2|width=200|height=200|mtype=square}}
+|-
+|R. [[Al Kharid]]
+|{{Map|3293,3163|r=2|width=200|height=200|mtype=square}}
+|}
+{{Notelist|group=L}}
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 10 July 2024
+|update = While Guthix Sleeps
+|change = Jewellery boxes now refer to the previous teleport destination as "[[Emir's Arena]]" rather than "PvP Arena" in the options menu.
+}}
+{{Subject changes
+|date = 23 July 2020
+|update = Poll 71 and Ferox Enclave Updates
+|change = Jewellery boxes now correctly refers to the previous teleport destination as "[[Ferox Enclave]]" rather than "Clan Wars" in the options menu.
+}}
+{{Subject changes
+|date = 5 December 2019
+|update = Game Improvements and Nightmare Beta Changes
+|poll = Old School Content Poll 69: Game Improvements
+|change = Players can now teleport to their previous destination by right clicking the jewellery box.
+}}
+{{Subject changes footer}}
+
+{{Achievement gallery}}

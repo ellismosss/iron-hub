@@ -668,10 +668,19 @@ class PlannerTab extends JPanel
 			new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD)));
 
 		JPanel title = row();
-		JLabel name = new JLabel(position + ". " + step.action.name);
+		javax.swing.Icon icon = stepIcon(step);
+		String shortTitle = step.action.kind == Action.Kind.TRAIN && icon != null
+			? "to " + step.action.trainToLevel : step.action.name;
+		JLabel name = new JLabel(position + ". " + shortTitle);
+		if (icon != null)
+		{
+			name.setIcon(icon);
+			name.setIconTextGap(UiTokens.PAD_TIGHT);
+		}
 		name.setForeground(UiTokens.TEXT_PRIMARY);
 		name.setFont(name.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
 		name.setMinimumSize(new Dimension(0, 0));
+		name.setToolTipText(step.action.name);
 		title.add(name);
 		title.add(Box.createHorizontalGlue());
 		title.add(timeLabel(step, UiTokens.ACCENT, true));
@@ -777,15 +786,31 @@ class PlannerTab extends JPanel
 			}
 		}
 
+		java.util.List<String> reqStrings = null;
 		if (step.action.kind == Action.Kind.OBTAIN)
 		{
 			GearProgressionPack.Item gearItem = moduleGearItem(step.action.itemId);
-			if (gearItem != null && gearItem.getRequirements() != null
-				&& !gearItem.getRequirements().isEmpty())
+			reqStrings = gearItem == null ? null : gearItem.getRequirements();
+		}
+		else if (step.action.kind == Action.Kind.MANUAL && step.action.unlockKey != null
+			&& step.action.unlockKey.startsWith("gearmark_"))
+		{
+			GearProgressionPack.Item gearItem = moduleGearItemByMark(step.action.unlockKey);
+			reqStrings = gearItem == null ? null : gearItem.getRequirements();
+		}
+		else if (step.action.kind == Action.Kind.QUEST)
+		{
+			com.ironhub.data.QuestsPack.QuestEntry entry =
+				module.questEntry(step.action.questName);
+			reqStrings = entry == null ? null : entry.reqs;
+		}
+		if (true)
+		{
+			if (reqStrings != null && !reqStrings.isEmpty())
 			{
 				card.add(Box.createVerticalStrut(UiTokens.PAD));
 				card.add(new SectionLabel("Requirements"));
-				for (String raw : gearItem.getRequirements())
+				for (String raw : reqStrings)
 				{
 					com.ironhub.requirements.Requirement parsed =
 						com.ironhub.requirements.Requirements.parse(raw);
@@ -1220,6 +1245,24 @@ class PlannerTab extends JPanel
 		return null;
 	}
 
+	private GearProgressionPack.Item moduleGearItemByMark(String markKey)
+	{
+		for (GearProgressionPack.Phase phase : moduleGear().getPhases())
+		{
+			for (GearProgressionPack.Group group : phase.getGroups())
+			{
+				for (GearProgressionPack.Item item : group.getItems())
+				{
+					if (item.markKey().equals(markKey))
+					{
+						return item;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
 	private com.ironhub.data.MethodsPack moduleMethods()
 	{
 		return module.methodsPack();
@@ -1267,6 +1310,37 @@ class PlannerTab extends JPanel
 		return area;
 	}
 
+	private static javax.swing.Icon bundledIcon(String resource)
+	{
+		java.net.URL url = PlannerTab.class.getResource(resource);
+		if (url == null)
+		{
+			return null;
+		}
+		javax.swing.ImageIcon icon = new javax.swing.ImageIcon(url);
+		return new javax.swing.ImageIcon(
+			icon.getImage().getScaledInstance(-1, 15, java.awt.Image.SCALE_SMOOTH));
+	}
+
+	private static final javax.swing.Icon CA_ICON =
+		bundledIcon("/data/icons/combat_achievements.png");
+	private static final javax.swing.Icon DIARY_ICON =
+		bundledIcon("/data/icons/achievement_diaries.png");
+
+	/** The CA/diary badge for a goal id, or null. */
+	private static javax.swing.Icon goalBadge(String goalId)
+	{
+		if (goalId.startsWith("ca:"))
+		{
+			return CA_ICON;
+		}
+		if (goalId.startsWith("diary:"))
+		{
+			return DIARY_ICON;
+		}
+		return null;
+	}
+
 	/** Icon for a route row: skill icon for training, item sprite for
 	 * obtain steps, the serving goal's sprite for kills/manual steps. */
 	private javax.swing.Icon stepIcon(Plan.Step step)
@@ -1289,6 +1363,15 @@ class PlannerTab extends JPanel
 		}
 		else if (step.action.kind == Action.Kind.KILL || step.action.kind == Action.Kind.MANUAL)
 		{
+			if (step.action.id.startsWith("diarytier:")
+				|| step.action.unlockKey != null && step.action.unlockKey.startsWith("diarytask_"))
+			{
+				return DIARY_ICON;
+			}
+			if (step.action.unlockKey != null && step.action.unlockKey.startsWith("catask_"))
+			{
+				return CA_ICON;
+			}
 			Plan plan = latestPlan != null ? latestPlan : displayedPlan;
 			if (plan != null)
 			{
@@ -1298,6 +1381,11 @@ class PlannerTab extends JPanel
 					if (itemId != null)
 					{
 						break;
+					}
+					javax.swing.Icon badge = goalBadge(goalId);
+					if (badge != null)
+					{
+						return badge;
 					}
 				}
 			}

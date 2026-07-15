@@ -2101,7 +2101,19 @@
                 "item:1704:1:Amulet of glory"
               ],
               "wiki": "Amulet_of_Glory_(mounted)",
-              "iconFile": "poh/mounted_glory.png"
+              "iconFile": "poh/mounted_glory.png",
+              "materials": [
+                {
+                  "itemId": 8780,
+                  "qty": 3,
+                  "name": "Teak plank"
+                },
+                {
+                  "itemId": 1704,
+                  "qty": 1,
+                  "name": "Amulet of glory"
+                }
+              ]
             },
             {
               "name": "Teak portal",
@@ -2113,7 +2125,14 @@
                 "skillb:Construction:50"
               ],
               "wiki": "Portal_Chamber",
-              "iconFile": "poh/teak_portal.png"
+              "iconFile": "poh/teak_portal.png",
+              "materials": [
+                {
+                  "itemId": 8780,
+                  "qty": 3,
+                  "name": "Teak plank"
+                }
+              ]
             }
           ]
         },
@@ -2130,7 +2149,19 @@
                 "skillb:Construction:55"
               ],
               "wiki": "Armour_stand",
-              "iconFile": "poh/armour_stand.png"
+              "iconFile": "poh/armour_stand.png",
+              "materials": [
+                {
+                  "itemId": 8778,
+                  "qty": 8,
+                  "name": "Oak plank"
+                },
+                {
+                  "itemId": 3420,
+                  "qty": 1,
+                  "name": "Limestone brick"
+                }
+              ]
             },
             {
               "name": "Spice rack",
@@ -2142,7 +2173,19 @@
                 "skillb:Construction:60"
               ],
               "wiki": "Spice_rack",
-              "iconFile": "poh/spice_rack.png"
+              "iconFile": "poh/spice_rack.png",
+              "materials": [
+                {
+                  "itemId": 8780,
+                  "qty": 3,
+                  "name": "Teak plank"
+                },
+                {
+                  "itemId": 1761,
+                  "qty": 6,
+                  "name": "Soft clay"
+                }
+              ]
             },
             {
               "name": "Restoration pool",
@@ -2154,7 +2197,29 @@
                 "skillb:Construction:65"
               ],
               "wiki": "Restoration_pool",
-              "iconFile": "poh/restoration_pool.png"
+              "iconFile": "poh/restoration_pool.png",
+              "materials": [
+                {
+                  "itemId": 3420,
+                  "qty": 5,
+                  "name": "Limestone brick"
+                },
+                {
+                  "itemId": 1929,
+                  "qty": 5,
+                  "name": "Bucket of water"
+                },
+                {
+                  "itemId": 566,
+                  "qty": 1000,
+                  "name": "Soul rune"
+                },
+                {
+                  "itemId": 559,
+                  "qty": 1000,
+                  "name": "Body rune"
+                }
+              ]
             },
             {
               "name": "Teak shelves 2",
@@ -2166,7 +2231,24 @@
                 "skillb:Construction:67"
               ],
               "wiki": "Shelves",
-              "iconFile": "poh/teak_shelves.png"
+              "iconFile": "poh/teak_shelves.png",
+              "materials": [
+                {
+                  "itemId": 8780,
+                  "qty": 3,
+                  "name": "Teak plank"
+                },
+                {
+                  "itemId": 1761,
+                  "qty": 6,
+                  "name": "Soft clay"
+                },
+                {
+                  "itemId": 4692,
+                  "qty": 2,
+                  "name": "Gold leaf"
+                }
+              ]
             }
           ]
         },
@@ -2237,7 +2319,14 @@
                 "skillb:Construction:72"
               ],
               "wiki": "Portal_Nexus",
-              "iconFile": "poh/marble_nexus.png"
+              "iconFile": "poh/marble_nexus.png",
+              "materials": [
+                {
+                  "itemId": 8786,
+                  "qty": 4,
+                  "name": "Marble block"
+                }
+              ]
             },
             {
               "name": "Gilded altar",
@@ -2249,7 +2338,24 @@
                 "skillb:Construction:75"
               ],
               "wiki": "Altar_space",
-              "iconFile": "poh/gilded_altar.png"
+              "iconFile": "poh/gilded_altar.png",
+              "materials": [
+                {
+                  "itemId": 8786,
+                  "qty": 2,
+                  "name": "Marble block"
+                },
+                {
+                  "itemId": 8790,
+                  "qty": 2,
+                  "name": "Bolt of cloth"
+                },
+                {
+                  "itemId": 4692,
+                  "qty": 4,
+                  "name": "Gold leaf"
+                }
+              ]
             },
             {
               "name": "Spirit tree",
@@ -2262,7 +2368,14 @@
                 "skillb:Farming:83"
               ],
               "wiki": "Spirit_tree_(Construction)",
-              "iconFile": "poh/spirit_tree.png"
+              "iconFile": "poh/spirit_tree.png",
+              "materials": [
+                {
+                  "itemId": 5375,
+                  "qty": 1,
+                  "name": "Spirit sapling"
+                }
+              ]
             },
             {
               "name": "Wilderness Obelisk",
@@ -2274,7 +2387,19 @@
                 "skillb:Construction:80"
               ],
               "wiki": "Obelisk_(Construction)",
-              "iconFile": "poh/wilderness_obelisk.png"
+              "iconFile": "poh/wilderness_obelisk.png",
+              "materials": [
+                {
+                  "itemId": 21804,
+                  "qty": 4,
+                  "name": "Ancient crystal"
+                },
+                {
+                  "itemId": 8786,
+                  "qty": 4,
+                  "name": "Marble block"
+                }
+              ]
             },
             {
               "name": "Ancient / Lunar / Dark altar",
@@ -2286,7 +2411,34 @@
                 "skillb:Construction:80"
               ],
               "wiki": "Occult_altar",
-              "iconFile": "poh/spellbook_altar.png"
+              "iconFile": "poh/spellbook_altar.png",
+              "materials": [
+                {
+                  "itemId": 565,
+                  "qty": 5000,
+                  "name": "Blood rune"
+                },
+                {
+                  "itemId": 566,
+                  "qty": 5000,
+                  "name": "Soul rune"
+                },
+                {
+                  "itemId": 9075,
+                  "qty": 10000,
+                  "name": "Astral rune"
+                },
+                {
+                  "itemId": 20615,
+                  "qty": 1,
+                  "name": "Arceuus signet"
+                },
+                {
+                  "itemId": 20613,
+                  "qty": 1,
+                  "name": "Lunar signet"
+                }
+              ]
             },
             {
               "name": "Basic jewellery box",
@@ -2298,7 +2450,19 @@
                 "skillb:Construction:81"
               ],
               "wiki": "Jewellery_box",
-              "iconFile": "poh/basic_jewellery_box.png"
+              "iconFile": "poh/basic_jewellery_box.png",
+              "materials": [
+                {
+                  "itemId": 8790,
+                  "qty": 1,
+                  "name": "Bolt of cloth"
+                },
+                {
+                  "itemId": 2353,
+                  "qty": 1,
+                  "name": "Steel bar"
+                }
+              ]
             },
             {
               "name": "Mounted digsite pendant",
@@ -2312,7 +2476,19 @@
                 "item:11190:1:Digsite pendant"
               ],
               "wiki": "Mounted_digsite_pendant",
-              "iconFile": "poh/mounted_digsite.png"
+              "iconFile": "poh/mounted_digsite.png",
+              "materials": [
+                {
+                  "itemId": 8782,
+                  "qty": 1,
+                  "name": "Mahogany plank"
+                },
+                {
+                  "itemId": 4692,
+                  "qty": 1,
+                  "name": "Gold leaf"
+                }
+              ]
             },
             {
               "name": "Fancy rejuvenation pool",
@@ -2327,6 +2503,13 @@
               "iconFile": "poh/fancy_pool.png",
               "implies": [
                 "Restoration pool"
+              ],
+              "materials": [
+                {
+                  "itemId": 8786,
+                  "qty": 2,
+                  "name": "Marble block"
+                }
               ]
             },
             {
@@ -2340,7 +2523,19 @@
                 "quest:Fairytale II - Cure a Queen"
               ],
               "wiki": "Fairy_ring_(Construction)",
-              "iconFile": "poh/fairy_ring.png"
+              "iconFile": "poh/fairy_ring.png",
+              "materials": [
+                {
+                  "itemId": 6004,
+                  "qty": 10,
+                  "name": "Mushroom"
+                },
+                {
+                  "itemId": 20609,
+                  "qty": 1,
+                  "name": "Fairy enchantment"
+                }
+              ]
             },
             {
               "name": "Fancy jewellery box",
@@ -2355,6 +2550,13 @@
               "iconFile": "poh/fancy_jewellery_box.png",
               "implies": [
                 "Basic jewellery box"
+              ],
+              "materials": [
+                {
+                  "itemId": 4692,
+                  "qty": 1,
+                  "name": "Gold leaf"
+                }
               ]
             },
             {
@@ -2372,6 +2574,33 @@
               "iconFile": "poh/occult_altar.png",
               "implies": [
                 "Ancient / Lunar / Dark altar"
+              ],
+              "materials": [
+                {
+                  "itemId": 565,
+                  "qty": 5000,
+                  "name": "Blood rune"
+                },
+                {
+                  "itemId": 566,
+                  "qty": 5000,
+                  "name": "Soul rune"
+                },
+                {
+                  "itemId": 9075,
+                  "qty": 10000,
+                  "name": "Astral rune"
+                },
+                {
+                  "itemId": 20615,
+                  "qty": 1,
+                  "name": "Arceuus signet"
+                },
+                {
+                  "itemId": 20613,
+                  "qty": 1,
+                  "name": "Lunar signet"
+                }
               ]
             },
             {
@@ -2387,6 +2616,18 @@
               "iconFile": "poh/ornate_pool.png",
               "implies": [
                 "Fancy rejuvenation pool"
+              ],
+              "materials": [
+                {
+                  "itemId": 4692,
+                  "qty": 5,
+                  "name": "Gold leaf"
+                },
+                {
+                  "itemId": 565,
+                  "qty": 1000,
+                  "name": "Blood rune"
+                }
               ]
             },
             {
@@ -2402,6 +2643,13 @@
               "iconFile": "poh/ornate_jewellery_box.png",
               "implies": [
                 "Fancy jewellery box"
+              ],
+              "materials": [
+                {
+                  "itemId": 4692,
+                  "qty": 2,
+                  "name": "Gold leaf"
+                }
               ]
             },
             {
@@ -2417,6 +2665,18 @@
               "iconFile": "poh/crystalline_nexus.png",
               "implies": [
                 "Marble portal nexus"
+              ],
+              "materials": [
+                {
+                  "itemId": 4703,
+                  "qty": 2,
+                  "name": "Magic stone"
+                },
+                {
+                  "itemId": 4692,
+                  "qty": 2,
+                  "name": "Gold leaf"
+                }
               ]
             },
             {
@@ -2435,6 +2695,23 @@
               "implies": [
                 "Spirit tree",
                 "Fairy ring"
+              ],
+              "materials": [
+                {
+                  "itemId": 5375,
+                  "qty": 1,
+                  "name": "Spirit sapling"
+                },
+                {
+                  "itemId": 6004,
+                  "qty": 10,
+                  "name": "Mushroom"
+                },
+                {
+                  "itemId": 20609,
+                  "qty": 1,
+                  "name": "Fairy enchantment"
+                }
               ]
             }
           ]

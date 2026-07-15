@@ -1,0 +1,196 @@
+{{Infobox Room
+|name = Achievement gallery
+|image = [[File:Achievement gallery built.png|300px]]
+|release = [[25 August]] [[2016]]
+|update = The Construction Expansion
+|icon = [[File:Achievement gallery icon.png]]
+|level = 80
+|cost = 200000
+|doors = ns
+}}
+An '''achievement gallery''' is a room in a [[player-owned house]] in which the player can display their various accomplishments. It can be created at level 80 [[Construction]] for {{Coins|200000}}. A player may only have one achievement gallery in their POH at any given time.
+
+If the player uses an orange [[spicy stew]] to boost their Construction by 5 levels, it is possible to build an achievement gallery at level 75 Construction. Likewise a [[Cup of tea (trimmed)]] boost at 77 Construction. The [[crystal saw]]'s +3 boost cannot be used to build the achievement gallery, since saws are not used when building new rooms.
+
+There are 6 [[hotspot]]s available:
+*[[Adventure log space]]
+*[[Altar space#Achievement Gallery|Altar space]]
+*[[Boss lair space]]
+*[[Display space]]
+*[[Jewellery box space]]
+*[[Quest list space]]
+
+==Adventure log==
+{{:Construction/Adventure log details}}
+
+{|class="wikitable lighttable align-left-3" style="text-align:center;"
+!{{SCP|Construction}} Level
+!colspan=2|Adventure log
+!Materials
+!Experience
+!Cost
+|-
+|83
+|{{plinkt|Mahogany adventure log|pic=Mahogany adventure log icon}}
+|{{plink|Mahogany plank}} x3<br/>{{plink|Papyrus}} x2<br/>{{plink|Enchanted gem}}
+|504
+|{{Coins|{{GEP|Mahogany plank|3}} + {{GEP|Papyrus|2}} + 1}}
+|-
+|88
+|{{plinkt|Gilded adventure log|pic=Gilded adventure log icon}}
+|{{plink|Mahogany plank}} x3<br/>{{plink|Gold leaf}} x2<br/>{{plink|Enchanted gem}}
+|1,100
+|{{Coins|{{GEP|Mahogany plank|3}} + {{GEP|Gold leaf|2}} + 1}}
+|-
+|93
+|{{plinkt|Marble adventure log|pic=Marble adventure log icon}}
+|{{plink|Marble block}} x2<br/>{{plink|Limestone brick}} x4<br/>{{plink|Enchanted gem}}
+|1,160
+|{{Coins|{{GEP|Marble block|2}} + {{GEP|Limestone brick|4}} + 1}}
+|}
+
+==Altar==
+The altar hot spot allows players to build a [[spellbook]]-switching altar. They can be used to switch spellbooks without having to travel to the overworld spellbook-switching altars or have the [[Magic cape|Magic skillcape]].
+
+{|class="wikitable lighttable align-left-3" style="text-align:center;"
+!{{SCP|Construction}} Level
+!colspan=2|Altar
+!Materials
+!Experience
+!Cost
+|-
+|80
+|{{plinkt|Ancient altar|pic=Ancient altar icon}}
+|{{plink|Limestone brick}} x10<br/>{{plink|Magic stone}}<br/>{{plink|Ancient signet}}<br/>{{plink|Pharaoh's sceptre}}
+|1,490
+|{{Coins|{{GEP|Limestone brick|10}} + {{GEP|Magic stone}} + {{GEP|Pharaoh's sceptre (uncharged)}}}}
+|-
+|80
+|{{plinkt|Lunar altar|pic=Lunar altar icon}}
+|{{plink|Limestone brick}} x10<br/>{{plink|Magic stone}}<br/>{{plink|Lunar signet}}<br/>{{plink|Astral rune}} x10,000
+|1,957
+|{{Coins|{{GEP|Limestone brick|10}} + {{GEP|Magic stone}} + {{GEP|Astral rune|10000}} + 2}}
+|-
+|80
+|{{plinkt|Dark altar (Construction)|pic=Dark altar (Construction) icon|txt=Dark altar}}
+|{{plink|Limestone brick}} x10<br/>{{plink|Magic stone}}<br/>{{plink|Arceuus signet}}<br/>{{plink|Blood rune}} x5,000<br/>{{plink|Soul rune}} x5,000
+|3,888
+|{{Coins|{{GEP|Limestone brick|10}} + {{GEP|Magic stone}} + {{GEP|Blood rune|5000}} + {{GEP|Soul rune|5000}}}}
+|-
+|90
+|{{plinkt|Occult altar|pic=Occult altar icon}}
+|Materials for the other two altars the player hasn't built<br/>(excluding the magic stone and limestone bricks)
+|3,445
+|{{Coins|{{GEP|Limestone brick|10}} + {{GEP|Magic stone}} + {{GEP|Blood rune|5000}} + {{GEP|Soul rune|5000}} + {{GEP|Astral rune|10000}} + 2 + {{GEP|Pharaoh's sceptre (uncharged)}}}}
+|}
+
+==Boss lair==
+The boss lair allows a player to build a fancy display showing off various [[boss]]es. In order to display a boss lair, players must have killed the boss once, and use the jar dropped by that boss on the display.
+
+The display can be configured to show any boss whose jar has been added to it. Once put in the display, players can remove the jar should they wish to do so, but must put the jar back if they wish to display that boss again.
+
+{|class="wikitable lighttable align-left-3" style="text-align:center;"
+!{{SCP|Construction}} Level
+!colspan=2|Boss lair
+!Materials
+!Experience
+!Cost
+|-
+|87
+|{{plinkt|Boss lair display|pic=Boss lair display icon}}
+|{{plink|Steel bar}} x4<br/>{{plink|Molten glass}} x5<br/>{{plink|Mahogany plank}} x10
+|1,483
+|{{Coins|{{GEP|Steel bar|4}} + {{GEP|Molten glass|5}} + {{GEP|Mahogany plank|10}}}}
+|}
+
+==Display==
+The mounted display displays certain items to show off the player's items or wealth.
+
+{|class="wikitable lighttable align-left-3" style="text-align:center;"
+!{{SCP|Construction}} Level
+!colspan=2|Display
+!Materials
+!Experience
+!Cost
+|-
+|80
+|{{plinkt|Mounted emblem|pic=Mounted emblem icon}}
+|{{plink|Marble block}}<br/>{{plink|Gold leaf}}<br/>{{plink|Decorative emblem}}
+|5,300
+|{{Coins|{{GEP|Marble block}} + {{GEP|Gold leaf}}}}
+|-
+|80
+|{{plinkt|Mounted coins|pic=Mounted coins icon}}
+|{{plink|Marble block}}<br/>{{plink|Gold leaf}}<br/>{{Coins|100000000}}
+|800
+|{{Coins|{{GEP|Marble block}} + {{GEP|Gold leaf}} + 100000000}}
+|-
+|80
+|{{plinkt|Cape hanger|pic=Cape hanger icon}}
+|{{plink|Marble block}}<br/>{{plink|Gold leaf}}
+|800
+|{{Coins|{{GEP|Marble block}} + {{GEP|Gold leaf}}}}
+|}
+{{Reflist}}
+
+==Jewellery box==
+The jewellery box can store various teleportation [[jewellery]]. Each box will provide unlimited teleports to locations provided by the enchanted jewellery.
+
+Jewellery boxes are constructed in upgrades: before a higher level box can be built, the player must first build the one before it. Bank notes are NOT accepted, each item must be brought.
+
+{|class="wikitable lighttable align-left-3" style="text-align:center;"
+!{{SCP|Construction}} Level
+!colspan=2|Jewellery box
+!Materials
+!Experience
+!Upgrade Cost
+!Total Cost
+!Jewellery stored
+|-
+|81
+|{{plinkt|Basic jewellery box|pic=Basic jewellery box icon}}
+|{{plink|Bolt of cloth}}<br/>{{plink|Steel bar}}<br/>{{plink|Games necklace(8)}} x3<br/>{{plink|Ring of dueling(8)}} x3
+|605
+|{{NA}}
+|{{Coins|{{GEP|Bolt of cloth}} + {{GEP|Steel bar}} + {{GEP|Games necklace(8)|3}} + {{GEP|Ring of dueling(8)|3}}}}
+|{{plinkp|Ring of dueling}} and {{plinkp|games necklace}}
+|-
+|86
+|{{plinkt|Fancy jewellery box|pic=Fancy jewellery box icon}}
+|{{plink|Basic jewellery box|pic=Basic jewellery box icon}}<br/>{{plink|Gold leaf}}<br/>{{plink|Skills necklace(4)}} x5<br/>{{plink|Combat bracelet(4)}} x5
+|1,350
+|{{Coins|{{GEP|Gold leaf}} + {{GEP|Skills necklace(4)|5}}+ {{GEP|Combat bracelet(4)|5}}}}
+|{{Coins|{{GEP|Bolt of cloth}} + {{GEP|Steel bar}} + {{GEP|Games necklace(8)|3}} + {{GEP|Ring of dueling(8)|3}} + {{GEP|Gold leaf}} + {{GEP|Skills necklace(4)|5}}+ {{GEP|Combat bracelet(4)|5}}}}
+|{{plinkp|Ring of dueling}}  {{plinkp|games necklace}}  {{plinkp|combat bracelet}}  {{plinkp|skills necklace}}
+|-
+|91
+|{{plinkt|Ornate jewellery box|pic=Ornate jewellery box icon}}
+|{{plink|Fancy jewellery box|pic=Fancy jewellery box icon}}<br/>{{plink|Gold leaf}} x2<br/>{{plink|Amulet of glory(4)}} x8<br/>{{plink|Ring of wealth (5)}} x8
+|2,680
+|{{Coins|{{GEP|Gold leaf|2}} + {{GEP|Amulet of glory(4)|8}} + {{GEP|Ring of wealth (5)|8}}}}
+|{{Coins|{{GEP|Bolt of cloth}} + {{GEP|Steel bar}} + {{GEP|Games necklace(8)|3}} + {{GEP|Ring of dueling(8)|3}} + {{GEP|Gold leaf|3}} + {{GEP|Skills necklace(4)|5}}+ {{GEP|Combat bracelet(4)|5}} + {{GEP|Amulet of glory(4)|8}} + {{GEP|Ring of wealth (5)|8}}}}
+|{{plinkp|Ring of dueling}}{{plinkp|games necklace}}{{plinkp|combat bracelet}} {{plinkp|skills necklace}}{{plinkp|amulet of glory}}{{plinkp|ring of wealth}}
+|}
+
+==Quest list==
+The quest list displays the player's progress through every [[quest]] and [[miniquest]]. It will show which quests the player has completed, started and not started.
+
+{|class="wikitable lighttable align-left-3" style="text-align:center;"
+!{{SCP|Construction}} Level
+!colspan=2|Quest list
+!Materials
+!Experience
+!Cost
+|-
+|80
+|{{plinkt|Quest list (Construction)|pic=Quest list (Construction) icon|txt=Quest list}}
+|{{plink|Papyrus}} x10<br/>{{plink|Gold leaf}}
+|310
+|{{Coins|{{GEP|Papyrus|10}} + {{GEP|Gold leaf}}}}
+|}
+
+==Trivia==
+*The game cache reveals an item named "Achievement gallery" ([[File:Achievement gallery.png]]), which appears to be intended to be the icon that is displayed in the in-game Construction guide. This was replaced instead with the icon for the [[marble adventure log]].
+
+{{Achievement gallery}}
+{{House}}

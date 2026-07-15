@@ -191,6 +191,11 @@ public class GoalPlannerModule implements IronHubModule
 		return enginePacks == null ? null : enginePacks.methods;
 	}
 
+	com.ironhub.data.QuestsPack.QuestEntry questEntry(String name)
+	{
+		return enginePacks == null || name == null ? null : enginePacks.quest(name);
+	}
+
 	/** The latest computed plan (null until the first replan lands). */
 	public com.ironhub.engine.Plan currentPlan()
 	{

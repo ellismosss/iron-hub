@@ -271,6 +271,10 @@ public class GoalExpander
 		Action node = dag.getOrAdd(new Action(id, Action.Kind.OBTAIN,
 			gearItem != null ? gearItem.getName() : (label != null ? label : "Obtain item " + itemId)));
 		node.itemId = itemId;
+		if (gearItem != null)
+		{
+			node.materials = gearItem.getMaterials();
+		}
 		node.neededBy.add(goalId);
 		out.add(id);
 		if (gearItem != null && gearItem.getRequirements() != null)
@@ -354,6 +358,11 @@ public class GoalExpander
 			node = dag.getOrAdd(new Action(id, Action.Kind.MANUAL, label));
 			node.unlockKey = unlockKey;
 			node.manualText = label;
+			GearProgressionPack.Item gearItem = packs.gearItemByMarkKey(unlockKey);
+			if (gearItem != null)
+			{
+				node.materials = gearItem.getMaterials();
+			}
 		}
 		node.neededBy.add(goalId);
 		return node;

@@ -31,6 +31,15 @@ public class GearProgressionPack
 		private List<Item> items;
 	}
 
+	/** One bankable item a build consumes. */
+	@Data
+	public static class Material
+	{
+		private int itemId;
+		private int qty;
+		private String name;
+	}
+
 	@Data
 	public static class Item
 	{
@@ -59,6 +68,8 @@ public class GearProgressionPack
 		private List<String> implies;
 		private List<String> categories;
 		private List<String> requirements; // Requirements.parse() form
+		/** POH build materials from the wiki Recipe (bankable items only). */
+		private List<Material> materials;
 		private String wiki; // wiki page override; defaults to name
 
 		/** Icon item id regardless of detection mode. */

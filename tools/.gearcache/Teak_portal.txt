@@ -1,0 +1,41 @@
+{{External|rs}}
+{{Infobox Construction
+|name = Teak portal
+|image = [[File:Teak portal built.png|250px]]
+|icon = [[File:Teak portal icon.png]]
+|furniturename = Portal frame
+|release = [[31 May]] [[2006]]
+|update = PLAYER-OWNED HOUSES!
+|level = 50
+|experience = 270
+|room = [[Portal Chamber]]
+|hotspot = [[Portal space]]
+|flatpack = No
+|examine = '''Directed:''' A gateway to <destination>. <br/> '''Not directed:''' An un-directed teak portal frame.
+|id = 13636
+|itemid = 8328
+}}
+
+A '''teak portal''' can be built in the [[Portal space]] of the [[Portal Chamber]] in a [[player-owned house]]. It requires 50 [[Construction]] to build and gives 270 [[experience]] when built. The player must have a [[hammer]] and a [[saw]] in their inventory to build it.
+
+It can be assigned to [[teleportation|teleport]] the player to various locations, such as Varrock or Falador. To do so, a payment of 100 times the required [[runes]] for casting the [[teleport]] spell is required.
+
+Removing an old portal frame to upgrade it to a better one will not delete the teleport. The teleport will automatically be reassigned to the new frame.
+
+==Creation==
+{{Recipe
+|skill1 = Construction
+|skill1lvl = 50
+|skill1boostable = Yes
+|skill1exp = 270
+|members = Yes
+|ticks = 5
+|tools = Saw, Hammer
+|mat1 = Teak plank
+|mat1quantity = 3
+|output1 = Teak portal
+|output1pic = Teak portal icon
+|output1cost = 0
+}}
+
+{{Portal chamber}}

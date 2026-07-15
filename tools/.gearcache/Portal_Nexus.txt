@@ -1,0 +1,598 @@
+{{Redirect|Nexus|the area containing the Abyssal Sires|Abyssal Nexus}}
+{{Infobox Room
+|name = Portal nexus
+|image = [[File:Portal nexus built.png|300px]]
+|release = [[8 November]] [[2018]]
+|update = The Portal Nexus
+|icon = [[File:Portal nexus icon.png]]
+|level = 72
+|cost = 200000
+|doors = nesw
+}}
+A '''portal nexus''' is a room that can be built in a [[player-owned house]]. Only one portal nexus room can be built in a player-owned house. It requires level 72 [[Construction]] and costs {{NoCoins|200000|c}}. Within a portal nexus room, players can build a portal nexus that can [[Teleportation|teleport]] the player to multiple locations around [[Gielinor]]. The cost of adding each teleport to the nexus is 1,000 times the rune cost of that spell. This is 10 times as much as the runes required to direct a [[Portal space]].
+
+The lowest level a player can be to build this room is 67 Construction with an orange [[spicy stew]] (+5 boost), as the +3 boost of the [[crystal saw]] '''only''' applies to furniture built with a [[saw]] and [[hammer]]. A reliable alternative is available at level 69 Construction, as a [[Cup of tea (trimmed)|cup of tea in a trimmed teacup]] provides a visible +3 boost when consumed.
+
+There are 4 [[hotspot]]s available:
+*[[Amulet space]]
+*[[Curtain space]]
+*[[Rug space]]
+*[[Portal Nexus space]]
+
+==Amulet==
+There are two separate slots to mount amulets from, one for each that can be mounted. Only one of each amulet can be mounted.
+
+{| class="wikitable lighttable align-left-3" style="text-align:center;"
+!{{SCP|Construction}} Level
+!colspan=2|Item
+!Materials
+!Experience
+!Cost
+|-
+|72
+|{{plinkt|Mounted xeric's talisman|pic=Mounted xeric's talisman icon}}
+|{{plink|Mahogany plank}}<br/>{{plink|Gold leaf}}<br/>{{plink|Xeric's talisman (inert)}}<br/>{{plink|Lizardman fang}} x5,000
+|500
+|{{Coins|{{GEP|Mahogany plank}} + {{GEP|Gold leaf}} + {{GEP|Lizardman fang|5000}}}}
+|-
+|82
+|{{plinkt|Mounted digsite pendant|pic=Mounted digsite pendant icon}}
+|{{plink|Mahogany plank}}<br/>{{plink|Gold leaf}}<br/>{{plink|Curator's medallion}}
+|800
+|{{Coins|{{GEP|Mahogany plank}} + {{GEP|Gold leaf}} + {{GEP|Ruby|250}} + {{GEP|Cosmic rune|100}} + {{GEP|Fire rune|500}}}}
+|}
+
+==Curtains==
+If another room is placed behind a pair of curtain hotspots such that it blocks the windows, the windows and curtains will be replaced with a wall decoration depending on the type of curtains. These wall decorations are not available to be built in a regular [[Decoration space|decoration hotspot]].
+{|class="wikitable lighttable align-left-3" style="text-align:center;"
+!{{SCP|Construction}} Level
+!colspan=2|Curtains
+!Materials
+!Experience
+!Cost
+|-
+|2
+|{{plinkt|Torn curtains|pic=Torn curtains icon}}
+|{{plink|Plank}} x3<br/>{{plink|Bolt of cloth}} x3<br/>{{plink|Nails|pic=Steel nails}} x3
+|132
+|{{Coins|{{GEP|Plank|3}} + {{GEP|Bolt of cloth|3}} + {{NailsCost|min|quantity=3}}}} - {{Coins|{{GEP|Plank|3}} + {{GEP|Bolt of cloth|3}} + {{NailsCost|max|quantity=3}}}}{{efn|Cost changes depending on the type of nails used.}}
+|-
+|18
+|{{plinkt|Curtains|pic=Curtains icon}}
+|{{plink|Oak plank}} x3<br/>{{plink|Bolt of cloth}} x3
+|225
+|{{Coins|{{GEP|Oak plank|3}} + {{GEP|Bolt of cloth|3}}}}
+|-
+|40
+|{{plinkt|Opulent curtains|pic=Opulent curtains icon}}
+|{{plink|Teak plank}} x3<br/>{{plink|Bolt of cloth}} x3
+|315
+|{{Coins|{{GEP|Teak plank|3}} + {{GEP|Bolt of cloth|3}}}}
+|-
+|65
+|{{plinkt|Raging echoes curtains (Construction)|pic=Raging echoes curtains icon|txt=Raging echoes curtains}}
+|{{plink|Mahogany plank}} x3<br/>{{plink|Bolt of cloth}} x3<br/>{{plink|Raging echoes curtains}} x1
+|487
+|{{Coins|{{GEP|Mahogany plank|3}} + {{GEP|Bolt of cloth|3}} + {{GEP|Raging echoes curtains}}}}
+|}
+{{Notelist}}
+
+==Rug==
+{|class="wikitable lighttable align-left-3" style="text-align:center;"
+!{{SCP|Construction}} Level
+!colspan=2|Rug
+!Materials
+!Experience
+!Cost
+|-
+|2
+|{{plinkt|Brown rug|pic=Brown rug icon}}
+|{{plink|Bolt of cloth}} x2
+|30
+|{{Coins|{{GEP|Bolt of cloth|2}}}}
+|-
+|13
+|{{plinkt|Rug|pic=Rug icon}}
+|{{plink|Bolt of cloth}} x4
+|60
+|{{Coins|{{GEP|Bolt of cloth|4}}}}
+|-
+|28
+|{{plinkt|Deadman rug|pic=Deadman rug icon}}
+|{{plink|Bolt of cloth}} x4<br/>{{plink|Armageddon rug}}
+|283
+|{{Coins|{{GEP|Bolt of cloth|4}} + {{GEP|Armageddon rug}}}}
+|-
+|65
+|{{plinkt|Opulent rug|pic=Opulent rug icon}}
+|{{plink|Bolt of cloth}} x4<br/>{{plink|Gold leaf}}
+|360
+|{{Coins|{{GEP|Bolt of cloth|4}} + {{GEP|Gold leaf}}}}
+|-
+|73
+|{{plinkt|Raging echoes rug (Construction)|pic=Raging echoes rug icon|txt=Raging echoes rug}}
+|{{plink|Bolt of cloth}} x4<br/>{{plink|Raging echoes rug}}
+|82
+|{{Coins|{{GEP|Bolt of cloth|4}} + {{GEP|Raging echoes rug}}}}
+|}
+
+==Portal Nexus==
+The portal nexus can be directed to [[teleport]] the player to multiple locations, and are constructed in upgrades: before a higher level portal nexus can be built, the player must first build the one before it. The portal nexus can also be used to scry similar to a [[scrying pool]].
+
+{| class="wikitable lighttable align-left-3" style="text-align:center;"
+!{{SCP|Construction}} Level
+!colspan=2|Portal nexus
+!Materials
+!Experience
+!Upgrade Cost
+!Total Cost
+!Teleports Available
+|-
+|72
+|{{plinkt|Marble portal nexus|pic=Marble portal nexus icon}}
+|{{plink|Marble block}} x4
+|2,000
+|{{NA}}
+|{{Coins|{{GEP|Marble block|4}}}}
+|4
+|-
+|82
+|{{plinkt|Gilded portal nexus|pic=Gilded portal nexus icon}}
+|{{plink|Marble portal nexus|pic=Marble portal nexus icon}}<br/>{{plink|Marble block}} x4<br/>{{plink|Gold leaf}} x2
+|2,600
+|{{Coins|{{GEP|Marble block|4}} + {{GEP|Gold leaf|2}}}}
+|{{Coins|{{GEP|Marble block|8}} + {{GEP|Gold leaf|2}}}}
+|8
+|-
+|92
+|{{plinkt|Crystalline portal nexus|pic=Crystalline portal nexus icon}}
+|{{plink|Gilded portal nexus|pic=Gilded portal nexus icon}}<br/>{{plink|Magic stone}} x2<br/>{{plink|Gold leaf}} x2
+|2,600
+|{{Coins|{{GEP|Gold leaf|2}} + {{GEP|Magic stone|2}}}}
+|{{Coins|{{GEP|Marble block|8}} + {{GEP|Gold leaf|4}} + {{GEP|Magic stone|2}}}}
+|41
+|}
+===Adding a teleport===
+The portal nexus, like portals in the [[portal chamber]], can add up to 41 possible locations, the limit depending on the tier of the portal nexus built. However, players require 1,000 times the materials required, instead of only 100 times.
+*Directing a portal requires the same [[Magic]] level and quest requirements (if any) as casting the teleport spell.
+**Unlike the [[Portal Chamber]], [[Magic#Temporary_boosts|temporary magic boosts]] '''cannot''' be used to add portals before reaching the required Magic level.
+*Players do not need to be on the same spellbook as the teleport spell they are directing (e.g. they can direct a portal to Kharyrll even if they are on the standard spellbook).
+*[[Elemental staves]] and runes in a [[rune pouch]] '''cannot''' be used.
+*The house owner does not have to be in building mode to add a destination.
+*If a player upgrades their portal nexus, all destinations in it from its previous version are saved. The runes or salt do not have to be provided again.
+*Removing a teleport '''does not refund the runes'''. Re-adding the teleport will require "paying" the material cost again.
+* No experience is given for adding a teleport to the nexus, unlike when directing portals in the Portal Chamber.
+The table below shows all forty-one locations and their costs.
+{| class="wikitable sortable lighttable" style="width:850px; text-align:center;"
+!colspan=2 rowspan=2|Location
+!colspan=2|Requirements
+!rowspan=2 class="unsortable"|Runes
+! rowspan="2" |Store Price
+!rowspan=2|[[GE]] Price
+|-
+!Magic
+!Quest
+|-
+||{{plinkp|Arceuus Library Teleport}}
+|[[Arceuus Library Teleport|Arceuus Library]]
+|data-sort-value="Magic 06"|{{SCP|Magic|6}}
+|X Marks the Spot
+|{{RuneReq|Law=1k|Earth=2k}}{{+=|Law|1}}{{+=|Earth|2}}
+|{{Coins|248000}}
+|{{Coins|{{GEP|Law rune|1000}} + {{GEP|Earth rune|2000}}}}
+|-
+||{{plinkp|Draynor Manor Teleport}}
+|[[Draynor Manor]]
+|{{SCP|Magic|17}}
+|None
+|{{RuneReq|Law=1k|Earth=1k|Water=1k}}{{+=|Law|1}}{{+=|Earth|1}}{{+=|Water|1}}
+|{{Coins|248000}}
+|{{Coins|{{GEP|Law rune|1000}} + {{GEP|Earth rune|1000}} + {{GEP|Water rune|1000}}}}
+|-
+||{{plinkp|Battlefront Teleport}}
+|[[Battlefront]]
+|{{SCP|Magic|23}}
+|None
+|{{RuneReq|Law=1k|Fire=1k|Earth=1k}}{{+=|Law|1}}{{+=|Fire|1}}{{+=|Earth|1}}
+|{{Coins|248000}}
+|{{Coins|{{GEP|Law rune|1000}} + {{GEP|Earth rune|1000}} + {{GEP|Fire rune|1000}}}}
+|-
+||{{plinkp|Varrock Teleport}}
+|[[Varrock]]/[[Grand Exchange]]{{efn|Players who have completed the [[Medium Varrock Diary]] can choose [[Grand Exchange]] as a destination on the teleport menu or as the default.}}
+|{{SCP|Magic|25}}
+|None
+|{{RuneReq|Law=1k|Fire=1k|Air=3k}}{{+=|Law|1}}{{+=|Fire|1}}{{+=|Air|3}}
+|{{Coins|256000}}
+|{{Coins|{{GEP|Law rune|1000}} + {{GEP|Fire rune|1000}} + {{GEP|Air rune|3000}}}}
+|-
+||{{plinkp|Mind Altar Teleport}}
+|[[Mind Altar]]
+|{{SCP|Magic|28}}
+|None
+|{{RuneReq|Law=1k|Mind=2k}}{{+=|Law|1}}{{+=|Mind|2}}
+|{{Coins|246000}}
+|{{Coins|{{GEP|Law rune|1000}} + {{GEP|Mind rune|2000}}}}
+|-
+||{{plinkp|Lumbridge Teleport}}
+|[[Lumbridge]]
+|{{SCP|Magic|31}}
+|None
+|{{RuneReq|Law=1k|Earth=1k|Air=3k}}{{+=|Law|1}}{{+=|Earth|1}}{{+=|Air|3}}
+|{{Coins|256000}}
+|{{Coins|{{GEP|Law rune|1000}} + {{GEP|Earth rune|1000}} + {{GEP|Air rune|3000}}}}
+|-
+||{{plinkp|Respawn Teleport}}
+|[[Respawn point]]
+|{{SCP|Magic|34}}
+|None
+|{{RuneReq|Law=1k|Soul=1k}}{{+=|Law|1}}{{+=|Soul|1}}
+|{{Coins|540000}}
+|{{Coins|{{GEP|Law rune|1000}} + {{GEP|Soul rune|1000}}}}
+|-
+||{{plinkp|Falador Teleport}}
+|[[Falador]]
+|{{SCP|Magic|37}}
+|None
+|{{RuneReq|Law=1k|Water=1k|Air=3k}}{{+=|Law|1}}{{+=|Water|1}}{{+=|Air|3}}
+|{{Coins|256000}}
+|{{Coins|{{GEP|Law rune|1000}} + {{GEP|Water rune|1000}} + {{GEP|Air rune|3000}}}}
+|-
+||{{plinkp|Salve Graveyard Teleport}}
+|[[Salve Graveyard Teleport|Salve Graveyard]]
+|{{SCP|Magic|40}}
+|[[Priest in Peril]]
+|{{RuneReq|Law=1k|Soul=2k}}{{+=|Law|1}}{{+=|Soul|2}}
+|{{Coins|840000}}
+|{{Coins|{{GEP|Law rune|1000}} + {{GEP|Soul rune|2000}}}}
+|-
+||{{plinkp|Camelot Teleport}}
+|[[Camelot]]/[[Seers' Village]]{{efn|Players who have completed the [[Hard Kandarin Diary]] can choose [[Seers' Village]] as a destination on the teleport menu or as the default.}}
+|{{SCP|Magic|45}}
+|None
+|{{RuneReq|Law=1k|Air=5k}}{{+=|Law|1}}{{+=|Air|5}}
+|{{Coins|260000}}
+|{{Coins|{{GEP|Law rune|1000}} + {{GEP|Air rune|5000}}}}
+|-
+||{{plinkp|Kourend Castle Teleport}}
+|[[Kourend Castle]]
+|{{SCP|Magic|48}}
+|[[Client of Kourend]]
+|{{RuneReq|Law=2k|Water=1k|Fire=1k}}{{+=|Law|2}}{{+=|Water|1}}{{+=|Fire|1}}
+|{{Coins|488000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Water rune|1000}} + {{GEP|Fire rune|1000}}}}
+|-
+||{{plinkp|Fenkenstrain's Castle Teleport}}
+|[[Fenkenstrain's Castle]]
+|{{SCP|Magic|48}}
+|[[Priest in Peril]]
+|{{RuneReq|Law=1k|Soul=1k|Earth=1k}}{{+=|Law|1}}{{+=|Soul|1}}{{+=|Earth|1}}
+|{{Coins|544000}}
+|{{Coins|{{GEP|Law rune|1000}} + {{GEP|Earth rune|1000}} + {{GEP|Soul rune|1000}}}}
+|-
+||{{plinkp|Ardougne Teleport}}
+|[[East Ardougne]]
+|{{SCP|Magic|51}}
+|[[Plague City]]
+|{{RuneReq|Law=2k|Water=2k}}{{+=|Law|2}}{{+=|Water|2}}
+|{{Coins|488000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Water rune|2000}}}}
+|-
+|{{plinkp|Civitas illa Fortis Teleport}}
+|[[Civitas illa Fortis]]
+|{{SCP|Magic|54}}
+|[[Twilight's Promise]]
+|{{RuneReq|Law=2k|Fire=1k|Earth=1k}}{{+=|Law|2}}{{+=|Earth|1}}{{+=|Fire|1}}
+|{{Coins|488000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Earth rune|1000}} + {{GEP|Fire rune|1000}}}}
+|-
+||{{plinkp|Paddewwa Teleport}}
+|[[Paddewwa]] ([[Edgeville Dungeon]])
+|{{SCP|Magic|54}}
+|[[Desert Treasure I]]
+|{{RuneReq|Law=2k|Air=1k|Fire=1k}}{{+=|Law|2}}{{+=|Air|1}}{{+=|Fire|1}}
+|{{Coins|488000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Air rune|1000}} + {{GEP|Fire rune|1000}}}}
+|-
+||{{plinkp|Watchtower Teleport}}
+|[[Watchtower (building)|Watchtower]]/[[Yanille]]{{efn|Players who have completed the [[Hard Ardougne Diary]] can choose [[Yanille]] as a destination on the teleport menu or as the default.}}
+|{{SCP|Magic|58}}
+|[[Watchtower]]
+|{{RuneReq|Law=2k|Earth=2k}}{{+=|Law|2}}{{+=|Earth|2}}
+|{{Coins|488000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Earth rune|2000}}}}
+|-
+||{{plinkp|Senntisten Teleport}}
+|[[Senntisten]] ([[Digsite]])
+|{{SCP|Magic|60}}
+|[[Desert Treasure I]]
+|{{RuneReq|Law=2k|Soul=1k}}{{+=|Law|2}}{{+=|Soul|1}}
+|{{Coins|780000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Soul rune|1000}}}}
+|-
+||{{plinkp|West Ardougne Teleport}}
+|[[West Ardougne]]
+|{{SCP|Magic|61}}
+|[[Biohazard]]
+|{{RuneReq|Law=2k|Soul=2k}}{{+=|Law|2}}{{+=|Soul|2}}
+|{{Coins|1080000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Soul rune|2000}}}}
+|-
+||{{plinkp|Trollheim Teleport}}
+|[[Trollheim]]
+|{{SCP|Magic|61}}
+|[[Eadgar's Ruse]]
+|{{RuneReq|Law=2k|Fire=2k}}{{+=|Law|2}}{{+=|Fire|2}}
+|{{Coins|488000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Fire rune|2000}}}}
+|-
+||{{plinkp|Ape Atoll Teleport (standard)}}
+|[[Marim]] ([[Ape Atoll]])
+|{{SCP|Magic|64}}
+|[[Recipe for Disaster]]{{efn|Only requires completion of the [[Freeing King Awowogei]] subquest.}}
+|{{RuneReq|Law=2k|Fire=2k|Water=2k|Banana=1k}}{{+=|Law|2}}{{+=|Fire|2}}{{+=|Water|2}}{{+=|Banana|1}}{{efn|[[Bank note]]s for non-stackable items are accepted.|name="noted"}}
+|{{Coins|498000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Fire rune|2000}} + {{GEP|Water rune|2000}} + {{GEP|Banana|1000}}}}
+|-
+||{{plinkp|Harmony Island Teleport}}
+|[[Harmony Island]]
+|{{SCP|Magic|65}}
+|[[The Great Brain Robbery]]
+|{{RuneReq|Law=1k|Soul=1k|Nature=1k}}{{+=|Law|1}}{{+=|Soul|1}}{{+=|Nature|1}}
+|{{Coins|720000}}
+|{{Coins|{{GEP|Law rune|1000}} + {{GEP|Soul rune|1000}} + {{GEP|Nature rune|1000}}}}
+|-
+||{{plinkp|Kharyrll Teleport}}
+|[[Kharyrll]] ([[Canifis]])
+|{{SCP|Magic|66}}
+|[[Desert Treasure I]]
+|{{RuneReq|Law=2k|Blood=1k}}{{+=|Law|2}}{{+=|Blood|1}}
+|{{Coins|880000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Blood rune|1000}}}}
+|-
+||{{plinkp|Teleport to Boat}}
+|[[Teleport to Boat]] ([[Mooring point]])
+|{{SCP|Magic|67}}
+|[[Pandemonium]]
+|{{RuneReq|Law=2k|Water=2k|Earth=2k}}{{+=|Law|2}}{{+=|Water|2}}{{+=|Earth|2}}
+|{{Coins|496000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Water rune|2000}} + {{GEP|Earth rune|2000}}}}
+|-
+||{{plinkp|Moonclan Teleport}}
+|[[Lunar Isle]]
+|{{SCP|Magic|69}}
+|[[Lunar Diplomacy]]{{efn|name="lunar"|Only requires completion up until accessing Lunar Isle for the first time.}}
+|{{RuneReq|Astral=2k|Law=1k|Earth=2k}}{{+=|Astral|2}}{{+=|Law|1}}{{+=|Earth|2}}
+|{{Coins|348000}}
+|{{Coins|{{GEP|Law rune|1000}} + {{GEP|Astral rune|2000}} + {{GEP|Earth rune|2000}}}}
+|-
+||{{plinkp|Cemetery Teleport}}
+|[[The Forgotten Cemetery]]
+|{{SCP|Magic|71}}
+|None
+|{{RuneReq|Law=1k|Soul=1k|Blood=1k}}{{+=|Law|1}}{{+=|Soul|1}}{{+=|Blood|1}}
+|{{Coins|940000}}
+|{{Coins|{{GEP|Law rune|1000}} + {{GEP|Soul rune|1000}} + {{GEP|Blood rune|1000}}}}
+|-
+||{{plinkp|Ourania Teleport}}
+|[[Ourania Cave]]
+|{{SCP|Magic|71}}
+|[[Lunar Diplomacy]]{{efn|Requires talking to [[Baba Yaga]] after [[Lunar Diplomacy]]}}
+|{{RuneReq|Astral=2k|Law=1k|Earth=6k}}{{+=|Astral|2}}{{+=|Law|1}}{{+=|Earth|6}}
+|{{Coins|364000}}
+|{{Coins|{{GEP|Law rune|1000}} + {{GEP|Astral rune|2000}} + {{GEP|Earth rune|6000}}}}
+|-
+||{{plinkp|Waterbirth Teleport}}
+|[[Waterbirth Island]]
+|{{SCP|Magic|72}}
+|[[Lunar Diplomacy]]{{efn|name="lunar"}}
+|{{RuneReq|Astral=2k|Law=1k|Water=1k}}{{+=|Astral|2}}{{+=|Law|1}}{{+=|Water|1}}
+|{{Coins|344000}}
+|{{Coins|{{GEP|Law rune|1000}} + {{GEP|Astral rune|2000}} + {{GEP|Water rune|1000}}}}
+|-
+||{{plinkp|Lassar Teleport}}
+|[[Lassar]] ([[Ice Mountain]])
+|{{SCP|Magic|72}}
+|[[Desert Treasure I]]
+|{{RuneReq|Law=2k|Water=4k}}{{+=|Law|2}}{{+=|Water|4}}
+|{{Coins|488000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Water rune|4000}}}}
+|-
+||{{plinkp|Barbarian Teleport}}
+|[[Barbarian Outpost]]
+|{{SCP|Magic|75}}
+|[[Lunar Diplomacy]]{{efn|name="lunar"}}
+|{{RuneReq|Astral=2k|Law=2k|Fire=3k}}{{+=|Astral|2}}{{+=|Law|2}}{{+=|Fire|3}}
+|{{Coins|592000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Astral rune|2000}} + {{GEP|Fire rune|3000}}}}
+|-
+||{{plinkp|Khazard Teleport}}
+|[[Port Khazard]]
+|{{SCP|Magic|78}}
+|[[Lunar Diplomacy]]{{efn|name="lunar"}}
+|{{RuneReq|Astral=2k|Law=2k|Water=4k}}{{+=|Astral|2}}{{+=|Law|2}}{{+=|Water|4}}
+|{{Coins|596000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Astral rune|2000}} + {{GEP|Water rune|4000}}}}
+|-
+||{{plinkp|Dareeyak Teleport}}
+|[[Dareeyak]] ([[Ruins (west)]])
+|{{SCP|Magic|78}}
+|[[Desert Treasure I]]
+|{{RuneReq|Law=2k|Air=2k|Fire=3k}}{{+=|Law|2}}{{+=|Air|2}}{{+=|Fire|3}}
+|{{Coins|500000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Air rune|2000}} + {{GEP|Fire rune|3000}}}}
+|-
+||{{plinkp|Barrows Teleport}}
+|[[Barrows]]
+|{{SCP|Magic|83}}
+|[[Priest in Peril]]
+|{{RuneReq|Law=2k|Soul=2k|Blood=1k}}{{+=|Law|2}}{{+=|Soul|2}}{{+=|Blood|1}}
+|{{Coins|1480000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Soul rune|2000}} + {{GEP|Blood rune|1000}}}}
+|-
+||{{plinkp|Carrallanger Teleport}}
+|[[Carrallanger]] ([[Graveyard of Shadows]])
+|{{SCP|Magic|84}}
+|[[Desert Treasure I]]
+|{{RuneReq|Law=2k|Soul=2k}}{{+=|Law|2}}{{+=|Soul|2}}
+|{{Coins|1080000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Soul rune|2000}}}}
+|-
+||{{plinkp|Fishing Guild Teleport}}
+|[[Fishing Guild]]
+|{{SCP|Magic|85}}
+|[[Lunar Diplomacy]]{{efn|name="lunar"}}
+|{{RuneReq|Law=3k|Water=10k|Astral=3k}}{{+=|Law|3}}{{+=|Water|10}}{{+=|Astral|3}}
+|{{Coins|910000}}
+|{{Coins|{{GEP|Law rune|3000}} + {{GEP|Astral rune|3000}} + {{GEP|Water rune|10000}}}}
+|-
+||{{plinkp|Catherby Teleport}}
+|[[Catherby]]
+|{{SCP|Magic|87}}
+|[[Lunar Diplomacy]]{{efn|name="lunar"}}
+|{{RuneReq|Law=3k|Water=10k|Astral=3k}}{{+=|Law|3}}{{+=|Water|10}}{{+=|Astral|3}}
+|{{Coins|910000}}
+|{{Coins|{{GEP|Law rune|3000}} + {{GEP|Astral rune|3000}} + {{GEP|Water rune|10000}}}}
+|-
+||{{plinkp|Ice Plateau Teleport}}
+|[[Ice Plateau]]
+|{{SCP|Magic|89}}
+|[[Lunar Diplomacy]]{{efn|name="lunar"}}
+|{{RuneReq|Law=3k|Water=8k|Astral=3k}}{{+=|Law|3}}{{+=|Water|8}}{{+=|Astral|3}}
+|{{Coins|902000}}
+|{{Coins|{{GEP|Law rune|3000}} + {{GEP|Astral rune|3000}} + {{GEP|Water rune|8000}}}}
+|-
+||{{plinkp|Annakarl Teleport}}
+|[[Annakarl]] ([[Demonic Ruins]])
+|{{SCP|Magic|90}}
+|[[Desert Treasure I]]
+|{{RuneReq|Law=2k|Blood=2k}}{{+=|Law|2}}{{+=|Blood|2}}
+|{{Coins|1280000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Blood rune|2000}}}}
+|-
+||{{plinkp|Ape Atoll Teleport (Arceuus)}}
+|[[Ape Atoll Dungeon]]
+|{{SCP|Magic|90}}
+|[[Monkey Madness I]]
+|{{RuneReq|Law=2k|Soul=2k|Blood=2k}}{{+=|Law|2}}{{+=|Soul|2}}{{+=|Blood|2}}
+|{{Coins|1880000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Soul rune|2000}} + {{GEP|Blood rune|2000}}}}
+|-
+||{{plinkp|Ghorrock Teleport}}
+|[[Ghorrock]] ([[Frozen Waste Plateau]])
+|{{SCP|Magic|96}}
+|[[Desert Treasure I]]
+|{{RuneReq|Law=2k|Water=8k}}{{+=|Law|2}}{{+=|Water|8}}
+|{{Coins|512000}}
+|{{Coins|{{GEP|Law rune|2000}} + {{GEP|Water rune|8000}}}}
+|-
+||{{plinkp|Stony basalt|pic=Stony basalt icon}}
+|[[Troll Stronghold (location)|Troll Stronghold]]
+|{{SCP|Magic|66}}{{efn|66 Magic is required to complete Swan Song, which is a requirement for Making Friends with My Arm, meaning that 66 Magic is indirectly required for this teleport.|name="swansong"}}
+|[[Making Friends with My Arm]]
+|{{RuneReq|Urt salt=3k|Te salt=1k|Basalt=1k}}{{efn|name="noted"}}{{+=|Urt|3}}{{+=|Te|1}}{{+=|Basalt|1}}
+|{{NA}}
+|{{Coins|{{GEP|Urt salt|3000}} + {{GEP|Te salt|1000}} + {{GEP|Basalt|1000}}}}
+|-
+||{{plinkp|Icy basalt|pic=Icy basalt icon}}
+|[[Weiss]]
+|{{SCP|Magic|66}}{{efn|name="swansong"}}
+|[[Making Friends with My Arm]]
+|{{RuneReq|Efh salt=3k|Te salt=1k|Basalt=1k}}{{efn|name="noted"}}{{+=|Efh|3}}{{+=|Te|1}}{{+=|Basalt|1}}
+|{{NA}}
+|{{Coins|{{GEP|Efh salt|3000}} + {{GEP|Te salt|1000}} + {{GEP|Basalt|1000}}}}
+|- class="sortbottom"
+!colspan=2|Total
+|colspan=3|{{RuneReq|Air={{#var:Air}}k|Earth={{#var:Earth}}k|Fire={{#var:Fire}}k|Water={{#var:Water}}k|Mind={{#var:Mind}}k}}<br/><!--
+-->{{RuneReq|Astral={{#var:Astral}}k|Blood={{#var:Blood}}k|Law={{#var:Law}}k|Nature={{#var:Nature}}k|Soul={{#var:Soul}}k}}<br/><!--
+-->{{RuneReq|Banana={{#var:Banana}}k|Efh salt={{#var:Efh}}k|Urt salt={{#var:Urt}}k|Te salt={{#var:Te}}k|Basalt={{#var:Basalt}}k}}{{efn|name="noted"}}
+| {{Coins|24450000}}{{efn|Price of salts is not included.}}
+|{{Coins|1000*({{GEP|Law rune|{{#var:Law}}}} + {{GEP|Air rune|{{#var:Air}}}} + {{GEP|Water rune|{{#var:Water}}}} + {{GEP|Earth rune|{{#var:Earth}}}} + {{GEP|Fire rune|{{#var:Fire}}}} + {{GEP|Mind rune|{{#var:Mind}}}} + {{GEP|Astral rune|{{#var:Astral}}}} + {{GEP|Blood rune|{{#var:Blood}}}} + {{GEP|Soul rune|{{#var:Soul}}}} + {{GEP|Banana|{{#var:Banana}}}} + {{GEP|Urt salt|{{#var:Urt}}}} + {{GEP|Te salt|{{#var:Te}}}} + {{GEP|Basalt|{{#var:Basalt}}}} + {{GEP|Nature rune|{{#var:Nature}}}} + {{GEP|Efh salt|{{#var:Efh}}}})}}
+|}
+{{Notelist}}
+
+The following teleport spells '''cannot''' currently be added to the portal nexus:
+{| class="wikitable align-center-1"
+!colspan=2|Spell
+|-
+|{{plinkt|Teleport to House}}
+|-
+|{{plinkt|Teleport to Target}}
+|}
+
+===Customisation and usage===
+[[File:Portal Nexus configuration interface.png|thumb|220px|The configuration menu on a portal nexus. The unlocked teleports are displayed in the Slots list.]]
+[[File:Portal Nexus teleport interface.png|thumb|220px|The teleport menu on a portal nexus, showing the keyboard options available.]]
+Once players have built a portal nexus, they may customise the teleportation interface via the right-click Configuration option. Players will be able to drag and drop the various teleports unlocked into available slots and select which of these acts as the left-click option. The order in which these appear in the Slots list will affect the keyboard options on the right-click Teleport interface.
+
+Within the Teleport Menu interface, a list will be displayed, showing the teleports the player has unlocked, as well as the keyboard options (1-9, A-Z) to use them (which depends on how the player arranged them in the Configuration interface's Slots list). The Teleport Menu interface can also be switched to Scry Mode, which uses the [[scrying pool]]'s function to gaze into areas the player would be teleported to, excluding locations in the [[Wilderness]], where it will instead state the amount of players within the vicinity in the chatbox. To scry outside the house portal, click on the portal nexus icon within the interface.
+
+Once players have paid for a teleport, it will be permanently unlocked to use freely, as long as the portal nexus exists and players keep them in the Slots list. In addition, players can rearrange teleports in the Slots list or change the left click option without any additional cost.
+
+If players were to remove a teleport from the Slots list, remove the portal nexus, or remove the entire room, runes will have to be consumed once more to unlock the teleports when the portal nexus is rebuilt. A confirmation message will appear should players attempt to do so.
+
+==Changes==
+{{Subject changes header}}
+{{Subject changes
+|date = 1 April 2026
+|update = Remaining Getting Around Changes
+|change = The portal nexus now shows the correct spell icon for Paddewwa Teleport for mobile users.
+}}
+{{Subject changes
+|date = 25 February 2026
+|update = Cow Boss is Out Today!
+|poll = Getting Around Poll
+|change = The following teleports can now be added to the Portal Nexus:
+* [[Trollheim Teleport]]
+* [[Paddewwa Teleport]]
+* [[Lassar Teleport]]
+* [[Dareeyak Teleport]]
+* [[Ourania Teleport]]
+* [[Barbarian Teleport]]
+* [[Khazard Teleport]]
+* [[Ice Plateau Teleport]]
+* [[Respawn Teleport]]
+* [[Teleport to Boat]]
+The maximum number of teleports available in the [[crystalline portal nexus]] has been increased.
+}}
+{{Subject changes
+|date = 14 May 2025
+|update = Yama, the Master of Pacts: Out Today
+|change = Combination runes can now be used for either of their respective elemental rune to direct portals that require them.
+}}
+{{Subject changes
+|date = 8 January 2025
+|update = Run Energy Changes
+|change = You should no longer find that a Portal Nexus to Senntisten transforms into a Portal Nexus to Ardougne (that still takes you to Senntisten) upon teleporting to your POH.
+}}
+{{Subject changes
+|date = 3 April 2024
+|update = Varlamore Tweaks & Drop Rates
+|change = * The [[Civitas illa Fortis Teleport]] in the Portal Nexus interface now has the correct icon.
+* The maximum number of teleports available in the [[crystalline portal nexus]] has been increased.
+}}
+{{Subject changes
+|date = 6 March 2024
+|update = Miscellaneous Quality of Life Changes
+|change = "Scry" mode once again allows players to view the vicinity of a specific teleport location, except for locations in the Wilderness.
+}}
+{{Subject changes
+|date = 7 April 2021
+|update = Collection Log Improvements and The Last of Poll 74
+|change = "Scry" mode will now only reveal how many players are in a specific teleport location instead of letting players see the areas directly.
+}}
+{{Subject changes
+|date = 16 January 2020
+|update = Twisted League Reward Shop and Game Improvements
+|poll = Old School Content Poll 69: Game Improvements
+|change = Weiss and Arceuus teleports have been added to the Portal Nexus and Portal Room in the Player Owned House.
+}}
+{{Subject changes footer}}
+
+==Trivia==
+* The game cache reveals an item named "Portal nexus" [[File:Portal nexus.png]], which was also shown by Mod Kieren jokingly as an equipable feet slot item.{{CiteTwitter|author=Mod Kieren|url=https://twitter.com/JagexKieren/status/1060585927364489217|date=8 November 2018|archiveurl=https://reldo.runescape.wiki/i/101243|archivedate=30 May 2020|quote=Comfortable footwear! [https://pbs.twimg.com/media/Drf1O0YXgAIzUhW.jpg]}} It appears to be intended to be the icon that is displayed in the in-game Construction guide, but was replaced instead with the icon for the [[marble portal nexus]].
+
+==References==
+{{Reflist}}
+
+{{Portal nexus}}
+{{House}}
