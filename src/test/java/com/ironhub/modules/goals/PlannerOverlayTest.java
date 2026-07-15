@@ -219,15 +219,16 @@ public class PlannerOverlayTest
 			train, 4.0, "", "", "Rooftops", "m", "active", 50_000, 56, 100_000,
 			java.util.List.of(), java.util.List.of(), false, false);
 
-		// measured pace wins while xp flows; falls back to the pack rate
-		assertEquals(0.5, PlannerOverlay.ttlHours(step, 200_000), 0.001);
-		assertEquals(2.0, PlannerOverlay.ttlHours(step, Double.NaN), 0.001);
+		// measured pace wins while xp flows; falls back to the pack rate;
+		// always over the RAW gap — banked materials don't fletch faster
+		assertEquals(0.5, PlannerOverlay.ttlHours(step, 100_000, 200_000), 0.001);
+		assertEquals(2.0, PlannerOverlay.ttlHours(step, 100_000, Double.NaN), 0.001);
 
 		// no rate at all → the routed hours pass through, NaN stays honest
 		com.ironhub.engine.Plan.Step unknown = new com.ironhub.engine.Plan.Step(
 			train, Double.NaN, "", "", null, null, null, 0, 56, 100_000,
 			java.util.List.of(), java.util.List.of(), false, false);
-		assertTrue(Double.isNaN(PlannerOverlay.ttlHours(unknown, Double.NaN)));
+		assertTrue(Double.isNaN(PlannerOverlay.ttlHours(unknown, 100_000, Double.NaN)));
 
 		// bar: live-xp progress from the session anchor, forward-only, clamped
 		assertEquals(0.0, PlannerOverlay.stepFraction(100_000, 100_000, 200_000), 0.001);
@@ -253,31 +254,66 @@ public class PlannerOverlayTest
 	}
 
 	@Test
-	public void xpGaugeMeasuresTheSession()
+	public void xpGaugeMirrorsTheXpTracker()
 	{
 		PlannerOverlay.XpGauge gauge = new PlannerOverlay.XpGauge();
 		long t0 = 1_000_000;
 		gauge.observe(Skill.AGILITY, 1_000, t0);           // first sight
 		gauge.observe(Skill.AGILITY, 1_000, t0 + 1_000);   // idle
 		assertEquals(0, gauge.gained());
+		assertTrue(Double.isNaN(gauge.xpPerHour()));
 
-		gauge.observe(Skill.AGILITY, 1_050, t0 + 2_000);   // first drop
+		// first drop: rate exists at once, floored to 60s elapsed
+		gauge.observe(Skill.AGILITY, 1_050, t0 + 2_000);
 		assertEquals(50, gauge.gained());
-		assertTrue("one drop is not a rate", Double.isNaN(gauge.xpPerHour()));
+		assertEquals(3_000.0, gauge.xpPerHour(), 1);
 
 		gauge.observe(Skill.AGILITY, 1_100, t0 + 62_000);  // +50 after 60s
 		assertEquals(100, gauge.gained());
-		assertEquals(3_000.0, gauge.xpPerHour(), 1);
+		assertEquals(6_000.0, gauge.xpPerHour(), 1);
 		assertEquals(50, gauge.medianDrop());
 
-		// a 10-minute break counts as only the 3-minute cap
-		gauge.observe(Skill.AGILITY, 1_150, t0 + 662_000);
-		assertEquals(1_500.0, gauge.xpPerHour(), 1);
+		// idle frames keep the clock running — the rate decays live
+		gauge.observe(Skill.AGILITY, 1_100, t0 + 122_000);
+		assertEquals(3_000.0, gauge.xpPerHour(), 1);
+
+		// actions remaining: XP Tracker rolling-mean formula
+		assertEquals(20, gauge.actionsRemaining(1_000));
+		assertEquals(21, gauge.actionsRemaining(1_001));
+		assertEquals(-1, gauge.actionsRemaining(0));
+
+		// 10 idle minutes reset the per-hour window; total gained survives
+		gauge.observe(Skill.AGILITY, 1_100, t0 + 662_100);
+		assertTrue(Double.isNaN(gauge.xpPerHour()));
+		assertEquals(100, gauge.gained());
+
+		// the next drop starts a fresh window
+		gauge.observe(Skill.AGILITY, 1_150, t0 + 663_000);
+		assertEquals(150, gauge.gained());
+		assertEquals(3_000.0, gauge.xpPerHour(), 1);
 
 		// switching skills starts a fresh session
 		gauge.observe(Skill.FLETCHING, 9_000, t0 + 700_000);
 		assertEquals(0, gauge.gained());
 		assertTrue(Double.isNaN(gauge.xpPerHour()));
+	}
+
+	@Test
+	public void dropsNameTheWikiAction()
+	{
+		com.ironhub.data.XpActionsPack pack = new DataPack(new Gson())
+			.load("xp-actions", com.ironhub.data.XpActionsPack.class);
+
+		// 58.3-xp drops at 55+ Fletching: (u) and (stringing) tie on xp
+		// and share a base name — show the base, never guess a variant
+		assertEquals("Maple longbow",
+			PlannerOverlay.matchAction(pack, Skill.FLETCHING, 58, 55));
+		// below the action's level requirement it cannot be the source
+		assertNull(PlannerOverlay.matchAction(pack, Skill.FLETCHING, 58, 40));
+		// agility lap xp fingerprints the course exactly
+		assertEquals("Ardougne",
+			PlannerOverlay.matchAction(pack, Skill.AGILITY, 889, 90));
+		assertNull(PlannerOverlay.matchAction(pack, Skill.FLETCHING, 0, 99));
 	}
 
 	@Test

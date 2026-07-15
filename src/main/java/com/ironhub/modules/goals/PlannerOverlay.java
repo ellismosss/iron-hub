@@ -47,8 +47,6 @@ class PlannerOverlay extends OverlayPanel
 	private static final int WIDTH = 190;       // within the 250x200 budget
 	private static final long FLASH_MS = 1_500;
 	private static final String MENU_TARGET = "Iron Hub step";
-	/** Idle gaps beyond this stop counting toward measured xp/hr. */
-	static final long GAP_CAP_MS = 3 * 60_000;
 	/** Measured pace this far off the proposed rate = "Your method". */
 	private static final double PACE_DIVERGENCE = 0.30;
 
@@ -159,18 +157,20 @@ class PlannerOverlay extends OverlayPanel
 		Skill skill = head.action.trainSkill;
 		long liveXp = state.getXp(skill);
 		long targetXp = Experience.getXpForLevel(head.action.trainToLevel);
+		// the raw gap: banked materials save gathering, not training time
+		long xpLeft = Math.max(0, targetXp - liveXp);
 		gauge.observe(skill, liveXp, now);
 
 		double measured = gauge.xpPerHour();
 		line(head.action.name, Color.WHITE,
-			PlannerTab.timeText(ttlHours(head, measured)), UiTokens.OVERLAY_VALUE);
+			PlannerTab.timeText(ttlHours(head, xpLeft, measured)), UiTokens.OVERLAY_VALUE);
 
 		long anchor = anchorFor(head.action.id, liveXp);
 		bar(head.action.id, stepFraction(anchor, liveXp, targetXp));
 
 		line("Lv " + state.getRealLevel(skill) + " of " + head.action.trainToLevel,
 			UiTokens.CANVAS_LOCKED,
-			PlannerTab.compactXp(head.trainXpRemaining) + " left", UiTokens.OVERLAY_VALUE);
+			PlannerTab.compactXp(xpLeft) + " xp left", UiTokens.OVERLAY_VALUE);
 
 		if (gauge.gained() > 0)
 		{
@@ -179,7 +179,7 @@ class PlannerOverlay extends OverlayPanel
 					: PlannerTab.compactXp(Math.round(measured)) + "/hr", UiTokens.OVERLAY_VALUE);
 		}
 
-		methodLine(head, liveXp, targetXp, measured);
+		methodLine(head, skill, xpLeft, measured);
 	}
 
 	private void renderKill(Plan.Step head)
@@ -193,43 +193,46 @@ class PlannerOverlay extends OverlayPanel
 	}
 
 	/**
-	 * The method line adapts to reality: while the player's xp drops match a
-	 * known method's per-action xp, name that method; while their measured
-	 * pace clearly diverges from the proposal without a match, own it as
-	 * "Your method" rather than invent a name. The right side prefers a
-	 * live actions-left count over the pack rate.
+	 * The method line adapts to reality: a curated method whose per-action
+	 * xp the drops match wins, else the wiki skill-calculator action the
+	 * median drop fingerprints ("Maple longbow (u)"), else — when the
+	 * measured pace clearly diverges from the proposal — an honest
+	 * "Your method" rather than an invented name. The right side prefers
+	 * a live actions-left count (XP Tracker rolling-mean math) over the
+	 * pack rate.
 	 */
-	private void methodLine(Plan.Step head, long liveXp, long targetXp, double measured)
+	private void methodLine(Plan.Step head, Skill skill, long xpLeft, double measured)
 	{
 		long median = gauge.medianDrop();
-		MethodsPack.Method matched = matchMethod(
-			module.methodsPack(), head.action.trainSkill, median);
-
 		String label = head.methodName;
+		MethodsPack.Method matched = matchMethod(module.methodsPack(), skill, median);
 		if (matched != null)
 		{
 			label = matched.name;
 		}
-		else if (median > 0 && !Double.isNaN(measured) && head.methodRate > 0
-			&& Math.abs(measured - head.methodRate) / head.methodRate > PACE_DIVERGENCE)
+		else
 		{
-			label = "Your method";
+			String action = matchAction(module.xpActions(), skill, median,
+				state.getRealLevel(skill));
+			if (action != null)
+			{
+				label = action;
+			}
+			else if (median > 0 && !Double.isNaN(measured) && head.methodRate > 0
+				&& Math.abs(measured - head.methodRate) / head.methodRate > PACE_DIVERGENCE)
+			{
+				label = "Your method";
+			}
 		}
 		if (label == null)
 		{
 			return;
 		}
 
-		String right = null;
-		if (median > 0 && targetXp > liveXp)
-		{
-			long actions = (targetXp - liveXp + median - 1) / median;
-			right = "~" + PlannerTab.formatCount(actions) + " actions";
-		}
-		else if (head.methodRate > 0)
-		{
-			right = PlannerTab.compactXp(head.methodRate) + "/hr";
-		}
+		long actions = gauge.actionsRemaining(xpLeft);
+		String right = actions > 0
+			? "~" + PlannerTab.formatCount(actions) + " actions"
+			: head.methodRate > 0 ? PlannerTab.compactXp(head.methodRate) + "/hr" : null;
 		line(label, UiTokens.CANVAS_LOCKED, right, UiTokens.CANVAS_LOCKED);
 	}
 
@@ -348,17 +351,19 @@ class PlannerOverlay extends OverlayPanel
 		}
 	}
 
-	/** Time to the step's target: the player's measured pace wins while xp
-	 * is flowing; else the proposed rate; NaN stays an honest "?". */
-	static double ttlHours(Plan.Step head, double measuredXpPerHour)
+	/** Time to the step's target level over the RAW xp gap (banked
+	 * materials don't make training faster): the player's measured pace
+	 * wins while xp is flowing; else the proposed rate; NaN stays an
+	 * honest "?". */
+	static double ttlHours(Plan.Step head, long xpLeft, double measuredXpPerHour)
 	{
 		if (!Double.isNaN(measuredXpPerHour) && measuredXpPerHour > 0)
 		{
-			return head.trainXpRemaining / measuredXpPerHour;
+			return xpLeft / measuredXpPerHour;
 		}
 		if (head.methodRate > 0)
 		{
-			return head.trainXpRemaining / (double) head.methodRate;
+			return xpLeft / (double) head.methodRate;
 		}
 		return head.hours;
 	}
@@ -407,6 +412,73 @@ class PlannerOverlay extends OverlayPanel
 		return null;
 	}
 
+	/**
+	 * Name the wiki skill-calculator action the median drop fingerprints,
+	 * respecting the player's level. Several actions can share one xp
+	 * value (stringing vs unstrung longbows) — tied candidates that share
+	 * a base name show the base ("Maple longbow"); otherwise no honest
+	 * single name exists and this returns null.
+	 */
+	static String matchAction(com.ironhub.data.XpActionsPack pack, Skill skill,
+		long medianDrop, int playerLevel)
+	{
+		if (pack == null || skill == null || medianDrop <= 0)
+		{
+			return null;
+		}
+		com.ironhub.data.XpActionsPack.SkillActions ladder = pack.ladder(skill);
+		if (ladder == null)
+		{
+			return null;
+		}
+		double bestDiff = Double.MAX_VALUE;
+		java.util.List<com.ironhub.data.XpActionsPack.XpAction> best = new java.util.ArrayList<>();
+		for (com.ironhub.data.XpActionsPack.XpAction action : ladder.actions)
+		{
+			if (action.xp <= 0 || action.level > playerLevel)
+			{
+				continue;
+			}
+			double diff = Math.abs(medianDrop - action.xp) / action.xp;
+			if (diff > 0.01)
+			{
+				continue;
+			}
+			if (diff < bestDiff - 1e-9)
+			{
+				bestDiff = diff;
+				best.clear();
+			}
+			if (Math.abs(diff - bestDiff) <= 1e-9)
+			{
+				best.add(action);
+			}
+		}
+		if (best.isEmpty())
+		{
+			return null;
+		}
+		if (best.size() == 1)
+		{
+			return best.get(0).name;
+		}
+		String base = baseName(best.get(0).name);
+		for (com.ironhub.data.XpActionsPack.XpAction action : best)
+		{
+			if (!baseName(action.name).equals(base))
+			{
+				return null; // genuinely ambiguous — never guess
+			}
+		}
+		return base;
+	}
+
+	private static String baseName(String name)
+	{
+		int paren = name.indexOf(" (");
+		return paren > 0 ? name.substring(0, paren) : name;
+	}
+
 	private String goalLine(Plan plan, Plan.Step head)
 	{
 		for (String goalId : head.action.neededBy)
@@ -433,21 +505,33 @@ class PlannerOverlay extends OverlayPanel
 	}
 
 	/**
-	 * Live xp session for the head's skill: gained since first drop,
-	 * measured xp/hr over active time (idle gaps capped so a break doesn't
-	 * poison the rate), and the median drop for actions-left math.
+	 * Live xp session for the head's skill, mirroring RuneLite's XP
+	 * Tracker math (XpStateSingle, verified upstream): the clock accrues
+	 * wall-time from the first drop, so xp/hr decays honestly while idle;
+	 * a 60s minimum elapsed keeps the first minute sane; after 10 idle
+	 * minutes the per-hour window resets (total gained survives); actions
+	 * remaining use their rolling mean of the last 10 action xps. The
+	 * median drop (window 20) is ours, for method fingerprinting.
 	 */
 	static final class XpGauge
 	{
+		/** XP Tracker's 60s floor: no 2-billion-xp/hr first minutes. */
+		static final long MIN_ELAPSED_MS = 60_000;
+		/** Idle this long → the per-hour window resets on the next frame. */
+		static final long RATE_RESET_MS = 10 * 60_000;
+		private static final int ACTION_WINDOW = 10;
 		private static final int DROP_WINDOW = 20;
 
 		private Skill skill;
 		private long lastXp = -1;
-		private long startXp = -1;
+		private long totalGained;
+		private long gainedSinceReset;
+		private long skillTimeMs;
+		private long lastFrameMs;
 		private long lastGainMs;
-		private long activeMs;
-		private long gainedTimed;
-		private int dropCount;
+		private final int[] actionExps = new int[ACTION_WINDOW];
+		private int actionExpIndex;
+		private boolean actionsHistoryInitialized;
 		private final ArrayDeque<Long> drops = new ArrayDeque<>();
 
 		void observe(Skill current, long xp, long now)
@@ -459,58 +543,94 @@ class PlannerOverlay extends OverlayPanel
 			if (lastXp < 0 || xp < lastXp) // first sight, or profile swap
 			{
 				lastXp = xp;
+				lastFrameMs = now;
 				return;
 			}
+			// the clock runs (per frame) while the rate window is live
+			if (gainedSinceReset > 0)
+			{
+				skillTimeMs += Math.max(0, now - lastFrameMs);
+				if (xp == lastXp && now - lastGainMs >= RATE_RESET_MS)
+				{
+					gainedSinceReset = 0;
+					skillTimeMs = 0;
+				}
+			}
+			lastFrameMs = now;
 			if (xp == lastXp)
 			{
 				return;
 			}
 			long delta = xp - lastXp;
-			if (dropCount == 0)
+			totalGained += delta;
+			gainedSinceReset += delta;
+			if (actionsHistoryInitialized)
 			{
-				startXp = lastXp;
+				actionExps[actionExpIndex] = (int) delta;
 			}
 			else
 			{
-				activeMs += Math.min(now - lastGainMs, GAP_CAP_MS);
-				gainedTimed += delta;
+				java.util.Arrays.fill(actionExps, (int) delta);
+				actionsHistoryInitialized = true;
 			}
-			dropCount++;
-			lastGainMs = now;
-			lastXp = xp;
+			actionExpIndex = (actionExpIndex + 1) % actionExps.length;
 			drops.addLast(delta);
 			if (drops.size() > DROP_WINDOW)
 			{
 				drops.removeFirst();
 			}
+			lastGainMs = now;
+			lastXp = xp;
 		}
 
 		private void reset(Skill current)
 		{
 			skill = current;
 			lastXp = -1;
-			startXp = -1;
+			totalGained = 0;
+			gainedSinceReset = 0;
+			skillTimeMs = 0;
+			lastFrameMs = 0;
 			lastGainMs = 0;
-			activeMs = 0;
-			gainedTimed = 0;
-			dropCount = 0;
+			actionExpIndex = 0;
+			actionsHistoryInitialized = false;
 			drops.clear();
 		}
 
-		/** XP gained since the first drop this session (0 = none yet). */
+		/** Total xp gained on this skill this session (0 = none yet). */
 		long gained()
 		{
-			return startXp < 0 ? 0 : lastXp - startXp;
+			return totalGained;
 		}
 
-		/** Measured pace; NaN until two drops have set a real interval. */
+		/** Live measured pace, decaying while idle; NaN with no window. */
 		double xpPerHour()
 		{
-			if (dropCount < 2 || activeMs <= 0)
+			if (gainedSinceReset <= 0)
 			{
 				return Double.NaN;
 			}
-			return gainedTimed * 3_600_000.0 / activeMs;
+			return gainedSinceReset * 3_600_000.0 / Math.max(MIN_ELAPSED_MS, skillTimeMs);
+		}
+
+		/** Actions to cover the gap — XP Tracker's rolling-mean formula. */
+		long actionsRemaining(long xpRemaining)
+		{
+			if (!actionsHistoryInitialized || xpRemaining <= 0)
+			{
+				return -1;
+			}
+			long totalActionXp = 0;
+			for (int actionXp : actionExps)
+			{
+				totalActionXp += actionXp;
+			}
+			if (totalActionXp <= 0)
+			{
+				return -1;
+			}
+			long scaled = xpRemaining * actionExps.length;
+			return scaled / totalActionXp + (scaled % totalActionXp > 0 ? 1 : 0);
 		}
 
 		/** Median xp per drop over the recent window (0 = no drops). */
