@@ -288,10 +288,16 @@ validated against the RuneLite Quest enum at generation.
 
 **Advancing a run stop** (matches Easy Farming's FarmingStepHandler): a
 stop is done once the patch is PLANTED — its crop state reads GROWING via
-the vendored predictor — and, for herb/hops, COMPOSTED. Compost has no
-varbit; it's detected from the chat message "You treat the … with
-(ultra|super|)compost." (the core CompostTracker's pattern), attributed to
-the current stop by the player's region. Trees/fruit trees take no compost
-(pay the farmer instead), so they advance on planted alone. Never advance
-on mere arrival/proximity — that both fires too early and can skip a patch
-you pass near, desyncing the guide from Shortest Path.
+the vendored predictor — AND COMPOSTED, for **every** category including
+trees and fruit trees. Compost has no varbit; it's detected from the chat
+message "You treat the … with (ultra|super|)compost." (the core
+CompostTracker's pattern), attributed to the current stop by the player's
+region. The compost is the *live* "I've worked this one" signal — reading
+the persisted GROWING varbit alone advances on growth from a PREVIOUS run
+(trees/fruit trees are still growing hours later), which made a fresh run
+start half-done and cascade straight to complete (Easy Farming gates trees
+on compost too, unless its pay-for-protection mode is on — we don't model
+that yet, so a pay-to-protect tree stop is cleared with the manual
+sidebar skip / markThrough). Never advance on mere arrival/proximity —
+that both fires too early and can skip a patch you pass near, desyncing the
+guide from Shortest Path.

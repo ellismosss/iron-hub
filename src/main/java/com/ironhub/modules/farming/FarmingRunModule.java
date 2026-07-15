@@ -409,16 +409,9 @@ public class FarmingRunModule implements IronHubModule
 		}
 	}
 
-	/** Compost applied at the current stop (herb/hops) — reset when the stop
-	 *  advances, like Easy Farming's per-location composted flag. */
+	/** Compost applied at the current stop — reset when the stop advances,
+	 *  like Easy Farming's per-location composted flag. */
 	private volatile boolean compostedHere;
-
-	/** Categories where the run waits for compost before advancing; trees
-	 *  and fruit trees take no compost (the farmer is paid instead). */
-	private static boolean compostable(String category)
-	{
-		return "herb".equals(category) || "hops".equals(category);
-	}
 
 	/** Record a compost at the current stop (region-attributed; -1 = unknown,
 	 *  attributed to the current stop). Advances if the seed is also planted. */
@@ -437,9 +430,15 @@ public class FarmingRunModule implements IronHubModule
 	}
 
 	/**
-	 * Advance the current stop once the player has done the work there —
-	 * the patch is planted (growing) and, for herb/hops, composted. Not on
-	 * arrival. Ends the run when the last stop is done. Client thread.
+	 * Advance the current stop once the player has done the work there — the
+	 * patch is planted (growing) AND composted. Every category waits for the
+	 * compost: reading the persisted "growing" varbit alone would auto-skip
+	 * patches you planted on a PREVIOUS run (trees/fruit trees are still
+	 * growing hours later), which is exactly what made a fresh run start
+	 * half-done and cascade to complete. The compost is the live "I've worked
+	 * this one" signal (Easy Farming parity — it gates trees/fruit on compost
+	 * too). Not on arrival. Ends the run when the last stop is done. Client
+	 * thread.
 	 */
 	void checkAdvance()
 	{
@@ -452,9 +451,7 @@ public class FarmingRunModule implements IronHubModule
 		{
 			return;
 		}
-		// per-stop category, so a combined tree+fruit run gates each stop on
-		// its own patch (herb/hops wait for compost; trees/fruit don't)
-		if (compostable(next.location.category) && !compostedHere)
+		if (!compostedHere)
 		{
 			return; // planted but not yet composted — stay put
 		}
@@ -871,8 +868,7 @@ public class FarmingRunModule implements IronHubModule
 	{
 		for (FarmRunsPack.Item item : teleport.items)
 		{
-			// canonical: any charge/variant of a glory or ring counts
-			if (state.canonicalStock(item.itemId) < item.qty)
+			if (plannedStock(item.itemId) < item.qty)
 			{
 				return false;
 			}
@@ -880,11 +876,29 @@ public class FarmingRunModule implements IronHubModule
 		return true;
 	}
 
+	/** Owned across bank + inventory + worn + rune pouch, counting variants
+	 *  and higher teleport tiers — for the owned-first teleport auto-pick. */
+	private int plannedStock(int itemId)
+	{
+		java.util.Set<Integer> ids = satisfyingIds(itemId);
+		int total = 0;
+		for (int id : ids)
+		{
+			total += state.ownedCount(id);
+		}
+		for (java.util.Map.Entry<Integer, Integer> rune : state.getRunePouch().entrySet())
+		{
+			if (ids.contains(rune.getKey()))
+			{
+				total += rune.getValue();
+			}
+		}
+		return total;
+	}
+
 	/**
-	 * Items the player is NOT carrying for this stop's teleport (inventory
-	 * + worn only — the run is live, the bank is behind you).
-	 * ponytail: runes inside a rune pouch read as missing; watching the
-	 * RUNE_POUCH varbits would fix that if it grates.
+	 * Items the player is NOT carrying for this stop's teleport (inventory,
+	 * worn, and the rune pouch — the run is live, the bank is behind you).
 	 */
 	List<FarmRunsPack.Item> missingItems(Stop stop)
 	{
@@ -899,30 +913,71 @@ public class FarmingRunModule implements IronHubModule
 		return missing;
 	}
 
-	/** How many of an item the player currently carries (inventory + worn),
-	 *  counting every ItemVariationMapping variant — a charged glory counts
-	 *  for the setup's glory slot. Package-visible for the bank overlay. */
+	/** How many of an item the player currently carries (inventory + worn +
+	 *  rune pouch), counting every ItemVariationMapping variant and higher
+	 *  teleport tiers — a charged glory counts for the glory slot, an enhanced
+	 *  quetzal whistle covers a basic one, law runes in the pouch count.
+	 *  Package-visible for the bank overlay. */
 	int carriedCount(int itemId)
 	{
-		int base = net.runelite.client.game.ItemVariationMapping.map(itemId);
-		java.util.Set<Integer> variants = new java.util.HashSet<>(
-			net.runelite.client.game.ItemVariationMapping.getVariations(base));
+		java.util.Set<Integer> ids = satisfyingIds(itemId);
 		int total = 0;
 		for (java.util.Map.Entry<Integer, Integer> slot : state.getInventorySnapshot().entrySet())
 		{
-			if (variants.contains(slot.getKey()))
+			if (ids.contains(slot.getKey()))
 			{
 				total += slot.getValue();
 			}
 		}
 		for (int worn : state.getEquipmentSlots())
 		{
-			if (variants.contains(worn))
+			if (ids.contains(worn))
 			{
 				total++;
 			}
 		}
+		for (java.util.Map.Entry<Integer, Integer> rune : state.getRunePouch().entrySet())
+		{
+			if (ids.contains(rune.getKey()))
+			{
+				total += rune.getValue();
+			}
+		}
 		return total;
+	}
+
+	/** Higher teleport tiers that satisfy a lower-tier requirement. The quetzal
+	 *  whistle tiers carry different names so ItemVariationMapping doesn't group
+	 *  them; an enhanced/perfected whistle does everything a basic one does. */
+	private static final java.util.Map<Integer, int[]> TELEPORT_UPGRADES = java.util.Map.of(
+		net.runelite.api.gameval.ItemID.HG_QUETZALWHISTLE_BASIC, new int[]{
+			net.runelite.api.gameval.ItemID.HG_QUETZALWHISTLE_ENHANCED,
+			net.runelite.api.gameval.ItemID.HG_QUETZALWHISTLE_PERFECTED},
+		net.runelite.api.gameval.ItemID.HG_QUETZALWHISTLE_ENHANCED, new int[]{
+			net.runelite.api.gameval.ItemID.HG_QUETZALWHISTLE_PERFECTED});
+
+	/** Every item id that satisfies a requirement for itemId: its
+	 *  ItemVariationMapping variants plus any higher teleport tier's variants
+	 *  (the perfected group already folds in the infinite-charge id). */
+	private static java.util.Set<Integer> satisfyingIds(int itemId)
+	{
+		java.util.Set<Integer> ids = variations(itemId);
+		int[] upgrades = TELEPORT_UPGRADES.get(itemId);
+		if (upgrades != null)
+		{
+			ids = new java.util.HashSet<>(ids);
+			for (int up : upgrades)
+			{
+				ids.addAll(variations(up));
+			}
+		}
+		return ids;
+	}
+
+	private static java.util.Set<Integer> variations(int itemId)
+	{
+		int base = net.runelite.client.game.ItemVariationMapping.map(itemId);
+		return new java.util.HashSet<>(net.runelite.client.game.ItemVariationMapping.getVariations(base));
 	}
 
 	// ── patch views over the vendored predictions ─────────────────────

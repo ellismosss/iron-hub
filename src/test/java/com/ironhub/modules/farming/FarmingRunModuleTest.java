@@ -66,6 +66,21 @@ public class FarmingRunModuleTest
 		throw new IllegalStateException("no herb varbit value");
 	}
 
+	/** First tree varbit value that decodes to a real sapling still growing. */
+	private static int treeValue()
+	{
+		for (int value = 0; value < 256; value++)
+		{
+			PatchState state = PatchImplementation.TREE.forVarbitValue(value);
+			if (state != null && state.getCropState() == CropState.GROWING
+				&& state.getProduce() != Produce.WEEDS && state.getProduce().getItemID() > 0)
+			{
+				return value;
+			}
+		}
+		throw new IllegalStateException("no tree varbit value");
+	}
+
 	@Test
 	public void formatting()
 	{
@@ -110,6 +125,57 @@ public class FarmingRunModuleTest
 		module.onCompostApplied(ardougneRegion);
 		assertTrue(module.isVisited("herb/ardougne"));
 		assertEquals("herb/catherby", module.nextStop().location.id);
+		module.shutDown();
+	}
+
+	@Test
+	public void treesWaitForCompostAndDoNotAutoAdvanceOnPreExistingGrowth()
+	{
+		// The bug: a tree/fruit stop advanced the moment its patch read
+		// "growing" — but that growth is from a PREVIOUS run (trees take
+		// hours), so a fresh run started half-done and cascaded to complete.
+		// Every category must now wait for a live compost at the stop.
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		ConfigManager configManager = TimetrackingFixture.configManager();
+		FarmingRunModule module = module(state, configManager, null);
+		int faladorTreeRegion = 11828; // Falador's TREE patch is its own region
+		long now = Instant.now().getEpochSecond();
+
+		module.startTemplate("Tree run");
+		assertEquals("tree/falador", module.nextStop().location.id);
+
+		// the Falador tree is ALREADY growing (planted last run) — must not advance
+		TimetrackingFixture.patch(configManager, faladorTreeRegion, VarbitID.FARMING_TRANSMIT_A,
+			treeValue(), now);
+		module.refreshTracking();
+		assertEquals("tree/falador", module.nextStop().location.id);
+
+		// only a compost worked here moves the run on (trees gate on it too now)
+		module.onCompostApplied(faladorTreeRegion);
+		assertTrue(module.isVisited("tree/falador"));
+		assertEquals("tree/taverley", module.nextStop().location.id);
+		module.shutDown();
+	}
+
+	@Test
+	public void teleportItemsCountRunePouchAndHigherWhistleTiers()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+		int lawRune = 563;
+
+		// runes carried in the rune pouch count toward a teleport's runes
+		StateFixture.runePouch(state, Map.of(lawRune, 10));
+		assertEquals(10, module.carriedCount(lawRune));
+
+		// an enhanced quetzal whistle satisfies a basic-whistle requirement
+		// (the tiers have different names, so aren't ItemVariationMapping-grouped)
+		StateFixture.inventory(state, Map.of(
+			net.runelite.api.gameval.ItemID.HG_QUETZALWHISTLE_ENHANCED, 1));
+		assertEquals(1, module.carriedCount(
+			net.runelite.api.gameval.ItemID.HG_QUETZALWHISTLE_BASIC));
 		module.shutDown();
 	}
 

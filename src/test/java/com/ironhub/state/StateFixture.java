@@ -48,6 +48,11 @@ public final class StateFixture
 		state.ingestInventory(contents);
 	}
 
+	public static void runePouch(AccountState state, Map<Integer, Integer> contents)
+	{
+		state.ingestRunePouch(contents);
+	}
+
 	public static void equipment(AccountState state, Map<Integer, Integer> contents)
 	{
 		state.ingestEquipment(contents);

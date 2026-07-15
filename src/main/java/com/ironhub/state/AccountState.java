@@ -137,6 +137,9 @@ public class AccountState implements StateView
 	private volatile int[] inventorySlots = new int[0]; // container order, -1 = empty
 	private volatile int[] equipmentSlots = new int[0]; // EquipmentInventorySlot index order
 	private volatile boolean inventoryDirty;
+	/** Rune pouch contents (rune item id -> quantity), rebuilt from the pouch
+	 *  varbits on the client thread; empty until seen / when unavailable. */
+	private volatile Map<Integer, Integer> runePouch = Map.of();
 	private volatile String slayerTask = "";
 	private volatile String combatNpcName = "";
 	private volatile int combatNpcId = -1;
@@ -154,12 +157,63 @@ public class AccountState implements StateView
 	private int lastQuestRefreshTick;
 	private boolean containersSeeded;
 
+	/** Rune pouch slot varbits: the rune-type index in each slot, paired with
+	 *  the amount varbit at the same index (6 slots covers the divine pouch). */
+	private static final int[] POUCH_RUNE_VARBITS = {
+		net.runelite.api.Varbits.RUNE_POUCH_RUNE1, net.runelite.api.Varbits.RUNE_POUCH_RUNE2,
+		net.runelite.api.Varbits.RUNE_POUCH_RUNE3, net.runelite.api.Varbits.RUNE_POUCH_RUNE4,
+		net.runelite.api.Varbits.RUNE_POUCH_RUNE5, net.runelite.api.Varbits.RUNE_POUCH_RUNE6,
+	};
+	private static final int[] POUCH_AMOUNT_VARBITS = {
+		net.runelite.api.Varbits.RUNE_POUCH_AMOUNT1, net.runelite.api.Varbits.RUNE_POUCH_AMOUNT2,
+		net.runelite.api.Varbits.RUNE_POUCH_AMOUNT3, net.runelite.api.Varbits.RUNE_POUCH_AMOUNT4,
+		net.runelite.api.Varbits.RUNE_POUCH_AMOUNT5, net.runelite.api.Varbits.RUNE_POUCH_AMOUNT6,
+	};
+
 	@Inject
 	public AccountState(Client client, net.runelite.client.game.ItemManager itemManager, ProfileStore store)
 	{
 		this.client = client;
 		this.itemManager = itemManager;
 		this.store = store;
+		// the rune pouch backs teleport-rune requirements everywhere (farm runs,
+		// loadouts); track it as core account state, not per-module.
+		watchVarbits(POUCH_RUNE_VARBITS);
+		watchVarbits(POUCH_AMOUNT_VARBITS);
+	}
+
+	/** Rune pouch contents (rune item id -> quantity); empty when the pouch
+	 *  isn't carried or hasn't been seen. Runes here count as carried. */
+	public Map<Integer, Integer> getRunePouch()
+	{
+		return runePouch;
+	}
+
+	/** Rebuild the rune-pouch cache from the watched pouch varbits. Client
+	 *  thread only (reads the rune enum); a no-op headless. */
+	private void rebuildRunePouch()
+	{
+		if (client == null)
+		{
+			return;
+		}
+		net.runelite.api.EnumComposition runeEnum = client.getEnum(net.runelite.api.EnumID.RUNEPOUCH_RUNE);
+		Map<Integer, Integer> pouch = new java.util.HashMap<>();
+		for (int i = 0; i < POUCH_RUNE_VARBITS.length; i++)
+		{
+			int runeIndex = varbitValues.getOrDefault(POUCH_RUNE_VARBITS[i], 0);
+			if (runeIndex <= 0)
+			{
+				continue;
+			}
+			int runeId = runeEnum.getIntValue(runeIndex);
+			int amount = varbitValues.getOrDefault(POUCH_AMOUNT_VARBITS[i], 0);
+			if (runeId > 0 && amount > 0)
+			{
+				pouch.merge(runeId, amount, Integer::sum);
+			}
+		}
+		runePouch = Map.copyOf(pouch);
 	}
 
 	// ── reads (any thread) ────────────────────────────────────────────
@@ -1166,6 +1220,10 @@ public class AccountState implements StateView
 			Integer previous = varbitValues.put(event.getVarbitId(), event.getValue());
 			if (previous == null || previous != event.getValue())
 			{
+				if (isPouchVarbit(event.getVarbitId()))
+				{
+					rebuildRunePouch();
+				}
 				notifyListeners();
 			}
 		}
@@ -1285,6 +1343,13 @@ public class AccountState implements StateView
 	void ingestInventory(Map<Integer, Integer> contents)
 	{
 		inventory = Map.copyOf(contents);
+	}
+
+	/** Test seam: seed the rune pouch (rune item id -> quantity) directly,
+	 *  bypassing the varbit/enum decode that needs a live client. */
+	void ingestRunePouch(Map<Integer, Integer> contents)
+	{
+		runePouch = Map.copyOf(contents);
 	}
 
 	void ingestEquipment(Map<Integer, Integer> contents)
@@ -1480,10 +1545,30 @@ public class AccountState implements StateView
 			Integer previous = varpValues.put(id, value);
 			changed |= previous == null || previous != value;
 		}
+		rebuildRunePouch();
 		if (changed)
 		{
 			notifyListeners();
 		}
+	}
+
+	private static boolean isPouchVarbit(int varbitId)
+	{
+		for (int id : POUCH_RUNE_VARBITS)
+		{
+			if (id == varbitId)
+			{
+				return true;
+			}
+		}
+		for (int id : POUCH_AMOUNT_VARBITS)
+		{
+			if (id == varbitId)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/** Slot-ordered item ids (-1 = empty), padded/truncated to size. */
