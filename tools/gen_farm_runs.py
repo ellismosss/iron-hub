@@ -77,6 +77,25 @@ LOCATIONS = [
     ("hops", "hops/", "AldarinHopsLocationData"),
 ]
 
+# Per-location unlock requirements (requirement-graph strings) — Easy Farming
+# does NOT encode these, so they are curated from the wiki (Herb patch /
+# Tree patch pages). Quest tokens validated against the RuneLite Quest enum
+# (tools/questnames.txt); a locked location is dropped from a run at runtime.
+LOCATION_REQS = {
+    "herb/farming-guild": ["skill:Farming:65"],
+    "herb/harmony-island": ["diary:Morytania:Elite"],      # patch needs Elite Morytania diary
+    "herb/troll-stronghold": ["quest:My Arm's Big Adventure"],
+    "herb/weiss": ["quest:Making Friends with My Arm"],
+    "herb/morytania": ["queststarted:Priest in Peril"],    # Morytania access
+    "herb/civitas-illa-fortis": ["quest:Children of the Sun"],  # Varlamore access
+    "tree/farming-guild": ["skill:Farming:65"],
+    "tree/nemus-retreat": ["quest:Children of the Sun"],
+    "fruit/farming-guild": ["skill:Farming:85"],           # high tier
+    "fruit/lletya": ["queststarted:Mourning's End Part I"],
+    "fruit/kastori": ["quest:Children of the Sun"],
+    "hops/aldarin": ["quest:Children of the Sun"],
+}
+
 POINT = re.compile(r"PATCH_POINT = new WorldPoint\((\d+),\s*(\d+),\s*(\d+)\)")
 NAME = re.compile(r'new Location\(\s*[^;]*?,\s*"([^"]+)",\s*(?:true|false)', re.DOTALL)
 TELEPORT = re.compile(
@@ -165,8 +184,9 @@ def parse_location(category: str, cls: str, source: str, item_ids: dict) -> dict
     if not teleports:
         raise SystemExit(f"no teleports parsed from {cls}")
 
+    loc_id = category + "/" + re.sub(r"[^a-z0-9]+", "-", name.group(1).lower()).strip("-")
     return {
-        "id": category + "/" + re.sub(r"[^a-z0-9]+", "-", name.group(1).lower()).strip("-"),
+        "id": loc_id,
         "category": category,
         "name": name.group(1),
         "point": {
@@ -174,8 +194,21 @@ def parse_location(category: str, cls: str, source: str, item_ids: dict) -> dict
             "y": int(point.group(2)),
             "plane": int(point.group(3)),
         },
+        "reqs": LOCATION_REQS.get(loc_id, []),
         "teleports": teleports,
     }
+
+
+def validate_quest_tokens(locations):
+    here = os.path.dirname(__file__)
+    quest_names = {ln.strip().lower() for ln in open(os.path.join(here, "questnames.txt"))
+                   if ln.strip()}
+    for loc in locations:
+        for req in loc["reqs"]:
+            if req.startswith(("quest:", "queststarted:")):
+                name = req.split(":", 1)[1].rstrip(".").lower()
+                if name not in quest_names:
+                    raise SystemExit(f"{loc['id']}: quest not in the Quest enum: {name!r}")
 
 
 def main():
@@ -187,6 +220,9 @@ def main():
     ids = [loc["id"] for loc in locations]
     assert len(ids) == len(set(ids)), "duplicate location ids"
     assert len(locations) == len(LOCATIONS)
+    validate_quest_tokens(locations)
+    unknown = set(LOCATION_REQS) - set(ids)
+    assert not unknown, f"LOCATION_REQS has ids not in the pack: {unknown}"
     total_teleports = sum(len(l["teleports"]) for l in locations)
     assert total_teleports > 100, f"only {total_teleports} teleports parsed"
 

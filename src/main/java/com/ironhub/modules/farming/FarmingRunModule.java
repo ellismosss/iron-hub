@@ -428,7 +428,10 @@ public class FarmingRunModule implements IronHubModule
 		List<Stop> resolved = new java.util.ArrayList<>();
 		for (FarmRunsPack.Location location : locations)
 		{
-			resolved.add(new Stop(location, pickTeleport(location)));
+			if (isUnlocked(location)) // locked patches never enter a run
+			{
+				resolved.add(new Stop(location, pickTeleport(location)));
+			}
 		}
 		stops = List.copyOf(resolved);
 		runName = name;
@@ -575,6 +578,38 @@ public class FarmingRunModule implements IronHubModule
 	FarmRunsPack pack()
 	{
 		return pack;
+	}
+
+	/** True when the player can access this location's patch (all its
+	 *  requirement-graph gates met). Empty reqs = always open. */
+	boolean isUnlocked(FarmRunsPack.Location location)
+	{
+		if (location.reqs == null)
+		{
+			return true;
+		}
+		for (String req : location.reqs)
+		{
+			if (!com.ironhub.requirements.Requirements.parse(req).isMet(state))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/** The locations of a run/category the player can actually access. */
+	List<FarmRunsPack.Location> unlockedLocations(List<FarmRunsPack.Location> locations)
+	{
+		List<FarmRunsPack.Location> out = new java.util.ArrayList<>();
+		for (FarmRunsPack.Location location : locations)
+		{
+			if (isUnlocked(location))
+			{
+				out.add(location);
+			}
+		}
+		return out;
 	}
 
 	AccountState state()

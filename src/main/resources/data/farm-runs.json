@@ -11,6 +11,9 @@
     "y": 3726,
     "plane": 0
    },
+   "reqs": [
+    "skill:Farming:65"
+   ],
    "teleports": [
     {
      "id": "Jewellery_box",
@@ -75,6 +78,7 @@
     "y": 3374,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Portal_Nexus",
@@ -165,6 +169,7 @@
     "y": 3463,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Portal_Nexus_Catherby",
@@ -238,6 +243,7 @@
     "y": 3307,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Portal_Nexus",
@@ -339,6 +345,9 @@
     "y": 2837,
     "plane": 0
    },
+   "reqs": [
+    "diary:Morytania:Elite"
+   ],
    "teleports": [
     {
      "id": "Portal_Nexus",
@@ -377,6 +386,7 @@
     "y": 3550,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Xerics_Talisman",
@@ -434,6 +444,9 @@
     "y": 3525,
     "plane": 0
    },
+   "reqs": [
+    "queststarted:Priest in Peril"
+   ],
    "teleports": [
     {
      "id": "Ectophial",
@@ -486,6 +499,9 @@
     "y": 3696,
     "plane": 0
    },
+   "reqs": [
+    "quest:My Arm's Big Adventure"
+   ],
    "teleports": [
     {
      "id": "Stony_Basalt",
@@ -524,6 +540,9 @@
     "y": 3931,
     "plane": 0
    },
+   "reqs": [
+    "quest:Making Friends with My Arm"
+   ],
    "teleports": [
     {
      "id": "Icy_Basalt",
@@ -562,6 +581,9 @@
     "y": 3099,
     "plane": 0
    },
+   "reqs": [
+    "quest:Children of the Sun"
+   ],
    "teleports": [
     {
      "id": "Portal_Nexus",
@@ -644,6 +666,9 @@
     "y": 3736,
     "plane": 0
    },
+   "reqs": [
+    "skill:Farming:65"
+   ],
    "teleports": [
     {
      "id": "Jewellery_box",
@@ -708,6 +733,7 @@
     "y": 3373,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Portal_Nexus",
@@ -766,6 +792,7 @@
     "y": 3438,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Portal_Nexus",
@@ -848,6 +875,7 @@
     "y": 3231,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Portal_Nexus",
@@ -906,6 +934,7 @@
     "y": 3459,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Portal_Nexus",
@@ -964,6 +993,7 @@
     "y": 3415,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Royal_seed_pod",
@@ -1026,6 +1056,9 @@
     "y": 3321,
     "plane": 0
    },
+   "reqs": [
+    "quest:Children of the Sun"
+   ],
    "teleports": [
     {
      "id": "Quetzal_whistle",
@@ -1096,6 +1129,9 @@
     "y": 3759,
     "plane": 0
    },
+   "reqs": [
+    "skill:Farming:85"
+   ],
    "teleports": [
     {
      "id": "Jewellery_box",
@@ -1160,6 +1196,7 @@
     "y": 3212,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Portal_Nexus",
@@ -1257,6 +1294,7 @@
     "y": 3433,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Portal_Nexus_Catherby",
@@ -1330,6 +1368,9 @@
     "y": 3162,
     "plane": 0
    },
+   "reqs": [
+    "queststarted:Mourning's End Part I"
+   ],
    "teleports": [
     {
      "id": "Teleport_crystal",
@@ -1356,6 +1397,7 @@
     "y": 3446,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Royal_seed_pod",
@@ -1418,6 +1460,7 @@
     "y": 3180,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Spirit_Tree",
@@ -1444,6 +1487,9 @@
     "y": 3057,
     "plane": 0
    },
+   "reqs": [
+    "quest:Children of the Sun"
+   ],
    "teleports": [
     {
      "id": "Quetzal_Transport",
@@ -1495,6 +1541,7 @@
     "y": 3315,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Portal_Nexus",
@@ -1604,6 +1651,7 @@
     "y": 3526,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Portal_Nexus_Camelot",
@@ -1688,6 +1736,7 @@
     "y": 3105,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Portal_Nexus",
@@ -1762,6 +1811,7 @@
     "y": 3337,
     "plane": 0
    },
+   "reqs": [],
    "teleports": [
     {
      "id": "Explorers_Ring",
@@ -1800,6 +1850,9 @@
     "y": 2939,
     "plane": 0
    },
+   "reqs": [
+    "quest:Children of the Sun"
+   ],
    "teleports": [
     {
      "id": "Portal_Nexus",

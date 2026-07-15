@@ -56,6 +56,8 @@ public class FarmRunsPack
 		public String category;
 		public String name;
 		public Point point;
+		/** Requirement-graph strings that gate access (empty = always open). */
+		public List<String> reqs;
 		public List<Teleport> teleports;
 
 		public WorldPoint worldPoint()

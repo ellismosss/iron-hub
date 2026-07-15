@@ -26,6 +26,7 @@
 					"category",
 					"name",
 					"point",
+					"reqs",
 					"teleports"
 				],
 				"additionalProperties": false,
@@ -33,6 +34,13 @@
 					"id": {
 						"type": "string",
 						"pattern": "^(herb|tree|fruit|hops)/[a-z0-9-]+$"
+					},
+					"reqs": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"pattern": "^(skill|quest|queststarted|diary):"
+						}
 					},
 					"category": {
 						"enum": [

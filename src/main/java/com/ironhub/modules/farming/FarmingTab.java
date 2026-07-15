@@ -378,7 +378,7 @@ class FarmingTab extends JPanel
 		for (String template : FarmingRunModule.TEMPLATES.keySet())
 		{
 			String category = FarmingRunModule.TEMPLATES.get(template);
-			int count = module.pack().category(category).size();
+			int count = module.unlockedLocations(module.pack().category(category)).size();
 			runs.add(runRow(template, count + " stops", () -> module.startTemplate(template), null));
 			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
