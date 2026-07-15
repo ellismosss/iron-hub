@@ -1,0 +1,269 @@
+package com.ironhub.modules.collectionlog;
+
+import net.runelite.api.Client;
+import net.runelite.api.FontID;
+import net.runelite.api.SpriteID;
+import net.runelite.api.gameval.InterfaceID;
+import net.runelite.api.widgets.JavaScriptCallback;
+import net.runelite.api.widgets.Widget;
+import net.runelite.api.widgets.WidgetPositionMode;
+import net.runelite.api.widgets.WidgetTextAlignment;
+import net.runelite.api.widgets.WidgetType;
+
+/**
+ * A native-looking "Log Sync" button on the collection log header, ported
+ * from Log Adviser's CollectionLogSyncButton (github.com/SFranciscoSouza/
+ * LogAdviser, BSD-2-Clause; itself modelled on the Temple-OSRS button):
+ * a 9-slice of GRAPHIC children plus a refresh icon, overlaid by a single
+ * TEXT child carrying the menu action and click/hover listeners. Hovering
+ * swaps the slice sprites to their highlighted variants, exactly like the
+ * real header buttons.
+ *
+ * <p>Every child uses {@link WidgetPositionMode#ABSOLUTE_RIGHT}: {@code x}
+ * is the distance from the parent's RIGHT edge to the child's RIGHT edge,
+ * so a larger {@code x} sits further LEFT. The button anchors just left of
+ * the live Search button — and steps one slot further left when another
+ * plugin's sync button (Log Adviser itself) already occupies that spot.
+ *
+ * <p>All methods mutate game widgets and MUST run on the client thread.
+ */
+final class LogSyncButton
+{
+	private static final String SYNC_ACTION = "Sync collection log (Iron Hub)";
+	private static final String LABEL_IDLE = "Log Sync";
+	private static final String LABEL_BUSY = "Syncing...";
+
+	private static final int FONT_COLOUR_IDLE = 0xd6d6d6;
+	private static final int FONT_COLOUR_HOVER = 0xffffff;
+
+	private static final int BUTTON_WIDTH = 78;
+	private static final int FALLBACK_RIGHT = 33; // if the Search button isn't loaded
+	private static final int GAP_FROM_SEARCH = 4;
+	private static final int CORNER = 9;
+	private static final int ICON_SIZE = 13;
+	private static final int PAD_LEFT = 4;
+	private static final int ICON_GAP = 4;
+	private static final int PAD_RIGHT = 6;
+
+	// 9-slice sprite sets: 0 = centre fill, 1-4 = corners (TL, TR, BL, BR),
+	// 5-8 = edges (left, top, right, bottom) — the same sprite families the
+	// genuine collection log header buttons are drawn from.
+	private static final int[] SLICE_IDLE = {
+		SpriteID.DIALOG_BACKGROUND,
+		SpriteID.WORLD_MAP_BUTTON_METAL_CORNER_TOP_LEFT,
+		SpriteID.WORLD_MAP_BUTTON_METAL_CORNER_TOP_RIGHT,
+		SpriteID.WORLD_MAP_BUTTON_METAL_CORNER_BOTTOM_LEFT,
+		SpriteID.WORLD_MAP_BUTTON_METAL_CORNER_BOTTOM_RIGHT,
+		SpriteID.WORLD_MAP_BUTTON_EDGE_LEFT,
+		SpriteID.WORLD_MAP_BUTTON_EDGE_TOP,
+		SpriteID.WORLD_MAP_BUTTON_EDGE_RIGHT,
+		SpriteID.WORLD_MAP_BUTTON_EDGE_BOTTOM,
+	};
+
+	private static final int[] SLICE_HOVER = {
+		SpriteID.RESIZEABLE_MODE_SIDE_PANEL_BACKGROUND,
+		SpriteID.EQUIPMENT_BUTTON_METAL_CORNER_TOP_LEFT_HOVERED,
+		SpriteID.EQUIPMENT_BUTTON_METAL_CORNER_TOP_RIGHT_HOVERED,
+		SpriteID.EQUIPMENT_BUTTON_METAL_CORNER_BOTTOM_LEFT_HOVERED,
+		SpriteID.EQUIPMENT_BUTTON_METAL_CORNER_BOTTOM_RIGHT_HOVERED,
+		SpriteID.EQUIPMENT_BUTTON_EDGE_LEFT_HOVERED,
+		SpriteID.EQUIPMENT_BUTTON_EDGE_TOP_HOVERED,
+		SpriteID.EQUIPMENT_BUTTON_EDGE_RIGHT_HOVERED,
+		SpriteID.EQUIPMENT_BUTTON_EDGE_BOTTOM_HOVERED,
+	};
+
+	private final Widget[] slices = new Widget[SLICE_IDLE.length];
+	private Widget icon;
+	private Widget text;
+	// Logical "sync in flight" state, independent of the widget lifecycle so
+	// it survives an interface rebuild that wipes the button mid-sync.
+	private boolean busy = false;
+
+	/** Builds the button on the collection log header if it isn't already there. */
+	void attach(Client client, Runnable onClick)
+	{
+		Widget parent = client.getWidget(InterfaceID.Collection.UNIVERSE);
+		if (parent == null)
+		{
+			return;
+		}
+		// A redraw that didn't wipe the container: re-adopt our overlay so the
+		// busy label keeps updating, then re-apply the current sync state.
+		Widget existing = findTextByAction(parent, SYNC_ACTION);
+		if (existing != null)
+		{
+			text = existing;
+			applyBusyState();
+			return;
+		}
+		Widget searchButton = client.getWidget(InterfaceID.Collection.SEARCH_TOGGLE);
+
+		final int w = BUTTON_WIDTH;
+		final int h = searchButton != null ? searchButton.getOriginalHeight() : 20;
+		int x = searchButton != null
+			? searchButton.getOriginalX() + searchButton.getOriginalWidth() + GAP_FROM_SEARCH
+			: FALLBACK_RIGHT;
+		// Log Adviser installed too? Its button claims the slot next to
+		// Search — step one button further left instead of overlapping it.
+		if (findTextByAction(parent, "Sync collection log") != null)
+		{
+			x += BUTTON_WIDTH + GAP_FROM_SEARCH;
+		}
+		final int y = searchButton != null ? searchButton.getOriginalY() : 5;
+		final int yMode = searchButton != null
+			? searchButton.getYPositionMode() : WidgetPositionMode.ABSOLUTE_TOP;
+		final int sideH = Math.max(1, h - 2 * CORNER);
+		final int edgeW = Math.max(1, w - 2 * CORNER);
+
+		// [0] centre fill — spans the whole button, tiled so the texture
+		// doesn't stretch. Corners next (x = right edge; x + (w - CORNER) =
+		// left edge), then the edges between them.
+		slices[0] = slice(parent, SLICE_IDLE[0], x, y, w, h, yMode, true);
+		slices[1] = slice(parent, SLICE_IDLE[1], x + (w - CORNER), y, CORNER, CORNER, yMode, false);
+		slices[2] = slice(parent, SLICE_IDLE[2], x, y, CORNER, CORNER, yMode, false);
+		slices[3] = slice(parent, SLICE_IDLE[3], x + (w - CORNER), y + h - CORNER, CORNER, CORNER, yMode, false);
+		slices[4] = slice(parent, SLICE_IDLE[4], x, y + h - CORNER, CORNER, CORNER, yMode, false);
+		slices[5] = slice(parent, SLICE_IDLE[5], x + (w - CORNER), y + CORNER, CORNER, sideH, yMode, false);
+		slices[6] = slice(parent, SLICE_IDLE[6], x + CORNER, y, edgeW, CORNER, yMode, false);
+		slices[7] = slice(parent, SLICE_IDLE[7], x, y + CORNER, CORNER, sideH, yMode, false);
+		slices[8] = slice(parent, SLICE_IDLE[8], x + CORNER, y + h - CORNER, edgeW, CORNER, yMode, false);
+
+		icon = parent.createChild(-1, WidgetType.GRAPHIC);
+		icon.setSpriteId(SpriteID.UNKNOWN_WHITE_REFRESH_ARROWS);
+		icon.setXPositionMode(WidgetPositionMode.ABSOLUTE_RIGHT);
+		icon.setYPositionMode(yMode);
+		icon.setOriginalWidth(ICON_SIZE);
+		icon.setOriginalHeight(ICON_SIZE);
+		icon.setOriginalX(x + w - PAD_LEFT - ICON_SIZE);
+		icon.setOriginalY(y + (h - ICON_SIZE) / 2);
+		icon.revalidate();
+
+		for (Widget s : slices)
+		{
+			if (s != null)
+			{
+				s.revalidate();
+			}
+		}
+
+		// Clickable text overlay — carries the menu action and listeners.
+		final int textWidth = Math.max(1, w - PAD_LEFT - ICON_SIZE - ICON_GAP - PAD_RIGHT);
+		Widget label = parent.createChild(-1, WidgetType.TEXT);
+		label.setText(LABEL_IDLE);
+		label.setTextColor(FONT_COLOUR_IDLE);
+		label.setFontId(FontID.PLAIN_11);
+		label.setTextShadowed(true);
+		label.setXPositionMode(WidgetPositionMode.ABSOLUTE_RIGHT);
+		label.setYPositionMode(yMode);
+		label.setXTextAlignment(WidgetTextAlignment.CENTER);
+		label.setYTextAlignment(WidgetTextAlignment.CENTER);
+		label.setOriginalWidth(textWidth);
+		label.setOriginalHeight(h);
+		label.setOriginalX(x + PAD_RIGHT);
+		label.setOriginalY(y);
+		label.setHasListener(true);
+		label.setAction(0, SYNC_ACTION);
+		label.setOnOpListener((JavaScriptCallback) ev -> onClick.run());
+		label.setOnMouseOverListener((JavaScriptCallback) ev -> setHover(true));
+		label.setOnMouseLeaveListener((JavaScriptCallback) ev -> setHover(false));
+		label.revalidate();
+
+		this.text = label;
+		applyBusyState();
+		parent.revalidate();
+	}
+
+	/** Flips the button into/out of its "Syncing..." state. Safe before
+	 *  attach — the state is re-applied when the button is (re)built. */
+	void setBusy(boolean busy)
+	{
+		this.busy = busy;
+		applyBusyState();
+	}
+
+	/** Forgets the widgets (interface closed/rebuilt wipes its children).
+	 *  {@link #busy} is kept so an in-flight sync re-renders correctly. */
+	void reset()
+	{
+		java.util.Arrays.fill(slices, null);
+		icon = null;
+		text = null;
+	}
+
+	/** While syncing, hide the icon and centre the longer "Syncing..."
+	 *  label; otherwise the icon plus the idle label. */
+	private void applyBusyState()
+	{
+		if (text == null)
+		{
+			return;
+		}
+		int idleWidth = Math.max(1, BUTTON_WIDTH - PAD_LEFT - ICON_SIZE - ICON_GAP - PAD_RIGHT);
+		int busyWidth = Math.max(1, BUTTON_WIDTH - PAD_LEFT - PAD_RIGHT);
+		text.setText(busy ? LABEL_BUSY : LABEL_IDLE);
+		text.setOriginalWidth(busy ? busyWidth : idleWidth);
+		text.revalidate();
+		if (icon != null)
+		{
+			icon.setHidden(busy);
+			icon.revalidate();
+		}
+	}
+
+	private void setHover(boolean hover)
+	{
+		int[] set = hover ? SLICE_HOVER : SLICE_IDLE;
+		for (int i = 0; i < slices.length; i++)
+		{
+			if (slices[i] != null)
+			{
+				slices[i].setSpriteId(set[i]);
+			}
+		}
+		if (text != null)
+		{
+			text.setTextColor(hover ? FONT_COLOUR_HOVER : FONT_COLOUR_IDLE);
+		}
+	}
+
+	private static Widget slice(Widget parent, int spriteId, int x, int y, int w, int h,
+		int yMode, boolean tile)
+	{
+		Widget s = parent.createChild(-1, WidgetType.GRAPHIC);
+		s.setSpriteId(spriteId);
+		s.setSpriteTiling(tile);
+		s.setXPositionMode(WidgetPositionMode.ABSOLUTE_RIGHT);
+		s.setYPositionMode(yMode);
+		s.setOriginalWidth(w);
+		s.setOriginalHeight(h);
+		s.setOriginalX(x);
+		s.setOriginalY(y);
+		return s;
+	}
+
+	/** Finds a clickable text overlay among the container's dynamic
+	 *  children by its menu action prefix, or null. */
+	private static Widget findTextByAction(Widget parent, String actionPrefix)
+	{
+		Widget[] dyn = parent.getDynamicChildren();
+		if (dyn == null)
+		{
+			return null;
+		}
+		for (Widget w : dyn)
+		{
+			if (w == null || w.getActions() == null)
+			{
+				continue;
+			}
+			for (String a : w.getActions())
+			{
+				if (a != null && a.startsWith(actionPrefix))
+				{
+					return w;
+				}
+			}
+		}
+		return null;
+	}
+}
