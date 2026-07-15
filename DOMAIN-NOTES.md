@@ -233,3 +233,44 @@ The log window title ("Collection Log - 246/1,568") is still parsed on
 open — it is the only game-truth source for the TOTAL slot count (the
 varp only gives the obtained count, and the pack's slot list drifts from
 the live game between regenerations).
+
+## Farming time-tracking (module: farming, vendored engine: rl/)
+
+Iron Hub does NOT track patches itself — the core **Time Tracking**
+plugin (enabled by default in RuneLite) is the single writer, and we are
+a read-only consumer of what it persists, the same interop model the
+hub-approved Time Tracking Reminder plugin uses. Its RSProfile-scoped
+config group `timetracking` holds:
+
+- `<regionID>.<varbit>` = `<varbitValue>:<unixSeconds>` — one entry per
+  farming patch, written whenever the player is in the region (farming
+  transmit varbits only sync in-region).
+- `birdhouse.<varp>` = `<varpValue>:<unixSeconds>` — the four Fossil
+  Island bird house spaces; a seeded house takes ~50 minutes.
+- `farmTickOffset` / `farmTickOffsetPrecision` — the account's farming
+  tick offset, learned by the core plugin from observed growth ticks.
+  Predictions align stage advances to `unixTime % (tickRate*60)` shifted
+  by this offset; without it they're accurate to one tick.
+- `autoweed`, `preferSoonest` (any- vs all-patches-ready semantics),
+  per-patch notify/compost/protected flags.
+
+Decoding a varbit value into produce/stage/crop-state lives in core's
+`PatchImplementation` — a per-patch-type state machine that is
+**package-private-adjacent** (`PatchState`, `FarmingWorld`,
+`FarmingPatch` are package-private), so it cannot be used directly from
+another plugin. tools/gen_timetracking.py vendors the farming + hunter
+packages at the RuneLite tag matching our client dependency (package
+rename, visibility widening, every config WRITE stripped);
+TimetrackingParityTest reflectively sweeps the classpath client (2,048
+varbit values per implementation, the whole world layout, bird house
+varps) so a client update that changes decoding fails CI with a
+regenerate instruction.
+
+If the user disables Time Tracking, our data goes stale silently — the
+tab checks the `runelite.timetrackingplugin` config key and says so.
+
+Farm-run stop coordinates and teleport tables come from Easy Farming
+(data/farm-runs.json); patch-types-at-a-stop are derived from the
+vendored FarmingWorld by the stop's region, because the source plugin's
+own labels overclaim (its catalog marks flower/allotment at herb-only
+spots like Weiss).
