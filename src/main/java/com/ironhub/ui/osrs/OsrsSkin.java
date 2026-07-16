@@ -66,6 +66,25 @@ public final class OsrsSkin
 		return component;
 	}
 
+	/**
+	 * A 1px rectangle outline as four FILLED strips — never drawRect.
+	 *
+	 * <p>drawRect strokes a path, and a stroke is centred ON the path: under
+	 * a scaling transform (macOS Retina paints Swing at 2x) the top/left
+	 * lines render half off-canvas at 1 device pixel while the bottom/right
+	 * lines sit a device pixel short of the edge — the whole border reads as
+	 * shifted up-left (Luke, in-client 2026-07-16: "needs to move down 1px
+	 * and right 1px"). Filled areas cover exact pixels at any scale.
+	 */
+	public static void outline(java.awt.Graphics g, Color color, int x, int y, int w, int h)
+	{
+		g.setColor(color);
+		g.fillRect(x, y, w, 1);
+		g.fillRect(x, y + h - 1, w, 1);
+		g.fillRect(x, y + 1, 1, h - 2);
+		g.fillRect(x + w - 1, y + 1, 1, h - 2);
+	}
+
 	/** The game's own font at its native 16px — pixel-identical to in-game text. */
 	public static Font font()
 	{

@@ -329,6 +329,51 @@ public class DesignLabRenderTest
 			(height - 1) / 2.0, inkCentre, 0.01);
 	}
 
+	/**
+	 * Borders survive the Retina transform. macOS paints Swing at 2x, and a
+	 * drawRect stroke is centred on its path: the top/left lines rendered at
+	 * ONE device pixel with the bottom/right sitting a pixel short of the
+	 * edge — the border read as shifted up-left (Luke, in-client
+	 * 2026-07-16). Everything now outlines with filled strips, pinned here
+	 * by painting at scale(2,2) and requiring exactly 2 device pixels of
+	 * border on all four edges.
+	 */
+	@Test
+	public void bordersStayTrueUnderTheRetinaTransform()
+	{
+		com.ironhub.ui.osrs.StoneProgressBar bar =
+			new com.ironhub.ui.osrs.StoneProgressBar(OsrsTheme.MYSTIC, OsrsTheme.MYSTIC.boxFill, 1.0);
+		bar.setSize(30, 18);
+		assertRetinaBorder(bar, OsrsTheme.MYSTIC.edgeDark);
+
+		com.ironhub.ui.osrs.StoneMeter meter =
+			new com.ironhub.ui.osrs.StoneMeter(OsrsTheme.MYSTIC, OsrsTheme.MYSTIC.boxFill, 1.0);
+		meter.setSize(30, 5);
+		assertRetinaBorder(meter, OsrsTheme.MYSTIC.edgeDark);
+
+		com.ironhub.ui.osrs.StoneCheckbox box = new com.ironhub.ui.osrs.StoneCheckbox(OsrsTheme.MYSTIC, false);
+		box.setSize(box.getPreferredSize());
+		assertRetinaBorder(box, OsrsTheme.MYSTIC.edgeDark);
+	}
+
+	private static void assertRetinaBorder(java.awt.Component c, java.awt.Color border)
+	{
+		int w = c.getWidth() * 2, h = c.getHeight() * 2;
+		BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+		Graphics2D g = image.createGraphics();
+		g.scale(2, 2);
+		c.paint(g);
+		int rgb = border.getRGB() & 0xFFFFFF;
+		int midX = w / 2, midY = h / 2;
+		for (int d = 0; d < 2; d++)
+		{
+			assertEquals("top border thin at 2x", rgb, image.getRGB(midX, d) & 0xFFFFFF);
+			assertEquals("bottom border thin at 2x", rgb, image.getRGB(midX, h - 1 - d) & 0xFFFFFF);
+			assertEquals("left border thin at 2x", rgb, image.getRGB(d, midY) & 0xFFFFFF);
+			assertEquals("right border thin at 2x", rgb, image.getRGB(w - 1 - d, midY) & 0xFFFFFF);
+		}
+	}
+
 	/** Ink bounds of one colour, painted over the given backdrop. */
 	private static Rectangle paintedInk(JComponent c, int rgb, java.awt.Color backdrop)
 	{

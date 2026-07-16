@@ -73,10 +73,8 @@ public class StoneTile extends JComponent
 		}
 		else
 		{
-			g2.setColor(theme.edgeDark);
-			g2.drawRect(0, 0, w - 1, h - 1);
-			g2.setColor(statusBevel != null ? statusBevel : theme.edgeLight);
-			g2.drawRect(1, 1, w - 3, h - 3);
+			OsrsSkin.outline(g2, theme.edgeDark, 0, 0, w, h);
+			OsrsSkin.outline(g2, statusBevel != null ? statusBevel : theme.edgeLight, 1, 1, w - 2, h - 2);
 			g2.setColor(theme.boxFill);
 			g2.fillRect(2, 2, w - 4, h - 4);
 		}

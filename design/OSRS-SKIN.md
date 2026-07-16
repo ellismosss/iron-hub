@@ -223,6 +223,13 @@ game's own field types in orange, the sidebar's does not), with placeholders in 
 dimmer `FAINT` so the two never read alike. `FAINT` is derived, not sampled: the game has
 no placeholders, so it dims `MUTED` by the same ratio UiTokens uses from body to faint.
 
+**Never `drawRect` a 1px border — use `OsrsSkin.outline` (filled strips).** A stroke is
+centred on its path, so under a scaling transform (macOS Retina paints Swing at 2×) the
+top/left lines render at ONE device pixel while the bottom/right sit a pixel short of
+the edge — the whole border reads as shifted up-left, and headless 1× renders can never
+show it (Luke caught it in-client: "needs to move down 1px and right 1px"). Filled areas
+cover exact pixels at any scale; pinned by a test that paints at `scale(2,2)`.
+
 **Swing-laid-out text needs +1px of top padding.** Swing centres text by the font's
 **em box**, and the RuneScape font's ink floats high inside it, so every em-centred
 control reads a pixel or two high (measured: field 1px, its placeholder 2px, dropdown

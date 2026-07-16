@@ -95,8 +95,7 @@ public class StoneProgressBar extends JComponent
 		g2.fillRect(0, 0, w, h);
 		g2.setColor(fill);
 		g2.fillRect(1, 1, (int) Math.round((w - 2) * fraction), h - 2);
-		g2.setColor(theme.edgeDark);
-		g2.drawRect(0, 0, w - 1, h - 1);
+		OsrsSkin.outline(g2, theme.edgeDark, 0, 0, w, h);
 
 		g2.setFont(OsrsSkin.smallFont());
 		FontMetrics fm = g2.getFontMetrics();

@@ -70,10 +70,8 @@ public class StoneCheckbox extends JComponent
 	protected void paintComponent(Graphics g)
 	{
 		Graphics2D g2 = (Graphics2D) g;
-		g2.setColor(theme.edgeDark);
-		g2.drawRect(0, 0, SIZE - 1, SIZE - 1);
-		g2.setColor(theme.edgeLight);
-		g2.drawRect(1, 1, SIZE - 3, SIZE - 3);
+		OsrsSkin.outline(g2, theme.edgeDark, 0, 0, SIZE, SIZE);
+		OsrsSkin.outline(g2, theme.edgeLight, 1, 1, SIZE - 2, SIZE - 2);
 		g2.setColor(theme.recess);
 		g2.fillRect(2, 2, SIZE - 4, SIZE - 4);
 

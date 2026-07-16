@@ -53,7 +53,6 @@ public class StoneMeter extends JComponent
 		g.fillRect(0, 0, w, h);
 		g.setColor(fill);
 		g.fillRect(1, 1, (int) Math.round((w - 2) * fraction), h - 2);
-		g.setColor(theme.edgeDark);
-		g.drawRect(0, 0, w - 1, h - 1);
+		OsrsSkin.outline(g, theme.edgeDark, 0, 0, w, h);
 	}
 }
