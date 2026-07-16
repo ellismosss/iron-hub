@@ -82,7 +82,7 @@ re-sprite the interface but the game's text rendering is unchanged. Two themes e
 
 | Token | Mystic | Sampled from |
 |---|---|---|
-| `background` | `#232323` | `fixed_mode/side_panel_background.png` |
+| `background` | `#1D1D1D` | the pack's resizable-mode overlay (`overrides.toml`: `0xBA1A1A1A`) composited over `UiTokens.PANEL_BG`, as the game composites it over the world — per Luke, for definition; the fixed-mode `side_panel_background.png` (`#232323`) is near-identical to the fill and left boxes flat |
 | `boxFill` | `#222222` | `button/middle.png` (subtle ±1 dither; we stay flat) |
 | `edgeDark` | `#141414` | `button/edge_top.png` row 0 |
 | `edgeLight` | `#383838` | `button/edge_top.png` row 1 |
@@ -99,13 +99,9 @@ DLLLFF
 DLFFFF
 ```
 
-Mystic's fill and backing are near-identical greys *by design* — definition comes from
-the border lines alone. Its Character Summary icons are the pack's own 18×18 redraws
-(`quests_tab/`), bundled under `data/icons/osrs/mystic/`. Note Luke's screenshot is the
-pack in resizable mode (translucent `#1A1A1A` overlay over the game world, so backing
-reads darker/olive in-game); the sampled fixed-mode values are the pack's opaque ground
-truth. The pack also ships hover/selected/disabled 9-slice variants — the phase-2 hover
-states come free.
+Mystic's Character Summary icons are the pack's own 18×18 redraws (`quests_tab/`),
+bundled under `data/icons/osrs/mystic/`. The pack also ships hover/selected/disabled
+9-slice variants — the phase-2 hover states come free.
 
 ## Typography
 

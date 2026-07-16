@@ -45,11 +45,15 @@ public final class OsrsSkin
 	 * The Mystic resource pack's grey re-skin (Drunken Monk;
 	 * licenses/mystic-pack-LICENSE) — sampled from the pack's own button
 	 * 9-slice sprites at the pinned commit, exactly like STONE was sampled
-	 * from the wiki screenshot. Fill and backing are near-identical greys by
-	 * design; the border lines carry all the definition.
+	 * from the wiki screenshot. The backing is the pack's resizable-mode
+	 * translucent overlay (overrides.toml: 0xBA1A1A1A) composited over the
+	 * RuneLite panel the skin actually sits on — the same way the game
+	 * composites it over the world — so boxes lift off the backing instead
+	 * of the near-identical fixed-mode greys.
 	 */
 	public static final OsrsTheme MYSTIC = new OsrsTheme(
-		new Color(0x232323), new Color(0x222222), new Color(0x141414), new Color(0x383838),
+		overlay(0xBA, new Color(0x1A1A1A), com.ironhub.ui.UiTokens.PANEL_BG),
+		new Color(0x222222), new Color(0x141414), new Color(0x383838),
 		new String[]{
 			"BBBBDD",
 			"BBBDLL",
@@ -69,6 +73,15 @@ public final class OsrsSkin
 	public static final Color TEXT_SHADOW = Color.BLACK;
 	/** Secondary/annotation text (not sampled — a muted stone tone). */
 	public static final Color MUTED = new Color(0xB8AC9C);
+
+	/** Flatten a translucent overlay onto what it sits over (alpha 0-255). */
+	private static Color overlay(int alpha, Color over, Color under)
+	{
+		return new Color(
+			(over.getRed() * alpha + under.getRed() * (255 - alpha)) / 255,
+			(over.getGreen() * alpha + under.getGreen() * (255 - alpha)) / 255,
+			(over.getBlue() * alpha + under.getBlue() * (255 - alpha)) / 255);
+	}
 
 	/** The game's own font at its native 16px — pixel-identical to in-game text. */
 	public static Font font()
