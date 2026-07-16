@@ -221,6 +221,14 @@ game's own field types in orange, the sidebar's does not), with placeholders in 
 dimmer `FAINT` so the two never read alike. `FAINT` is derived, not sampled: the game has
 no placeholders, so it dims `MUTED` by the same ratio UiTokens uses from body to faint.
 
+**Swing-laid-out text needs +1px of top padding.** Swing centres text by the font's
+**em box**, and the RuneScape font's ink floats high inside it, so every em-centred
+control reads a pixel or two high (measured: field 1px, its placeholder 2px, dropdown
+1px). Paying that pixel in asymmetric padding centres the INK, which is what the eye
+reads — the same principle as OsrsLabel's measured-ink baseline and the bars', now on the
+surfaces Swing lays out. Placeholders draw at the field's own `getBaseline(w, h)` rather
+than a hand-guessed offset, so they land exactly where the text they stand in for will.
+
 **Swing text needs `OsrsSkin.crisp(component)`.** Setting the antialias hint on the
 Graphics is not enough — Swing re-applies the look-and-feel's own setting over it, which
 smeared the pixel font with LCD subpixel fringes (measured: red `#581313` / blue

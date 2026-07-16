@@ -119,7 +119,9 @@ public class StoneComboBoxUI extends BasicComboBoxUI
 			label.setOpaque(true);
 			label.setBackground(selected ? theme.hoverFill : theme.fieldFill);
 			label.setForeground(selected ? OsrsSkin.TITLE : OsrsSkin.LABEL);
-			label.setBorder(new EmptyBorder(1, 4, 1, 4));
+			// +1 top, like StoneTextField: Swing centres by the em box and
+			// this font's ink floats high in it
+			label.setBorder(new EmptyBorder(2, 4, 0, 4));
 			return label;
 		}
 

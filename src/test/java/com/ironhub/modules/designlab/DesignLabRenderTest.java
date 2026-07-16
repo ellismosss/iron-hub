@@ -281,6 +281,52 @@ public class DesignLabRenderTest
 		}
 	}
 
+	/**
+	 * Typed text, its placeholder and a dropdown's value all centre their
+	 * INK in the control. Swing centres by the font's EM BOX, and the
+	 * RuneScape font's ink floats high inside it, so every em-centred
+	 * control read a pixel or two high until the padding paid for it (Luke,
+	 * in-client 2026-07-16 — the same defect as the stat boxes and the bars,
+	 * now on the Swing-laid-out surfaces).
+	 */
+	@Test
+	public void fieldAndDropdownTextCentresItsInk()
+	{
+		for (OsrsTheme theme : OsrsTheme.values())
+		{
+			com.ironhub.ui.osrs.StoneTextField typed =
+				new com.ironhub.ui.osrs.StoneTextField(theme, "Search modules…");
+			typed.setText("Ardoune"); // caps + x-height, no descender to skew the bounds
+			assertInkCentred(typed, 180, OsrsSkin.MUTED, "typed text");
+
+			com.ironhub.ui.osrs.StoneTextField empty =
+				new com.ironhub.ui.osrs.StoneTextField(theme, "Search modules");
+			assertInkCentred(empty, 180, OsrsSkin.FAINT, "placeholder");
+
+			javax.swing.JComboBox<String> combo = com.ironhub.ui.osrs.StoneComboBoxUI.skin(
+				new javax.swing.JComboBox<>(new String[]{"All tiers"}), theme);
+			combo.setSize(140, 22);
+			combo.doLayout();
+			assertInkCentred(combo, 140, OsrsSkin.LABEL, "dropdown value");
+		}
+	}
+
+	private static void assertInkCentred(java.awt.Component c, int width, java.awt.Color ink, String what)
+	{
+		int height = c.getHeight() > 0 ? c.getHeight() : c.getPreferredSize().height;
+		c.setSize(width, height);
+		if (c instanceof Container)
+		{
+			((Container) c).doLayout();
+		}
+		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		c.paint(image.createGraphics());
+		Rectangle bounds = bounds(image, ink.getRGB());
+		double inkCentre = bounds.y + (bounds.height - 1) / 2.0;
+		assertEquals(what + " does not centre its ink: " + bounds + " in h=" + height,
+			(height - 1) / 2.0, inkCentre, 0.01);
+	}
+
 	/** Ink bounds of one colour, painted over the given backdrop. */
 	private static Rectangle paintedInk(JComponent c, int rgb, java.awt.Color backdrop)
 	{

@@ -40,10 +40,14 @@ public class StoneTextField extends JTextField
 		setSelectedTextColor(OsrsSkin.TITLE);
 		setFont(OsrsSkin.font());
 		setAlignmentX(LEFT_ALIGNMENT);
+		// asymmetric padding by 1: Swing centres text by the FONT'S EM BOX,
+		// and the RuneScape font's ink floats high inside it, so an
+		// em-centred field reads a pixel high (measured). Paying the pixel
+		// here centres the INK, which is what the eye reads.
 		setBorder(new CompoundBorder(
 			new CompoundBorder(new MatteBorder(1, 1, 1, 1, theme.edgeDark),
 				new MatteBorder(1, 1, 1, 1, theme.fieldEdge)),
-			new EmptyBorder(2, 4, 2, 4)));
+			new EmptyBorder(3, 4, 1, 4)));
 	}
 
 	@Override
@@ -72,7 +76,8 @@ public class StoneTextField extends JTextField
 		}
 		g2.setFont(getFont());
 		g2.setColor(OsrsSkin.FAINT);
-		java.awt.Insets in = getInsets();
-		g2.drawString(placeholder, in.left, in.top + g2.getFontMetrics().getAscent() - 2);
+		// the field's own baseline, so the placeholder sits exactly where
+		// the text it stands in for will — never a hand-guessed offset
+		g2.drawString(placeholder, getInsets().left, getBaseline(getWidth(), getHeight()));
 	}
 }
