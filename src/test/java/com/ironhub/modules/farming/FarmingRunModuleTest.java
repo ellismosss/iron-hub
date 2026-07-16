@@ -304,6 +304,32 @@ public class FarmingRunModuleTest
 	}
 
 	@Test
+	public void overviewListsSeenPatchesPerCategory()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		ConfigManager configManager = TimetrackingFixture.configManager();
+		long now = Instant.now().getEpochSecond();
+		// two herb patches with data: Falador ready, Ardougne growing
+		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
+			herbValue(Produce.RANARR, CropState.HARVESTABLE, 0), now);
+		TimetrackingFixture.patch(configManager, 10548, VarbitID.FARMING_TRANSMIT_D,
+			herbValue(Produce.RANARR, CropState.GROWING, 0), now);
+		FarmingRunModule module = module(state, configManager, null);
+		module.refreshTracking();
+
+		java.util.Map<com.ironhub.modules.farming.rl.Tab, List<FarmingRunModule.OverviewPatch>> ov =
+			module.overviewByCategory();
+		List<FarmingRunModule.OverviewPatch> herbs = ov.get(com.ironhub.modules.farming.rl.Tab.HERB);
+		assertNotNull(herbs);
+		assertEquals(2, herbs.size()); // only the two seen patches, not every herb patch
+		assertEquals("Ardougne", herbs.get(0).name); // sorted by name
+		assertEquals("Falador", herbs.get(1).name);
+		assertEquals(FarmingRunModule.PatchView.READY, herbs.get(1).view);
+		assertEquals(1.0, herbs.get(1).progress, 0.001);
+		module.shutDown();
+	}
+
+	@Test
 	public void bankHighlightMarksSetupItemsStillToWithdraw()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());

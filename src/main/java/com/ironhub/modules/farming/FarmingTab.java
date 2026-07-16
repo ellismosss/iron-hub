@@ -5,6 +5,7 @@ import com.ironhub.modules.farming.rl.Tab;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.Format;
 import com.ironhub.ui.UiTokens;
+import com.ironhub.ui.components.HubProgressBar;
 import com.ironhub.ui.components.IconButton;
 import com.ironhub.ui.components.ListRow;
 import com.ironhub.ui.components.PaintedIcon;
@@ -29,6 +30,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -318,18 +320,18 @@ class FarmingTab extends JPanel
 		}
 
 		long now = Instant.now().getEpochSecond();
-		for (Tab category : FarmTrackingService.CATEGORIES)
+		// per-patch rows grouped by category (Time Tracking-style), not just a
+		// category summary line
+		for (java.util.Map.Entry<Tab, List<FarmingRunModule.OverviewPatch>> entry
+			: module.overviewByCategory().entrySet())
 		{
-			SummaryState summary = tracking.summary(category);
-			if (summary == SummaryState.UNKNOWN)
+			overview.add(overviewCategoryHeader(entry.getKey().getName()));
+			for (FarmingRunModule.OverviewPatch patch : entry.getValue())
 			{
-				continue; // never seen — don't render 20 empty rows
+				overview.add(overviewPatchRow(patch, now));
+				overview.add(Box.createVerticalStrut(2));
 			}
-			overview.add(overviewRow(category.getName(),
-				statusText(summary, tracking.harvestable(category),
-					tracking.completionTime(category), now),
-				statusColor(summary, tracking.harvestable(category))));
-			overview.add(Box.createVerticalStrut(2));
+			overview.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
 
 		SummaryState birds = tracking.birdHouseSummary();
@@ -384,6 +386,101 @@ class FarmingTab extends JPanel
 			return UiTokens.TEXT_FAINT;
 		}
 		return UiTokens.TEXT_MUTED;
+	}
+
+	/** "TREE PATCHES" section header above a category's patch rows. */
+	private JLabel overviewCategoryHeader(String name)
+	{
+		JLabel header = new JLabel(name);
+		header.setForeground(UiTokens.TEXT_MUTED);
+		header.setFont(SectionLabel.letterSpaced(
+			header.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LABEL),
+			UiTokens.LETTER_SPACING_LABEL));
+		header.setAlignmentX(LEFT_ALIGNMENT);
+		header.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 2, 0));
+		return header;
+	}
+
+	/** One patch card: produce icon + name + status, over a progress bar. */
+	private JComponent overviewPatchRow(FarmingRunModule.OverviewPatch patch, long now)
+	{
+		JPanel card = new JPanel();
+		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+		card.setBackground(UiTokens.CARD_BG);
+		card.setAlignmentX(LEFT_ALIGNMENT);
+		card.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
+			new EmptyBorder(3, UiTokens.ROW_GAP, 3, UiTokens.ROW_GAP)));
+		card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+
+		JPanel top = new JPanel();
+		top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
+		top.setOpaque(false);
+		top.setAlignmentX(LEFT_ALIGNMENT);
+		JLabel name = new JLabel(patch.name);
+		javax.swing.ImageIcon icon = module.patchIcon(patch.produceItemId);
+		if (icon != null)
+		{
+			name.setIcon(icon);
+			name.setIconTextGap(UiTokens.ROW_GAP);
+		}
+		name.setForeground(UiTokens.TEXT_BODY);
+		name.setFont(name.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		name.setMinimumSize(new Dimension(0, 0));
+		name.setToolTipText(patch.name);
+		top.add(name);
+		top.add(Box.createHorizontalGlue());
+		JLabel status = new JLabel(overviewStatus(patch, now));
+		status.setForeground(overviewStatusColor(patch.view));
+		status.setFont(status.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
+		top.add(status);
+		card.add(top);
+		card.add(Box.createVerticalStrut(3));
+		card.add(HubProgressBar.mini(patch.progress, 0));
+		return card;
+	}
+
+	private static String overviewStatus(FarmingRunModule.OverviewPatch patch, long now)
+	{
+		switch (patch.view)
+		{
+			case READY:
+			case PREDICTED_READY:
+				return "Ready";
+			case DISEASED:
+				return "Diseased";
+			case DEAD:
+				return "Dead";
+			case EMPTY:
+				return "Empty";
+			case GROWING:
+				return patch.doneEstimate > now ? "Done at " + clock(patch.doneEstimate) : "Growing";
+			default:
+				return "";
+		}
+	}
+
+	private static Color overviewStatusColor(FarmingRunModule.PatchView view)
+	{
+		switch (view)
+		{
+			case READY:
+			case PREDICTED_READY:
+				return UiTokens.STATUS_AVAILABLE;
+			case DISEASED:
+			case DEAD:
+				return UiTokens.STATUS_WARNING;
+			case EMPTY:
+				return UiTokens.TEXT_FAINT;
+			default:
+				return UiTokens.TEXT_MUTED;
+		}
+	}
+
+	private static String clock(long epochSeconds)
+	{
+		return java.time.Instant.ofEpochSecond(epochSeconds)
+			.atZone(java.time.ZoneId.systemDefault())
+			.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
 	}
 
 	private JPanel overviewRow(String name, String value, Color valueColor)
