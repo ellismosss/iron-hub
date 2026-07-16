@@ -280,9 +280,10 @@ class DailiesTab extends JPanel
 					.missing(state).get(0).describe());
 				break;
 			default:
-				// Honest about the one thing we cannot know (see DailyTracker).
-				tooltip.add("unknown — play it once with Iron Hub running and "
-					+ "the 7-day timer starts tracking");
+				// Honest about the one thing we cannot know — and how to fix it
+				// (see DailyTracker.togState).
+				tooltip.add("unknown — ask Juna for daily reminders, or play it "
+					+ "once with Iron Hub running, and this starts tracking");
 				break;
 		}
 		String bring = module.bringLine(daily);

@@ -187,6 +187,87 @@ public class DailiesModuleTest
 		assertEquals(0, DailiesModule.outstanding(state, pack()));
 	}
 
+	/**
+	 * Juna's reminder is the game telling us outright, so it beats every timer
+	 * we could keep: it resolves the UNKNOWN with no history at all, and it
+	 * repeats daily while you stay eligible, so a missed login costs nothing.
+	 */
+	@Test
+	public void junasReminderResolvesTearsOfGuthixWithNoHistory()
+	{
+		AccountState state = state();
+		StateFixture.quest(state, Quest.TEARS_OF_GUTHIX, QuestState.FINISHED);
+		DailiesModule module = module(state);
+		DailiesPack.Daily tears = module.pack().daily("tears_of_guthix");
+
+		assertEquals(DailyTracker.State.UNKNOWN,
+			DailyTracker.stateOf(state, tears, false, NOON));
+
+		// the real string, as both server emulators reproduce it, colour tags on
+		module.onChatMessage(gameMessage(
+			"<col=ef1020>You are eligible to drink from the Tears of Guthix."));
+
+		assertEquals(DailyTracker.State.AVAILABLE,
+			DailyTracker.stateOf(state, tears, false, NOON));
+		assertTrue(module.cull().stream().anyMatch(d -> d.id.equals(tears.id)));
+	}
+
+	/** Playing it retires the eligibility Juna announced — otherwise the run
+	 *  would keep offering a stop you just finished. */
+	@Test
+	public void playingRetiresJunasReminder()
+	{
+		AccountState state = state();
+		StateFixture.quest(state, Quest.TEARS_OF_GUTHIX, QuestState.FINISHED);
+		DailiesModule module = module(state);
+		DailiesPack.Daily tears = module.pack().daily("tears_of_guthix");
+
+		module.onChatMessage(gameMessage("You are eligible to drink from the Tears of Guthix."));
+		assertEquals(DailyTracker.State.AVAILABLE,
+			DailyTracker.stateOf(state, tears, false, NOON));
+
+		StateFixture.varbit(state, tears.detection.varbit, 1);
+		module.onVarbitChanged(collecting(tears.detection.varbit)); // you're in the cave
+		module.onChatMessage(gameMessage("nothing to do with tears"));
+
+		assertEquals(DailyTracker.State.DONE, DailyTracker.stateOf(
+			state, tears, false, state.dailyDoneAt(tears.id)));
+	}
+
+	/** Chatter must not be able to fake it — the reminder is a game message. */
+	@Test
+	public void playerChatCannotFakeEligibility()
+	{
+		AccountState state = state();
+		StateFixture.quest(state, Quest.TEARS_OF_GUTHIX, QuestState.FINISHED);
+		DailiesModule module = module(state);
+
+		net.runelite.api.events.ChatMessage said = new net.runelite.api.events.ChatMessage();
+		said.setType(net.runelite.api.ChatMessageType.PUBLICCHAT);
+		said.setMessage("You are eligible to drink from the Tears of Guthix.");
+		module.onChatMessage(said);
+
+		assertEquals(DailyTracker.State.UNKNOWN, DailyTracker.stateOf(
+			state, module.pack().daily("tears_of_guthix"), false, NOON));
+	}
+
+	/** The minigame's "collecting now" varbit going live. */
+	private static net.runelite.api.events.VarbitChanged collecting(int varbitId)
+	{
+		net.runelite.api.events.VarbitChanged event = new net.runelite.api.events.VarbitChanged();
+		event.setVarbitId(varbitId);
+		event.setValue(1);
+		return event;
+	}
+
+	private static net.runelite.api.events.ChatMessage gameMessage(String text)
+	{
+		net.runelite.api.events.ChatMessage event = new net.runelite.api.events.ChatMessage();
+		event.setType(net.runelite.api.ChatMessageType.GAMEMESSAGE);
+		event.setMessage(text);
+		return event;
+	}
+
 	/** Once seen, it returns 7 days later at 00:00 UTC — not on a fixed weekday. */
 	@Test
 	public void tearsOfGuthixReturnsSevenDaysAfterTheVisit()

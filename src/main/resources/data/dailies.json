@@ -299,12 +299,13 @@
       ],
       "detection": {
         "mode": "rolling7",
+        "chat": "eligible to drink from the Tears of Guthix",
         "varbit": 453
       },
       "tiers": [],
       "bring": [],
       "travel": "Games necklace",
-      "note": "Needs 1 quest point or 100,000 XP gained since you last played. XP goes to your lowest skill."
+      "note": "Needs 1 quest point or 100,000 XP gained since you last played. XP goes to your lowest skill. Ask Juna to remind you daily when you are eligible and Iron Hub reads that message."
     },
     {
       "id": "lundail_runes",

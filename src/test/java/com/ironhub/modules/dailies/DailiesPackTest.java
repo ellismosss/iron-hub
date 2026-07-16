@@ -142,6 +142,25 @@ public class DailiesPackTest
 	}
 
 	/**
+	 * Tears of Guthix is the one event the game announces in chat rather than
+	 * in a varbit. The wording is transcribed identically by two independent
+	 * server emulators; it is matched as a substring, so it must stay free of
+	 * colour tags and sentence punctuation that could drift.
+	 */
+	@Test
+	public void tearsOfGuthixCarriesJunasReminderWording()
+	{
+		DailiesPack.Daily tears = pack.daily("tears_of_guthix");
+		assertNotNull("the reminder is the only no-history signal there is",
+			tears.detection.chat);
+		assertEquals("eligible to drink from the Tears of Guthix", tears.detection.chat);
+		assertFalse("must not carry colour tags — we match on the stripped text",
+			tears.detection.chat.contains("<"));
+		assertFalse("no trailing punctuation: it is matched as a substring",
+			tears.detection.chat.endsWith("."));
+	}
+
+	/**
 	 * The NMZ herb boxes are the one wiki daily the game blocks for ironmen
 	 * (core literally checks IRONMAN == 0), and Iron Hub is an ironman plugin.
 	 */

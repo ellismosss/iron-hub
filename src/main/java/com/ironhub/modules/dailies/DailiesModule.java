@@ -18,7 +18,9 @@ import javax.inject.Singleton;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.GameState;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.VarbitChanged;
@@ -29,6 +31,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.util.ImageUtil;
+import net.runelite.client.util.Text;
 
 /**
  * Dailies (DESIGN.md §3.12), rebuilt post-M8 in the Farm runs shape: the
@@ -231,9 +234,34 @@ public class DailiesModule implements IronHubModule
 	}
 
 	/**
-	 * Tears of Guthix has no cooldown varbit to read, so the only honest
-	 * record of a visit is watching one happen: the minigame's "collecting"
-	 * varbit going live stamps the visit, and the 7-day clock runs from there.
+	 * The game announcing an event is claimable — today only Juna's opt-in
+	 * Tears of Guthix reminder, which she repeats daily for as long as you
+	 * stay eligible. Believed over any timer we could keep ourselves.
+	 */
+	@Subscribe
+	public void onChatMessage(ChatMessage event)
+	{
+		if (pack == null || (event.getType() != ChatMessageType.GAMEMESSAGE
+			&& event.getType() != ChatMessageType.SPAM))
+		{
+			return;
+		}
+		String message = Text.removeTags(event.getMessage());
+		for (DailiesPack.Daily daily : pack.dailies)
+		{
+			if (daily.detection != null && daily.detection.chat != null
+				&& message.contains(daily.detection.chat))
+			{
+				state.setUnlocked(DailyTracker.eligibleKey(daily), true);
+			}
+		}
+	}
+
+	/**
+	 * Tears of Guthix has no cooldown varbit to read, so a visit is only known
+	 * by watching one happen: the minigame's "collecting" varbit going live
+	 * stamps it, which both starts the 7-day clock and retires the eligibility
+	 * Juna announced.
 	 */
 	private void stampTearsVisit(VarbitChanged event)
 	{
@@ -246,6 +274,7 @@ public class DailiesModule implements IronHubModule
 			if (event.getVarbitId() == daily.detection.varbit && event.getValue() > 0)
 			{
 				state.markDaily(daily.id, true);
+				state.setUnlocked(DailyTracker.eligibleKey(daily), false);
 			}
 		}
 	}

@@ -87,19 +87,39 @@ final class DailyTracker
 	}
 
 	/**
-	 * Tears of Guthix. No varbit tracks the 7-day cooldown — varbit 5099
-	 * ("TOG_COUNTDOWN") is the in-minigame ticks-left timer, not a weekly one —
-	 * so the only honest source is a visit we watched happen. Until we have
-	 * seen one, this is UNKNOWN rather than a guess in either direction.
+	 * Tears of Guthix, from two live signals, best first.
+	 *
+	 * <p>No varbit tracks the 7-day cooldown — varbit 5099 ("TOG_COUNTDOWN") is
+	 * the in-minigame ticks-left timer, not a weekly one. But the game will
+	 * simply tell you: ask Juna for reminders and it announces "You are
+	 * eligible to drink from the Tears of Guthix" once a day, every day, for as
+	 * long as you stay eligible. That message is the best answer there is —
+	 * it needs no history from us and survives us having missed a visit.
+	 *
+	 * <p>Failing that, we fall back to a visit we watched happen and count 7
+	 * days from it. With neither, this is UNKNOWN rather than a guess in either
+	 * direction (the reminder is opt-in, so silence is not evidence).
 	 */
 	private static State togState(AccountState state, DailiesPack.Daily daily, long now)
 	{
+		if (state.isUnlocked(eligibleKey(daily)))
+		{
+			return State.AVAILABLE; // the game said so, and we've seen no visit since
+		}
 		long lastPlayed = state.dailyDoneAt(daily.id);
 		if (lastPlayed <= 0)
 		{
 			return State.UNKNOWN;
 		}
 		return now < startOfUtcDay(lastPlayed) + TOG_COOLDOWN_MS ? State.DONE : State.AVAILABLE;
+	}
+
+	/** Unlock flag holding "the game announced this is claimable, and we have
+	 *  not seen you claim it since". No colons — they don't round-trip through
+	 *  the requirement graph's {@code unlock:} parse. */
+	static String eligibleKey(DailiesPack.Daily daily)
+	{
+		return "dailyeligible_" + daily.id;
 	}
 
 	/** Ticked by hand and still inside the current daily reset window. */

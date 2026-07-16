@@ -219,15 +219,24 @@ DAILIES = [
         "reqs": ["quest:Tears of Guthix"],
         # No varbit tracks the 7-day cooldown (5099 is the in-minigame
         # ticks-left timer, confirmed against the Improved Tears of Guthix
-        # Interface plugin). This is instead the live "collecting now" signal
-        # Iron Hub watches to stamp the visit — see DailyTracker.togState.
+        # Interface plugin), so this needs two live signals instead:
+        #   varbit — the "collecting now" flag, which stamps a visit;
+        #   chat   — Juna's opt-in daily reminder, which is the game telling
+        #            us outright that the cooldown is up. Wording transcribed
+        #            identically by two independent server emulators that
+        #            reproduce the real string (GregHib/void's Juna.kt and
+        #            Zenyte's TearsOfGuthixServerLaunchSubscriber), and matched
+        #            as a substring so colour tags and any trailing punctuation
+        #            drift cannot break it.
         "mode": "rolling7",
         "varbit": "TOG_MINIGAME_COLLECTING",
+        "chat": "eligible to drink from the Tears of Guthix",
         "tiers": [],
         "bring": [],
         "travel": "Games necklace",
         "note": "Needs 1 quest point or 100,000 XP gained since you last "
-                "played. XP goes to your lowest skill.",
+                "played. XP goes to your lowest skill. Ask Juna to remind you "
+                "daily when you are eligible and Iron Hub reads that message.",
     },
     {
         "id": "lundail_runes",
@@ -375,6 +384,8 @@ def build(varbit_ids):
             raise SystemExit(f"{daily['id']}: no verified coordinate — refusing to guess one")
         x, y, plane = COORDS[daily["id"]]
         detection = {"mode": daily["mode"]}
+        if daily.get("chat"):
+            detection["chat"] = daily["chat"]
         if daily["varbit"] is not None:
             if daily["varbit"] not in varbit_ids:
                 raise SystemExit(

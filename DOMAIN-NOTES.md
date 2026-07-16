@@ -389,16 +389,33 @@ glance, hiding one you can claim costs the daily.
 Morytania legs tier (13/26/39), so "done" is `collected >= cap`, and the cap
 moves when the diary tier does.
 
-**Tears of Guthix has no cooldown varbit.** `TOG_COUNTDOWN` (5099) is the
-*in-minigame ticks-left* timer — confirmed against the Improved Tears of
-Guthix Interface plugin, which uses it exactly that way — and varbits 451–456
-are just bitfields inside varp 449. Nothing exposes "days until you can play
-again", so the only honest source is watching a visit happen
-(`TOG_MINIGAME_COLLECTING` going live stamps it) and running the 7-day clock
-from there; until we have seen one, the state is UNKNOWN and rendered "?",
-never guessed in either direction. It is also **not a fixed weekday**: the
-wiki says 7 days from your last visit at 00:00 UTC ("the same day of the week
-in UTC as the previous attempt"), so a Wednesday-based weekly reset is wrong.
+**Tears of Guthix has no cooldown varbit — but the game will tell you in
+chat.** `TOG_COUNTDOWN` (5099) is the *in-minigame ticks-left* timer —
+confirmed against the Improved Tears of Guthix Interface plugin, which uses it
+exactly that way — and varbits 451–456 are just bitfields inside varp 449.
+Nothing exposes "days until you can play again".
+
+What does exist is Juna's reminder: speak to her to toggle it on, and the game
+then prints **"You are eligible to drink from the Tears of Guthix."** (red,
+`<col=ef1020>`) once a day, on login, every day for as long as you stay
+eligible. That is the best signal available — it needs no history from us and
+survives having missed a visit — so it wins over any timer we keep, and its
+daily repeat means one missed login costs nothing. Two independent server
+emulators reproduce the string identically (GregHib/void's `Juna.kt`; Zenyte's
+`TearsOfGuthixServerLaunchSubscriber`), and both gate it on the reminder toggle
+and the 7-day clock only. Match it as a **substring of the tag-stripped text**
+— never an equality check on a string we cannot read out of the real cache.
+Caveats: the reminder is **opt-in**, so silence is not evidence of ineligibility
+(fall back, and tell the player to ask Juna); and it reports the 7-day clock,
+not the 100k-xp / 1-QP gate.
+
+Fallbacks, in order: the reminder flag → a visit we watched
+(`TOG_MINIGAME_COLLECTING` going live stamps it, starts the 7-day clock and
+retires the reminder) → UNKNOWN, rendered "?", never guessed either way.
+
+It is also **not a fixed weekday**: the wiki says 7 days from your last visit
+at 00:00 UTC ("the same day of the week in UTC as the previous attempt"), so a
+Wednesday-based weekly reset is wrong.
 
 **Two routing targets deliberately are not the NPC's tile** (pinned by
 `DailiesPackTest.awkwardRoutingTargetsStayDeliberate`):

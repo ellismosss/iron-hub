@@ -94,6 +94,10 @@ public class DailiesPack
 	{
 		public String mode;
 		public int varbit;
+		/** A game message that means "this is claimable now", matched as a
+		 *  substring so colour tags cannot break it. Null for most events —
+		 *  only Tears of Guthix announces itself. */
+		public String chat;
 	}
 
 	public static class Tier
