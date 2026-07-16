@@ -163,6 +163,9 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "plannerOverlay", name = "Goal overlay", description = "On-screen overlay that follows your current plan step (part of the Goal planner)", section = modulesSection, position = 24)
 	default boolean plannerOverlay() { return true; }
 
+	@ConfigItem(keyName = "designLab", name = "Design lab", description = "OSRS-look design system test gallery (development stage)", section = modulesSection, position = 25)
+	default boolean designLab() { return true; }
+
 	@ConfigItem(keyName = "discordWebhookUrl", name = "Discord webhook URL", description = "Opt-in: milestone notifications (log slots, uniques, pets, levels, goals)", section = integrationsSection, position = 5)
 	default String discordWebhookUrl() { return ""; }
 }

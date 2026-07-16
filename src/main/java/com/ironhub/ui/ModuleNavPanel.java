@@ -62,6 +62,8 @@ public class ModuleNavPanel extends JPanel
 			new Module("QL", "QoL checklist", null, null),
 			new Module("BT", "Boat upgrades", null, null),
 			new Module("DR", "Death recovery", null, null)),
+		new Category("Development",
+			new Module("DL", "Design lab", null, null)),
 	};
 
 	private final Set<String> collapsed = new HashSet<>();
