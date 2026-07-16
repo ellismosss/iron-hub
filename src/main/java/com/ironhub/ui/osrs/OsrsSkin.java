@@ -33,6 +33,13 @@ public final class OsrsSkin
 	public static final Color MUTED = new Color(0xB8AC9C);
 	/** Text drawn over a progress fill, per RuneLite's own ProgressBar. */
 	public static final Color BAR_TEXT = Color.WHITE;
+	/**
+	 * Bar trough — Luke's value, and theme-independent like the rest of the
+	 * bar: these follow RuneLite's ProgressBar rather than game art (the game
+	 * draws no text-in-bar), and its own XP-tracker trough is #3D3831. Each
+	 * theme's sunken `recess` swallowed the bar against the backing.
+	 */
+	public static final Color BAR_TROUGH = new Color(0x3E3830);
 
 	/** The game's own font at its native 16px — pixel-identical to in-game text. */
 	public static Font font()

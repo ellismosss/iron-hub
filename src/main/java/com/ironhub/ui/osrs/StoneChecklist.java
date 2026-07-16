@@ -13,14 +13,16 @@ import javax.swing.JPanel;
  * not each get their own box). Rows highlight under the pointer and toggle on
  * press; ticked rows go green, matching the skin's "done" reading.
  *
- * <p>The frame's side padding is trimmed to 2px so a row's highlight reaches
- * the engraved edge (at the stat-box padding it left a gap down both sides —
- * Luke, in-client 2026-07-16); the top/bottom padding is the corner stamp's
- * own height, which is the first row that clears the notch.
+ * <p>The highlight band sits 1px inside the engraved edge and wraps the
+ * checkbox with a 1px gap on every side, mirrored at the right (Luke,
+ * in-client 2026-07-16: the stat-box padding left an ugly gap, full-bleed
+ * stretched too far — 1px is the line). The top/bottom frame padding is the
+ * corner stamp's own height, which is the first row that clears the notch.
  */
 public class StoneChecklist extends StonePanel
 {
-	private static final int SIDE_PAD = 2;
+	/** 2px of border line + the 1px gap the band leaves outside itself. */
+	private static final int SIDE_PAD = 3;
 
 	public StoneChecklist(OsrsTheme theme)
 	{
@@ -51,7 +53,8 @@ public class StoneChecklist extends StonePanel
 	 */
 	static class Row extends JPanel
 	{
-		private static final int PAD = 4;
+		/** The gap the highlight leaves around the checkbox, every side. */
+		private static final int PAD = 1;
 		private static final int GAP = 6;
 
 		private final OsrsTheme theme;
@@ -120,8 +123,9 @@ public class StoneChecklist extends StonePanel
 		@Override
 		public Dimension getPreferredSize()
 		{
-			// odd height: the ink block and the odd-sized box both center exactly
-			return new Dimension(0, Math.max(box.getPreferredSize().height,
+			// tall enough for PAD above and below the box; odd, so the ink
+			// block and the odd-sized box both center exactly
+			return new Dimension(0, Math.max(box.getPreferredSize().height + 2 * PAD,
 				label.getPreferredSize().height));
 		}
 

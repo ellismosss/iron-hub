@@ -27,11 +27,14 @@ import javax.swing.JComponent;
  */
 public class StoneProgressBar extends JComponent
 {
-	private static final int HEIGHT = 16;
+	/** 18: the 8-row ink plus a 1px breathing row above and below it. */
+	private static final int HEIGHT = 18;
+	/** Side breathing room, so the trough does not hug the text. */
+	private static final int SIDE_PAD = 6;
 	/**
 	 * The small font's caps ink spans baseline-10..baseline-3, so its center
 	 * sits 6.5 rows above the baseline; +7 from the trough's center row lands
-	 * that 8-row ink dead center at the 16px height.
+	 * that 8-row ink dead center.
 	 */
 	private static final int INK_CENTER_TO_BASELINE = 7;
 
@@ -88,7 +91,7 @@ public class StoneProgressBar extends JComponent
 		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 		int w = getWidth(), h = getHeight();
 
-		g2.setColor(theme.recess);
+		g2.setColor(OsrsSkin.BAR_TROUGH);
 		g2.fillRect(0, 0, w, h);
 		g2.setColor(fill);
 		g2.fillRect(1, 1, (int) Math.round((w - 2) * fraction), h - 2);
@@ -98,9 +101,9 @@ public class StoneProgressBar extends JComponent
 		g2.setFont(OsrsSkin.smallFont());
 		FontMetrics fm = g2.getFontMetrics();
 		int baseline = (h - 1) / 2 + INK_CENTER_TO_BASELINE;
-		draw(g2, left, 4, baseline);
+		draw(g2, left, SIDE_PAD, baseline);
 		draw(g2, center, (w - fm.stringWidth(center)) / 2, baseline);
-		draw(g2, right, w - 4 - fm.stringWidth(right), baseline);
+		draw(g2, right, w - SIDE_PAD - fm.stringWidth(right), baseline);
 	}
 
 	private void draw(Graphics2D g2, String text, int x, int y)

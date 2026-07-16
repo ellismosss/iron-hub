@@ -208,12 +208,12 @@ public class DesignLabRenderTest
 	}
 
 	/**
-	 * A checklist row's highlight must reach the engraved edge — at the
-	 * stat-box padding it left a gap down both sides (Luke, 2026-07-16) — and
-	 * the checkbox must sit centered in the row it highlights.
+	 * The highlight band wraps the checkbox with a 1px gap on every side and
+	 * mirrors that gap at the right — Luke walked this one to the pixel: the
+	 * stat-box padding left an ugly gap, full-bleed stretched too far.
 	 */
 	@Test
-	public void checklistRowsFillTheFrameAndCenterTheirCheckbox()
+	public void checklistHighlightKeepsAOnePixelGapAroundTheCheckbox()
 	{
 		for (OsrsTheme theme : OsrsTheme.values())
 		{
@@ -224,14 +224,17 @@ public class DesignLabRenderTest
 			layoutOnce(list);
 
 			Component row = list.getComponent(0);
-			java.awt.Insets in = list.getInsets();
-			assertTrue("row leaves a side gap: inset=" + in.left, in.left <= 2);
-			assertEquals("row does not span the frame", list.getWidth() - in.left - in.right, row.getWidth());
-
 			com.ironhub.ui.osrs.StoneCheckbox box = find((Container) row, com.ironhub.ui.osrs.StoneCheckbox.class);
-			double boxCenter = box.getY() + (box.getHeight() - 1) / 2.0;
-			assertEquals("checkbox off-center in its row",
-				(row.getHeight() - 1) / 2.0, boxCenter, 0.5);
+			assertEquals("gap left of the checkbox", 1, box.getX());
+			assertEquals("gap above the checkbox", 1, box.getY());
+			assertEquals("gap below the checkbox", 1, row.getHeight() - box.getHeight() - box.getY());
+
+			// and the band itself sits 1px inside the engraved edge, mirrored
+			java.awt.Insets in = list.getInsets();
+			assertEquals("band not inset from the left edge", 3, in.left);
+			assertEquals("right gap does not mirror the left", in.left, in.right);
+			assertEquals("band does not span the frame's inner width",
+				list.getWidth() - in.left - in.right, row.getWidth());
 		}
 	}
 

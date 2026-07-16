@@ -55,8 +55,11 @@ public class DesignLabTab extends JPanel
 		frame.setAlignmentX(LEFT_ALIGNMENT);
 
 		frame.add(summary());
-		frame.add(section("Navigation"));
-		frame.add(pad(navStones()));
+		// both icon weights stay side by side to be judged (per Luke)
+		frame.add(section("Navigation · large icons"));
+		frame.add(pad(navStones(true)));
+		frame.add(section("Navigation · small icons"));
+		frame.add(pad(navStones(false)));
 
 		frame.add(section("Buttons"));
 		frame.add(pad(new StoneButton(theme, "Start all runs", null)));
@@ -111,18 +114,23 @@ public class DesignLabTab extends JPanel
 		return panel;
 	}
 
-	/** The game's own tab stones, flush like the client's own row. */
-	private JComponent navStones()
+	/**
+	 * The game's own tab stones, flush like the client's own row — once with
+	 * the full-size tab icons, once with the 18px Character Summary set.
+	 */
+	private JComponent navStones(boolean largeIcons)
 	{
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
 		String[] tabs = {"combat", "stats", "quests", "inventory", "equipment", "prayer"};
+		String[] stats = {"combat_level", "total_level", "quests", "achievements", "collections_logged", "total_xp"};
 		row.add(Box.createHorizontalGlue());
 		for (int i = 0; i < tabs.length; i++)
 		{
-			row.add(new StoneNavButton(theme, OsrsIcons.tab(theme, tabs[i]), i == 0, null));
+			Icon icon = largeIcons ? OsrsIcons.tab(theme, tabs[i]) : OsrsIcons.stat(theme, stats[i]);
+			row.add(new StoneNavButton(theme, icon, i == 0, null));
 		}
 		row.add(Box.createHorizontalGlue());
 		cap(row);

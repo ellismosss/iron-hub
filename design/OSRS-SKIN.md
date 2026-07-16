@@ -156,15 +156,24 @@ wiki strip (`#28251E` → `#3E3529`).
 **The bars are a synthesis, and say so:** the game draws no text-inside-a-bar, so the
 layout follows Luke's reference — RuneLite's own `ProgressBar` (16px tall; white
 left/center/right labels; fill colour supplied by the caller) — painted in skin tokens
-with the game's own **small** font, which is what holds the bar to the reference's 16px.
-The **fill is semantic and belongs to the caller**; the trough and border are sampled.
+with the game's own **small** font, which is what holds the bar near the reference's
+16px (18px here: Luke wanted a breathing row above and below the ink, and 6px of side
+padding so the trough does not hug the text). The **fill is semantic and belongs to the
+caller**, and the trough is `OsrsSkin.BAR_TROUGH` `#3E3830` — Luke's value, and
+theme-independent like the rest of the bar, since each theme's sunken `recess` swallowed
+it against the backing (RuneLite's own XP-tracker trough is `#3D3831`).
+
+**The checklist highlight is a band, not a bleed** (Luke walked it to the pixel): it sits
+1px inside the engraved edge, mirrored right, and wraps the checkbox with a 1px gap on
+every side. The stat-box padding left an ugly gap; full-bleed stretched too far.
 
 **Tabs were tried and cut** (2026-07-16): a `StoneTabStrip` was built beside the nav
 stones so the two could be judged in-client, and Luke picked the stones. The strip is
 deleted rather than left to rot — it is in git history if tabs ever earn their place.
 
 **Nav stones carry the game's full-size tab icons**, not the 18px Character Summary set,
-which reads as toys at that weight. Both sets are the game's own: STONE's are the wiki
+which reads as toys at that weight. The lab keeps a small-icon row beneath the large one
+so both weights stay judgeable side by side (Luke). Both sets are the game's own: STONE's are the wiki
 files the Interface page itself names (`Combat icon`, `Stats icon`, `Inventory`,
 `Worn Equipment`, `Prayer tab icon`, ...), MYSTIC's are the pack's redraws of the same
 tabs; `OsrsIcons` resolves per theme and returns null rather than substituting.
