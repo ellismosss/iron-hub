@@ -56,13 +56,17 @@ public class FarmRunsPackTest
 		for (FarmRunsPack.Location location : pack.locations)
 		{
 			assertTrue("duplicate id " + location.id, ids.add(location.id));
+			assertTrue(location.id + " has no teleports", !location.teleports.isEmpty());
+			if (location.category.equals("birdhouse"))
+			{
+				continue; // bird houses are hunter sites, not farming patches
+			}
 			PatchImplementation wanted = CATEGORY_IMPLEMENTATIONS.get(location.category);
 			assertNotNull(location.id, wanted);
 			int region = location.worldPoint().getRegionID();
 			Set<PatchImplementation> present = byRegion.getOrDefault(region, Set.of());
 			assertTrue(location.id + ": no " + wanted + " patch in region " + region
 				+ " (found " + present + ")", present.contains(wanted));
-			assertTrue(location.id + " has no teleports", !location.teleports.isEmpty());
 		}
 		assertTrue(pack.locations.size() >= 33);
 	}

@@ -682,6 +682,7 @@ public class FarmingRunModule implements IronHubModule
 			case "allotment": type = "allotment"; break;
 			case "flower": type = "flower"; break;
 			case "compost": type = "compost bin"; break;
+			case "birdhouse": type = "bird house"; break;
 			default: type = "herb";
 		}
 		return stop.location.name + " · " + type;

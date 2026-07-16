@@ -32,7 +32,7 @@
 				"minItems": 1,
 				"items": {
 					"type": "string",
-					"pattern": "^(herb|tree|fruit|hops|calquat|celastrus|hardwood|bush|allotment|flower|compost)/[a-z0-9-]+$"
+					"pattern": "^(herb|tree|fruit|hops|calquat|celastrus|hardwood|bush|allotment|flower|compost|birdhouse)/[a-z0-9-]+$"
 				}
 			}
 		},
@@ -57,7 +57,7 @@
 				"properties": {
 					"id": {
 						"type": "string",
-						"pattern": "^(herb|tree|fruit|hops|calquat|celastrus|hardwood|bush|allotment|flower|compost)/[a-z0-9-]+$"
+						"pattern": "^(herb|tree|fruit|hops|calquat|celastrus|hardwood|bush|allotment|flower|compost|birdhouse)/[a-z0-9-]+$"
 					},
 					"reqs": {
 						"type": "array",
@@ -78,7 +78,8 @@
 							"bush",
 							"allotment",
 							"flower",
-							"compost"
+							"compost",
+							"birdhouse"
 						]
 					},
 					"name": {

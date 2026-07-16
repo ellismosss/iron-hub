@@ -326,6 +326,13 @@ Catherby/Ardougne/Falador/Port Phasmatys) have `categoryTab` = null, so they're
 never growing-culled or sapling-culled and never auto-advance — the run is a
 manual markThrough checklist. The Farming Guild BIG compost bin is left out to
 keep every compost stop a plain COMPOST patch (FarmRunsPackTest region check).
+The **Birdhouse run** (Bird_house_trapping wiki: Verdant Valley N→S then
+Mushroom Meadow N→S on Fossil Island; Digsite pendant + magic mushtree; gated
+on Bone Voyage + Hunter) is a second non-crop run — `birdhouse` category, no
+PatchImplementation (bird houses are a separate hunter tracker, so
+FarmRunsPackTest skips their region check), categoryTab = null → manual
+markThrough. Tiles are approximate (on-island travel is via the mushtree, not
+walking).
 
 **Culling a run to what's worth doing** (Luke's Combo-tree-run spec —
 FarmingRunModule.cull, applied at startRun to every run). Drop a stop when:

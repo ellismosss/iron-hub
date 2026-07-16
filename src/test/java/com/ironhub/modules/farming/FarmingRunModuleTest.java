@@ -204,6 +204,32 @@ public class FarmingRunModuleTest
 	}
 
 	@Test
+	public void birdhouseRunGatesOnFossilIslandAndIsManual()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+		assertTrue(module.templateNames().contains("Birdhouse run"));
+
+		// no Fossil Island access -> no stops
+		module.startTemplate("Birdhouse run");
+		assertEquals(0, module.stops().size());
+		module.endRun(false);
+
+		// Bone Voyage + Hunter -> all four sites, in the wiki's efficient order
+		StateFixture.quest(state, net.runelite.api.Quest.BONE_VOYAGE,
+			net.runelite.api.QuestState.FINISHED);
+		StateFixture.stat(state, net.runelite.api.Skill.HUNTER, 5, 400);
+		module.startTemplate("Birdhouse run");
+		assertEquals(4, module.stops().size());
+		assertEquals("birdhouse/verdant-valley-ne", module.stops().get(0).location.id);
+		// bird houses have no crop state, so they never auto-advance — manual skip
+		module.markThrough("birdhouse/verdant-valley-sw");
+		assertEquals(2, module.visitedCount());
+		module.shutDown();
+	}
+
+	@Test
 	public void hopAndBushRunInterleavesHopsAndBushes()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());

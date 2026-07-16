@@ -239,6 +239,34 @@ CURATED = [
      ]},
 ]
 
+# Bird house trapping sites on Fossil Island (Bird_house_trapping wiki). Not
+# farming patches — the Time Tracking plugin tracks them via a separate hunter
+# tracker, so they carry no PatchImplementation (FarmRunsPackTest skips them).
+# All four are reached by one Digsite pendant teleport then the magic mushtree;
+# tiles are approximate (on-island navigation is via the mushtree, not walking).
+BIRDHOUSE_TELEPORTS = [
+    {"id": "Digsite_pendant", "category": "ITEM",
+     "description": "Digsite pendant to Fossil Island, then the magic mushtree.",
+     "supplier": None, "items": [("NECKLACE_OF_DIGSITE_5", 1)]},
+    {"id": "Fairy_Ring", "category": "FAIRY_RING",
+     "description": "Fairy ring to Fossil Island, then the magic mushtree.",
+     "supplier": "fairyRing", "items": []},
+    {"id": "None", "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": None, "items": []},
+]
+BIRDHOUSE_REQS = ["quest:Bone Voyage", "skill:Hunter:5"]
+CURATED += [
+    {"id": "birdhouse/verdant-valley-ne", "category": "birdhouse", "name": "Verdant Valley (NE)",
+     "point": (3763, 3757, 0), "reqs": BIRDHOUSE_REQS, "teleports": BIRDHOUSE_TELEPORTS},
+    {"id": "birdhouse/verdant-valley-sw", "category": "birdhouse", "name": "Verdant Valley (SW)",
+     "point": (3676, 3771, 0), "reqs": BIRDHOUSE_REQS, "teleports": BIRDHOUSE_TELEPORTS},
+    {"id": "birdhouse/mushroom-meadow-n", "category": "birdhouse", "name": "Mushroom Meadow (N)",
+     "point": (3676, 3819, 0), "reqs": BIRDHOUSE_REQS, "teleports": BIRDHOUSE_TELEPORTS},
+    {"id": "birdhouse/mushroom-meadow-s", "category": "birdhouse", "name": "Mushroom Meadow (S)",
+     "point": (3762, 3844, 0), "reqs": BIRDHOUSE_REQS, "teleports": BIRDHOUSE_TELEPORTS},
+]
+
 # Allotment/flower/herb run companions: each herb area also carries allotment
 # and (usually) flower patches in the same region (presence verified against
 # the vendored FarmingWorld). We generate those stops by reusing the herb
@@ -314,6 +342,12 @@ ROUTES = {
     # Wiki "Hardwood tree run": Fossil Island, Locus Oasis, Anglers' Retreat.
     "Hardwood run": [
         "hardwood/fossil-island", "hardwood/locus-oasis", "hardwood/anglers-retreat",
+    ],
+    # Wiki Bird_house_trapping efficient route: Verdant Valley (north then
+    # south), then Mushroom Meadow (north then the southern Tar Swamp site).
+    "Birdhouse run": [
+        "birdhouse/verdant-valley-ne", "birdhouse/verdant-valley-sw",
+        "birdhouse/mushroom-meadow-n", "birdhouse/mushroom-meadow-s",
     ],
     # Wiki "Supercompost run" — fill the compost bins at the allotment areas
     # (a manual bin-filling activity, not a plant/harvest run).

@@ -2512,6 +2512,174 @@
    ]
   },
   {
+   "id": "birdhouse/verdant-valley-ne",
+   "category": "birdhouse",
+   "name": "Verdant Valley (NE)",
+   "point": {
+    "x": 3763,
+    "y": 3757,
+    "plane": 0
+   },
+   "reqs": [
+    "quest:Bone Voyage",
+    "skill:Hunter:5"
+   ],
+   "teleports": [
+    {
+     "id": "Digsite_pendant",
+     "category": "ITEM",
+     "description": "Digsite pendant to Fossil Island, then the magic mushtree.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 11194,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Fairy_Ring",
+     "category": "FAIRY_RING",
+     "description": "Fairy ring to Fossil Island, then the magic mushtree.",
+     "supplier": "fairyRing",
+     "items": []
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "birdhouse/verdant-valley-sw",
+   "category": "birdhouse",
+   "name": "Verdant Valley (SW)",
+   "point": {
+    "x": 3676,
+    "y": 3771,
+    "plane": 0
+   },
+   "reqs": [
+    "quest:Bone Voyage",
+    "skill:Hunter:5"
+   ],
+   "teleports": [
+    {
+     "id": "Digsite_pendant",
+     "category": "ITEM",
+     "description": "Digsite pendant to Fossil Island, then the magic mushtree.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 11194,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Fairy_Ring",
+     "category": "FAIRY_RING",
+     "description": "Fairy ring to Fossil Island, then the magic mushtree.",
+     "supplier": "fairyRing",
+     "items": []
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "birdhouse/mushroom-meadow-n",
+   "category": "birdhouse",
+   "name": "Mushroom Meadow (N)",
+   "point": {
+    "x": 3676,
+    "y": 3819,
+    "plane": 0
+   },
+   "reqs": [
+    "quest:Bone Voyage",
+    "skill:Hunter:5"
+   ],
+   "teleports": [
+    {
+     "id": "Digsite_pendant",
+     "category": "ITEM",
+     "description": "Digsite pendant to Fossil Island, then the magic mushtree.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 11194,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Fairy_Ring",
+     "category": "FAIRY_RING",
+     "description": "Fairy ring to Fossil Island, then the magic mushtree.",
+     "supplier": "fairyRing",
+     "items": []
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "birdhouse/mushroom-meadow-s",
+   "category": "birdhouse",
+   "name": "Mushroom Meadow (S)",
+   "point": {
+    "x": 3762,
+    "y": 3844,
+    "plane": 0
+   },
+   "reqs": [
+    "quest:Bone Voyage",
+    "skill:Hunter:5"
+   ],
+   "teleports": [
+    {
+     "id": "Digsite_pendant",
+     "category": "ITEM",
+     "description": "Digsite pendant to Fossil Island, then the magic mushtree.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 11194,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Fairy_Ring",
+     "category": "FAIRY_RING",
+     "description": "Fairy ring to Fossil Island, then the magic mushtree.",
+     "supplier": "fairyRing",
+     "items": []
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
    "id": "allotment/falador",
    "category": "allotment",
    "name": "Falador",
@@ -4005,6 +4173,12 @@
    "hardwood/fossil-island",
    "hardwood/locus-oasis",
    "hardwood/anglers-retreat"
+  ],
+  "Birdhouse run": [
+   "birdhouse/verdant-valley-ne",
+   "birdhouse/verdant-valley-sw",
+   "birdhouse/mushroom-meadow-n",
+   "birdhouse/mushroom-meadow-s"
   ],
   "Supercompost run": [
    "compost/catherby",
