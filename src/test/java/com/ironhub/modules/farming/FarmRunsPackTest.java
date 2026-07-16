@@ -73,6 +73,23 @@ public class FarmRunsPackTest
 		assertTrue(pack.locations.size() >= 33);
 	}
 
+	/** The potential-Herblore-xp table covers exactly the farmable grimy
+	 *  herbs the module counts — a new herb added to one side without the
+	 *  other would silently under-report herb runs. */
+	@Test
+	public void herbPotentialsCoverEveryFarmableHerb()
+	{
+		FarmRunsPack pack = new DataPack(new Gson()).load("farm-runs", FarmRunsPack.class);
+		for (int id : FarmingRunModule.GRIMY_HERBS)
+		{
+			org.junit.Assert.assertNotNull("no potential xp for grimy herb " + id, pack.herb(id));
+		}
+		org.junit.Assert.assertEquals(FarmingRunModule.GRIMY_HERBS.size(), pack.herbs.size());
+		// ranarr: clean 7.5 + prayer potion 87.5, straight from xp-actions.json
+		org.junit.Assert.assertEquals(95.0, pack.herb(207).xp, 0.01);
+		org.junit.Assert.assertEquals("Prayer potion", pack.herb(207).potion);
+	}
+
 	@Test
 	public void curatedRoutesReferenceRealLocations()
 	{

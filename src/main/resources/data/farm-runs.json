@@ -4384,5 +4384,82 @@
   "Hespori": [
    "hespori/farming-guild"
   ]
+ },
+ "herbs": {
+  "199": {
+   "name": "Guam leaf",
+   "potion": "Attack potion",
+   "xp": 27.5
+  },
+  "201": {
+   "name": "Marrentill",
+   "potion": "Antipoison",
+   "xp": 41.3
+  },
+  "203": {
+   "name": "Tarromin",
+   "potion": "Strength potion",
+   "xp": 55.0
+  },
+  "205": {
+   "name": "Harralander",
+   "potion": "Restore potion",
+   "xp": 68.8
+  },
+  "207": {
+   "name": "Ranarr weed",
+   "potion": "Prayer potion",
+   "xp": 95.0
+  },
+  "3049": {
+   "name": "Toadflax",
+   "potion": "Saradomin brew",
+   "xp": 188.0
+  },
+  "209": {
+   "name": "Irit leaf",
+   "potion": "Super attack",
+   "xp": 108.8
+  },
+  "211": {
+   "name": "Avantoe",
+   "potion": "Super energy",
+   "xp": 127.5
+  },
+  "213": {
+   "name": "Kwuarm",
+   "potion": "Super strength",
+   "xp": 136.3
+  },
+  "3051": {
+   "name": "Snapdragon",
+   "potion": "Super restore",
+   "xp": 154.3
+  },
+  "215": {
+   "name": "Cadantine",
+   "potion": "Super defence",
+   "xp": 162.5
+  },
+  "2485": {
+   "name": "Lantadyme",
+   "potion": "Antifire potion",
+   "xp": 170.6
+  },
+  "217": {
+   "name": "Dwarf weed",
+   "potion": "Ranging potion",
+   "xp": 176.3
+  },
+  "219": {
+   "name": "Torstol",
+   "potion": "Super combat potion",
+   "xp": 165.0
+  },
+  "30094": {
+   "name": "Huasca",
+   "potion": "Prayer regeneration potion",
+   "xp": 143.8
+  }
  }
 }

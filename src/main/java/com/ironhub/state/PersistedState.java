@@ -38,6 +38,21 @@ public class PersistedState
 	{
 		public java.util.List<String> locationIds = new ArrayList<>();
 	}
+
+	java.util.List<FarmRunRecord> farmRunLog = new ArrayList<>(); // completed runs, oldest first, capped
+
+	/** One COMPLETED farm run's outcome: Farming xp attributed to each
+	 *  stop-type bucket as the run advanced, and the grimy herbs picked up
+	 *  (id -> count) — the raw material for "avg xp per tree run" and
+	 *  "herb runs to the next Herblore level". */
+	public static class FarmRunRecord
+	{
+		public long endMs;
+		public String name;
+		public long durationMs;
+		public Map<String, Integer> xpByBucket = new HashMap<>();
+		public Map<Integer, Integer> herbsByType = new HashMap<>();
+	}
 	java.util.List<DeathRecord> deaths = new ArrayList<>(); // most recent last, capped
 
 	java.util.List<ConsumptionEvent> consumptionLog = new ArrayList<>(); // rolling, capped

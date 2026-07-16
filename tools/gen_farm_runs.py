@@ -105,6 +105,58 @@ LOCATION_REQS = {
     "hops/aldarin": ["quest:Children of the Sun"],
 }
 
+# Potential Herblore xp per farmed grimy herb: cleaning it plus making its
+# standard potion, both values JOINED from data/xp-actions.json (wiki skill
+# calculators) at generation — never typed here. The herb -> potion pairing is
+# the curated part (each herb's own signature potion, the wiki Herblore
+# experience table's single-herb entries; toadflax counts its Saradomin brew,
+# torstol its super combat). Keys are gameval UNIDENTIFIED_* constants.
+HERB_POTENTIAL = {
+    "UNIDENTIFIED_GUAM": ("Guam leaf", "Attack potion"),
+    "UNIDENTIFIED_MARENTILL": ("Marrentill", "Antipoison"),
+    "UNIDENTIFIED_TARROMIN": ("Tarromin", "Strength potion"),
+    "UNIDENTIFIED_HARRALANDER": ("Harralander", "Restore potion"),
+    "UNIDENTIFIED_RANARR": ("Ranarr weed", "Prayer potion"),
+    "UNIDENTIFIED_TOADFLAX": ("Toadflax", "Saradomin brew"),
+    "UNIDENTIFIED_IRIT": ("Irit leaf", "Super attack"),
+    "UNIDENTIFIED_AVANTOE": ("Avantoe", "Super energy"),
+    "UNIDENTIFIED_KWUARM": ("Kwuarm", "Super strength"),
+    "UNIDENTIFIED_SNAPDRAGON": ("Snapdragon", "Super restore"),
+    "UNIDENTIFIED_CADANTINE": ("Cadantine", "Super defence"),
+    "UNIDENTIFIED_LANTADYME": ("Lantadyme", "Antifire potion"),
+    "UNIDENTIFIED_DWARF_WEED": ("Dwarf weed", "Ranging potion"),
+    "UNIDENTIFIED_TORSTOL": ("Torstol", "Super combat potion"),
+    "UNIDENTIFIED_HUASCA": ("Huasca", "Prayer regeneration potion"),
+}
+
+
+def herb_potentials(item_ids: dict) -> dict:
+    """grimy item id -> {name, potion, xp} with xp = clean + potion make,
+    both looked up in the bundled xp-actions pack (fail fast on a rename)."""
+    with open("src/main/resources/data/xp-actions.json", encoding="utf-8") as f:
+        actions = json.load(f)
+    herblore = {}
+    for skill in actions["skills"]:
+        if skill["skill"] == "Herblore":
+            herblore = {a["name"]: a["xp"] for a in skill["actions"]}
+    if not herblore:
+        raise SystemExit("no Herblore actions in data/xp-actions.json")
+    out = {}
+    for constant, (clean, potion) in HERB_POTENTIAL.items():
+        if constant not in item_ids:
+            raise SystemExit(f"unknown gameval ItemID.{constant}")
+        for name in (clean, potion):
+            if name not in herblore:
+                raise SystemExit(f"no Herblore action named {name!r} in xp-actions.json")
+        out[str(item_ids[constant])] = {
+            "name": clean,
+            "potion": potion,
+            "xp": round(herblore[clean] + herblore[potion], 1),
+        }
+    assert len(out) == len(HERB_POTENTIAL), "duplicate grimy ids"
+    return out
+
+
 # Saplings plantable in each patch category — the plant-pot form the player
 # carries on a run (client ItemID constants, resolved to ids below). The run
 # culler checks ownership of these to drop stops you can't plant. Herb/hops
@@ -596,6 +648,7 @@ def main():
         "locations": locations,
         "saplings": saplings,
         "routes": ROUTES,
+        "herbs": herb_potentials(item_ids),
     }
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(pack, f, indent=1, ensure_ascii=False)

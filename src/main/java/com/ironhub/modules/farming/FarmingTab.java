@@ -60,6 +60,7 @@ class FarmingTab extends JPanel
 
 	private final JPanel topBar = new JPanel();
 	private final JLabel stats = new JLabel();
+	private final JPanel xpStats = new JPanel();
 	private final JPanel overview = new JPanel();
 	private final JPanel runs = new JPanel();
 	private final JLabel teleportHeader = new JLabel("Teleport preferences");
@@ -108,6 +109,10 @@ class FarmingTab extends JPanel
 		stats.setAlignmentX(LEFT_ALIGNMENT);
 		add(stats);
 		add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+		xpStats.setLayout(new BoxLayout(xpStats, BoxLayout.Y_AXIS));
+		xpStats.setOpaque(false);
+		xpStats.setAlignmentX(LEFT_ALIGNMENT);
+		add(xpStats);
 		runs.setLayout(new BoxLayout(runs, BoxLayout.Y_AXIS));
 		runs.setOpaque(false);
 		runs.setAlignmentX(LEFT_ALIGNMENT);
@@ -431,6 +436,71 @@ class FarmingTab extends JPanel
 		rebuildRuns();
 		rebuildTeleports();
 		rebuildSetups();
+		rebuildXpStats();
+	}
+
+	/**
+	 * "Tree runs · 12.4k xp · 3 to 76" over the persisted completed-run log:
+	 * average Farming xp your tree stops earn per run and how many such runs
+	 * the next Farming level costs; likewise the potential Herblore xp your
+	 * herb runs pick (cleaning + standard potions) toward the next Herblore
+	 * level. A next level that unlocks something says so. Silent without
+	 * history — never an invented rate.
+	 */
+	private void rebuildXpStats()
+	{
+		xpStats.removeAll();
+		addSkillStat("Tree runs", module.avgTreeRunXp(), "xp/run",
+			net.runelite.api.Skill.FARMING, "Farming",
+			"Average Farming xp your tree stops earn per completed run");
+		addSkillStat("Herb runs", module.avgHerbPotentialXp(), "pot. xp/run",
+			net.runelite.api.Skill.HERBLORE, "Herblore",
+			"Average potential Herblore xp per completed run — cleaning each "
+				+ "picked herb and making its standard potion");
+		xpStats.revalidate();
+		xpStats.repaint();
+	}
+
+	private void addSkillStat(String label, double avg, String unit,
+		net.runelite.api.Skill apiSkill, String skillName, String tooltip)
+	{
+		if (Double.isNaN(avg))
+		{
+			return;
+		}
+		int xp = state.getXp(apiSkill);
+		int level = net.runelite.api.Experience.getLevelForXp(xp);
+		int runs = FarmingRunModule.runsToNextLevel(avg, xp);
+		JPanel row = overviewRow(label, compactXp(avg) + " " + unit, UiTokens.TEXT_BODY);
+		row.setToolTipText(tooltip);
+		xpStats.add(row);
+		xpStats.add(Box.createVerticalStrut(2));
+
+		// "Farming 76 in ~11 runs: Grow attas plants …" — the countdown and
+		// what the level is worth, in one wrapped line under the rate
+		if (runs > 0)
+		{
+			List<String> unlocks = module.nextLevelUnlocks(skillName, apiSkill);
+			String text = skillName + " " + (level + 1) + " in ~" + runs
+				+ (runs == 1 ? " run" : " runs");
+			if (!unlocks.isEmpty())
+			{
+				text += ": " + unlocks.get(0) + (unlocks.size() > 1 ? " …" : "");
+			}
+			JLabel line = hint("<div style='width:180px'>" + text + "</div>", UiTokens.TEXT_FAINT);
+			if (!unlocks.isEmpty())
+			{
+				line.setToolTipText("<html>" + String.join("<br>", unlocks) + "</html>");
+			}
+			xpStats.add(line);
+		}
+	}
+
+	/** "9,850" below ten thousand, "12.4k" above — the row must fit 225px. */
+	static String compactXp(double xp)
+	{
+		return xp < 10_000 ? String.format(Locale.ROOT, "%,d", Math.round(xp))
+			: String.format(Locale.ROOT, "%.1fk", xp / 1000);
 	}
 
 	/** During a run: a prominent End run button + live status, pinned to the

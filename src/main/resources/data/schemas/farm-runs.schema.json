@@ -7,12 +7,27 @@
 		"generated",
 		"locations",
 		"saplings",
-		"routes"
+		"routes",
+		"herbs"
 	],
 	"additionalProperties": false,
 	"properties": {
 		"source": {
 			"type": "string"
+		},
+		"herbs": {
+			"type": "object",
+			"minProperties": 15,
+			"additionalProperties": {
+				"type": "object",
+				"required": ["name", "potion", "xp"],
+				"additionalProperties": false,
+				"properties": {
+					"name": {"type": "string", "minLength": 1},
+					"potion": {"type": "string", "minLength": 1},
+					"xp": {"type": "number", "exclusiveMinimum": 0}
+				}
+			}
 		},
 		"saplings": {
 			"type": "object",

@@ -26,6 +26,16 @@ public class FarmRunsPack
 	/** Named curated routes: run name → ordered location ids (crosses
 	 *  categories in a fixed order the auto-grouping templates can't express). */
 	public Map<String, List<String>> routes;
+	/** Potential Herblore xp per farmed grimy herb (id as string key):
+	 *  cleaning plus its standard potion, values joined from xp-actions.json
+	 *  at generation. */
+	public Map<String, Herb> herbs;
+
+	/** The potential-xp entry for a grimy herb id, or null. */
+	public Herb herb(int grimyId)
+	{
+		return herbs == null ? null : herbs.get(String.valueOf(grimyId));
+	}
 
 	private transient Map<String, Location> byId;
 
@@ -106,5 +116,13 @@ public class FarmRunsPack
 	{
 		public int itemId;
 		public int qty;
+	}
+
+	/** One farmable herb's potential Herblore xp (clean + standard potion). */
+	public static class Herb
+	{
+		public String name;
+		public String potion;
+		public double xp;
 	}
 }

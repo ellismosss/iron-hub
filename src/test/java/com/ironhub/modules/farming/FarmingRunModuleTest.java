@@ -1342,6 +1342,90 @@ public class FarmingRunModuleTest
 		module.shutDown();
 	}
 
+	/**
+	 * A completed run records what it earned, attributed per stop-type
+	 * bucket (the xp gained while a tree stop was current is tree xp, even
+	 * mid-combined-run) plus the grimy herbs picked. Abandoned runs record
+	 * nothing.
+	 */
+	@Test
+	public void completedRunsRecordXpPerBucketAndHerbsPicked()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		StateFixture.stat(state, net.runelite.api.Skill.FARMING, 65, 500_000);
+		StateFixture.bank(state, Map.of(5370, 1)); // oak sapling for the tree stop
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+
+		state.saveFarmRun("Tree then herb", List.of("tree/falador", "herb/falador"));
+		module.startCustom("Tree then herb");
+		assertEquals(2, module.stops().size());
+
+		// worked the tree stop: +12,000 Farming xp while it was current
+		StateFixture.stat(state, net.runelite.api.Skill.FARMING, 65, 512_000);
+		module.markThrough("tree/falador");
+
+		// worked the herb stop: +1,500 xp and three grimy ranarr in the sack
+		StateFixture.stat(state, net.runelite.api.Skill.FARMING, 65, 513_500);
+		StateFixture.inventory(state, Map.of(207, 3));
+		module.markThrough("herb/falador"); // completes the run
+
+		assertFalse(module.running());
+		List<com.ironhub.state.PersistedState.FarmRunRecord> log = state.getFarmRunLog();
+		assertEquals(1, log.size());
+		com.ironhub.state.PersistedState.FarmRunRecord record = log.get(0);
+		assertEquals("Tree then herb", record.name);
+		assertEquals((Integer) 12_000, record.xpByBucket.get("Trees"));
+		assertEquals((Integer) 1_500, record.xpByBucket.get("Herbs"));
+		assertEquals((Integer) 3, record.herbsByType.get(207));
+
+		// with history, the sidebar rates exist: 12,000 tree xp per run and
+		// 3 ranarr x 95 potential Herblore xp
+		assertEquals(12_000, module.avgTreeRunXp(), 0.01);
+		assertEquals(285.0, module.avgHerbPotentialXp(), 0.01);
+
+		// an abandoned run leaves no record behind
+		module.startCustom("Tree then herb");
+		if (module.running())
+		{
+			module.endRun(false);
+		}
+		assertEquals(1, state.getFarmRunLog().size());
+		module.shutDown();
+	}
+
+	/** Runs-to-level math over the persisted averages, plus honest silence:
+	 *  no history = NaN average = no runs estimate, and 99 is the end. */
+	@Test
+	public void runsToNextLevelMathIsHonest()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+
+		// no completed runs: NaN, and runsToNextLevel refuses to guess
+		assertTrue(Double.isNaN(module.avgTreeRunXp()));
+		assertEquals(0, FarmingRunModule.runsToNextLevel(Double.NaN, 500_000));
+		assertEquals(0, FarmingRunModule.runsToNextLevel(0, 500_000));
+
+		// level 65 is 449,428 xp; 66 is 496,254 — at 12k a run, ceil = 4
+		int xp65 = net.runelite.api.Experience.getXpForLevel(65);
+		int gap = net.runelite.api.Experience.getXpForLevel(66) - xp65;
+		assertEquals((int) Math.ceil(gap / 12_000.0),
+			FarmingRunModule.runsToNextLevel(12_000, xp65));
+
+		// maxed: nothing left to count runs toward
+		assertEquals(0, FarmingRunModule.runsToNextLevel(12_000,
+			net.runelite.api.Experience.getXpForLevel(99)));
+
+		// the next level's unlock lines come from the wiki table
+		StateFixture.stat(state, net.runelite.api.Skill.FARMING, 14,
+			net.runelite.api.Experience.getXpForLevel(14));
+		assertTrue(module.nextLevelUnlocks("Farming", net.runelite.api.Skill.FARMING)
+			.stream().anyMatch(u -> u.toLowerCase().contains("oak")));
+		module.shutDown();
+	}
+
 	@Test
 	public void readinessNotifiesOncePerTransitionAndNeverOnLogin()
 	{
@@ -1410,6 +1494,21 @@ public class FarmingRunModuleTest
 		TimetrackingFixture.birdHouse(configManager,
 			com.ironhub.modules.farming.rl.hunter.BirdHouseSpace.MEADOW_NORTH.getVarp(),
 			seeded, now - 10 * 60);
+
+		// run history + levels so the xp-stat rows render ("Tree runs · 12.4k
+		// xp · N to 76", the next-level unlock line beneath)
+		StateFixture.stat(state, net.runelite.api.Skill.FARMING, 75,
+			net.runelite.api.Experience.getXpForLevel(75) + 1_000);
+		StateFixture.stat(state, net.runelite.api.Skill.HERBLORE, 80,
+			net.runelite.api.Experience.getXpForLevel(80) + 500);
+		com.ironhub.state.PersistedState.FarmRunRecord seedRecord =
+			new com.ironhub.state.PersistedState.FarmRunRecord();
+		seedRecord.name = "All runs";
+		seedRecord.endMs = now * 1000;
+		seedRecord.durationMs = 300_000;
+		seedRecord.xpByBucket.put("Trees", 12_400);
+		seedRecord.herbsByType.put(207, 40);
+		state.recordFarmRun(seedRecord);
 
 		FarmingRunModule module = module(state, configManager, null);
 		module.refreshTracking();

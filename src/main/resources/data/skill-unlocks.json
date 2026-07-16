@@ -1,0 +1,707 @@
+{
+ "source": "oldschool.runescape.wiki /Level_up_table pages (CC BY-NC-SA 3.0)",
+ "generated": "2026-07-16",
+ "skills": {
+  "Farming": {
+   "1": [
+    "Grow potatoes"
+   ],
+   "2": [
+    "Grow marigolds"
+   ],
+   "3": [
+    "Grow barley"
+   ],
+   "4": [
+    "Grow hammerstone hops"
+   ],
+   "5": [
+    "Grow onions"
+   ],
+   "7": [
+    "Grow cabbages"
+   ],
+   "8": [
+    "Grow asgarnian hops"
+   ],
+   "9": [
+    "Grow grimy guam leaves"
+   ],
+   "10": [
+    "Grow redberries"
+   ],
+   "11": [
+    "Grow rosemary"
+   ],
+   "12": [
+    "Grow tomatoes"
+   ],
+   "13": [
+    "Grow jute fibres",
+    "Required to complete Easy Kandarin Diary"
+   ],
+   "14": [
+    "Grow grimy marrentills"
+   ],
+   "15": [
+    "Grow oak trees (produces oak logs when chopped, oak roots when dug up, and oak leaves when pruned if diseased)"
+   ],
+   "16": [
+    "Grow yanillian hops"
+   ],
+   "17": [
+    "Required for Forgettable Tale..."
+   ],
+   "18": [
+    "Grow flax"
+   ],
+   "19": [
+    "Grow grimy tarromins"
+   ],
+   "20": [
+    "Grow sweetcorn",
+    "Required for The Garden of Death"
+   ],
+   "21": [
+    "Grow krandorian hops"
+   ],
+   "22": [
+    "Grow cadava berries"
+   ],
+   "23": [
+    "Build and place scarecrows",
+    "Grow giant seaweed",
+    "Obtain two oak roots when digging up a fully grown oak tree"
+   ],
+   "24": [
+    "Grow nasturtiums"
+   ],
+   "25": [
+    "Grow woad leaves",
+    "Required for Garden of Tranquillity",
+    "Required to complete Medium Varrock Diary"
+   ],
+   "26": [
+    "Grow grimy harralanders",
+    "Grow limpwurt roots",
+    "Required to complete Medium Kandarin Diary",
+    "Completion of the Medium Kandarin Diary grants a 5% higher yield of herbs from the Catherby herb patch",
+    "Completion of the Hard Kandarin Diary grants a 10% higher yield of herbs from the Catherby herb patch"
+   ],
+   "27": [
+    "Grow apple trees (produces cooking apples when fully grown)",
+    "Grow golpars",
+    "Required to complete Medium Karamja Diary"
+   ],
+   "28": [
+    "Grow wildblood hops",
+    "Grow elkhorn coral"
+   ],
+   "29": [
+    "Grow goutweed",
+    "Required for My Arm's Big Adventure"
+   ],
+   "30": [
+    "Grow Willow trees (produces willow logs when chopped, willow roots when dug up, and willow leaves when pruned if diseased)",
+    "Required for Enlightened Journey"
+   ],
+   "31": [
+    "Grow strawberries",
+    "Obtain three oak roots when digging up a fully grown oak tree",
+    "Required to complete Medium Ardougne Diary"
+   ],
+   "32": [
+    "Grow grimy ranarr weeds"
+   ],
+   "33": [
+    "Grow banana trees (produces bananas when fully grown)"
+   ],
+   "34": [
+    "Grow golovanova fruit (at the Tithe Farm)"
+   ],
+   "35": [
+    "Grow teak trees (produces teak logs when chopped)"
+   ],
+   "36": [
+    "Grow dwellberries",
+    "Grow grapes"
+   ],
+   "37": [
+    "Grow hemp"
+   ],
+   "38": [
+    "Grow grimy toadflax",
+    "Obtain two willow roots when digging up a fully grown willow"
+   ],
+   "39": [
+    "Grow buchu leaves",
+    "Grow orange trees (produces oranges when fully grown)",
+    "Obtain four oak roots when digging up a fully grown oak tree"
+   ],
+   "40": [
+    "Required for Rum Deal"
+   ],
+   "42": [
+    "Grow curry trees (produces curry leaves when fully grown)"
+   ],
+   "44": [
+    "Grow grimy irit leaves"
+   ],
+   "45": [
+    "Access the beginner tier of the Farming Guild",
+    "Grow maple trees (produces maple logs when chopped, maple roots when dug up, and maple leaves when pruned if diseased)",
+    "Complete easy farming contracts",
+    "Required for Grim Tales",
+    "Required to complete Medium Kourend & Kebos Diary"
+   ],
+   "46": [
+    "Obtain three willow roots when digging up a fully grown willow"
+   ],
+   "47": [
+    "Grow watermelons"
+   ],
+   "48": [
+    "Grow jangerberries"
+   ],
+   "49": [
+    "Pick Star flower ()",
+    "Required for Fairytale II - Cure a Queen"
+   ],
+   "50": [
+    "Grow grimy avantoes",
+    "Make nature offerings (with )"
+   ],
+   "51": [
+    "Grow pineapple trees (produces pineapples when fully grown)"
+   ],
+   "52": [
+    "Grow pillar coral"
+   ],
+   "53": [
+    "Grow bittercap mushrooms",
+    "Obtain two maple roots when digging up a fully grown maple tree",
+    "Required to complete Hard Morytania Diary"
+   ],
+   "54": [
+    "Grow bologano fruit (at the Tithe Farm)",
+    "Obtain four willow roots when digging up a fully grown willow"
+   ],
+   "55": [
+    "Grow cactus spines",
+    "Grow mahogany trees (produces mahogany logs when chopped)",
+    "Grow noxifers"
+   ],
+   "56": [
+    "Grow grimy kwuarms"
+   ],
+   "57": [
+    "Grow papaya trees (produces papayas when fully grown)"
+   ],
+   "58": [
+    "Grow white lilies"
+   ],
+   "59": [
+    "Grow white berries"
+   ],
+   "60": [
+    "Grow yew trees (produces yew logs when chopped, yew roots when dug up, and yew leaves when pruned if diseased)"
+   ],
+   "61": [
+    "Grow snape grass",
+    "Obtain three maple roots when digging up a fully grown maple tree"
+   ],
+   "62": [
+    "Grow grimy snapdragons"
+   ],
+   "63": [
+    "Grow nightshades",
+    "Required to complete Hard Lumbridge & Draynor Diary"
+   ],
+   "64": [
+    "Grow potato cacti"
+   ],
+   "65": [
+    "Grow Huascas",
+    "Access the intermediate tier of the Farming Guild",
+    "Grow hespori",
+    "Complete medium farming contracts",
+    "Required for While Guthix Sleeps"
+   ],
+   "66": [
+    "Grow camphor trees (produces camphor logs when chopped)"
+   ],
+   "67": [
+    "Grow grimy cadantines"
+   ],
+   "68": [
+    "Grow palm trees (produces coconuts when fully grown)",
+    "Obtain two yew roots when digging up a fully grown yew tree",
+    "Required to complete Hard Varrock Diary",
+    "Required to complete Hard Western Provinces Diary"
+   ],
+   "69": [
+    "Obtain four maple roots when digging up a fully grown maple tree"
+   ],
+   "70": [
+    "Grow poison ivy berries",
+    "Required for Song of the Elves",
+    "Required to complete Hard Ardougne Diary"
+   ],
+   "71": [
+    "Grow Cotton bolls"
+   ],
+   "72": [
+    "Grow calquat trees (produces calquat fruits when fully grown)",
+    "Required to complete Elite Karamja Diary"
+   ],
+   "73": [
+    "Grow grimy lantadymes"
+   ],
+   "74": [
+    "Grow crystal trees (with Song of the Elves completed)",
+    "Grow logavano fruit (at the Tithe Farm)",
+    "Required to complete Hard Kourend & Kebos Diary",
+    "Completion of the Hard Kourend & Kebos Diary grants a 5% higher yield of herbs from the Hosidius and Farming Guild herb patches"
+   ],
+   "75": [
+    "Grow magic trees (produces magic logs when chopped, magic roots when dug up, and magic leaves when pruned if diseased)",
+    "Required to complete Elite Western Provinces Diary"
+   ],
+   "76": [
+    "Grow attas plants",
+    "Grow iasor plants",
+    "Grow kronos plants",
+    "Obtain three yew roots when digging up a fully grown yew tree"
+   ],
+   "77": [
+    "Grow umbral coral"
+   ],
+   "79": [
+    "Grow grimy dwarf weeds",
+    "Required to complete Elite Kandarin Diary",
+    "Completion of the Elite Kandarin Diary grants a 15% higher yield of herbs from the Catherby herb patch"
+   ],
+   "80": [
+    "Chances to obtain Spirit Seeds from the Reward Cart",
+    "Grow ironwood trees (produces ironwood logs when chopped)"
+   ],
+   "81": [
+    "Grow dragonfruit"
+   ],
+   "83": [
+    "Grow spirit trees",
+    "Can have one spirit tree grown",
+    "Build a (with )",
+    "Build a (with )",
+    "Obtain two magic roots when digging up a fully grown magic tree"
+   ],
+   "84": [
+    "Obtain four yew roots when digging up a fully grown yew tree"
+   ],
+   "85": [
+    "Access the advanced tier of the Farming Guild",
+    "Grow celastrus trees",
+    "Grow grimy torstols",
+    "Complete hard farming contracts",
+    "Required to complete Elite Ardougne Diary",
+    "Required to complete Elite Kourend & Kebos Diary"
+   ],
+   "88": [
+    "Can have two spirit trees grown"
+   ],
+   "90": [
+    "Grow Redwood trees (produces redwood logs when chopped)"
+   ],
+   "91": [
+    "Obtain three magic roots when digging up a fully grown magic tree",
+    "Required to complete Elite Falador Diary"
+   ],
+   "92": [
+    "Grow rosewood trees (produces rosewood logs when chopped)"
+   ],
+   "93": [
+    "Can have three spirit trees grown"
+   ],
+   "96": [
+    "Can have four spirit trees grown"
+   ],
+   "99": [
+    "Buy the Farming cape and hood from the Martin the Master Gardener in the Draynor Village market, and wear them",
+    "Herb patches will have a 5% greater yield while wearing the farming cape",
+    "Can have unlimited spirit trees grown",
+    "Obtain four magic roots when digging up a fully grown magic tree",
+    "Skill mastery"
+   ]
+  },
+  "Herblore": {
+   "3": [
+    "Clean grimy guam leaves",
+    "Clean grimy rogue's purses",
+    "Clean grimy snake weeds",
+    "Mix Guam potion",
+    "Mix attack potions",
+    "Required for Jungle Potion"
+   ],
+   "4": [
+    "Mix attack mixes (with Barbarian Herblore completed)",
+    "Required for Barbarian Herblore"
+   ],
+   "5": [
+    "Clean grimy marrentills",
+    "Mix marrentill potions (unf)",
+    "Mix antipoisons",
+    "Required for Lunar Diplomacy"
+   ],
+   "6": [
+    "Mix antipoison mixes (with Barbarian Herblore completed)"
+   ],
+   "8": [
+    "Mix Relicym's balms (with partial completion of Zogre Flesh Eaters)",
+    "Required for Zogre Flesh Eaters"
+   ],
+   "9": [
+    "Mix Relicym's mixes (with Barbarian Herblore completed and partial completion of Zogre Flesh Eaters)"
+   ],
+   "10": [
+    "Required for The Dig Site"
+   ],
+   "11": [
+    "Clean grimy tarromins"
+   ],
+   "12": [
+    "Mix tarromin potions (unf)",
+    "Mix strength potions",
+    "Required to complete Easy Kourend & Kebos Diary"
+   ],
+   "14": [
+    "Mix strength mixes (with Barbarian Herblore completed)",
+    "Required for Watchtower"
+   ],
+   "15": [
+    "Mix serum 207s (with partial completion of Shades of Mort'ton)",
+    "Required for Shades of Mort'ton"
+   ],
+   "18": [
+    "Mix Guthix rests (with partial completion of One Small Favour)",
+    "Required for One Small Favour"
+   ],
+   "19": [
+    "Mix guam tars"
+   ],
+   "20": [
+    "Clean grimy harralanders"
+   ],
+   "22": [
+    "Mix harralander potions (unf)",
+    "Mix compost potions",
+    "Mix Guthix balances",
+    "Mix restore potions",
+    "Required to complete Medium Morytania Diary"
+   ],
+   "24": [
+    "Mix restore mixes (with Barbarian Herblore completed)"
+   ],
+   "25": [
+    "Clean grimy ranarr weeds",
+    "Mix blamish oils",
+    "Required for Heroes' Quest"
+   ],
+   "26": [
+    "Mix energy potions"
+   ],
+   "29": [
+    "Mix energy mixes (with Barbarian Herblore completed)"
+   ],
+   "30": [
+    "Clean grimy toadflaxs",
+    "Mix ranarr potions (unf)",
+    "Mix defence potions",
+    "Required for At First Light"
+   ],
+   "31": [
+    "Mix marrentill tars",
+    "Required for Eadgar's Ruse",
+    "Harvest herbs from the Herbiboar (with )"
+   ],
+   "33": [
+    "Mix defence mixes (with Barbarian Herblore completed)"
+   ],
+   "34": [
+    "Mix toadflax potions (unf)",
+    "Mix agility potions"
+   ],
+   "36": [
+    "Mix combat potions",
+    "Required to complete Medium Desert Diary"
+   ],
+   "37": [
+    "Mix agility mixes (with Barbarian Herblore completed)"
+   ],
+   "38": [
+    "Mix prayer potions",
+    "Mix moonlight potions (with partial completion of Perilous Moons)"
+   ],
+   "39": [
+    "Mix tarromin tars"
+   ],
+   "40": [
+    "Clean grimy irit leaves",
+    "Mix combat mixes (with Barbarian Herblore completed)",
+    "Required for A Taste of Hope"
+   ],
+   "42": [
+    "Mix prayer mixes (with Barbarian Herblore completed)"
+   ],
+   "44": [
+    "Mix harralander tars"
+   ],
+   "45": [
+    "Mix irit potions (unf)",
+    "Mix super attacks",
+    "Required for Legends' Quest"
+   ],
+   "47": [
+    "Mix superattack mixes (with Barbarian Herblore completed)",
+    "Mix Elder (-) potions",
+    "Mix Twisted (-) potions",
+    "Mix Kodai (-) potions"
+   ],
+   "48": [
+    "Clean grimy avantoes",
+    "Mix superantipoisons",
+    "Required to complete Medium Kandarin Diary",
+    "Required for Land of the Goblins"
+   ],
+   "49": [
+    "Create anti-odour salt"
+   ],
+   "50": [
+    "Mix avantoe potions (unf)",
+    "Mix fishing potions",
+    "Required for A Kingdom Divided"
+   ],
+   "51": [
+    "Mix anti-poison supermixes (with Barbarian Herblore completed)"
+   ],
+   "52": [
+    "Mix shrink-me-quicks (with partial completion of Grim Tales)",
+    "Mix super energies",
+    "Mix Revitalisation (-) potions",
+    "Mix Prayer enhance (-) potions",
+    "Mix Xeric's aid (-) potions",
+    "Required for Grim Tales"
+   ],
+   "53": [
+    "Mix hunter potions",
+    "Mix fishing mixes (with Barbarian Herblore completed)"
+   ],
+   "54": [
+    "Clean grimy kwuarms",
+    "Mix Goading potions"
+   ],
+   "55": [
+    "Mix kwuarm potions (unf)",
+    "Mix super strengths",
+    "Mix irit tars"
+   ],
+   "56": [
+    "Mix Elkhorn potion",
+    "Mix Haemostatic poultice",
+    "Create haemostatic dressings",
+    "Mix super energy mixes (with Barbarian Herblore completed)"
+   ],
+   "57": [
+    "Mix magic essences (with partial completion of Fairytale II - Cure a Queen)",
+    "Required for Fairytale II - Cure a Queen"
+   ],
+   "58": [
+    "Clean grimy huascas",
+    "Mix hunting mixes (with Barbarian Herblore completed)",
+    "Mix Prayer regeneration potions",
+    "Required to purchase a Herb sack"
+   ],
+   "59": [
+    "Clean grimy snapdragons",
+    "Mix super str. mixes (with Barbarian Herblore completed)",
+    "Mix Elder potions",
+    "Mix Twisted potions",
+    "Mix Kodai potions"
+   ],
+   "60": [
+    "Mix weapon poisons",
+    "Mix Overload (-)s",
+    "Mix Antipoison (-)s",
+    "Mix Mammoth-might mix in Mastering Mixology",
+    "Mix Alco-augmentator in Mastering Mixology",
+    "Mix Liplack liquor in Mastering Mixology",
+    "Participate in Mastering Mixology"
+   ],
+   "61": [
+    "Mix magic essence mixes (with Barbarian Herblore completed and partial completion of Fairytale II - Cure a Queen)"
+   ],
+   "62": [
+    "Mix Pillar potion",
+    "Mix super fishing potions",
+    "Required for Desert Treasure II - The Fallen Empire"
+   ],
+   "63": [
+    "Mix snapdragon potions (unf)",
+    "Mix super restores",
+    "Mix Mystic mana amalgam in Mastering Mixology"
+   ],
+   "64": [
+    "Required for The Blood Moon Rises"
+   ],
+   "65": [
+    "Clean grimy cadantines",
+    "Mix sanfew serums (with Zogre Flesh Eaters completed)",
+    "Mix Revitalisation potions",
+    "Mix Prayer enhance potions",
+    "Mix Xeric's aid potions",
+    "Required for While Guthix Sleeps"
+   ],
+   "66": [
+    "Mix cadantine potions (unf)",
+    "Mix extreme energies",
+    "Mix super defences",
+    "Mix Marley's moonlight in Mastering Mixology",
+    "Required to complete Hard Fremennik Diary"
+   ],
+   "67": [
+    "Clean grimy lantadymes",
+    "Mix super hunter potions",
+    "Mix super restore mixes (with Barbarian Herblore completed)"
+   ],
+   "68": [
+    "Mix antidote+"
+   ],
+   "69": [
+    "Mix lantadyme potions (unf)",
+    "Mix anti-fire potions",
+    "Mix Azure aura mix in Mastering Mixology"
+   ],
+   "70": [
+    "Clean grimy dwarf weeds",
+    "Mix divine super attack potions (with Song of the Elves completed)",
+    "Mix divine super defence potions (with Song of the Elves completed)",
+    "Mix divine super strength potions (with Song of the Elves completed)",
+    "Mix Elder (+) potions",
+    "Mix Twisted (+) potions",
+    "Mix Kodai (+) potions",
+    "Required for Song of the Elves"
+   ],
+   "71": [
+    "Mix super def. mixes (with Barbarian Herblore completed)"
+   ],
+   "72": [
+    "Mix dwarf weed potions (unf)",
+    "Mix ranging potions",
+    "Mix Aqualux amalgam in Mastering Mixology"
+   ],
+   "73": [
+    "Mix weapon poison+"
+   ],
+   "74": [
+    "Mix divine ranging potions (with Song of the Elves completed)",
+    "Mix antidote+ mixes (with Barbarian Herblore completed)"
+   ],
+   "75": [
+    "Clean grimy torstols",
+    "Mix antifire mixes (with Barbarian Herblore completed)",
+    "Mix Overloads",
+    "Mix Megalite liquid in Mastering Mixology"
+   ],
+   "76": [
+    "Mix magic potions"
+   ],
+   "77": [
+    "Mix stamina potions"
+   ],
+   "78": [
+    "Mix torstol potions (unf)",
+    "Mix Zamorak brews",
+    "Mix divine magic potions (with Song of the Elves completed)",
+    "Mix Revitalisation (+) potions",
+    "Mix Prayer enhance (+) potions",
+    "Mix Xeric's aid (+) potions",
+    "Mix Anti-leech lotion in Mastering Mixology"
+   ],
+   "79": [
+    "Mix antidote++"
+   ],
+   "80": [
+    "Mix cadantine blood potions (unf)",
+    "Mix bastion potions",
+    "Mix battlemage potions",
+    "Mix ranging mixes (with Barbarian Herblore completed)"
+   ],
+   "81": [
+    "Mix Saradomin brews",
+    "Mix surge potions",
+    "Mix Mixalot in Mastering Mixology",
+    "Use the reagent pouch",
+    "Required to complete Elite Falador Diary"
+   ],
+   "82": [
+    "Mix weapon poison++"
+   ],
+   "83": [
+    "Mix magic mixes (with Barbarian Herblore completed)"
+   ],
+   "84": [
+    "Mix extended antifires"
+   ],
+   "85": [
+    "Mix ancient brews",
+    "Mix extended stamina potions",
+    "Mix Zamorak mixes (with Barbarian Herblore completed)"
+   ],
+   "86": [
+    "Mix divine bastion potions (with Song of the Elves completed)",
+    "Mix divine battlemage potions (with Song of the Elves completed)",
+    "Mix stamina mixes (with Barbarian Herblore completed)",
+    "Required to complete Elite Kandarin Diary"
+   ],
+   "87": [
+    "Mix anti-venoms",
+    "Required to complete Elite Karamja Diary"
+   ],
+   "88": [
+    "Mix Menaphite remedies"
+   ],
+   "89": [
+    "Mix Umbral potion",
+    "Mix Armadyl brews"
+   ],
+   "90": [
+    "Mix super combat potions",
+    "Mix Overload (+)s",
+    "Required to complete Elite Varrock Diary"
+   ],
+   "91": [
+    "Mix forgotten brews",
+    "Mix extended antifire mixes (with Barbarian Herblore completed)"
+   ],
+   "92": [
+    "Mix super antifire potions (with Dragon Slayer II completed)",
+    "Mix ancient mixes (with Barbarian Herblore completed)"
+   ],
+   "94": [
+    "Mix anti-venom+",
+    "Mix extended anti-venom+"
+   ],
+   "97": [
+    "Mix divine super combat potions (with Song of the Elves completed)"
+   ],
+   "98": [
+    "Mix extended super antifires (with Dragon Slayer II completed)",
+    "Mix super antifire mixes (with Barbarian Herblore and Dragon Slayer II completed)"
+   ],
+   "99": [
+    "Buy the herblore cape and hood from Kaqemeex at the druid circle in Taverley, and wear them",
+    "Mix extended super antifire mixes (with Barbarian Herblore and Dragon Slayer II completed)",
+    "Skill mastery"
+   ]
+  }
+ }
+}

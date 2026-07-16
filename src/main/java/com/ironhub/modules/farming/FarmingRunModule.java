@@ -148,6 +148,7 @@ public class FarmingRunModule implements IronHubModule
 	private final net.runelite.client.plugins.banktags.tabs.LayoutManager layoutManager; // null in tests
 
 	private FarmRunsPack pack;
+	private com.ironhub.data.SkillUnlocksPack skillUnlocks;
 	FarmTrackingService tracking; // package-private test seam
 	private FarmBankLayout bankLayout;
 	private FarmingTab tab;
@@ -164,10 +165,17 @@ public class FarmingRunModule implements IronHubModule
 	// per-run tracking, baselined at startRun
 	private volatile int runStartFarmingXp;
 	private volatile int runStartHerbCount;
+	// per-stop xp attribution: Farming xp gained while working a stop goes to
+	// that stop's setup bucket, so a combined run's record still knows what
+	// its tree stops earned vs its herb stops
+	private volatile int lastAdvanceXp;
+	private final java.util.Map<String, Integer> runXpByBucket = new ConcurrentHashMap<>();
+	private volatile java.util.Map<Integer, Integer> runStartHerbsById = java.util.Map.of();
 
 	/** Grimy (farmable) herb ids — a harvest of any counts toward "herbs
-	 *  this run". Stable ids from gameval UNIDENTIFIED_&lt;herb&gt;. */
-	private static final Set<Integer> GRIMY_HERBS = Set.of(
+	 *  this run". Stable ids from gameval UNIDENTIFIED_&lt;herb&gt;; the pack's
+	 *  `herbs` potential-xp table must cover exactly these (pack test). */
+	static final Set<Integer> GRIMY_HERBS = Set.of(
 		199, 201, 203, 205, 207, 209, 211, 213, 215, 217, 219, 2485, 3049, 3051, 30094);
 
 	/** "You treat the herb patch with ultracompost." — the vendored
@@ -233,6 +241,7 @@ public class FarmingRunModule implements IronHubModule
 	public void startUp()
 	{
 		pack = dataPack.load("farm-runs", FarmRunsPack.class);
+		skillUnlocks = dataPack.load("skill-unlocks", com.ironhub.data.SkillUnlocksPack.class);
 		if (tracking == null && configManager != null)
 		{
 			tracking = new FarmTrackingService(client, itemManager, configManager,
@@ -606,6 +615,33 @@ public class FarmingRunModule implements IronHubModule
 		return false;
 	}
 
+	/** Bank the Farming xp gained since the last advance against this stop's
+	 *  bucket — called as each stop completes, so a combined run's record
+	 *  knows its tree xp from its herb xp. */
+	private void attributeXpTo(Stop stop)
+	{
+		int xp = state.getXp(net.runelite.api.Skill.FARMING);
+		int delta = xp - lastAdvanceXp;
+		lastAdvanceXp = xp;
+		if (delta > 0 && stop != null)
+		{
+			runXpByBucket.merge(setupBucket(stop.location.category), delta, Integer::sum);
+		}
+	}
+
+	private java.util.Map<Integer, Integer> herbCountsById()
+	{
+		java.util.Map<Integer, Integer> out = new java.util.HashMap<>();
+		for (java.util.Map.Entry<Integer, Integer> slot : state.getInventorySnapshot().entrySet())
+		{
+			if (GRIMY_HERBS.contains(slot.getKey()))
+			{
+				out.merge(slot.getKey(), slot.getValue(), Integer::sum);
+			}
+		}
+		return out;
+	}
+
 	private void advanceCurrentStop()
 	{
 		Stop next = nextStop();
@@ -613,6 +649,7 @@ public class FarmingRunModule implements IronHubModule
 		{
 			return;
 		}
+		attributeXpTo(next);
 		visited.add(next.location.id);
 		compostedHere = false;
 		if (visited.size() == stops.size())
@@ -639,9 +676,16 @@ public class FarmingRunModule implements IronHubModule
 		boolean changed = false;
 		for (Stop stop : stops)
 		{
-			changed |= visited.add(stop.location.id);
+			boolean added = visited.add(stop.location.id);
+			changed |= added;
 			if (stop.location.id.equals(locationId))
 			{
+				if (added)
+				{
+					// the marked stop is the one that was actually worked; the
+					// skipped ones before it did nothing to earn the delta
+					attributeXpTo(stop);
+				}
 				break;
 			}
 		}
@@ -684,6 +728,9 @@ public class FarmingRunModule implements IronHubModule
 		compostedHere = false;
 		runStartFarmingXp = state.getXp(net.runelite.api.Skill.FARMING);
 		runStartHerbCount = currentHerbCount();
+		lastAdvanceXp = runStartFarmingXp;
+		runXpByBucket.clear();
+		runStartHerbsById = herbCountsById();
 		runStartMs = System.currentTimeMillis();
 		// Switch the sidebar to the active run NOW — queued before routeToNext so
 		// a Shortest Path bridge hiccup can't leave the picker showing (the run
@@ -1092,6 +1139,23 @@ public class FarmingRunModule implements IronHubModule
 		if (wasRunning && complete)
 		{
 			state.recordHerbRun(System.currentTimeMillis() - runStartMs);
+			com.ironhub.state.PersistedState.FarmRunRecord record =
+				new com.ironhub.state.PersistedState.FarmRunRecord();
+			record.endMs = System.currentTimeMillis();
+			record.name = runName;
+			record.durationMs = record.endMs - runStartMs;
+			record.xpByBucket = new java.util.HashMap<>(runXpByBucket);
+			java.util.Map<Integer, Integer> herbsNow = herbCountsById();
+			for (java.util.Map.Entry<Integer, Integer> herb : herbsNow.entrySet())
+			{
+				int gained = herb.getValue()
+					- runStartHerbsById.getOrDefault(herb.getKey(), 0);
+				if (gained > 0)
+				{
+					record.herbsByType.put(herb.getKey(), gained);
+				}
+			}
+			state.recordFarmRun(record);
 		}
 		runStartMs = 0;
 		runName = "";
@@ -1910,6 +1974,89 @@ public class FarmingRunModule implements IronHubModule
 	static void publishSharedReadyPatches(int count)
 	{
 		sharedReadyPatches = count;
+	}
+
+	// ── run xp statistics (over the persisted completed-run log) ──────
+
+	/** Average of a per-record value across the run log, counting only
+	 *  records where it is positive. NaN with no qualifying record — the
+	 *  caller shows nothing, never an invented rate. */
+	static double averageRunValue(List<com.ironhub.state.PersistedState.FarmRunRecord> log,
+		java.util.function.ToDoubleFunction<com.ironhub.state.PersistedState.FarmRunRecord> value)
+	{
+		double total = 0;
+		int runs = 0;
+		for (com.ironhub.state.PersistedState.FarmRunRecord record : log)
+		{
+			double v = value.applyAsDouble(record);
+			if (v > 0)
+			{
+				total += v;
+				runs++;
+			}
+		}
+		return runs == 0 ? Double.NaN : total / runs;
+	}
+
+	/** Average Farming xp earned at tree-bucket stops per run that worked
+	 *  any ("trees only" — fruit/calquat/celastrus fold into the bucket). */
+	double avgTreeRunXp()
+	{
+		return averageRunValue(state.getFarmRunLog(),
+			r -> r.xpByBucket.getOrDefault("Trees", 0));
+	}
+
+	/** Average POTENTIAL Herblore xp per run that picked herbs: each grimy
+	 *  herb valued at cleaning + its standard potion (pack `herbs` table,
+	 *  joined from the wiki calculators). Unknown herb ids count nothing. */
+	double avgHerbPotentialXp()
+	{
+		return averageRunValue(state.getFarmRunLog(), r ->
+		{
+			double xp = 0;
+			for (java.util.Map.Entry<Integer, Integer> herb : r.herbsByType.entrySet())
+			{
+				FarmRunsPack.Herb entry = pack.herb(herb.getKey());
+				if (entry != null)
+				{
+					xp += herb.getValue() * entry.xp;
+				}
+			}
+			return xp;
+		});
+	}
+
+	/** Runs like the average until the NEXT level of a skill, or 0 when
+	 *  maxed / no average. */
+	static int runsToNextLevel(double avgXpPerRun, int currentXp)
+	{
+		if (Double.isNaN(avgXpPerRun) || avgXpPerRun <= 0)
+		{
+			return 0;
+		}
+		int level = net.runelite.api.Experience.getLevelForXp(currentXp);
+		if (level >= net.runelite.api.Experience.MAX_REAL_LEVEL)
+		{
+			return 0;
+		}
+		int remaining = net.runelite.api.Experience.getXpForLevel(level + 1) - currentXp;
+		return (int) Math.ceil(remaining / avgXpPerRun);
+	}
+
+	/** What the NEXT level of a skill unlocks (wiki level-up table), empty
+	 *  when nothing or maxed. */
+	List<String> nextLevelUnlocks(String skill, net.runelite.api.Skill apiSkill)
+	{
+		if (skillUnlocks == null)
+		{
+			return List.of();
+		}
+		int level = net.runelite.api.Experience.getLevelForXp(state.getXp(apiSkill));
+		if (level >= net.runelite.api.Experience.MAX_REAL_LEVEL)
+		{
+			return List.of();
+		}
+		return skillUnlocks.unlocks(skill, level + 1);
 	}
 
 	/** "5:40" from millis — static for testing. */
