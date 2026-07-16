@@ -437,3 +437,15 @@ the same claim varbit and the stop culls itself.
 
 **NMZ herb boxes are ironman-blocked by the game** — core literally checks
 `IRONMAN == 0` — so they are not in the pack at all.
+
+## Swing/data gotcha — never key a HashMap by an enum and iterate it
+
+Java enums inherit `Object.hashCode()`, i.e. an **identity** hash, so a
+`HashMap<SomeEnum, V>` iterates in a different order on every JVM run. Anything
+that renders that order (a tile strip, a tab bar, a list) will silently
+rearrange itself between sessions — which is exactly what the farm overview's
+category tiles did, because the vendored `FarmingTracker.buildCustomTabData`
+used a `HashMap<Tab, ...>` while the rest of that class already used `EnumMap`.
+
+Use `EnumMap` (iterates in ordinal order) or a `TreeMap`, and have the UI state
+its display order explicitly rather than inheriting a map's iteration order.

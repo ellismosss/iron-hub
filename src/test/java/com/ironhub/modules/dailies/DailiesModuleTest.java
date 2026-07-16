@@ -45,7 +45,7 @@ public class DailiesModuleTest
 	{
 		DailiesModule module = new DailiesModule(state, new IronHubConfig()
 		{
-		}, new DataPack(new Gson()), null, null, null, notifier, null, null);
+		}, new DataPack(new Gson()), null, null, null, notifier, null, null, null);
 		module.startUp();
 		return module;
 	}

@@ -10,12 +10,15 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 import java.util.StringJoiner;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -176,6 +179,8 @@ class DailiesTab extends JPanel
 	{
 		int outstanding = module.outstanding();
 		body.add(new SectionLabel("Dailies"));
+		body.add(tileStrip());
+		body.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		// The count belongs to the button below — one number per fact.
 		JLabel summary = new JLabel("Resets daily at 00:00 UTC");
 		summary.setForeground(UiTokens.TEXT_FAINT);
@@ -300,6 +305,106 @@ class DailiesTab extends JPanel
 			tooltip.add(daily.note);
 		}
 		return "<html><body style='width:240px'>" + tooltip + "</body></html>";
+	}
+
+	// ── status tiles ─────────────────────────────────────────────────
+
+	/**
+	 * A tile per event, in the pack's route order — the Farm runs overview
+	 * strip, minus the click-to-expand (a daily has no patch list to open;
+	 * the checklist below already carries the detail).
+	 */
+	private JComponent tileStrip()
+	{
+		List<DailiesPack.Daily> dailies = module.pack().dailies;
+		JPanel strip = new JPanel(new GridLayout(0, 5, 4, 4));
+		strip.setOpaque(false);
+		strip.setAlignmentX(LEFT_ALIGNMENT);
+		int rows = (dailies.size() + 4) / 5;
+		strip.setMaximumSize(new Dimension(Integer.MAX_VALUE, rows * (TILE_H + 4)));
+		for (DailiesPack.Daily daily : dailies)
+		{
+			strip.add(tile(daily));
+		}
+		return strip;
+	}
+
+	private DailyTile tile(DailiesPack.Daily daily)
+	{
+		DailyTracker.State current = module.stateOf(daily);
+		boolean selected = state.isDailySelected(daily.id);
+		DailyTile tile = new DailyTile(selected ? statusColor(current) : null, !selected,
+			checklistTooltip(daily, current));
+		if (module.itemManager() != null)
+		{
+			net.runelite.client.util.AsyncBufferedImage img =
+				module.itemManager().getImage(daily.icon);
+			img.onLoaded(() -> tile.setIconImage(
+				img.getScaledInstance(TILE_ICON, TILE_ICON, java.awt.Image.SCALE_SMOOTH)));
+		}
+		return tile;
+	}
+
+	private static final int TILE_W = 34;
+	private static final int TILE_H = 30;
+	private static final int TILE_ICON = 24;
+
+	/**
+	 * One event's sprite with a 1px status border, painted like the farm
+	 * overview's tiles. A tile you have unticked gets no border at all and a
+	 * dimmed fill — the same "not part of your routine" reading the farm's
+	 * nothing-planted tiles have, so an amber "go do this" never shows for
+	 * something you said you don't care about.
+	 */
+	private static class DailyTile extends JComponent
+	{
+		private java.awt.Image icon;
+		private final Color border; // null = deselected, no border
+		private final boolean dim;
+
+		DailyTile(Color border, boolean dim, String tooltip)
+		{
+			this.border = border;
+			this.dim = dim;
+			setPreferredSize(new Dimension(TILE_W, TILE_H));
+			setMinimumSize(new Dimension(TILE_W, TILE_H));
+			setToolTipText(tooltip);
+		}
+
+		void setIconImage(java.awt.Image image)
+		{
+			this.icon = image;
+			repaint();
+		}
+
+		@Override
+		protected void paintComponent(java.awt.Graphics g)
+		{
+			java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+			g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+				java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+			int w = getWidth();
+			int h = getHeight();
+			g2.setColor(dim ? UiTokens.TILE_BG_LOCKED : UiTokens.ICON_BUTTON_BG);
+			g2.fillRect(0, 0, w, h);
+			if (icon != null)
+			{
+				if (dim)
+				{
+					g2.setComposite(java.awt.AlphaComposite.getInstance(
+						java.awt.AlphaComposite.SRC_OVER, 0.35f));
+				}
+				g2.drawImage(icon, (w - TILE_ICON) / 2, (h - TILE_ICON) / 2, null);
+				g2.setComposite(java.awt.AlphaComposite.SrcOver);
+			}
+			if (border != null)
+			{
+				g2.setColor(border);
+				g2.setStroke(new java.awt.BasicStroke(1));
+				g2.drawRect(0, 0, w - 1, h - 1);
+			}
+			g2.dispose();
+		}
 	}
 
 	// ── local atoms (the FarmingTab/LoadoutTab pattern) ───────────────

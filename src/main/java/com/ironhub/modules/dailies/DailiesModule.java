@@ -27,6 +27,7 @@ import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.Notifier;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
@@ -58,6 +59,7 @@ public class DailiesModule implements IronHubModule
 	private final EventBus eventBus;               // null in unit tests
 	private final Notifier notifier;               // null in unit tests
 	private final ShortestPathBridge pathBridge;   // null in unit tests
+	private final ItemManager itemManager;         // null in unit tests
 
 	private DailiesTab tab;
 	private DailiesInfoBox infoBox;
@@ -93,8 +95,9 @@ public class DailiesModule implements IronHubModule
 	public DailiesModule(AccountState state, IronHubConfig config, DataPack dataPack,
 		InfoBoxManager infoBoxManager, Provider<com.ironhub.IronHubPlugin> plugin,
 		EventBus eventBus, Notifier notifier, OverlayManager overlayManager,
-		ShortestPathBridge pathBridge)
+		ShortestPathBridge pathBridge, ItemManager itemManager)
 	{
+		this.itemManager = itemManager;
 		this.eventBus = eventBus;
 		this.notifier = notifier;
 		this.state = state;
@@ -530,6 +533,12 @@ public class DailiesModule implements IronHubModule
 	AccountState state()
 	{
 		return state;
+	}
+
+	/** Null in headless tests — the tab renders its tiles without sprites. */
+	ItemManager itemManager()
+	{
+		return itemManager;
 	}
 
 	/** mm:ss / h:mm:ss, matching the farm run timer. */

@@ -6,6 +6,7 @@
     {
       "id": "zaff_battlestaves",
       "name": "Zaff battlestaves",
+      "icon": 1391,
       "where": "Zaff, Varrock",
       "reset": "daily",
       "point": {
@@ -51,6 +52,7 @@
     {
       "id": "flax_bowstring",
       "name": "Flax keeper bowstrings",
+      "icon": 1777,
       "where": "Flax keeper, Seers' Village",
       "reset": "daily",
       "point": {
@@ -94,6 +96,7 @@
     {
       "id": "cromperty_essence",
       "name": "Cromperty pure essence",
+      "icon": 7936,
       "where": "Wizard Cromperty, East Ardougne",
       "reset": "daily",
       "point": {
@@ -128,6 +131,7 @@
     {
       "id": "bert_sand",
       "name": "Bert buckets of sand",
+      "icon": 1783,
       "where": "Bert, Yanille",
       "reset": "daily",
       "point": {
@@ -154,6 +158,7 @@
     {
       "id": "rantz_arrows",
       "name": "Rantz ogre arrows",
+      "icon": 2866,
       "where": "Rantz, Feldip Hills",
       "reset": "daily",
       "point": {
@@ -192,6 +197,7 @@
     {
       "id": "miscellania",
       "name": "Kingdom of Miscellania",
+      "icon": 995,
       "where": "Advisor Ghrim, Miscellania",
       "reset": "daily",
       "point": {
@@ -213,6 +219,7 @@
     {
       "id": "robin_bonemeal",
       "name": "Robin bonemeal & slime",
+      "icon": 4255,
       "where": "Robin, Port Phasmatys",
       "reset": "daily",
       "point": {
@@ -253,6 +260,7 @@
     {
       "id": "thirus_dynamite",
       "name": "Thirus dynamite",
+      "icon": 13572,
       "where": "Thirus, Lovakengj",
       "reset": "daily",
       "point": {
@@ -287,6 +295,7 @@
     {
       "id": "tears_of_guthix",
       "name": "Tears of Guthix",
+      "icon": 4704,
       "where": "Juna, Chasm of Tears",
       "reset": "rolling7",
       "point": {
@@ -310,6 +319,7 @@
     {
       "id": "lundail_runes",
       "name": "Lundail random runes",
+      "icon": 562,
       "where": "Lundail, Mage Arena bank (Wilderness)",
       "reset": "daily",
       "point": {

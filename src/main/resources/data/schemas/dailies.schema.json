@@ -14,10 +14,11 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "name", "where", "reset", "point", "reqs", "detection", "tiers", "bring"],
+        "required": ["id", "name", "icon", "where", "reset", "point", "reqs", "detection", "tiers", "bring"],
         "properties": {
           "id": {"type": "string", "pattern": "^[a-z0-9_]+$"},
           "name": {"type": "string", "minLength": 1},
+          "icon": {"type": "integer", "minimum": 1},
           "where": {"type": "string", "minLength": 1},
           "reset": {"enum": ["daily", "rolling7"]},
           "point": {

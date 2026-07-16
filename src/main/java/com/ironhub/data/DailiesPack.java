@@ -57,6 +57,8 @@ public class DailiesPack
 		public String name;
 		/** Where it happens, e.g. "Zaff, Varrock" — the wiki's own wording. */
 		public String where;
+		/** Item id for the tile sprite: the thing you actually collect. */
+		public int icon;
 		/** "daily" (00:00 UTC) or "rolling7" (7 days from your last visit). */
 		public String reset;
 		public Point point;

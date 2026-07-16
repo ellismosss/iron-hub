@@ -65,6 +65,7 @@ RUNELITE_TAG = "runelite-parent-1.12.32"
 DAILIES = [
     {
         "id": "zaff_battlestaves",
+        "icon": "BATTLESTAFF",
         "name": "Zaff battlestaves",
         "where": "Zaff, Varrock",
         "reset": "daily",
@@ -88,6 +89,7 @@ DAILIES = [
     },
     {
         "id": "flax_bowstring",
+        "icon": "BOW_STRING",
         "name": "Flax keeper bowstrings",
         "where": "Flax keeper, Seers' Village",
         "reset": "daily",
@@ -106,6 +108,7 @@ DAILIES = [
     },
     {
         "id": "cromperty_essence",
+        "icon": "BLANKRUNE_HIGH",   # pure essence
         "name": "Cromperty pure essence",
         "where": "Wizard Cromperty, East Ardougne",
         "reset": "daily",
@@ -123,6 +126,7 @@ DAILIES = [
     },
     {
         "id": "bert_sand",
+        "icon": "BUCKET_SAND",
         "name": "Bert buckets of sand",
         "where": "Bert, Yanille",
         "reset": "daily",
@@ -141,6 +145,7 @@ DAILIES = [
     },
     {
         "id": "rantz_arrows",
+        "icon": "OGRE_ARROW",
         "name": "Rantz ogre arrows",
         "where": "Rantz, Feldip Hills",
         "reset": "daily",
@@ -159,6 +164,7 @@ DAILIES = [
     },
     {
         "id": "miscellania",
+        "icon": "COINS",           # the coffer is the daily act
         "name": "Kingdom of Miscellania",
         "where": "Advisor Ghrim, Miscellania",
         "reset": "daily",
@@ -176,6 +182,7 @@ DAILIES = [
     },
     {
         "id": "robin_bonemeal",
+        "icon": "POT_BONEMEAL",
         "name": "Robin bonemeal & slime",
         "where": "Robin, Port Phasmatys",
         "reset": "daily",
@@ -195,6 +202,7 @@ DAILIES = [
     },
     {
         "id": "thirus_dynamite",
+        "icon": "LOVAKENGJ_DYNAMITE_POT",
         "name": "Thirus dynamite",
         "where": "Thirus, Lovakengj",
         "reset": "daily",
@@ -212,6 +220,7 @@ DAILIES = [
     },
     {
         "id": "tears_of_guthix",
+        "icon": "TOG_BOWL",
         "name": "Tears of Guthix",
         "where": "Juna, Chasm of Tears",
         # Not a fixed weekday: 7 days from your last visit, at 00:00 UTC.
@@ -240,6 +249,7 @@ DAILIES = [
     },
     {
         "id": "lundail_runes",
+        "icon": "CHAOSRUNE",       # one of the catalytic runes he hands out
         "name": "Lundail random runes",
         "where": "Lundail, Mage Arena bank (Wilderness)",
         "reset": "daily",
@@ -316,22 +326,21 @@ def fetch_wikitext() -> str:
     return open(cached).read()
 
 
-def gameval_varbit_ids() -> dict:
-    """VarbitID constant name -> id, straight from the client on the classpath."""
+def gameval_ids(cls: str, floor: int) -> dict:
+    """<CONSTANT NAME> -> id, straight from the client on the classpath."""
     jars = glob.glob(os.path.expanduser(
         "~/.gradle/caches/modules-2/files-2.1/net.runelite/runelite-api/*/*/runelite-api-*.jar"))
     jars = [j for j in jars if "sources" not in j and "javadoc" not in j]
     if not jars:
         raise SystemExit("no runelite-api jar in the Gradle cache — run a build first")
     out = subprocess.run(
-        ["javap", "-classpath", sorted(jars)[-1], "-constants",
-         "net.runelite.api.gameval.VarbitID"],
+        ["javap", "-classpath", sorted(jars)[-1], "-constants", cls],
         capture_output=True, text=True, check=True).stdout
     ids = {}
     for m in re.finditer(r"public static final int (\w+) = (\d+);", out):
         ids[m.group(1)] = int(m.group(2))
-    if len(ids) < 5000:
-        raise SystemExit(f"suspiciously small gameval VarbitID dump: {len(ids)}")
+    if len(ids) < floor:
+        raise SystemExit(f"suspiciously small {cls} dump: {len(ids)}")
     return ids
 
 
@@ -377,7 +386,7 @@ def check_wiki_still_lists(wikitext, dailies):
                 "re-check EXCLUDED against the wiki")
 
 
-def build(varbit_ids):
+def build(varbit_ids, item_ids):
     out = []
     for daily in DAILIES:
         if daily["id"] not in COORDS:
@@ -395,9 +404,13 @@ def build(varbit_ids):
         elif daily["mode"] not in ("manual",):
             raise SystemExit(f"{daily['id']}: mode {daily['mode']!r} needs a varbit")
 
+        if daily["icon"] not in item_ids:
+            raise SystemExit(
+                f"{daily['id']}: unknown gameval ItemID.{daily['icon']} — renamed in the client?")
         entry = {
             "id": daily["id"],
             "name": daily["name"],
+            "icon": item_ids[daily["icon"]],
             "where": daily["where"],
             "reset": daily["reset"],
             "point": {"x": x, "y": y, "plane": plane},
@@ -417,14 +430,16 @@ def build(varbit_ids):
 
 def main():
     wikitext = fetch_wikitext()
-    varbit_ids = gameval_varbit_ids()
+    varbit_ids = gameval_ids("net.runelite.api.gameval.VarbitID", 5000)
+    item_ids = gameval_ids("net.runelite.api.gameval.ItemID", 10000)
     validate_quest_tokens(DAILIES)
     check_wiki_still_lists(wikitext, DAILIES)
-    dailies = build(varbit_ids)
+    dailies = build(varbit_ids, item_ids)
 
     ids = [d["id"] for d in dailies]
     assert len(ids) == len(set(ids)), "duplicate daily ids"
     assert len(dailies) == len(DAILIES)
+    assert all(d["icon"] > 0 for d in dailies), "every event needs a tile icon"
     # Every varbit-backed event must resolve to a real, distinct varbit.
     flags = [d["detection"]["varbit"] for d in dailies if "varbit" in d["detection"]]
     assert len(flags) == len(set(flags)), "two events share a detection varbit"

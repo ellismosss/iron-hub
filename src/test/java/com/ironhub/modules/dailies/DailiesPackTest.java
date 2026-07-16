@@ -142,6 +142,41 @@ public class DailiesPackTest
 	}
 
 	/**
+	 * Every tile sprite must actually be the thing you collect. Cross-checked
+	 * against the item-name index, which is built from RuneLite's LEGACY ItemID
+	 * constants — an independent source from the gameval names the generator
+	 * resolves — so agreement proves the constant really is that item, not just
+	 * that it exists. (BLANKRUNE_HIGH is pure essence; BLANKRUNE is the rune
+	 * essence you did not want.)
+	 */
+	@Test
+	public void tileIconsAreTheItemTheyClaim()
+	{
+		com.ironhub.data.ItemNameIndex names = new com.ironhub.data.ItemNameIndex(new Gson());
+		assertIcon(names, "zaff_battlestaves", "Battlestaff");
+		assertIcon(names, "flax_bowstring", "Bow string");
+		assertIcon(names, "cromperty_essence", "Pure essence");
+		assertIcon(names, "bert_sand", "Bucket of sand");
+		assertIcon(names, "rantz_arrows", "Ogre arrow");
+		assertIcon(names, "robin_bonemeal", "Bonemeal");
+		assertIcon(names, "thirus_dynamite", "Dynamite pot");
+		assertIcon(names, "tears_of_guthix", "Stone bowl");
+		assertIcon(names, "lundail_runes", "Chaos rune");
+		// Coins is the one the index cannot answer: its legacy constant COINS is
+		// 617 (the fake/ground pile) and the real 995 has no legacy name, so it
+		// is pinned straight against the client instead.
+		assertEquals(net.runelite.api.gameval.ItemID.COINS, pack.daily("miscellania").icon);
+	}
+
+	private void assertIcon(com.ironhub.data.ItemNameIndex names, String id, String itemName)
+	{
+		Integer expected = names.idOf(itemName);
+		assertNotNull("no such item in the name index: " + itemName, expected);
+		assertEquals(id + "'s tile should show " + itemName,
+			(int) expected, pack.daily(id).icon);
+	}
+
+	/**
 	 * Tears of Guthix is the one event the game announces in chat rather than
 	 * in a varbit. The wording is transcribed identically by two independent
 	 * server emulators; it is matched as a substring, so it must stay free of
