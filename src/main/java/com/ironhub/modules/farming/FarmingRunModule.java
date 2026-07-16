@@ -152,7 +152,7 @@ public class FarmingRunModule implements IronHubModule
 	private FarmBankLayout bankLayout;
 	private FarmingTab tab;
 	private FarmingRunOverlay overlay;
-	private com.loadoutlab.ui.BankHighlightOverlay bankHighlight; // reuses Loadout Lab's green glow
+	private com.ironhub.ui.components.BankRestockOverlay bankHighlight; // bank-only green glow
 	private RunTimerInfoBox infoBox;
 	private final java.util.List<FarmReadyInfoBox> readyBoxes = new java.util.ArrayList<>();
 
@@ -244,8 +244,8 @@ public class FarmingRunModule implements IronHubModule
 		{
 			overlay = new FarmingRunOverlay(this);
 			overlayManager.add(overlay);
-			// green-glow the setup items still to withdraw, in Loadout Lab's style
-			bankHighlight = new com.loadoutlab.ui.BankHighlightOverlay(this::farmBankHighlight);
+			// green-glow the setup items still to withdraw (bank only)
+			bankHighlight = new com.ironhub.ui.components.BankRestockOverlay(this::farmBankHighlight);
 			overlayManager.add(bankHighlight);
 		}
 		if (infoBoxManager != null && itemManager != null)
@@ -998,9 +998,19 @@ public class FarmingRunModule implements IronHubModule
 		return cull(selectedRunLocations()).size();
 	}
 
+	/** The combined "start all" sequence's run name. */
+	static final String ALL_RUNS = "All runs";
+
 	void startAllRuns()
 	{
-		startRun("All runs", selectedRunLocations());
+		startRun(ALL_RUNS, selectedRunLocations());
+	}
+
+	/** True while the combined all-runs sequence is active — it has no
+	 *  run-level setup of its own; each stop's type bucket serves instead. */
+	boolean combinedRun()
+	{
+		return ALL_RUNS.equals(runName);
 	}
 
 	/** Start a saved custom run; unknown location ids are skipped. */
@@ -1248,8 +1258,27 @@ public class FarmingRunModule implements IronHubModule
 	FarmRunsPack.Teleport pickTeleport(FarmRunsPack.Location location)
 	{
 		// the player's explicit choice wins (Easy Farming-style per-location
-		// preference) — their call, even if the items aren't in hand yet
+		// preference) — their call, even if the items aren't in hand yet.
+		// A co-located patch's pref stands in when this one has none: prefs
+		// are stored per location id, and a pref saved before a same-site
+		// patch existed in the pack (the gnome fruit tree arrived after the
+		// tree) would otherwise silently miss it.
 		String preferred = state.getFarmTeleportPref(location.id);
+		if (preferred == null)
+		{
+			for (FarmRunsPack.Location sibling : pack.locations)
+			{
+				if (sibling != location && sibling.name.equals(location.name))
+				{
+					String siblingPref = state.getFarmTeleportPref(sibling.id);
+					if (siblingPref != null && hasTeleport(location, siblingPref))
+					{
+						preferred = siblingPref;
+						break;
+					}
+				}
+			}
+		}
 		if (preferred != null)
 		{
 			for (FarmRunsPack.Teleport teleport : location.teleports)
@@ -1275,6 +1304,34 @@ public class FarmingRunModule implements IronHubModule
 			}
 		}
 		return location.teleports.get(location.teleports.size() - 1);
+	}
+
+	private static boolean hasTeleport(FarmRunsPack.Location location, String teleportId)
+	{
+		for (FarmRunsPack.Teleport teleport : location.teleports)
+		{
+			if (teleport.id.equals(teleportId))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** Re-resolve every active stop's teleport — a preference changed mid-run
+	 *  must reach the overlay, not wait for the next run. */
+	void refreshStopTeleports()
+	{
+		if (!running())
+		{
+			return;
+		}
+		List<Stop> resolved = new java.util.ArrayList<>();
+		for (Stop stop : stops)
+		{
+			resolved.add(new Stop(stop.location, pickTeleport(stop.location)));
+		}
+		stops = List.copyOf(resolved);
 	}
 
 	private boolean ownsAll(FarmRunsPack.Teleport teleport)
@@ -1413,7 +1470,7 @@ public class FarmingRunModule implements IronHubModule
 	/** The setup buckets, in display order. Hespori is its own: the "run" is
 	 *  a boss fight, so its loadout is combat gear, not farming kit. */
 	static final List<String> SETUP_BUCKETS =
-		List.of("Trees", "Herbs", "Birdhouses", "Hespori", "Others");
+		List.of("Trees", "Hardwoods", "Herbs", "Birdhouses", "Hespori", "Others");
 
 	/** farmRunSetups key for a bucket setup — prefixed so a custom run named
 	 *  "Trees" can never collide with the Trees bucket. */
@@ -1431,8 +1488,9 @@ public class FarmingRunModule implements IronHubModule
 			case "fruit":
 			case "calquat":
 			case "celastrus":
-			case "hardwood":
 				return "Trees";
+			case "hardwood":
+				return "Hardwoods"; // teak/mahogany runs carry their own kit
 			case "herb":
 			case "allotment":
 			case "flower":
@@ -1456,10 +1514,15 @@ public class FarmingRunModule implements IronHubModule
 	 */
 	com.ironhub.state.PersistedState.SavedSetup activeSetup()
 	{
-		com.ironhub.state.PersistedState.SavedSetup own = state.getFarmRunSetup(runName);
-		if (own != null)
+		// the combined run never has a setup of its own — it is every run at
+		// once, so only the per-stop buckets make sense for it
+		if (!combinedRun())
 		{
-			return own;
+			com.ironhub.state.PersistedState.SavedSetup own = state.getFarmRunSetup(runName);
+			if (own != null)
+			{
+				return own;
+			}
 		}
 		Stop next = nextStop();
 		return next == null ? null
@@ -1635,54 +1698,59 @@ public class FarmingRunModule implements IronHubModule
 		return out;
 	}
 
-	/** True when a run has any patch ready to (re)work now — harvestable for
-	 *  its own categories, or bird houses done/empty. Drives the ready-first
-	 *  sort in the run picker. */
+	/**
+	 * True when a run has any of ITS OWN stops with work waiting: a patch to
+	 * harvest, but equally an empty/dead one to (re)plant — Luke's hardwood
+	 * patches were empty and wanting saplings while "harvestable" said
+	 * nothing was ready. Anything known and not confirmed-growing is work;
+	 * unknown stays silent (never invent readiness). Bird houses count when
+	 * done or empty, the contract when it wants attention. Drives the
+	 * ready-first lift, the auto-retick and the green row.
+	 */
 	boolean runReady(String name)
 	{
 		if (tracking == null)
 		{
 			return false;
 		}
-		java.util.Set<Tab> categories = new java.util.HashSet<>();
-		boolean birdhouse = false;
-		boolean contract = false;
 		for (FarmRunsPack.Location location : runLocations(name))
 		{
 			if (!isUnlocked(location))
 			{
 				continue;
 			}
+			if ("birdhouse".equals(location.category))
+			{
+				SummaryState summary = tracking.birdHouseSummary();
+				if (summary == SummaryState.COMPLETED || summary == SummaryState.EMPTY)
+				{
+					return true;
+				}
+				continue;
+			}
+			if ("contract".equals(location.category))
+			{
+				if (tracking.contractReady())
+				{
+					return true;
+				}
+				continue;
+			}
 			Tab tab = categoryTab(location.category);
-			if (tab != null)
+			if (tab == null)
 			{
-				categories.add(tab);
+				continue; // compost bins carry no patch state
 			}
-			else if ("birdhouse".equals(location.category))
+			for (StopPatch patch : patchesAt(location))
 			{
-				birdhouse = true;
-			}
-			else if ("contract".equals(location.category))
-			{
-				contract = true;
-			}
-		}
-		for (Tab tab : categories)
-		{
-			if (tracking.harvestable(tab))
-			{
-				return true;
+				if (patch.category == tab && patch.view != PatchView.GROWING
+					&& patch.view != PatchView.UNKNOWN)
+				{
+					return true; // harvest, cure, or an empty/dead patch to plant
+				}
 			}
 		}
-		if (birdhouse)
-		{
-			SummaryState summary = tracking.birdHouseSummary();
-			if (summary == SummaryState.COMPLETED || summary == SummaryState.EMPTY)
-			{
-				return true;
-			}
-		}
-		return contract && tracking.contractReady();
+		return false;
 	}
 
 	ItemManager itemManager()

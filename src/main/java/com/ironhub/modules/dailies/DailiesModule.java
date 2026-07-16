@@ -67,7 +67,7 @@ public class DailiesModule implements IronHubModule
 	private final net.runelite.client.plugins.banktags.TagManager tagManager; // null in tests
 	private final net.runelite.client.plugins.banktags.tabs.LayoutManager layoutManager; // null in tests
 	private com.ironhub.modules.farming.FarmBankLayout bankLayout;
-	private com.loadoutlab.ui.BankHighlightOverlay bankHighlight;
+	private com.ironhub.ui.components.BankRestockOverlay bankHighlight;
 
 	private DailiesTab tab;
 	private DailiesInfoBox infoBox;
@@ -174,8 +174,8 @@ public class DailiesModule implements IronHubModule
 		{
 			overlay = new DailiesRunOverlay(this);
 			overlayManager.add(overlay);
-			// the same green glow the farm run uses for what is still to withdraw
-			bankHighlight = new com.loadoutlab.ui.BankHighlightOverlay(this::bankHighlight);
+			// the same bank-only green glow the farm run uses for what is still to withdraw
+			bankHighlight = new com.ironhub.ui.components.BankRestockOverlay(this::bankHighlight);
 			overlayManager.add(bankHighlight);
 		}
 	}

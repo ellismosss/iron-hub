@@ -229,6 +229,7 @@ class FarmingTab extends JPanel
 					state.setFarmTeleportPref(loc.id, teleportId);
 				}
 			}
+			module.refreshStopTeleports(); // an active run's overlay follows immediately
 		});
 		row.add(combo, BorderLayout.CENTER);
 		return row;
@@ -334,17 +335,25 @@ class FarmingTab extends JPanel
 		setupPanel.repaint();
 	}
 
-	/** One run type's capture button — green once a setup is saved. */
+	/** Bucket just saved — its button reads "Saved" for a moment, because a
+	 *  click on an already-green button otherwise looks like nothing happened. */
+	private String justSavedBucket;
+
+	/** One run type's capture button — green once a setup is saved, with the
+	 *  saved item count in the tooltip so an overwrite is verifiable. */
 	private JLabel setupButton(String bucket)
 	{
-		boolean saved = state.getFarmRunSetup(FarmingRunModule.bucketKey(bucket)) != null;
-		JLabel button = secondaryButton(bucket);
-		if (saved)
+		com.ironhub.state.PersistedState.SavedSetup existing =
+			state.getFarmRunSetup(FarmingRunModule.bucketKey(bucket));
+		boolean flash = bucket.equals(justSavedBucket);
+		JLabel button = secondaryButton(flash ? "Saved" : bucket);
+		if (existing != null)
 		{
 			button.setForeground(net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR);
 		}
-		button.setToolTipText(saved
-			? bucket + " setup saved — click to replace it with your current gear + inventory"
+		button.setToolTipText(existing != null
+			? bucket + " setup saved · " + setupItemCount(existing)
+				+ " items — click to replace it with your current gear + inventory"
 			: "Save your current gear + inventory as the " + bucket + " setup");
 		button.addMouseListener(new MouseAdapter()
 		{
@@ -352,9 +361,45 @@ class FarmingTab extends JPanel
 			public void mousePressed(MouseEvent e)
 			{
 				state.saveFarmRunSetup(FarmingRunModule.bucketKey(bucket), state.captureSetup());
+				justSavedBucket = bucket;
+				javax.swing.Timer restore = new javax.swing.Timer(1500, done ->
+				{
+					justSavedBucket = null;
+					rebuildSetups();
+				});
+				restore.setRepeats(false);
+				restore.start();
 			}
 		});
 		return button;
+	}
+
+	/** Worn pieces + occupied inventory slots in a setup — the number that
+	 *  proves a fresh capture actually replaced the old one. */
+	static int setupItemCount(com.ironhub.state.PersistedState.SavedSetup setup)
+	{
+		int count = 0;
+		if (setup.equipment != null)
+		{
+			for (Integer id : setup.equipment.values())
+			{
+				if (id != null && id > 0)
+				{
+					count++;
+				}
+			}
+		}
+		if (setup.inventory != null)
+		{
+			for (int id : setup.inventory)
+			{
+				if (id > 0)
+				{
+					count++;
+				}
+			}
+		}
+		return count;
 	}
 
 	void dispose()
@@ -852,41 +897,46 @@ class FarmingTab extends JPanel
 		// End run lives in the top bar; here we keep the setup control + stops.
 		// Remember this run's gear + inventory so the bank shows it (Inventory
 		// Setups style) — the whole loadout, in the right slots, to re-gather.
-		boolean hasSetup = state.getFarmRunSetup(module.runName()) != null;
-		JLabel saveSetup = secondaryButton(
-			hasSetup ? "Update bank setup" : "Save gear + inventory as bank setup");
-		saveSetup.setToolTipText("Snapshot your worn gear and inventory now; while this "
-			+ "run is active, opening the bank lays it out for you to re-stock fast");
-		saveSetup.addMouseListener(new java.awt.event.MouseAdapter()
+		// The combined all-runs sequence gets no run-level setup: each stop's
+		// type bucket (Gear & inventory section) serves it instead.
+		if (!module.combinedRun())
 		{
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
-			{
-				state.saveFarmRunSetup(module.runName(), state.captureSetup());
-				rebuild();
-			}
-		});
-		runs.add(saveSetup);
-		if (hasSetup)
-		{
-			JLabel clear = new JLabel("Clear setup");
-			clear.setForeground(UiTokens.TEXT_MUTED);
-			clear.setFont(clear.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-			clear.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			clear.setAlignmentX(LEFT_ALIGNMENT);
-			clear.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
-			clear.addMouseListener(new java.awt.event.MouseAdapter()
+			boolean hasSetup = state.getFarmRunSetup(module.runName()) != null;
+			JLabel saveSetup = secondaryButton(
+				hasSetup ? "Update bank setup" : "Save gear + inventory as bank setup");
+			saveSetup.setToolTipText("Snapshot your worn gear and inventory now; while this "
+				+ "run is active, opening the bank lays it out for you to re-stock fast");
+			saveSetup.addMouseListener(new java.awt.event.MouseAdapter()
 			{
 				@Override
 				public void mousePressed(java.awt.event.MouseEvent e)
 				{
-					state.saveFarmRunSetup(module.runName(), null);
+					state.saveFarmRunSetup(module.runName(), state.captureSetup());
 					rebuild();
 				}
 			});
-			runs.add(clear);
+			runs.add(saveSetup);
+			if (hasSetup)
+			{
+				JLabel clear = new JLabel("Clear setup");
+				clear.setForeground(UiTokens.TEXT_MUTED);
+				clear.setFont(clear.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+				clear.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+				clear.setAlignmentX(LEFT_ALIGNMENT);
+				clear.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
+				clear.addMouseListener(new java.awt.event.MouseAdapter()
+				{
+					@Override
+					public void mousePressed(java.awt.event.MouseEvent e)
+					{
+						state.saveFarmRunSetup(module.runName(), null);
+						rebuild();
+					}
+				});
+				runs.add(clear);
+			}
+			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
-		runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 
 		FarmingRunModule.Stop next = module.nextStop();
 		for (FarmingRunModule.Stop stop : module.stops())

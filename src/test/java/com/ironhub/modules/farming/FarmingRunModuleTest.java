@@ -726,7 +726,7 @@ public class FarmingRunModuleTest
 		assertEquals("Trees", FarmingRunModule.setupBucket("tree"));
 		assertEquals("Trees", FarmingRunModule.setupBucket("fruit"));
 		assertEquals("Trees", FarmingRunModule.setupBucket("calquat"));
-		assertEquals("Trees", FarmingRunModule.setupBucket("hardwood"));
+		assertEquals("Hardwoods", FarmingRunModule.setupBucket("hardwood"));
 		assertEquals("Herbs", FarmingRunModule.setupBucket("herb"));
 		assertEquals("Herbs", FarmingRunModule.setupBucket("allotment"));
 		assertEquals("Herbs", FarmingRunModule.setupBucket("flower"));
@@ -899,20 +899,47 @@ public class FarmingRunModuleTest
 	}
 
 	@Test
-	public void runReadyWhenAPatchIsHarvestable()
+	public void runReadyWhenAPatchIsHarvestableOrWaitingForASeed()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 5L);
 		ConfigManager configManager = TimetrackingFixture.configManager();
 		FarmingRunModule module = module(state, configManager, null);
-		assertFalse(module.runReady("Herb run")); // no data yet
+		assertFalse(module.runReady("Herb run")); // no data yet — unknown stays silent
 
 		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
 			herbValue(Produce.RANARR, CropState.HARVESTABLE, 0), Instant.now().getEpochSecond());
 		module.refreshTracking();
 		assertTrue(module.runReady("Herb run"));   // a herb patch is harvestable
 		assertFalse(module.runReady("Tree run"));   // no tree data
+
+		// growing = genuinely nothing to do there
+		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
+			herbValue(Produce.RANARR, CropState.GROWING, 0), Instant.now().getEpochSecond());
+		module.refreshTracking();
+		assertFalse(module.runReady("Herb run"));
+
+		// but an EMPTY patch is work too — you go there to plant (Luke's
+		// hardwoods were empty while "harvestable" said not-ready)
+		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
+			weedsValue(), Instant.now().getEpochSecond());
+		module.refreshTracking();
+		assertTrue(module.runReady("Herb run"));
 		module.shutDown();
+	}
+
+	/** A herb varbit value decoding to weeds — the empty, plantable patch. */
+	private static int weedsValue()
+	{
+		for (int value = 0; value < 256; value++)
+		{
+			PatchState state = PatchImplementation.HERB.forVarbitValue(value);
+			if (state != null && state.getProduce() == Produce.WEEDS)
+			{
+				return value;
+			}
+		}
+		throw new IllegalStateException("no weeds varbit value");
 	}
 
 	@Test
@@ -1180,6 +1207,76 @@ public class FarmingRunModuleTest
 		// clearing the preference returns to the owned-first auto-pick
 		state.setFarmTeleportPref("herb/ardougne", null);
 		assertFalse("Ardy_cloak".equals(module.pickTeleport(ardougne).id));
+		module.shutDown();
+	}
+
+	/**
+	 * A teleport preference reaches every co-located patch, even one whose
+	 * pack id didn't exist when the pref was saved (the gnome fruit tree
+	 * arrived after the tree) — and an active run's stops re-resolve when a
+	 * pref changes, so the overlay never shows yesterday's teleport.
+	 */
+	@Test
+	public void teleportPrefsCoverSiblingsAndReachTheActiveRun()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		// saplings so the gnome stops survive culling
+		StateFixture.bank(state, Map.of(5370, 20, 5496, 20));
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+		FarmRunsPack.Location fruit = module.pack().location("fruit/gnome-stronghold");
+
+		// the pref was saved on the TREE id only — the fruit stop still honours it
+		state.setFarmTeleportPref("tree/gnome-stronghold", "Spirit_Tree");
+		assertEquals("Spirit_Tree", module.pickTeleport(fruit).id);
+
+		// its own pref (or auto-pick) still wins over a sibling's
+		state.setFarmTeleportPref("fruit/gnome-stronghold", "Royal_seed_pod");
+		assertEquals("Royal_seed_pod", module.pickTeleport(fruit).id);
+
+		// mid-run pref change: the resolved stop follows after a refresh
+		state.setFarmTeleportPref("fruit/gnome-stronghold", null);
+		state.setFarmTeleportPref("tree/gnome-stronghold", null);
+		state.saveFarmRun("Gnome", List.of("fruit/gnome-stronghold"));
+		module.startCustom("Gnome");
+		String before = module.stops().get(0).teleport.id;
+		assertFalse("Spirit_Tree".equals(before)); // auto-pick (nothing owned) isn't the pref
+		state.setFarmTeleportPref("fruit/gnome-stronghold", "Spirit_Tree");
+		module.refreshStopTeleports();
+		assertEquals("Spirit_Tree", module.stops().get(0).teleport.id);
+		module.endRun(false);
+		module.shutDown();
+	}
+
+	/** The combined all-runs sequence never uses a run-level setup — only
+	 *  the per-stop type buckets. */
+	@Test
+	public void combinedRunIgnoresARunLevelSetup()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+
+		com.ironhub.state.PersistedState.SavedSetup stale =
+			new com.ironhub.state.PersistedState.SavedSetup();
+		stale.inventory = new int[]{999};
+		stale.inventoryQty = new int[]{1};
+		state.saveFarmRunSetup(FarmingRunModule.ALL_RUNS, stale); // e.g. saved before this rule
+		com.ironhub.state.PersistedState.SavedSetup herbs =
+			new com.ironhub.state.PersistedState.SavedSetup();
+		herbs.inventory = new int[]{8013};
+		herbs.inventoryQty = new int[]{1};
+		state.saveFarmRunSetup(FarmingRunModule.bucketKey("Herbs"), herbs);
+
+		for (String name : module.pickerOrder())
+		{
+			state.setFarmRunSelected(name, name.equals("Herb run"));
+		}
+		module.startAllRuns();
+		assertTrue(module.combinedRun());
+		assertEquals("the stop's bucket, never the stale run-level setup",
+			8013, module.activeSetup().inventory[0]);
+		module.endRun(false);
 		module.shutDown();
 	}
 
