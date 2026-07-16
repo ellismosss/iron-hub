@@ -510,6 +510,151 @@ public class FarmingRunModuleTest
 		module.shutDown();
 	}
 
+	/**
+	 * The picker order is the player's (up/down arrows), persisted — never an
+	 * auto-sort that reshuffles under the arrows. Stored names that no longer
+	 * exist drop out; new runs append in default order.
+	 */
+	@Test
+	public void pickerOrderIsThePlayersAndPersists()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+
+		// default: the pack's route order, Herb run first
+		assertEquals("Herb run", module.pickerOrder().get(0));
+
+		module.moveRun("Herb run", 1);
+		assertEquals(List.of("All trees run", "Herb run"), module.pickerOrder().subList(0, 2));
+		module.moveRun("Herb run", -1);
+		assertEquals("Herb run", module.pickerOrder().get(0));
+
+		// the ends don't wrap or throw
+		module.moveRun("Herb run", -1);
+		assertEquals("Herb run", module.pickerOrder().get(0));
+
+		// a stored name that no longer exists is ignored; missing runs append
+		state.setFarmRunOrder(List.of("Ghost run", "Fruit tree run"));
+		assertEquals("Fruit tree run", module.pickerOrder().get(0));
+		assertFalse(module.pickerOrder().contains("Ghost run"));
+		assertEquals(module.templateNames().size(), module.pickerOrder().size());
+
+		// and the order survives a fresh session
+		module.moveRun("Hops run", -1);
+		List<String> saved = module.pickerOrder();
+		module.shutDown();
+		AccountState reloaded = StateFixture.state(temp.getRoot());
+		StateFixture.profile(reloaded, 5L);
+		FarmingRunModule fresh = module(reloaded, TimetrackingFixture.configManager(), null);
+		assertEquals(saved, fresh.pickerOrder());
+		fresh.shutDown();
+	}
+
+	/**
+	 * Ticking a run that covers a smaller one (All trees over Tree run) greys
+	 * the smaller run out of the combined sequence — derived, not persisted,
+	 * so unticking the big run hands the small one back its own choice.
+	 */
+	@Test
+	public void supersededRunsDropOutOfTheCombinedSequence()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+
+		// defaults: everything ticked, so every superseder is live
+		assertEquals("All trees run", module.supersededBy("Tree run"));
+		assertEquals("All trees run", module.supersededBy("Fruit tree run"));
+		assertEquals("Allotment, flower & herb run", module.supersededBy("Herb run"));
+		assertEquals("Hop & bush run", module.supersededBy("Hops run"));
+		assertNull(module.supersededBy("All trees run"));
+		assertNull(module.supersededBy("Hardwood run"));
+
+		// the superseded Herb run contributes nothing — even its stops the
+		// bigger run doesn't cover (Troll Stronghold has no allotment)
+		List<String> ids = module.selectedRunLocations().stream()
+			.map(l -> l.id).collect(java.util.stream.Collectors.toList());
+		assertFalse(ids.contains("herb/troll-stronghold"));
+		assertTrue(ids.contains("herb/falador")); // via the allotment run
+
+		// untick the big run: the Herb run is its own again, stops restored
+		state.setFarmRunSelected("Allotment, flower & herb run", false);
+		assertNull(module.supersededBy("Herb run"));
+		assertTrue(module.selectedRunLocations().stream()
+			.anyMatch(l -> l.id.equals("herb/troll-stronghold")));
+
+		// every superseded name is a real run (a rename would silently
+		// disconnect the pair)
+		for (List<String> superseded : FarmingRunModule.SUPERSEDES.values())
+		{
+			for (String name : superseded)
+			{
+				assertFalse("SUPERSEDES names a run that doesn't exist: " + name,
+					module.runLocations(name).isEmpty());
+			}
+		}
+		for (String superseder : FarmingRunModule.SUPERSEDES.keySet())
+		{
+			assertFalse("SUPERSEDES keys a run that doesn't exist: " + superseder,
+				module.runLocations(superseder).isEmpty());
+		}
+		module.shutDown();
+	}
+
+	/**
+	 * "Configure gear & inventory" saves one setup per run TYPE; the bank
+	 * shows the run's own setup if it has one, else its type's. The type is
+	 * the majority bucket of the run's stops.
+	 */
+	@Test
+	public void bankSetupFallsBackToTheRunTypeBucket()
+	{
+		assertEquals("Trees", FarmingRunModule.setupBucket("tree"));
+		assertEquals("Trees", FarmingRunModule.setupBucket("fruit"));
+		assertEquals("Trees", FarmingRunModule.setupBucket("calquat"));
+		assertEquals("Trees", FarmingRunModule.setupBucket("hardwood"));
+		assertEquals("Herbs", FarmingRunModule.setupBucket("herb"));
+		assertEquals("Herbs", FarmingRunModule.setupBucket("allotment"));
+		assertEquals("Herbs", FarmingRunModule.setupBucket("flower"));
+		assertEquals("Birdhouses", FarmingRunModule.setupBucket("birdhouse"));
+		assertEquals("Others", FarmingRunModule.setupBucket("hops"));
+		assertEquals("Others", FarmingRunModule.setupBucket("compost"));
+
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+
+		// a Herbs-type setup saved from the config section
+		com.ironhub.state.PersistedState.SavedSetup herbs =
+			new com.ironhub.state.PersistedState.SavedSetup();
+		herbs.inventory = new int[]{8013};
+		herbs.inventoryQty = new int[]{4};
+		state.saveFarmRunSetup(FarmingRunModule.bucketKey("Herbs"), herbs);
+
+		// a herb run with no setup of its own falls back to the Herbs bucket
+		module.startTemplate("Herb run");
+		assertNotNull(module.activeSetup());
+		assertTrue(module.farmBankHighlight().contains(8013));
+
+		// the run's own setup wins over its bucket
+		com.ironhub.state.PersistedState.SavedSetup own =
+			new com.ironhub.state.PersistedState.SavedSetup();
+		own.inventory = new int[]{5291};
+		own.inventoryQty = new int[]{1};
+		state.saveFarmRunSetup("Herb run", own);
+		assertTrue(module.farmBankHighlight().contains(5291));
+		assertFalse(module.farmBankHighlight().contains(8013));
+		module.endRun(false);
+
+		// no setup anywhere: the bank is left alone
+		module.startTemplate("Supercompost run");
+		assertNull(module.activeSetup());
+		assertTrue(module.farmBankHighlight().isEmpty());
+		module.endRun(false);
+		module.shutDown();
+	}
+
 	@Test
 	public void overviewTilesMergeCalquatCelastrusIntoTreeAndSpecials()
 	{
@@ -888,7 +1033,15 @@ public class FarmingRunModuleTest
 		module.refreshTracking();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
-		((FarmingTab) tab).expandOverview(com.ironhub.modules.farming.rl.Tab.HERB); // show the per-patch list
+		state.saveFarmRunSetup(FarmingRunModule.bucketKey("Herbs"),
+			new com.ironhub.state.PersistedState.SavedSetup()); // one bucket saved (green)
+		// the seams rebuild the tab, so they run on the EDT — a direct call
+		// races the state-listener rebuild and doubles every row
+		SwingUtilities.invokeAndWait(() ->
+		{
+			((FarmingTab) tab).expandOverview(com.ironhub.modules.farming.rl.Tab.HERB); // per-patch list
+			((FarmingTab) tab).expandSetups(); // the run-type setup buttons
+		});
 		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
 		assertTrue(image.getHeight() > 200);
 		java.io.File out = new java.io.File("build/reports/farming-tab.png");

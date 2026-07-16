@@ -349,7 +349,7 @@ public class FarmingRunModule implements IronHubModule
 		}
 		if (config.farmBankSetup() && running())
 		{
-			com.ironhub.state.PersistedState.SavedSetup setup = state.getFarmRunSetup(runName);
+			com.ironhub.state.PersistedState.SavedSetup setup = activeSetup();
 			if (setup != null)
 			{
 				bankLayout.apply(runName, setup);
@@ -842,22 +842,79 @@ public class FarmingRunModule implements IronHubModule
 	}
 
 	/**
-	 * Every run in the picker's order: ready ones first (something is waiting),
-	 * then the pack's own order, then saved custom runs. The list the tab draws
-	 * and the order "start all" walks are the same list, so they cannot drift.
+	 * Every run in the picker's order — the player's own order (up/down
+	 * arrows, persisted), reconciled against what exists: stored names that
+	 * are gone drop out, new runs append in default order (pack routes,
+	 * templates, then custom runs). No auto-sort: an order that reshuffles
+	 * itself makes the arrows a lie, so "Ready" is a label, not a position.
+	 * The list the tab draws and the order "start all" walks are the same
+	 * list, so they cannot drift.
 	 */
 	List<String> pickerOrder()
 	{
 		List<String> names = new java.util.ArrayList<>(templateNames());
-		names.sort(java.util.Comparator.comparing(n -> !runReady(n)));
 		names.addAll(new java.util.TreeMap<>(state.getFarmRuns()).keySet());
-		return names;
+		List<String> out = new java.util.ArrayList<>();
+		for (String stored : state.getFarmRunOrder())
+		{
+			if (names.remove(stored))
+			{
+				out.add(stored);
+			}
+		}
+		out.addAll(names);
+		return out;
+	}
+
+	/** Move a run up (delta -1) or down (+1) in the picker, persisting the
+	 *  whole reconciled order so it survives sessions. */
+	void moveRun(String name, int delta)
+	{
+		List<String> order = pickerOrder();
+		int from = order.indexOf(name);
+		int to = from + delta;
+		if (from < 0 || to < 0 || to >= order.size())
+		{
+			return;
+		}
+		order.set(from, order.get(to));
+		order.set(to, name);
+		state.setFarmRunOrder(order);
 	}
 
 	/** Runs ticked into the combined sequence (all of them, until you say not). */
 	boolean runSelected(String name)
 	{
 		return state.isFarmRunSelected(name);
+	}
+
+	/**
+	 * Runs whose selection makes a smaller run redundant — stated (like
+	 * RUN_ICONS), not computed from stop containment, because the wiki's
+	 * Allotment/flower/herb route deliberately omits the allotment-less herb
+	 * sites (Troll Stronghold, Weiss) yet still stands in for the Herb run
+	 * per Luke's direction.
+	 */
+	static final java.util.Map<String, List<String>> SUPERSEDES = java.util.Map.of(
+		"All trees run", List.of("Tree run", "Fruit tree run"),
+		"Allotment, flower & herb run", List.of("Herb run"),
+		"Hop & bush run", List.of("Hops run"));
+
+	/**
+	 * The selected run that makes this one redundant, or null. Derived, never
+	 * persisted: unticking the big run hands the small one straight back to
+	 * its own stored choice.
+	 */
+	String supersededBy(String name)
+	{
+		for (java.util.Map.Entry<String, List<String>> entry : SUPERSEDES.entrySet())
+		{
+			if (entry.getValue().contains(name) && runSelected(entry.getKey()))
+			{
+				return entry.getKey();
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -872,7 +929,7 @@ public class FarmingRunModule implements IronHubModule
 			new java.util.LinkedHashMap<>();
 		for (String name : pickerOrder())
 		{
-			if (!runSelected(name))
+			if (!runSelected(name) || supersededBy(name) != null)
 			{
 				continue;
 			}
@@ -1291,7 +1348,72 @@ public class FarmingRunModule implements IronHubModule
 		{
 			return java.util.Set.of();
 		}
-		return state.setupItemsToWithdraw(state.getFarmRunSetup(runName));
+		return state.setupItemsToWithdraw(activeSetup());
+	}
+
+	// ── run-type bank setups (Trees / Herbs / Birdhouses / Others) ────
+
+	/** The four setup buckets, in display order. */
+	static final List<String> SETUP_BUCKETS = List.of("Trees", "Herbs", "Birdhouses", "Others");
+
+	/** farmRunSetups key for a bucket setup — prefixed so a custom run named
+	 *  "Trees" can never collide with the Trees bucket. */
+	static String bucketKey(String bucket)
+	{
+		return "type:" + bucket;
+	}
+
+	/** The setup bucket a pack category restocks from. */
+	static String setupBucket(String category)
+	{
+		switch (category)
+		{
+			case "tree":
+			case "fruit":
+			case "calquat":
+			case "celastrus":
+			case "hardwood":
+				return "Trees";
+			case "herb":
+			case "allotment":
+			case "flower":
+				return "Herbs";
+			case "birdhouse":
+				return "Birdhouses";
+			default: // hops, bush, compost, anything new
+				return "Others";
+		}
+	}
+
+	/** The active run's bucket: the most common bucket among its stops
+	 *  (first-seen wins a tie); "Others" for an empty run. */
+	private String activeBucket()
+	{
+		java.util.LinkedHashMap<String, Integer> counts = new java.util.LinkedHashMap<>();
+		for (Stop stop : stops)
+		{
+			counts.merge(setupBucket(stop.location.category), 1, Integer::sum);
+		}
+		String best = "Others";
+		int bestCount = 0;
+		for (java.util.Map.Entry<String, Integer> entry : counts.entrySet())
+		{
+			if (entry.getValue() > bestCount)
+			{
+				best = entry.getKey();
+				bestCount = entry.getValue();
+			}
+		}
+		return best;
+	}
+
+	/** The setup the bank should show for the active run: its own saved
+	 *  setup if the player made one, else its run-type bucket's. Null when
+	 *  neither exists (the bank is left alone). */
+	com.ironhub.state.PersistedState.SavedSetup activeSetup()
+	{
+		com.ironhub.state.PersistedState.SavedSetup own = state.getFarmRunSetup(runName);
+		return own != null ? own : state.getFarmRunSetup(bucketKey(activeBucket()));
 	}
 
 	// ── patch views over the vendored predictions ─────────────────────

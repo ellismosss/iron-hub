@@ -65,6 +65,11 @@ class FarmingTab extends JPanel
 	private final JLabel teleportHeader = new JLabel("Teleport preferences");
 	private final JPanel teleportPanel = new JPanel();
 	private boolean teleportsOpen;
+	// "Configure gear & inventory" is the ask, but the letter-spaced header
+	// clips past 225 px — the tooltip carries the longer intent
+	private final JLabel setupHeader = new JLabel("Gear & inventory");
+	private final JPanel setupPanel = new JPanel();
+	private boolean setupsOpen;
 
 	// run builder state
 	private boolean builderOpen;
@@ -110,6 +115,8 @@ class FarmingTab extends JPanel
 
 		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 		add(buildTeleportSection());
+		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
+		add(buildSetupSection());
 		add(Box.createVerticalGlue());
 
 		state.addListener(listener);
@@ -254,6 +261,101 @@ class FarmingTab extends JPanel
 		return 0;
 	}
 
+	/**
+	 * Collapsible "Configure gear & inventory": one button per run type
+	 * (Trees / Herbs / Birdhouses / Others) that snapshots the player's
+	 * current gear + inventory as that type's bank setup. During a run of
+	 * that type the bank lays the setup out (a run's own saved setup, made
+	 * from the active-run view, still wins).
+	 */
+	private JPanel buildSetupSection()
+	{
+		JPanel section = new JPanel();
+		section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
+		section.setOpaque(false);
+		section.setAlignmentX(LEFT_ALIGNMENT);
+
+		setupHeader.setForeground(UiTokens.TEXT_MUTED);
+		setupHeader.setFont(SectionLabel.letterSpaced(
+			setupHeader.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LABEL),
+			UiTokens.LETTER_SPACING_LABEL));
+		setupHeader.setIcon(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+		setupHeader.setIconTextGap(UiTokens.ROW_GAP);
+		setupHeader.setAlignmentX(LEFT_ALIGNMENT);
+		setupHeader.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		setupHeader.setToolTipText("Save your current gear + inventory as the bank "
+			+ "setup for each type of run");
+		setupHeader.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				setupsOpen = !setupsOpen;
+				setupHeader.setIcon(new PaintedIcon(setupsOpen
+					? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+				setupPanel.setVisible(setupsOpen);
+				rebuildSetups();
+			}
+		});
+		section.add(setupHeader);
+
+		setupPanel.setLayout(new BoxLayout(setupPanel, BoxLayout.Y_AXIS));
+		setupPanel.setOpaque(false);
+		setupPanel.setAlignmentX(LEFT_ALIGNMENT);
+		setupPanel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
+		setupPanel.setVisible(false);
+		section.add(setupPanel);
+		return section;
+	}
+
+	private void rebuildSetups()
+	{
+		setupPanel.removeAll();
+		if (setupsOpen)
+		{
+			// the width pin makes the html label report its true wrapped height
+			// (BoxLayout otherwise sizes it for one line and clips the rest)
+			setupPanel.add(hint("<div style='width:180px'>Wear and carry the loadout "
+				+ "you restock with, then click its run type. The bank shows it "
+				+ "during those runs.</div>", UiTokens.TEXT_FAINT));
+			JPanel grid = new JPanel(new java.awt.GridLayout(2, 2, UiTokens.PAD_TIGHT, UiTokens.PAD_TIGHT));
+			grid.setOpaque(false);
+			grid.setAlignmentX(LEFT_ALIGNMENT);
+			grid.setMaximumSize(new Dimension(Integer.MAX_VALUE,
+				2 * UiTokens.BUTTON_HEIGHT + UiTokens.PAD_TIGHT));
+			for (String bucket : FarmingRunModule.SETUP_BUCKETS)
+			{
+				grid.add(setupButton(bucket));
+			}
+			setupPanel.add(grid);
+		}
+		setupPanel.revalidate();
+		setupPanel.repaint();
+	}
+
+	/** One run type's capture button — green once a setup is saved. */
+	private JLabel setupButton(String bucket)
+	{
+		boolean saved = state.getFarmRunSetup(FarmingRunModule.bucketKey(bucket)) != null;
+		JLabel button = secondaryButton(bucket);
+		if (saved)
+		{
+			button.setForeground(net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR);
+		}
+		button.setToolTipText(saved
+			? bucket + " setup saved — click to replace it with your current gear + inventory"
+			: "Save your current gear + inventory as the " + bucket + " setup");
+		button.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				state.saveFarmRunSetup(FarmingRunModule.bucketKey(bucket), state.captureSetup());
+			}
+		});
+		return button;
+	}
+
 	void dispose()
 	{
 		state.removeListener(listener);
@@ -266,6 +368,15 @@ class FarmingTab extends JPanel
 		rebuildOverview();
 	}
 
+	/** Test seam: open the Gear & inventory section (render checks). */
+	void expandSetups()
+	{
+		setupsOpen = true;
+		setupHeader.setIcon(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_DOWN, 10));
+		setupPanel.setVisible(true);
+		rebuildSetups();
+	}
+
 	void rebuild()
 	{
 		stats.setText(FarmingRunModule.statsLine(state.getHerbRunsMs()));
@@ -273,6 +384,7 @@ class FarmingTab extends JPanel
 		rebuildOverview();
 		rebuildRuns();
 		rebuildTeleports();
+		rebuildSetups();
 	}
 
 	/** During a run: a prominent End run button + live status, pinned to the
@@ -393,19 +505,6 @@ class FarmingTab extends JPanel
 		return "Ready";
 	}
 
-	private static Color statusColor(SummaryState summary, boolean harvestable)
-	{
-		if (harvestable || summary == SummaryState.COMPLETED)
-		{
-			return UiTokens.STATUS_AVAILABLE;
-		}
-		if (summary == SummaryState.EMPTY)
-		{
-			return UiTokens.TEXT_FAINT;
-		}
-		return UiTokens.TEXT_MUTED;
-	}
-
 	/**
 	 * Bird houses and the farming contract, in the runs list: things you go and
 	 * do, on their own schedule, that no route can start for you. Silent when
@@ -418,17 +517,8 @@ class FarmingTab extends JPanel
 		{
 			return;
 		}
-		long now = Instant.now().getEpochSecond();
-		SummaryState birds = tracking.birdHouseSummary();
-		if (birds != SummaryState.UNKNOWN)
-		{
-			boolean ready = birds == SummaryState.COMPLETED || birds == SummaryState.EMPTY;
-			runs.add(statusRow("Bird houses", Tab.BIRD_HOUSE.getItemID(),
-				birds == SummaryState.EMPTY ? "Empty"
-					: statusText(birds, ready, tracking.birdHouseCompletionTime(), now),
-				ready));
-			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		}
+		// No Bird houses row: the Birdhouse run above already carries their
+		// readiness (runReady reads the bird-house summary for it).
 		if (tracking.contract().hasContract())
 		{
 			boolean ready = tracking.contractReady();
@@ -450,7 +540,7 @@ class FarmingTab extends JPanel
 			new EmptyBorder(0, UiTokens.ROW_GAP, 0, UiTokens.ROW_GAP)));
 		row.setPreferredSize(new Dimension(0, UiTokens.ROW_HEIGHT));
 		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT));
-		row.add(Box.createHorizontalStrut(CHECK_WIDTH)); // line up with the run names
+		row.add(Box.createHorizontalStrut(ARROWS_WIDTH + CHECK_WIDTH)); // line up with the run names
 		row.add(spriteLabel(itemId));
 		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		JLabel label = new JLabel(name);
@@ -491,7 +581,10 @@ class FarmingTab extends JPanel
 	}
 
 	private static final int RUN_ICON = 18;
-	private static final int CHECK_WIDTH = 16;
+	/** A checkbox at its natural width — pinning it to a hardcoded 16 px
+	 *  squashed the check icon (the LAF's box plus insets is wider). */
+	private static final int CHECK_WIDTH = new JCheckBox().getPreferredSize().width;
+	private static final int ARROWS_WIDTH = 11;
 
 	/** Grid of clickable category icon tiles — the Time Tracking tab strip. */
 	private JComponent overviewTileStrip(java.util.Map<Tab, List<FarmingRunModule.OverviewPatch>> byCategory, long now)
@@ -977,7 +1070,11 @@ class FarmingTab extends JPanel
 	 */
 	private JPanel runRow(String name, Runnable start, Runnable delete)
 	{
-		boolean selected = module.runSelected(name);
+		// selected but covered by a bigger ticked run (All trees over Tree run):
+		// greyed out of the combined sequence until the big run is unticked —
+		// derived, so the small run's own choice survives untouched.
+		String supersededBy = module.supersededBy(name);
+		boolean selected = module.runSelected(name) && supersededBy == null;
 		boolean ready = module.runReady(name) && selected;
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
@@ -989,9 +1086,12 @@ class FarmingTab extends JPanel
 		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT));
 		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
+		row.add(reorderArrows(name));
 		JCheckBox include = new JCheckBox("", selected);
 		include.setOpaque(false);
-		include.setToolTipText("Include in Start all runs");
+		include.setEnabled(supersededBy == null);
+		include.setToolTipText(supersededBy != null
+			? "Covered by " + supersededBy : "Include in Start all runs");
 		include.setBorder(new EmptyBorder(0, 0, 0, 0));
 		include.setPreferredSize(new Dimension(CHECK_WIDTH, UiTokens.ROW_HEIGHT));
 		include.setMaximumSize(new Dimension(CHECK_WIDTH, UiTokens.ROW_HEIGHT));
@@ -1000,8 +1100,8 @@ class FarmingTab extends JPanel
 		row.add(runIcon(name));
 		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		JLabel label = new JLabel(name);
-		label.setForeground(ready
-			? net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR
+		label.setForeground(supersededBy != null ? UiTokens.TEXT_FAINT
+			: ready ? net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR
 			: UiTokens.TEXT_PRIMARY);
 		label.setFont(label.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
 		label.setMinimumSize(new Dimension(0, 0));
@@ -1036,6 +1136,53 @@ class FarmingTab extends JPanel
 			}
 		});
 		return row;
+	}
+
+	/** Two stacked triangles left of a run's checkbox: move it up/down the
+	 *  picker (and so the combined run's order). Persisted per profile. */
+	private JComponent reorderArrows(String name)
+	{
+		JPanel column = new JPanel();
+		column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
+		column.setOpaque(false);
+		Dimension size = new Dimension(ARROWS_WIDTH, UiTokens.ROW_HEIGHT);
+		column.setPreferredSize(size);
+		column.setMaximumSize(size);
+		column.add(Box.createVerticalGlue());
+		column.add(arrow(PaintedIcon.Shape.TRIANGLE_UP, "Move up", () -> module.moveRun(name, -1)));
+		column.add(arrow(PaintedIcon.Shape.TRIANGLE_DOWN, "Move down", () -> module.moveRun(name, 1)));
+		column.add(Box.createVerticalGlue());
+		return column;
+	}
+
+	private JLabel arrow(PaintedIcon.Shape shape, String tooltip, Runnable onClick)
+	{
+		JLabel arrow = new JLabel(new PaintedIcon(shape, 9));
+		arrow.setForeground(UiTokens.GLYPH_MUTED);
+		arrow.setToolTipText(tooltip);
+		arrow.setAlignmentX(LEFT_ALIGNMENT);
+		arrow.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		arrow.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				arrow.setForeground(UiTokens.ACCENT);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				arrow.setForeground(UiTokens.GLYPH_MUTED);
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				onClick.run(); // setFarmRunOrder notifies -> the tab rebuilds
+			}
+		});
+		return arrow;
 	}
 
 	/** Compact builder: name, one checkbox per pack location (route order

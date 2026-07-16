@@ -86,6 +86,8 @@ public class AccountState implements StateView
 	private final Map<String, String> farmTeleportPrefs = new ConcurrentHashMap<>();
 	/** Farm runs ticked into the combined "start all" run; absent = included. */
 	private final Map<String, Boolean> farmRunChoice = new ConcurrentHashMap<>();
+	/** The player's run-list order (names; unknown ignored, new appended). */
+	private final java.util.List<String> farmRunOrder = new CopyOnWriteArrayList<>();
 
 	/** Rolling consumption events for runway rates, capped. */
 	public static final int MAX_CONSUMPTION_EVENTS = 500;
@@ -518,6 +520,21 @@ public class AccountState implements StateView
 			persist();
 			notifyListeners();
 		}
+	}
+
+	/** The player's run-list order, as last saved (may name runs that no
+	 *  longer exist, and misses newly added ones — callers reconcile). */
+	public java.util.List<String> getFarmRunOrder()
+	{
+		return java.util.List.copyOf(farmRunOrder);
+	}
+
+	public void setFarmRunOrder(java.util.List<String> order)
+	{
+		farmRunOrder.clear();
+		farmRunOrder.addAll(order);
+		persist();
+		notifyListeners();
 	}
 
 	public String getFarmTeleportPref(String locationId)
@@ -1524,6 +1541,8 @@ public class AccountState implements StateView
 		farmTeleportPrefs.putAll(persisted.farmTeleportPrefs);
 		farmRunChoice.clear();
 		farmRunChoice.putAll(persisted.farmRunChoice);
+		farmRunOrder.clear();
+		farmRunOrder.addAll(persisted.farmRunOrder);
 		consumptionLog.clear();
 		consumptionLog.addAll(persisted.consumptionLog);
 		deaths.clear();
@@ -1586,6 +1605,7 @@ public class AccountState implements StateView
 		state.farmRunSetups = new HashMap<>(farmRunSetups);
 		state.farmTeleportPrefs = new HashMap<>(farmTeleportPrefs);
 		state.farmRunChoice = new HashMap<>(farmRunChoice);
+		state.farmRunOrder = new java.util.ArrayList<>(farmRunOrder);
 		state.consumptionLog = new java.util.ArrayList<>(consumptionLog);
 		state.deaths = new java.util.ArrayList<>(deaths);
 		state.selectedGoals = new HashSet<>(selectedGoals);
