@@ -108,4 +108,58 @@ public class DesignLabRenderTest
 			}
 		}
 	}
+
+	/**
+	 * The RuneScape TTF draws its ink floating high in the em box (caps span
+	 * baseline-12..baseline-2), and the game centers the visible INK — box,
+	 * icon and text centers are all equal in the wiki 1x screenshot. Pins
+	 * the measured-ink placement so a caps/digits label reads centered
+	 * (Luke, in-client 2026-07-16: text sat 2px high beside a centered icon)
+	 * and descender ink is never clipped away.
+	 */
+	@Test
+	public void labelInkCentersAndDescendersSurvive()
+	{
+		com.ironhub.ui.osrs.OsrsLabel caps = com.ironhub.ui.osrs.OsrsLabel.label("Total XP: 47,702,858");
+		java.awt.Rectangle ink = paintInk(caps);
+		double inkCenter = ink.y + (ink.height - 1) / 2.0;
+		double boxCenter = (caps.getHeight() - 1) / 2.0;
+		assertTrue("caps ink off-center: ink=" + ink + " in h=" + caps.getHeight(),
+			Math.abs(inkCenter - boxCenter) <= 1.0);
+
+		com.ironhub.ui.osrs.OsrsLabel descenders = com.ironhub.ui.osrs.OsrsLabel.label("gjpqy");
+		java.awt.Rectangle dInk = paintInk(descenders);
+		assertTrue("descender ink clipped: " + dInk + " in h=" + descenders.getHeight(),
+			dInk.y + dInk.height <= descenders.getHeight());
+	}
+
+	/**
+	 * Paint at preferred size into an oversized image (direct paint() is
+	 * unclipped, so overdraw past the component is visible) and bound the
+	 * COLORED ink rows — the game centers ink, shadows excluded.
+	 */
+	private static java.awt.Rectangle paintInk(com.ironhub.ui.osrs.OsrsLabel label)
+	{
+		java.awt.Dimension pref = label.getPreferredSize();
+		label.setSize(pref);
+		BufferedImage image = new BufferedImage(pref.width + 4, pref.height + 4, BufferedImage.TYPE_INT_RGB);
+		java.awt.Graphics2D g = image.createGraphics();
+		g.setColor(OsrsSkin.BOX_FILL);
+		g.fillRect(0, 0, image.getWidth(), image.getHeight());
+		label.paint(g);
+		int minY = Integer.MAX_VALUE, maxY = -1;
+		for (int y = 0; y < image.getHeight(); y++)
+		{
+			for (int x = 0; x < image.getWidth(); x++)
+			{
+				if (image.getRGB(x, y) == OsrsSkin.LABEL.getRGB())
+				{
+					minY = Math.min(minY, y);
+					maxY = Math.max(maxY, y);
+				}
+			}
+		}
+		assertTrue("label painted nothing", maxY >= 0);
+		return new java.awt.Rectangle(0, minY, pref.width, maxY - minY + 1);
+	}
 }

@@ -131,11 +131,16 @@ pattern is always **icon + green value** on one line under an orange label.
 | `StatBox` | orange label line(s) + centered icon+value line in a `StonePanel` |
 
 Implementation notes proven by the render: text uses the game's tight **12px line
-pitch**, not Swing's FontMetrics height (16) — the RuneScape font's real ink is 12px
-above / 1px below baseline, so FontMetrics-driven layout runs 4px/line taller than the
-game and the boxes stop matching. Antialiasing must be explicitly OFF or the pixel font
-smears. The quests/achievements spiral icons were cropped 1:1 from the wiki screenshot
-(opaque on `BOX_FILL`, which blends invisibly on our identical boxes).
+pitch**, not Swing's FontMetrics height (16) — FontMetrics-driven layout runs 4px/line
+taller than the game and the boxes stop matching. The TTF's ink placement is measured,
+not assumed: glyphs float high in the em box (caps/digits span baseline−12..baseline−2,
+descenders reach baseline+1), and the game centers the visible INK in its boxes (wiki
+1x: box, icon and text centers all equal) — so OsrsLabel's line block is 12n+4 with the
+first baseline at 14, which lands the caps+shadow mass dead-center and keeps descender
+ink un-clipped (positioning by nominal baseline read 2px high in-client). Antialiasing
+must be explicitly OFF or the pixel font smears. The quests/achievements spiral icons
+were cropped 1:1 from the wiki screenshot (opaque on `BOX_FILL`, which blends invisibly
+on our identical boxes).
 
 Proven in-client (2026-07-16, halved captions + off-center XP text): **a UI-less custom
 JComponent must override `getMinimumSize()`** — the default is its *current size*, 0×0

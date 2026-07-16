@@ -13,13 +13,28 @@ import javax.swing.JComponent;
  * Game-style text: the RuneScape font drawn crisp (no antialiasing) with the
  * +1,+1 black drop shadow every in-game string carries. Multi-line ('\n')
  * with each line centered, at the game's own tight 12px line pitch — Swing's
- * FontMetrics height (16) is 4px looser than the interface actually draws,
- * and the RuneScape font's real ink is only 12px above / 1px below baseline.
+ * FontMetrics height (16) is 4px looser than the interface actually draws.
+ *
+ * The vertical numbers are measured, not FontMetrics: RuneLite's RuneScape
+ * TTF draws its ink floating high in the em box — caps/digits span
+ * baseline-12 to baseline-2, descenders reach baseline+1. The game centers
+ * the visible INK in its boxes (wiki 1x: box, icon and text centers all
+ * equal), so the baseline sits at line bottom minus 2, which lands the
+ * common caps/digits mass dead-center; positioning by nominal baseline read
+ * 2px high (Luke, in-client 2026-07-16).
  */
 public class OsrsLabel extends JComponent
 {
 	private static final int LINE_PITCH = 12;
-	private static final int DESCENT = 2; // 1px descender ink + 1px shadow
+	/**
+	 * First-line baseline offset from the text block top, and the block's
+	 * rows beyond the pitch rows. Derived from the measured ink (caps span
+	 * baseline-12..baseline-2, descenders reach baseline+1): a 12n+4 block
+	 * with the first baseline at 14 centers the caps-plus-shadow mass
+	 * exactly and keeps descender ink inside the component.
+	 */
+	private static final int BASELINE = 14;
+	private static final int DESCENT = 4;
 
 	private final String[] lines;
 	private final Color color;
@@ -93,7 +108,7 @@ public class OsrsLabel extends JComponent
 		for (int i = 0; i < lines.length; i++)
 		{
 			int x = (getWidth() - fm.stringWidth(lines[i])) / 2;
-			int y = top + LINE_PITCH * (i + 1);
+			int y = top + BASELINE + LINE_PITCH * i;
 			g2.setColor(OsrsSkin.TEXT_SHADOW);
 			g2.drawString(lines[i], x + 1, y + 1);
 			g2.setColor(color);
