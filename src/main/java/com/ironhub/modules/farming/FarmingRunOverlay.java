@@ -54,11 +54,13 @@ class FarmingRunOverlay extends OverlayPanel
 		FarmingRunModule.Stop next = module.nextStop();
 		if (next != null)
 		{
+			// standing near the patch already: the teleport suggestion is noise
+			// (walking wins), so say so instead of naming a teleport
 			panelComponent.getChildren().add(LineComponent.builder()
 				.left("> " + module.stopLabel(next))
 				.leftColor(Color.WHITE)
-				.right(teleportLabel(next.teleport))
-				.rightColor(UiTokens.OVERLAY_VALUE)
+				.right(module.nearStop(next) ? "nearby" : teleportLabel(next.teleport))
+				.rightColor(module.nearStop(next) ? UiTokens.CANVAS_LOCKED : UiTokens.OVERLAY_VALUE)
 				.build());
 
 			List<FarmRunsPack.Item> missing = module.missingItems(next);

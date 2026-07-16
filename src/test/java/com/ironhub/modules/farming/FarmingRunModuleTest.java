@@ -1248,6 +1248,68 @@ public class FarmingRunModuleTest
 		module.shutDown();
 	}
 
+	/**
+	 * A combined run visits each SITE once: Catherby's fruit tree pulls up
+	 * behind its herb/allotment stops, and everything at the Farming Guild
+	 * (including the hespori cave beneath it) is one stop-over. Toggleable.
+	 */
+	@Test
+	public void combinedRunsGroupCoLocatedSites()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+
+		List<FarmRunsPack.Location> combined = module.selectedRunLocations();
+		List<Integer> catherby = new java.util.ArrayList<>();
+		for (int i = 0; i < combined.size(); i++)
+		{
+			if (combined.get(i).id.endsWith("/catherby"))
+			{
+				catherby.add(i);
+			}
+		}
+		assertTrue("catherby appears more than once across the runs", catherby.size() >= 3);
+		assertEquals("catherby stops must sit together, one visit",
+			catherby.get(0) + catherby.size() - 1, (int) catherby.get(catherby.size() - 1));
+
+		// the hespori cave is a different map region but the same guild visit
+		FarmRunsPack.Location hespori = module.pack().location("hespori/farming-guild");
+		FarmRunsPack.Location guildTree = module.pack().location("tree/farming-guild");
+		assertTrue(FarmingRunModule.sameSite(guildTree, hespori));
+
+		// but a shared NAME alone is not a site: Falador Park's tree and the
+		// farm's herb patch are two different teleports, ~66 tiles apart
+		assertFalse(FarmingRunModule.sameSite(
+			module.pack().location("tree/falador"),
+			module.pack().location("herb/falador")));
+		assertTrue(FarmingRunModule.sameSite(
+			module.pack().location("herb/catherby"),
+			module.pack().location("fruit/catherby")));
+
+		// grouping keeps every stop, just reordered
+		List<FarmRunsPack.Location> flat = FarmingRunModule.groupBySite(combined);
+		assertEquals(combined.size(), flat.size());
+		module.shutDown();
+	}
+
+	/** Dust runes in the pouch ARE air runes (and earth) — combination runes
+	 *  must satisfy a teleport's base-rune ask. */
+	@Test
+	public void combinationRunesSatisfyBaseRuneRequirements()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+
+		StateFixture.inventory(state, Map.of(net.runelite.api.gameval.ItemID.DUSTRUNE, 30));
+		assertEquals(30, module.carriedCount(net.runelite.api.gameval.ItemID.AIRRUNE));
+		assertEquals(30, module.carriedCount(net.runelite.api.gameval.ItemID.EARTHRUNE));
+		assertEquals("dust is not water", 0,
+			module.carriedCount(net.runelite.api.gameval.ItemID.WATERRUNE));
+		module.shutDown();
+	}
+
 	/** The combined all-runs sequence never uses a run-level setup — only
 	 *  the per-stop type buckets. */
 	@Test

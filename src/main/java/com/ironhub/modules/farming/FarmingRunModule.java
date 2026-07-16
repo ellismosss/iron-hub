@@ -989,7 +989,71 @@ public class FarmingRunModule implements IronHubModule
 				combined.putIfAbsent(location.id, location);
 			}
 		}
-		return new java.util.ArrayList<>(combined.values());
+		List<FarmRunsPack.Location> out = new java.util.ArrayList<>(combined.values());
+		return config == null || config.farmGroupSites() ? groupBySite(out) : out;
+	}
+
+	/** The hespori cave shares its name-site with the Farming Guild above it
+	 *  — its tile is thousands of map units away (underground), so the
+	 *  distance guard must not apply to it. */
+	private static String siteName(FarmRunsPack.Location location)
+	{
+		return "Farming Guild cave".equals(location.name) ? "Farming Guild" : location.name;
+	}
+
+	/** How far apart two stops can be and still count as one visit. Catherby's
+	 *  fruit tree is ~47 tiles east of its herb patch (one walk, per Luke);
+	 *  Falador Park's tree is ~66 from the farm's herb patch (two teleports,
+	 *  keep them apart). */
+	static final int SAME_SITE_TILES = 50;
+
+	/** One visit: the same place name, and close enough to walk between —
+	 *  location names alone over-group ("Falador" is both the park and the
+	 *  farm). An aliased name (the guild cave) is vouched for regardless of
+	 *  its coordinates. */
+	static boolean sameSite(FarmRunsPack.Location a, FarmRunsPack.Location b)
+	{
+		if (!siteName(a).equals(siteName(b)))
+		{
+			return false;
+		}
+		if (!siteName(a).equals(a.name) || !siteName(b).equals(b.name))
+		{
+			return true; // the alias asserts the sameness the tiles can't
+		}
+		net.runelite.api.coords.WorldPoint pa = a.worldPoint();
+		net.runelite.api.coords.WorldPoint pb = b.worldPoint();
+		return Math.max(Math.abs(pa.getX() - pb.getX()), Math.abs(pa.getY() - pb.getY()))
+			<= SAME_SITE_TILES;
+	}
+
+	/**
+	 * One visit per site: every stop sharing a location's site pulls up
+	 * behind the first of them, so a combined run does Catherby's fruit tree
+	 * together with its herb/allotment stops instead of coming back later.
+	 * Order within a site (and between sites) stays first-seen.
+	 */
+	static List<FarmRunsPack.Location> groupBySite(List<FarmRunsPack.Location> locations)
+	{
+		List<FarmRunsPack.Location> out = new java.util.ArrayList<>();
+		Set<String> placed = new java.util.HashSet<>();
+		for (FarmRunsPack.Location anchor : locations)
+		{
+			if (!placed.add(anchor.id))
+			{
+				continue;
+			}
+			out.add(anchor);
+			for (FarmRunsPack.Location later : locations)
+			{
+				if (!placed.contains(later.id) && sameSite(anchor, later))
+				{
+					out.add(later);
+					placed.add(later.id);
+				}
+			}
+		}
+		return out;
 	}
 
 	/** Stops the combined run would actually visit right now. */
@@ -1416,6 +1480,41 @@ public class FarmingRunModule implements IronHubModule
 		return total;
 	}
 
+	/** True when the player is standing near this stop (same plane, within
+	 *  ~50 tiles): teleporting is noise then — you just walk over. Different
+	 *  planes read as far (distanceTo is MAX_VALUE across planes). */
+	boolean nearStop(Stop stop)
+	{
+		if (client == null || client.getLocalPlayer() == null)
+		{
+			return false;
+		}
+		return client.getLocalPlayer().getWorldLocation()
+			.distanceTo(stop.location.worldPoint()) <= NEAR_STOP_TILES;
+	}
+
+	static final int NEAR_STOP_TILES = 50;
+
+	/** Combination runes stand in for their base runes (dust = air + earth,
+	 *  ...) — a pouch of dust runes covers a teleport's air-rune ask. */
+	private static final java.util.Map<Integer, int[]> RUNE_SUBSTITUTES = java.util.Map.of(
+		net.runelite.api.gameval.ItemID.AIRRUNE, new int[]{
+			net.runelite.api.gameval.ItemID.DUSTRUNE,
+			net.runelite.api.gameval.ItemID.SMOKERUNE,
+			net.runelite.api.gameval.ItemID.MISTRUNE},
+		net.runelite.api.gameval.ItemID.WATERRUNE, new int[]{
+			net.runelite.api.gameval.ItemID.MISTRUNE,
+			net.runelite.api.gameval.ItemID.MUDRUNE,
+			net.runelite.api.gameval.ItemID.STEAMRUNE},
+		net.runelite.api.gameval.ItemID.EARTHRUNE, new int[]{
+			net.runelite.api.gameval.ItemID.DUSTRUNE,
+			net.runelite.api.gameval.ItemID.MUDRUNE,
+			net.runelite.api.gameval.ItemID.LAVARUNE},
+		net.runelite.api.gameval.ItemID.FIRERUNE, new int[]{
+			net.runelite.api.gameval.ItemID.SMOKERUNE,
+			net.runelite.api.gameval.ItemID.STEAMRUNE,
+			net.runelite.api.gameval.ItemID.LAVARUNE});
+
 	/** Higher teleport tiers that satisfy a lower-tier requirement. The quetzal
 	 *  whistle tiers carry different names so ItemVariationMapping doesn't group
 	 *  them; an enhanced/perfected whistle does everything a basic one does. */
@@ -1427,18 +1526,26 @@ public class FarmingRunModule implements IronHubModule
 			net.runelite.api.gameval.ItemID.HG_QUETZALWHISTLE_PERFECTED});
 
 	/** Every item id that satisfies a requirement for itemId: its
-	 *  ItemVariationMapping variants plus any higher teleport tier's variants
-	 *  (the perfected group already folds in the infinite-charge id). */
+	 *  ItemVariationMapping variants, any higher teleport tier's variants
+	 *  (the perfected group already folds in the infinite-charge id), and
+	 *  for a base rune its combination runes. */
 	private static java.util.Set<Integer> satisfyingIds(int itemId)
 	{
-		java.util.Set<Integer> ids = variations(itemId);
+		java.util.Set<Integer> ids = new java.util.HashSet<>(variations(itemId));
 		int[] upgrades = TELEPORT_UPGRADES.get(itemId);
 		if (upgrades != null)
 		{
-			ids = new java.util.HashSet<>(ids);
 			for (int up : upgrades)
 			{
 				ids.addAll(variations(up));
+			}
+		}
+		int[] combos = RUNE_SUBSTITUTES.get(itemId);
+		if (combos != null)
+		{
+			for (int combo : combos)
+			{
+				ids.add(combo);
 			}
 		}
 		return ids;

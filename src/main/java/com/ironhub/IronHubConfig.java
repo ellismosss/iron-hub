@@ -90,6 +90,9 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "farmBankSetup", name = "Run bank setup", description = "While a farm or daily run with a saved setup is active, lay its gear and inventory out over the bank so you can re-stock", section = notificationsSection, position = 3)
 	default boolean farmBankSetup() { return true; }
 
+	@ConfigItem(keyName = "farmGroupSites", name = "Group combined-run sites", description = "In the combined all-runs sequence, do every patch at a site in one stop-over (Catherby's fruit tree with its herb and allotment, everything at the Farming Guild)", section = notificationsSection, position = 3)
+	default boolean farmGroupSites() { return true; }
+
 	@ConfigItem(keyName = "notifyDailyReset", name = "Daily reset", description = "Notify at the daily reset when dailies are outstanding", section = notificationsSection, position = 4)
 	default boolean notifyDailyReset() { return true; }
 
