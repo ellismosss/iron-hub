@@ -35,24 +35,20 @@ import net.runelite.api.Skill;
  */
 public class HomePanel extends JPanel
 {
-	/**
-	 * Seven blocks share the summary boxes' 201px row: GridLayout(1,7) with
-	 * 2px gaps divides it into exact 27px cells, so the nav row lines up
-	 * flush with the block edges above (Luke: same width as the boxes).
-	 */
-	private static final int NAV_W = 27;
-	private static final int NAV_H = 36;
-	private static final int NAV_GAP = 2;
-
 	/** RuneLite's XP-tracker blue — the goal bar reads as progress, not status. */
 	private static final java.awt.Color GOAL_BLUE = new java.awt.Color(0x3D5FBF);
 
-	/** name → tooltip, in Luke's order; icon files live at data/icons/osrs/nav/. */
+	/**
+	 * name → tooltip, in Luke's order; icon files live at data/icons/osrs/nav/.
+	 * SIX blocks at the Design lab's full 33×36 stone size, flush like the
+	 * game's own tab row — Current task was cut so nothing gets squashed and
+	 * icons stay at native size, never rescaled (LANCZOS smoothing is what
+	 * made the first pass read soft; Luke: "much nicer and crisper").
+	 */
 	private static final String[][] NAV = {
 		{"goals", "Goals"},
 		{"combat", "Combat"},
 		{"dailies", "Dailies"},
-		{"task", "Current task"},
 		{"progression", "Progression"},
 		{"bank", "Bank"},
 		{"settings", "Settings"},
@@ -207,20 +203,22 @@ public class HomePanel extends JPanel
 		return box;
 	}
 
-	/** The seven stones, spread across the summary's row width. Not wired yet. */
+	/** The six stones, flush at full size — the Design lab row. Not wired yet. */
 	private JComponent navRow()
 	{
-		JPanel row = new JPanel(new GridLayout(1, NAV.length, NAV_GAP, 0));
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setBorder(new EmptyBorder(0, 4, 0, 4));
+		row.add(Box.createHorizontalGlue());
 		for (String[] block : NAV)
 		{
 			StoneNavButton stone = new StoneNavButton(theme,
-				OsrsIcons.nav(theme, block[0]), false, null, NAV_W, NAV_H);
+				OsrsIcons.nav(theme, block[0]), false, null);
 			stone.setToolTipText(block[1]);
 			row.add(stone);
 		}
+		row.add(Box.createHorizontalGlue());
 		cap(row);
 		return row;
 	}
