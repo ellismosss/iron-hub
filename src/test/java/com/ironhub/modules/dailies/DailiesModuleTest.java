@@ -38,9 +38,14 @@ public class DailiesModuleTest
 
 	private DailiesModule module(AccountState state)
 	{
+		return module(state, null);
+	}
+
+	private DailiesModule module(AccountState state, net.runelite.client.Notifier notifier)
+	{
 		DailiesModule module = new DailiesModule(state, new IronHubConfig()
 		{
-		}, new DataPack(new Gson()), null, null, null, null, null, null);
+		}, new DataPack(new Gson()), null, null, null, notifier, null, null);
 		module.startUp();
 		return module;
 	}
@@ -275,6 +280,47 @@ public class DailiesModuleTest
 		module.endRun(false);
 		assertFalse(module.running());
 		assertTrue(module.stops().isEmpty());
+	}
+
+	/**
+	 * The reset notification fires once when the clock crosses 00:00 UTC, and a
+	 * session never opens by announcing a reset that happened before it started
+	 * — the login replay a naive "check on startup" would produce every time.
+	 */
+	@Test
+	public void resetNotifiesOnceAndNeverReplaysOnLogin()
+	{
+		AccountState state = state();
+		net.runelite.client.Notifier notifier = org.mockito.Mockito.mock(
+			net.runelite.client.Notifier.class);
+		DailiesModule module = module(state, notifier);
+		long now = System.currentTimeMillis();
+
+		// a fresh session, same UTC day it started: today's reset is not news
+		module.notifyReset(now);
+		org.mockito.Mockito.verifyNoInteractions(notifier);
+
+		// the clock rolls over: Zaff alone is claimable, and it is said once
+		module.notifyReset(now + DAY);
+		org.mockito.Mockito.verify(notifier).notify("1 daily is available again");
+		module.notifyReset(now + DAY + 3_600_000L);
+		org.mockito.Mockito.verifyNoMoreInteractions(notifier);
+	}
+
+	/** Logging in re-baselines the varbits: they are only refreshed from the
+	 *  server then, which is what makes crossedReset() meaningful. */
+	@Test
+	public void loginMarksTheClaimVarbitsFresh()
+	{
+		DailiesModule module = module(state());
+		assertFalse("no login seen yet — nothing to call stale", module.crossedReset());
+
+		net.runelite.api.events.GameStateChanged login =
+			new net.runelite.api.events.GameStateChanged();
+		login.setGameState(net.runelite.api.GameState.LOGGED_IN);
+		module.onGameStateChanged(login);
+
+		assertFalse("just logged in — the varbits are exact", module.crossedReset());
 	}
 
 	@Test

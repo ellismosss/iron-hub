@@ -20,6 +20,7 @@ import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.GameState;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.Notifier;
 import net.runelite.client.eventbus.EventBus;
@@ -78,6 +79,13 @@ public class DailiesModule implements IronHubModule
 	/** Reset crossing → notify once, and never on a login replay. */
 	private long notifiedForDay;
 
+	/** ~1 min at 0.6s/tick — the reset we watch for happens once a day. */
+	private static final int TICKS_PER_RESET_CHECK = 100;
+	private int resetTick;
+
+	/** The claim varbits we registered — everything else is someone else's. */
+	private Set<Integer> watchedVarbits = Set.of();
+
 	@Inject
 	public DailiesModule(AccountState state, IronHubConfig config, DataPack dataPack,
 		InfoBoxManager infoBoxManager, Provider<com.ironhub.IronHubPlugin> plugin,
@@ -117,6 +125,8 @@ public class DailiesModule implements IronHubModule
 			.mapToInt(d -> d.detection.varbit)
 			.toArray();
 		state.watchVarbits(watched);
+		watchedVarbits = java.util.Arrays.stream(watched).boxed()
+			.collect(java.util.stream.Collectors.toUnmodifiableSet());
 		notifiedForDay = DailyTracker.startOfUtcDay(System.currentTimeMillis());
 
 		if (eventBus != null)
@@ -190,16 +200,34 @@ public class DailiesModule implements IronHubModule
 		}
 	}
 
+	/**
+	 * Only our own claim varbits matter here — the game changes hundreds of
+	 * others, and a login floods this handler, so re-evaluating every stop on
+	 * each one would be pure waste.
+	 */
 	@Subscribe
 	public void onVarbitChanged(VarbitChanged event)
 	{
-		if (pack == null)
+		if (pack == null || !watchedVarbits.contains(event.getVarbitId()))
 		{
 			return;
 		}
 		stampTearsVisit(event);
 		checkAdvance();
-		notifyReset();
+	}
+
+	/**
+	 * The reset is a wall-clock event, not a game event: an idle player must
+	 * still be told their dailies came back, so this cannot hang off a varbit
+	 * change. Throttled — a reset crossing is a once-a-day thing.
+	 */
+	@Subscribe
+	public void onGameTick(GameTick event)
+	{
+		if (++resetTick % TICKS_PER_RESET_CHECK == 0)
+		{
+			notifyReset(System.currentTimeMillis());
+		}
 	}
 
 	/**
@@ -222,10 +250,11 @@ public class DailiesModule implements IronHubModule
 		}
 	}
 
-	/** At 00:00 UTC the outstanding set refills — say so once. */
-	private void notifyReset()
+	/** At 00:00 UTC the outstanding set refills — say so once, and never as a
+	 *  replay of a reset that happened before you logged in. */
+	void notifyReset(long now)
 	{
-		long today = DailyTracker.startOfUtcDay(System.currentTimeMillis());
+		long today = DailyTracker.startOfUtcDay(now);
 		if (today == notifiedForDay)
 		{
 			return;
