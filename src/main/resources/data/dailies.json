@@ -1,39 +1,349 @@
 {
   "$schema": "./schemas/dailies.schema.json",
-  "version": 1,
+  "source": "OSRS wiki Repeatable events + RuneLite runelite-parent-1.12.32 Daily Task Indicator varbits",
+  "generated": "2026-07-16",
   "dailies": [
     {
       "id": "zaff_battlestaves",
-      "name": "Battlestaves from Zaff",
+      "name": "Zaff battlestaves",
+      "where": "Zaff, Varrock",
       "reset": "daily",
-      "location": {"x": 3202, "y": 3434, "plane": 0},
-      "requirements": [],
-      "scaling": "Varrock diary tier increases purchase limit",
-      "detection": "manual"
+      "point": {
+        "x": 3203,
+        "y": 3434,
+        "plane": 0
+      },
+      "reqs": [],
+      "detection": {
+        "mode": "flag",
+        "varbit": 4539
+      },
+      "tiers": [
+        {
+          "qty": 5
+        },
+        {
+          "req": "diary:Varrock:Easy",
+          "qty": 15
+        },
+        {
+          "req": "diary:Varrock:Medium",
+          "qty": 30
+        },
+        {
+          "req": "diary:Varrock:Hard",
+          "qty": 60
+        },
+        {
+          "req": "diary:Varrock:Elite",
+          "qty": 120
+        }
+      ],
+      "bring": [
+        {
+          "label": "coins",
+          "per": 7000
+        }
+      ],
+      "travel": "Varrock teleport",
+      "note": "Bought at 7,000 each, noted. If they have not appeared after the reset, hop worlds or re-log."
+    },
+    {
+      "id": "flax_bowstring",
+      "name": "Flax keeper bowstrings",
+      "where": "Flax keeper, Seers' Village",
+      "reset": "daily",
+      "point": {
+        "x": 2744,
+        "y": 3443,
+        "plane": 0
+      },
+      "reqs": [
+        "diary:Kandarin:Easy"
+      ],
+      "detection": {
+        "mode": "flag",
+        "varbit": 4559
+      },
+      "tiers": [
+        {
+          "req": "diary:Kandarin:Easy",
+          "qty": 30
+        },
+        {
+          "req": "diary:Kandarin:Medium",
+          "qty": 60
+        },
+        {
+          "req": "diary:Kandarin:Hard",
+          "qty": 120
+        },
+        {
+          "req": "diary:Kandarin:Elite",
+          "qty": 250
+        }
+      ],
+      "bring": [
+        {
+          "label": "noted flax",
+          "per": 1
+        }
+      ],
+      "travel": "Camelot teleport"
+    },
+    {
+      "id": "cromperty_essence",
+      "name": "Cromperty pure essence",
+      "where": "Wizard Cromperty, East Ardougne",
+      "reset": "daily",
+      "point": {
+        "x": 2684,
+        "y": 3325,
+        "plane": 0
+      },
+      "reqs": [
+        "diary:Ardougne:Medium"
+      ],
+      "detection": {
+        "mode": "flag",
+        "varbit": 4547
+      },
+      "tiers": [
+        {
+          "req": "diary:Ardougne:Medium",
+          "qty": 100
+        },
+        {
+          "req": "diary:Ardougne:Hard",
+          "qty": 150
+        },
+        {
+          "req": "diary:Ardougne:Elite",
+          "qty": 250
+        }
+      ],
+      "bring": [],
+      "travel": "Ardougne teleport"
+    },
+    {
+      "id": "bert_sand",
+      "name": "Bert buckets of sand",
+      "where": "Bert, Yanille",
+      "reset": "daily",
+      "point": {
+        "x": 2551,
+        "y": 3100,
+        "plane": 0
+      },
+      "reqs": [
+        "quest:The Hand in the Sand"
+      ],
+      "detection": {
+        "mode": "flag",
+        "varbit": 4549
+      },
+      "tiers": [
+        {
+          "qty": 84
+        }
+      ],
+      "bring": [],
+      "travel": "Watchtower teleport, or a Yanille house portal",
+      "note": "With the elite Ardougne Diary (and the option toggled on) Bert delivers to your bank on login \u2014 no trip needed."
+    },
+    {
+      "id": "rantz_arrows",
+      "name": "Rantz ogre arrows",
+      "where": "Rantz, Feldip Hills",
+      "reset": "daily",
+      "point": {
+        "x": 2630,
+        "y": 2981,
+        "plane": 0
+      },
+      "reqs": [
+        "diary:Western Provinces:Easy"
+      ],
+      "detection": {
+        "mode": "flag",
+        "varbit": 4563
+      },
+      "tiers": [
+        {
+          "req": "diary:Western Provinces:Easy",
+          "qty": 25
+        },
+        {
+          "req": "diary:Western Provinces:Medium",
+          "qty": 50
+        },
+        {
+          "req": "diary:Western Provinces:Hard",
+          "qty": 100
+        },
+        {
+          "req": "diary:Western Provinces:Elite",
+          "qty": 150
+        }
+      ],
+      "bring": [],
+      "travel": "Fairy ring AKS"
+    },
+    {
+      "id": "miscellania",
+      "name": "Kingdom of Miscellania",
+      "where": "Advisor Ghrim, Miscellania",
+      "reset": "daily",
+      "point": {
+        "x": 2500,
+        "y": 3857,
+        "plane": 1
+      },
+      "reqs": [
+        "quest:Throne of Miscellania"
+      ],
+      "detection": {
+        "mode": "manual"
+      },
+      "tiers": [],
+      "bring": [],
+      "travel": "Ring of wealth, or fairy ring CIP",
+      "note": "Keep the coffer topped up (500,000, or 750,000 after Royal Trouble) and approval high; collect from Advisor Ghrim."
+    },
+    {
+      "id": "robin_bonemeal",
+      "name": "Robin bonemeal & slime",
+      "where": "Robin, Port Phasmatys",
+      "reset": "daily",
+      "point": {
+        "x": 3676,
+        "y": 3494,
+        "plane": 0
+      },
+      "reqs": [
+        "diary:Morytania:Medium"
+      ],
+      "detection": {
+        "mode": "count",
+        "varbit": 4543
+      },
+      "tiers": [
+        {
+          "req": "diary:Morytania:Medium",
+          "qty": 13
+        },
+        {
+          "req": "diary:Morytania:Hard",
+          "qty": 26
+        },
+        {
+          "req": "diary:Morytania:Elite",
+          "qty": 39
+        }
+      ],
+      "bring": [
+        {
+          "label": "bones",
+          "per": 1
+        }
+      ],
+      "travel": "Ectophial",
+      "note": "No profit, but it cuts down Prayer training time. Wear the Morytania legs for your tier."
+    },
+    {
+      "id": "thirus_dynamite",
+      "name": "Thirus dynamite",
+      "where": "Thirus, Lovakengj",
+      "reset": "daily",
+      "point": {
+        "x": 1517,
+        "y": 3834,
+        "plane": 0
+      },
+      "reqs": [
+        "diary:Kourend & Kebos:Medium"
+      ],
+      "detection": {
+        "mode": "flag",
+        "varbit": 7939
+      },
+      "tiers": [
+        {
+          "req": "diary:Kourend & Kebos:Medium",
+          "qty": 20
+        },
+        {
+          "req": "diary:Kourend & Kebos:Hard",
+          "qty": 40
+        },
+        {
+          "req": "diary:Kourend & Kebos:Elite",
+          "qty": 80
+        }
+      ],
+      "bring": [],
+      "travel": "Xeric's talisman to Xeric's Inferno"
     },
     {
       "id": "tears_of_guthix",
       "name": "Tears of Guthix",
-      "reset": "weekly",
-      "location": {"x": 3257, "y": 9517, "plane": 2},
-      "requirements": ["quest:Tears of Guthix", "100k XP or 1 QP since last visit"],
-      "detection": "manual"
+      "where": "Juna, Chasm of Tears",
+      "reset": "rolling7",
+      "point": {
+        "x": 3252,
+        "y": 9517,
+        "plane": 2
+      },
+      "reqs": [
+        "quest:Tears of Guthix"
+      ],
+      "detection": {
+        "mode": "rolling7",
+        "varbit": 453
+      },
+      "tiers": [],
+      "bring": [],
+      "travel": "Games necklace",
+      "note": "Needs 1 quest point or 100,000 XP gained since you last played. XP goes to your lowest skill."
     },
     {
-      "id": "miscellania",
-      "name": "Miscellania kingdom management",
+      "id": "lundail_runes",
+      "name": "Lundail random runes",
+      "where": "Lundail, Mage Arena bank (Wilderness)",
       "reset": "daily",
-      "location": {"x": 2500, "y": 3860, "plane": 0},
-      "requirements": ["quest:Throne of Miscellania"],
-      "detection": "varbit"
-    },
-    {
-      "id": "hespori",
-      "name": "Hespori check",
-      "reset": "growth",
-      "location": {"x": 1247, "y": 3726, "plane": 0},
-      "requirements": ["skill:Farming:65"],
-      "detection": "varbit"
+      "point": {
+        "x": 3090,
+        "y": 3958,
+        "plane": 0
+      },
+      "reqs": [
+        "diary:Wilderness:Easy"
+      ],
+      "detection": {
+        "mode": "flag",
+        "varbit": 4540
+      },
+      "tiers": [
+        {
+          "req": "diary:Wilderness:Easy",
+          "qty": 40
+        },
+        {
+          "req": "diary:Wilderness:Medium",
+          "qty": 80
+        },
+        {
+          "req": "diary:Wilderness:Hard",
+          "qty": 120
+        },
+        {
+          "req": "diary:Wilderness:Elite",
+          "qty": 200
+        }
+      ],
+      "bring": [],
+      "travel": "Edgeville lever, then run west",
+      "note": "Pull the lever in the ruin to reach the bank (cut two webs; a teleblock stops you). The rune type is random."
     }
   ]
 }

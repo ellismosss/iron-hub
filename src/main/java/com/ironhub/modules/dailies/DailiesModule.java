@@ -3,34 +3,43 @@ package com.ironhub.modules.dailies;
 import com.ironhub.IronHubConfig;
 import com.ironhub.data.DailiesPack;
 import com.ironhub.data.DataPack;
+import com.ironhub.integrations.ShortestPathBridge;
 import com.ironhub.modules.IronHubModule;
-import com.ironhub.requirements.Requirement;
-import com.ironhub.requirements.Requirements;
 import com.ironhub.state.AccountState;
-import java.time.DayOfWeek;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.temporal.TemporalAdjusters;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.events.GameTick;
+import net.runelite.api.GameState;
+import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.Notifier;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
+import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.util.ImageUtil;
 
 /**
- * Dailies & recurring reminders (DESIGN.md §3.12): reset-aware manual
- * ticks over the dailies data pack. Varbit/chat auto-detection comes
- * per-daily as mappings are confirmed; manual ticks persist per profile
- * and expire at the activity's reset.
+ * Dailies (DESIGN.md §3.12), rebuilt post-M8 in the Farm runs shape: the
+ * repeatable events of the OSRS wiki's Repeatable events page, detected from
+ * the game's own claim varbits (see {@link DailyTracker}), plus a guided run
+ * that routes you through the ones you can actually do right now.
+ *
+ * <p>Like a farm run, the run is culled at the start — an event you have
+ * deselected, cannot access, or have already claimed today is not a stop —
+ * and a stop advances off a live game signal (its claim varbit flipping),
+ * never on arrival. Events with no claim flag at all (Miscellania) advance
+ * on the sidebar's Skip.
  */
 @Slf4j
 @Singleton
@@ -40,19 +49,40 @@ public class DailiesModule implements IronHubModule
 	private final IronHubConfig config;
 	private final DataPack dataPack;
 	private final InfoBoxManager infoBoxManager;   // null in unit tests
+	private final OverlayManager overlayManager;   // null in unit tests
 	private final Provider<? extends Plugin> plugin; // Provider breaks the DI cycle
 	private final EventBus eventBus;               // null in unit tests
 	private final Notifier notifier;               // null in unit tests
+	private final ShortestPathBridge pathBridge;   // null in unit tests
+
 	private DailiesTab tab;
 	private DailiesInfoBox infoBox;
+	private DailyRunInfoBox runInfoBox;
+	private DailiesRunOverlay overlay;
 	private DailiesPack pack;
-	private long lastResetKey;
-	private int notifyTick;
+
+	// run state — written on the client thread, read from the EDT/overlay
+	private volatile long runStartMs;
+	private volatile List<DailiesPack.Daily> stops = List.of();
+	private final Set<String> visited = ConcurrentHashMap.newKeySet();
+
+	/**
+	 * The UTC day the claim varbits were last known fresh — they only refresh
+	 * from the server on login, so once the clock rolls past 00:00 UTC while
+	 * you stay logged in they may still read "claimed" for an event the server
+	 * has already reissued. This is core's {@code dailyReset} escape hatch
+	 * (see {@link DailyTracker}); 0 until we have seen a login.
+	 */
+	private volatile long varbitsFreshDay;
+
+	/** Reset crossing → notify once, and never on a login replay. */
+	private long notifiedForDay;
 
 	@Inject
 	public DailiesModule(AccountState state, IronHubConfig config, DataPack dataPack,
 		InfoBoxManager infoBoxManager, Provider<com.ironhub.IronHubPlugin> plugin,
-		EventBus eventBus, Notifier notifier)
+		EventBus eventBus, Notifier notifier, OverlayManager overlayManager,
+		ShortestPathBridge pathBridge)
 	{
 		this.eventBus = eventBus;
 		this.notifier = notifier;
@@ -60,6 +90,8 @@ public class DailiesModule implements IronHubModule
 		this.config = config;
 		this.dataPack = dataPack;
 		this.infoBoxManager = infoBoxManager;
+		this.overlayManager = overlayManager;
+		this.pathBridge = pathBridge;
 		this.plugin = plugin;
 	}
 
@@ -79,7 +111,14 @@ public class DailiesModule implements IronHubModule
 	public void startUp()
 	{
 		pack = dataPack.load("dailies", DailiesPack.class);
-		lastResetKey = lastReset("daily", System.currentTimeMillis());
+		// Every detection varbit, so AccountState keeps them live for us.
+		int[] watched = pack.dailies.stream()
+			.filter(d -> d.detection != null && d.detection.varbit > 0)
+			.mapToInt(d -> d.detection.varbit)
+			.toArray();
+		state.watchVarbits(watched);
+		notifiedForDay = DailyTracker.startOfUtcDay(System.currentTimeMillis());
+
 		if (eventBus != null)
 		{
 			eventBus.register(this);
@@ -87,28 +126,15 @@ public class DailiesModule implements IronHubModule
 		if (infoBoxManager != null)
 		{
 			BufferedImage icon = ImageUtil.loadImageResource(com.ironhub.IronHubPlugin.class, "/icon.png");
-			infoBox = new DailiesInfoBox(icon, plugin.get(), () -> outstanding(state, pack));
+			infoBox = new DailiesInfoBox(icon, plugin.get(), this);
 			infoBoxManager.addInfoBox(infoBox);
+			runInfoBox = new DailyRunInfoBox(icon, plugin.get(), this);
+			infoBoxManager.addInfoBox(runInfoBox);
 		}
-	}
-
-	@Subscribe
-	public void onGameTick(GameTick event)
-	{
-		if (++notifyTick % 100 != 0) // ~1 min — reset crossings are daily
+		if (overlayManager != null)
 		{
-			return;
-		}
-		long key = lastReset("daily", System.currentTimeMillis());
-		if (key != lastResetKey)
-		{
-			lastResetKey = key;
-			int outstanding = outstanding(state, pack);
-			if (outstanding > 0 && notifier != null && config.notifyDailyReset())
-			{
-				notifier.notify(outstanding + (outstanding == 1
-					? " daily is available again" : " dailies are available again"));
-			}
+			overlay = new DailiesRunOverlay(this);
+			overlayManager.add(overlay);
 		}
 	}
 
@@ -124,11 +150,22 @@ public class DailiesModule implements IronHubModule
 			infoBoxManager.removeInfoBox(infoBox);
 			infoBox = null;
 		}
+		if (runInfoBox != null)
+		{
+			infoBoxManager.removeInfoBox(runInfoBox);
+			runInfoBox = null;
+		}
+		if (overlay != null)
+		{
+			overlayManager.remove(overlay);
+			overlay = null;
+		}
 		if (tab != null)
 		{
 			tab.dispose();
 			tab = null;
 		}
+		endRun(false);
 	}
 
 	@Override
@@ -136,52 +173,329 @@ public class DailiesModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new DailiesTab(state, dataPack.load("dailies", DailiesPack.class));
+			tab = new DailiesTab(this);
 		}
 		return tab;
 	}
 
-	/**
-	 * Epoch millis of the most recent reset for a reset type, relative to
-	 * {@code now}: daily = 00:00 UTC today, weekly = Wednesday 00:00 UTC
-	 * (the game's weekly reset), growth = never (manual toggle only).
-	 */
-	static long lastReset(String reset, long now)
+	/** Login refreshes every claim varbit from the server — from here until
+	 *  the next 00:00 UTC we can trust them exactly. */
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event)
 	{
-		ZonedDateTime utcNow = Instant.ofEpochMilli(now).atZone(ZoneOffset.UTC);
-		switch (reset)
+		if (event.getGameState() == GameState.LOGGED_IN)
 		{
-			case "daily":
-				return utcNow.toLocalDate().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli();
-			case "weekly":
-				return utcNow.toLocalDate()
-					.with(TemporalAdjusters.previousOrSame(DayOfWeek.WEDNESDAY))
-					.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli();
-			default: // growth — Hespori-style, no timed reset
-				return 0;
+			varbitsFreshDay = DailyTracker.startOfUtcDay(System.currentTimeMillis());
+			notifiedForDay = varbitsFreshDay; // never notify on a login replay
 		}
 	}
 
-	/** Manually ticked and still inside the current reset window. */
-	static boolean isDone(AccountState state, DailiesPack.Daily daily, long now)
+	@Subscribe
+	public void onVarbitChanged(VarbitChanged event)
 	{
-		long doneAt = state.dailyDoneAt(daily.getId());
-		return doneAt > 0 && doneAt >= lastReset(daily.getReset(), now);
+		if (pack == null)
+		{
+			return;
+		}
+		stampTearsVisit(event);
+		checkAdvance();
+		notifyReset();
 	}
 
-	/** Available (requirements met) and not ticked this reset. */
+	/**
+	 * Tears of Guthix has no cooldown varbit to read, so the only honest
+	 * record of a visit is watching one happen: the minigame's "collecting"
+	 * varbit going live stamps the visit, and the 7-day clock runs from there.
+	 */
+	private void stampTearsVisit(VarbitChanged event)
+	{
+		for (DailiesPack.Daily daily : pack.dailies)
+		{
+			if (daily.detection == null || !"rolling7".equals(daily.detection.mode))
+			{
+				continue;
+			}
+			if (event.getVarbitId() == daily.detection.varbit && event.getValue() > 0)
+			{
+				state.markDaily(daily.id, true);
+			}
+		}
+	}
+
+	/** At 00:00 UTC the outstanding set refills — say so once. */
+	private void notifyReset()
+	{
+		long today = DailyTracker.startOfUtcDay(System.currentTimeMillis());
+		if (today == notifiedForDay)
+		{
+			return;
+		}
+		notifiedForDay = today;
+		int outstanding = outstanding();
+		if (outstanding > 0 && notifier != null && config.notifyDailyReset())
+		{
+			notifier.notify(outstanding + (outstanding == 1
+				? " daily is available again" : " dailies are available again"));
+		}
+	}
+
+	// ── detection ────────────────────────────────────────────────────
+
+	/** True once the clock has passed 00:00 UTC since the varbits were last
+	 *  refreshed from the server, i.e. they may be stale. */
+	boolean crossedReset()
+	{
+		return varbitsFreshDay > 0
+			&& DailyTracker.startOfUtcDay(System.currentTimeMillis()) != varbitsFreshDay;
+	}
+
+	DailyTracker.State stateOf(DailiesPack.Daily daily)
+	{
+		return DailyTracker.stateOf(state, daily, crossedReset(), System.currentTimeMillis());
+	}
+
+	/** Claimable now and selected for the run. UNKNOWN (Tears of Guthix before
+	 *  we have seen a visit) does not count — we never guess it either way. */
+	int outstanding()
+	{
+		return outstanding(state, pack);
+	}
+
+	/** How many you get from this event at your current diary tier. */
+	int quantity(DailiesPack.Daily daily)
+	{
+		return DailyTracker.quantity(state, daily);
+	}
+
+	/** "13 bones" / "91,000 coins" — what to bring, scaled to your tier.
+	 *  Empty when the pack lists nothing to bring. */
+	String bringLine(DailiesPack.Daily daily)
+	{
+		if (daily.bring == null || daily.bring.isEmpty())
+		{
+			return "";
+		}
+		int qty = Math.max(1, quantity(daily));
+		StringBuilder out = new StringBuilder();
+		for (DailiesPack.Bring bring : daily.bring)
+		{
+			if (out.length() > 0)
+			{
+				out.append(" · ");
+			}
+			out.append(String.format(Locale.ROOT, "%,d", (long) bring.per * qty))
+				.append(' ').append(bring.label);
+		}
+		return out.toString();
+	}
+
+	// ── run engine ───────────────────────────────────────────────────
+
+	/**
+	 * The stops worth doing right now: selected, accessible, and not already
+	 * claimed this reset. An event whose state we genuinely do not know
+	 * (Tears of Guthix, before we have watched a visit) IS included — going to
+	 * look is the only way to find out, and silently dropping it would hide it
+	 * forever.
+	 */
+	List<DailiesPack.Daily> cull()
+	{
+		List<DailiesPack.Daily> out = new ArrayList<>();
+		for (DailiesPack.Daily daily : pack.dailies)
+		{
+			if (!state.isDailySelected(daily.id))
+			{
+				continue; // the player's own checklist wins
+			}
+			DailyTracker.State current = stateOf(daily);
+			if (current == DailyTracker.State.LOCKED || current == DailyTracker.State.DONE)
+			{
+				continue;
+			}
+			out.add(daily);
+		}
+		return out;
+	}
+
+	void startRun()
+	{
+		stops = List.copyOf(cull());
+		visited.clear();
+		runStartMs = System.currentTimeMillis();
+		// Switch the sidebar to the active run NOW, queued before routeToNext:
+		// a path-bridge hiccup must not leave the picker showing (the farm-run
+		// lesson — that post can throw and skip the caller's rebuild).
+		rebuildTab();
+		try
+		{
+			routeToNext();
+		}
+		catch (RuntimeException e)
+		{
+			log.debug("routeToNext failed at run start", e);
+		}
+	}
+
+	/**
+	 * Advance past the current stop once the game says you claimed it. Not on
+	 * arrival: standing next to Zaff is not the same as buying the staves, and
+	 * a proximity advance would desync the overlay from Shortest Path (the bug
+	 * that cost the farm runs a round).
+	 */
+	void checkAdvance()
+	{
+		if (!running())
+		{
+			return;
+		}
+		DailiesPack.Daily next = nextStop();
+		if (next == null || stateOf(next) != DailyTracker.State.DONE)
+		{
+			return;
+		}
+		advance(next.id);
+	}
+
+	private void advance(String dailyId)
+	{
+		visited.add(dailyId);
+		if (visited.size() == stops.size())
+		{
+			endRun(true);
+		}
+		else
+		{
+			routeToNext(); // keep the path bridge on the true next stop
+		}
+		rebuildTab();
+	}
+
+	/**
+	 * Manual advance from the sidebar: mark this stop and everything before it
+	 * done ("I'm past here"). The escape hatch for a stop you skip, and the
+	 * only way to advance Miscellania, which has no claim flag to watch.
+	 */
+	void markThrough(String dailyId)
+	{
+		boolean changed = false;
+		for (DailiesPack.Daily daily : stops)
+		{
+			changed |= visited.add(daily.id);
+			if (daily.id.equals(dailyId))
+			{
+				break;
+			}
+		}
+		if (!changed)
+		{
+			return;
+		}
+		if (visited.size() == stops.size())
+		{
+			endRun(true);
+		}
+		else
+		{
+			routeToNext();
+		}
+		rebuildTab();
+	}
+
+	void endRun(boolean complete)
+	{
+		boolean wasRunning = running();
+		runStartMs = 0;
+		stops = List.of();
+		visited.clear();
+		if (wasRunning && !complete)
+		{
+			rebuildTab();
+		}
+	}
+
+	/** Send the path bridge toward the next unvisited stop. */
+	private void routeToNext()
+	{
+		DailiesPack.Daily next = nextStop();
+		if (next != null && pathBridge != null)
+		{
+			pathBridge.pathTo(next.worldPoint());
+		}
+	}
+
+	private void rebuildTab()
+	{
+		if (tab != null)
+		{
+			SwingUtilities.invokeLater(tab::rebuild);
+		}
+	}
+
+	// ── run reads ────────────────────────────────────────────────────
+
+	boolean running()
+	{
+		return runStartMs > 0;
+	}
+
+	long elapsedMs()
+	{
+		return running() ? System.currentTimeMillis() - runStartMs : 0;
+	}
+
+	boolean isVisited(String dailyId)
+	{
+		return visited.contains(dailyId);
+	}
+
+	int visitedCount()
+	{
+		return visited.size();
+	}
+
+	/** First unclaimed stop in route order, or null. */
+	DailiesPack.Daily nextStop()
+	{
+		return stops.stream().filter(d -> !visited.contains(d.id)).findFirst().orElse(null);
+	}
+
+	List<DailiesPack.Daily> stops()
+	{
+		return stops;
+	}
+
+	DailiesPack pack()
+	{
+		return pack;
+	}
+
+	AccountState state()
+	{
+		return state;
+	}
+
+	/** mm:ss / h:mm:ss, matching the farm run timer. */
+	static String formatDuration(long ms)
+	{
+		long seconds = ms / 1000;
+		long hours = seconds / 3600;
+		long minutes = (seconds % 3600) / 60;
+		return hours > 0
+			? String.format(Locale.ROOT, "%d:%02d:%02d", hours, minutes, seconds % 60)
+			: String.format(Locale.ROOT, "%d:%02d", minutes, seconds % 60);
+	}
+
+	/**
+	 * Cross-module read (dashboard, WhatNow): dailies claimable now. Called
+	 * without the module's login bookkeeping, so it trusts the varbits as they
+	 * read rather than assuming a stale-reset window.
+	 */
 	public static int outstanding(AccountState state, DailiesPack pack)
 	{
 		long now = System.currentTimeMillis();
-		return (int) pack.getDailies().stream()
-			.filter(d -> !isDone(state, d, now) && requirement(d).isMet(state))
+		return (int) pack.dailies.stream()
+			.filter(d -> state.isDailySelected(d.id))
+			.filter(d -> DailyTracker.stateOf(state, d, false, now) == DailyTracker.State.AVAILABLE)
 			.count();
-	}
-
-	static Requirement requirement(DailiesPack.Daily daily)
-	{
-		return Requirements.allOf(daily.getRequirements().stream()
-			.map(Requirements::parse)
-			.toArray(Requirement[]::new));
 	}
 }

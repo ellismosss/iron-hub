@@ -7,8 +7,12 @@ import com.ironhub.data.DataPack;
 import com.ironhub.state.AccountState;
 import com.ironhub.state.StateFixture;
 import com.ironhub.ui.SwingRender;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import net.runelite.api.Quest;
+import net.runelite.api.QuestState;
+import net.runelite.api.Varbits;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -23,51 +27,311 @@ public class DailiesModuleTest
 	@Rule
 	public TemporaryFolder temp = new TemporaryFolder();
 
+	private static final long DAY = 86_400_000L;
 	// Thu 2026-01-01 12:00 UTC
-	private static final long NOW = 1_767_268_800_000L;
+	private static final long NOON = 1_767_268_800_000L;
 
-	@Test
-	public void resetWindows()
+	private DailiesPack pack()
 	{
-		long dailyReset = DailiesModule.lastReset("daily", NOW);
-		assertEquals(NOW - 12 * 3_600_000L, dailyReset); // 00:00 UTC same day
-
-		long weeklyReset = DailiesModule.lastReset("weekly", NOW);
-		assertEquals(dailyReset - 24 * 3_600_000L, weeklyReset); // previous Wednesday
-
-		assertEquals(0, DailiesModule.lastReset("growth", NOW));
+		return new DataPack(new Gson()).load("dailies", DailiesPack.class);
 	}
 
-	@Test
-	public void manualTickExpiresAtReset()
+	private DailiesModule module(AccountState state)
+	{
+		DailiesModule module = new DailiesModule(state, new IronHubConfig()
+		{
+		}, new DataPack(new Gson()), null, null, null, null, null, null);
+		module.startUp();
+		return module;
+	}
+
+	private AccountState state()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 9L);
-		DailiesPack pack = new DataPack(new Gson()).load("dailies", DailiesPack.class);
-		DailiesPack.Daily first = pack.getDailies().get(0);
+		return state;
+	}
 
-		assertFalse(DailiesModule.isDone(state, first, System.currentTimeMillis()));
-		state.markDaily(first.getId(), true);
-		assertTrue(DailiesModule.isDone(state, first, System.currentTimeMillis()));
-		// tomorrow it is outstanding again
-		assertFalse(DailiesModule.isDone(state, first, System.currentTimeMillis() + 24 * 3_600_000L));
+	@Test
+	public void resetIsMidnightUtc()
+	{
+		assertEquals(NOON - 12 * 3_600_000L, DailyTracker.startOfUtcDay(NOON));
+	}
+
+	/**
+	 * The semantics ported from core's Daily Task Indicator, and the one most
+	 * likely to get "fixed" backwards: the claim varbit reads 0 while the
+	 * daily is UNCLAIMED.
+	 */
+	@Test
+	public void claimVarbitZeroMeansClaimable()
+	{
+		AccountState state = state();
+		DailiesPack.Daily zaff = pack().daily("zaff_battlestaves");
+		assertTrue("Zaff needs no diary per the wiki", zaff.reqs.isEmpty());
+
+		assertEquals(DailyTracker.State.AVAILABLE,
+			DailyTracker.stateOf(state, zaff, false, NOON));
+		StateFixture.varbit(state, zaff.detection.varbit, 1);
+		assertEquals(DailyTracker.State.DONE,
+			DailyTracker.stateOf(state, zaff, false, NOON));
+	}
+
+	/** A reset crossed while logged in leaves the varbit stale — core assumes
+	 *  available rather than hiding a daily you can actually claim. */
+	@Test
+	public void crossedResetBeatsAStaleClaimVarbit()
+	{
+		AccountState state = state();
+		DailiesPack.Daily zaff = pack().daily("zaff_battlestaves");
+		StateFixture.varbit(state, zaff.detection.varbit, 1);
+
+		assertEquals(DailyTracker.State.DONE,
+			DailyTracker.stateOf(state, zaff, false, NOON));
+		assertEquals(DailyTracker.State.AVAILABLE,
+			DailyTracker.stateOf(state, zaff, true, NOON));
+	}
+
+	/** Robin counts what you took, and the cap is your Morytania legs tier. */
+	@Test
+	public void countModeCapsAtTheBestDiaryTier()
+	{
+		AccountState state = state();
+		DailiesPack.Daily robin = pack().daily("robin_bonemeal");
+		int claimed = robin.detection.varbit;
+
+		StateFixture.varbit(state, Varbits.DIARY_MORYTANIA_MEDIUM, 1);
+		assertEquals(13, DailyTracker.quantity(state, robin));
+		StateFixture.varbit(state, claimed, 12);
+		assertEquals(DailyTracker.State.AVAILABLE,
+			DailyTracker.stateOf(state, robin, false, NOON));
+		StateFixture.varbit(state, claimed, 13);
+		assertEquals(DailyTracker.State.DONE,
+			DailyTracker.stateOf(state, robin, false, NOON));
+
+		// hard legs raise the cap — the same 13 taken is no longer the lot
+		StateFixture.varbit(state, Varbits.DIARY_MORYTANIA_HARD, 1);
+		assertEquals(26, DailyTracker.quantity(state, robin));
+		assertEquals(DailyTracker.State.AVAILABLE,
+			DailyTracker.stateOf(state, robin, false, NOON));
+	}
+
+	@Test
+	public void lockedUntilTheDiaryIsDone()
+	{
+		AccountState state = state();
+		DailiesPack.Daily dynamite = pack().daily("thirus_dynamite");
+		assertEquals(DailyTracker.State.LOCKED,
+			DailyTracker.stateOf(state, dynamite, false, NOON));
+
+		StateFixture.varbit(state, Varbits.DIARY_KOUREND_MEDIUM, 1);
+		assertEquals(DailyTracker.State.AVAILABLE,
+			DailyTracker.stateOf(state, dynamite, false, NOON));
+		assertEquals(20, DailyTracker.quantity(state, dynamite));
+	}
+
+	/** Quantity tracks the best tier met, not the first. */
+	@Test
+	public void quantityPicksTheBestMetTier()
+	{
+		AccountState state = state();
+		DailiesPack.Daily zaff = pack().daily("zaff_battlestaves");
+		assertEquals("base amount needs no diary", 5, DailyTracker.quantity(state, zaff));
+
+		StateFixture.varbit(state, Varbits.DIARY_VARROCK_EASY, 1);
+		StateFixture.varbit(state, Varbits.DIARY_VARROCK_MEDIUM, 1);
+		assertEquals(30, DailyTracker.quantity(state, zaff));
+		StateFixture.varbit(state, Varbits.DIARY_VARROCK_ELITE, 1);
+		assertEquals(120, DailyTracker.quantity(state, zaff));
+	}
+
+	/** 120 staves at 7,000 each — the bring line scales off the tier. */
+	@Test
+	public void bringLineScalesWithTheTier()
+	{
+		AccountState state = state();
+		DailiesModule module = module(state);
+		DailiesPack.Daily zaff = module.pack().daily("zaff_battlestaves");
+
+		assertEquals("35,000 coins", module.bringLine(zaff));
+		StateFixture.varbit(state, Varbits.DIARY_VARROCK_ELITE, 1);
+		assertEquals("840,000 coins", module.bringLine(zaff));
+	}
+
+	/**
+	 * No varbit tracks the Tears of Guthix cooldown, so before we have watched
+	 * a visit the honest answer is "unknown" — never a guess in either
+	 * direction, and never counted as outstanding.
+	 */
+	@Test
+	public void tearsOfGuthixIsUnknownUntilWeSeeAVisit()
+	{
+		AccountState state = state();
+		StateFixture.quest(state, Quest.TEARS_OF_GUTHIX, QuestState.FINISHED);
+		DailiesPack.Daily tears = pack().daily("tears_of_guthix");
+
+		assertEquals(DailyTracker.State.UNKNOWN,
+			DailyTracker.stateOf(state, tears, false, NOON));
+
+		// an unknown event is never counted as outstanding: with everything
+		// else deselected, nothing is claimable even though Tears is ticked
+		for (DailiesPack.Daily daily : pack().dailies)
+		{
+			state.setDailySelected(daily.id, daily.id.equals(tears.id));
+		}
+		assertEquals(0, DailiesModule.outstanding(state, pack()));
+	}
+
+	/** Once seen, it returns 7 days later at 00:00 UTC — not on a fixed weekday. */
+	@Test
+	public void tearsOfGuthixReturnsSevenDaysAfterTheVisit()
+	{
+		AccountState state = state();
+		StateFixture.quest(state, Quest.TEARS_OF_GUTHIX, QuestState.FINISHED);
+		DailiesPack.Daily tears = pack().daily("tears_of_guthix");
+
+		state.markDaily(tears.id, true);
+		long visit = state.dailyDoneAt(tears.id);
+		long back = DailyTracker.startOfUtcDay(visit) + 7 * DAY;
+
+		assertEquals(DailyTracker.State.DONE,
+			DailyTracker.stateOf(state, tears, false, visit));
+		assertEquals(DailyTracker.State.DONE,
+			DailyTracker.stateOf(state, tears, false, back - 1));
+		assertEquals(DailyTracker.State.AVAILABLE,
+			DailyTracker.stateOf(state, tears, false, back));
+	}
+
+	/** The run is only the stops worth travelling to. */
+	@Test
+	public void runCullsLockedClaimedAndDeselected()
+	{
+		AccountState state = state();
+		DailiesModule module = module(state);
+		// Nothing unlocked yet except Zaff, which needs no diary at all.
+		assertEquals(List.of("zaff_battlestaves"), ids(module.cull()));
+
+		StateFixture.varbit(state, Varbits.DIARY_KOUREND_MEDIUM, 1);
+		assertEquals(List.of("zaff_battlestaves", "thirus_dynamite"), ids(module.cull()));
+
+		// already claimed today → not a stop
+		StateFixture.varbit(state, module.pack().daily("zaff_battlestaves").detection.varbit, 1);
+		assertEquals(List.of("thirus_dynamite"), ids(module.cull()));
+
+		// the player's own checklist wins over everything
+		state.setDailySelected("thirus_dynamite", false);
+		assertTrue(module.cull().isEmpty());
+	}
+
+	/** A stop advances when the game says you claimed it — never on arrival. */
+	@Test
+	public void stopAdvancesWhenTheClaimVarbitFlips()
+	{
+		AccountState state = state();
+		DailiesModule module = module(state);
+		StateFixture.varbit(state, Varbits.DIARY_KOUREND_MEDIUM, 1);
+		module.startRun();
+
+		assertEquals(2, module.stops().size());
+		assertEquals("zaff_battlestaves", module.nextStop().id);
+
+		module.checkAdvance();
+		assertEquals("standing there claims nothing", "zaff_battlestaves", module.nextStop().id);
+
+		StateFixture.varbit(state, module.pack().daily("zaff_battlestaves").detection.varbit, 1);
+		module.checkAdvance();
+		assertEquals("thirus_dynamite", module.nextStop().id);
+		assertEquals(1, module.visitedCount());
+
+		// claiming the last one completes the run
+		StateFixture.varbit(state, module.pack().daily("thirus_dynamite").detection.varbit, 1);
+		module.checkAdvance();
+		assertFalse(module.running());
+	}
+
+	/** Skip marks this stop and everything before it — the escape hatch, and
+	 *  the only way past Miscellania, which has no claim flag to watch. */
+	@Test
+	public void skipMarksThroughAndCanFinishTheRun()
+	{
+		AccountState state = state();
+		StateFixture.quest(state, Quest.THRONE_OF_MISCELLANIA, QuestState.FINISHED);
+		DailiesModule module = module(state);
+		module.startRun();
+
+		assertEquals(List.of("zaff_battlestaves", "miscellania"), ids(module.stops()));
+		module.markThrough("miscellania");
+		assertFalse("marking through the last stop ends the run", module.running());
+	}
+
+	@Test
+	public void endingARunEarlyClearsIt()
+	{
+		AccountState state = state();
+		DailiesModule module = module(state);
+		module.startRun();
+		assertTrue(module.running());
+
+		module.endRun(false);
+		assertFalse(module.running());
+		assertTrue(module.stops().isEmpty());
 	}
 
 	@Test
 	public void tabRendersHeadless() throws Exception
 	{
-		AccountState state = StateFixture.state(temp.getRoot());
-		DailiesModule module = new DailiesModule(state, new IronHubConfig()
-		{
-		}, new DataPack(new Gson()), null, null, null, null);
-		module.startUp();
+		AccountState state = state();
+		// A mid-game iron: some diaries done, one daily already claimed.
+		StateFixture.varbit(state, Varbits.DIARY_VARROCK_MEDIUM, 1);
+		StateFixture.varbit(state, Varbits.DIARY_KANDARIN_EASY, 1);
+		StateFixture.varbit(state, Varbits.DIARY_MORYTANIA_MEDIUM, 1);
+		StateFixture.varbit(state, Varbits.DIARY_KOUREND_MEDIUM, 1);
+		StateFixture.quest(state, Quest.TEARS_OF_GUTHIX, QuestState.FINISHED);
+		StateFixture.quest(state, Quest.THRONE_OF_MISCELLANIA, QuestState.FINISHED);
+
+		DailiesModule module = module(state);
+		StateFixture.varbit(state, module.pack().daily("flax_bowstring").detection.varbit, 1);
+
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
 		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
 		assertTrue(image.getHeight() > 100);
-		java.io.File out = new java.io.File("build/reports/dailies-tab.png");
+		write(image, "dailies-tab.png");
+		module.shutDown();
+	}
+
+	@Test
+	public void activeRunTabRendersHeadless() throws Exception
+	{
+		AccountState state = state();
+		StateFixture.varbit(state, Varbits.DIARY_VARROCK_ELITE, 1);
+		StateFixture.varbit(state, Varbits.DIARY_KOUREND_MEDIUM, 1);
+		StateFixture.quest(state, Quest.THRONE_OF_MISCELLANIA, QuestState.FINISHED);
+
+		DailiesModule module = module(state);
+		JComponent tab = module.buildTab();
+		module.startRun();
+		// startRun queues its rebuild on the EDT — let it land before rendering.
+		// Rebuilding here directly would race it and double every row.
+		javax.swing.SwingUtilities.invokeAndWait(() ->
+		{
+		});
+
+		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
+		assertTrue(image.getHeight() > 100);
+		write(image, "dailies-run-active.png");
+		module.shutDown();
+	}
+
+	private static void write(java.awt.image.BufferedImage image, String name) throws Exception
+	{
+		java.io.File out = new java.io.File("build/reports/" + name);
 		out.getParentFile().mkdirs();
 		javax.imageio.ImageIO.write(image, "png", out);
-		module.shutDown();
+	}
+
+	private static List<String> ids(List<DailiesPack.Daily> dailies)
+	{
+		return dailies.stream().map(d -> d.id).collect(java.util.stream.Collectors.toList());
 	}
 }

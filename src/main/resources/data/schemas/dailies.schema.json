@@ -3,22 +3,24 @@
   "title": "Iron Hub dailies data pack",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "dailies"],
+  "required": ["source", "generated", "dailies"],
   "properties": {
     "$schema": {"type": "string"},
-    "version": {"type": "integer", "minimum": 1},
+    "source": {"type": "string"},
+    "generated": {"type": "string"},
     "dailies": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "name", "reset", "location", "requirements", "detection"],
+        "required": ["id", "name", "where", "reset", "point", "reqs", "detection", "tiers", "bring"],
         "properties": {
           "id": {"type": "string", "pattern": "^[a-z0-9_]+$"},
           "name": {"type": "string", "minLength": 1},
-          "reset": {"enum": ["daily", "weekly", "growth"]},
-          "location": {
+          "where": {"type": "string", "minLength": 1},
+          "reset": {"enum": ["daily", "rolling7"]},
+          "point": {
             "type": "object",
             "additionalProperties": false,
             "required": ["x", "y", "plane"],
@@ -28,9 +30,54 @@
               "plane": {"type": "integer", "minimum": 0, "maximum": 3}
             }
           },
-          "requirements": {"type": "array", "items": {"type": "string"}},
-          "scaling": {"type": "string"},
-          "detection": {"enum": ["manual", "varbit", "chat"]}
+          "reqs": {"type": "array", "items": {"type": "string"}},
+          "detection": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["mode"],
+            "properties": {
+              "mode": {"enum": ["flag", "count", "rolling7", "manual"]},
+              "varbit": {"type": "integer", "minimum": 1}
+            },
+            "allOf": [
+              {
+                "comment": "Only a manual event may omit its varbit — every other mode reads one.",
+                "if": {"properties": {"mode": {"not": {"const": "manual"}}}},
+                "then": {"required": ["varbit"]}
+              },
+              {
+                "comment": "A manual event has no flag to read, so it must not claim one.",
+                "if": {"properties": {"mode": {"const": "manual"}}},
+                "then": {"not": {"required": ["varbit"]}}
+              }
+            ]
+          },
+          "tiers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["qty"],
+              "properties": {
+                "req": {"type": "string", "minLength": 1},
+                "qty": {"type": "integer", "minimum": 1}
+              }
+            }
+          },
+          "bring": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["label", "per"],
+              "properties": {
+                "label": {"type": "string", "minLength": 1},
+                "per": {"type": "integer", "minimum": 1}
+              }
+            }
+          },
+          "travel": {"type": "string", "minLength": 1},
+          "note": {"type": "string", "minLength": 1}
         }
       }
     }

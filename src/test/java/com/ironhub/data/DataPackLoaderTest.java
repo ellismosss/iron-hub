@@ -18,25 +18,22 @@ public class DataPackLoaderTest
 	public void dailiesPackLoadsAndRequirementsParse()
 	{
 		DailiesPack pack = dataPack.load("dailies", DailiesPack.class);
-		assertEquals(1, pack.getVersion());
-		assertFalse(pack.getDailies().isEmpty());
+		assertFalse(pack.dailies.isEmpty());
 
-		for (DailiesPack.Daily daily : pack.getDailies())
+		for (DailiesPack.Daily daily : pack.dailies)
 		{
-			assertFalse("blank id", daily.getId().trim().isEmpty());
-			assertFalse("blank name", daily.getName().trim().isEmpty());
-			assertNotNull(daily.getLocation());
+			assertFalse("blank id", daily.id.trim().isEmpty());
+			assertFalse("blank name", daily.name.trim().isEmpty());
+			assertNotNull(daily.point);
+			assertNotNull(daily.worldPoint());
 
-			for (String raw : daily.getRequirements())
+			for (String raw : daily.reqs)
 			{
 				Requirement requirement = Requirements.parse(raw);
 				assertNotNull(requirement);
-				// typed prefixes must resolve — a manual fallback here means a
-				// typo in the pack (misspelled quest/skill name)
-				if (raw.startsWith("quest:") || raw.startsWith("skill:"))
-				{
-					assertFalse("unresolvable requirement: " + raw, Requirements.isManual(requirement));
-				}
+				// a manual fallback here means a typo in the pack (misspelled
+				// quest/diary name) — see DailiesPackTest for the full sweep
+				assertFalse("unresolvable requirement: " + raw, Requirements.isManual(requirement));
 			}
 		}
 	}

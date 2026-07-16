@@ -2,40 +2,40 @@ package com.ironhub.modules.dailies;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.util.function.IntSupplier;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.ui.overlay.infobox.InfoBox;
 
 /**
- * Dailies-outstanding infobox (frame 3f): count of dailies available and
- * not yet ticked; hidden at zero. Click-through lands on the panel later.
+ * Dailies-outstanding infobox (frame 3f): how many ticked events are claimable
+ * right now; hidden at zero, and hidden during a run (the run box takes over).
  */
 class DailiesInfoBox extends InfoBox
 {
-	private final IntSupplier outstanding;
+	private final DailiesModule module;
 
-	DailiesInfoBox(BufferedImage image, Plugin plugin, IntSupplier outstanding)
+	DailiesInfoBox(BufferedImage image, Plugin plugin, DailiesModule module)
 	{
 		super(image, plugin);
-		this.outstanding = outstanding;
+		this.module = module;
 		setTooltip("Dailies outstanding · resets 00:00 UTC");
 	}
 
 	@Override
 	public String getText()
 	{
-		return String.valueOf(outstanding.getAsInt());
+		return String.valueOf(module.outstanding());
 	}
 
 	@Override
 	public Color getTextColor()
 	{
-		return Color.YELLOW; // canvas convention: short yellow overlay text
+		// Reminder parity: green means "go and get it".
+		return Color.GREEN;
 	}
 
 	@Override
 	public boolean render()
 	{
-		return outstanding.getAsInt() > 0;
+		return !module.running() && module.outstanding() > 0;
 	}
 }

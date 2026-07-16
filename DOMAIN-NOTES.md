@@ -364,3 +364,59 @@ that yet, so a pay-to-protect tree stop is cleared with the manual
 sidebar skip / markThrough). Never advance on mere arrival/proximity —
 that both fires too early and can skip a patch you pass near, desyncing the
 guide from Shortest Path.
+
+## Repeatable events (module: dailies, pack: dailies.json)
+
+**The claim varbits read 0 while the daily is UNCLAIMED.** Every "last
+claimed" varbit (`ZAFF_LAST_CLAIMED`, `LUNDAIL_LAST_CLAIMED`,
+`YANILLE_SAND_CLAIMED`, `SEERS_FREE_FLAX`, `ARDOUGNE_FREE_ESSENCE`,
+`WESTERN_RANTZ_ARROWS`, `KOUREND_FREE_DYNAMITE`) is a flag *set when you take
+it* — so `== 0` means "go and get it", not "nothing here". This is inverted
+from the obvious reading and is the single easiest thing to get backwards;
+`DailiesModuleTest.claimVarbitZeroMeansClaimable` pins it. Ported from core's
+Daily Task Indicator (BSD-2, `licenses/runelite-LICENSE`) at
+runelite-parent-1.12.32 — match it from their source, never from memory.
+
+**Those varbits only refresh from the server on login.** Cross 00:00 UTC while
+staying logged in and they still read "claimed" for a daily the server has
+already reissued. Core covers this with a `dailyReset` flag
+(`varbit == 0 || dailyReset`); Iron Hub's equivalent is `crossedReset()`, set
+once the UTC day differs from the day we last saw a login. Erring toward
+"available" is deliberate: showing a daily you have already done costs a
+glance, hiding one you can claim costs the daily.
+
+**`MORYTANIA_SLIME_CLAIMED` counts, it does not flag.** Robin's cap is your
+Morytania legs tier (13/26/39), so "done" is `collected >= cap`, and the cap
+moves when the diary tier does.
+
+**Tears of Guthix has no cooldown varbit.** `TOG_COUNTDOWN` (5099) is the
+*in-minigame ticks-left* timer — confirmed against the Improved Tears of
+Guthix Interface plugin, which uses it exactly that way — and varbits 451–456
+are just bitfields inside varp 449. Nothing exposes "days until you can play
+again", so the only honest source is watching a visit happen
+(`TOG_MINIGAME_COLLECTING` going live stamps it) and running the 7-day clock
+from there; until we have seen one, the state is UNKNOWN and rendered "?",
+never guessed in either direction. It is also **not a fixed weekday**: the
+wiki says 7 days from your last visit at 00:00 UTC ("the same day of the week
+in UTC as the previous attempt"), so a Wednesday-based weekly reset is wrong.
+
+**Two routing targets deliberately are not the NPC's tile** (pinned by
+`DailiesPackTest.awkwardRoutingTargetsStayDeliberate`):
+- *Lundail* stands in the Mage Arena bank at (3109,10357), which cannot be
+  walked to at all — the lever in the ruin is the only way in, and Shortest
+  Path ships no transport for it (checked against its `transports.tsv`). The
+  pack targets the surface lever (3090,3958) and the note explains the webs.
+- *Juna* is on **plane 2**, not 0. The wiki's `{{Map}}` template carries no
+  plane, and the y+6400 convention makes plane 0 look right; Shortest Path's
+  own tunnel out of the Lumbridge Swamp Caves runs (3226,9542,0) →
+  (3219,9532,2), and every transport in that cave is plane 2. Advisor Ghrim is
+  likewise plane 1 (Miscellania castle's first floor).
+
+**Two wiki rows mis-model easily.** Zaff's requirement column says *None* —
+the Varrock diary only raises the cap (5/15/30/60/120), it is not a gate.
+Bert's elite Ardougne reward changes the *delivery* (auto to bank on login),
+not the 84 amount; no special case is needed for it, because the delivery sets
+the same claim varbit and the stop culls itself.
+
+**NMZ herb boxes are ironman-blocked by the game** — core literally checks
+`IRONMAN == 0` — so they are not in the pack at all.

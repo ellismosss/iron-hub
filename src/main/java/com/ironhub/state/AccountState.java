@@ -62,6 +62,9 @@ public class AccountState implements StateView
 
 	// manual daily ticks: daily id -> epoch millis when marked done
 	private final Map<String, Long> dailiesDoneAt = new ConcurrentHashMap<>();
+	/** Dailies the player deselected from the guided run. Storing the OFF set
+	 *  (not the ON set) keeps newly added events opted in by default. */
+	private final Set<String> dailiesOff = ConcurrentHashMap.newKeySet();
 
 	// aggregated loot: npc name -> item id -> total quantity (persisted)
 	private final Map<String, Map<Integer, Integer>> lootBySource = new ConcurrentHashMap<>();
@@ -1178,6 +1181,22 @@ public class AccountState implements StateView
 		notifyListeners();
 	}
 
+	/** Whether a daily is eligible for the guided run (the tab's checklist).
+	 *  Unknown ids are selected — new events opt in by default. */
+	public boolean isDailySelected(String dailyId)
+	{
+		return !dailiesOff.contains(dailyId);
+	}
+
+	public void setDailySelected(String dailyId, boolean selected)
+	{
+		if (selected ? dailiesOff.remove(dailyId) : dailiesOff.add(dailyId))
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
 	// ── event ingestion (client thread) ───────────────────────────────
 
 	public void onGameStateChanged(GameStateChanged event)
@@ -1382,6 +1401,8 @@ public class AccountState implements StateView
 		killCounts.putAll(persisted.killCounts);
 		dailiesDoneAt.clear();
 		dailiesDoneAt.putAll(persisted.dailiesDoneAt);
+		dailiesOff.clear();
+		dailiesOff.addAll(persisted.dailiesOff);
 		lootBySource.clear();
 		persisted.lootBySource.forEach((src, items) ->
 			lootBySource.put(src, new ConcurrentHashMap<>(items)));
@@ -1453,6 +1474,7 @@ public class AccountState implements StateView
 		state.unlocks = new HashSet<>(unlocks);
 		state.killCounts = new HashMap<>(killCounts);
 		state.dailiesDoneAt = new HashMap<>(dailiesDoneAt);
+		state.dailiesOff = new HashSet<>(dailiesOff);
 		lootBySource.forEach((src, items) -> state.lootBySource.put(src, new HashMap<>(items)));
 		suppliesBySource.forEach((src, items) -> state.suppliesBySource.put(src, new HashMap<>(items)));
 		savedLoadouts.forEach((activity, slots) -> state.savedLoadouts.put(activity, new HashMap<>(slots)));
