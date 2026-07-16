@@ -232,7 +232,7 @@ public class FarmingRunModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new FarmingTab(state, this);
+			tab = new FarmingTab(state, this, itemManager);
 		}
 		return tab;
 	}
@@ -1258,30 +1258,34 @@ public class FarmingRunModule implements IronHubModule
 		}
 	}
 
-	/** One patch's line in the Time Tracking-style overview. */
+	/** One patch's line in the Time Tracking overview — the raw prediction, so
+	 *  the tab can render exactly like the core plugin's FarmingTabPanel. */
 	static class OverviewPatch
 	{
-		final String name;         // region (+ sub-name)
-		final int produceItemId;   // for the icon, -1 = none
-		final PatchView view;
-		final long doneEstimate;   // epoch seconds, 0 = unknown
-		final double progress;     // 0..1
+		final String name;                  // region (+ sub-name)
+		final int produceItemId;            // sprite (weeds id when unknown)
+		final com.ironhub.modules.farming.rl.CropState cropState; // null = unknown
+		final long doneEstimate;            // epoch seconds
+		final int stage;
+		final int stages;
 
-		OverviewPatch(String name, int produceItemId, PatchView view, long doneEstimate, double progress)
+		OverviewPatch(String name, int produceItemId,
+			com.ironhub.modules.farming.rl.CropState cropState, long doneEstimate, int stage, int stages)
 		{
 			this.name = name;
 			this.produceItemId = produceItemId;
-			this.view = view;
+			this.cropState = cropState;
 			this.doneEstimate = doneEstimate;
-			this.progress = progress;
+			this.stage = stage;
+			this.stages = stages;
 		}
 	}
 
 	/**
-	 * Per-patch overview grouped by category (Time Tracking's per-patch view,
-	 * not just a category summary). Only categories with real data appear, and
-	 * within them only patches the core plugin has actually seen. Client thread
-	 * / EDT (reads persisted predictions, not live client state).
+	 * Per-patch overview grouped by category (Time Tracking's per-patch view).
+	 * A category appears once it has any seen patch; within it EVERY patch is
+	 * listed (unknown ones as "Unknown"), matching the core plugin's tab.
+	 * Client thread / EDT (reads persisted predictions, not live client state).
 	 */
 	java.util.LinkedHashMap<Tab, List<OverviewPatch>> overviewByCategory()
 	{
@@ -1290,31 +1294,31 @@ public class FarmingRunModule implements IronHubModule
 		{
 			return out;
 		}
-		long now = Instant.now().getEpochSecond();
+		int weeds = Produce.WEEDS.getItemID();
 		for (java.util.Map.Entry<Tab, java.util.Set<com.ironhub.modules.farming.rl.FarmingPatch>> entry
 			: tracking.tracker().getTabData())
 		{
 			List<OverviewPatch> patches = new java.util.ArrayList<>();
+			boolean anySeen = false;
 			for (com.ironhub.modules.farming.rl.FarmingPatch patch : entry.getValue())
 			{
 				PatchPrediction prediction = tracking.tracker().predictPatch(patch);
-				PatchView view = viewOf(prediction, now);
-				if (view == PatchView.UNKNOWN)
-				{
-					continue; // never seen — don't list a wall of "Unknown"
-				}
 				String name = patch.getRegion().getName();
 				if (patch.getName() != null && !patch.getName().isEmpty())
 				{
 					name += " (" + patch.getName() + ")";
 				}
+				anySeen |= prediction != null;
 				int produce = prediction != null && prediction.getProduce() != null
-					? prediction.getProduce().getItemID() : -1;
-				patches.add(new OverviewPatch(name, produce, view,
+					&& prediction.getProduce().getItemID() > 0
+					? prediction.getProduce().getItemID() : weeds;
+				patches.add(new OverviewPatch(name, produce,
+					prediction != null ? prediction.getCropState() : null,
 					prediction != null ? prediction.getDoneEstimate() : 0,
-					progressOf(prediction, view)));
+					prediction != null ? prediction.getStage() : 0,
+					prediction != null ? prediction.getStages() : 0));
 			}
-			if (!patches.isEmpty())
+			if (anySeen)
 			{
 				patches.sort(java.util.Comparator.comparing(p -> p.name));
 				out.put(entry.getKey(), patches);
@@ -1323,27 +1327,9 @@ public class FarmingRunModule implements IronHubModule
 		return out;
 	}
 
-	private static double progressOf(PatchPrediction prediction, PatchView view)
+	ItemManager itemManager()
 	{
-		if (view == PatchView.READY || view == PatchView.PREDICTED_READY)
-		{
-			return 1.0;
-		}
-		if (prediction == null || prediction.getStages() <= 1)
-		{
-			return 0.0;
-		}
-		return Math.max(0, Math.min(1, prediction.getStage() / (double) (prediction.getStages() - 1)));
-	}
-
-	/** Produce sprite for an overview row, or null (headless / no icon). */
-	javax.swing.ImageIcon patchIcon(int itemId)
-	{
-		if (itemManager == null || itemId <= 0)
-		{
-			return null;
-		}
-		return new javax.swing.ImageIcon(itemManager.getImage(itemId));
+		return itemManager;
 	}
 
 	/** Map a vendored prediction onto the display vocabulary — static for

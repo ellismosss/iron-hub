@@ -5,7 +5,6 @@ import com.ironhub.modules.farming.rl.Tab;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.Format;
 import com.ironhub.ui.UiTokens;
-import com.ironhub.ui.components.HubProgressBar;
 import com.ironhub.ui.components.IconButton;
 import com.ironhub.ui.components.ListRow;
 import com.ironhub.ui.components.PaintedIcon;
@@ -52,7 +51,10 @@ class FarmingTab extends JPanel
 {
 	private final AccountState state;
 	private final FarmingRunModule module;
+	private final net.runelite.client.game.ItemManager itemManager; // null in headless tests
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
+	/** Categories whose patch list is expanded under the overview tile strip. */
+	private final Set<Tab> expandedOverview = new java.util.LinkedHashSet<>();
 
 	private final JPanel topBar = new JPanel();
 	private final JLabel stats = new JLabel();
@@ -67,10 +69,11 @@ class FarmingTab extends JPanel
 	private final JTextField builderName = new SearchField("Run name…");
 	private final Set<String> builderSelection = new LinkedHashSet<>();
 
-	FarmingTab(AccountState state, FarmingRunModule module)
+	FarmingTab(AccountState state, FarmingRunModule module, net.runelite.client.game.ItemManager itemManager)
 	{
 		this.state = state;
 		this.module = module;
+		this.itemManager = itemManager;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
 		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
@@ -253,6 +256,13 @@ class FarmingTab extends JPanel
 		state.removeListener(listener);
 	}
 
+	/** Test seam: expand a category's patch list in the overview. */
+	void expandOverview(Tab category)
+	{
+		expandedOverview.add(category);
+		rebuildOverview();
+	}
+
 	void rebuild()
 	{
 		stats.setText(FarmingRunModule.statsLine(state.getHerbRunsMs()));
@@ -320,18 +330,28 @@ class FarmingTab extends JPanel
 		}
 
 		long now = Instant.now().getEpochSecond();
-		// per-patch rows grouped by category (Time Tracking-style), not just a
-		// category summary line
-		for (java.util.Map.Entry<Tab, List<FarmingRunModule.OverviewPatch>> entry
-			: module.overviewByCategory().entrySet())
+		// Time Tracking's layout: a strip of clickable category icon tiles;
+		// clicking a tile toggles that category's patch list (nothing expanded
+		// = just the strip, minimal). Only categories with data get a tile.
+		java.util.Map<Tab, List<FarmingRunModule.OverviewPatch>> byCategory = module.overviewByCategory();
+		expandedOverview.retainAll(byCategory.keySet());
+		if (!byCategory.isEmpty())
 		{
-			overview.add(overviewCategoryHeader(entry.getKey().getName()));
-			for (FarmingRunModule.OverviewPatch patch : entry.getValue())
+			overview.add(overviewTileStrip(byCategory.keySet()));
+			overview.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+			for (java.util.Map.Entry<Tab, List<FarmingRunModule.OverviewPatch>> entry : byCategory.entrySet())
 			{
-				overview.add(overviewPatchRow(patch, now));
-				overview.add(Box.createVerticalStrut(2));
+				if (!expandedOverview.contains(entry.getKey()))
+				{
+					continue;
+				}
+				for (FarmingRunModule.OverviewPatch patch : entry.getValue())
+				{
+					overview.add(overviewPatchPanel(patch, now));
+					overview.add(Box.createVerticalStrut(2));
+				}
+				overview.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 			}
-			overview.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
 
 		SummaryState birds = tracking.birdHouseSummary();
@@ -388,99 +408,111 @@ class FarmingTab extends JPanel
 		return UiTokens.TEXT_MUTED;
 	}
 
-	/** "TREE PATCHES" section header above a category's patch rows. */
-	private JLabel overviewCategoryHeader(String name)
+	/** Grid of clickable category icon tiles — the Time Tracking tab strip. */
+	private JComponent overviewTileStrip(Set<Tab> categories)
 	{
-		JLabel header = new JLabel(name);
-		header.setForeground(UiTokens.TEXT_MUTED);
-		header.setFont(SectionLabel.letterSpaced(
-			header.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LABEL),
-			UiTokens.LETTER_SPACING_LABEL));
-		header.setAlignmentX(LEFT_ALIGNMENT);
-		header.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 2, 0));
-		return header;
-	}
-
-	/** One patch card: produce icon + name + status, over a progress bar. */
-	private JComponent overviewPatchRow(FarmingRunModule.OverviewPatch patch, long now)
-	{
-		JPanel card = new JPanel();
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setBackground(UiTokens.CARD_BG);
-		card.setAlignmentX(LEFT_ALIGNMENT);
-		card.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-			new EmptyBorder(3, UiTokens.ROW_GAP, 3, UiTokens.ROW_GAP)));
-		card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-
-		JPanel top = new JPanel();
-		top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
-		top.setOpaque(false);
-		top.setAlignmentX(LEFT_ALIGNMENT);
-		JLabel name = new JLabel(patch.name);
-		javax.swing.ImageIcon icon = module.patchIcon(patch.produceItemId);
-		if (icon != null)
+		JPanel strip = new JPanel(new java.awt.GridLayout(0, 5, 4, 4));
+		strip.setOpaque(false);
+		strip.setAlignmentX(LEFT_ALIGNMENT);
+		int rows = (categories.size() + 4) / 5;
+		strip.setMaximumSize(new Dimension(Integer.MAX_VALUE, rows * 32));
+		for (Tab category : categories)
 		{
-			name.setIcon(icon);
-			name.setIconTextGap(UiTokens.ROW_GAP);
+			strip.add(overviewTile(category));
 		}
-		name.setForeground(UiTokens.TEXT_BODY);
-		name.setFont(name.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
-		name.setMinimumSize(new Dimension(0, 0));
-		name.setToolTipText(patch.name);
-		top.add(name);
-		top.add(Box.createHorizontalGlue());
-		JLabel status = new JLabel(overviewStatus(patch, now));
-		status.setForeground(overviewStatusColor(patch.view));
-		status.setFont(status.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
-		top.add(status);
-		card.add(top);
-		card.add(Box.createVerticalStrut(3));
-		card.add(HubProgressBar.mini(patch.progress, 0));
-		return card;
+		return strip;
 	}
 
-	private static String overviewStatus(FarmingRunModule.OverviewPatch patch, long now)
+	/** One category tile: its item icon, accent-bordered while expanded; the
+	 *  click toggles that category's patch list. */
+	private JComponent overviewTile(Tab category)
 	{
-		switch (patch.view)
+		JLabel tile = new JLabel();
+		tile.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+		tile.setOpaque(true);
+		boolean expanded = expandedOverview.contains(category);
+		tile.setBackground(expanded ? UiTokens.INSET_BG : UiTokens.ICON_BUTTON_BG);
+		tile.setBorder(new LineBorder(expanded ? UiTokens.ACCENT : UiTokens.BORDER_BUTTON));
+		tile.setToolTipText(category.getName());
+		tile.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		tile.setPreferredSize(new Dimension(34, 30));
+		tile.setMinimumSize(new Dimension(34, 30));
+		if (itemManager != null)
 		{
-			case READY:
-			case PREDICTED_READY:
-				return "Ready";
+			net.runelite.client.util.AsyncBufferedImage img = itemManager.getImage(category.getItemID());
+			img.onLoaded(() ->
+			{
+				tile.setIcon(new javax.swing.ImageIcon(
+					img.getScaledInstance(24, 24, java.awt.Image.SCALE_SMOOTH)));
+				tile.revalidate();
+				tile.repaint();
+			});
+		}
+		tile.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				if (!expandedOverview.remove(category))
+				{
+					expandedOverview.add(category);
+				}
+				rebuildOverview();
+			}
+		});
+		return tile;
+	}
+
+	/** One patch line — the core plugin's TimeablePanel, coloured identically
+	 *  (progress bar = crop-state colour, "Done"/"Diseased"/… estimate text). */
+	private JComponent overviewPatchPanel(FarmingRunModule.OverviewPatch patch, long now)
+	{
+		net.runelite.client.plugins.timetracking.TimeablePanel<String> panel =
+			new net.runelite.client.plugins.timetracking.TimeablePanel<>(patch.name, patch.name, 1);
+		panel.setAlignmentX(LEFT_ALIGNMENT);
+		panel.getNotifyButton().setVisible(false); // ready notifications are per-category config here
+		if (itemManager != null && patch.produceItemId > 0)
+		{
+			itemManager.getImage(patch.produceItemId).addTo(panel.getIcon());
+		}
+		net.runelite.client.ui.components.ThinProgressBar bar = panel.getProgress();
+		if (patch.cropState == null)
+		{
+			panel.getEstimate().setText("Unknown");
+			bar.setVisible(false);
+		}
+		else
+		{
+			panel.getEstimate().setText(estimateText(patch, now));
+			bar.setForeground(patch.cropState.getColor().darker());
+			bar.setMaximumValue(Math.max(0, patch.stages - 1));
+			bar.setValue(patch.stage);
+			bar.setVisible(true);
+		}
+		return panel;
+	}
+
+	/** Time Tracking's estimate text ("Done" / "Done 3h 20m" / "Diseased" …). */
+	private static String estimateText(FarmingRunModule.OverviewPatch patch, long now)
+	{
+		switch (patch.cropState)
+		{
+			case HARVESTABLE:
+				return "Done";
+			case GROWING:
+				return patch.doneEstimate <= now ? "Done"
+					: "Done " + Format.hours((patch.doneEstimate - now) / 3600.0);
 			case DISEASED:
 				return "Diseased";
 			case DEAD:
 				return "Dead";
 			case EMPTY:
 				return "Empty";
-			case GROWING:
-				return patch.doneEstimate > now ? "Done at " + clock(patch.doneEstimate) : "Growing";
+			case FILLING:
+				return "Filling";
 			default:
-				return "";
+				return "Unknown";
 		}
-	}
-
-	private static Color overviewStatusColor(FarmingRunModule.PatchView view)
-	{
-		switch (view)
-		{
-			case READY:
-			case PREDICTED_READY:
-				return UiTokens.STATUS_AVAILABLE;
-			case DISEASED:
-			case DEAD:
-				return UiTokens.STATUS_WARNING;
-			case EMPTY:
-				return UiTokens.TEXT_FAINT;
-			default:
-				return UiTokens.TEXT_MUTED;
-		}
-	}
-
-	private static String clock(long epochSeconds)
-	{
-		return java.time.Instant.ofEpochSecond(epochSeconds)
-			.atZone(java.time.ZoneId.systemDefault())
-			.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
 	}
 
 	private JPanel overviewRow(String name, String value, Color valueColor)

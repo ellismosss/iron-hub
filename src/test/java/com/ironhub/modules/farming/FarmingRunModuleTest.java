@@ -345,13 +345,19 @@ public class FarmingRunModuleTest
 
 		java.util.Map<com.ironhub.modules.farming.rl.Tab, List<FarmingRunModule.OverviewPatch>> ov =
 			module.overviewByCategory();
+		// the HERB category appears (it has seen patches) and lists EVERY herb
+		// patch, the two seeded ones with a crop state and the rest as unknown
 		List<FarmingRunModule.OverviewPatch> herbs = ov.get(com.ironhub.modules.farming.rl.Tab.HERB);
 		assertNotNull(herbs);
-		assertEquals(2, herbs.size()); // only the two seen patches, not every herb patch
-		assertEquals("Ardougne", herbs.get(0).name); // sorted by name
-		assertEquals("Falador", herbs.get(1).name);
-		assertEquals(FarmingRunModule.PatchView.READY, herbs.get(1).view);
-		assertEquals(1.0, herbs.get(1).progress, 0.001);
+		assertTrue("expected all herb patches", herbs.size() > 2);
+		FarmingRunModule.OverviewPatch falador = herbs.stream()
+			.filter(p -> p.name.equals("Falador")).findFirst().orElseThrow();
+		FarmingRunModule.OverviewPatch ardougne = herbs.stream()
+			.filter(p -> p.name.equals("Ardougne")).findFirst().orElseThrow();
+		assertEquals(com.ironhub.modules.farming.rl.CropState.HARVESTABLE, falador.cropState);
+		assertEquals(com.ironhub.modules.farming.rl.CropState.GROWING, ardougne.cropState);
+		assertTrue("unseen patches read as unknown",
+			herbs.stream().anyMatch(p -> p.cropState == null));
 		module.shutDown();
 	}
 
@@ -691,6 +697,7 @@ public class FarmingRunModuleTest
 		module.refreshTracking();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
+		((FarmingTab) tab).expandOverview(com.ironhub.modules.farming.rl.Tab.HERB); // show the per-patch list
 		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
 		assertTrue(image.getHeight() > 200);
 		java.io.File out = new java.io.File("build/reports/farming-tab.png");
