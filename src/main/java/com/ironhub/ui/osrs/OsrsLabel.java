@@ -39,7 +39,7 @@ public class OsrsLabel extends JComponent
 	private static final int DESCENT = 5;
 
 	private final String[] lines;
-	private final Color color;
+	private Color color;
 
 	public static OsrsLabel title(String text)
 	{
@@ -63,6 +63,13 @@ public class OsrsLabel extends JComponent
 		setFont(font);
 		setOpaque(false);
 		setAlignmentX(CENTER_ALIGNMENT);
+	}
+
+	/** Recolour in place — status changes must not rebuild the row. */
+	public void setColor(Color color)
+	{
+		this.color = color;
+		repaint();
 	}
 
 	@Override

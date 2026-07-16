@@ -17,16 +17,20 @@ import javax.swing.border.AbstractBorder;
 public class StoneBorder extends AbstractBorder
 {
 	private final OsrsTheme theme;
+	private final Color outside;
 	private final int corner;
 
-	public StoneBorder()
-	{
-		this(OsrsSkin.STONE);
-	}
-
+	/** A box sitting directly on the theme's backing. */
 	public StoneBorder(OsrsTheme theme)
 	{
+		this(theme, theme.background);
+	}
+
+	/** A box nested on some other surface — the notch cuts through to it. */
+	public StoneBorder(OsrsTheme theme, Color outside)
+	{
 		this.theme = theme;
+		this.outside = outside;
 		this.corner = theme.cornerStamp.length;
 	}
 
@@ -49,7 +53,7 @@ public class StoneBorder extends AbstractBorder
 		{
 			for (int col = 0; col < corner; col++)
 			{
-				Color color = color(theme.cornerStamp[row].charAt(col));
+				Color color = color(theme.cornerStamp[row].charAt(col), c);
 				stamp(g, color, x + col, y + row);
 				stamp(g, color, x + w - 1 - col, y + row);
 				stamp(g, color, x + col, y + h - 1 - row);
@@ -64,7 +68,7 @@ public class StoneBorder extends AbstractBorder
 		g.fillRect(px, py, 1, 1);
 	}
 
-	private Color color(char token)
+	private Color color(char token, Component c)
 	{
 		switch (token)
 		{
@@ -73,9 +77,11 @@ public class StoneBorder extends AbstractBorder
 			case 'L':
 				return theme.edgeLight;
 			case 'F':
-				return theme.boxFill;
+				// the component's own fill, so hover/press states reach the
+				// corner pixels instead of stranding the resting color there
+				return c.isOpaque() ? c.getBackground() : theme.boxFill;
 			default:
-				return theme.background; // the notch cuts through to the backing
+				return outside;
 		}
 	}
 

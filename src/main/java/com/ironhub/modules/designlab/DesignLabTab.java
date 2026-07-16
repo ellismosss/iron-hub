@@ -5,9 +5,18 @@ import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
 import com.ironhub.ui.osrs.StatBox;
+import com.ironhub.ui.osrs.StoneButton;
+import com.ironhub.ui.osrs.StoneChecklist;
+import com.ironhub.ui.osrs.StoneFrame;
+import com.ironhub.ui.osrs.StoneMeter;
+import com.ironhub.ui.osrs.StoneNavButton;
 import com.ironhub.ui.osrs.StonePanel;
+import com.ironhub.ui.osrs.StoneProgressBar;
+import com.ironhub.ui.osrs.StoneTabStrip;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.util.List;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
@@ -18,89 +27,147 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 /**
- * The OSRS skin proving ground (design/OSRS-SKIN.md): static recreations of
- * the game's Character Summary built purely from the com.ironhub.ui.osrs
- * atoms — the default stone, then the Mystic resource pack's grey re-skin
- * below it — so the two clothings can be compared in the real sidebar before
- * any module adopts one. Sample data throughout, and labelled as such.
+ * The OSRS skin proving ground (design/OSRS-SKIN.md): every atom of the
+ * design system, in the theme the config selects, inside the game's thin
+ * side-panel frame — so the whole system can be judged in the real sidebar
+ * before any module adopts it. Flipping the "OSRS skin theme" setting redraws
+ * the lot in the other clothing. Sample data throughout, and labelled as such.
  */
 public class DesignLabTab extends JPanel
 {
-	public DesignLabTab()
+	/** Luke's reference bar is RuneLite's XP tracker blue; fills are semantic. */
+	private static final Color BAR_BLUE = new Color(0x3D5FBF);
+
+	private final OsrsTheme theme;
+
+	public DesignLabTab(OsrsTheme theme)
 	{
+		this.theme = theme;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(UiTokens.PANEL_BG);
+		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		add(caption("OSRS stone"));
-		add(summary(OsrsSkin.STONE, ""));
-		add(caption("Mystic (resource pack)"));
-		add(summary(OsrsSkin.MYSTIC, "mystic/"));
+		// the whole skinned surface lives inside the game's thin frame
+		JPanel frame = new JPanel();
+		frame.setLayout(new BoxLayout(frame, BoxLayout.Y_AXIS));
+		frame.setOpaque(true);
+		frame.setBackground(theme.background);
+		frame.setBorder(new StoneFrame(theme));
+		frame.setAlignmentX(LEFT_ALIGNMENT);
 
-		JPanel note = new JPanel();
-		note.setLayout(new BoxLayout(note, BoxLayout.X_AXIS));
-		note.setOpaque(false);
-		note.setAlignmentX(LEFT_ALIGNMENT);
-		note.setBorder(new EmptyBorder(6, 0, 8, 0));
-		note.add(Box.createHorizontalGlue());
-		note.add(new OsrsLabel("Static preview · sample data", OsrsSkin.MUTED, OsrsSkin.font()));
-		note.add(Box.createHorizontalGlue());
-		cap(note);
-		add(note);
+		frame.add(summary());
+		frame.add(section("Tabs · option A: strip"));
+		frame.add(pad(new StoneTabStrip(theme, List.of("Today", "Route", "Goals"), 0, null)));
+		StonePanel tabBody = new StonePanel(theme);
+		tabBody.setLayout(new BoxLayout(tabBody, BoxLayout.X_AXIS));
+		tabBody.add(Box.createHorizontalGlue());
+		tabBody.add(OsrsLabel.label("the tab's content"));
+		tabBody.add(Box.createHorizontalGlue());
+		cap(tabBody);
+		frame.add(pad(tabBody));
+
+		frame.add(section("Tabs · option B: nav stones"));
+		frame.add(pad(navStones()));
+
+		frame.add(section("Buttons"));
+		frame.add(pad(new StoneButton(theme, "Start all runs", null)));
+		frame.add(strut(3));
+		frame.add(pad(buttonPair()));
+
+		frame.add(section("Progress · tall"));
+		frame.add(pad(new StoneProgressBar(theme, BAR_BLUE, 0.3059)
+			.labels("Lvl. 85", "30.59%", "Lvl. 86")));
+		frame.add(strut(3));
+		frame.add(pad(new StoneProgressBar(theme, OsrsSkin.VALUE.darker(), 0.62)
+			.labels("Elite", "31/50", "Diary")));
+
+		frame.add(section("Progress · thin"));
+		frame.add(pad(new StoneMeter(theme, OsrsSkin.VALUE.darker(), 0.62)));
+		frame.add(strut(3));
+		frame.add(pad(new StoneMeter(theme, BAR_BLUE, 0.18)));
+
+		frame.add(section("Checklist"));
+		frame.add(pad(new StoneChecklist(theme)
+			.row("Ardougne cloak 4", true)
+			.row("Graceful outfit", true)
+			.row("Herb sack", false)
+			.row("Rune pouch", false)));
+
+		frame.add(strut(6));
+		frame.add(pad(centered(new OsrsLabel("Static preview · sample data", OsrsSkin.MUTED, OsrsSkin.font()))));
+		frame.add(strut(4));
+		add(frame);
 	}
 
-	/** One full Character Summary recreation in the given clothing. */
-	private JComponent summary(OsrsTheme theme, String iconPrefix)
+	/** The Character Summary recreation — the display grammar. */
+	private JComponent summary()
 	{
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-		panel.setOpaque(true);
-		panel.setBackground(theme.background);
-		panel.setBorder(new EmptyBorder(8, 8, 8, 8));
+		panel.setOpaque(false);
+		panel.setBorder(new EmptyBorder(4, 4, 0, 4));
 		panel.setAlignmentX(LEFT_ALIGNMENT);
+		String p = theme == OsrsTheme.MYSTIC ? "mystic/" : "";
 
-		panel.add(fullWidth(OsrsLabel.title("Iron Hub")));
+		panel.add(centered(OsrsLabel.title("Iron Hub")));
 		panel.add(Box.createVerticalStrut(6));
-
 		panel.add(pair(
-			new StatBox(theme, "Combat Level:", icon(iconPrefix + "combat_level"), "112"),
-			new StatBox(theme, "Total Level:", icon(iconPrefix + "total_level"), "1842")));
+			new StatBox(theme, "Combat Level:", icon(p + "combat_level"), "112"),
+			new StatBox(theme, "Total Level:", icon(p + "total_level"), "1842")));
 		panel.add(Box.createVerticalStrut(3));
-
-		panel.add(inline(theme, icon(iconPrefix + "total_xp"), "Total XP:", "47,702,858"));
+		panel.add(inline(icon(p + "total_xp"), "Total XP:", "47,702,858"));
 		panel.add(Box.createVerticalStrut(3));
-
 		panel.add(pair(
-			new StatBox(theme, "Quests\nCompleted:", icon(iconPrefix + "quests"), "177/181"),
-			new StatBox(theme, "Achievements\nCompleted:", icon(iconPrefix + "achievements"), "397/492")));
-		panel.add(Box.createVerticalStrut(3));
-
-		panel.add(pair(
-			new StatBox(theme, "Combat Tasks\nCompleted:", icon(iconPrefix + "combat_tasks"), "87/637"),
-			new StatBox(theme, "Collections\nLogged:", icon(iconPrefix + "collections_logged"), "207/1706")));
-		panel.add(Box.createVerticalStrut(3));
-
-		panel.add(inline(theme, null, "Time Played:", "147 days, 23 hours"));
-
+			new StatBox(theme, "Quests\nCompleted:", icon(p + "quests"), "177/181"),
+			new StatBox(theme, "Achievements\nCompleted:", icon(p + "achievements"), "397/492")));
 		cap(panel);
 		return panel;
 	}
 
-	/** Section caption on the plain RuneLite panel backing. */
-	private JComponent caption(String text)
+	private JComponent navStones()
 	{
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setBorder(new EmptyBorder(8, 8, 4, 8));
+		String p = theme == OsrsTheme.MYSTIC ? "mystic/" : "";
+		String[] icons = {"combat_level", "total_level", "quests", "achievements", "collections_logged"};
+		row.add(Box.createHorizontalGlue());
+		for (int i = 0; i < icons.length; i++)
+		{
+			row.add(new StoneNavButton(theme, icon(p + icons[i]), i == 0, null));
+		}
+		row.add(Box.createHorizontalGlue());
+		cap(row);
+		return row;
+	}
+
+	private JComponent buttonPair()
+	{
+		JPanel row = new JPanel(new GridLayout(1, 2, 3, 0));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.add(new StoneButton(theme, "Skip", null));
+		row.add(new StoneButton(theme, "End run", null));
+		cap(row);
+		return row;
+	}
+
+	/** Section caption on the skin's own backing. */
+	private JComponent section(String text)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new EmptyBorder(8, 8, 3, 8));
 		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font()));
 		row.add(Box.createHorizontalGlue());
 		cap(row);
 		return row;
 	}
 
-	/** Two equal boxes side by side, the game's 2-3px gutter between. */
 	private JComponent pair(StatBox left, StatBox right)
 	{
 		JPanel row = new JPanel(new GridLayout(1, 2, 3, 0));
@@ -113,7 +180,7 @@ public class DesignLabTab extends JPanel
 	}
 
 	/** Full-width one-line box: [icon] orange label + green value, centered. */
-	private StonePanel inline(OsrsTheme theme, Icon icon, String label, String value)
+	private StonePanel inline(Icon icon, String label, String value)
 	{
 		StonePanel box = new StonePanel(theme);
 		box.setLayout(new BoxLayout(box, BoxLayout.X_AXIS));
@@ -132,8 +199,7 @@ public class DesignLabTab extends JPanel
 		return box;
 	}
 
-	/** Stretch a centered-painting atom across the panel width. */
-	private JComponent fullWidth(JComponent inner)
+	private JComponent centered(JComponent inner)
 	{
 		JPanel holder = new JPanel();
 		holder.setLayout(new BoxLayout(holder, BoxLayout.X_AXIS));
@@ -144,6 +210,23 @@ public class DesignLabTab extends JPanel
 		holder.add(Box.createHorizontalGlue());
 		cap(holder);
 		return holder;
+	}
+
+	/** Inset a full-width atom to the frame's content margin. */
+	private JComponent pad(JComponent inner)
+	{
+		JPanel holder = new JPanel(new java.awt.BorderLayout());
+		holder.setOpaque(false);
+		holder.setAlignmentX(LEFT_ALIGNMENT);
+		holder.setBorder(new EmptyBorder(0, 4, 0, 4));
+		holder.add(inner);
+		cap(holder);
+		return holder;
+	}
+
+	private JComponent strut(int height)
+	{
+		return (JComponent) Box.createVerticalStrut(height);
 	}
 
 	private void cap(JComponent c)

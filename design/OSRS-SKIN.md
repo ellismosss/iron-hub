@@ -124,11 +124,39 @@ pattern is always **icon + green value** on one line under an orange label.
 
 | Atom | What it is |
 |---|---|
-| `OsrsSkin` | the tokens above + fonts; the only style source for skinned surfaces |
+| `OsrsSkin` | global text colors + fonts; `OsrsTheme` carries the surfaces (both are the only style source for skinned surfaces) |
 | `StoneBorder` | Swing `Border` painting the engraved edge + corner stamps; insets 4/6 (game pad) |
-| `StonePanel` | `BOX_FILL` panel wearing a `StoneBorder` |
+| `StonePanel` | theme-fill panel wearing a `StoneBorder` |
 | `OsrsLabel` | shadowed RuneScape-font text, multi-line on `\n`; factories: `title` `label` `value` |
 | `StatBox` | orange label line(s) + centered icon+value line in a `StonePanel` |
+| `StoneFrame` | the thin resizable-mode side-panel frame (1px dark/light + 8×8 stepped chamfer) |
+| `StoneButton` | **the default button**: the notched box with hover/press fills |
+| `StoneNavButton` | the square stone — **navigation only**; selected lifts the fill + brightens the bevel |
+| `StoneTabStrip` | tabs in a recess; the selected one lifts and drops its bottom edge to merge with content |
+| `StoneProgressBar` | tall bar with left/center/right labels inside |
+| `StoneMeter` | the thin bar, 5px, no text |
+| `StoneCheckbox` / `StoneChecklist` | the game's tick box; rows grouped inside ONE notched frame |
+
+**Two button idioms exist in the game** and it matters which we copy: the Settings
+interface's buttons are a *raised* black-outline bevel (`#000000` outline, `#8A7757`
+bevel, `#463C31` fill), while the Character Summary's stat boxes are the *engraved*
+groove. Per Luke the notched engraved box is Iron Hub's default button — square stone
+(`StoneNavButton`) is reserved for navigation, so it never becomes wallpaper.
+
+**State art.** The game has no pointer, so hover/press have no sprite anywhere: MYSTIC's
+hover is sampled from the pack's own `tab/small_middle_hovered.png` (a top-lit gradient,
+flattened to its lit tone since our surfaces are flat), STONE's is derived from its
+sampled fill (±8). Everything else is sampled: selected fill/bevel from
+`tab_stone_middle_selected.png`, checkbox anatomy from `File:Settings_interface.png`
+(black outline, `#8A7757` bevel, `#1A1A1A` interior, `#00FE00` tick) and
+`options/square_check_box_checked.png` (`#65C772` tick), tab recess/selected from the
+wiki strip (`#28251E` → `#3E3529`).
+
+**The bars are a synthesis, and say so:** the game draws no text-inside-a-bar, so the
+layout follows Luke's reference — RuneLite's own `ProgressBar` (16px tall; white
+left/center/right labels; fill colour supplied by the caller) — painted in skin tokens
+with the game's font, one row taller so the RuneScape ink fits. The **fill is semantic
+and belongs to the caller**; the trough and border are sampled.
 
 Implementation notes proven by the render: text uses the game's tight **12px line
 pitch**, not Swing's FontMetrics height (16) — FontMetrics-driven layout runs 4px/line
@@ -152,10 +180,10 @@ minimums — so the regression test mounts the tab like the client and lays out 
 OsrsLabel also centers its text block in whatever height it is given, so any future
 allocation quirk shifts text instead of clipping glyphs.
 
-Phase 2 candidates once the look is signed off: stone tab strip (`Tabs.SLANTED_TAB`
-geometry), the mottled outer frame (crop the edge strips from the wiki 1x screenshot and
-tile them), hover/selected fills (`V2StoneButton` has real variants), buttons,
-progress bars, scrollbar restyle.
+Still open (phase 3): scrollbar restyle (the pack ships a `scrollbar/` folder), text
+inputs / dropdowns (both visible in `File:Settings_interface.png`), the fixed-mode
+mottled outer frame if anyone wants it, and then the migration pilot — one real module
+adopting the skin.
 
 ## Fidelity assessment — how close can the sidebar get?
 
@@ -180,7 +208,9 @@ swap, not a redesign.
 ## Test surface
 
 `com.ironhub.modules.designlab` — nav row **Design lab**, config toggle `designLab`.
-Its tab is a static recreation of the Character Summary built purely from the atoms
-(sample data, labelled as such — honesty rule), once per theme: OSRS stone on top,
-Mystic below, for in-client comparison. Render: `build/reports/designlab-tab.png`,
-compared side-by-side against the wiki 1x original / the Mystic pack sprites.
+Its tab is every atom, built purely from the design system (sample data, labelled as
+such — honesty rule), inside the thin `StoneFrame`. It renders in whichever clothing the
+**`osrsTheme` setting** picks (plugin settings, deliberately not a sidebar control —
+Luke's call, since it is a preference, not a per-session view); flipping the setting
+rebuilds the tab on the EDT via `ConfigChanged`, which is how the two are compared.
+Renders: `build/reports/designlab-{stone,mystic}.png`.

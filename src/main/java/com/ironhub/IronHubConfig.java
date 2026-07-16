@@ -166,6 +166,9 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "designLab", name = "Design lab", description = "OSRS-look design system test gallery (development stage)", section = modulesSection, position = 25)
 	default boolean designLab() { return true; }
 
+	@ConfigItem(keyName = "osrsTheme", name = "OSRS skin theme", description = "Which stone the OSRS-look surfaces wear: the game's default, or the Mystic resource pack's greys", section = modulesSection, position = 26)
+	default com.ironhub.ui.osrs.OsrsTheme osrsTheme() { return com.ironhub.ui.osrs.OsrsTheme.MYSTIC; }
+
 	@ConfigItem(keyName = "discordWebhookUrl", name = "Discord webhook URL", description = "Opt-in: milestone notifications (log slots, uniques, pets, levels, goals)", section = integrationsSection, position = 5)
 	default String discordWebhookUrl() { return ""; }
 }

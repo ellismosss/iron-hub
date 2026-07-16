@@ -1,5 +1,6 @@
 package com.ironhub.ui.osrs;
 
+import java.awt.Color;
 import javax.swing.JPanel;
 
 /**
@@ -8,15 +9,19 @@ import javax.swing.JPanel;
  */
 public class StonePanel extends JPanel
 {
-	public StonePanel()
-	{
-		this(OsrsSkin.STONE);
-	}
+	protected final OsrsTheme theme;
 
 	public StonePanel(OsrsTheme theme)
 	{
+		this(theme, theme.background);
+	}
+
+	/** Nested on some other surface — the corner notch cuts through to it. */
+	public StonePanel(OsrsTheme theme, Color outside)
+	{
+		this.theme = theme;
 		setOpaque(true);
 		setBackground(theme.boxFill);
-		setBorder(new StoneBorder(theme));
+		setBorder(new StoneBorder(theme, outside));
 	}
 }

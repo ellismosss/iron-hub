@@ -75,7 +75,7 @@ public class ModuleLifecycleTest
 			new com.ironhub.modules.loadoutlab.LoadoutLabModule(
 				new com.loadoutlab.LoadoutLabPlugin(), new net.runelite.client.eventbus.EventBus(), config,
 				state, null, null, null, new com.google.gson.Gson(), null),
-			new com.ironhub.modules.designlab.DesignLabModule(config));
+			new com.ironhub.modules.designlab.DesignLabModule(config, new net.runelite.client.eventbus.EventBus()));
 
 		assertEquals(21, modules.size());
 

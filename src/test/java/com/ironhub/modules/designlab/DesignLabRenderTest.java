@@ -2,58 +2,117 @@ package com.ironhub.modules.designlab;
 
 import com.ironhub.ui.SwingRender;
 import com.ironhub.ui.UiTokens;
+import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
+import com.ironhub.ui.osrs.StoneButton;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import javax.imageio.ImageIO;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Headless render of the OSRS-skin gallery for side-by-side comparison with
- * the source art (wiki 1x Character Summary; Mystic pack sprites). Pins the
- * stone-box anatomy for BOTH themes: the corner notch must show the theme's
- * backing through the box, with the engraved dark/light edge pair below.
+ * Headless renders of the OSRS-skin gallery — one per theme — for
+ * side-by-side comparison with the source art (wiki 1x Character Summary and
+ * Settings interfaces; Mystic pack sprites), plus the invariants that in-client
+ * rounds have already caught once each.
  */
 public class DesignLabRenderTest
 {
 	@Test
-	public void galleryRendersAtPanelWidth() throws Exception
+	public void galleryRendersEveryThemeAtPanelWidth() throws Exception
 	{
-		BufferedImage image = SwingRender.render(new DesignLabTab());
-		assertEquals(UiTokens.PANEL_WIDTH, image.getWidth());
-		assertTrue(image.getHeight() > 500);
-
-		File out = new File("build/reports/designlab-tab.png");
-		out.getParentFile().mkdirs();
-		ImageIO.write(image, "png", out);
-
-		for (OsrsTheme theme : new OsrsTheme[]{OsrsSkin.STONE, OsrsSkin.MYSTIC})
+		for (OsrsTheme theme : OsrsTheme.values())
 		{
-			int boxX = 8, boxY = firstBoxTop(image, boxX, theme);
+			DesignLabTab tab = new DesignLabTab(theme);
+			BufferedImage image = SwingRender.render(tab);
+			assertEquals(UiTokens.PANEL_WIDTH, image.getWidth());
+			assertTrue(image.getHeight() > 400);
+
+			File out = new File("build/reports/designlab-" + theme.name().toLowerCase() + ".png");
+			out.getParentFile().mkdirs();
+			ImageIO.write(image, "png", out);
+
+			// stone-box anatomy, checked at a real box's own painted bounds:
+			// the corner notch shows the theme's backing through the box,
+			// with the engraved dark/light pair below it
+			Rectangle box = firstStatBox(tab);
 			assertEquals("corner notch shows the backing",
-				theme.background.getRGB(), image.getRGB(boxX, boxY));
-			int midX = boxX + 40;
-			assertEquals(theme.edgeDark.getRGB(), image.getRGB(midX, boxY));
-			assertEquals(theme.edgeLight.getRGB(), image.getRGB(midX, boxY + 1));
-			assertEquals(theme.boxFill.getRGB(), image.getRGB(midX, boxY + 2));
+				theme.background.getRGB(), image.getRGB(box.x, box.y));
+			int midX = box.x + box.width / 2;
+			assertEquals(theme.edgeDark.getRGB(), image.getRGB(midX, box.y));
+			assertEquals(theme.edgeLight.getRGB(), image.getRGB(midX, box.y + 1));
+			assertEquals(theme.boxFill.getRGB(), image.getRGB(midX, box.y + 2));
 		}
 	}
 
-	/** First row (scanning down at x) whose right neighbourhood turns the theme's dark edge. */
-	private static int firstBoxTop(BufferedImage image, int x, OsrsTheme theme)
+	/** Bounds of the first StatBox, in the tab's own coordinates. */
+	private static Rectangle firstStatBox(DesignLabTab tab)
 	{
-		for (int y = 0; y < image.getHeight(); y++)
+		com.ironhub.ui.osrs.StatBox box = find(tab, com.ironhub.ui.osrs.StatBox.class);
+		assertTrue("no StatBox in the gallery", box != null);
+		java.awt.Point origin = javax.swing.SwingUtilities.convertPoint(box.getParent(), box.getLocation(), tab);
+		return new Rectangle(origin.x, origin.y, box.getWidth(), box.getHeight());
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> T find(Container root, Class<T> type)
+	{
+		for (Component child : root.getComponents())
 		{
-			if (image.getRGB(x + 40, y) == theme.edgeDark.getRGB())
+			if (type.isInstance(child))
 			{
-				return y;
+				return (T) child;
+			}
+			if (child instanceof Container)
+			{
+				T hit = find((Container) child, type);
+				if (hit != null)
+				{
+					return hit;
+				}
 			}
 		}
-		throw new AssertionError("no stone box edge found for theme");
+		return null;
+	}
+
+	/** Every theme must dress every atom — no half-clothed surface. */
+	@Test
+	public void bothThemesDefineEveryToken()
+	{
+		for (OsrsTheme theme : OsrsTheme.values())
+		{
+			assertNotEquals("hover must differ from rest", theme.boxFill, theme.hoverFill);
+			assertNotEquals("press must differ from rest", theme.boxFill, theme.pressFill);
+			assertNotEquals("selected must differ from rest", theme.boxFill, theme.selectFill);
+			assertNotEquals("selected bevel must differ", theme.edgeLight, theme.selectEdge);
+			assertTrue("corner stamp mirrors a square", theme.cornerStamp.length > 0
+				&& theme.cornerStamp.length == theme.cornerStamp[0].length());
+			assertTrue("hover lifts the fill", brightness(theme.hoverFill) > brightness(theme.boxFill));
+			assertTrue("press sinks the fill", brightness(theme.pressFill) < brightness(theme.boxFill));
+		}
+	}
+
+	@Test
+	public void buttonsAnswerThePointer()
+	{
+		for (OsrsTheme theme : OsrsTheme.values())
+		{
+			StoneButton button = new StoneButton(theme, "Start all runs", null);
+			assertEquals(theme.boxFill, button.fillFor(false, false));
+			assertEquals(theme.hoverFill, button.fillFor(true, false));
+			assertEquals(theme.pressFill, button.fillFor(true, true));
+		}
 	}
 
 	/**
@@ -67,45 +126,18 @@ public class DesignLabRenderTest
 	@Test
 	public void everyLabelKeepsItsHeightUnderTheClientMount()
 	{
-		DesignLabTab tab = new DesignLabTab();
+		DesignLabTab tab = new DesignLabTab(OsrsTheme.MYSTIC);
 		com.ironhub.ui.components.HubScrollPane pane = new com.ironhub.ui.components.HubScrollPane(tab);
-		pane.setSize(UiTokens.PANEL_WIDTH, 600);
+		pane.setSize(UiTokens.PANEL_WIDTH, 900);
 		layoutOnce(pane);
 
-		java.util.List<com.ironhub.ui.osrs.OsrsLabel> labels = new java.util.ArrayList<>();
+		List<OsrsLabel> labels = new ArrayList<>();
 		collect(tab, labels);
 		assertTrue("no labels found", labels.size() > 10);
-		for (com.ironhub.ui.osrs.OsrsLabel label : labels)
+		for (OsrsLabel label : labels)
 		{
 			assertTrue("label cut below preferred height: " + label.getBounds(),
 				label.getHeight() >= label.getPreferredSize().height);
-		}
-	}
-
-	private static void layoutOnce(java.awt.Component c)
-	{
-		c.doLayout();
-		if (c instanceof java.awt.Container)
-		{
-			for (java.awt.Component child : ((java.awt.Container) c).getComponents())
-			{
-				layoutOnce(child);
-			}
-		}
-	}
-
-	private static void collect(java.awt.Container root, java.util.List<com.ironhub.ui.osrs.OsrsLabel> out)
-	{
-		for (java.awt.Component child : root.getComponents())
-		{
-			if (child instanceof com.ironhub.ui.osrs.OsrsLabel)
-			{
-				out.add((com.ironhub.ui.osrs.OsrsLabel) child);
-			}
-			if (child instanceof java.awt.Container)
-			{
-				collect((java.awt.Container) child, out);
-			}
 		}
 	}
 
@@ -114,23 +146,55 @@ public class DesignLabRenderTest
 	 * baseline-12..baseline-2), and the game centers the visible INK — box,
 	 * icon and text centers are all equal in the wiki 1x screenshot. Pins
 	 * the measured-ink placement so a caps/digits label reads centered
-	 * (Luke, in-client 2026-07-16: text sat 2px high beside a centered icon)
+	 * (Luke, in-client 2026-07-16: text sat high beside a centered icon)
 	 * and descender ink is never clipped away.
 	 */
 	@Test
 	public void labelInkCentersAndDescendersSurvive()
 	{
-		com.ironhub.ui.osrs.OsrsLabel caps = com.ironhub.ui.osrs.OsrsLabel.label("Total XP: 47,702,858");
-		java.awt.Rectangle ink = paintInk(caps);
+		OsrsLabel caps = OsrsLabel.label("Total XP: 47,702,858");
+		Rectangle ink = paintInk(caps);
 		double inkCenter = ink.y + (ink.height - 1) / 2.0;
 		double boxCenter = (caps.getHeight() - 1) / 2.0;
-		assertTrue("caps ink off-center: ink=" + ink + " in h=" + caps.getHeight(),
-			Math.abs(inkCenter - boxCenter) <= 1.0);
+		assertEquals("caps ink off-center: ink=" + ink + " in h=" + caps.getHeight(),
+			boxCenter, inkCenter, 0.01);
 
-		com.ironhub.ui.osrs.OsrsLabel descenders = com.ironhub.ui.osrs.OsrsLabel.label("gjpqy");
-		java.awt.Rectangle dInk = paintInk(descenders);
+		OsrsLabel descenders = OsrsLabel.label("gjpqy");
+		Rectangle dInk = paintInk(descenders);
 		assertTrue("descender ink clipped: " + dInk + " in h=" + descenders.getHeight(),
 			dInk.y + dInk.height <= descenders.getHeight());
+	}
+
+	private static double brightness(java.awt.Color c)
+	{
+		return c.getRed() + c.getGreen() + c.getBlue();
+	}
+
+	private static void layoutOnce(Component c)
+	{
+		c.doLayout();
+		if (c instanceof Container)
+		{
+			for (Component child : ((Container) c).getComponents())
+			{
+				layoutOnce(child);
+			}
+		}
+	}
+
+	private static void collect(Container root, List<OsrsLabel> out)
+	{
+		for (Component child : root.getComponents())
+		{
+			if (child instanceof OsrsLabel)
+			{
+				out.add((OsrsLabel) child);
+			}
+			if (child instanceof Container)
+			{
+				collect((Container) child, out);
+			}
+		}
 	}
 
 	/**
@@ -138,13 +202,13 @@ public class DesignLabRenderTest
 	 * unclipped, so overdraw past the component is visible) and bound the
 	 * COLORED ink rows — the game centers ink, shadows excluded.
 	 */
-	private static java.awt.Rectangle paintInk(com.ironhub.ui.osrs.OsrsLabel label)
+	private static Rectangle paintInk(OsrsLabel label)
 	{
 		java.awt.Dimension pref = label.getPreferredSize();
 		label.setSize(pref);
 		BufferedImage image = new BufferedImage(pref.width + 4, pref.height + 4, BufferedImage.TYPE_INT_RGB);
-		java.awt.Graphics2D g = image.createGraphics();
-		g.setColor(OsrsSkin.BOX_FILL);
+		Graphics2D g = image.createGraphics();
+		g.setColor(OsrsTheme.STONE.boxFill);
 		g.fillRect(0, 0, image.getWidth(), image.getHeight());
 		label.paint(g);
 		int minY = Integer.MAX_VALUE, maxY = -1;
@@ -160,6 +224,6 @@ public class DesignLabRenderTest
 			}
 		}
 		assertTrue("label painted nothing", maxY >= 0);
-		return new java.awt.Rectangle(0, minY, pref.width, maxY - minY + 1);
+		return new Rectangle(0, minY, pref.width, maxY - minY + 1);
 	}
 }

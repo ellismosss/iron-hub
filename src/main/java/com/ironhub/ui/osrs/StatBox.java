@@ -14,11 +14,6 @@ import javax.swing.JPanel;
  */
 public class StatBox extends StonePanel
 {
-	public StatBox(String label, Icon icon, String value)
-	{
-		this(OsrsSkin.STONE, label, icon, value);
-	}
-
 	public StatBox(OsrsTheme theme, String label, Icon icon, String value)
 	{
 		super(theme);
