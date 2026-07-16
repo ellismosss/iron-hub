@@ -337,7 +337,7 @@ class FarmingTab extends JPanel
 		expandedOverview.retainAll(byCategory.keySet());
 		if (!byCategory.isEmpty())
 		{
-			overview.add(overviewTileStrip(byCategory));
+			overview.add(overviewTileStrip(byCategory, now));
 			overview.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 			for (java.util.Map.Entry<Tab, List<FarmingRunModule.OverviewPatch>> entry : byCategory.entrySet())
 			{
@@ -418,7 +418,7 @@ class FarmingTab extends JPanel
 	}
 
 	/** Grid of clickable category icon tiles — the Time Tracking tab strip. */
-	private JComponent overviewTileStrip(java.util.Map<Tab, List<FarmingRunModule.OverviewPatch>> byCategory)
+	private JComponent overviewTileStrip(java.util.Map<Tab, List<FarmingRunModule.OverviewPatch>> byCategory, long now)
 	{
 		JPanel strip = new JPanel(new java.awt.GridLayout(0, 5, 4, 4));
 		strip.setOpaque(false);
@@ -427,7 +427,7 @@ class FarmingTab extends JPanel
 		strip.setMaximumSize(new Dimension(Integer.MAX_VALUE, rows * 34));
 		for (java.util.Map.Entry<Tab, List<FarmingRunModule.OverviewPatch>> entry : byCategory.entrySet())
 		{
-			strip.add(overviewTile(entry.getKey(), entry.getValue()));
+			strip.add(overviewTile(entry.getKey(), entry.getValue(), now));
 		}
 		return strip;
 	}
@@ -435,7 +435,7 @@ class FarmingTab extends JPanel
 	/** One category tile: its icon, a green border when every patch is ready/
 	 *  dead/empty, else an orange clockwise arc for progress toward the next
 	 *  ready patch. Click toggles the category's patch list. */
-	private JComponent overviewTile(Tab category, List<FarmingRunModule.OverviewPatch> patches)
+	private JComponent overviewTile(Tab category, List<FarmingRunModule.OverviewPatch> patches, long now)
 	{
 		int seen = 0;
 		int done = 0;
@@ -455,7 +455,13 @@ class FarmingTab extends JPanel
 					done++;
 					break;
 				case GROWING:
-					if (p.stages > 1)
+					// a grown patch reads GROWING with a past estimate until it's
+					// checked ("Done") — that's ready, not 100%-growing
+					if (p.doneEstimate <= now)
+					{
+						done++;
+					}
+					else if (p.stages > 1)
 					{
 						progress = Math.max(progress, p.stage / (double) (p.stages - 1));
 					}

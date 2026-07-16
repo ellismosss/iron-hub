@@ -715,11 +715,11 @@ public class FarmingRunModuleTest
 		AccountState state = StateFixture.state(temp.getRoot());
 		ConfigManager configManager = TimetrackingFixture.configManager();
 		long now = Instant.now().getEpochSecond();
-		// one ready herb patch, one growing, and seeded bird houses
+		// one ready herb patch, one part-grown (a partial tile arc), + bird houses
 		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
 			herbValue(Produce.RANARR, CropState.HARVESTABLE, 0), now);
 		TimetrackingFixture.patch(configManager, 10548, VarbitID.FARMING_TRANSMIT_D,
-			herbValue(Produce.RANARR, CropState.GROWING, 0), now);
+			herbValue(Produce.RANARR, CropState.GROWING, 2), now);
 		int seeded = 0;
 		while (com.ironhub.modules.farming.rl.hunter.BirdHouseState.fromVarpValue(seeded)
 			!= com.ironhub.modules.farming.rl.hunter.BirdHouseState.SEEDED)
