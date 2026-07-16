@@ -42,6 +42,8 @@ final class DailyTracker
 	{
 		/** Claimable now. */
 		AVAILABLE,
+		/** Claimable, but you do not have what it takes to claim it. */
+		SHORT,
 		/** Already taken this reset. */
 		DONE,
 		/** Requirements not met — never shown as outstanding. */
@@ -66,6 +68,16 @@ final class DailyTracker
 		}
 		DailiesPack.Detection detection = daily.detection;
 		String mode = detection == null ? "manual" : detection.mode;
+		State claimed = claimState(state, daily, crossedReset, now, mode);
+		// Supplies only matter for something you could otherwise go and do.
+		return claimed == State.AVAILABLE && !missing(state, daily).isEmpty()
+			? State.SHORT : claimed;
+	}
+
+	private static State claimState(AccountState state, DailiesPack.Daily daily,
+		boolean crossedReset, long now, String mode)
+	{
+		DailiesPack.Detection detection = daily.detection;
 		switch (mode)
 		{
 			case "flag":
@@ -120,6 +132,40 @@ final class DailyTracker
 	static String eligibleKey(DailiesPack.Daily daily)
 	{
 		return "dailyeligible_" + daily.id;
+	}
+
+	/**
+	 * What you still need to bring, as "13 bones (have 4)" — empty when you are
+	 * stocked, or when the pack does not gate on it (you can always buy fewer
+	 * battlestaves; you cannot make bonemeal out of bones you do not own).
+	 * Counts bank + inventory + worn, because a run starts at a bank.
+	 */
+	static java.util.List<String> missing(AccountState state, DailiesPack.Daily daily)
+	{
+		if (daily.bring == null || daily.bring.isEmpty())
+		{
+			return java.util.List.of();
+		}
+		int units = Math.max(1, quantity(state, daily));
+		java.util.List<String> out = new java.util.ArrayList<>();
+		for (DailiesPack.Bring bring : daily.bring)
+		{
+			if (bring.itemIds == null)
+			{
+				continue; // told, not gated
+			}
+			int needed = bring.per * units;
+			int owned = 0;
+			for (int itemId : bring.itemIds)
+			{
+				owned += state.ownedCount(itemId);
+			}
+			if (owned < needed)
+			{
+				out.add(needed + " " + bring.label + " (have " + owned + ")");
+			}
+		}
+		return out;
 	}
 
 	/** Ticked by hand and still inside the current daily reset window. */

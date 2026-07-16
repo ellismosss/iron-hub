@@ -74,12 +74,19 @@
               "required": ["label", "per"],
               "properties": {
                 "label": {"type": "string", "minLength": 1},
-                "per": {"type": "integer", "minimum": 1}
+                "per": {"type": "integer", "minimum": 1},
+                "itemIds": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {"type": "integer", "minimum": 1}
+                }
               }
             }
           },
           "travel": {"type": "string", "minLength": 1},
-          "note": {"type": "string", "minLength": 1}
+          "note": {"type": "string", "minLength": 1},
+          "optOut": {"type": "boolean"},
+          "warning": {"type": "string", "minLength": 1}
         }
       }
     }

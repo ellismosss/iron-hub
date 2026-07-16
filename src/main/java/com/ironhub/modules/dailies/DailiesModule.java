@@ -315,6 +315,19 @@ public class DailiesModule implements IronHubModule
 		return DailyTracker.stateOf(state, daily, crossedReset(), System.currentTimeMillis());
 	}
 
+	/** Whether this event is in the player's routine — their explicit choice,
+	 *  else the pack's default (the Wilderness ones start out). */
+	boolean selected(DailiesPack.Daily daily)
+	{
+		return state.isDailySelected(daily.id, !daily.optOut);
+	}
+
+	/** What you still need to bring before this one is doable. */
+	java.util.List<String> missing(DailiesPack.Daily daily)
+	{
+		return DailyTracker.missing(state, daily);
+	}
+
 	/** Claimable now and selected for the run. UNKNOWN (Tears of Guthix before
 	 *  we have seen a visit) does not count — we never guess it either way. */
 	int outstanding()
@@ -364,12 +377,15 @@ public class DailiesModule implements IronHubModule
 		List<DailiesPack.Daily> out = new ArrayList<>();
 		for (DailiesPack.Daily daily : pack.dailies)
 		{
-			if (!state.isDailySelected(daily.id))
+			if (!selected(daily))
 			{
 				continue; // the player's own checklist wins
 			}
 			DailyTracker.State current = stateOf(daily);
-			if (current == DailyTracker.State.LOCKED || current == DailyTracker.State.DONE)
+			// SHORT too: a stop you cannot supply is a wasted trip, so it is no
+			// more a stop than a locked one is.
+			if (current == DailyTracker.State.LOCKED || current == DailyTracker.State.DONE
+				|| current == DailyTracker.State.SHORT)
 			{
 				continue;
 			}
@@ -561,7 +577,7 @@ public class DailiesModule implements IronHubModule
 	{
 		long now = System.currentTimeMillis();
 		return (int) pack.dailies.stream()
-			.filter(d -> state.isDailySelected(d.id))
+			.filter(d -> state.isDailySelected(d.id, !d.optOut))
 			.filter(d -> DailyTracker.stateOf(state, d, false, now) == DailyTracker.State.AVAILABLE)
 			.count();
 	}

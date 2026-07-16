@@ -8,6 +8,7 @@ import com.ironhub.state.AccountState;
 import com.ironhub.state.StateFixture;
 import com.ironhub.ui.SwingRender;
 import java.util.List;
+import java.util.Map;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import net.runelite.api.Quest;
@@ -105,6 +106,7 @@ public class DailiesModuleTest
 		DailiesPack.Daily robin = pack().daily("robin_bonemeal");
 		int claimed = robin.detection.varbit;
 
+		StateFixture.bank(state, Map.of(526, 100)); // stocked: this is about the count varbit
 		StateFixture.varbit(state, Varbits.DIARY_MORYTANIA_MEDIUM, 1);
 		assertEquals(13, DailyTracker.quantity(state, robin));
 		StateFixture.varbit(state, claimed, 12);
@@ -288,6 +290,79 @@ public class DailiesModuleTest
 			DailyTracker.stateOf(state, tears, false, back));
 	}
 
+	/** Lundail is in the Wilderness, so nobody is opted into it — and the pack
+	 *  says so rather than the module hardcoding a name. */
+	@Test
+	public void wildernessDailiesAreOffUntilAskedFor()
+	{
+		AccountState state = state();
+		DailiesModule module = module(state);
+		DailiesPack.Daily lundail = module.pack().daily("lundail_runes");
+		assertTrue(lundail.optOut);
+		assertNotNull("and it says why when you tick it on", lundail.warning);
+		assertFalse(module.selected(lundail));
+		assertTrue("everything else is opted in",
+			module.selected(module.pack().daily("zaff_battlestaves")));
+
+		state.setDailySelected("lundail_runes", true);
+		assertTrue(module.selected(lundail));
+		// the choice is explicit now, and survives a reload
+		state.persist();
+		assertTrue(state.isDailySelected("lundail_runes", false));
+	}
+
+	/**
+	 * Robin takes any bone, the flax keeper takes flax — no supplies, no trip.
+	 * The amount tracks the diary tier, so the same bank can be enough today
+	 * and short tomorrow.
+	 */
+	@Test
+	public void supplyShortEventsAreOrangeAndNotStops()
+	{
+		AccountState state = state();
+		StateFixture.varbit(state, Varbits.DIARY_MORYTANIA_MEDIUM, 1); // 13 bones
+		DailiesModule module = module(state);
+		DailiesPack.Daily robin = module.pack().daily("robin_bonemeal");
+
+		assertEquals(DailyTracker.State.SHORT, module.stateOf(robin));
+		assertEquals(List.of("13 bones (have 0)"), module.missing(robin));
+		assertFalse("a trip you cannot supply is not a stop",
+			ids(module.cull()).contains("robin_bonemeal"));
+
+		// any bone type counts, and they add up (wiki: "do not need to be of the
+		// same type") — 8 big bones + 5 dragon bones is 13
+		StateFixture.bank(state, Map.of(532, 8, 536, 5));
+		assertEquals(DailyTracker.State.AVAILABLE, module.stateOf(robin));
+		assertTrue(module.missing(robin).isEmpty());
+		assertTrue(ids(module.cull()).contains("robin_bonemeal"));
+
+		// elite legs want 39 — the same bank is suddenly short
+		StateFixture.varbit(state, Varbits.DIARY_MORYTANIA_HARD, 1);
+		StateFixture.varbit(state, Varbits.DIARY_MORYTANIA_ELITE, 1);
+		assertEquals(DailyTracker.State.SHORT, module.stateOf(robin));
+		assertEquals(List.of("39 bones (have 13)"), module.missing(robin));
+	}
+
+	@Test
+	public void flaxKeeperNeedsFlaxAndCoinsAreNeverGated()
+	{
+		AccountState state = state();
+		StateFixture.varbit(state, Varbits.DIARY_KANDARIN_EASY, 1); // 30 flax
+		DailiesModule module = module(state);
+		DailiesPack.Daily flax = module.pack().daily("flax_bowstring");
+
+		assertEquals(DailyTracker.State.SHORT, module.stateOf(flax));
+		assertEquals(List.of("30 noted flax (have 0)"), module.missing(flax));
+		StateFixture.bank(state, Map.of(1779, 30));
+		assertEquals(DailyTracker.State.AVAILABLE, module.stateOf(flax));
+
+		// Zaff asks for coins but is never gated on them — you can buy fewer
+		DailiesPack.Daily zaff = module.pack().daily("zaff_battlestaves");
+		assertEquals("35,000 coins", module.bringLine(zaff));
+		assertTrue(module.missing(zaff).isEmpty());
+		assertEquals(DailyTracker.State.AVAILABLE, module.stateOf(zaff));
+	}
+
 	/** The run is only the stops worth travelling to. */
 	@Test
 	public void runCullsLockedClaimedAndDeselected()
@@ -468,8 +543,12 @@ public class DailiesModuleTest
 		StateFixture.quest(state, Quest.THE_HAND_IN_THE_SAND, QuestState.FINISHED);
 		StateFixture.quest(state, Quest.THRONE_OF_MISCELLANIA, QuestState.FINISHED);
 		StateFixture.quest(state, Quest.TEARS_OF_GUTHIX, QuestState.FINISHED);
+		// stocked for the two supply-gated stops, or they cull themselves out
+		StateFixture.bank(state, Map.of(526, 100, 1779, 300));
 
 		DailiesModule module = module(state);
+		// and opted in to the Wilderness trip, which nobody is by default
+		state.setDailySelected("lundail_runes", true);
 		module.startRun();
 		assertEquals("every event open — the overlay's worst case",
 			module.pack().dailies.size(), module.stops().size());

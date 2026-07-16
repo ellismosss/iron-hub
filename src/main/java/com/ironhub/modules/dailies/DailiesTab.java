@@ -20,6 +20,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
@@ -215,24 +216,86 @@ class DailiesTab extends JPanel
 	 * One tickable event. The tick is "include this in my runs"; the colour is
 	 * where it stands right now (see statusColor).
 	 */
-	private JCheckBox checklistRow(DailiesPack.Daily daily)
+	private JComponent checklistRow(DailiesPack.Daily daily)
 	{
 		DailyTracker.State current = module.stateOf(daily);
+		boolean selected = module.selected(daily);
 		// Muted grey alone reads as "locked" — an unknown state has to say so,
 		// so it carries the house "?" rather than passing for a locked row.
 		String label = daily.name
 			+ (current == DailyTracker.State.UNKNOWN ? " ?" : "");
-		JCheckBox box = new JCheckBox(label, state.isDailySelected(daily.id));
+		JCheckBox box = new JCheckBox(label, selected);
 		box.setOpaque(false);
-		box.setForeground(statusColor(current));
+		// An event you have excluded is not "go and do it", whatever its state.
+		box.setForeground(selected ? statusColor(current) : UiTokens.TEXT_MUTED);
 		box.setFont(box.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		box.setAlignmentX(LEFT_ALIGNMENT);
-		box.setToolTipText(daily.name);
-		// Buttons clip their own text with "…" once space runs out, so a long
-		// wiki name degrades gracefully rather than widening the panel.
+		box.setToolTipText(rowTooltip(daily, current));
 		box.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT));
-		box.addActionListener(e -> state.setDailySelected(daily.id, box.isSelected()));
-		return box;
+		box.addActionListener(e -> onTicked(daily, box.isSelected()));
+		if (daily.warning == null)
+		{
+			return box;
+		}
+		// A skull beside the name: this one is in the Wilderness. A JCheckBox's
+		// icon IS its tick, so the skull has to ride alongside in a row.
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT));
+		// the checkbox must stop at its own width, or a BoxLayout row stretches
+		// it and shoves the skull out to the far edge, away from the name
+		box.setMaximumSize(box.getPreferredSize());
+		row.add(box);
+		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		JLabel skull = new JLabel(SKULL);
+		skull.setToolTipText(daily.warning.replace("\n\n", " "));
+		row.add(skull);
+		row.add(Box.createHorizontalGlue());
+		return row;
+	}
+
+	/**
+	 * Ticking a Wilderness event on says so, out loud, once. Never on untick —
+	 * nobody needs warning about not going to the Wilderness.
+	 */
+	private void onTicked(DailiesPack.Daily daily, boolean selected)
+	{
+		state.setDailySelected(daily.id, selected);
+		if (selected && daily.warning != null)
+		{
+			JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(this),
+				daily.warning, daily.name, JOptionPane.WARNING_MESSAGE);
+		}
+	}
+
+	/**
+	 * Just the name — except when you are short, where the whole point is which
+	 * items you are short of.
+	 */
+	private String rowTooltip(DailiesPack.Daily daily, DailyTracker.State current)
+	{
+		if (current != DailyTracker.State.SHORT)
+		{
+			return daily.name;
+		}
+		return daily.name + " — need " + String.join(", ", module.missing(daily));
+	}
+
+	/** The wiki's own Wilderness skull, bundled (never a painted stand-in). */
+	private static final javax.swing.Icon SKULL = bundledIcon("/data/icons/wilderness_skull.png");
+
+	private static javax.swing.Icon bundledIcon(String resource)
+	{
+		java.net.URL url = DailiesTab.class.getResource(resource);
+		if (url == null)
+		{
+			return null;
+		}
+		javax.swing.ImageIcon icon = new javax.swing.ImageIcon(url);
+		return new javax.swing.ImageIcon(
+			icon.getImage().getScaledInstance(-1, 14, java.awt.Image.SCALE_SMOOTH));
 	}
 
 	/**
@@ -247,6 +310,9 @@ class DailiesTab extends JPanel
 		{
 			case AVAILABLE:
 				return ColorScheme.PROGRESS_COMPLETE_COLOR;
+			case SHORT:
+				// you could go, but you'd get nothing for the trip
+				return ColorScheme.PROGRESS_INPROGRESS_COLOR;
 			case DONE:
 				return UiTokens.TEXT_FAINT;
 			case LOCKED:
@@ -260,9 +326,15 @@ class DailiesTab extends JPanel
 	 *  unknown). Locked/unticked never reach here — they get no border. */
 	private static Color tileBorder(DailyTracker.State current)
 	{
-		return current == DailyTracker.State.AVAILABLE
-			? ColorScheme.PROGRESS_COMPLETE_COLOR.darker()
-			: UiTokens.BORDER_BUTTON;
+		switch (current)
+		{
+			case AVAILABLE:
+				return ColorScheme.PROGRESS_COMPLETE_COLOR.darker();
+			case SHORT:
+				return ColorScheme.PROGRESS_INPROGRESS_COLOR.darker();
+			default:
+				return UiTokens.BORDER_BUTTON;
+		}
 	}
 
 	// ── status tiles ─────────────────────────────────────────────────
@@ -292,7 +364,7 @@ class DailiesTab extends JPanel
 		DailyTracker.State current = module.stateOf(daily);
 		// Locked and unticked read the same way — not part of your dailies —
 		// so both get the farm strip's nothing-here treatment: dim, no border.
-		boolean mine = state.isDailySelected(daily.id) && current != DailyTracker.State.LOCKED;
+		boolean mine = module.selected(daily) && current != DailyTracker.State.LOCKED;
 		DailyTile tile = new DailyTile(mine ? tileBorder(current) : null, !mine, daily.name);
 		tile.setIconImage(sprites.get(daily.icon, TILE_ICON));
 		return tile;

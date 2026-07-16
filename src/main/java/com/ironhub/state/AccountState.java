@@ -62,9 +62,10 @@ public class AccountState implements StateView
 
 	// manual daily ticks: daily id -> epoch millis when marked done
 	private final Map<String, Long> dailiesDoneAt = new ConcurrentHashMap<>();
-	/** Dailies the player deselected from the guided run. Storing the OFF set
-	 *  (not the ON set) keeps newly added events opted in by default. */
-	private final Set<String> dailiesOff = ConcurrentHashMap.newKeySet();
+	/** Dailies the player has explicitly included/excluded from the guided run.
+	 *  Only explicit choices are stored — an absent id falls back to the pack's
+	 *  own default, so a new event opts in and a Wilderness one stays out. */
+	private final Map<String, Boolean> dailiesChoice = new ConcurrentHashMap<>();
 
 	// aggregated loot: npc name -> item id -> total quantity (persisted)
 	private final Map<String, Map<Integer, Integer>> lootBySource = new ConcurrentHashMap<>();
@@ -1181,16 +1182,20 @@ public class AccountState implements StateView
 		notifyListeners();
 	}
 
-	/** Whether a daily is eligible for the guided run (the tab's checklist).
-	 *  Unknown ids are selected — new events opt in by default. */
-	public boolean isDailySelected(String dailyId)
+	/**
+	 * Whether a daily is eligible for the guided run (the tab's checklist).
+	 *
+	 * @param byDefault what the pack says when the player has never chosen —
+	 *                  true for everything except the Wilderness events
+	 */
+	public boolean isDailySelected(String dailyId, boolean byDefault)
 	{
-		return !dailiesOff.contains(dailyId);
+		return dailiesChoice.getOrDefault(dailyId, byDefault);
 	}
 
 	public void setDailySelected(String dailyId, boolean selected)
 	{
-		if (selected ? dailiesOff.remove(dailyId) : dailiesOff.add(dailyId))
+		if (!Boolean.valueOf(selected).equals(dailiesChoice.put(dailyId, selected)))
 		{
 			persist();
 			notifyListeners();
@@ -1401,8 +1406,8 @@ public class AccountState implements StateView
 		killCounts.putAll(persisted.killCounts);
 		dailiesDoneAt.clear();
 		dailiesDoneAt.putAll(persisted.dailiesDoneAt);
-		dailiesOff.clear();
-		dailiesOff.addAll(persisted.dailiesOff);
+		dailiesChoice.clear();
+		dailiesChoice.putAll(persisted.dailiesChoice);
 		lootBySource.clear();
 		persisted.lootBySource.forEach((src, items) ->
 			lootBySource.put(src, new ConcurrentHashMap<>(items)));
@@ -1474,7 +1479,7 @@ public class AccountState implements StateView
 		state.unlocks = new HashSet<>(unlocks);
 		state.killCounts = new HashMap<>(killCounts);
 		state.dailiesDoneAt = new HashMap<>(dailiesDoneAt);
-		state.dailiesOff = new HashSet<>(dailiesOff);
+		state.dailiesChoice = new HashMap<>(dailiesChoice);
 		lootBySource.forEach((src, items) -> state.lootBySource.put(src, new HashMap<>(items)));
 		suppliesBySource.forEach((src, items) -> state.suppliesBySource.put(src, new HashMap<>(items)));
 		savedLoadouts.forEach((activity, slots) -> state.savedLoadouts.put(activity, new HashMap<>(slots)));

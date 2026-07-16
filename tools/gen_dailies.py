@@ -62,6 +62,26 @@ RUNELITE_TAG = "runelite-parent-1.12.32"
 #   tiers   — (requirement or None for the base amount, quantity), wiki order.
 #   bring   — (label, amount per unit collected).
 #   travel  — the wiki's own best "getting there"; a hint, not a routing input.
+# Robin converts ANY bone that has a bonemeal — the wiki's Bonemeal table is the
+# authoritative list ({{plinkt|...}} per row), and his own page confirms "The
+# bones do not need to be of the same type" while excluding Sun-kissed bones
+# (absent from the bonemeal table too, so the list already agrees). Names are
+# resolved through data/index/item-names.json below; an unresolvable one aborts.
+#
+# "Bones (Ape Atoll)" is deliberately absent: it is an Ape-Atoll-local variant
+# with no entry in the item-name index, and nobody banks it for Robin.
+ROBIN_BONES = [
+    "Alan's bones", "Babydragon bones", "Bat bones", "Bearded gorilla bones",
+    "Big bones", "Bones", "Burnt bones", "Burnt jogre bones", "Curved bone",
+    "Dagannoth bones", "Dragon bones", "Drake bones", "Fayrg bones",
+    "Frost dragon bones", "Gorilla bones", "Hydra bones", "Jogre bones",
+    "Large zombie monkey bones", "Lava dragon bones", "Long bone",
+    "Medium ninja monkey bones", "Monkey bones", "Ourg bones", "Raurg bones",
+    "Shaikahan bones", "Small ninja monkey bones", "Small zombie monkey bones",
+    "Strykewyrm bones", "Superior dragon bones", "Wolf bones", "Wyrm bones",
+    "Wyrmling bones", "Wyvern bones", "Zogre bones",
+]
+
 DAILIES = [
     {
         "id": "zaff_battlestaves",
@@ -79,7 +99,7 @@ DAILIES = [
             ("diary:Varrock:Hard", 60),
             ("diary:Varrock:Elite", 120),
         ],
-        "bring": [("coins", 7000)],
+        "bring": [("coins", 7000, None)],  # not checked: you can just buy fewer
         "travel": "Varrock teleport",
         # The wiki is explicit that the base 5 need no diary at all — the tiers
         # only raise the cap. (Core's own notifier gates on the easy diary; we
@@ -102,7 +122,7 @@ DAILIES = [
             ("diary:Kandarin:Hard", 120),
             ("diary:Kandarin:Elite", 250),
         ],
-        "bring": [("noted flax", 1)],
+        "bring": [("noted flax", 1, ["Flax"])],
         "travel": "Camelot teleport",
         "note": None,
     },
@@ -195,7 +215,7 @@ DAILIES = [
             ("diary:Morytania:Hard", 26),
             ("diary:Morytania:Elite", 39),
         ],
-        "bring": [("bones", 1)],
+        "bring": [("bones", 1, ROBIN_BONES)],
         "travel": "Ectophial",
         "note": "No profit, but it cuts down Prayer training time. Wear the "
                 "Morytania legs for your tier.",
@@ -266,6 +286,14 @@ DAILIES = [
         "travel": "Edgeville lever, then run west",
         "note": "Pull the lever in the ruin to reach the bank (cut two webs; a "
                 "teleblock stops you). The rune type is random.",
+        # Off unless you ask for it, and it says why when you do. The shop
+        # itself is a safe area, but the wiki is blunt about getting there:
+        # "Visiting Lundail requires the player to traverse deep Wilderness".
+        "optOut": True,
+        "warning": "Getting to Lundail means crossing deep Wilderness, where "
+                   "other players can attack you.\n\nTake the Edgeville lever "
+                   "to the Deserted Keep and run west. Bring a knife or other "
+                   "slash weapon to cut the webs on the way.",
     },
 ]
 
@@ -344,6 +372,20 @@ def gameval_ids(cls: str, floor: int) -> dict:
     return ids
 
 
+def index_item_ids() -> dict:
+    """Display name -> item id, via the generated item-name index (its keys are
+    the client's legacy ItemID constant names)."""
+    with open("src/main/resources/data/index/item-names.json") as f:
+        return json.load(f)
+
+
+def resolve_item(name: str, index: dict) -> int:
+    key = re.sub(r"[^A-Z0-9]+", "_", name.upper().replace("'", "")).strip("_")
+    if key not in index:
+        raise SystemExit(f"item not in the name index: {name!r} (looked for {key})")
+    return index[key]
+
+
 def validate_quest_tokens(dailies):
     here = os.path.dirname(__file__)
     names = {ln.strip().lower() for ln in open(os.path.join(here, "questnames.txt")) if ln.strip()}
@@ -386,7 +428,7 @@ def check_wiki_still_lists(wikitext, dailies):
                 "re-check EXCLUDED against the wiki")
 
 
-def build(varbit_ids, item_ids):
+def build(varbit_ids, item_ids, index):
     out = []
     for daily in DAILIES:
         if daily["id"] not in COORDS:
@@ -418,8 +460,15 @@ def build(varbit_ids, item_ids):
             "detection": detection,
             "tiers": [{"req": req, "qty": qty} if req else {"qty": qty}
                       for req, qty in daily["tiers"]],
-            "bring": [{"label": label, "per": per} for label, per in daily["bring"]],
+            "bring": [dict({"label": label, "per": per},
+                            **({"itemIds": [resolve_item(n, index) for n in items]}
+                               if items else {}))
+                      for label, per, items in daily["bring"]],
         }
+        if daily.get("optOut"):
+            entry["optOut"] = True
+        if daily.get("warning"):
+            entry["warning"] = daily["warning"]
         if daily.get("travel"):
             entry["travel"] = daily["travel"]
         if daily["note"]:
@@ -434,12 +483,17 @@ def main():
     item_ids = gameval_ids("net.runelite.api.gameval.ItemID", 10000)
     validate_quest_tokens(DAILIES)
     check_wiki_still_lists(wikitext, DAILIES)
-    dailies = build(varbit_ids, item_ids)
+    dailies = build(varbit_ids, item_ids, index_item_ids())
 
     ids = [d["id"] for d in dailies]
     assert len(ids) == len(set(ids)), "duplicate daily ids"
     assert len(dailies) == len(DAILIES)
     assert all(d["icon"] > 0 for d in dailies), "every event needs a tile icon"
+    gated = {d["id"]: b for d in dailies for b in d["bring"] if "itemIds" in b}
+    assert set(gated) == {"flax_bowstring", "robin_bonemeal"}, \
+        f"unexpected supply-gated events: {sorted(gated)}"
+    assert len(gated["robin_bonemeal"]["itemIds"]) == len(ROBIN_BONES)
+    assert len(set(gated["robin_bonemeal"]["itemIds"])) == len(ROBIN_BONES), "duplicate bone ids"
     # Every varbit-backed event must resolve to a real, distinct varbit.
     flags = [d["detection"]["varbit"] for d in dailies if "varbit" in d["detection"]]
     assert len(flags) == len(set(flags)), "two events share a detection varbit"

@@ -75,6 +75,12 @@ public class DailiesPack
 		public String travel;
 		/** One honest sentence of context, or null. */
 		public String note;
+		/** True when this event is OFF until the player asks for it — the
+		 *  Wilderness ones, which we never opt anybody into. */
+		public boolean optOut;
+		/** Shown as a popup the moment the player ticks this on, and marks the
+		 *  row with a skull. Null for everything safe. */
+		public String warning;
 
 		public WorldPoint worldPoint()
 		{
@@ -123,5 +129,10 @@ public class DailiesPack
 	{
 		public String label;
 		public int per;
+		/** Any of these items counts toward the total. Present only where
+		 *  running short genuinely stops you (Robin takes bones, the flax
+		 *  keeper takes flax); absent = tell the player, do not gate them
+		 *  (you can always buy fewer battlestaves). */
+		public List<Integer> itemIds;
 	}
 }
