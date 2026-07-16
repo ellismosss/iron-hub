@@ -429,6 +429,19 @@ Wednesday-based weekly reset is wrong.
   (3219,9532,2), and every transport in that cave is plane 2. Advisor Ghrim is
   likewise plane 1 (Miscellania castle's first floor).
 
+**Miscellania's approval varbit is 0..127, not 0..100.** Core's
+`KingdomPlugin.MAX_APPROVAL = 127` and `getApprovalPercent = approval*100/127`
+— so 100% approval is varbit **127**, and reading the raw value as a percentage
+calls 78% "100". The stop is done at 100% approval because there is no
+"collected today" flag to read and approval is what you go there to fix.
+
+**Robin costs two inventory slots per bone.** He gives back 1 bonemeal AND 1
+bucket of slime per bone, neither noted ("you will need free inventory space"),
+so one inventory holds **14 bones** — legs 3 (26) and legs 4 (39) are two and
+three trips. That is why he is the last stop and why his tile routes to the
+Port Phasmatys bank (3689,3466 — Shortest Path's own bank.tsv) rather than to
+Robin at (3676,3494): the stop starts at the bank.
+
 **Two wiki rows mis-model easily.** Zaff's requirement column says *None* —
 the Varrock diary only raises the cap (5/15/30/60/120), it is not a gate.
 Bert's elite Ardougne reward changes the *delivery* (auto to bank on login),

@@ -21,7 +21,7 @@ import net.runelite.client.plugins.banktags.tabs.LayoutManager;
  * <p>All calls mutate bank/tag state and MUST run on the client thread.
  * Null services (headless tests) make every method a no-op.
  */
-class FarmBankLayout
+public class FarmBankLayout
 {
 	private static final String TAG_PREFIX = "_ironhubfarm_";
 
@@ -55,7 +55,7 @@ class FarmBankLayout
 	private String appliedTag;
 	private int appliedSignature;
 
-	FarmBankLayout(BankTagsService bankTagsService, TagManager tagManager,
+	public FarmBankLayout(BankTagsService bankTagsService, TagManager tagManager,
 		LayoutManager layoutManager, ItemManager itemManager)
 	{
 		this.bankTagsService = bankTagsService;
@@ -109,7 +109,7 @@ class FarmBankLayout
 	 * tag + layout only when the run or its setup actually changed, then
 	 * (re)opens the tag so the bank rearranges. Client thread.
 	 */
-	void apply(String runName, PersistedState.SavedSetup setup)
+	public void apply(String runName, PersistedState.SavedSetup setup)
 	{
 		if (!available())
 		{
@@ -138,7 +138,7 @@ class FarmBankLayout
 
 	/** Close the setup view and remove its (hidden) tag + layout so nothing
 	 *  is left behind in the player's bank. Client thread. */
-	void clear()
+	public void clear()
 	{
 		if (!available() || appliedTag == null)
 		{
@@ -148,7 +148,7 @@ class FarmBankLayout
 		removeApplied();
 	}
 
-	boolean isApplied()
+	public boolean isApplied()
 	{
 		return appliedTag != null;
 	}

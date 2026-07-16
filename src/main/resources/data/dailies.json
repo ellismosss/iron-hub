@@ -212,89 +212,13 @@
         "quest:Throne of Miscellania"
       ],
       "detection": {
-        "mode": "manual"
+        "mode": "approval",
+        "varbit": 72
       },
       "tiers": [],
       "bring": [],
       "travel": "Ring of wealth, or fairy ring CIP",
       "note": "Keep the coffer topped up (500,000, or 750,000 after Royal Trouble) and approval high; collect from Advisor Ghrim."
-    },
-    {
-      "id": "robin_bonemeal",
-      "name": "Robin bonemeal & slime",
-      "icon": 4255,
-      "where": "Robin, Port Phasmatys",
-      "reset": "daily",
-      "point": {
-        "x": 3676,
-        "y": 3494,
-        "plane": 0
-      },
-      "reqs": [
-        "diary:Morytania:Medium"
-      ],
-      "detection": {
-        "mode": "count",
-        "varbit": 4543
-      },
-      "tiers": [
-        {
-          "req": "diary:Morytania:Medium",
-          "qty": 13
-        },
-        {
-          "req": "diary:Morytania:Hard",
-          "qty": 26
-        },
-        {
-          "req": "diary:Morytania:Elite",
-          "qty": 39
-        }
-      ],
-      "bring": [
-        {
-          "label": "bones",
-          "per": 1,
-          "itemIds": [
-            30973,
-            534,
-            530,
-            3182,
-            532,
-            526,
-            528,
-            3127,
-            10977,
-            6729,
-            536,
-            22783,
-            4830,
-            31729,
-            3181,
-            22786,
-            3125,
-            3186,
-            11943,
-            10976,
-            3180,
-            3183,
-            4834,
-            4832,
-            3123,
-            3179,
-            3185,
-            31726,
-            22124,
-            2859,
-            22780,
-            28899,
-            6812,
-            4812
-          ]
-        }
-      ],
-      "travel": "Ectophial",
-      "note": "No profit, but it cuts down Prayer training time. Wear the Morytania legs for your tier."
     },
     {
       "id": "thirus_dynamite",
@@ -396,6 +320,84 @@
       "warning": "Getting to Lundail means crossing deep Wilderness, where other players can attack you.\n\nTake the Edgeville lever to the Deserted Keep and run west. Bring a knife or other slash weapon to cut the webs on the way.",
       "travel": "Edgeville lever, then run west",
       "note": "Pull the lever in the ruin to reach the bank (cut two webs; a teleblock stops you). The rune type is random."
+    },
+    {
+      "id": "robin_bonemeal",
+      "name": "Robin bonemeal & slime",
+      "icon": 4255,
+      "where": "Robin, Port Phasmatys (bank first)",
+      "reset": "daily",
+      "point": {
+        "x": 3689,
+        "y": 3466,
+        "plane": 0
+      },
+      "reqs": [
+        "diary:Morytania:Medium"
+      ],
+      "detection": {
+        "mode": "count",
+        "varbit": 4543
+      },
+      "tiers": [
+        {
+          "req": "diary:Morytania:Medium",
+          "qty": 13
+        },
+        {
+          "req": "diary:Morytania:Hard",
+          "qty": 26
+        },
+        {
+          "req": "diary:Morytania:Elite",
+          "qty": 39
+        }
+      ],
+      "bring": [
+        {
+          "label": "bones",
+          "per": 1,
+          "itemIds": [
+            30973,
+            534,
+            530,
+            3182,
+            532,
+            526,
+            528,
+            3127,
+            10977,
+            6729,
+            536,
+            22783,
+            4830,
+            31729,
+            3181,
+            22786,
+            3125,
+            3186,
+            11943,
+            10976,
+            3180,
+            3183,
+            4834,
+            4832,
+            3123,
+            3179,
+            3185,
+            31726,
+            22124,
+            2859,
+            22780,
+            28899,
+            6812,
+            4812
+          ]
+        }
+      ],
+      "perTrip": 14,
+      "travel": "Ectophial, then bank",
+      "note": "Bank everything first. Robin gives 1 bonemeal AND 1 bucket of slime per bone, so 14 bones fills an inventory."
     }
   ]
 }

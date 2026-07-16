@@ -44,9 +44,9 @@ public class DailiesModuleTest
 
 	private DailiesModule module(AccountState state, net.runelite.client.Notifier notifier)
 	{
-		DailiesModule module = new DailiesModule(state, new IronHubConfig()
+		DailiesModule module = new DailiesModule(state, null, new IronHubConfig()
 		{
-		}, new DataPack(new Gson()), null, null, null, notifier, null, null, null);
+		}, new DataPack(new Gson()), null, null, null, notifier, null, null, null, null, null, null, null);
 		module.startUp();
 		return module;
 	}
@@ -229,7 +229,8 @@ public class DailiesModuleTest
 			DailyTracker.stateOf(state, tears, false, NOON));
 
 		StateFixture.varbit(state, tears.detection.varbit, 1);
-		module.onVarbitChanged(collecting(tears.detection.varbit)); // you're in the cave
+		module.onVarbitChanged(collecting(tears.detection.varbit)); // in the cave
+		module.onVarbitChanged(varbit(tears.detection.varbit, 0));  // and done
 		module.onChatMessage(gameMessage("nothing to do with tears"));
 
 		assertEquals(DailyTracker.State.DONE, DailyTracker.stateOf(
@@ -256,9 +257,14 @@ public class DailiesModuleTest
 	/** The minigame's "collecting now" varbit going live. */
 	private static net.runelite.api.events.VarbitChanged collecting(int varbitId)
 	{
+		return varbit(varbitId, 1);
+	}
+
+	private static net.runelite.api.events.VarbitChanged varbit(int varbitId, int value)
+	{
 		net.runelite.api.events.VarbitChanged event = new net.runelite.api.events.VarbitChanged();
 		event.setVarbitId(varbitId);
-		event.setValue(1);
+		event.setValue(value);
 		return event;
 	}
 
@@ -288,6 +294,88 @@ public class DailiesModuleTest
 			DailyTracker.stateOf(state, tears, false, back - 1));
 		assertEquals(DailyTracker.State.AVAILABLE,
 			DailyTracker.stateOf(state, tears, false, back));
+	}
+
+	/**
+	 * Miscellania has no "collected today" flag, so the stop is done at 100%
+	 * approval — and the varbit is 0..127 (core's MAX_APPROVAL), not 0..100.
+	 * Reading it as a percentage directly would call 100 "100%" at 78%.
+	 */
+	@Test
+	public void miscellaniaProgressesAtFullApprovalNotAtVarbit100()
+	{
+		AccountState state = state();
+		StateFixture.quest(state, Quest.THRONE_OF_MISCELLANIA, QuestState.FINISHED);
+		DailiesPack.Daily misc = pack().daily("miscellania");
+
+		assertEquals(DailyTracker.State.AVAILABLE,
+			DailyTracker.stateOf(state, misc, false, NOON));
+
+		StateFixture.varbit(state, misc.detection.varbit, 100);
+		assertEquals("varbit 100 is only 78% — still work to do", 78,
+			DailyTracker.approvalPercent(100));
+		assertEquals(DailyTracker.State.AVAILABLE,
+			DailyTracker.stateOf(state, misc, false, NOON));
+
+		StateFixture.varbit(state, misc.detection.varbit, DailyTracker.MAX_APPROVAL);
+		assertEquals(100, DailyTracker.approvalPercent(DailyTracker.MAX_APPROVAL));
+		assertEquals(DailyTracker.State.DONE,
+			DailyTracker.stateOf(state, misc, false, NOON));
+	}
+
+	/**
+	 * Robin hands back a bonemeal AND a bucket of slime per bone, neither
+	 * noted, so one bone in is two slots out and an inventory holds 14 bones.
+	 * Legs 4 is three trips.
+	 */
+	@Test
+	public void robinTripsFollowTheInventoryNotTheTier()
+	{
+		AccountState state = state();
+		DailiesPack.Daily robin = pack().daily("robin_bonemeal");
+		assertEquals(Integer.valueOf(14), robin.perTrip);
+		assertEquals("and he is the last stop, since you end holding a bank's worth",
+			"robin_bonemeal", pack().dailies.get(pack().dailies.size() - 1).id);
+
+		StateFixture.varbit(state, Varbits.DIARY_MORYTANIA_MEDIUM, 1);
+		assertEquals("13 fits one inventory", 1, DailyTracker.trips(state, robin));
+		StateFixture.varbit(state, Varbits.DIARY_MORYTANIA_HARD, 1);
+		assertEquals("26 does not", 2, DailyTracker.trips(state, robin));
+		StateFixture.varbit(state, Varbits.DIARY_MORYTANIA_ELITE, 1);
+		assertEquals(3, DailyTracker.trips(state, robin));
+
+		// nothing else claims a trip limit
+		assertEquals(1, DailyTracker.trips(state, pack().daily("zaff_battlestaves")));
+	}
+
+	/**
+	 * Walking in and catching one tear is not a week's XP: the stop waits for
+	 * the minigame to END (collecting 1 -> 0), which is when the tears are
+	 * drunk and the XP lands.
+	 */
+	@Test
+	public void tearsOfGuthixAdvancesOnFinishingNotOnStarting()
+	{
+		AccountState state = state();
+		StateFixture.quest(state, Quest.TEARS_OF_GUTHIX, QuestState.FINISHED);
+		DailiesModule module = module(state);
+		DailiesPack.Daily tears = module.pack().daily("tears_of_guthix");
+		int collecting = tears.detection.varbit;
+
+		module.onChatMessage(gameMessage("You are eligible to drink from the Tears of Guthix."));
+		assertEquals(DailyTracker.State.AVAILABLE, module.stateOf(tears));
+
+		// started collecting — nothing has been earned yet
+		StateFixture.varbit(state, collecting, 1);
+		module.onVarbitChanged(varbit(collecting, 1));
+		assertEquals("still collecting", DailyTracker.State.AVAILABLE, module.stateOf(tears));
+		assertEquals(0, state.dailyDoneAt(tears.id));
+
+		// time up: the tears are drunk
+		StateFixture.varbit(state, collecting, 0);
+		module.onVarbitChanged(varbit(collecting, 0));
+		assertEquals(DailyTracker.State.DONE,
+			DailyTracker.stateOf(state, tears, false, state.dailyDoneAt(tears.id)));
 	}
 
 	/** Lundail is in the Wilderness, so nobody is opted into it — and the pack

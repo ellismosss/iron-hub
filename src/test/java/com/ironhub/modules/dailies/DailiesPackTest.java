@@ -94,16 +94,14 @@ public class DailiesPackTest
 		}
 	}
 
-	/** Only a manual event may lack a claim flag; everything else reads one. */
+	/** Only a manual event may lack a varbit; everything else reads one. */
 	@Test
 	public void everyNonManualEventHasADetectionVarbit()
 	{
-		int manual = 0;
 		for (DailiesPack.Daily daily : pack.dailies)
 		{
 			if ("manual".equals(daily.detection.mode))
 			{
-				manual++;
 				assertEquals(daily.id + " is manual and must claim no varbit",
 					0, daily.detection.varbit);
 			}
@@ -112,7 +110,13 @@ public class DailiesPackTest
 				assertTrue(daily.id + " needs a detection varbit", daily.detection.varbit > 0);
 			}
 		}
-		assertEquals("only Miscellania has no claim flag in the game", 1, manual);
+		// Every event now reads SOMETHING live: Miscellania was the last hand-tick
+		// and it now follows its approval varbit.
+		assertTrue("nothing should be left hand-ticked", pack.dailies.stream()
+			.noneMatch(d -> "manual".equals(d.detection.mode)));
+		assertEquals("approval", pack.daily("miscellania").detection.mode);
+		assertEquals(net.runelite.api.Varbits.KINGDOM_APPROVAL,
+			pack.daily("miscellania").detection.varbit);
 	}
 
 	/**

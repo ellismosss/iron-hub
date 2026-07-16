@@ -189,36 +189,16 @@ DAILIES = [
         "where": "Advisor Ghrim, Miscellania",
         "reset": "daily",
         "reqs": ["quest:Throne of Miscellania"],
-        # No claim varbit exists: resources accrue and approval decays daily,
-        # with no "collected today" flag to read. Hand-ticked, and the only
-        # stop the run cannot advance by itself.
-        "mode": "manual",
-        "varbit": None,
+        # There is no "collected today" flag to read, but approval is the thing
+        # you actually go there to fix — so the stop is done once it is at 100%.
+        # The varbit runs 0..127 (core's KingdomPlugin.MAX_APPROVAL), NOT 0..100.
+        "mode": "approval",
+        "varbit": "MISC_APPROVAL",
         "tiers": [],
         "bring": [],
         "travel": "Ring of wealth, or fairy ring CIP",
         "note": "Keep the coffer topped up (500,000, or 750,000 after Royal "
                 "Trouble) and approval high; collect from Advisor Ghrim.",
-    },
-    {
-        "id": "robin_bonemeal",
-        "icon": "POT_BONEMEAL",
-        "name": "Robin bonemeal & slime",
-        "where": "Robin, Port Phasmatys",
-        "reset": "daily",
-        "reqs": ["diary:Morytania:Medium"],
-        # Counts what you have taken, capped by your Morytania legs tier.
-        "mode": "count",
-        "varbit": "MORYTANIA_SLIME_CLAIMED",
-        "tiers": [
-            ("diary:Morytania:Medium", 13),
-            ("diary:Morytania:Hard", 26),
-            ("diary:Morytania:Elite", 39),
-        ],
-        "bring": [("bones", 1, ROBIN_BONES)],
-        "travel": "Ectophial",
-        "note": "No profit, but it cuts down Prayer training time. Wear the "
-                "Morytania legs for your tier.",
     },
     {
         "id": "thirus_dynamite",
@@ -295,6 +275,31 @@ DAILIES = [
                    "to the Deserted Keep and run west. Bring a knife or other "
                    "slash weapon to cut the webs on the way.",
     },
+    {
+        "id": "robin_bonemeal",
+        "icon": "POT_BONEMEAL",
+        "name": "Robin bonemeal & slime",
+        "where": "Robin, Port Phasmatys (bank first)",
+        "reset": "daily",
+        "reqs": ["diary:Morytania:Medium"],
+        # Counts what you have taken, capped by your Morytania legs tier.
+        "mode": "count",
+        "varbit": "MORYTANIA_SLIME_CLAIMED",
+        "tiers": [
+            ("diary:Morytania:Medium", 13),
+            ("diary:Morytania:Hard", 26),
+            ("diary:Morytania:Elite", 39),
+        ],
+        "bring": [("bones", 1, ROBIN_BONES)],
+        "travel": "Ectophial, then bank",
+        # Robin hands back 1 bonemeal AND 1 bucket of slime per bone, neither
+        # noted — so one bone in costs two slots out, and 14 bones is a full
+        # inventory. Above legs 2 that means more than one trip, which is why
+        # this is the last stop: you finish holding a bank's worth of bonemeal.
+        "note": "Bank everything first. Robin gives 1 bonemeal AND 1 bucket of "
+                "slime per bone, so 14 bones fills an inventory.",
+        "perTrip": 14,
+    },
 ]
 
 # Exact interaction tiles, each transcribed from that page's own {{Map}}
@@ -321,7 +326,10 @@ COORDS = {
     "bert_sand": (2551, 3100, 0),           # Bert
     "rantz_arrows": (2630, 2981, 0),        # Rantz
     "miscellania": (2500, 3857, 1),         # Advisor Ghrim — castle first floor
-    "robin_bonemeal": (3676, 3494, 0),      # Robin, cross-checked vs The Green Ghost
+    # The Port Phasmatys bank (Shortest Path's own bank.tsv), NOT Robin at
+    # (3676,3494): the stop starts at the bank, because he takes only unnoted
+    # bones and hands back two unnoted items per bone. He is a short walk north.
+    "robin_bonemeal": (3689, 3466, 0),
     "thirus_dynamite": (1517, 3834, 0),     # Thirus
     "tears_of_guthix": (3252, 9517, 2),     # Juna — plane per Shortest Path (see above)
     "lundail_runes": (3090, 3958, 0),       # the Mage Arena bank lever (see above)
@@ -465,6 +473,8 @@ def build(varbit_ids, item_ids, index):
                                if items else {}))
                       for label, per, items in daily["bring"]],
         }
+        if daily.get("perTrip"):
+            entry["perTrip"] = daily["perTrip"]
         if daily.get("optOut"):
             entry["optOut"] = True
         if daily.get("warning"):
@@ -493,6 +503,7 @@ def main():
     assert set(gated) == {"flax_bowstring", "robin_bonemeal"}, \
         f"unexpected supply-gated events: {sorted(gated)}"
     assert len(gated["robin_bonemeal"]["itemIds"]) == len(ROBIN_BONES)
+    assert [d for d in dailies if d.get("perTrip")], "Robin's inventory limit went missing"
     assert len(set(gated["robin_bonemeal"]["itemIds"])) == len(ROBIN_BONES), "duplicate bone ids"
     # Every varbit-backed event must resolve to a real, distinct varbit.
     flags = [d["detection"]["varbit"] for d in dailies if "varbit" in d["detection"]]

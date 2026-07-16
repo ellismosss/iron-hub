@@ -53,9 +53,16 @@ class DailiesRunOverlay extends OverlayPanel
 				.build());
 			panelComponent.getChildren().add(LineComponent.builder()
 				.left(next.where).leftColor(UiTokens.CANVAS_LOCKED)
-				.right(next.travel == null ? "" : next.travel)
-				.rightColor(UiTokens.OVERLAY_VALUE)
 				.build());
+			// Travel gets its own full-width line. As a right-hand value it
+			// wrapped to four lines beside a one-line left, and the panel grew a
+			// hole three lines deep next to "Bert, Yanille".
+			if (next.travel != null)
+			{
+				panelComponent.getChildren().add(LineComponent.builder()
+					.left(next.travel).leftColor(UiTokens.OVERLAY_VALUE)
+					.build());
+			}
 
 			String bring = module.bringLine(next);
 			if (!bring.isEmpty())
@@ -65,6 +72,12 @@ class DailiesRunOverlay extends OverlayPanel
 				panelComponent.getChildren().add(LineComponent.builder()
 					.left("Bring: " + bring)
 					.leftColor(UiTokens.CANVAS_AVAILABLE)
+					.build());
+			}
+			for (String line : module.stopAdvice(next))
+			{
+				panelComponent.getChildren().add(LineComponent.builder()
+					.left(line).leftColor(UiTokens.CANVAS_AVAILABLE)
 					.build());
 			}
 		}

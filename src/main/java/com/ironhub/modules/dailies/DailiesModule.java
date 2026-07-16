@@ -19,6 +19,7 @@ import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
+import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
@@ -51,6 +52,7 @@ import net.runelite.client.util.Text;
 public class DailiesModule implements IronHubModule
 {
 	private final AccountState state;
+	private final Client client;                   // null in unit tests
 	private final IronHubConfig config;
 	private final DataPack dataPack;
 	private final InfoBoxManager infoBoxManager;   // null in unit tests
@@ -60,6 +62,12 @@ public class DailiesModule implements IronHubModule
 	private final Notifier notifier;               // null in unit tests
 	private final ShortestPathBridge pathBridge;   // null in unit tests
 	private final ItemManager itemManager;         // null in unit tests
+	private final net.runelite.client.callback.ClientThread clientThread; // null in unit tests
+	private final net.runelite.client.plugins.banktags.BankTagsService bankTagsService; // null in tests
+	private final net.runelite.client.plugins.banktags.TagManager tagManager; // null in tests
+	private final net.runelite.client.plugins.banktags.tabs.LayoutManager layoutManager; // null in tests
+	private com.ironhub.modules.farming.FarmBankLayout bankLayout;
+	private com.loadoutlab.ui.BankHighlightOverlay bankHighlight;
 
 	private DailiesTab tab;
 	private DailiesInfoBox infoBox;
@@ -84,6 +92,10 @@ public class DailiesModule implements IronHubModule
 	/** Reset crossing → notify once, and never on a login replay. */
 	private long notifiedForDay;
 
+	/** The run's name — also the key its saved bank setup is stored under, and
+	 *  the title the bank wears while it is laid out. */
+	static final String RUN_NAME = "Daily run";
+
 	/** ~1 min at 0.6s/tick — the reset we watch for happens once a day. */
 	private static final int TICKS_PER_RESET_CHECK = 100;
 	private int resetTick;
@@ -92,15 +104,24 @@ public class DailiesModule implements IronHubModule
 	private Set<Integer> watchedVarbits = Set.of();
 
 	@Inject
-	public DailiesModule(AccountState state, IronHubConfig config, DataPack dataPack,
+	public DailiesModule(AccountState state, Client client, IronHubConfig config, DataPack dataPack,
 		InfoBoxManager infoBoxManager, Provider<com.ironhub.IronHubPlugin> plugin,
 		EventBus eventBus, Notifier notifier, OverlayManager overlayManager,
-		ShortestPathBridge pathBridge, ItemManager itemManager)
+		ShortestPathBridge pathBridge, ItemManager itemManager,
+		net.runelite.client.callback.ClientThread clientThread,
+		net.runelite.client.plugins.banktags.BankTagsService bankTagsService,
+		net.runelite.client.plugins.banktags.TagManager tagManager,
+		net.runelite.client.plugins.banktags.tabs.LayoutManager layoutManager)
 	{
 		this.itemManager = itemManager;
+		this.clientThread = clientThread;
+		this.bankTagsService = bankTagsService;
+		this.tagManager = tagManager;
+		this.layoutManager = layoutManager;
 		this.eventBus = eventBus;
 		this.notifier = notifier;
 		this.state = state;
+		this.client = client;
 		this.config = config;
 		this.dataPack = dataPack;
 		this.infoBoxManager = infoBoxManager;
@@ -147,10 +168,15 @@ public class DailiesModule implements IronHubModule
 			runInfoBox = new DailyRunInfoBox(icon, plugin.get(), this);
 			infoBoxManager.addInfoBox(runInfoBox);
 		}
+		bankLayout = new com.ironhub.modules.farming.FarmBankLayout(
+			bankTagsService, tagManager, layoutManager, itemManager);
 		if (overlayManager != null)
 		{
 			overlay = new DailiesRunOverlay(this);
 			overlayManager.add(overlay);
+			// the same green glow the farm run uses for what is still to withdraw
+			bankHighlight = new com.loadoutlab.ui.BankHighlightOverlay(this::bankHighlight);
+			overlayManager.add(bankHighlight);
 		}
 	}
 
@@ -175,6 +201,16 @@ public class DailiesModule implements IronHubModule
 		{
 			overlayManager.remove(overlay);
 			overlay = null;
+		}
+		if (bankHighlight != null)
+		{
+			overlayManager.remove(bankHighlight);
+			bankHighlight = null;
+		}
+		if (bankLayout != null)
+		{
+			bankLayout.clear(); // shutDown runs on the client thread
+			bankLayout = null;
 		}
 		if (tab != null)
 		{
@@ -260,26 +296,84 @@ public class DailiesModule implements IronHubModule
 		}
 	}
 
+	/** Tears of Guthix: 1 while you are collecting, 0 when the time is up. */
+	private boolean collectingTears;
+
 	/**
-	 * Tears of Guthix has no cooldown varbit to read, so a visit is only known
-	 * by watching one happen: the minigame's "collecting" varbit going live
-	 * stamps it, which both starts the 7-day clock and retires the eligibility
-	 * Juna announced.
+	 * Tears of Guthix has no cooldown varbit, so a visit is only known by
+	 * watching one happen — and the visit is the minigame ENDING, not starting.
+	 * Walking in and catching your first tear is not a week's worth of XP, so
+	 * the stop waits for the collecting flag to go back down (1 -> 0), which is
+	 * when the tears are drunk and the XP lands.
 	 */
 	private void stampTearsVisit(VarbitChanged event)
 	{
 		for (DailiesPack.Daily daily : pack.dailies)
 		{
-			if (daily.detection == null || !"rolling7".equals(daily.detection.mode))
+			if (daily.detection == null || !"rolling7".equals(daily.detection.mode)
+				|| event.getVarbitId() != daily.detection.varbit)
 			{
 				continue;
 			}
-			if (event.getVarbitId() == daily.detection.varbit && event.getValue() > 0)
+			boolean collecting = event.getValue() > 0;
+			if (collectingTears && !collecting)
 			{
 				state.markDaily(daily.id, true);
 				state.setUnlocked(DailyTracker.eligibleKey(daily), false);
 			}
+			collectingTears = collecting;
 		}
+	}
+
+	/**
+	 * The bank is building: lay the daily run's saved setup over it, exactly as
+	 * a farm run does. Cleared whenever the bank opens without a run.
+	 */
+	@Subscribe
+	public void onScriptPreFired(net.runelite.api.events.ScriptPreFired event)
+	{
+		if (event.getScriptId() != net.runelite.api.ScriptID.BANKMAIN_INIT || bankLayout == null)
+		{
+			return;
+		}
+		if (config.farmBankSetup() && running())
+		{
+			com.ironhub.state.PersistedState.SavedSetup setup = state.getFarmRunSetup(RUN_NAME);
+			if (setup != null)
+			{
+				bankLayout.apply(RUN_NAME, setup);
+				return;
+			}
+		}
+		bankLayout.clear();
+	}
+
+	/** Bank Tags titles the window with the raw hidden tag; say the run instead. */
+	@Subscribe
+	public void onScriptPostFired(net.runelite.api.events.ScriptPostFired event)
+	{
+		if (event.getScriptId() != net.runelite.api.ScriptID.BANKMAIN_FINISHBUILDING
+			|| client == null || bankLayout == null || !bankLayout.isApplied())
+		{
+			return;
+		}
+		net.runelite.api.widgets.Widget title = client.getWidget(
+			net.runelite.api.gameval.InterfaceID.Bankmain.TITLE);
+		if (title != null)
+		{
+			title.setText(RUN_NAME);
+		}
+	}
+
+	/** Setup items you have not picked up yet — the green bank glow. */
+	java.util.Set<Integer> bankHighlight()
+	{
+		if (!running() || !config.farmBankSetup())
+		{
+			return java.util.Set.of();
+		}
+		com.ironhub.state.PersistedState.SavedSetup setup = state.getFarmRunSetup(RUN_NAME);
+		return setup == null ? java.util.Set.of() : state.setupItemsToWithdraw(setup);
 	}
 
 	/** At 00:00 UTC the outstanding set refills — say so once, and never as a
@@ -363,6 +457,30 @@ public class DailiesModule implements IronHubModule
 		return out.toString();
 	}
 
+	/**
+	 * The awkward truths about a stop, for the overlay: the pack's note, and
+	 * how many trips it takes at your tier when an inventory cannot hold the
+	 * lot (Robin returns two unnoted items per bone, so 14 bones is a trip).
+	 */
+	java.util.List<String> stopAdvice(DailiesPack.Daily daily)
+	{
+		java.util.List<String> out = new ArrayList<>();
+		if (daily.perTrip == null)
+		{
+			return out;
+		}
+		if (daily.note != null)
+		{
+			out.add(daily.note);
+		}
+		int trips = DailyTracker.trips(state, daily);
+		int units = Math.max(1, quantity(daily));
+		out.add(trips > 1
+			? units + " to collect = " + trips + " trips of " + daily.perTrip
+			: "Withdraw " + Math.min(units, daily.perTrip) + " to collect " + units);
+		return out;
+	}
+
 	// ── run engine ───────────────────────────────────────────────────
 
 	/**
@@ -403,14 +521,7 @@ public class DailiesModule implements IronHubModule
 		// a path-bridge hiccup must not leave the picker showing (the farm-run
 		// lesson — that post can throw and skip the caller's rebuild).
 		rebuildTab();
-		try
-		{
-			routeToNext();
-		}
-		catch (RuntimeException e)
-		{
-			log.debug("routeToNext failed at run start", e);
-		}
+		routeToNext();
 	}
 
 	/**
@@ -481,6 +592,10 @@ public class DailiesModule implements IronHubModule
 	void endRun(boolean complete)
 	{
 		boolean wasRunning = running();
+		if (wasRunning && bankLayout != null && bankLayout.isApplied() && clientThread != null)
+		{
+			clientThread.invoke(bankLayout::clear); // give the bank back
+		}
 		runStartMs = 0;
 		stops = List.of();
 		visited.clear();
@@ -491,7 +606,26 @@ public class DailiesModule implements IronHubModule
 	}
 
 	/** Send the path bridge toward the next unvisited stop. */
+	/**
+	 * Best-effort, and it swallows: the Shortest Path post is a foreign plugin
+	 * on the EDT and it can throw. It used to take its caller with it — Skip
+	 * updated the run and then never reached rebuildTab(), so the overlay moved
+	 * on while the sidebar sat there. Nothing about routing is worth losing a
+	 * repaint over.
+	 */
 	private void routeToNext()
+	{
+		try
+		{
+			postRoute();
+		}
+		catch (RuntimeException e)
+		{
+			log.debug("routeToNext failed", e);
+		}
+	}
+
+	private void postRoute()
 	{
 		DailiesPack.Daily next = nextStop();
 		if (next != null && pathBridge != null)
@@ -555,6 +689,21 @@ public class DailiesModule implements IronHubModule
 	ItemManager itemManager()
 	{
 		return itemManager;
+	}
+
+	boolean hasSetup()
+	{
+		return state.getFarmRunSetup(RUN_NAME) != null;
+	}
+
+	void saveSetup()
+	{
+		state.saveFarmRunSetup(RUN_NAME, state.captureSetup());
+	}
+
+	void clearSetup()
+	{
+		state.saveFarmRunSetup(RUN_NAME, null);
 	}
 
 	/** mm:ss / h:mm:ss, matching the farm run timer. */

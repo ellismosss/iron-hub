@@ -210,6 +210,59 @@ class DailiesTab extends JPanel
 		{
 			body.add(checklistRow(daily));
 		}
+
+		// Remember what to carry: while a run is on, opening the bank lays this
+		// out and glows what you still need — the farm run's bank, reused.
+		body.add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
+		boolean hasSetup = module.hasSetup();
+		JLabel setup = secondaryButton(
+			hasSetup ? "Update gear & inventory" : "Configure gear & inventory");
+		setup.setToolTipText("Snapshot your worn gear and inventory now; while a daily "
+			+ "run is active, opening the bank lays it out for you to re-stock");
+		setup.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				module.saveSetup();
+				rebuild();
+			}
+		});
+		body.add(setup);
+		if (hasSetup)
+		{
+			JLabel clear = new JLabel("Clear setup");
+			clear.setForeground(UiTokens.TEXT_MUTED);
+			clear.setFont(clear.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+			clear.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			clear.setAlignmentX(LEFT_ALIGNMENT);
+			clear.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
+			clear.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					module.clearSetup();
+					rebuild();
+				}
+			});
+			body.add(clear);
+		}
+	}
+
+	private JLabel secondaryButton(String text)
+	{
+		JLabel button = new JLabel(text, javax.swing.SwingConstants.CENTER);
+		button.setOpaque(true);
+		button.setBackground(UiTokens.ICON_BUTTON_BG);
+		button.setForeground(UiTokens.TEXT_BODY);
+		button.setBorder(new LineBorder(UiTokens.BORDER_BUTTON));
+		button.setFont(button.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		button.setAlignmentX(LEFT_ALIGNMENT);
+		button.setPreferredSize(new Dimension(0, UiTokens.BUTTON_HEIGHT));
+		button.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
+		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		return button;
 	}
 
 	/**

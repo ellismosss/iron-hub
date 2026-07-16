@@ -571,6 +571,84 @@ public class AccountState implements StateView
 	 * jewellery / loose runes, which already show as inventory slots); add
 	 * the pouch varbits here if a rune-pouch run ever needs it.
 	 */
+	/**
+	 * Setup items you are not already carrying — what a run's bank glow should
+	 * point at. Counts every ItemVariationMapping variant, so a charged glory
+	 * settles the glory slot, and returns the variants themselves so the bank's
+	 * own item id matches whatever is sitting in it.
+	 */
+	public Set<Integer> setupItemsToWithdraw(PersistedState.SavedSetup setup)
+	{
+		if (setup == null)
+		{
+			return Set.of();
+		}
+		Map<Integer, Integer> need = new HashMap<>();
+		if (setup.equipment != null)
+		{
+			for (Integer id : setup.equipment.values())
+			{
+				if (id != null && id > 0)
+				{
+					need.merge(id, 1, Integer::sum);
+				}
+			}
+		}
+		if (setup.inventory != null)
+		{
+			for (int i = 0; i < setup.inventory.length; i++)
+			{
+				int id = setup.inventory[i];
+				if (id > 0)
+				{
+					int qty = setup.inventoryQty != null && i < setup.inventoryQty.length
+						? Math.max(1, setup.inventoryQty[i]) : 1;
+					need.merge(id, qty, Integer::sum);
+				}
+			}
+		}
+		Set<Integer> out = new HashSet<>();
+		for (Map.Entry<Integer, Integer> entry : need.entrySet())
+		{
+			if (carriedVariants(entry.getKey()) < entry.getValue())
+			{
+				out.addAll(net.runelite.client.game.ItemVariationMapping.getVariations(
+					net.runelite.client.game.ItemVariationMapping.map(entry.getKey())));
+			}
+		}
+		return out;
+	}
+
+	/** Inventory + worn + rune pouch, counting every variant of an item. */
+	private int carriedVariants(int itemId)
+	{
+		Set<Integer> ids = new HashSet<>(net.runelite.client.game.ItemVariationMapping.getVariations(
+			net.runelite.client.game.ItemVariationMapping.map(itemId)));
+		int total = 0;
+		for (Map.Entry<Integer, Integer> slot : inventory.entrySet())
+		{
+			if (ids.contains(slot.getKey()))
+			{
+				total += slot.getValue();
+			}
+		}
+		for (int worn : getEquipmentSlots())
+		{
+			if (ids.contains(worn))
+			{
+				total++;
+			}
+		}
+		for (Map.Entry<Integer, Integer> rune : getRunePouch().entrySet())
+		{
+			if (ids.contains(rune.getKey()))
+			{
+				total += rune.getValue();
+			}
+		}
+		return total;
+	}
+
 	public PersistedState.SavedSetup captureSetup()
 	{
 		PersistedState.SavedSetup setup = new PersistedState.SavedSetup();

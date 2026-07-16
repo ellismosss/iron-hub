@@ -89,6 +89,12 @@ final class DailyTracker
 				// is the best diary tier's allowance.
 				return state.getVarbit(detection.varbit) < quantity(state, daily) || crossedReset
 					? State.AVAILABLE : State.DONE;
+			case "approval":
+				// Miscellania has no "collected today" flag — approval is what you
+				// go there to fix, so 100% is what "done" means. The varbit runs
+				// 0..127 (core's KingdomPlugin.MAX_APPROVAL), so 100% is 127.
+				return approvalPercent(state.getVarbit(detection.varbit)) >= 100
+					? State.DONE : State.AVAILABLE;
 			case "rolling7":
 				return togState(state, daily, now);
 			default:
@@ -166,6 +172,31 @@ final class DailyTracker
 			}
 		}
 		return out;
+	}
+
+	/** Miscellania's approval varbit is 0..127 — core's
+	 *  KingdomPlugin.getApprovalPercent, kept identical. */
+	static int approvalPercent(int approval)
+	{
+		return (approval * 100) / MAX_APPROVAL;
+	}
+
+	/** core KingdomPlugin.MAX_APPROVAL — the varbit's full scale, not 100. */
+	static final int MAX_APPROVAL = 127;
+
+	/**
+	 * How many trips this stop takes at your tier — Robin gives back two
+	 * unnoted items per bone, so an inventory only holds 14 bones' worth. 1
+	 * when the pack does not say a trip is limited.
+	 */
+	static int trips(AccountState state, DailiesPack.Daily daily)
+	{
+		if (daily.perTrip == null || daily.perTrip < 1)
+		{
+			return 1;
+		}
+		int units = Math.max(1, quantity(state, daily));
+		return (units + daily.perTrip - 1) / daily.perTrip;
 	}
 
 	/** Ticked by hand and still inside the current daily reset window. */

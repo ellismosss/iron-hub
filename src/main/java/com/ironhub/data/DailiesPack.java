@@ -75,6 +75,10 @@ public class DailiesPack
 		public String travel;
 		/** One honest sentence of context, or null. */
 		public String note;
+		/** How many units one inventory holds, when that is the thing that
+		 *  makes the stop awkward — Robin hands back two unnoted items per
+		 *  bone, so 14 bones is a trip. Null when a trip is just a trip. */
+		public Integer perTrip;
 		/** True when this event is OFF until the player asks for it — the
 		 *  Wilderness ones, which we never opt anybody into. */
 		public boolean optOut;
@@ -93,6 +97,8 @@ public class DailiesPack
 	 * <ul>
 	 *   <li>{@code flag} — varbit reads 0 while unclaimed (core's semantics);</li>
 	 *   <li>{@code count} — varbit counts what you have taken, capped by tier;</li>
+	 *   <li>{@code approval} — no claim flag exists; the varbit is Miscellania's
+	 *       approval (0..127) and the stop is done once it reads 100%;</li>
 	 *   <li>{@code rolling7} — no claim varbit exists; {@code varbit} is instead
 	 *       the live "you are doing it now" signal that stamps the visit;</li>
 	 *   <li>{@code manual} — the game exposes no flag at all; hand-ticked.</li>

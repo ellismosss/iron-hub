@@ -87,7 +87,7 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "farmingReadyInfoboxes", name = "Ready infoboxes", description = "Show an infobox while a patch category, your bird houses or the farming contract is ready", section = notificationsSection, position = 2)
 	default boolean farmingReadyInfoboxes() { return true; }
 
-	@ConfigItem(keyName = "farmBankSetup", name = "Farm run bank setup", description = "While a farm run with a saved setup is active, show its gear and inventory over the bank so you can re-stock", section = notificationsSection, position = 3)
+	@ConfigItem(keyName = "farmBankSetup", name = "Run bank setup", description = "While a farm or daily run with a saved setup is active, lay its gear and inventory out over the bank so you can re-stock", section = notificationsSection, position = 3)
 	default boolean farmBankSetup() { return true; }
 
 	@ConfigItem(keyName = "notifyDailyReset", name = "Daily reset", description = "Notify at the daily reset when dailies are outstanding", section = notificationsSection, position = 4)

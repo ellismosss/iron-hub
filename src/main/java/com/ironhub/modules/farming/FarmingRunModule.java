@@ -650,14 +650,7 @@ public class FarmingRunModule implements IronHubModule
 		{
 			SwingUtilities.invokeLater(tab::rebuild);
 		}
-		try
-		{
-			routeToNext();
-		}
-		catch (RuntimeException e)
-		{
-			log.debug("routeToNext failed at run start", e);
-		}
+		routeToNext();
 	}
 
 	/** Farming xp gained since this run started. */
@@ -1102,7 +1095,26 @@ public class FarmingRunModule implements IronHubModule
 
 	/** Send the path bridge toward the next unvisited stop (no-op when the
 	 *  integration is off or the run is done). */
+	/**
+	 * Best-effort, and it swallows: the Shortest Path post is a foreign plugin
+	 * on the EDT and it can throw. It used to take its caller with it — Skip
+	 * updated the run and then never reached rebuildTab(), so the overlay moved
+	 * on while the sidebar sat there. Nothing about routing is worth losing a
+	 * repaint over.
+	 */
 	private void routeToNext()
+	{
+		try
+		{
+			postRoute();
+		}
+		catch (RuntimeException e)
+		{
+			log.debug("routeToNext failed", e);
+		}
+	}
+
+	private void postRoute()
 	{
 		Stop next = nextStop();
 		if (next != null && pathBridge != null)
@@ -1277,46 +1289,9 @@ public class FarmingRunModule implements IronHubModule
 	{
 		if (!running() || config == null || !config.farmBankSetup())
 		{
-			return java.util.Collections.emptySet();
+			return java.util.Set.of();
 		}
-		com.ironhub.state.PersistedState.SavedSetup setup = state.getFarmRunSetup(runName);
-		if (setup == null)
-		{
-			return java.util.Collections.emptySet();
-		}
-		java.util.Map<Integer, Integer> need = new java.util.HashMap<>();
-		if (setup.equipment != null)
-		{
-			for (Integer id : setup.equipment.values())
-			{
-				if (id != null && id > 0)
-				{
-					need.merge(id, 1, Integer::sum);
-				}
-			}
-		}
-		if (setup.inventory != null)
-		{
-			for (int i = 0; i < setup.inventory.length; i++)
-			{
-				int id = setup.inventory[i];
-				if (id > 0)
-				{
-					int qty = setup.inventoryQty != null && i < setup.inventoryQty.length
-						? Math.max(1, setup.inventoryQty[i]) : 1;
-					need.merge(id, qty, Integer::sum);
-				}
-			}
-		}
-		java.util.Set<Integer> out = new java.util.HashSet<>();
-		for (java.util.Map.Entry<Integer, Integer> e : need.entrySet())
-		{
-			if (carriedCount(e.getKey()) < e.getValue())
-			{
-				out.addAll(satisfyingIds(e.getKey()));
-			}
-		}
-		return out;
+		return state.setupItemsToWithdraw(state.getFarmRunSetup(runName));
 	}
 
 	// ── patch views over the vendored predictions ─────────────────────

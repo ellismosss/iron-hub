@@ -37,7 +37,7 @@
             "additionalProperties": false,
             "required": ["mode"],
             "properties": {
-              "mode": {"enum": ["flag", "count", "rolling7", "manual"]},
+              "mode": {"enum": ["flag", "count", "approval", "rolling7", "manual"]},
               "varbit": {"type": "integer", "minimum": 1},
               "chat": {"type": "string", "minLength": 1}
             },
@@ -86,6 +86,7 @@
           "travel": {"type": "string", "minLength": 1},
           "note": {"type": "string", "minLength": 1},
           "optOut": {"type": "boolean"},
+          "perTrip": {"type": "integer", "minimum": 1},
           "warning": {"type": "string", "minLength": 1}
         }
       }
