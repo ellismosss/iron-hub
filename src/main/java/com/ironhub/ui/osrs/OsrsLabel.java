@@ -29,12 +29,14 @@ public class OsrsLabel extends JComponent
 	/**
 	 * First-line baseline offset from the text block top, and the block's
 	 * rows beyond the pitch rows. Derived from the measured ink (caps span
-	 * baseline-12..baseline-2, descenders reach baseline+1): a 12n+4 block
-	 * with the first baseline at 14 centers the caps-plus-shadow mass
-	 * exactly and keeps descender ink inside the component.
+	 * baseline-12..baseline-2, descenders reach baseline+1): a 12n+5 block
+	 * with the first baseline at 15 centers the 11-row caps INK exactly —
+	 * the +1,+1 shadow is black on near-black and plays no part in the
+	 * optical center (Luke read the shadow-balanced version as still a
+	 * touch high) — and keeps descender ink inside the component.
 	 */
-	private static final int BASELINE = 14;
-	private static final int DESCENT = 4;
+	private static final int BASELINE = 15;
+	private static final int DESCENT = 5;
 
 	private final String[] lines;
 	private final Color color;
