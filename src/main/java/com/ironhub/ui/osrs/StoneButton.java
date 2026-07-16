@@ -92,6 +92,9 @@ public class StoneButton extends StonePanel
 	@Override
 	public Dimension getMaximumSize()
 	{
-		return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+		// full-width by default, but an explicitly-set maximum must win —
+		// overriding the getter unconditionally silently ate setMaximumSize
+		return isMaximumSizeSet() ? super.getMaximumSize()
+			: new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
 	}
 }

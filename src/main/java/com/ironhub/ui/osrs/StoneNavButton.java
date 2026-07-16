@@ -28,15 +28,29 @@ public class StoneNavButton extends JComponent
 	private final OsrsTheme theme;
 	private final Icon icon;
 	private final Runnable onClick;
+	private final int width;
+	private final int height;
 	private boolean selected;
 	private boolean hover;
 
 	public StoneNavButton(OsrsTheme theme, Icon icon, boolean selected, Runnable onClick)
 	{
+		this(theme, icon, selected, onClick, SIZE, SIZE + 3);
+	}
+
+	/**
+	 * A narrower stone — seven blocks must share the 225px panel, which is
+	 * the same squeeze the game's own resizable tab row makes.
+	 */
+	public StoneNavButton(OsrsTheme theme, Icon icon, boolean selected, Runnable onClick,
+		int width, int height)
+	{
 		this.theme = theme;
 		this.icon = icon;
 		this.selected = selected;
 		this.onClick = onClick;
+		this.width = width;
+		this.height = height;
 		setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		addMouseListener(new MouseAdapter()
 		{
@@ -74,7 +88,7 @@ public class StoneNavButton extends JComponent
 	@Override
 	public Dimension getPreferredSize()
 	{
-		return new Dimension(SIZE, SIZE + 3);
+		return new Dimension(width, height);
 	}
 
 	@Override

@@ -1,6 +1,5 @@
 package com.ironhub.ui;
 
-import com.ironhub.data.BankedXpPack;
 import com.ironhub.data.DailiesPack;
 import com.ironhub.data.DataPack;
 import com.ironhub.data.GearLaddersPack;
@@ -11,11 +10,9 @@ import com.ironhub.modules.dashboard.AccountScore;
 import com.ironhub.modules.farming.FarmingRunModule;
 import com.ironhub.modules.gear.GearProgressionModule;
 import com.ironhub.modules.goals.GoalPlannerModule;
-import com.ironhub.modules.suggest.WhatNowModule;
 import com.ironhub.modules.supplies.SuppliesRunwayModule;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.components.AlertChip;
-import com.ironhub.ui.components.ChipRow;
 import com.ironhub.ui.components.GridTile;
 import com.ironhub.ui.components.HubProgressBar;
 import com.ironhub.ui.components.ListRow;
@@ -23,7 +20,6 @@ import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.components.SectionLabel;
 import com.ironhub.ui.components.Status;
 import com.ironhub.ui.components.StatusGlyph;
-import com.ironhub.ui.components.SuggestionCard;
 import com.ironhub.ui.components.WrapLayout;
 import java.awt.BasicStroke;
 import java.awt.Component;
@@ -58,8 +54,6 @@ import javax.swing.border.MatteBorder;
  */
 public class DashboardPanel extends JPanel
 {
-	private static final int[] BUDGETS = {5, 30, 60, 180};
-
 	private final AccountState state;
 	private final Consumer<String> openModule;
 	private final Runnable onAllModules;
@@ -68,11 +62,9 @@ public class DashboardPanel extends JPanel
 	private final DailiesPack dailiesPack;
 	private final GearLaddersPack gearPack;
 	private final com.ironhub.data.GearProgressionPack gearProgressionPack;
-	private final WhatNowModule.Packs whatNowPacks;
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 
 	private final JPanel content = new JPanel();
-	private int timeBudget = 2; // 1h default
 
 	public DashboardPanel(AccountState state, DataPack dataPack,
 		Consumer<String> openModule, Runnable onAllModules)
@@ -85,8 +77,6 @@ public class DashboardPanel extends JPanel
 		this.dailiesPack = dataPack.load("dailies", DailiesPack.class);
 		this.gearPack = dataPack.load("gear-ladders", GearLaddersPack.class);
 		this.gearProgressionPack = dataPack.load("gear-progression", com.ironhub.data.GearProgressionPack.class);
-		this.whatNowPacks = new WhatNowModule.Packs(dailiesPack,
-			dataPack.load("banked-xp", BankedXpPack.class), goalsPack, gearProgressionPack);
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
@@ -110,7 +100,6 @@ public class DashboardPanel extends JPanel
 		content.removeAll();
 		content.add(header());
 		content.add(scoreSection());
-		content.add(whatNowSection());
 		content.add(activeGoalSection());
 		content.add(alertsSection());
 		content.add(upgradesSection());
@@ -238,51 +227,6 @@ public class DashboardPanel extends JPanel
 			.reduce((a, b) -> b) // latest snapshot at least a week old
 			.map(s -> (double) score - s[1])
 			.orElse(0.0);
-	}
-
-	private JComponent whatNowSection()
-	{
-		JPanel section = strip(UiTokens.PAD);
-		section.add(new SectionLabel("What now?"));
-		section.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
-
-		ChipRow time = new ChipRow("5m", "30m", "1h", "2h+");
-		time.setSelected(timeBudget);
-		time.onChange(i ->
-		{
-			timeBudget = i;
-			rebuild();
-		});
-		section.add(time);
-		section.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
-
-		List<WhatNowModule.Suggestion> suggestions =
-			WhatNowModule.suggest(state, whatNowPacks, BUDGETS[timeBudget]);
-		if (suggestions.isEmpty())
-		{
-			JLabel none = new JLabel("Nothing urgent right now.");
-			none.setForeground(UiTokens.TEXT_FAINT);
-			none.setFont(none.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
-			none.setAlignmentX(LEFT_ALIGNMENT);
-			section.add(none);
-		}
-		int rank = 1;
-		for (WhatNowModule.Suggestion suggestion : suggestions.subList(0, Math.min(3, suggestions.size())))
-		{
-			SuggestionCard card = new SuggestionCard(rank++, suggestion.title,
-				"~" + suggestion.minutes + " min", suggestion.why);
-			card.addMouseListener(new MouseAdapter()
-			{
-				@Override
-				public void mousePressed(MouseEvent e)
-				{
-					openModule.accept("What now?");
-				}
-			});
-			section.add(card);
-			section.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
-		}
-		return section;
 	}
 
 	private JComponent activeGoalSection()

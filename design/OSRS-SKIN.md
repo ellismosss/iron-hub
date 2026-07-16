@@ -262,8 +262,17 @@ scale: green claimable / orange short / warm-faint done / neutral-grey locked / 
 unknown, unticked = FAINT). Renders: `dailies-new-{stone,mystic}.png` + `dailies-new-run.png`
 beside the classic `dailies-tab.png`.
 
-Still open: the fixed-mode mottled outer frame if anyone wants it, and the rest of the
-migration after the pilot verdict.
+**Phase 5 — the nav rework has begun (2026-07-16, Luke's 7-block spec).** `HomePanel`
+replaces the classic dashboard as the sidebar home: player name, a live
+Character-Summary-style header, then seven 29×36 nav stones (Goals / Combat / Dailies /
+Current task / Progression / Bank / Settings — seven stones must share 225px, the same
+squeeze the game's resizable tab row makes). Icons are the wiki's own art normalised to
+≤24px (`data/icons/osrs/nav/`), with the pack's redraws where they exist — `OsrsIcons`
+now FALLS BACK themed→vanilla, which is exactly how a resource pack behaves in-game.
+The blocks are not wired yet; a Modules button keeps the classic nav reachable. WhatNow
+and the old Loadout module were deleted in the same rework. Still open: wiring the seven
+blocks (incl. the dynamic Current-task zone and the Settings area), the fixed-mode
+mottled outer frame if anyone wants it, and the rest of the migration.
 
 ## Fidelity assessment — how close can the sidebar get?
 

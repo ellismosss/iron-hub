@@ -15,12 +15,10 @@ import com.ironhub.modules.diaries.DiariesModule;
 import com.ironhub.modules.farming.FarmingRunModule;
 import com.ironhub.modules.gear.GearProgressionModule;
 import com.ironhub.modules.goals.GoalPlannerModule;
-import com.ironhub.modules.loadout.LoadoutModule;
 import com.ironhub.modules.loot.LootModule;
 import com.ironhub.modules.qol.QolModule;
 import com.ironhub.modules.quests.QuestsModule;
 import com.ironhub.modules.slayer.SlayerOptimizerModule;
-import com.ironhub.modules.suggest.WhatNowModule;
 import com.ironhub.modules.supplies.SuppliesRunwayModule;
 import com.ironhub.modules.sync.ExternalSyncModule;
 import com.ironhub.state.AccountState;
@@ -87,13 +85,11 @@ public class IronHubPlugin extends Plugin
 		DiariesModule diaries,
 		CombatAchievementsModule combatAchievements,
 		QolModule qol,
-		LoadoutModule loadout,
 		LootModule loot,
 		BankTrackerModule bankTracker,
 		FarmingRunModule farmingRun,
 		DailiesModule dailies,
 		GoalPlannerModule goalPlanner,
-		WhatNowModule whatNow,
 		ClueStashModule clueStash,
 		SlayerOptimizerModule slayerOptimizer,
 		SuppliesRunwayModule suppliesRunway,
@@ -107,8 +103,8 @@ public class IronHubPlugin extends Plugin
 	{
 		// TODO: skills, boat — see DESIGN.md §3
 		return ImmutableSet.of(
-			gearProgression, quests, diaries, combatAchievements, qol, loadout, loot, bankTracker,
-			farmingRun, dailies, goalPlanner, whatNow, clueStash,
+			gearProgression, quests, diaries, combatAchievements, qol, loot, bankTracker,
+			farmingRun, dailies, goalPlanner, clueStash,
 			slayerOptimizer, suppliesRunway, collectionLog, externalSync,
 			dashboard, deathRecovery, loadoutLab, designLab, dailiesNew);
 	}
@@ -247,6 +243,10 @@ public class IronHubPlugin extends Plugin
 		if (IronHubConfig.GROUP.equals(event.getGroup()))
 		{
 			syncModuleLifecycles();
+			if ("osrsTheme".equals(event.getKey()))
+			{
+				panel.themeChanged();
+			}
 		}
 	}
 

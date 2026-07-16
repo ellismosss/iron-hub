@@ -39,11 +39,28 @@ public class PanelGalleryTest
 		write(image, "modules-1c.png");
 	}
 
+	/** The reworked OSRS-skin home (2026-07-16): name, summary, 7 nav blocks. */
+	@Test
+	public void homeRendersInBothThemes() throws Exception
+	{
+		com.ironhub.state.AccountState state =
+			com.ironhub.state.StateFixture.state(temp.getRoot());
+		for (com.ironhub.ui.osrs.OsrsTheme theme : com.ironhub.ui.osrs.OsrsTheme.values())
+		{
+			HomePanel home = new HomePanel(state, theme, () -> {});
+			BufferedImage image = SwingRender.render(home);
+			assertEquals(UiTokens.PANEL_WIDTH, image.getWidth());
+			assertTrue(image.getHeight() > 150);
+			write(image, "home-" + theme.name().toLowerCase() + ".png");
+			home.dispose();
+		}
+	}
+
 	@Test
 	public void navRowsExistForImplementedModules()
 	{
 		// nav rows route to modules by exact name — a mismatch is an inert row
-		for (String name : new String[]{"Quests", "Achievement diaries", "Combat achievements", "QoL checklist", "Bank & banked XP", "Dailies", "Gear progression", "Loadout", "Loot & supplies", "Slayer", "Farming runs", "Death recovery", "Goal planner", "Supplies runway", "What now?", "Clues & STASH", "Collection log", "Design lab", "Dailies (New)"})
+		for (String name : new String[]{"Quests", "Achievement diaries", "Combat achievements", "QoL checklist", "Bank & banked XP", "Dailies", "Gear progression", "Loot & supplies", "Slayer", "Farming runs", "Death recovery", "Goal planner", "Supplies runway", "Clues & STASH", "Collection log", "Design lab", "Dailies (New)"})
 		{
 			assertTrue("nav row missing for module: " + name,
 				ModuleNavPanel.moduleNames().contains(name));

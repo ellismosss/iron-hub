@@ -168,30 +168,4 @@ public class PlannerTabTest
 		module.shutDown();
 	}
 
-	@Test
-	public void whatNowTopsFromThePlanHead() throws Exception
-	{
-		AccountState state = StateFixture.state(temp.getRoot());
-		StateFixture.profile(state, 6L);
-		state.selectGoal("bowfa", true);
-		GoalPlannerModule module = module(state);
-		for (int i = 0; i < 50 && module.currentPlan() == null; i++)
-		{
-			Thread.sleep(100);
-		}
-		assertNotNull(module.currentPlan());
-		DataPack data = new DataPack(new Gson());
-		com.ironhub.modules.suggest.WhatNowModule.Packs packs =
-			new com.ironhub.modules.suggest.WhatNowModule.Packs(
-				data.load("dailies", com.ironhub.data.DailiesPack.class),
-				data.load("banked-xp", com.ironhub.data.BankedXpPack.class),
-				data.load("goals", com.ironhub.data.GoalsPack.class),
-				data.load("gear-progression", com.ironhub.data.GearProgressionPack.class));
-		java.util.List<com.ironhub.modules.suggest.WhatNowModule.Suggestion> suggestions =
-			com.ironhub.modules.suggest.WhatNowModule.suggest(state, packs, 60);
-		assertFalse(suggestions.isEmpty());
-		assertTrue("plan head should top the list: " + suggestions.get(0).title,
-			suggestions.get(0).title.startsWith("Plan: "));
-		module.shutDown();
-	}
 }

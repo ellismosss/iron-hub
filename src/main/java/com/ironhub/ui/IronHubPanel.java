@@ -38,11 +38,18 @@ public class IronHubPanel extends PluginPanel
 	private final JPanel cardPanel = new JPanel(cards);
 	private final Map<String, IronHubModule> modulesByName;
 	private final Map<String, Component> moduleWrappers = new HashMap<>();
+	private final AccountState state;
+	private final com.ironhub.IronHubConfig config;
+	private Component homeCard;
+	private HomePanel home;
 
 	@Inject
-	public IronHubPanel(Set<IronHubModule> modules, AccountState state, DataPack dataPack)
+	public IronHubPanel(Set<IronHubModule> modules, AccountState state, DataPack dataPack,
+		com.ironhub.IronHubConfig config)
 	{
 		super(false);
+		this.state = state;
+		this.config = config;
 		modulesByName = modules.stream()
 			.collect(Collectors.toMap(IronHubModule::name, Function.identity()));
 
@@ -50,9 +57,38 @@ public class IronHubPanel extends PluginPanel
 		setBackground(UiTokens.PANEL_BG);
 
 		cardPanel.setBackground(UiTokens.PANEL_BG);
-		cardPanel.add(new HubScrollPane(new DashboardPanel(state, dataPack, this::openModule, this::showModules)), CARD_DASHBOARD);
+		mountHome();
 		cardPanel.add(new ModuleNavPanel(this::showDashboard, this::openModule), CARD_MODULES);
 		add(cardPanel, BorderLayout.CENTER);
+	}
+
+	/** The OSRS-skinned home (2026-07-16 nav rework). Rebuilt on theme flips. */
+	private void mountHome()
+	{
+		boolean showing = homeCard == null || homeCard.isVisible();
+		if (homeCard != null)
+		{
+			cardPanel.remove(homeCard);
+			home.dispose();
+		}
+		home = new HomePanel(state, config.osrsTheme(), this::showModules);
+		homeCard = new HubScrollPane(home);
+		cardPanel.add(homeCard, CARD_DASHBOARD);
+		if (showing)
+		{
+			cards.show(cardPanel, CARD_DASHBOARD);
+		}
+	}
+
+	/** The osrsTheme setting changed — re-clothe the home card (EDT). */
+	public void themeChanged()
+	{
+		javax.swing.SwingUtilities.invokeLater(() ->
+		{
+			mountHome();
+			cardPanel.revalidate();
+			cardPanel.repaint();
+		});
 	}
 
 	public void showDashboard()

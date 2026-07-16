@@ -40,7 +40,6 @@ public class ModuleNavPanel extends JPanel
 	private static final Category[] CATEGORIES = {
 		new Category("Progression",
 			new Module("GE", "Gear progression", null, null),
-			new Module("LO", "Loadout", null, null),
 			new Module("LL", "Loadout Lab", null, null),
 			new Module("QU", "Quests", null, null),
 			new Module("SK", "Skill milestones", null, null),
@@ -49,7 +48,6 @@ public class ModuleNavPanel extends JPanel
 			new Module("CL", "Collection log", null, null)),
 		new Category("Planning",
 			new Module("GO", "Goal planner", null, null),
-			new Module("WN", "What now?", null, null),
 			new Module("RW", "Supplies runway", "!", UiTokens.STATUS_WARNING)),
 		new Category("Daily loop",
 			new Module("FA", "Farming runs", null, null),

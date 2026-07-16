@@ -53,9 +53,6 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "goalPlanner", name = "Goal planner", description = "Dependency-tree plans for any target (item, quest, capstone)", section = modulesSection, position = 12)
 	default boolean goalPlanner() { return true; }
 
-	@ConfigItem(keyName = "whatNow", name = "\"What now?\" suggestions", description = "Ranked suggestions for what to do right now", section = modulesSection, position = 13)
-	default boolean whatNow() { return true; }
-
 	@ConfigItem(keyName = "clueStash", name = "Clues & STASH", description = "STASH tracking and emote-clue readiness", section = modulesSection, position = 14)
 	default boolean clueStash() { return true; }
 

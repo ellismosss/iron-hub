@@ -4,9 +4,11 @@ import com.google.gson.Gson;
 import com.ironhub.IronHubConfig;
 import com.ironhub.data.DataPack;
 import com.ironhub.modules.IronHubModule;
-import com.ironhub.modules.loadout.LoadoutModule;
+import com.ironhub.modules.qol.QolModule;
 import com.ironhub.state.AccountState;
 import com.ironhub.state.StateFixture;
+import java.awt.Component;
+import java.awt.Container;
 import java.util.Set;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,24 +24,33 @@ public class ModuleRoutingTest
 	public TemporaryFolder temp = new TemporaryFolder();
 
 	@Test
-	public void loadoutOpensACard()
+	public void qolChecklistOpensACard()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		IronHubConfig config = new IronHubConfig()
 		{
 		};
-		LoadoutModule loadout = new LoadoutModule(state, null, null, config, new DataPack(new Gson()), new Gson(), null);
-		assertTrue(loadout.enabled());
-		assertNotNull(loadout.buildTab());
+		QolModule qol = new QolModule(state, config, new DataPack(new Gson()));
+		assertTrue(qol.enabled());
+		assertNotNull(qol.buildTab());
 
-		IronHubPanel panel = new IronHubPanel(Set.of((IronHubModule) loadout), state, new DataPack(new Gson()));
+		IronHubPanel panel = new IronHubPanel(Set.of((IronHubModule) qol), state, new DataPack(new Gson()), config);
 		int before = componentCount(panel);
-		panel.openModule("Loadout");
+		panel.openModule("QoL checklist");
 		assertTrue("openModule added no card", componentCount(panel) > before);
 	}
 
-	private static int componentCount(IronHubPanel panel)
+	private static int componentCount(Container root)
 	{
-		return ((javax.swing.JPanel) panel.getComponent(0)).getComponentCount();
+		int count = 0;
+		for (Component child : root.getComponents())
+		{
+			count++;
+			if (child instanceof Container)
+			{
+				count += componentCount((Container) child);
+			}
+		}
+		return count;
 	}
 }
