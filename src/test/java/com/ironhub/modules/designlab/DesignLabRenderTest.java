@@ -238,6 +238,49 @@ public class DesignLabRenderTest
 		}
 	}
 
+	/**
+	 * Typed text reads as body copy, matching the section captions (Luke) —
+	 * and stays CRISP. Swing re-applies the look-and-feel's antialias
+	 * setting over the Graphics hint, which smeared the pixel font with LCD
+	 * subpixel fringes until OsrsSkin.crisp() set the per-component property;
+	 * a blend would show up here as a colour outside the field's palette.
+	 */
+	@Test
+	public void fieldTextIsBodyColouredAndCrisp()
+	{
+		for (OsrsTheme theme : OsrsTheme.values())
+		{
+			com.ironhub.ui.osrs.StoneTextField field =
+				new com.ironhub.ui.osrs.StoneTextField(theme, "Search modules…");
+			field.setText("Ardougne cloak");
+			field.setSize(180, field.getPreferredSize().height);
+			BufferedImage image = new BufferedImage(180, field.getHeight(), BufferedImage.TYPE_INT_RGB);
+			field.paint(image.createGraphics());
+
+			java.util.Set<Integer> allowed = new java.util.HashSet<>(java.util.List.of(
+				theme.fieldFill.getRGB() & 0xFFFFFF,
+				theme.edgeDark.getRGB() & 0xFFFFFF,
+				theme.fieldEdge.getRGB() & 0xFFFFFF,
+				theme.selectFill.getRGB() & 0xFFFFFF,
+				OsrsSkin.MUTED.getRGB() & 0xFFFFFF));
+			int typed = 0;
+			for (int y = 0; y < image.getHeight(); y++)
+			{
+				for (int x = 0; x < image.getWidth(); x++)
+				{
+					int rgb = image.getRGB(x, y) & 0xFFFFFF;
+					assertTrue(String.format("antialiased pixel #%06X at %d,%d — the pixel font is smeared", rgb, x, y),
+						allowed.contains(rgb));
+					if (rgb == (OsrsSkin.MUTED.getRGB() & 0xFFFFFF))
+					{
+						typed++;
+					}
+				}
+			}
+			assertTrue("typed text is not the caption colour", typed > 100);
+		}
+	}
+
 	/** Ink bounds of one colour, painted over the given backdrop. */
 	private static Rectangle paintedInk(JComponent c, int rgb, java.awt.Color backdrop)
 	{

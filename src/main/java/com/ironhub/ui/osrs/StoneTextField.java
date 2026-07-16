@@ -29,10 +29,13 @@ public class StoneTextField extends JTextField
 	public StoneTextField(OsrsTheme theme, String placeholder)
 	{
 		this.placeholder = placeholder;
+		OsrsSkin.crisp(this);
 		setOpaque(true);
 		setBackground(theme.fieldFill);
-		setForeground(OsrsSkin.LABEL);
-		setCaretColor(OsrsSkin.LABEL);
+		// typed text reads as body copy, not as a game label (Luke): the
+		// game's own field types in orange, but the sidebar's does not
+		setForeground(OsrsSkin.MUTED);
+		setCaretColor(OsrsSkin.MUTED);
 		setSelectionColor(theme.selectFill);
 		setSelectedTextColor(OsrsSkin.TITLE);
 		setFont(OsrsSkin.font());
@@ -68,7 +71,7 @@ public class StoneTextField extends JTextField
 			return;
 		}
 		g2.setFont(getFont());
-		g2.setColor(OsrsSkin.MUTED);
+		g2.setColor(OsrsSkin.FAINT);
 		java.awt.Insets in = getInsets();
 		g2.drawString(placeholder, in.left, in.top + g2.getFontMetrics().getAscent() - 2);
 	}

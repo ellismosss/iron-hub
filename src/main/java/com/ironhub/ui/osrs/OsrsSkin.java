@@ -29,8 +29,14 @@ public final class OsrsSkin
 	public static final Color VALUE = new Color(0x0DC10D);
 	/** Every string is drawn twice: this at +1,+1, then its color on top. */
 	public static final Color TEXT_SHADOW = Color.BLACK;
-	/** Secondary/annotation text (not sampled — a muted stone tone). */
+	/** Secondary/annotation text, and typed input (not sampled — a muted stone tone). */
 	public static final Color MUTED = new Color(0xB8AC9C);
+	/**
+	 * Placeholder text. DERIVED: the game has no placeholders to sample, so
+	 * this dims MUTED by the same ratio UiTokens uses from body to faint —
+	 * it must stay distinguishable from typed text, which is MUTED.
+	 */
+	public static final Color FAINT = new Color(0x645E55);
 	/** Text drawn over a progress fill, per RuneLite's own ProgressBar. */
 	public static final Color BAR_TEXT = Color.WHITE;
 	/**
@@ -40,6 +46,25 @@ public final class OsrsSkin
 	 * theme's sunken `recess` swallowed the bar against the backing.
 	 */
 	public static final Color BAR_TROUGH = new Color(0x3E3830);
+
+	/**
+	 * Stop a Swing text component antialiasing the pixel font.
+	 *
+	 * <p>Setting the hint on the Graphics is NOT enough: Swing's own text
+	 * painting re-applies the look-and-feel's antialias setting over
+	 * whatever the Graphics carries, which smeared the RuneScape font with
+	 * LCD subpixel fringes (measured: red #581313 / blue #13134C dabs around
+	 * every glyph). This client property is the one Swing reads per
+	 * component, so it wins. Every skinned surface that lets SWING draw its
+	 * text — fields, combo boxes, renderers — must call this; atoms that
+	 * paint their own strings set the Graphics hint instead.
+	 */
+	public static <T extends javax.swing.JComponent> T crisp(T component)
+	{
+		component.putClientProperty(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+			java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+		return component;
+	}
 
 	/** The game's own font at its native 16px — pixel-identical to in-game text. */
 	public static Font font()

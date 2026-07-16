@@ -216,6 +216,21 @@ house rule; the bevel is what reads).
 box**: the game steps dark outline → mid tone → interior, and MYSTIC's interior *is* its
 `edgeDark`, so reusing the box tokens left its fields borderless.
 
+**Typed text is `MUTED`** — body copy, matching the section captions (Luke's call; the
+game's own field types in orange, the sidebar's does not), with placeholders in the
+dimmer `FAINT` so the two never read alike. `FAINT` is derived, not sampled: the game has
+no placeholders, so it dims `MUTED` by the same ratio UiTokens uses from body to faint.
+
+**Swing text needs `OsrsSkin.crisp(component)`.** Setting the antialias hint on the
+Graphics is not enough — Swing re-applies the look-and-feel's own setting over it, which
+smeared the pixel font with LCD subpixel fringes (measured: red `#581313` / blue
+`#13134C` dabs around every glyph, and only 27 solid glyph pixels where there should be
+194). The per-component client property is the one Swing honours. Any surface that lets
+SWING draw its text — fields, combo boxes, cell renderers — must call it; atoms that
+paint their own strings set the Graphics hint instead. `DesignLabRenderTest` pins this by
+asserting every pixel of a filled field is one of the field's palette colours: a blend
+fails the test.
+
 `StoneScrollBarUI` and `StoneComboBoxUI` skin the **real Swing components** rather than
 replacing them — five modules already use `JComboBox` and several use `JTextField`, so a
 migration is a styling swap, not a rewrite. The lab demos the scrollbar as a bare

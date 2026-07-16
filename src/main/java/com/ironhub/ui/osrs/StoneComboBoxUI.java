@@ -37,6 +37,7 @@ public class StoneComboBoxUI extends BasicComboBoxUI
 	public static <T> JComboBox<T> skin(JComboBox<T> combo, OsrsTheme theme)
 	{
 		combo.setUI(new StoneComboBoxUI(theme));
+		OsrsSkin.crisp(combo);
 		combo.setBackground(theme.fieldFill);
 		combo.setForeground(OsrsSkin.LABEL);
 		combo.setFont(OsrsSkin.font());
@@ -106,6 +107,7 @@ public class StoneComboBoxUI extends BasicComboBoxUI
 		Renderer(OsrsTheme theme)
 		{
 			this.theme = theme;
+			OsrsSkin.crisp(this);
 		}
 
 		@Override
