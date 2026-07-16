@@ -67,13 +67,14 @@ Border insets: 7px minimum so content clears the notch (game text sits ~8px in).
 
 ## Themes — the same grammar in different clothes
 
-The atoms are theme-parameterised (`OsrsTheme`: the four surface colors + the corner
-stamp, since geometry differs too). Text colors and fonts stay global — resource packs
-re-sprite the interface but the game's text rendering is unchanged. Two themes exist:
+The atoms are theme-parameterised (`OsrsTheme`: the surface colors + the corner stamp,
+since geometry differs too). Text colors and fonts stay global — resource packs re-sprite
+the interface but the game's text rendering is unchanged. `OsrsTheme` is an enum so the
+**`osrsTheme` config item IS the theme**; both dress every atom. Two themes exist:
 
-**`OsrsSkin.STONE`** — the vanilla fixed-mode stone above.
+**`OsrsTheme.STONE`** — the vanilla fixed-mode stone above.
 
-**`OsrsSkin.MYSTIC`** — Luke's daily look: the [Mystic resource pack]
+**`OsrsTheme.MYSTIC`** — Luke's daily look: the [Mystic resource pack]
 (https://github.com/melkypie/resource-packs/tree/pack-mystic-pack) by Drunken Monk
 (BSD-2-Clause via the resource-packs repo; `licenses/mystic-pack-LICENSE`, pinned commit
 `339ac716`). Ground truth is the pack's own sprite PNGs — its `button/` 9-slice
@@ -109,8 +110,9 @@ bundled under `data/icons/osrs/mystic/`. The pack also ships hover/selected/disa
 - Headers: RuneScape bold, `TITLE` color, centered.
 - **Every string gets the +1,+1 black shadow** — this, more than anything, is what makes
   the text read as OSRS.
-- RuneScape *small* exists as a token but is not used by default (Luke's 14px floor —
-  its cap height reads smaller; his call whether the game's own small font is exempt).
+- RuneScape *small* (`OsrsSkin.smallFont()`) is used **inside progress bars only**, where
+  Luke asked for smaller text; the 14px panel floor still governs every classic surface.
+  Its caps ink is 8 rows (baseline−10..−3) against the regular font's 11.
 - Glyph safety unchanged: ASCII plus `· … — ×`.
 
 ## Iconography
@@ -132,7 +134,6 @@ pattern is always **icon + green value** on one line under an orange label.
 | `StoneFrame` | the thin resizable-mode side-panel frame (1px dark/light + 8×8 stepped chamfer) |
 | `StoneButton` | **the default button**: the notched box with hover/press fills |
 | `StoneNavButton` | the square stone — **navigation only**; selected lifts the fill + brightens the bevel |
-| `StoneTabStrip` | tabs in a recess; the selected one lifts and drops its bottom edge to merge with content |
 | `StoneProgressBar` | tall bar with left/center/right labels inside |
 | `StoneMeter` | the thin bar, 5px, no text |
 | `StoneCheckbox` / `StoneChecklist` | the game's tick box; rows grouped inside ONE notched frame |
@@ -155,8 +156,18 @@ wiki strip (`#28251E` → `#3E3529`).
 **The bars are a synthesis, and say so:** the game draws no text-inside-a-bar, so the
 layout follows Luke's reference — RuneLite's own `ProgressBar` (16px tall; white
 left/center/right labels; fill colour supplied by the caller) — painted in skin tokens
-with the game's font, one row taller so the RuneScape ink fits. The **fill is semantic
-and belongs to the caller**; the trough and border are sampled.
+with the game's own **small** font, which is what holds the bar to the reference's 16px.
+The **fill is semantic and belongs to the caller**; the trough and border are sampled.
+
+**Tabs were tried and cut** (2026-07-16): a `StoneTabStrip` was built beside the nav
+stones so the two could be judged in-client, and Luke picked the stones. The strip is
+deleted rather than left to rot — it is in git history if tabs ever earn their place.
+
+**Nav stones carry the game's full-size tab icons**, not the 18px Character Summary set,
+which reads as toys at that weight. Both sets are the game's own: STONE's are the wiki
+files the Interface page itself names (`Combat icon`, `Stats icon`, `Inventory`,
+`Worn Equipment`, `Prayer tab icon`, ...), MYSTIC's are the pack's redraws of the same
+tabs; `OsrsIcons` resolves per theme and returns null rather than substituting.
 
 Implementation notes proven by the render: text uses the game's tight **12px line
 pitch**, not Swing's FontMetrics height (16) — FontMetrics-driven layout runs 4px/line

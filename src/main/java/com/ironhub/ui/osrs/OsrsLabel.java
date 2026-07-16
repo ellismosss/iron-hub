@@ -40,6 +40,7 @@ public class OsrsLabel extends JComponent
 
 	private final String[] lines;
 	private Color color;
+	private boolean leftAligned;
 
 	public static OsrsLabel title(String text)
 	{
@@ -70,6 +71,13 @@ public class OsrsLabel extends JComponent
 	{
 		this.color = color;
 		repaint();
+	}
+
+	/** Left-align the ink — for a label given a whole row's width. */
+	public OsrsLabel leftAligned()
+	{
+		this.leftAligned = true;
+		return this;
 	}
 
 	@Override
@@ -116,7 +124,7 @@ public class OsrsLabel extends JComponent
 		int top = (getHeight() - (LINE_PITCH * lines.length + DESCENT)) / 2;
 		for (int i = 0; i < lines.length; i++)
 		{
-			int x = (getWidth() - fm.stringWidth(lines[i])) / 2;
+			int x = leftAligned ? 0 : (getWidth() - fm.stringWidth(lines[i])) / 2;
 			int y = top + BASELINE + LINE_PITCH * i;
 			g2.setColor(OsrsSkin.TEXT_SHADOW);
 			g2.drawString(lines[i], x + 1, y + 1);

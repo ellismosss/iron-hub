@@ -44,4 +44,14 @@ public final class OsrsSkin
 	{
 		return FontManager.getRunescapeBoldFont();
 	}
+
+	/**
+	 * The game's small font — its own, used in-game for tight spaces. Only
+	 * for surfaces where Luke asked for smaller text (bar interiors); the
+	 * 14px panel floor still governs every classic surface.
+	 */
+	public static Font smallFont()
+	{
+		return FontManager.getRunescapeSmallFont();
+	}
 }

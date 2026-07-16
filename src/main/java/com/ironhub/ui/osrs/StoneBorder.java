@@ -16,21 +16,36 @@ import javax.swing.border.AbstractBorder;
  */
 public class StoneBorder extends AbstractBorder
 {
+	/** Measured from the game's boxes: ~4px vertical, ~6px horizontal pad. */
+	private static final Insets PAD = new Insets(4, 6, 4, 6);
+
 	private final OsrsTheme theme;
 	private final Color outside;
+	private final Insets pad;
 	private final int corner;
 
 	/** A box sitting directly on the theme's backing. */
 	public StoneBorder(OsrsTheme theme)
 	{
-		this(theme, theme.background);
+		this(theme, theme.background, PAD);
 	}
 
 	/** A box nested on some other surface — the notch cuts through to it. */
 	public StoneBorder(OsrsTheme theme, Color outside)
 	{
+		this(theme, outside, PAD);
+	}
+
+	/**
+	 * Custom content padding — for surfaces whose content must reach the
+	 * engraved edge (a checklist's row highlights). Keep the vertical pad at
+	 * or above the corner stamp's height or content collides with the notch.
+	 */
+	public StoneBorder(OsrsTheme theme, Color outside, Insets pad)
+	{
 		this.theme = theme;
 		this.outside = outside;
+		this.pad = pad;
 		this.corner = theme.cornerStamp.length;
 	}
 
@@ -88,14 +103,13 @@ public class StoneBorder extends AbstractBorder
 	@Override
 	public Insets getBorderInsets(Component c)
 	{
-		// measured from the game's boxes: ~4px vertical, ~6px horizontal pad
-		return new Insets(4, 6, 4, 6);
+		return new Insets(pad.top, pad.left, pad.bottom, pad.right);
 	}
 
 	@Override
 	public Insets getBorderInsets(Component c, Insets insets)
 	{
-		insets.set(4, 6, 4, 6);
+		insets.set(pad.top, pad.left, pad.bottom, pad.right);
 		return insets;
 	}
 }

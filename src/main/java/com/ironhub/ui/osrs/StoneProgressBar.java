@@ -13,15 +13,27 @@ import javax.swing.JComponent;
  * labels inside it (left / center / right), per Luke's reference — which is
  * RuneLite's own ProgressBar (its layout: 16px tall, white left/center/right
  * labels over the fill, foreground supplied by the caller). Painted here in
- * skin tokens with the game's font and shadow, and one row taller so the
- * RuneScape font's ink fits.
+ * skin tokens with the game's own SMALL font, which is what keeps the bar to
+ * the reference's 16px.
+ *
+ * <p>Text is placed by measured ink, never by nominal metrics: the small
+ * font's caps/digits span baseline-10..baseline-3, so a baseline at
+ * (h-1)/2 + 6 centers that 8-row ink exactly in the trough (positioning by
+ * FontMetrics read high — Luke, in-client 2026-07-16, the same defect the
+ * stat boxes had).
  *
  * <p>The trough and its border are sampled; the fill is semantic and belongs
  * to the caller (the game draws no bar like this — it has no text-in-bar).
  */
 public class StoneProgressBar extends JComponent
 {
-	private static final int HEIGHT = 20;
+	private static final int HEIGHT = 16;
+	/**
+	 * The small font's caps ink spans baseline-10..baseline-3, so its center
+	 * sits 6.5 rows above the baseline; +7 from the trough's center row lands
+	 * that 8-row ink dead center at the 16px height.
+	 */
+	private static final int INK_CENTER_TO_BASELINE = 7;
 
 	private final OsrsTheme theme;
 	private final Color fill;
@@ -83,9 +95,9 @@ public class StoneProgressBar extends JComponent
 		g2.setColor(theme.edgeDark);
 		g2.drawRect(0, 0, w - 1, h - 1);
 
-		g2.setFont(OsrsSkin.font());
+		g2.setFont(OsrsSkin.smallFont());
 		FontMetrics fm = g2.getFontMetrics();
-		int baseline = (h + 9) / 2;
+		int baseline = (h - 1) / 2 + INK_CENTER_TO_BASELINE;
 		draw(g2, left, 4, baseline);
 		draw(g2, center, (w - fm.stringWidth(center)) / 2, baseline);
 		draw(g2, right, w - 4 - fm.stringWidth(right), baseline);

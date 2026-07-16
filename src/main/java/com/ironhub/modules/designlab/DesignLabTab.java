@@ -2,6 +2,7 @@ package com.ironhub.modules.designlab;
 
 import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.osrs.OsrsLabel;
+import com.ironhub.ui.osrs.OsrsIcons;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
 import com.ironhub.ui.osrs.StatBox;
@@ -12,15 +13,12 @@ import com.ironhub.ui.osrs.StoneMeter;
 import com.ironhub.ui.osrs.StoneNavButton;
 import com.ironhub.ui.osrs.StonePanel;
 import com.ironhub.ui.osrs.StoneProgressBar;
-import com.ironhub.ui.osrs.StoneTabStrip;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.util.List;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -57,17 +55,7 @@ public class DesignLabTab extends JPanel
 		frame.setAlignmentX(LEFT_ALIGNMENT);
 
 		frame.add(summary());
-		frame.add(section("Tabs · option A: strip"));
-		frame.add(pad(new StoneTabStrip(theme, List.of("Today", "Route", "Goals"), 0, null)));
-		StonePanel tabBody = new StonePanel(theme);
-		tabBody.setLayout(new BoxLayout(tabBody, BoxLayout.X_AXIS));
-		tabBody.add(Box.createHorizontalGlue());
-		tabBody.add(OsrsLabel.label("the tab's content"));
-		tabBody.add(Box.createHorizontalGlue());
-		cap(tabBody);
-		frame.add(pad(tabBody));
-
-		frame.add(section("Tabs · option B: nav stones"));
+		frame.add(section("Navigation"));
 		frame.add(pad(navStones()));
 
 		frame.add(section("Buttons"));
@@ -108,35 +96,33 @@ public class DesignLabTab extends JPanel
 		panel.setOpaque(false);
 		panel.setBorder(new EmptyBorder(4, 4, 0, 4));
 		panel.setAlignmentX(LEFT_ALIGNMENT);
-		String p = theme == OsrsTheme.MYSTIC ? "mystic/" : "";
-
 		panel.add(centered(OsrsLabel.title("Iron Hub")));
 		panel.add(Box.createVerticalStrut(6));
 		panel.add(pair(
-			new StatBox(theme, "Combat Level:", icon(p + "combat_level"), "112"),
-			new StatBox(theme, "Total Level:", icon(p + "total_level"), "1842")));
+			new StatBox(theme, "Combat Level:", OsrsIcons.stat(theme, "combat_level"), "112"),
+			new StatBox(theme, "Total Level:", OsrsIcons.stat(theme, "total_level"), "1842")));
 		panel.add(Box.createVerticalStrut(3));
-		panel.add(inline(icon(p + "total_xp"), "Total XP:", "47,702,858"));
+		panel.add(inline(OsrsIcons.stat(theme, "total_xp"), "Total XP:", "47,702,858"));
 		panel.add(Box.createVerticalStrut(3));
 		panel.add(pair(
-			new StatBox(theme, "Quests\nCompleted:", icon(p + "quests"), "177/181"),
-			new StatBox(theme, "Achievements\nCompleted:", icon(p + "achievements"), "397/492")));
+			new StatBox(theme, "Quests\nCompleted:", OsrsIcons.stat(theme, "quests"), "177/181"),
+			new StatBox(theme, "Achievements\nCompleted:", OsrsIcons.stat(theme, "achievements"), "397/492")));
 		cap(panel);
 		return panel;
 	}
 
+	/** The game's own tab stones, flush like the client's own row. */
 	private JComponent navStones()
 	{
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		String p = theme == OsrsTheme.MYSTIC ? "mystic/" : "";
-		String[] icons = {"combat_level", "total_level", "quests", "achievements", "collections_logged"};
+		String[] tabs = {"combat", "stats", "quests", "inventory", "equipment", "prayer"};
 		row.add(Box.createHorizontalGlue());
-		for (int i = 0; i < icons.length; i++)
+		for (int i = 0; i < tabs.length; i++)
 		{
-			row.add(new StoneNavButton(theme, icon(p + icons[i]), i == 0, null));
+			row.add(new StoneNavButton(theme, OsrsIcons.tab(theme, tabs[i]), i == 0, null));
 		}
 		row.add(Box.createHorizontalGlue());
 		cap(row);
@@ -240,9 +226,4 @@ public class DesignLabTab extends JPanel
 		return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
 	}
 
-	private static Icon icon(String name)
-	{
-		java.net.URL url = DesignLabTab.class.getResource("/data/icons/osrs/" + name + ".png");
-		return url == null ? null : new ImageIcon(url);
-	}
 }

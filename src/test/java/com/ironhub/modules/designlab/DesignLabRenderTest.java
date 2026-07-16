@@ -15,6 +15,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
+import javax.swing.JComponent;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -163,6 +164,108 @@ public class DesignLabRenderTest
 		Rectangle dInk = paintInk(descenders);
 		assertTrue("descender ink clipped: " + dInk + " in h=" + descenders.getHeight(),
 			dInk.y + dInk.height <= descenders.getHeight());
+	}
+
+	/**
+	 * The tick read low in-client (Luke, 2026-07-16) because it was placed by
+	 * hand-picked offsets copied off a 17px source into a smaller box. It is
+	 * now centered from its own measured bounds — pinned here by measuring
+	 * the painted pixels, in both themes.
+	 */
+	@Test
+	public void checkboxTickCentersInItsBox()
+	{
+		for (OsrsTheme theme : OsrsTheme.values())
+		{
+			com.ironhub.ui.osrs.StoneCheckbox box = new com.ironhub.ui.osrs.StoneCheckbox(theme, true);
+			Rectangle ink = paintedInk(box, theme.checkMark.getRGB(), theme.recess);
+			int size = box.getPreferredSize().height;
+			assertEquals("tick sits off-center vertically: " + ink + " in " + size,
+				(size - 1) / 2.0, ink.y + (ink.height - 1) / 2.0, 0.5);
+			assertEquals("tick sits off-center horizontally: " + ink + " in " + size,
+				(size - 1) / 2.0, ink.x + (ink.width - 1) / 2.0, 0.5);
+		}
+	}
+
+	/**
+	 * Same defect, same fix, third surface: bar text is placed from the small
+	 * font's measured ink, so it centers in the trough instead of riding high.
+	 */
+	@Test
+	public void progressBarTextCentersInTheTrough()
+	{
+		for (OsrsTheme theme : OsrsTheme.values())
+		{
+			com.ironhub.ui.osrs.StoneProgressBar bar =
+				new com.ironhub.ui.osrs.StoneProgressBar(theme, theme.recess, 0).labels("", "30.59%", "");
+			bar.setSize(120, bar.getPreferredSize().height);
+			BufferedImage image = new BufferedImage(120, bar.getHeight(), BufferedImage.TYPE_INT_RGB);
+			bar.paint(image.createGraphics());
+			Rectangle ink = bounds(image, OsrsSkin.BAR_TEXT.getRGB());
+			assertEquals("bar text off-center: " + ink + " in h=" + bar.getHeight(),
+				(bar.getHeight() - 1) / 2.0, ink.y + (ink.height - 1) / 2.0, 0.5);
+		}
+	}
+
+	/**
+	 * A checklist row's highlight must reach the engraved edge — at the
+	 * stat-box padding it left a gap down both sides (Luke, 2026-07-16) — and
+	 * the checkbox must sit centered in the row it highlights.
+	 */
+	@Test
+	public void checklistRowsFillTheFrameAndCenterTheirCheckbox()
+	{
+		for (OsrsTheme theme : OsrsTheme.values())
+		{
+			com.ironhub.ui.osrs.StoneChecklist list = new com.ironhub.ui.osrs.StoneChecklist(theme)
+				.row("Ardougne cloak 4", false)
+				.row("Graceful outfit", true);
+			list.setSize(213, list.getPreferredSize().height);
+			layoutOnce(list);
+
+			Component row = list.getComponent(0);
+			java.awt.Insets in = list.getInsets();
+			assertTrue("row leaves a side gap: inset=" + in.left, in.left <= 2);
+			assertEquals("row does not span the frame", list.getWidth() - in.left - in.right, row.getWidth());
+
+			com.ironhub.ui.osrs.StoneCheckbox box = find((Container) row, com.ironhub.ui.osrs.StoneCheckbox.class);
+			double boxCenter = box.getY() + (box.getHeight() - 1) / 2.0;
+			assertEquals("checkbox off-center in its row",
+				(row.getHeight() - 1) / 2.0, boxCenter, 0.5);
+		}
+	}
+
+	/** Ink bounds of one colour, painted over the given backdrop. */
+	private static Rectangle paintedInk(JComponent c, int rgb, java.awt.Color backdrop)
+	{
+		java.awt.Dimension pref = c.getPreferredSize();
+		c.setSize(pref);
+		BufferedImage image = new BufferedImage(pref.width, pref.height, BufferedImage.TYPE_INT_RGB);
+		Graphics2D g = image.createGraphics();
+		g.setColor(backdrop);
+		g.fillRect(0, 0, pref.width, pref.height);
+		c.paint(g);
+		return bounds(image, rgb);
+	}
+
+	private static Rectangle bounds(BufferedImage image, int rgb)
+	{
+		int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, maxX = -1, maxY = -1;
+		for (int y = 0; y < image.getHeight(); y++)
+		{
+			for (int x = 0; x < image.getWidth(); x++)
+			{
+				if ((image.getRGB(x, y) & 0xFFFFFF) == (rgb & 0xFFFFFF))
+				{
+					minX = Math.min(minX, x);
+					minY = Math.min(minY, y);
+					maxX = Math.max(maxX, x);
+					maxY = Math.max(maxY, y);
+				}
+			}
+		}
+		assertTrue("nothing painted in that colour", maxY >= 0);
+		return new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
 	}
 
 	private static double brightness(java.awt.Color c)

@@ -16,8 +16,9 @@ import javax.swing.JComponent;
  * lifts the fill and brightens the bevel, exactly as the pack's
  * tab_stone_middle_selected sprite does.
  *
- * <p>Geometry follows that sprite: a chunky 3px bevel (dark, then light) with
- * a 4px stepped corner, icon centered.
+ * <p>Geometry follows that sprite (33x36): a chunky bevel (dark, then light)
+ * with a 4px stepped corner, and the game's full-size tab icon centered — the
+ * 18px Character Summary icons read as toys at this weight (Luke, 2026-07-16).
  */
 public class StoneNavButton extends JComponent
 {
