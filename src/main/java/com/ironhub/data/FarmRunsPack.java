@@ -23,6 +23,9 @@ public class FarmRunsPack
 	 *  checks ownership. Categories not listed (herb/hops) are never
 	 *  sapling-culled. */
 	public Map<String, List<Integer>> saplings;
+	/** Seeds plantable per seed-planting category (item ids) — shortage
+	 *  warnings only; a seed shortage never culls a stop. */
+	public Map<String, List<Integer>> seeds;
 	/** Named curated routes: run name → ordered location ids (crosses
 	 *  categories in a fixed order the auto-grouping templates can't express). */
 	public Map<String, List<String>> routes;
@@ -50,6 +53,12 @@ public class FarmRunsPack
 	public List<Integer> saplings(String category)
 	{
 		return saplings == null ? null : saplings.get(category);
+	}
+
+	/** Seed item ids for a seed-planting category, or null. */
+	public List<Integer> seeds(String category)
+	{
+		return seeds == null ? null : seeds.get(category);
 	}
 
 	public Location location(String id)

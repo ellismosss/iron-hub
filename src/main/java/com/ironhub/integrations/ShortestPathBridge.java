@@ -22,22 +22,40 @@ public class ShortestPathBridge
 	private static final String NAMESPACE = "shortestpath";
 
 	private final EventBus eventBus;
+	private final net.runelite.client.callback.ClientThread clientThread; // null in unit tests
 
 	@Inject
-	public ShortestPathBridge(EventBus eventBus)
+	public ShortestPathBridge(EventBus eventBus, net.runelite.client.callback.ClientThread clientThread)
 	{
 		this.eventBus = eventBus;
+		this.clientThread = clientThread;
 	}
 
 	public void pathTo(WorldPoint target)
 	{
 		Map<String, Object> data = new HashMap<>();
 		data.put("target", target);
-		eventBus.post(new PluginMessage(NAMESPACE, "path", data));
+		post(new PluginMessage(NAMESPACE, "path", data));
 	}
 
 	public void clearPath()
 	{
-		eventBus.post(new PluginMessage(NAMESPACE, "clear"));
+		post(new PluginMessage(NAMESPACE, "clear"));
+	}
+
+	/**
+	 * Always deliver on the client thread: EventBus.post runs subscribers on
+	 * the CALLING thread, and Shortest Path's handler works against client
+	 * state — a post from the EDT (a sidebar Skip button) left its path
+	 * pointing at the previous stop until the next client-thread advance.
+	 */
+	private void post(PluginMessage message)
+	{
+		if (clientThread == null)
+		{
+			eventBus.post(message);
+			return;
+		}
+		clientThread.invoke(() -> eventBus.post(message));
 	}
 }

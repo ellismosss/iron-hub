@@ -1082,6 +1082,17 @@ class FarmingTab extends JPanel
 			startAll.setToolTipText("Nothing ticked is worth a trip right now");
 		}
 		runs.add(startAll);
+		// what the ticked runs are short on — compost, seeds, saplings — so a
+		// shortage is a warning you read, never a stop that silently vanishes
+		for (String warning : module.supplyWarnings())
+		{
+			runs.add(Box.createVerticalStrut(2));
+			JLabel line = hint("<div style='width:180px'>" + warning + "</div>",
+				UiTokens.STATUS_WARNING);
+			line.setToolTipText("The ticked runs need more than you own "
+				+ "(bank + inventory + worn)");
+			runs.add(line);
+		}
 		runs.add(Box.createVerticalStrut(UiTokens.PAD));
 
 		// picker order = the order "start all" walks (ready first, then the pack's)

@@ -1426,6 +1426,87 @@ public class FarmingRunModuleTest
 		module.shutDown();
 	}
 
+	/**
+	 * Every wording the game uses for "this patch is composted" counts —
+	 * the Fertile Soil spell says it differently from a bucket, and missing
+	 * it left a planted, spell-composted fruit tree stuck as the current
+	 * stop (Luke at Lletya). Matches the vendored CompostTracker's patterns.
+	 */
+	@Test
+	public void everyCompostWordingAdvancesTheStop()
+	{
+		assertTrue(FarmingRunModule.compostApplied(
+			"You treat the herb patch with ultracompost."));
+		assertTrue(FarmingRunModule.compostApplied(
+			"You treat the fruit tree patch with supercompost."));
+		assertTrue("the Fertile Soil spell's wording",
+			FarmingRunModule.compostApplied(
+				"The fruit tree patch has been treated with ultracompost"));
+		assertTrue("already treated still means treated",
+			FarmingRunModule.compostApplied(
+				"This patch has already been treated with supercompost - the spell "
+					+ "can't make it any more fertile."));
+		assertFalse(FarmingRunModule.compostApplied(
+			"You fill the bucket with compost from the bin."));
+	}
+
+	/**
+	 * The picker warns what the ticked runs are short on — compost per patch
+	 * stop, seeds/saplings per category — instead of stops silently
+	 * vanishing. A filled bottomless bucket silences the compost check (its
+	 * charges aren't readable; inventing a shortage would be worse).
+	 */
+	@Test
+	public void supplyWarningsCoverCompostSeedsAndSaplings()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+
+		// only the Herb run ticked: a fresh account reaches four herb patches
+		for (String name : module.pickerOrder())
+		{
+			state.setFarmRunSelected(name, name.equals("Herb run"));
+		}
+		List<String> warnings = module.supplyWarnings();
+		assertTrue(warnings.toString(),
+			warnings.contains("Ultracompost 0/4 — a Supercompost run makes more"));
+		assertTrue(warnings.toString(), warnings.contains("Herb seeds 0/4"));
+
+		// two ranarr seeds and two ultracompost: still short, counted honestly
+		StateFixture.bank(state, Map.of(
+			net.runelite.api.gameval.ItemID.RANARR_SEED, 2,
+			net.runelite.api.gameval.ItemID.BUCKET_ULTRACOMPOST, 2));
+		warnings = module.supplyWarnings();
+		assertTrue(warnings.toString(), warnings.contains("Herb seeds 2/4"));
+		assertTrue(warnings.toString(),
+			warnings.contains("Ultracompost 2/4 — a Supercompost run makes more"));
+
+		// fully stocked: silence
+		StateFixture.bank(state, Map.of(
+			net.runelite.api.gameval.ItemID.RANARR_SEED, 4,
+			net.runelite.api.gameval.ItemID.BUCKET_ULTRACOMPOST, 4));
+		assertTrue(module.supplyWarnings().isEmpty());
+
+		// a filled bottomless bucket covers compost, whatever its charges
+		StateFixture.bank(state, Map.of(
+			net.runelite.api.gameval.ItemID.RANARR_SEED, 4,
+			net.runelite.api.gameval.ItemID.BOTTOMLESS_COMPOST_BUCKET_FILLED, 1));
+		assertTrue(module.supplyWarnings().isEmpty());
+
+		// saplings warn per category too
+		for (String name : module.pickerOrder())
+		{
+			state.setFarmRunSelected(name, name.equals("Tree run"));
+		}
+		StateFixture.bank(state, Map.of(5370, 1,
+			net.runelite.api.gameval.ItemID.BOTTOMLESS_COMPOST_BUCKET_FILLED, 1));
+		warnings = module.supplyWarnings();
+		assertTrue(warnings.toString(),
+			warnings.stream().anyMatch(w -> w.startsWith("Tree saplings 1/")));
+		module.shutDown();
+	}
+
 	@Test
 	public void readinessNotifiesOncePerTransitionAndNeverOnLogin()
 	{

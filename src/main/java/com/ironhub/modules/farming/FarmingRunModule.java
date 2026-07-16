@@ -178,10 +178,15 @@ public class FarmingRunModule implements IronHubModule
 	static final Set<Integer> GRIMY_HERBS = Set.of(
 		199, 201, 203, 205, 207, 209, 211, 213, 215, 217, 219, 2485, 3049, 3051, 30094);
 
-	/** "You treat the herb patch with ultracompost." — the vendored
-	 *  CompostTracker's pattern; a compost applied to any patch. */
-	private static final java.util.regex.Pattern COMPOST_APPLIED = java.util.regex.Pattern.compile(
-		"You treat the .+ with (?:ultra|super|)compost\\.");
+	/** The vendored CompostTracker's wordings for "this patch is composted":
+	 *  a bucket used directly, the Fertile Soil spell (which says it
+	 *  differently — missing it stalled Luke's Lletya fruit tree forever),
+	 *  and the already-treated bounce message (the work is done either way). */
+	private static final java.util.List<java.util.regex.Pattern> COMPOST_APPLIED = java.util.List.of(
+		java.util.regex.Pattern.compile("You treat the .+ with (?:ultra|super|)compost\\."),
+		java.util.regex.Pattern.compile("^The .+ has been treated with (?:ultra|super|)compost"),
+		java.util.regex.Pattern.compile(
+			"This .+ has already been (?:treated|fertilised) with (?:ultra|super|)compost"));
 
 	// tracking refresh (client thread)
 	private int refreshTick;
@@ -421,10 +426,24 @@ public class FarmingRunModule implements IronHubModule
 		{
 			return;
 		}
-		if (COMPOST_APPLIED.matcher(event.getMessage()).find())
+		if (compostApplied(event.getMessage()))
 		{
 			onCompostApplied(playerRegion());
 		}
+	}
+
+	/** True when a chat line means "this patch is now composted" — any of
+	 *  the vendored CompostTracker's wordings. Static for tests. */
+	static boolean compostApplied(String message)
+	{
+		for (java.util.regex.Pattern pattern : COMPOST_APPLIED)
+		{
+			if (pattern.matcher(message).find())
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/** -1 when the player isn't known (headless tests). */
@@ -1115,6 +1134,85 @@ public class FarmingRunModule implements IronHubModule
 	void startAllRuns()
 	{
 		startRun(ALL_RUNS, selectedRunLocations());
+	}
+
+	/**
+	 * Supply shortfalls for the proposed "Start all runs" sequence, counted
+	 * over the stops it would actually visit: one compost per patch stop
+	 * (a FILLED bottomless bucket silences the compost check — its charge
+	 * count isn't readable, and inventing a shortage is worse than silence),
+	 * then seeds/saplings per category. Empty = stocked, or nothing ticked.
+	 */
+	List<String> supplyWarnings()
+	{
+		List<FarmRunsPack.Location> stops = new java.util.ArrayList<>();
+		for (FarmRunsPack.Location location : selectedRunLocations())
+		{
+			// the stops worth visiting — pre-sapling-cull, because a sapling
+			// shortage is exactly what the warning is for
+			if (!isUnlocked(location) || confirmedGrowing(location))
+			{
+				continue;
+			}
+			if ("contract".equals(location.category) && tracking != null
+				&& tracking.contract().hasContract() && !tracking.contractReady())
+			{
+				continue;
+			}
+			stops.add(location);
+		}
+		List<String> warnings = new java.util.ArrayList<>();
+		int compostable = 0;
+		java.util.LinkedHashMap<String, Integer> byCategory = new java.util.LinkedHashMap<>();
+		for (FarmRunsPack.Location location : stops)
+		{
+			if (categoryTab(location.category) != null && !"hespori".equals(location.category))
+			{
+				compostable++; // hespori takes no compost; birdhouse/compost/contract aren't patches
+			}
+			byCategory.merge(location.category, 1, Integer::sum);
+		}
+		if (compostable > 0
+			&& state.ownedCount(net.runelite.api.gameval.ItemID.BOTTOMLESS_COMPOST_BUCKET_FILLED) == 0)
+		{
+			int ultra = state.ownedCount(net.runelite.api.gameval.ItemID.BUCKET_ULTRACOMPOST);
+			if (ultra < compostable)
+			{
+				warnings.add("Ultracompost " + ultra + "/" + compostable
+					+ " — a Supercompost run makes more");
+			}
+		}
+		for (java.util.Map.Entry<String, Integer> entry : byCategory.entrySet())
+		{
+			List<Integer> saplingIds = pack.saplings(entry.getKey());
+			List<Integer> plantables = saplingIds != null ? saplingIds : pack.seeds(entry.getKey());
+			if (plantables == null)
+			{
+				continue; // nothing plantable here (birdhouse, compost bins, contract)
+			}
+			int owned = ownedSaplings(plantables);
+			if (owned < entry.getValue())
+			{
+				warnings.add(categoryLabel(entry.getKey())
+					+ (saplingIds != null ? " saplings " : " seeds ")
+					+ owned + "/" + entry.getValue());
+			}
+		}
+		return warnings;
+	}
+
+	/** "Fruit tree" from "fruit" — the warning-line category name. */
+	static String categoryLabel(String category)
+	{
+		switch (category)
+		{
+			case "fruit":
+				return "Fruit tree";
+			case "herb":
+				return "Herb";
+			default:
+				return Character.toUpperCase(category.charAt(0)) + category.substring(1);
+		}
 	}
 
 	/** True while the combined all-runs sequence is active — it has no

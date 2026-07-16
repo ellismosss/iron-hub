@@ -175,6 +175,28 @@ SAPLINGS = {
     "hardwood": ["PLANTPOT_TEAK_SAPLING", "PLANTPOT_MAHOGANY_SAPLING"],
 }
 
+# Seeds plantable in each seed-planting category (the ones SAPLINGS doesn't
+# cover) — the sidebar warns when the ticked runs have more stops than the
+# player has seeds; unlike saplings these never CULL a stop (any seed of the
+# category will do, and the player may want the trip anyway).
+SEEDS = {
+    "herb": ["GUAM_SEED", "MARRENTILL_SEED", "TARROMIN_SEED", "HARRALANDER_SEED",
+             "RANARR_SEED", "TOADFLAX_SEED", "IRIT_SEED", "AVANTOE_SEED",
+             "KWUARM_SEED", "SNAPDRAGON_SEED", "CADANTINE_SEED", "LANTADYME_SEED",
+             "DWARF_WEED_SEED", "TORSTOL_SEED", "HUASCA_SEED"],
+    "allotment": ["POTATO_SEED", "ONION_SEED", "CABBAGE_SEED", "TOMATO_SEED",
+                  "SWEETCORN_SEED", "STRAWBERRY_SEED", "WATERMELON_SEED",
+                  "SNAPE_GRASS_SEED"],
+    "flower": ["MARIGOLD_SEED", "ROSEMARY_SEED", "NASTURTIUM_SEED", "WOAD_SEED",
+               "LIMPWURT_SEED", "WHITE_LILY_SEED"],
+    "hops": ["BARLEY_SEED", "HAMMERSTONE_HOP_SEED", "ASGARNIAN_HOP_SEED",
+             "JUTE_SEED", "YANILLIAN_HOP_SEED", "KRANDORIAN_HOP_SEED",
+             "WILDBLOOD_HOP_SEED"],
+    "bush": ["REDBERRY_BUSH_SEED", "CADAVABERRY_BUSH_SEED", "DWELLBERRY_BUSH_SEED",
+             "JANGERBERRY_BUSH_SEED", "WHITEBERRY_BUSH_SEED", "POISONIVY_BUSH_SEED"],
+    "hespori": ["HESPORI_SEED"],
+}
+
 # Curated additions — calquat / celastrus / specific Varlamore patches the
 # Combo tree run needs, which Easy Farming's tables don't carry. Tiles are
 # region-accurate: each sits in the vendored FarmingWorld's PRIMARY region for
@@ -641,12 +663,23 @@ def main():
             ids.append(item_ids[n])
         saplings[category] = ids
 
+    seeds = {}
+    for category, names in SEEDS.items():
+        ids = []
+        for n in names:
+            if n not in item_ids:
+                raise SystemExit(f"unknown gameval ItemID.{n} in SEEDS[{category}]")
+            ids.append(item_ids[n])
+        seeds[category] = ids
+    assert not set(seeds) & set(saplings), "a category plants seeds or saplings, not both"
+
     pack = {
         "source": f"github.com/Speaax/Farming-Helper@{COMMIT[:7]} (BSD-2-Clause) "
                   "+ curated calquat/celastrus/Varlamore patches and routes",
         "generated": datetime.date.today().isoformat(),
         "locations": locations,
         "saplings": saplings,
+        "seeds": seeds,
         "routes": ROUTES,
         "herbs": herb_potentials(item_ids),
     }

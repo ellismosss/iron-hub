@@ -90,6 +90,25 @@ public class FarmRunsPackTest
 		org.junit.Assert.assertEquals("Prayer potion", pack.herb(207).potion);
 	}
 
+	/** Seed lists back the shortage warnings: every seed-planting category
+	 *  has one, and no category claims both seeds and saplings. */
+	@Test
+	public void seedListsCoverTheSeedPlantingCategories()
+	{
+		FarmRunsPack pack = new DataPack(new Gson()).load("farm-runs", FarmRunsPack.class);
+		for (String category : new String[]{"herb", "allotment", "flower", "hops", "bush", "hespori"})
+		{
+			org.junit.Assert.assertNotNull("no seeds for " + category, pack.seeds(category));
+		}
+		assertTrue(pack.seeds("herb").contains(net.runelite.api.gameval.ItemID.RANARR_SEED));
+		assertTrue(pack.seeds("hespori").contains(net.runelite.api.gameval.ItemID.HESPORI_SEED));
+		for (String category : pack.seeds.keySet())
+		{
+			org.junit.Assert.assertNull(category + " plants seeds or saplings, not both",
+				pack.saplings(category));
+		}
+	}
+
 	@Test
 	public void curatedRoutesReferenceRealLocations()
 	{
