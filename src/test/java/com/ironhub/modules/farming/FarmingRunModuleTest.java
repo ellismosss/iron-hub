@@ -552,9 +552,13 @@ public class FarmingRunModuleTest
 	}
 
 	/**
-	 * Ticking a run that covers a smaller one (All trees over Tree run) greys
-	 * the smaller run out of the combined sequence — derived, not persisted,
-	 * so unticking the big run hands the small one back its own choice.
+	 * Ticking a run that FULLY covers a smaller one (All trees over Tree run)
+	 * greys the smaller run out of the combined sequence — derived, not
+	 * persisted, so unticking the big run hands the small one back its own
+	 * choice. The Herb run is deliberately NOT superseded by the Allotment/
+	 * flower/herb run (which skips Troll Stronghold and Weiss): Luke wants
+	 * every herb stop in the route whenever the Herb run is checked, and
+	 * dedup already stops the shared stops doubling.
 	 */
 	@Test
 	public void supersededRunsDropOutOfTheCombinedSequence()
@@ -563,42 +567,151 @@ public class FarmingRunModuleTest
 		StateFixture.profile(state, 5L);
 		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
 
-		// defaults: everything ticked, so every superseder is live
+		// defaults: everything ticked, so both containment superseders are live
 		assertEquals("All trees run", module.supersededBy("Tree run"));
 		assertEquals("All trees run", module.supersededBy("Fruit tree run"));
-		assertEquals("Allotment, flower & herb run", module.supersededBy("Herb run"));
 		assertEquals("Hop & bush run", module.supersededBy("Hops run"));
 		assertNull(module.supersededBy("All trees run"));
 		assertNull(module.supersededBy("Hardwood run"));
+		assertNull("herb stops must never be dropped by the AFH run",
+			module.supersededBy("Herb run"));
 
-		// the superseded Herb run contributes nothing — even its stops the
-		// bigger run doesn't cover (Troll Stronghold has no allotment)
+		// with both herb-ish runs ticked, EVERY herb stop is in the sequence,
+		// each once (dedup), including the two the AFH route doesn't visit
 		List<String> ids = module.selectedRunLocations().stream()
 			.map(l -> l.id).collect(java.util.stream.Collectors.toList());
-		assertFalse(ids.contains("herb/troll-stronghold"));
-		assertTrue(ids.contains("herb/falador")); // via the allotment run
+		assertTrue(ids.contains("herb/troll-stronghold"));
+		assertTrue(ids.contains("herb/weiss"));
+		assertEquals(ids.size(), new java.util.HashSet<>(ids).size());
 
-		// untick the big run: the Herb run is its own again, stops restored
-		state.setFarmRunSelected("Allotment, flower & herb run", false);
-		assertNull(module.supersededBy("Herb run"));
+		// a superseded run's stops genuinely drop while its superseder is on
+		state.setFarmRunSelected("All trees run", true);
 		assertTrue(module.selectedRunLocations().stream()
-			.anyMatch(l -> l.id.equals("herb/troll-stronghold")));
+			.anyMatch(l -> l.id.equals("tree/falador"))); // via All trees itself
 
-		// every superseded name is a real run (a rename would silently
-		// disconnect the pair)
-		for (List<String> superseded : FarmingRunModule.SUPERSEDES.values())
+		// every SUPERSEDES pair is genuine stop-set containment — the reason
+		// the Herb run must NOT be in the map is exactly that it isn't
+		for (java.util.Map.Entry<String, List<String>> entry : FarmingRunModule.SUPERSEDES.entrySet())
 		{
-			for (String name : superseded)
+			java.util.Set<String> big = module.runLocations(entry.getKey()).stream()
+				.map(l -> l.id).collect(java.util.stream.Collectors.toSet());
+			for (String name : entry.getValue())
 			{
-				assertFalse("SUPERSEDES names a run that doesn't exist: " + name,
-					module.runLocations(name).isEmpty());
+				List<FarmRunsPack.Location> small = module.runLocations(name);
+				assertFalse("SUPERSEDES names a run that doesn't exist: " + name, small.isEmpty());
+				for (FarmRunsPack.Location location : small)
+				{
+					assertTrue(entry.getKey() + " does not cover " + location.id
+						+ " — it must not supersede " + name, big.contains(location.id));
+				}
 			}
 		}
-		for (String superseder : FarmingRunModule.SUPERSEDES.keySet())
+		module.shutDown();
+	}
+
+	/**
+	 * A run that becomes ready floats to the top of the picker AND re-ticks
+	 * itself into "Start all runs" (an untick is "not this time", not
+	 * "never"). Both are transition-edged: the first refresh seeds silently,
+	 * so a relog neither reshuffles a deliberate untick nor replays it.
+	 */
+	@Test
+	public void readyRunsFloatToTheTopAndReTickThemselves()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		ConfigManager configManager = TimetrackingFixture.configManager();
+
+		// the player unticked the Herb run and shoved it to the bottom
+		state.setFarmRunSelected("Herb run", false);
+		FarmingRunModule seededModule = module(state, configManager, null);
+		List<String> order = new java.util.ArrayList<>(seededModule.pickerOrder());
+		order.remove("Herb run");
+		order.add("Herb run");
+		state.setFarmRunOrder(order);
+
+		// a herb patch is ALREADY ready before the first refresh — login must
+		// not re-tick the run the player turned off
+		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
+			herbValue(Produce.RANARR, CropState.HARVESTABLE, 0), Instant.now().getEpochSecond());
+		seededModule.refreshTracking();
+		assertFalse(state.isFarmRunSelected("Herb run"));
+
+		// harvested + replanted, then ready again: the transition re-ticks it
+		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
+			herbValue(Produce.RANARR, CropState.GROWING, 0), Instant.now().getEpochSecond());
+		seededModule.refreshTracking();
+		assertFalse(state.isFarmRunSelected("Herb run"));
+		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
+			herbValue(Produce.RANARR, CropState.HARVESTABLE, 0), Instant.now().getEpochSecond());
+		seededModule.refreshTracking();
+		assertTrue("becoming ready re-ticks the run", state.isFarmRunSelected("Herb run"));
+
+		// and ready lifts it over the not-ready runs, bottom or not
+		assertTrue(seededModule.pickerOrder().indexOf("Herb run")
+			< seededModule.pickerOrder().indexOf("All trees run"));
+		seededModule.shutDown();
+	}
+
+	/**
+	 * The farming contract is a startable one-stop run at the Guild: kept
+	 * when there is no contract (go get one from Jane) or the contract wants
+	 * attention, culled while its crop is growing. Manual advance only —
+	 * categoryTab stays null so it is never crop/sapling-culled or
+	 * auto-advanced as a patch.
+	 */
+	@Test
+	public void contractRunIsRoutableAndCullsWhileGrowing()
+	{
+		assertNull(FarmingRunModule.categoryTab("contract"));
+
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		StateFixture.stat(state, net.runelite.api.Skill.FARMING, 65, 500_000);
+		ConfigManager configManager = TimetrackingFixture.configManager();
+		FarmingRunModule module = module(state, configManager, null);
+
+		assertEquals(1, module.runLocations("Farming contract").size());
+		assertTrue(module.runIcon("Farming contract") > 0);
+
+		// no contract yet: not "Ready", but the stop survives — the run IS
+		// how you go and get one
+		assertFalse(module.runReady("Farming contract"));
+		module.startTemplate("Farming contract");
+		assertEquals(1, module.stops().size());
+		assertEquals("contract/farming-guild", module.nextStop().location.id);
+		module.endRun(false);
+
+		// contract assigned and its crop growing at the guild: nothing to do
+		// there — the stop culls and the run reads not-ready
+		int guildHerbVarbit = 0;
+		com.ironhub.modules.farming.rl.FarmingWorld world =
+			new com.ironhub.modules.farming.rl.FarmingWorld();
+		for (com.ironhub.modules.farming.rl.FarmingPatch patch
+			: world.getFarmingGuildRegion().getPatches())
 		{
-			assertFalse("SUPERSEDES keys a run that doesn't exist: " + superseder,
-				module.runLocations(superseder).isEmpty());
+			if (patch.getImplementation() == PatchImplementation.HERB)
+			{
+				guildHerbVarbit = patch.getVarbit();
+			}
 		}
+		assertTrue("no herb patch in the vendored guild region", guildHerbVarbit > 0);
+		TimetrackingFixture.contract(configManager, Produce.RANARR);
+		TimetrackingFixture.patch(configManager, 4922, guildHerbVarbit,
+			herbValue(Produce.RANARR, CropState.GROWING, 0), Instant.now().getEpochSecond());
+		module.refreshTracking();
+		assertFalse(module.runReady("Farming contract"));
+		module.startTemplate("Farming contract");
+		assertFalse("a growing contract is not a stop", module.running());
+
+		// the crop comes ready: the contract wants turning in
+		TimetrackingFixture.patch(configManager, 4922, guildHerbVarbit,
+			herbValue(Produce.RANARR, CropState.HARVESTABLE, 0), Instant.now().getEpochSecond());
+		module.refreshTracking();
+		assertTrue(module.runReady("Farming contract"));
+		module.startTemplate("Farming contract");
+		assertEquals(1, module.stops().size());
+		module.endRun(false);
 		module.shutDown();
 	}
 

@@ -81,6 +81,7 @@ public class FarmingRunModule implements IronHubModule
 		java.util.Map.entry("Allotment, flower & herb run", Tab.ALLOTMENT),
 		java.util.Map.entry("Tree run", Tab.TREE),
 		java.util.Map.entry("Fruit tree run", Tab.FRUIT_TREE),
+		java.util.Map.entry("Farming contract", Tab.SPECIAL),
 		java.util.Map.entry("Hops run", Tab.HOPS));
 
 	/**
@@ -121,6 +122,8 @@ public class FarmingRunModule implements IronHubModule
 				return Tab.BIRD_HOUSE;
 			case "compost":
 				return Tab.BIG_COMPOST;
+			case "contract":
+				return Tab.SPECIAL;
 			default:
 				return null;
 		}
@@ -181,6 +184,8 @@ public class FarmingRunModule implements IronHubModule
 	// notification bookkeeping (client thread): category -> already notified
 	private final Set<String> notifiedReady = ConcurrentHashMap.newKeySet();
 	private boolean firstRefresh = true;
+	// runs currently ready — a not-ready -> ready transition re-ticks the run
+	private final Set<String> runReadySeen = ConcurrentHashMap.newKeySet();
 
 	@Inject
 	public FarmingRunModule(AccountState state, Client client, EventBus eventBus,
@@ -432,6 +437,7 @@ public class FarmingRunModule implements IronHubModule
 		}
 		tracking.refresh();
 		sharedReadyPatches = tracking.readyPatchCount();
+		reTickReadyRuns();
 		notifyTransitions();
 		checkAdvance(); // the current stop's patch may now read as planted
 
@@ -442,6 +448,33 @@ public class FarmingRunModule implements IronHubModule
 			if (tab != null)
 			{
 				SwingUtilities.invokeLater(tab::rebuild);
+			}
+		}
+	}
+
+	/**
+	 * A run that BECOMES ready re-ticks itself into "Start all runs" — an
+	 * untick means "not this time", not "never again" (Luke: ready runs come
+	 * back checked). Transition-edged like the notifications: the first
+	 * refresh seeds silently, so a run you unticked while it was ready stays
+	 * unticked across a relog; and an untick while ready sticks until the
+	 * run cycles. Client thread.
+	 */
+	private void reTickReadyRuns()
+	{
+		for (String name : pickerOrder())
+		{
+			boolean ready = runReady(name);
+			if (ready && runReadySeen.add(name))
+			{
+				if (!firstRefresh && !state.isFarmRunSelected(name))
+				{
+					state.setFarmRunSelected(name, true);
+				}
+			}
+			else if (!ready)
+			{
+				runReadySeen.remove(name);
 			}
 		}
 	}
@@ -636,6 +669,10 @@ public class FarmingRunModule implements IronHubModule
 		{
 			resolved.add(new Stop(location, pickTeleport(location)));
 		}
+		if (resolved.isEmpty())
+		{
+			return; // everything culled — an empty run has nothing to guide
+		}
 		stops = List.copyOf(resolved);
 		runName = name;
 		visited.clear();
@@ -738,6 +775,7 @@ public class FarmingRunModule implements IronHubModule
 			case "flower": type = "flower"; break;
 			case "compost": type = "compost bin"; break;
 			case "birdhouse": type = "bird house"; break;
+			case "contract": type = "contract"; break;
 			default: type = "herb";
 		}
 		return stop.location.name + " · " + type;
@@ -842,13 +880,15 @@ public class FarmingRunModule implements IronHubModule
 	}
 
 	/**
-	 * Every run in the picker's order — the player's own order (up/down
-	 * arrows, persisted), reconciled against what exists: stored names that
-	 * are gone drop out, new runs append in default order (pack routes,
-	 * templates, then custom runs). No auto-sort: an order that reshuffles
-	 * itself makes the arrows a lie, so "Ready" is a label, not a position.
-	 * The list the tab draws and the order "start all" walks are the same
-	 * list, so they cannot drift.
+	 * Every run in the picker's order: ready runs first, then the player's
+	 * own order within each half (up/down arrows, persisted as farmRunOrder;
+	 * stored names that are gone drop out, new runs append in default order —
+	 * pack routes, templates, then custom runs). The ready-first lift is a
+	 * stable partition over the player's order, so the arrows still decide
+	 * everything the readiness split doesn't (and an arrow press across the
+	 * ready boundary is a no-op — the sort owns that line). The list the tab
+	 * draws and the order "start all" walks are the same list, so they
+	 * cannot drift.
 	 */
 	List<String> pickerOrder()
 	{
@@ -863,6 +903,7 @@ public class FarmingRunModule implements IronHubModule
 			}
 		}
 		out.addAll(names);
+		out.sort(java.util.Comparator.comparing(n -> !runReady(n))); // stable
 		return out;
 	}
 
@@ -889,15 +930,15 @@ public class FarmingRunModule implements IronHubModule
 	}
 
 	/**
-	 * Runs whose selection makes a smaller run redundant — stated (like
-	 * RUN_ICONS), not computed from stop containment, because the wiki's
-	 * Allotment/flower/herb route deliberately omits the allotment-less herb
-	 * sites (Troll Stronghold, Weiss) yet still stands in for the Herb run
-	 * per Luke's direction.
+	 * Runs whose selection makes a smaller run fully redundant — stated
+	 * (like RUN_ICONS) and only for genuine stop-set containment. The
+	 * Allotment/flower/herb run is deliberately NOT here: the wiki route
+	 * omits the allotment-less herb sites (Troll Stronghold, Weiss), and
+	 * Luke wants every herb stop in the route whenever the Herb run is
+	 * checked — dedup already stops any doubling, so both stay ticked.
 	 */
 	static final java.util.Map<String, List<String>> SUPERSEDES = java.util.Map.of(
 		"All trees run", List.of("Tree run", "Fruit tree run"),
-		"Allotment, flower & herb run", List.of("Herb run"),
 		"Hop & bush run", List.of("Hops run"));
 
 	/**
@@ -1081,6 +1122,12 @@ public class FarmingRunModule implements IronHubModule
 			if (confirmedGrowing(location))
 			{
 				continue; // still maturing from a previous run — nothing to do here
+			}
+			if ("contract".equals(location.category) && tracking != null
+				&& tracking.contract().hasContract() && !tracking.contractReady())
+			{
+				continue; // contract crop still growing — nothing to do at Jane's
+				// (no contract at all = keep the stop: go and get one)
 			}
 			List<Integer> saplings = pack.saplings(location.category);
 			if (saplings != null)
@@ -1596,6 +1643,7 @@ public class FarmingRunModule implements IronHubModule
 		}
 		java.util.Set<Tab> categories = new java.util.HashSet<>();
 		boolean birdhouse = false;
+		boolean contract = false;
 		for (FarmRunsPack.Location location : runLocations(name))
 		{
 			if (!isUnlocked(location))
@@ -1611,6 +1659,10 @@ public class FarmingRunModule implements IronHubModule
 			{
 				birdhouse = true;
 			}
+			else if ("contract".equals(location.category))
+			{
+				contract = true;
+			}
 		}
 		for (Tab tab : categories)
 		{
@@ -1622,9 +1674,12 @@ public class FarmingRunModule implements IronHubModule
 		if (birdhouse)
 		{
 			SummaryState summary = tracking.birdHouseSummary();
-			return summary == SummaryState.COMPLETED || summary == SummaryState.EMPTY;
+			if (summary == SummaryState.COMPLETED || summary == SummaryState.EMPTY)
+			{
+				return true;
+			}
 		}
-		return false;
+		return contract && tracking.contractReady();
 	}
 
 	ItemManager itemManager()

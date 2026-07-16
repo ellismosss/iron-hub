@@ -505,60 +505,6 @@ class FarmingTab extends JPanel
 		return "Ready";
 	}
 
-	/**
-	 * Bird houses and the farming contract, in the runs list: things you go and
-	 * do, on their own schedule, that no route can start for you. Silent when
-	 * the account has never had one.
-	 */
-	private void buildBirdHouseAndContractRows()
-	{
-		FarmTrackingService tracking = module.tracking();
-		if (tracking == null)
-		{
-			return;
-		}
-		// No Bird houses row: the Birdhouse run above already carries their
-		// readiness (runReady reads the bird-house summary for it).
-		if (tracking.contract().hasContract())
-		{
-			boolean ready = tracking.contractReady();
-			runs.add(statusRow("Contract · " + tracking.contract().getContractName(),
-				Tab.SPECIAL.getItemID(), ready ? "Ready" : "Growing", ready));
-			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		}
-	}
-
-	/** A run-list row you cannot start: icon, name, and where it stands. No
-	 *  checkbox — there is nothing to include in a sequence. */
-	private JPanel statusRow(String name, int itemId, String value, boolean ready)
-	{
-		JPanel row = new JPanel();
-		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-		row.setBackground(UiTokens.CARD_BG);
-		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-			new EmptyBorder(0, UiTokens.ROW_GAP, 0, UiTokens.ROW_GAP)));
-		row.setPreferredSize(new Dimension(0, UiTokens.ROW_HEIGHT));
-		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT));
-		row.add(Box.createHorizontalStrut(ARROWS_WIDTH + CHECK_WIDTH)); // line up with the run names
-		row.add(spriteLabel(itemId));
-		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		JLabel label = new JLabel(name);
-		label.setForeground(ready
-			? net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR
-			: UiTokens.TEXT_PRIMARY);
-		label.setFont(label.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-		label.setMinimumSize(new Dimension(0, 0));
-		row.add(label);
-		row.add(Box.createHorizontalGlue());
-		JLabel status = new JLabel(value);
-		status.setForeground(ready
-			? net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR : UiTokens.TEXT_MUTED);
-		status.setFont(status.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-		row.add(status);
-		return row;
-	}
-
 	/** A run's sprite, sized to sit inside a row. Blank (but still spaced) when
 	 *  we have no icon for it, so the names stay aligned. */
 	private JComponent runIcon(String name)
@@ -1033,7 +979,6 @@ class FarmingTab extends JPanel
 			}, custom.contains(name) ? () -> state.deleteFarmRun(name) : null));
 			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
-		buildBirdHouseAndContractRows();
 
 		JLabel newRun = new JLabel(builderOpen ? "Cancel new run" : "New custom run…");
 		newRun.setForeground(UiTokens.ACCENT);

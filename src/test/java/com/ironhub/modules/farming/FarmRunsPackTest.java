@@ -57,9 +57,10 @@ public class FarmRunsPackTest
 		{
 			assertTrue("duplicate id " + location.id, ids.add(location.id));
 			assertTrue(location.id + " has no teleports", !location.teleports.isEmpty());
-			if (location.category.equals("birdhouse"))
+			if (location.category.equals("birdhouse") || location.category.equals("contract"))
 			{
-				continue; // bird houses are hunter sites, not farming patches
+				continue; // bird houses are hunter sites; the contract stop is
+				// Guildmaster Jane's guild, not one fixed patch type
 			}
 			PatchImplementation wanted = CATEGORY_IMPLEMENTATIONS.get(location.category);
 			assertNotNull(location.id, wanted);

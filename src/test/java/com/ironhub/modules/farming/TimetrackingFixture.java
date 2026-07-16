@@ -72,6 +72,15 @@ public final class TimetrackingFixture
 			varpValue + ":" + unixTime);
 	}
 
+	/** Seed the farming contract exactly as the core plugin stores it — the
+	 *  assigned Produce's item id under the "contract" RSProfile key. */
+	public static void contract(ConfigManager configManager,
+		com.ironhub.modules.farming.rl.Produce produce)
+	{
+		configManager.setConfiguration(TimeTrackingConfig.CONFIG_GROUP,
+			PROFILE + ".contract", String.valueOf(produce.getItemID()));
+	}
+
 	public static FarmTrackingService service(ConfigManager configManager)
 	{
 		return new FarmTrackingService(null, null, configManager,

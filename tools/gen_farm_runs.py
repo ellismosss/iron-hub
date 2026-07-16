@@ -265,6 +265,13 @@ CURATED += [
      "point": (3676, 3819, 0), "reqs": BIRDHOUSE_REQS, "teleports": BIRDHOUSE_TELEPORTS},
     {"id": "birdhouse/mushroom-meadow-s", "category": "birdhouse", "name": "Mushroom Meadow (S)",
      "point": (3762, 3844, 0), "reqs": BIRDHOUSE_REQS, "teleports": BIRDHOUSE_TELEPORTS},
+    # The farming contract, as a routable one-stop run (Luke, 2026-07-16).
+    # Guildmaster Jane stands by the western allotments; the contract crop can
+    # sit at any guild patch, so the guild itself is the routing target (same
+    # tile as the guild herb/allotment stops, teleports reused from there).
+    # 45 Farming is the guild door and the lowest contract tier.
+    {"id": "contract/farming-guild", "category": "contract", "name": "Farming Guild",
+     "point": (1238, 3726, 0), "reqs": ["skill:Farming:45"], "copy": "herb/farming-guild"},
 ]
 
 # Allotment/flower/herb run companions: each herb area also carries allotment
@@ -387,6 +394,11 @@ ROUTES = {
         "fruit/farming-guild", "fruit/lletya", "fruit/brimhaven",
         "calquat/tai-bwo-wannai", "calquat/kastori", "fruit/kastori",
         "calquat/summer-shore",
+    ],
+    # The farming contract as its own startable run (one stop, the guild) —
+    # last in the default picker order, where its status row used to sit.
+    "Farming contract": [
+        "contract/farming-guild",
     ],
 }
 
