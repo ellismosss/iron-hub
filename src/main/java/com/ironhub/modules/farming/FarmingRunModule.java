@@ -1264,42 +1264,68 @@ public class FarmingRunModule implements IronHubModule
 	{
 		final String name;                  // region (+ sub-name)
 		final int produceItemId;            // sprite (weeds id when unknown)
+		final boolean weeds;                // produce is weeds (no coloured bar when grown)
 		final com.ironhub.modules.farming.rl.CropState cropState; // null = unknown
 		final long doneEstimate;            // epoch seconds
 		final int stage;
 		final int stages;
+		final Tab sourceTab;                // original patch tab (for sub-labels in merged tiles)
 
-		OverviewPatch(String name, int produceItemId,
-			com.ironhub.modules.farming.rl.CropState cropState, long doneEstimate, int stage, int stages)
+		OverviewPatch(String name, int produceItemId, boolean weeds,
+			com.ironhub.modules.farming.rl.CropState cropState, long doneEstimate,
+			int stage, int stages, Tab sourceTab)
 		{
 			this.name = name;
 			this.produceItemId = produceItemId;
+			this.weeds = weeds;
 			this.cropState = cropState;
 			this.doneEstimate = doneEstimate;
 			this.stage = stage;
 			this.stages = stages;
+			this.sourceTab = sourceTab;
+		}
+	}
+
+	/** The overview tile a patch tab belongs to — Calquat/Celastrus fold into
+	 *  the Tree tile; Hespori/Cactus/Belladonna/Mushroom into the Special tile
+	 *  (which also carries anima/spirit trees/compost via their own tab). */
+	static Tab displayGroup(Tab tab)
+	{
+		switch (tab)
+		{
+			case CALQUAT:
+			case CELASTRUS:
+				return Tab.TREE;
+			case HESPORI:
+			case CACTUS:
+			case BELLADONNA:
+			case MUSHROOM:
+				return Tab.SPECIAL;
+			default:
+				return tab;
 		}
 	}
 
 	/**
-	 * Per-patch overview grouped by category (Time Tracking's per-patch view).
-	 * A category appears once it has any seen patch; within it EVERY patch is
-	 * listed (unknown ones as "Unknown"), matching the core plugin's tab.
-	 * Client thread / EDT (reads persisted predictions, not live client state).
+	 * Per-patch overview grouped by DISPLAY TILE (Time Tracking's per-patch
+	 * view). A tile appears once any of its patches is seen; within it EVERY
+	 * patch is listed (unknown ones as "Unknown"), sub-sorted by source tab so
+	 * merged tiles (Tree, Special) can sub-label. Client thread / EDT.
 	 */
 	java.util.LinkedHashMap<Tab, List<OverviewPatch>> overviewByCategory()
 	{
-		java.util.LinkedHashMap<Tab, List<OverviewPatch>> out = new java.util.LinkedHashMap<>();
+		java.util.LinkedHashMap<Tab, List<OverviewPatch>> grouped = new java.util.LinkedHashMap<>();
+		java.util.Set<Tab> seenGroups = new java.util.HashSet<>();
 		if (tracking == null)
 		{
-			return out;
+			return grouped;
 		}
-		int weeds = Produce.WEEDS.getItemID();
+		int weedsId = Produce.WEEDS.getItemID();
 		for (java.util.Map.Entry<Tab, java.util.Set<com.ironhub.modules.farming.rl.FarmingPatch>> entry
 			: tracking.tracker().getTabData())
 		{
-			List<OverviewPatch> patches = new java.util.ArrayList<>();
-			boolean anySeen = false;
+			Tab group = displayGroup(entry.getKey());
+			List<OverviewPatch> patches = grouped.computeIfAbsent(group, g -> new java.util.ArrayList<>());
 			for (com.ironhub.modules.farming.rl.FarmingPatch patch : entry.getValue())
 			{
 				PatchPrediction prediction = tracking.tracker().predictPatch(patch);
@@ -1308,23 +1334,76 @@ public class FarmingRunModule implements IronHubModule
 				{
 					name += " (" + patch.getName() + ")";
 				}
-				anySeen |= prediction != null;
+				boolean isWeeds = prediction != null && prediction.getProduce() == Produce.WEEDS;
 				int produce = prediction != null && prediction.getProduce() != null
 					&& prediction.getProduce().getItemID() > 0
-					? prediction.getProduce().getItemID() : weeds;
-				patches.add(new OverviewPatch(name, produce,
+					? prediction.getProduce().getItemID() : weedsId;
+				if (prediction != null)
+				{
+					seenGroups.add(group);
+				}
+				patches.add(new OverviewPatch(name, produce, isWeeds,
 					prediction != null ? prediction.getCropState() : null,
 					prediction != null ? prediction.getDoneEstimate() : 0,
 					prediction != null ? prediction.getStage() : 0,
-					prediction != null ? prediction.getStages() : 0));
+					prediction != null ? prediction.getStages() : 0,
+					entry.getKey()));
 			}
-			if (anySeen)
+		}
+		java.util.LinkedHashMap<Tab, List<OverviewPatch>> out = new java.util.LinkedHashMap<>();
+		for (java.util.Map.Entry<Tab, List<OverviewPatch>> entry : grouped.entrySet())
+		{
+			if (seenGroups.contains(entry.getKey()))
 			{
-				patches.sort(java.util.Comparator.comparing(p -> p.name));
-				out.put(entry.getKey(), patches);
+				entry.getValue().sort(java.util.Comparator
+					.comparingInt((OverviewPatch p) -> p.sourceTab.ordinal())
+					.thenComparing(p -> p.name));
+				out.put(entry.getKey(), entry.getValue());
 			}
 		}
 		return out;
+	}
+
+	/** True when a run has any patch ready to (re)work now — harvestable for
+	 *  its own categories, or bird houses done/empty. Drives the ready-first
+	 *  sort in the run picker. */
+	boolean runReady(String name)
+	{
+		if (tracking == null)
+		{
+			return false;
+		}
+		java.util.Set<Tab> categories = new java.util.HashSet<>();
+		boolean birdhouse = false;
+		for (FarmRunsPack.Location location : runLocations(name))
+		{
+			if (!isUnlocked(location))
+			{
+				continue;
+			}
+			Tab tab = categoryTab(location.category);
+			if (tab != null)
+			{
+				categories.add(tab);
+			}
+			else if ("birdhouse".equals(location.category))
+			{
+				birdhouse = true;
+			}
+		}
+		for (Tab tab : categories)
+		{
+			if (tracking.harvestable(tab))
+			{
+				return true;
+			}
+		}
+		if (birdhouse)
+		{
+			SummaryState summary = tracking.birdHouseSummary();
+			return summary == SummaryState.COMPLETED || summary == SummaryState.EMPTY;
+		}
+		return false;
 	}
 
 	ItemManager itemManager()

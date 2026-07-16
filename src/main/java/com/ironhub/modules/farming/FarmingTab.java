@@ -337,7 +337,7 @@ class FarmingTab extends JPanel
 		expandedOverview.retainAll(byCategory.keySet());
 		if (!byCategory.isEmpty())
 		{
-			overview.add(overviewTileStrip(byCategory.keySet()));
+			overview.add(overviewTileStrip(byCategory));
 			overview.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 			for (java.util.Map.Entry<Tab, List<FarmingRunModule.OverviewPatch>> entry : byCategory.entrySet())
 			{
@@ -345,8 +345,17 @@ class FarmingTab extends JPanel
 				{
 					continue;
 				}
+				// merged tiles (Tree = tree/calquat/celastrus, Special = …) sub-label
+				boolean subLabels = entry.getValue().stream()
+					.map(p -> p.sourceTab).distinct().count() > 1;
+				Tab lastTab = null;
 				for (FarmingRunModule.OverviewPatch patch : entry.getValue())
 				{
+					if (subLabels && patch.sourceTab != lastTab)
+					{
+						lastTab = patch.sourceTab;
+						overview.add(overviewSubLabel(patch.sourceTab.getName()));
+					}
 					overview.add(overviewPatchPanel(patch, now));
 					overview.add(Box.createVerticalStrut(2));
 				}
@@ -409,58 +418,184 @@ class FarmingTab extends JPanel
 	}
 
 	/** Grid of clickable category icon tiles — the Time Tracking tab strip. */
-	private JComponent overviewTileStrip(Set<Tab> categories)
+	private JComponent overviewTileStrip(java.util.Map<Tab, List<FarmingRunModule.OverviewPatch>> byCategory)
 	{
 		JPanel strip = new JPanel(new java.awt.GridLayout(0, 5, 4, 4));
 		strip.setOpaque(false);
 		strip.setAlignmentX(LEFT_ALIGNMENT);
-		int rows = (categories.size() + 4) / 5;
-		strip.setMaximumSize(new Dimension(Integer.MAX_VALUE, rows * 32));
-		for (Tab category : categories)
+		int rows = (byCategory.size() + 4) / 5;
+		strip.setMaximumSize(new Dimension(Integer.MAX_VALUE, rows * 34));
+		for (java.util.Map.Entry<Tab, List<FarmingRunModule.OverviewPatch>> entry : byCategory.entrySet())
 		{
-			strip.add(overviewTile(category));
+			strip.add(overviewTile(entry.getKey(), entry.getValue()));
 		}
 		return strip;
 	}
 
-	/** One category tile: its item icon, accent-bordered while expanded; the
-	 *  click toggles that category's patch list. */
-	private JComponent overviewTile(Tab category)
+	/** One category tile: its icon, a green border when every patch is ready/
+	 *  dead/empty, else an orange clockwise arc for progress toward the next
+	 *  ready patch. Click toggles the category's patch list. */
+	private JComponent overviewTile(Tab category, List<FarmingRunModule.OverviewPatch> patches)
 	{
-		JLabel tile = new JLabel();
-		tile.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-		tile.setOpaque(true);
-		boolean expanded = expandedOverview.contains(category);
-		tile.setBackground(expanded ? UiTokens.INSET_BG : UiTokens.ICON_BUTTON_BG);
-		tile.setBorder(new LineBorder(expanded ? UiTokens.ACCENT : UiTokens.BORDER_BUTTON));
-		tile.setToolTipText(category.getName());
-		tile.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		tile.setPreferredSize(new Dimension(34, 30));
-		tile.setMinimumSize(new Dimension(34, 30));
-		if (itemManager != null)
+		int seen = 0;
+		int done = 0;
+		double progress = 0;
+		for (FarmingRunModule.OverviewPatch p : patches)
 		{
-			net.runelite.client.util.AsyncBufferedImage img = itemManager.getImage(category.getItemID());
-			img.onLoaded(() ->
+			if (p.cropState == null)
 			{
-				tile.setIcon(new javax.swing.ImageIcon(
-					img.getScaledInstance(24, 24, java.awt.Image.SCALE_SMOOTH)));
-				tile.revalidate();
-				tile.repaint();
-			});
+				continue;
+			}
+			seen++;
+			switch (p.cropState)
+			{
+				case HARVESTABLE:
+				case DEAD:
+				case EMPTY:
+					done++;
+					break;
+				case GROWING:
+					if (p.stages > 1)
+					{
+						progress = Math.max(progress, p.stage / (double) (p.stages - 1));
+					}
+					break;
+				default:
+					break;
+			}
 		}
-		tile.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
+		boolean ready = seen > 0 && done == seen;
+		OverviewTile tile = new OverviewTile(progress, ready, expandedOverview.contains(category),
+			category.getName(), () ->
 			{
 				if (!expandedOverview.remove(category))
 				{
 					expandedOverview.add(category);
 				}
 				rebuildOverview();
-			}
-		});
+			});
+		if (itemManager != null)
+		{
+			net.runelite.client.util.AsyncBufferedImage img = itemManager.getImage(category.getItemID());
+			img.onLoaded(() -> tile.setIconImage(img.getScaledInstance(24, 24, java.awt.Image.SCALE_SMOOTH)));
+		}
 		return tile;
+	}
+
+	/** Sub-section label inside a merged tile (e.g. "Calquat Patches"). */
+	private JLabel overviewSubLabel(String name)
+	{
+		JLabel label = new JLabel(name);
+		label.setForeground(UiTokens.TEXT_MUTED);
+		label.setFont(label.getFont().deriveFont(UiTokens.FONT_SIZE_LABEL));
+		label.setAlignmentX(LEFT_ALIGNMENT);
+		label.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
+		return label;
+	}
+
+	/** Category tile with a status-coloured border/arc (see overviewTile). */
+	private class OverviewTile extends JComponent
+	{
+		private java.awt.Image icon;
+		private final double progress;
+		private final boolean ready;
+		private final boolean expanded;
+
+		OverviewTile(double progress, boolean ready, boolean expanded, String tooltip, Runnable onClick)
+		{
+			this.progress = progress;
+			this.ready = ready;
+			this.expanded = expanded;
+			setPreferredSize(new Dimension(34, 30));
+			setMinimumSize(new Dimension(34, 30));
+			setToolTipText(tooltip);
+			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					onClick.run();
+				}
+			});
+		}
+
+		void setIconImage(java.awt.Image image)
+		{
+			this.icon = image;
+			repaint();
+		}
+
+		@Override
+		protected void paintComponent(java.awt.Graphics g)
+		{
+			java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+			g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+				java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+			int w = getWidth();
+			int h = getHeight();
+			g2.setColor(expanded ? UiTokens.INSET_BG : UiTokens.ICON_BUTTON_BG);
+			g2.fillRect(0, 0, w, h);
+			if (icon != null)
+			{
+				g2.drawImage(icon, (w - 24) / 2, (h - 24) / 2, null);
+			}
+			if (ready)
+			{
+				g2.setColor(net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR);
+				g2.setStroke(new java.awt.BasicStroke(2));
+				g2.drawRect(1, 1, w - 3, h - 3);
+			}
+			else
+			{
+				g2.setColor(UiTokens.BORDER_BUTTON);
+				g2.setStroke(new java.awt.BasicStroke(1));
+				g2.drawRect(0, 0, w - 1, h - 1);
+				if (progress > 0)
+				{
+					g2.setColor(net.runelite.client.ui.ColorScheme.PROGRESS_INPROGRESS_COLOR);
+					g2.setStroke(new java.awt.BasicStroke(2));
+					paintPerimeterProgress(g2, w, h, progress);
+				}
+			}
+			g2.dispose();
+		}
+	}
+
+	/** Trace an orange line clockwise from the top-centre around the tile
+	 *  perimeter for `fraction` of the way round. */
+	private static void paintPerimeterProgress(java.awt.Graphics2D g, int w, int h, double fraction)
+	{
+		double target = fraction * 2.0 * (w + h);
+		int cx = w / 2;
+		double[][] segments = {
+			{cx, 0, w, 0},   // top-centre -> top-right
+			{w, 0, w, h},    // -> bottom-right
+			{w, h, 0, h},    // -> bottom-left
+			{0, h, 0, 0},    // -> top-left
+			{0, 0, cx, 0},   // -> top-centre
+		};
+		double drawn = 0;
+		for (double[] s : segments)
+		{
+			double len = Math.hypot(s[2] - s[0], s[3] - s[1]);
+			if (len <= 0)
+			{
+				continue;
+			}
+			if (drawn + len <= target)
+			{
+				g.drawLine((int) s[0], (int) s[1], (int) s[2], (int) s[3]);
+				drawn += len;
+			}
+			else
+			{
+				double t = (target - drawn) / len;
+				g.drawLine((int) s[0], (int) s[1],
+					(int) (s[0] + (s[2] - s[0]) * t), (int) (s[1] + (s[3] - s[1]) * t));
+				break;
+			}
+		}
 	}
 
 	/** One patch line — the core plugin's TimeablePanel, coloured identically
@@ -484,10 +619,18 @@ class FarmingTab extends JPanel
 		else
 		{
 			panel.getEstimate().setText(estimateText(patch, now));
-			bar.setForeground(patch.cropState.getColor().darker());
-			bar.setMaximumValue(Math.max(0, patch.stages - 1));
-			bar.setValue(patch.stage);
-			bar.setVisible(true);
+			// hide the bar for fully-grown weeds (no crop) — Time Tracking parity
+			if (patch.weeds && patch.stage >= patch.stages - 1)
+			{
+				bar.setVisible(false);
+			}
+			else
+			{
+				bar.setForeground(patch.cropState.getColor().darker());
+				bar.setMaximumValue(Math.max(0, patch.stages - 1));
+				bar.setValue(patch.stage);
+				bar.setVisible(true);
+			}
 		}
 		return panel;
 	}
@@ -655,7 +798,11 @@ class FarmingTab extends JPanel
 
 	private void buildRunPicker()
 	{
-		for (String template : module.templateNames())
+		// ready runs (a patch waiting to be harvested) float to the top; the
+		// wiki/pack order is preserved within the ready and not-ready groups
+		List<String> templates = new ArrayList<>(module.templateNames());
+		templates.sort(java.util.Comparator.comparing(n -> !module.runReady(n)));
+		for (String template : templates)
 		{
 			int count = module.unlockedLocations(module.runLocations(template)).size();
 			runs.add(runRow(template, count + " stops", () -> module.startTemplate(template), null));

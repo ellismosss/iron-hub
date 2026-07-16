@@ -362,6 +362,43 @@ public class FarmingRunModuleTest
 	}
 
 	@Test
+	public void overviewTilesMergeCalquatCelastrusIntoTreeAndSpecials()
+	{
+		assertEquals(com.ironhub.modules.farming.rl.Tab.TREE,
+			FarmingRunModule.displayGroup(com.ironhub.modules.farming.rl.Tab.CALQUAT));
+		assertEquals(com.ironhub.modules.farming.rl.Tab.TREE,
+			FarmingRunModule.displayGroup(com.ironhub.modules.farming.rl.Tab.CELASTRUS));
+		assertEquals(com.ironhub.modules.farming.rl.Tab.SPECIAL,
+			FarmingRunModule.displayGroup(com.ironhub.modules.farming.rl.Tab.HESPORI));
+		assertEquals(com.ironhub.modules.farming.rl.Tab.SPECIAL,
+			FarmingRunModule.displayGroup(com.ironhub.modules.farming.rl.Tab.MUSHROOM));
+		assertEquals(com.ironhub.modules.farming.rl.Tab.SPECIAL,
+			FarmingRunModule.displayGroup(com.ironhub.modules.farming.rl.Tab.BELLADONNA));
+		assertEquals(com.ironhub.modules.farming.rl.Tab.SPECIAL,
+			FarmingRunModule.displayGroup(com.ironhub.modules.farming.rl.Tab.CACTUS));
+		// unmerged categories keep their own tile
+		assertEquals(com.ironhub.modules.farming.rl.Tab.HERB,
+			FarmingRunModule.displayGroup(com.ironhub.modules.farming.rl.Tab.HERB));
+	}
+
+	@Test
+	public void runReadyWhenAPatchIsHarvestable()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		ConfigManager configManager = TimetrackingFixture.configManager();
+		FarmingRunModule module = module(state, configManager, null);
+		assertFalse(module.runReady("Herb run")); // no data yet
+
+		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
+			herbValue(Produce.RANARR, CropState.HARVESTABLE, 0), Instant.now().getEpochSecond());
+		module.refreshTracking();
+		assertTrue(module.runReady("Herb run"));   // a herb patch is harvestable
+		assertFalse(module.runReady("Tree run"));   // no tree data
+		module.shutDown();
+	}
+
+	@Test
 	public void bankHighlightMarksSetupItemsStillToWithdraw()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
