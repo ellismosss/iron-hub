@@ -83,4 +83,15 @@ public class IconButton extends JLabel
 		b.setFont(b.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_TILE_LABEL));
 		return b;
 	}
+
+	/** A wider "Skip" text button (the 18px square doesn't fit the word). */
+	public static IconButton skip(Runnable onClick)
+	{
+		IconButton b = new IconButton("Skip", "Skip this stop", onClick);
+		Dimension size = new Dimension(36, UiTokens.ICON_BUTTON_SIZE);
+		b.setPreferredSize(size);
+		b.setMinimumSize(size);
+		b.setMaximumSize(size);
+		return b;
+	}
 }

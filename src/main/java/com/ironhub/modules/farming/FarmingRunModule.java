@@ -59,9 +59,8 @@ public class FarmingRunModule implements IronHubModule
 
 	static
 	{
-		// Herb / Tree / Fruit tree / Combo tree runs are curated `routes` in the
-		// pack (wiki order); only the auto-grouped combined runs live here.
-		TEMPLATES.put("Tree & fruit run", List.of("tree", "fruit"));
+		// Nearly every run is a curated `route` in the pack (wiki order); only
+		// the plain single-category Hops run remains an auto-grouped template.
 		TEMPLATES.put("Hops run", List.of("hops"));
 	}
 
@@ -87,6 +86,7 @@ public class FarmingRunModule implements IronHubModule
 	private FarmBankLayout bankLayout;
 	private FarmingTab tab;
 	private FarmingRunOverlay overlay;
+	private com.loadoutlab.ui.BankHighlightOverlay bankHighlight; // reuses Loadout Lab's green glow
 	private RunTimerInfoBox infoBox;
 	private final java.util.List<FarmReadyInfoBox> readyBoxes = new java.util.ArrayList<>();
 
@@ -176,6 +176,9 @@ public class FarmingRunModule implements IronHubModule
 		{
 			overlay = new FarmingRunOverlay(this);
 			overlayManager.add(overlay);
+			// green-glow the setup items still to withdraw, in Loadout Lab's style
+			bankHighlight = new com.loadoutlab.ui.BankHighlightOverlay(this::farmBankHighlight);
+			overlayManager.add(bankHighlight);
 		}
 		if (infoBoxManager != null && itemManager != null)
 		{
@@ -196,6 +199,11 @@ public class FarmingRunModule implements IronHubModule
 		{
 			overlayManager.remove(overlay);
 			overlay = null;
+		}
+		if (bankHighlight != null)
+		{
+			overlayManager.remove(bankHighlight);
+			bankHighlight = null;
 		}
 		if (infoBox != null)
 		{
@@ -224,7 +232,7 @@ public class FarmingRunModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new FarmingTab(state, this, pathBridge);
+			tab = new FarmingTab(state, this);
 		}
 		return tab;
 	}
@@ -287,6 +295,28 @@ public class FarmingRunModule implements IronHubModule
 			}
 		}
 		bankLayout.clear();
+	}
+
+	/**
+	 * Once the bank finishes building, Bank Tags has set its title to the raw
+	 * hidden tag name ("Tag tab _ironhubfarm_herbrun"). Replace it with the
+	 * readable run name. Post-fire runs after Bank Tags' pre-fire handler, so
+	 * ours wins. Client thread.
+	 */
+	@Subscribe
+	public void onScriptPostFired(net.runelite.api.events.ScriptPostFired event)
+	{
+		if (event.getScriptId() != net.runelite.api.ScriptID.BANKMAIN_FINISHBUILDING
+			|| client == null || bankLayout == null || !bankLayout.isApplied())
+		{
+			return;
+		}
+		net.runelite.api.widgets.Widget title =
+			client.getWidget(net.runelite.api.gameval.InterfaceID.Bankmain.TITLE);
+		if (title != null)
+		{
+			title.setText("<col=ff981f>" + runName + "</col> — farm run setup");
+		}
 	}
 
 	@Subscribe
@@ -551,7 +581,21 @@ public class FarmingRunModule implements IronHubModule
 		runStartFarmingXp = state.getXp(net.runelite.api.Skill.FARMING);
 		runStartHerbCount = currentHerbCount();
 		runStartMs = System.currentTimeMillis();
-		routeToNext();
+		// Switch the sidebar to the active run NOW — queued before routeToNext so
+		// a Shortest Path bridge hiccup can't leave the picker showing (the run
+		// had started but the sidebar only updated on the next bank open).
+		if (tab != null)
+		{
+			SwingUtilities.invokeLater(tab::rebuild);
+		}
+		try
+		{
+			routeToNext();
+		}
+		catch (RuntimeException e)
+		{
+			log.debug("routeToNext failed at run start", e);
+		}
 	}
 
 	/** Farming xp gained since this run started. */
@@ -684,14 +728,14 @@ public class FarmingRunModule implements IronHubModule
 		return grouped;
 	}
 
-	/** Start a built-in run ("Herb run", "Tree & fruit run", "Combo tree run"). */
+	/** Start a built-in run ("Herb run", "All trees run", "Hardwood run", ...). */
 	void startTemplate(String name)
 	{
 		startRun(name, runLocations(name));
 	}
 
 	/** Locations for a run name: a curated route (the pack's ordered ids, e.g.
-	 *  the Combo tree run) if defined, else the template's auto-grouped
+	 *  a curated route) if defined, else the template's auto-grouped
 	 *  category locations. Culling happens later, in startRun. */
 	List<FarmRunsPack.Location> runLocations(String name)
 	{
@@ -1105,6 +1149,58 @@ public class FarmingRunModule implements IronHubModule
 	{
 		int base = net.runelite.client.game.ItemVariationMapping.map(itemId);
 		return new java.util.HashSet<>(net.runelite.client.game.ItemVariationMapping.getVariations(base));
+	}
+
+	/**
+	 * The active run's saved-setup items you still need to withdraw (not yet
+	 * carried), expanded with variants so the bank's laid-out item id matches.
+	 * The green bank highlight (Loadout Lab's overlay) reads this; empty when
+	 * no run/setup is active, so the glow only shows during a setup restock.
+	 */
+	java.util.Set<Integer> farmBankHighlight()
+	{
+		if (!running() || config == null || !config.farmBankSetup())
+		{
+			return java.util.Collections.emptySet();
+		}
+		com.ironhub.state.PersistedState.SavedSetup setup = state.getFarmRunSetup(runName);
+		if (setup == null)
+		{
+			return java.util.Collections.emptySet();
+		}
+		java.util.Map<Integer, Integer> need = new java.util.HashMap<>();
+		if (setup.equipment != null)
+		{
+			for (Integer id : setup.equipment.values())
+			{
+				if (id != null && id > 0)
+				{
+					need.merge(id, 1, Integer::sum);
+				}
+			}
+		}
+		if (setup.inventory != null)
+		{
+			for (int i = 0; i < setup.inventory.length; i++)
+			{
+				int id = setup.inventory[i];
+				if (id > 0)
+				{
+					int qty = setup.inventoryQty != null && i < setup.inventoryQty.length
+						? Math.max(1, setup.inventoryQty[i]) : 1;
+					need.merge(id, qty, Integer::sum);
+				}
+			}
+		}
+		java.util.Set<Integer> out = new java.util.HashSet<>();
+		for (java.util.Map.Entry<Integer, Integer> e : need.entrySet())
+		{
+			if (carriedCount(e.getKey()) < e.getValue())
+			{
+				out.addAll(satisfyingIds(e.getKey()));
+			}
+		}
+		return out;
 	}
 
 	// ── patch views over the vendored predictions ─────────────────────

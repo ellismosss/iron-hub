@@ -3981,28 +3981,7 @@
    "herb/weiss",
    "herb/harmony-island"
   ],
-  "Tree run": [
-   "tree/lumbridge",
-   "tree/varrock",
-   "tree/falador",
-   "tree/taverley",
-   "tree/gnome-stronghold",
-   "tree/farming-guild",
-   "tree/auburnvale"
-  ],
-  "Fruit tree run": [
-   "fruit/gnome-stronghold",
-   "fruit/tree-gnome-village",
-   "fruit/catherby",
-   "fruit/farming-guild",
-   "fruit/lletya",
-   "fruit/brimhaven",
-   "calquat/tai-bwo-wannai",
-   "calquat/kastori",
-   "fruit/kastori",
-   "calquat/summer-shore"
-  ],
-  "Combo tree run": [
+  "All trees run": [
    "fruit/gnome-stronghold",
    "tree/gnome-stronghold",
    "fruit/tree-gnome-village",
@@ -4022,12 +4001,18 @@
    "tree/auburnvale",
    "calquat/summer-shore"
   ],
-  "Hardwood tree run": [
+  "Hardwood run": [
    "hardwood/fossil-island",
    "hardwood/locus-oasis",
    "hardwood/anglers-retreat"
   ],
-  "Hop and bush run": [
+  "Supercompost run": [
+   "compost/catherby",
+   "compost/ardougne",
+   "compost/falador",
+   "compost/morytania"
+  ],
+  "Hop & bush run": [
    "bush/champions-guild",
    "hops/lumbridge",
    "bush/ardougne-monastery",
@@ -4039,7 +4024,7 @@
    "bush/rimmington",
    "hops/entrana"
   ],
-  "Allotment, flower, and herb run": [
+  "Allotment, flower & herb run": [
    "allotment/falador",
    "flower/falador",
    "herb/falador",
@@ -4064,11 +4049,26 @@
    "flower/civitas-illa-fortis",
    "herb/civitas-illa-fortis"
   ],
-  "Supercompost run": [
-   "compost/catherby",
-   "compost/ardougne",
-   "compost/falador",
-   "compost/morytania"
+  "Tree run": [
+   "tree/lumbridge",
+   "tree/varrock",
+   "tree/falador",
+   "tree/taverley",
+   "tree/gnome-stronghold",
+   "tree/farming-guild",
+   "tree/auburnvale"
+  ],
+  "Fruit tree run": [
+   "fruit/gnome-stronghold",
+   "fruit/tree-gnome-village",
+   "fruit/catherby",
+   "fruit/farming-guild",
+   "fruit/lletya",
+   "fruit/brimhaven",
+   "calquat/tai-bwo-wannai",
+   "calquat/kastori",
+   "fruit/kastori",
+   "calquat/summer-shore"
   ]
  }
 }

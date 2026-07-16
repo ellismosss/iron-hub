@@ -300,7 +300,7 @@ Farming Guild's tree/fruit/celastrus all report region 4922). Easy Farming's
 "Nemus Retreat" tree is the game's **Auburnvale** patch (same region 5427) —
 renamed at generation (NAME_OVERRIDE) so the id is tree/auburnvale, keeping
 its richer teleport list, rather than curating a duplicate. `routes` holds
-Luke's optimal **Combo tree run** (regular + fruit + calquat + celastrus, 18
+Luke's optimal **All trees run** (regular + fruit + calquat + celastrus, 18
 stops in a fixed order the auto-grouping templates can't express); its "Start
 at GE" step is deferred to the banking-steps spec.
 

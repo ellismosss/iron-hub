@@ -25,13 +25,14 @@ class FarmReadyInfoBox extends InfoBox
 	@Override
 	public String getText()
 	{
-		return "";
+		// only rendered while ready — label it like Time Tracking Reminder
+		return "Ready";
 	}
 
 	@Override
 	public Color getTextColor()
 	{
-		return Color.YELLOW;
+		return Color.GREEN;
 	}
 
 	@Override

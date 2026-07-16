@@ -167,9 +167,9 @@ public class FarmingRunModuleTest
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 5L);
 		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
-		assertTrue(module.templateNames().contains("Allotment, flower, and herb run"));
+		assertTrue(module.templateNames().contains("Allotment, flower & herb run"));
 
-		module.startTemplate("Allotment, flower, and herb run");
+		module.startTemplate("Allotment, flower & herb run");
 		assertTrue(module.multiCategory());
 		// Falador first: allotment, flower, then herb (all plant seeds, not
 		// saplings, so nothing is sapling-culled)
@@ -209,10 +209,10 @@ public class FarmingRunModuleTest
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 5L);
 		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
-		assertTrue(module.templateNames().contains("Hop and bush run"));
+		assertTrue(module.templateNames().contains("Hop & bush run"));
 
 		// hops and bushes plant seeds (no sapling list) — never sapling-culled
-		module.startTemplate("Hop and bush run");
+		module.startTemplate("Hop & bush run");
 		assertEquals("bush/champions-guild", module.stops().get(0).location.id);
 		assertTrue(module.multiCategory());
 		assertTrue(module.stops().stream().anyMatch(s -> s.location.category.equals("hops")));
@@ -228,10 +228,10 @@ public class FarmingRunModuleTest
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 5L);
 		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
-		assertTrue(module.templateNames().contains("Hardwood tree run"));
+		assertTrue(module.templateNames().contains("Hardwood run"));
 
 		// fresh account: no Fossil Island access and no saplings -> nothing to do
-		module.startTemplate("Hardwood tree run");
+		module.startTemplate("Hardwood run");
 		assertEquals(0, module.stops().size());
 		module.endRun(false);
 
@@ -240,7 +240,7 @@ public class FarmingRunModuleTest
 		StateFixture.quest(state, net.runelite.api.Quest.BONE_VOYAGE,
 			net.runelite.api.QuestState.FINISHED);
 		StateFixture.bank(state, Map.of(21477, 2)); // teak saplings
-		module.startTemplate("Hardwood tree run");
+		module.startTemplate("Hardwood run");
 		assertTrue(module.stops().stream().anyMatch(s -> s.location.id.equals("hardwood/fossil-island")));
 		assertFalse(module.stops().stream().anyMatch(s -> s.location.id.equals("hardwood/locus-oasis")));
 		module.shutDown();
@@ -304,6 +304,40 @@ public class FarmingRunModuleTest
 	}
 
 	@Test
+	public void bankHighlightMarksSetupItemsStillToWithdraw()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+
+		// no run active -> nothing to highlight
+		assertTrue(module.farmBankHighlight().isEmpty());
+
+		// a setup: worn cape + inventory of teleport tabs and seeds
+		com.ironhub.state.PersistedState.SavedSetup setup = new com.ironhub.state.PersistedState.SavedSetup();
+		setup.equipment = Map.of("CAPE", 1052);
+		setup.inventory = new int[]{8013, 5291};
+		setup.inventoryQty = new int[]{3, 5};
+		state.saveFarmRunSetup("Herb run", setup);
+		module.startTemplate("Herb run");
+
+		// carrying none of it -> all three ids highlighted
+		java.util.Set<Integer> hl = module.farmBankHighlight();
+		assertTrue(hl.contains(1052));
+		assertTrue(hl.contains(8013));
+		assertTrue(hl.contains(5291));
+
+		// wear the cape and carry the tabs -> they drop out; seeds still needed
+		StateFixture.equipmentSlots(state, new int[]{0, 1052});
+		StateFixture.inventory(state, Map.of(8013, 3));
+		hl = module.farmBankHighlight();
+		assertFalse(hl.contains(1052));
+		assertFalse(hl.contains(8013));
+		assertTrue(hl.contains(5291));
+		module.shutDown();
+	}
+
+	@Test
 	public void manualSkipMarksThroughAndCanCompleteTheRun()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
@@ -357,7 +391,7 @@ public class FarmingRunModuleTest
 		StateFixture.bank(state, Map.of(5370, 20, 5496, 20));
 		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
 
-		module.startTemplate("Tree & fruit run");
+		module.startTemplate("All trees run");
 		assertTrue(module.multiCategory());
 		FarmingRunModule.Stop fgTree = stop(module, "tree/farming-guild");
 		FarmingRunModule.Stop fgFruit = stop(module, "fruit/farming-guild");
@@ -384,8 +418,8 @@ public class FarmingRunModuleTest
 		StateFixture.bank(state, Map.of(5370, 20, 5496, 20, 5503, 20, 22856, 20));
 		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
 
-		assertTrue(module.templateNames().contains("Combo tree run"));
-		module.startTemplate("Combo tree run");
+		assertTrue(module.templateNames().contains("All trees run"));
+		module.startTemplate("All trees run");
 		assertTrue(module.multiCategory());
 
 		// the curated order is preserved through culling — fruit tree first,

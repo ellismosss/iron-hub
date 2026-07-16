@@ -1,7 +1,6 @@
 package com.ironhub.modules.farming;
 
 import com.ironhub.data.FarmRunsPack;
-import com.ironhub.integrations.ShortestPathBridge;
 import com.ironhub.modules.farming.rl.Tab;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.Format;
@@ -51,7 +50,6 @@ class FarmingTab extends JPanel
 {
 	private final AccountState state;
 	private final FarmingRunModule module;
-	private final ShortestPathBridge pathBridge;
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 
 	private final JPanel topBar = new JPanel();
@@ -67,11 +65,10 @@ class FarmingTab extends JPanel
 	private final JTextField builderName = new SearchField("Run name…");
 	private final Set<String> builderSelection = new LinkedHashSet<>();
 
-	FarmingTab(AccountState state, FarmingRunModule module, ShortestPathBridge pathBridge)
+	FarmingTab(AccountState state, FarmingRunModule module)
 	{
 		this.state = state;
 		this.module = module;
-		this.pathBridge = pathBridge;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
 		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
@@ -157,24 +154,21 @@ class FarmingTab extends JPanel
 		teleportPanel.removeAll();
 		if (teleportsOpen)
 		{
-			String lastCategory = "";
+			// one row per physical location (grouped by name), so co-located
+			// patches — allotment/flower/herb at the same place — share a single
+			// teleport preference instead of a box each.
+			java.util.Map<String, List<FarmRunsPack.Location>> byPlace = new java.util.LinkedHashMap<>();
 			for (FarmRunsPack.Location location : module.pack().locations)
 			{
 				if (!module.isUnlocked(location))
 				{
 					continue; // no point choosing a teleport to a patch you can't use
 				}
-				if (!location.category.equals(lastCategory))
-				{
-					lastCategory = location.category;
-					JLabel header = new JLabel(location.category.toUpperCase(Locale.ROOT));
-					header.setForeground(UiTokens.TEXT_MUTED);
-					header.setFont(header.getFont().deriveFont(UiTokens.FONT_SIZE_LABEL));
-					header.setAlignmentX(LEFT_ALIGNMENT);
-					header.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 2, 0));
-					teleportPanel.add(header);
-				}
-				teleportPanel.add(teleportRow(location));
+				byPlace.computeIfAbsent(location.name, k -> new ArrayList<>()).add(location);
+			}
+			for (List<FarmRunsPack.Location> group : byPlace.values())
+			{
+				teleportPanel.add(teleportRow(group));
 				teleportPanel.add(Box.createVerticalStrut(2));
 			}
 		}
@@ -182,38 +176,59 @@ class FarmingTab extends JPanel
 		teleportPanel.repaint();
 	}
 
-	/** Location name + a combo of its teleports ("Auto" = owned-first pick). */
-	private JPanel teleportRow(FarmRunsPack.Location location)
+	/** Place name + a combo of its teleports ("Auto" = owned-first pick); the
+	 *  chosen teleport applies to every co-located patch that offers it. */
+	private JPanel teleportRow(List<FarmRunsPack.Location> group)
 	{
+		FarmRunsPack.Location rep = group.get(0);
 		JPanel row = new JPanel(new BorderLayout(UiTokens.ROW_GAP, 0));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
 		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
 
-		JLabel name = new JLabel(location.name);
+		JLabel name = new JLabel(rep.name);
 		name.setForeground(UiTokens.TEXT_BODY);
 		name.setFont(name.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		name.setPreferredSize(new Dimension(82, UiTokens.BUTTON_HEIGHT));
-		name.setToolTipText(location.name);
+		name.setToolTipText(rep.name);
 		row.add(name, BorderLayout.WEST);
 
 		JComboBox<String> combo = new JComboBox<>();
 		combo.setFont(combo.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		combo.addItem("Auto");
-		for (FarmRunsPack.Teleport teleport : location.teleports)
+		for (FarmRunsPack.Teleport teleport : rep.teleports)
 		{
 			combo.addItem(FarmingRunOverlay.teleportLabel(teleport));
 		}
-		String pref = state.getFarmTeleportPref(location.id);
-		combo.setSelectedIndex(prefIndex(location, pref));
+		combo.setSelectedIndex(prefIndex(rep, state.getFarmTeleportPref(rep.id)));
 		combo.addActionListener(e ->
 		{
 			int i = combo.getSelectedIndex();
-			state.setFarmTeleportPref(location.id,
-				i <= 0 ? null : location.teleports.get(i - 1).id);
+			String teleportId = i <= 0 ? null : rep.teleports.get(i - 1).id;
+			for (FarmRunsPack.Location loc : group)
+			{
+				// only apply to co-located patches that actually offer this
+				// teleport; others fall back to their own auto-pick
+				if (teleportId == null || hasTeleport(loc, teleportId))
+				{
+					state.setFarmTeleportPref(loc.id, teleportId);
+				}
+			}
 		});
 		row.add(combo, BorderLayout.CENTER);
 		return row;
+	}
+
+	private static boolean hasTeleport(FarmRunsPack.Location location, String teleportId)
+	{
+		for (FarmRunsPack.Teleport teleport : location.teleports)
+		{
+			if (teleport.id.equals(teleportId))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static int prefIndex(FarmRunsPack.Location location, String pref)
@@ -465,36 +480,25 @@ class FarmingTab extends JPanel
 		FarmingRunModule.Stop next = module.nextStop();
 		for (FarmingRunModule.Stop stop : module.stops())
 		{
-			IconButton path = IconButton.path(() -> pathBridge.pathTo(stop.location.worldPoint()));
 			String label = module.stopLabel(stop);
 			ListRow row;
 			if (module.isVisited(stop.location.id))
 			{
-				row = ListRow.owned(label, path);
-			}
-			else if (next != null && stop == next)
-			{
-				row = ListRow.available(label, path);
+				row = ListRow.owned(label); // done — nothing to skip
 			}
 			else
 			{
-				row = ListRow.locked(label, path);
-			}
-			row.setToolTipText(stopTooltip(stop) + " · click to skip to here");
-			if (!module.isVisited(stop.location.id))
-			{
-				row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 				String id = stop.location.id;
-				row.addMouseListener(new MouseAdapter()
+				IconButton skip = IconButton.skip(() ->
 				{
-					@Override
-					public void mousePressed(MouseEvent e)
-					{
-						module.markThrough(id); // manual advance / skip
-						rebuild();
-					}
+					module.markThrough(id); // skip this stop (and any before it)
+					rebuild();
 				});
+				row = (next != null && stop == next)
+					? ListRow.available(label, skip)
+					: ListRow.locked(label, skip);
 			}
+			row.setToolTipText(stopTooltip(stop));
 			runs.add(row);
 			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}

@@ -292,33 +292,18 @@ def companions(by_id):
 # categories in a specific order, which the auto-grouping templates can't
 # express. The run culler trims these to what's unlocked / ready / plantable.
 ROUTES = {
-    # Wiki "Herb run" order (Farming_runs#Herb run): Falador, Port Phasmatys,
-    # Ardougne, Catherby, Hosidius, Farming Guild, Ortus/Civitas, Troll
-    # Stronghold, Weiss, Harmony Island.
+    # Picker order is this dict's order (routes list before the Hops template).
+    # Wiki "Herb run": Falador, Port Phasmatys, Ardougne, Catherby, Hosidius,
+    # Farming Guild, Ortus/Civitas, Troll Stronghold, Weiss, Harmony Island.
     "Herb run": [
         "herb/falador", "herb/morytania", "herb/ardougne", "herb/catherby",
         "herb/kourend", "herb/farming-guild", "herb/civitas-illa-fortis",
         "herb/troll-stronghold", "herb/weiss", "herb/harmony-island",
     ],
-    # Wiki "Tree run" order: Lumbridge, Varrock Palace, Falador Park, Taverley,
-    # Gnome Stronghold, Farming Guild, Auburn Valley.
-    "Tree run": [
-        "tree/lumbridge", "tree/varrock", "tree/falador", "tree/taverley",
-        "tree/gnome-stronghold", "tree/farming-guild", "tree/auburnvale",
-    ],
-    # Wiki "Fruit tree run" order (fruit + calquat): Gnome Stronghold, Tree
-    # Gnome Village, Catherby, Farming Guild, Lletya, Brimhaven, Tai Bwo Wannai
-    # calquat, Kastori calquat+fruit, The Summer Shore calquat.
-    "Fruit tree run": [
-        "fruit/gnome-stronghold", "fruit/tree-gnome-village", "fruit/catherby",
-        "fruit/farming-guild", "fruit/lletya", "fruit/brimhaven",
-        "calquat/tai-bwo-wannai", "calquat/kastori", "fruit/kastori",
-        "calquat/summer-shore",
-    ],
-    # Luke's optimal Combo tree run (regular + fruit + calquat + celastrus) =
-    # the wiki's combined tree run. "Start at GE" is deferred to the
-    # banking-steps spec, so this begins at the first patch.
-    "Combo tree run": [
+    # The wiki's combined tree run (regular + fruit + calquat + celastrus).
+    # "Start at GE" deferred to the banking-steps spec, so this begins at the
+    # first patch.
+    "All trees run": [
         "fruit/gnome-stronghold", "tree/gnome-stronghold", "fruit/tree-gnome-village",
         "tree/farming-guild", "fruit/farming-guild", "celastrus/farming-guild",
         "tree/lumbridge", "tree/varrock", "tree/falador", "tree/taverley",
@@ -327,18 +312,23 @@ ROUTES = {
         "calquat/summer-shore",
     ],
     # Wiki "Hardwood tree run": Fossil Island, Locus Oasis, Anglers' Retreat.
-    "Hardwood tree run": [
+    "Hardwood run": [
         "hardwood/fossil-island", "hardwood/locus-oasis", "hardwood/anglers-retreat",
     ],
+    # Wiki "Supercompost run" — fill the compost bins at the allotment areas
+    # (a manual bin-filling activity, not a plant/harvest run).
+    "Supercompost run": [
+        "compost/catherby", "compost/ardougne", "compost/falador", "compost/morytania",
+    ],
     # Wiki "Hop and bush run" — interleaved hop and bush patches in route order.
-    "Hop and bush run": [
+    "Hop & bush run": [
         "bush/champions-guild", "hops/lumbridge", "bush/ardougne-monastery",
         "hops/seers-village", "hops/aldarin", "bush/etceteria", "hops/yanille",
         "bush/farming-guild", "bush/rimmington", "hops/entrana",
     ],
     # Wiki "Allotment, flower, and herb run" — allotment + flower + herb at each
     # co-located area (separate stops per patch), in the wiki's order.
-    "Allotment, flower, and herb run": [
+    "Allotment, flower & herb run": [
         "allotment/falador", "flower/falador", "herb/falador",
         "allotment/morytania", "flower/morytania", "herb/morytania",
         "allotment/ardougne", "flower/ardougne", "herb/ardougne",
@@ -349,10 +339,20 @@ ROUTES = {
         "allotment/civitas-illa-fortis", "flower/civitas-illa-fortis",
         "herb/civitas-illa-fortis",
     ],
-    # Wiki "Supercompost run" — fill the compost bins at the allotment areas
-    # (a manual bin-filling activity, not a plant/harvest run).
-    "Supercompost run": [
-        "compost/catherby", "compost/ardougne", "compost/falador", "compost/morytania",
+    # Wiki "Tree run": Lumbridge, Varrock Palace, Falador Park, Taverley, Gnome
+    # Stronghold, Farming Guild, Auburn Valley.
+    "Tree run": [
+        "tree/lumbridge", "tree/varrock", "tree/falador", "tree/taverley",
+        "tree/gnome-stronghold", "tree/farming-guild", "tree/auburnvale",
+    ],
+    # Wiki "Fruit tree run" (fruit + calquat): Gnome Stronghold, Tree Gnome
+    # Village, Catherby, Farming Guild, Lletya, Brimhaven, Tai Bwo Wannai calquat,
+    # Kastori calquat+fruit, The Summer Shore calquat.
+    "Fruit tree run": [
+        "fruit/gnome-stronghold", "fruit/tree-gnome-village", "fruit/catherby",
+        "fruit/farming-guild", "fruit/lletya", "fruit/brimhaven",
+        "calquat/tai-bwo-wannai", "calquat/kastori", "fruit/kastori",
+        "calquat/summer-shore",
     ],
 }
 

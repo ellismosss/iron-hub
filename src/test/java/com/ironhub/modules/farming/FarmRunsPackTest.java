@@ -76,7 +76,7 @@ public class FarmRunsPackTest
 		{
 			ids.add(location.id);
 		}
-		assertNotNull("Combo tree run route missing", pack.route("Combo tree run"));
+		assertNotNull("All trees run route missing", pack.route("All trees run"));
 		for (Map.Entry<String, java.util.List<String>> route : pack.routes.entrySet())
 		{
 			for (String id : route.getValue())
