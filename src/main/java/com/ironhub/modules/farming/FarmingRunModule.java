@@ -1264,6 +1264,7 @@ public class FarmingRunModule implements IronHubModule
 	{
 		final String name;                  // region (+ sub-name)
 		final int produceItemId;            // sprite (weeds id when unknown)
+		final String produceName;           // what's planted, null = unknown
 		final boolean weeds;                // produce is weeds (no coloured bar when grown)
 		final com.ironhub.modules.farming.rl.CropState cropState; // null = unknown
 		final long doneEstimate;            // epoch seconds
@@ -1271,12 +1272,13 @@ public class FarmingRunModule implements IronHubModule
 		final int stages;
 		final Tab sourceTab;                // original patch tab (for sub-labels in merged tiles)
 
-		OverviewPatch(String name, int produceItemId, boolean weeds,
+		OverviewPatch(String name, int produceItemId, String produceName, boolean weeds,
 			com.ironhub.modules.farming.rl.CropState cropState, long doneEstimate,
 			int stage, int stages, Tab sourceTab)
 		{
 			this.name = name;
 			this.produceItemId = produceItemId;
+			this.produceName = produceName;
 			this.weeds = weeds;
 			this.cropState = cropState;
 			this.doneEstimate = doneEstimate;
@@ -1342,7 +1344,10 @@ public class FarmingRunModule implements IronHubModule
 				{
 					seenGroups.add(group);
 				}
-				patches.add(new OverviewPatch(name, produce, isWeeds,
+				patches.add(new OverviewPatch(name, produce,
+					prediction != null && prediction.getProduce() != null
+						? prediction.getProduce().getName() : null,
+					isWeeds,
 					prediction != null ? prediction.getCropState() : null,
 					prediction != null ? prediction.getDoneEstimate() : 0,
 					prediction != null ? prediction.getStage() : 0,

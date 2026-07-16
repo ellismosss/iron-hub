@@ -53,8 +53,8 @@ class FarmingTab extends JPanel
 	private final FarmingRunModule module;
 	private final net.runelite.client.game.ItemManager itemManager; // null in headless tests
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
-	/** Categories whose patch list is expanded under the overview tile strip. */
-	private final Set<Tab> expandedOverview = new java.util.LinkedHashSet<>();
+	/** The one category expanded under the overview tile strip (null = none). */
+	private Tab expandedOverview;
 
 	private final JPanel topBar = new JPanel();
 	private final JLabel stats = new JLabel();
@@ -259,7 +259,7 @@ class FarmingTab extends JPanel
 	/** Test seam: expand a category's patch list in the overview. */
 	void expandOverview(Tab category)
 	{
-		expandedOverview.add(category);
+		expandedOverview = category;
 		rebuildOverview();
 	}
 
@@ -334,14 +334,17 @@ class FarmingTab extends JPanel
 		// clicking a tile toggles that category's patch list (nothing expanded
 		// = just the strip, minimal). Only categories with data get a tile.
 		java.util.Map<Tab, List<FarmingRunModule.OverviewPatch>> byCategory = module.overviewByCategory();
-		expandedOverview.retainAll(byCategory.keySet());
+		if (expandedOverview != null && !byCategory.containsKey(expandedOverview))
+		{
+			expandedOverview = null; // its data went away
+		}
 		if (!byCategory.isEmpty())
 		{
 			overview.add(overviewTileStrip(byCategory, now));
 			overview.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 			for (java.util.Map.Entry<Tab, List<FarmingRunModule.OverviewPatch>> entry : byCategory.entrySet())
 			{
-				if (!expandedOverview.contains(entry.getKey()))
+				if (entry.getKey() != expandedOverview)
 				{
 					continue;
 				}
@@ -439,6 +442,7 @@ class FarmingTab extends JPanel
 	{
 		int seen = 0;
 		int done = 0;
+		int weeded = 0;
 		double progress = 0;
 		for (FarmingRunModule.OverviewPatch p : patches)
 		{
@@ -447,6 +451,10 @@ class FarmingTab extends JPanel
 				continue;
 			}
 			seen++;
+			if (p.weeds)
+			{
+				weeded++; // nothing planted here
+			}
 			switch (p.cropState)
 			{
 				case HARVESTABLE:
@@ -470,14 +478,14 @@ class FarmingTab extends JPanel
 					break;
 			}
 		}
-		boolean ready = seen > 0 && done == seen;
-		OverviewTile tile = new OverviewTile(progress, ready, expandedOverview.contains(category),
-			category.getName(), () ->
+		// nothing planted anywhere in this category — no status border at all
+		boolean onlyWeeds = seen > 0 && weeded == seen;
+		boolean ready = !onlyWeeds && seen > 0 && done == seen;
+		OverviewTile tile = new OverviewTile(onlyWeeds ? 0 : progress, ready, onlyWeeds,
+			category == expandedOverview, category.getName(), () ->
 			{
-				if (!expandedOverview.remove(category))
-				{
-					expandedOverview.add(category);
-				}
+				// single expansion: a second click on the open tile closes it
+				expandedOverview = category == expandedOverview ? null : category;
 				rebuildOverview();
 			});
 		if (itemManager != null)
@@ -505,12 +513,15 @@ class FarmingTab extends JPanel
 		private java.awt.Image icon;
 		private final double progress;
 		private final boolean ready;
+		private final boolean onlyWeeds;
 		private final boolean expanded;
 
-		OverviewTile(double progress, boolean ready, boolean expanded, String tooltip, Runnable onClick)
+		OverviewTile(double progress, boolean ready, boolean onlyWeeds, boolean expanded,
+			String tooltip, Runnable onClick)
 		{
 			this.progress = progress;
 			this.ready = ready;
+			this.onlyWeeds = onlyWeeds;
 			this.expanded = expanded;
 			setPreferredSize(new Dimension(34, 30));
 			setMinimumSize(new Dimension(34, 30));
@@ -546,11 +557,16 @@ class FarmingTab extends JPanel
 			{
 				g2.drawImage(icon, (w - 24) / 2, (h - 24) / 2, null);
 			}
+			if (onlyWeeds)
+			{
+				g2.dispose(); // nothing planted — no border of any kind
+				return;
+			}
 			if (ready)
 			{
-				g2.setColor(net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR);
-				g2.setStroke(new java.awt.BasicStroke(2));
-				g2.drawRect(1, 1, w - 3, h - 3);
+				g2.setColor(net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR.darker());
+				g2.setStroke(new java.awt.BasicStroke(1));
+				g2.drawRect(0, 0, w - 1, h - 1);
 			}
 			else
 			{
@@ -616,6 +632,14 @@ class FarmingTab extends JPanel
 		{
 			itemManager.getImage(patch.produceItemId).addTo(panel.getIcon());
 		}
+		// hovering a patch says what's planted there
+		String planted = patch.cropState == null ? "Unknown state"
+			: (patch.weeds ? "Nothing planted" : patch.produceName);
+		String tooltip = patch.name + " — " + planted;
+		panel.setToolTipText(tooltip);
+		panel.getIcon().setToolTipText(tooltip);
+		panel.getText().setToolTipText(tooltip);
+		panel.getEstimate().setToolTipText(tooltip);
 		net.runelite.client.ui.components.ThinProgressBar bar = panel.getProgress();
 		if (patch.cropState == null)
 		{
