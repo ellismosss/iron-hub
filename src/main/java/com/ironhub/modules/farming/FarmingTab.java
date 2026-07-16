@@ -10,6 +10,7 @@ import com.ironhub.ui.components.ListRow;
 import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.components.SearchField;
 import com.ironhub.ui.components.SectionLabel;
+import com.ironhub.ui.components.SpriteCache;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -52,6 +53,7 @@ class FarmingTab extends JPanel
 	private final AccountState state;
 	private final FarmingRunModule module;
 	private final net.runelite.client.game.ItemManager itemManager; // null in headless tests
+	private final SpriteCache sprites;
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 	/** The one category expanded under the overview tile strip (null = none). */
 	private Tab expandedOverview;
@@ -74,6 +76,7 @@ class FarmingTab extends JPanel
 		this.state = state;
 		this.module = module;
 		this.itemManager = itemManager;
+		this.sprites = new SpriteCache(itemManager, this::rebuild);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
 		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
@@ -428,12 +431,10 @@ class FarmingTab extends JPanel
 		icon.setPreferredSize(new Dimension(RUN_ICON, RUN_ICON));
 		icon.setMinimumSize(new Dimension(RUN_ICON, RUN_ICON));
 		icon.setMaximumSize(new Dimension(RUN_ICON, RUN_ICON));
-		int itemId = module.runIcon(name);
-		if (itemManager != null && itemId > 0)
+		java.awt.Image sprite = sprites.get(module.runIcon(name), RUN_ICON);
+		if (sprite != null)
 		{
-			net.runelite.client.util.AsyncBufferedImage img = itemManager.getImage(itemId);
-			img.onLoaded(() -> icon.setIcon(new javax.swing.ImageIcon(
-				img.getScaledInstance(RUN_ICON, RUN_ICON, java.awt.Image.SCALE_SMOOTH))));
+			icon.setIcon(new javax.swing.ImageIcon(sprite));
 		}
 		return icon;
 	}
@@ -508,11 +509,7 @@ class FarmingTab extends JPanel
 				expandedOverview = category == expandedOverview ? null : category;
 				rebuildOverview();
 			});
-		if (itemManager != null)
-		{
-			net.runelite.client.util.AsyncBufferedImage img = itemManager.getImage(category.getItemID());
-			img.onLoaded(() -> tile.setIconImage(img.getScaledInstance(24, 24, java.awt.Image.SCALE_SMOOTH)));
-		}
+		tile.setIconImage(sprites.get(category.getItemID(), 24));
 		return tile;
 	}
 

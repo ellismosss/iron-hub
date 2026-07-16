@@ -449,3 +449,25 @@ used a `HashMap<Tab, ...>` while the rest of that class already used `EnumMap`.
 
 Use `EnumMap` (iterates in ordinal order) or a `TreeMap`, and have the UI state
 its display order explicitly rather than inheriting a map's iteration order.
+
+## Panel icons — never re-request an item sprite on every rebuild
+
+`ItemManager.getImage(id)` returns ONE shared `AsyncBufferedImage` per item, and
+`AsyncBufferedImage.onLoaded(r)` either **appends to an unbounded listener list**
+(while the sprite is unresolved) or **queues `r` on the client thread** (once it
+is). Neither is free, and a tab that calls it on every rebuild pays it every
+time.
+
+The trap is the login screen. `ItemManager.loadImage` refuses to resolve
+anything while `gameState < LOGIN_SCREEN`, so listeners registered there just
+pile up — one set per rebuild, and the panel rebuilds on every AccountState
+change. The moment the game state advances (i.e. you click Play Now) `loaded()`
+runs **every** accumulated listener at once, synchronously, on the client
+thread, in the middle of the login sequence. With a slow `SCALE_SMOOTH` in each
+callback that is enough to stall the client.
+
+Use `com.ironhub.ui.components.SpriteCache` (one request per item id + size for
+the life of the tab, scaled once, repaint when it lands). ItemManager's own
+javadoc says the same thing for the simple case: *"If this is used for a UI
+label/button, it should be added using AsyncBufferedImage::addTo"* — `addTo` is
+safe because it adds a listener only while unloaded and does nothing after.

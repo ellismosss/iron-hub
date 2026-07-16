@@ -6,6 +6,7 @@ import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.components.IconButton;
 import com.ironhub.ui.components.ListRow;
 import com.ironhub.ui.components.SectionLabel;
+import com.ironhub.ui.components.SpriteCache;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -40,11 +41,13 @@ class DailiesTab extends JPanel
 
 	private final JPanel topBar = new JPanel();
 	private final JPanel body = new JPanel();
+	private final SpriteCache sprites;
 
 	DailiesTab(DailiesModule module)
 	{
 		this.module = module;
 		this.state = module.state();
+		this.sprites = new SpriteCache(module.itemManager(), this::rebuild);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
 		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
@@ -291,13 +294,7 @@ class DailiesTab extends JPanel
 		// so both get the farm strip's nothing-here treatment: dim, no border.
 		boolean mine = state.isDailySelected(daily.id) && current != DailyTracker.State.LOCKED;
 		DailyTile tile = new DailyTile(mine ? tileBorder(current) : null, !mine, daily.name);
-		if (module.itemManager() != null)
-		{
-			net.runelite.client.util.AsyncBufferedImage img =
-				module.itemManager().getImage(daily.icon);
-			img.onLoaded(() -> tile.setIconImage(
-				img.getScaledInstance(TILE_ICON, TILE_ICON, java.awt.Image.SCALE_SMOOTH)));
-		}
+		tile.setIconImage(sprites.get(daily.icon, TILE_ICON));
 		return tile;
 	}
 
