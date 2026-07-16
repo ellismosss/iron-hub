@@ -1355,17 +1355,21 @@ public class FarmingRunModule implements IronHubModule
 					entry.getKey()));
 			}
 		}
+		// Tile order is Tab order, stated here rather than inherited from however
+		// the tracker happens to iterate — the tiles must sit in the same place
+		// every session, and an order borrowed from a map's iteration is exactly
+		// how they came to rearrange themselves.
 		java.util.LinkedHashMap<Tab, List<OverviewPatch>> out = new java.util.LinkedHashMap<>();
-		for (java.util.Map.Entry<Tab, List<OverviewPatch>> entry : grouped.entrySet())
-		{
-			if (seenGroups.contains(entry.getKey()))
+		grouped.entrySet().stream()
+			.filter(entry -> seenGroups.contains(entry.getKey()))
+			.sorted(java.util.Map.Entry.comparingByKey())
+			.forEach(entry ->
 			{
 				entry.getValue().sort(java.util.Comparator
 					.comparingInt((OverviewPatch p) -> p.sourceTab.ordinal())
 					.thenComparing(p -> p.name));
 				out.put(entry.getKey(), entry.getValue());
-			}
-		}
+			});
 		return out;
 	}
 

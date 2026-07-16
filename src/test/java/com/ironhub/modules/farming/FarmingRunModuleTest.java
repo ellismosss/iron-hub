@@ -361,6 +361,54 @@ public class FarmingRunModuleTest
 		module.shutDown();
 	}
 
+	/**
+	 * The tiles must sit in the same place every session. They used to be
+	 * ordered by however the tracker's Tab-keyed map iterated — and a HashMap
+	 * keyed by an enum iterates by IDENTITY hash, which differs on every JVM
+	 * run, so the strip rearranged itself between logins.
+	 */
+	@Test
+	public void overviewTilesAreAlwaysInTabOrder()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		ConfigManager configManager = TimetrackingFixture.configManager();
+		long now = Instant.now().getEpochSecond();
+		// seed three categories, deliberately NOT in Tab order
+		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
+			herbValue(Produce.RANARR, CropState.HARVESTABLE, 0), now);
+		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_A,
+			allotmentValue(), now);
+		FarmingRunModule module = module(state, configManager, null);
+		module.refreshTracking();
+
+		List<com.ironhub.modules.farming.rl.Tab> tiles =
+			new java.util.ArrayList<>(module.overviewByCategory().keySet());
+		List<com.ironhub.modules.farming.rl.Tab> sorted = new java.util.ArrayList<>(tiles);
+		sorted.sort(java.util.Comparator.naturalOrder());
+		assertEquals("tiles must be in Tab order, not a map's iteration order",
+			sorted, tiles);
+		assertTrue("expected at least two tiles to order", tiles.size() >= 2);
+
+		// and the same call twice must not shuffle
+		assertEquals(tiles, new java.util.ArrayList<>(module.overviewByCategory().keySet()));
+		module.shutDown();
+	}
+
+	/** Any planted allotment value — swept from the real decoder, not guessed. */
+	private static int allotmentValue()
+	{
+		for (int value = 0; value < 256; value++)
+		{
+			PatchState state = PatchImplementation.ALLOTMENT.forVarbitValue(value);
+			if (state != null && state.getCropState() == CropState.GROWING
+				&& state.getProduce() != Produce.WEEDS)
+			{
+				return value;
+			}
+		}
+		throw new AssertionError("no growing allotment value in the decoder");
+	}
+
 	@Test
 	public void overviewTilesMergeCalquatCelastrusIntoTreeAndSpecials()
 	{

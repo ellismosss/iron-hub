@@ -28,7 +28,6 @@ package com.ironhub.modules.farming.rl;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -337,7 +336,11 @@ public class FarmingTracker
 	 *  its own category (the reminder plugin's customization). */
 	private Map<Tab, Set<FarmingPatch>> buildCustomTabData()
 	{
-		Map<Tab, Set<FarmingPatch>> customTabData = new HashMap<>();
+		// EnumMap, not HashMap: enums hash by IDENTITY, so a HashMap keyed by Tab
+		// iterates in a different order on every JVM run — which is exactly what
+		// made the overview's category tiles rearrange between sessions. An
+		// EnumMap always iterates in Tab order, like FarmingWorld's own TreeMap.
+		Map<Tab, Set<FarmingPatch>> customTabData = new EnumMap<>(Tab.class);
 		for (Map.Entry<Tab, Set<FarmingPatch>> entry : farmingWorld.getTabs().entrySet())
 		{
 			for (FarmingPatch patch : entry.getValue())
