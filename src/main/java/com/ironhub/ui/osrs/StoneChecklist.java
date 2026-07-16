@@ -14,24 +14,21 @@ import javax.swing.JPanel;
  * not each get their own box). Rows highlight under the pointer and toggle on
  * press; ticked rows go green, matching the skin's "done" reading.
  *
- * <p>The highlight band sits 1px inside the engraved edge and wraps the
- * checkbox with a 1px gap on every side, mirrored at the right (Luke,
- * in-client 2026-07-16: the stat-box padding left an ugly gap, full-bleed
- * stretched too far — 1px is the line). The top/bottom frame padding is the
- * corner stamp's own height, which is the first row that clears the notch.
+ * <p>The highlight band is inset EQUALLY on all four sides — the corner
+ * stamp's height, which is both the first row that clears the notch and the
+ * spacing Luke asked the sides to match (2026-07-16: full-bleed stretched
+ * too far, a 1px side gap left the band closer to the sides than the top).
+ * Within the band, the checkbox keeps its 1px gap on every side.
  */
 public class StoneChecklist extends StonePanel
 {
-	/** 2px of border line + the 1px gap the band leaves outside itself. */
-	private static final int SIDE_PAD = 3;
-
 	public StoneChecklist(OsrsTheme theme)
 	{
 		super(theme);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		int corner = theme.cornerStamp.length;
 		setBorder(new StoneBorder(theme, theme.background,
-			new Insets(corner, SIDE_PAD, corner, SIDE_PAD)));
+			new Insets(corner, corner, corner, corner)));
 	}
 
 	public StoneChecklist row(String text, boolean checked)

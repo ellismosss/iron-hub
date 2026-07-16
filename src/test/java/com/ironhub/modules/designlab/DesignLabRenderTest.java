@@ -208,12 +208,14 @@ public class DesignLabRenderTest
 	}
 
 	/**
-	 * The highlight band wraps the checkbox with a 1px gap on every side and
-	 * mirrors that gap at the right — Luke walked this one to the pixel: the
-	 * stat-box padding left an ugly gap, full-bleed stretched too far.
+	 * The highlight band is inset EQUALLY on all four sides (Luke walked
+	 * this to the pixel across two rounds: the stat-box padding left an ugly
+	 * gap, full-bleed stretched too far, and a 1px side gap left the band
+	 * closer to the sides than to the top). Within the band, the checkbox
+	 * keeps its 1px gap on every side.
 	 */
 	@Test
-	public void checklistHighlightKeepsAOnePixelGapAroundTheCheckbox()
+	public void checklistBandIsInsetEquallyAndWrapsTheCheckbox()
 	{
 		for (OsrsTheme theme : OsrsTheme.values())
 		{
@@ -229,10 +231,10 @@ public class DesignLabRenderTest
 			assertEquals("gap above the checkbox", 1, box.getY());
 			assertEquals("gap below the checkbox", 1, row.getHeight() - box.getHeight() - box.getY());
 
-			// and the band itself sits 1px inside the engraved edge, mirrored
 			java.awt.Insets in = list.getInsets();
-			assertEquals("band not inset from the left edge", 3, in.left);
+			assertEquals("side inset must equal the top inset", in.top, in.left);
 			assertEquals("right gap does not mirror the left", in.left, in.right);
+			assertEquals("bottom inset must equal the top inset", in.top, in.bottom);
 			assertEquals("band does not span the frame's inner width",
 				list.getWidth() - in.left - in.right, row.getWidth());
 		}

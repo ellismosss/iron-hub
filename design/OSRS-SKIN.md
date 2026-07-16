@@ -166,9 +166,11 @@ caller**, and the trough is `OsrsSkin.BAR_TROUGH` `#3E3830` — Luke's value, an
 theme-independent like the rest of the bar, since each theme's sunken `recess` swallowed
 it against the backing (RuneLite's own XP-tracker trough is `#3D3831`).
 
-**The checklist highlight is a band, not a bleed** (Luke walked it to the pixel): it sits
-1px inside the engraved edge, mirrored right, and wraps the checkbox with a 1px gap on
-every side. The stat-box padding left an ugly gap; full-bleed stretched too far.
+**The checklist highlight is a band, not a bleed** (Luke walked it to the pixel across
+three rounds): the band is inset EQUALLY on all four sides — the corner stamp's height,
+so the side spacing matches the top-row spacing — and wraps the checkbox with a 1px gap
+on every side. The stat-box padding left an ugly gap; full-bleed stretched too far; a
+1px side gap left the band closer to the sides than the top.
 
 **Tabs were tried and cut** (2026-07-16): a `StoneTabStrip` was built beside the nav
 stones so the two could be judged in-client, and Luke picked the stones. The strip is
