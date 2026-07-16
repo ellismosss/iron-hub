@@ -29,6 +29,10 @@ public enum OsrsTheme
 		new Color(0x6A6053),  // selectFill: DERIVED (boxFill +21, the tab-strip lift)
 		new Color(0x877F6C),  // selectEdge: outer window frame's brightest stone
 		new Color(0x00FE00),  // checkMark: Settings interface checkbox green
+		new Color(0x6A5C43),  // scrollThumb: Settings scrollbar (its gradient, flattened)
+		new Color(0x252019),  // scrollTrough: Settings scrollbar track
+		new Color(0x372E22),  // fieldFill: Settings search field interior
+		new Color(0x31281C),  // fieldEdge: Settings search field inner line
 		new String[]{
 			"BBBBBDD",
 			"BBBBBDL",
@@ -57,6 +61,10 @@ public enum OsrsTheme
 		new Color(0x2F2F2F),  // selectFill: resizeable_mode/tab_stone_middle_selected.png
 		new Color(0x7C7C7C),  // selectEdge: tab_stone_middle_selected.png bevel
 		new Color(0x65C772),  // checkMark: options/square_check_box_checked.png
+		new Color(0x2B2B2B),  // scrollThumb: scrollbar/thumb_middle.png
+		new Color(0x141414),  // scrollTrough: overrides.toml's universal dark backing
+		new Color(0x141414),  // fieldFill: overrides.toml item_search.background
+		new Color(0x232323),  // fieldEdge: overrides.toml dropdown.border.inner
 		new String[]{
 			"BBBBDD",
 			"BBBDLL",
@@ -87,6 +95,19 @@ public enum OsrsTheme
 	public final Color selectEdge;
 	/** Checkbox tick. */
 	public final Color checkMark;
+	/** Scrollbar thumb interior. */
+	public final Color scrollThumb;
+	/** Scrollbar track. */
+	public final Color scrollTrough;
+	/** Text field / dropdown interior — sunken, like the game's own. */
+	public final Color fieldFill;
+	/**
+	 * The field's inner line. Its own token because a field is a sunken well,
+	 * not an engraved box: the game steps from a dark outline through a mid
+	 * tone into the interior, and MYSTIC's interior IS its edgeDark, so
+	 * reusing the box tokens would leave its fields borderless.
+	 */
+	public final Color fieldEdge;
 	/**
 	 * Top-left corner pixel stamp, mirrored to the other three corners.
 	 * B = outside, D = dark line, L = light line, F = box fill.
@@ -95,7 +116,8 @@ public enum OsrsTheme
 
 	OsrsTheme(String displayName, Color background, Color boxFill, Color edgeDark, Color edgeLight,
 		Color recess, Color hoverFill, Color pressFill, Color selectFill, Color selectEdge,
-		Color checkMark, String[] cornerStamp)
+		Color checkMark, Color scrollThumb, Color scrollTrough, Color fieldFill, Color fieldEdge,
+		String[] cornerStamp)
 	{
 		this.displayName = displayName;
 		this.background = background;
@@ -108,6 +130,10 @@ public enum OsrsTheme
 		this.selectFill = selectFill;
 		this.selectEdge = selectEdge;
 		this.checkMark = checkMark;
+		this.scrollThumb = scrollThumb;
+		this.scrollTrough = scrollTrough;
+		this.fieldFill = fieldFill;
+		this.fieldEdge = fieldEdge;
 		this.cornerStamp = cornerStamp;
 	}
 

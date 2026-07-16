@@ -8,20 +8,25 @@ import com.ironhub.ui.osrs.OsrsTheme;
 import com.ironhub.ui.osrs.StatBox;
 import com.ironhub.ui.osrs.StoneButton;
 import com.ironhub.ui.osrs.StoneChecklist;
+import com.ironhub.ui.osrs.StoneComboBoxUI;
 import com.ironhub.ui.osrs.StoneFrame;
 import com.ironhub.ui.osrs.StoneMeter;
 import com.ironhub.ui.osrs.StoneNavButton;
 import com.ironhub.ui.osrs.StonePanel;
 import com.ironhub.ui.osrs.StoneProgressBar;
+import com.ironhub.ui.osrs.StoneScrollBarUI;
+import com.ironhub.ui.osrs.StoneTextField;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.border.EmptyBorder;
 
 /**
@@ -78,6 +83,11 @@ public class DesignLabTab extends JPanel
 		frame.add(strut(3));
 		frame.add(pad(new StoneMeter(theme, BAR_BLUE, 0.18)));
 
+		frame.add(section("Fields"));
+		frame.add(pad(new StoneTextField(theme, "Search modules…")));
+		frame.add(strut(3));
+		frame.add(pad(fieldRow()));
+
 		frame.add(section("Checklist"));
 		frame.add(pad(new StoneChecklist(theme)
 			.row("Ardougne cloak 4", true)
@@ -133,6 +143,30 @@ public class DesignLabTab extends JPanel
 			row.add(new StoneNavButton(theme, icon, i == 0, null));
 		}
 		row.add(Box.createHorizontalGlue());
+		cap(row);
+		return row;
+	}
+
+	/** A dropdown beside the scrollbar, which needs a real component to read. */
+	private JComponent fieldRow()
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+
+		JComboBox<String> combo = StoneComboBoxUI.skin(
+			new JComboBox<>(new String[]{"All tiers", "Elite", "Master"}), theme);
+		combo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
+		row.add(combo);
+		row.add(Box.createHorizontalStrut(6));
+
+		// a bare JScrollBar, not a scroll pane: the shell already owns the
+		// one scroll surface, and nesting panes sticks the wheel
+		JScrollBar bar = StoneScrollBarUI.skin(new JScrollBar(JScrollBar.VERTICAL, 30, 40, 0, 100), theme);
+		bar.setPreferredSize(new Dimension(StoneScrollBarUI.THICKNESS, 74));
+		bar.setMaximumSize(bar.getPreferredSize());
+		row.add(bar);
 		cap(row);
 		return row;
 	}

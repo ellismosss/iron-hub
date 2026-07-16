@@ -137,6 +137,9 @@ pattern is always **icon + green value** on one line under an orange label.
 | `StoneProgressBar` | tall bar with left/center/right labels inside |
 | `StoneMeter` | the thin bar, 5px, no text |
 | `StoneCheckbox` / `StoneChecklist` | the game's tick box; rows grouped inside ONE notched frame |
+| `StoneScrollBarUI` | 16px track + bevelled thumb + stone arrow buttons |
+| `StoneTextField` | the sunken input, with placeholder |
+| `StoneComboBoxUI` | the dropdown: sunken value + stone arrow + skinned popup list |
 
 **Two button idioms exist in the game** and it matters which we copy: the Settings
 interface's buttons are a *raised* black-outline bevel (`#000000` outline, `#8A7757`
@@ -200,10 +203,27 @@ minimums — so the regression test mounts the tab like the client and lays out 
 OsrsLabel also centers its text block in whatever height it is given, so any future
 allocation quirk shifts text instead of clipping glyphs.
 
-Still open (phase 3): scrollbar restyle (the pack ships a `scrollbar/` folder), text
-inputs / dropdowns (both visible in `File:Settings_interface.png`), the fixed-mode
-mottled outer frame if anyone wants it, and then the migration pilot — one real module
-adopting the skin.
+**Phase 3 — inputs (done).** All three are sampled the same way: the scrollbar from
+`File:Settings_interface.png` (thumb + arrows over a `#252019` track) and the pack's
+`scrollbar/*.png` (`#141414` outer, `#383838` bevel, `#2B2B2B` fill); the field from the
+same screenshot's search box (`#261D11` outline, `#31281C` inner, `#372E22` interior,
+`#FF981F` text) and the pack's `overrides.toml` (`item_search.background #141414`); the
+dropdown from that screenshot's "Exact Value" control and `dropdown.border.inner
+#232323`. Vanilla's thumb carries a gradient, flattened to its mean (flat fills are the
+house rule; the bevel is what reads).
+
+`fieldEdge` earns its own token because **a field is a sunken well, not an engraved
+box**: the game steps dark outline → mid tone → interior, and MYSTIC's interior *is* its
+`edgeDark`, so reusing the box tokens left its fields borderless.
+
+`StoneScrollBarUI` and `StoneComboBoxUI` skin the **real Swing components** rather than
+replacing them — five modules already use `JComboBox` and several use `JTextField`, so a
+migration is a styling swap, not a rewrite. The lab demos the scrollbar as a bare
+`JScrollBar`, never a nested `JScrollPane`: the shell owns the one scroll surface, and
+wiring the skin into it is a phase-4 decision.
+
+Still open: the fixed-mode mottled outer frame if anyone wants it, and the migration
+pilot — one real module adopting the skin.
 
 ## Fidelity assessment — how close can the sidebar get?
 
