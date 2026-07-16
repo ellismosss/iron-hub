@@ -9,6 +9,7 @@ import com.ironhub.ui.osrs.StatBox;
 import com.ironhub.ui.osrs.StoneButton;
 import com.ironhub.ui.osrs.StoneFrame;
 import com.ironhub.ui.osrs.StoneNavButton;
+import com.ironhub.ui.osrs.StoneProgressBar;
 import com.ironhub.ui.osrs.StonePanel;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -34,10 +35,17 @@ import net.runelite.api.Skill;
  */
 public class HomePanel extends JPanel
 {
-	/** Seven blocks share the frame's ~203px inner width — the same squeeze
-	 *  the game's own resizable tab row makes on its stones. */
-	private static final int NAV_W = 29;
+	/**
+	 * Seven blocks share the summary boxes' 201px row: GridLayout(1,7) with
+	 * 2px gaps divides it into exact 27px cells, so the nav row lines up
+	 * flush with the block edges above (Luke: same width as the boxes).
+	 */
+	private static final int NAV_W = 27;
 	private static final int NAV_H = 36;
+	private static final int NAV_GAP = 2;
+
+	/** RuneLite's XP-tracker blue — the goal bar reads as progress, not status. */
+	private static final java.awt.Color GOAL_BLUE = new java.awt.Color(0x3D5FBF);
 
 	/** name → tooltip, in Luke's order; icon files live at data/icons/osrs/nav/. */
 	private static final String[][] NAV = {
@@ -172,19 +180,40 @@ public class HomePanel extends JPanel
 		xp.add(Box.createHorizontalGlue());
 		cap(xp);
 		panel.add(xp);
+		panel.add(Box.createVerticalStrut(3));
+
+		// goal progress + achievements — SAMPLE data until their wiring lands
+		JPanel pair2 = new JPanel(new GridLayout(1, 2, 3, 0));
+		pair2.setOpaque(false);
+		pair2.setAlignmentX(LEFT_ALIGNMENT);
+		pair2.add(goalBox());
+		pair2.add(new StatBox(theme, "Achievements\nCompleted:",
+			OsrsIcons.stat(theme, "achievements"), "397/492"));
+		cap(pair2);
+		panel.add(pair2);
 
 		cap(panel);
 		return panel;
 	}
 
-	/** The seven stones, flush like the game's own tab row. Not wired yet. */
+	/** "Progress to next goal": a bar where a stat box would carry its value. */
+	private JComponent goalBox()
+	{
+		StonePanel box = new StonePanel(theme);
+		box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
+		box.add(OsrsLabel.label("Progress to\nnext goal:"));
+		box.add(Box.createVerticalStrut(3));
+		box.add(new StoneProgressBar(theme, GOAL_BLUE, 0.31).labels(null, "31%", null));
+		return box;
+	}
+
+	/** The seven stones, spread across the summary's row width. Not wired yet. */
 	private JComponent navRow()
 	{
-		JPanel row = new JPanel();
-		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		JPanel row = new JPanel(new GridLayout(1, NAV.length, NAV_GAP, 0));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.add(Box.createHorizontalGlue());
+		row.setBorder(new EmptyBorder(0, 4, 0, 4));
 		for (String[] block : NAV)
 		{
 			StoneNavButton stone = new StoneNavButton(theme,
@@ -192,7 +221,6 @@ public class HomePanel extends JPanel
 			stone.setToolTipText(block[1]);
 			row.add(stone);
 		}
-		row.add(Box.createHorizontalGlue());
 		cap(row);
 		return row;
 	}
