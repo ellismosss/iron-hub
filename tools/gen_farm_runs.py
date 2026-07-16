@@ -272,6 +272,12 @@ CURATED += [
     # 45 Farming is the guild door and the lowest contract tier.
     {"id": "contract/farming-guild", "category": "contract", "name": "Farming Guild",
      "point": (1238, 3726, 0), "reqs": ["skill:Farming:45"], "copy": "herb/farming-guild"},
+    # Hespori (Luke, 2026-07-16): the boss patch in the cave under the guild's
+    # west wing — 65 Farming to plant (wiki), tile in the vendored HESPORI
+    # region 5021 so live state resolves. Routing rides the guild teleports;
+    # the cave entrance is inside.
+    {"id": "hespori/farming-guild", "category": "hespori", "name": "Farming Guild cave",
+     "point": (1247, 10086, 0), "reqs": ["skill:Farming:65"], "copy": "herb/farming-guild"},
 ]
 
 # Allotment/flower/herb run companions: each herb area also carries allotment
@@ -399,6 +405,10 @@ ROUTES = {
     # last in the default picker order, where its status row used to sit.
     "Farming contract": [
         "contract/farming-guild",
+    ],
+    # Hespori: plant the seed / fight the grown boss, one stop under the guild.
+    "Hespori": [
+        "hespori/farming-guild",
     ],
 }
 

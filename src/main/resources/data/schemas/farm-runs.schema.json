@@ -32,7 +32,7 @@
 				"minItems": 1,
 				"items": {
 					"type": "string",
-					"pattern": "^(herb|tree|fruit|hops|calquat|celastrus|hardwood|bush|allotment|flower|compost|birdhouse|contract)/[a-z0-9-]+$"
+					"pattern": "^(herb|tree|fruit|hops|calquat|celastrus|hardwood|bush|allotment|flower|compost|birdhouse|contract|hespori)/[a-z0-9-]+$"
 				}
 			}
 		},
@@ -57,7 +57,7 @@
 				"properties": {
 					"id": {
 						"type": "string",
-						"pattern": "^(herb|tree|fruit|hops|calquat|celastrus|hardwood|bush|allotment|flower|compost|birdhouse|contract)/[a-z0-9-]+$"
+						"pattern": "^(herb|tree|fruit|hops|calquat|celastrus|hardwood|bush|allotment|flower|compost|birdhouse|contract|hespori)/[a-z0-9-]+$"
 					},
 					"reqs": {
 						"type": "array",
@@ -80,7 +80,8 @@
 							"flower",
 							"compost",
 							"birdhouse",
-							"contract"
+							"contract",
+							"hespori"
 						]
 					},
 					"name": {

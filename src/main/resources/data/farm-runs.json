@@ -2747,6 +2747,73 @@
    ]
   },
   {
+   "id": "hespori/farming-guild",
+   "category": "hespori",
+   "name": "Farming Guild cave",
+   "point": {
+    "x": 1247,
+    "y": 10086,
+    "plane": 0
+   },
+   "reqs": [
+    "skill:Farming:65"
+   ],
+   "teleports": [
+    {
+     "id": "Jewellery_box",
+     "category": "JEWELLERY_BOX",
+     "description": "Teleport to Farming guild with Jewellery box.",
+     "supplier": "house",
+     "items": []
+    },
+    {
+     "id": "Skills_Necklace",
+     "category": "ITEM",
+     "description": "Teleport to Farming guild using Skills necklace.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 11111,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "Spirit_Tree",
+     "category": "SPIRIT_TREE",
+     "description": "Use a Spirit Tree and teleport to the Farming Guild.",
+     "supplier": null,
+     "items": []
+    },
+    {
+     "id": "Fairy_Ring",
+     "category": "FAIRY_RING",
+     "description": "Use a Fairy Ring (CIR) to teleport near the Farming Guild.",
+     "supplier": "fairyRing",
+     "items": []
+    },
+    {
+     "id": "Farming_Skillcape",
+     "category": "ITEM",
+     "description": "Teleport to the Farming Guild with Farming skillcape.",
+     "supplier": null,
+     "items": [
+      {
+       "itemId": 9810,
+       "qty": 1
+      }
+     ]
+    },
+    {
+     "id": "None",
+     "category": "NONE",
+     "description": "No teleport - travel there on your own.",
+     "supplier": null,
+     "items": []
+    }
+   ]
+  },
+  {
    "id": "allotment/falador",
    "category": "allotment",
    "name": "Falador",
@@ -4313,6 +4380,9 @@
   ],
   "Farming contract": [
    "contract/farming-guild"
+  ],
+  "Hespori": [
+   "hespori/farming-guild"
   ]
  }
 }

@@ -768,6 +768,116 @@ public class FarmingRunModuleTest
 		module.shutDown();
 	}
 
+	/**
+	 * A combined run's bank setup follows the CURRENT stop: a tree stop
+	 * serves the Trees loadout, the herb stop after it serves Herbs — the
+	 * bank re-applies on every open, so advancing switches the suggestion.
+	 */
+	@Test
+	public void combinedRunServesTheSetupOfTheCurrentStop()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		StateFixture.bank(state, Map.of(5370, 1)); // an oak sapling: the tree stop survives culling
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+
+		com.ironhub.state.PersistedState.SavedSetup trees =
+			new com.ironhub.state.PersistedState.SavedSetup();
+		trees.inventory = new int[]{5370};
+		trees.inventoryQty = new int[]{1};
+		state.saveFarmRunSetup(FarmingRunModule.bucketKey("Trees"), trees);
+		com.ironhub.state.PersistedState.SavedSetup herbs =
+			new com.ironhub.state.PersistedState.SavedSetup();
+		herbs.inventory = new int[]{8013};
+		herbs.inventoryQty = new int[]{4};
+		state.saveFarmRunSetup(FarmingRunModule.bucketKey("Herbs"), herbs);
+
+		state.saveFarmRun("Tree then herb", List.of("tree/falador", "herb/falador"));
+		module.startCustom("Tree then herb");
+		assertEquals(2, module.stops().size());
+
+		// at the tree stop: the Trees setup
+		assertEquals("tree/falador", module.nextStop().location.id);
+		assertEquals(trees.inventory[0], module.activeSetup().inventory[0]);
+
+		// past it, at the herb stop: the Herbs setup
+		module.markThrough("tree/falador");
+		assertEquals("herb/falador", module.nextStop().location.id);
+		assertEquals(herbs.inventory[0], module.activeSetup().inventory[0]);
+		module.endRun(false);
+		module.shutDown();
+	}
+
+	/**
+	 * Hespori is a startable one-stop run at the cave under the guild: gated
+	 * on 65 Farming, culled while the boss crop grows, "Ready" when it wants
+	 * fighting, its own Hespori setup bucket (combat gear, not farming kit),
+	 * and auto-advance on planting alone — the patch takes no compost.
+	 */
+	@Test
+	public void hesporiRunGrowsCullsAndServesItsOwnBucket()
+	{
+		assertEquals(com.ironhub.modules.farming.rl.Tab.HESPORI,
+			FarmingRunModule.categoryTab("hespori"));
+		assertEquals("Hespori", FarmingRunModule.setupBucket("hespori"));
+
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		ConfigManager configManager = TimetrackingFixture.configManager();
+		FarmingRunModule module = module(state, configManager, null);
+
+		// below 65 Farming the patch is locked, so the run has nothing
+		module.startTemplate("Hespori");
+		assertFalse(module.running());
+
+		StateFixture.stat(state, net.runelite.api.Skill.FARMING, 65, 500_000);
+		module.startTemplate("Hespori");
+		assertTrue(module.running());
+		assertEquals("hespori/farming-guild", module.nextStop().location.id);
+		assertEquals("Hespori",
+			FarmingRunModule.setupBucket(module.nextStop().location.category));
+		module.endRun(false);
+
+		// growing (22-32h) = nothing to do there: culled and not ready
+		TimetrackingFixture.patch(configManager, 5021,
+			net.runelite.api.gameval.VarbitID.FARMING_TRANSMIT_J,
+			hesporiValue(CropState.GROWING), Instant.now().getEpochSecond());
+		module.refreshTracking();
+		assertFalse(module.runReady("Hespori"));
+		module.startTemplate("Hespori");
+		assertFalse(module.running());
+
+		// grown: the boss is waiting
+		TimetrackingFixture.patch(configManager, 5021,
+			net.runelite.api.gameval.VarbitID.FARMING_TRANSMIT_J,
+			hesporiValue(CropState.HARVESTABLE), Instant.now().getEpochSecond());
+		module.refreshTracking();
+		assertTrue(module.runReady("Hespori"));
+		module.startTemplate("Hespori");
+		assertEquals(1, module.stops().size());
+		module.endRun(false);
+		module.shutDown();
+	}
+
+	/** A hespori varbit value for the wanted crop state, swept from the real
+	 *  decoder (a growing value must not be stage-complete or it predicts
+	 *  ready). */
+	private static int hesporiValue(CropState cropState)
+	{
+		PatchImplementation hespori = PatchImplementation.HESPORI;
+		for (int value = 0; value < 256; value++)
+		{
+			PatchState state = hespori.forVarbitValue(value);
+			if (state != null && state.getCropState() == cropState
+				&& state.getProduce() != Produce.WEEDS && state.getProduce().getItemID() > 0
+				&& (cropState != CropState.GROWING || state.getStage() == 0))
+			{
+				return value;
+			}
+		}
+		throw new IllegalStateException("no hespori varbit value for " + cropState);
+	}
+
 	@Test
 	public void overviewTilesMergeCalquatCelastrusIntoTreeAndSpecials()
 	{

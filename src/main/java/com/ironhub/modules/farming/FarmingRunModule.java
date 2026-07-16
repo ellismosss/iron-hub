@@ -82,6 +82,7 @@ public class FarmingRunModule implements IronHubModule
 		java.util.Map.entry("Tree run", Tab.TREE),
 		java.util.Map.entry("Fruit tree run", Tab.FRUIT_TREE),
 		java.util.Map.entry("Farming contract", Tab.SPECIAL),
+		java.util.Map.entry("Hespori", Tab.HESPORI),
 		java.util.Map.entry("Hops run", Tab.HOPS));
 
 	/**
@@ -575,9 +576,13 @@ public class FarmingRunModule implements IronHubModule
 		{
 			return;
 		}
-		if (!compostedHere)
+		if (!compostedHere && !"hespori".equals(next.location.category))
 		{
-			return; // planted but not yet composted — stay put
+			// planted but not yet composted — stay put. Hespori is exempt: its
+			// patch takes no compost, so planting IS the finished work (and the
+			// previous-run false-advance can't happen — a still-growing hespori
+			// never entered the run, and its varbit only moves on a live visit).
+			return;
 		}
 		advanceCurrentStop();
 	}
@@ -741,6 +746,10 @@ public class FarmingRunModule implements IronHubModule
 				return Tab.ALLOTMENT;
 			case "flower":
 				return Tab.FLOWER;
+			case "hespori":
+				// a real tracked patch: cull-on-growing and "Ready" work, but it
+				// takes no compost so the stop only ever advances by Skip
+				return Tab.HESPORI;
 			default:
 				return null;
 		}
@@ -776,6 +785,7 @@ public class FarmingRunModule implements IronHubModule
 			case "compost": type = "compost bin"; break;
 			case "birdhouse": type = "bird house"; break;
 			case "contract": type = "contract"; break;
+			case "hespori": type = "hespori"; break;
 			default: type = "herb";
 		}
 		return stop.location.name + " · " + type;
@@ -1398,10 +1408,12 @@ public class FarmingRunModule implements IronHubModule
 		return state.setupItemsToWithdraw(activeSetup());
 	}
 
-	// ── run-type bank setups (Trees / Herbs / Birdhouses / Others) ────
+	// ── run-type bank setups (Trees / Herbs / Birdhouses / Hespori / Others) ──
 
-	/** The four setup buckets, in display order. */
-	static final List<String> SETUP_BUCKETS = List.of("Trees", "Herbs", "Birdhouses", "Others");
+	/** The setup buckets, in display order. Hespori is its own: the "run" is
+	 *  a boss fight, so its loadout is combat gear, not farming kit. */
+	static final List<String> SETUP_BUCKETS =
+		List.of("Trees", "Herbs", "Birdhouses", "Hespori", "Others");
 
 	/** farmRunSetups key for a bucket setup — prefixed so a custom run named
 	 *  "Trees" can never collide with the Trees bucket. */
@@ -1427,40 +1439,31 @@ public class FarmingRunModule implements IronHubModule
 				return "Herbs";
 			case "birdhouse":
 				return "Birdhouses";
-			default: // hops, bush, compost, anything new
+			case "hespori":
+				return "Hespori";
+			default: // hops, bush, compost, contract, anything new
 				return "Others";
 		}
 	}
 
-	/** The active run's bucket: the most common bucket among its stops
-	 *  (first-seen wins a tie); "Others" for an empty run. */
-	private String activeBucket()
-	{
-		java.util.LinkedHashMap<String, Integer> counts = new java.util.LinkedHashMap<>();
-		for (Stop stop : stops)
-		{
-			counts.merge(setupBucket(stop.location.category), 1, Integer::sum);
-		}
-		String best = "Others";
-		int bestCount = 0;
-		for (java.util.Map.Entry<String, Integer> entry : counts.entrySet())
-		{
-			if (entry.getValue() > bestCount)
-			{
-				best = entry.getKey();
-				bestCount = entry.getValue();
-			}
-		}
-		return best;
-	}
-
-	/** The setup the bank should show for the active run: its own saved
-	 *  setup if the player made one, else its run-type bucket's. Null when
-	 *  neither exists (the bank is left alone). */
+	/**
+	 * The setup the bank should show right now: the run's own saved setup if
+	 * the player made one, else the CURRENT stop's bucket setup — a combined
+	 * run switches as it advances, so a tree stop serves the Trees loadout
+	 * and the herb stop after it serves Herbs (Luke's spec; the bank
+	 * re-applies on every open, which is when a restock happens). Null when
+	 * neither exists, or the run is finished (the bank is left alone).
+	 */
 	com.ironhub.state.PersistedState.SavedSetup activeSetup()
 	{
 		com.ironhub.state.PersistedState.SavedSetup own = state.getFarmRunSetup(runName);
-		return own != null ? own : state.getFarmRunSetup(bucketKey(activeBucket()));
+		if (own != null)
+		{
+			return own;
+		}
+		Stop next = nextStop();
+		return next == null ? null
+			: state.getFarmRunSetup(bucketKey(setupBucket(next.location.category)));
 	}
 
 	// ── patch views over the vendored predictions ─────────────────────

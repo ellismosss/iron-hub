@@ -318,11 +318,12 @@ class FarmingTab extends JPanel
 			setupPanel.add(hint("<div style='width:180px'>Wear and carry the loadout "
 				+ "you restock with, then click its run type. The bank shows it "
 				+ "during those runs.</div>", UiTokens.TEXT_FAINT));
-			JPanel grid = new JPanel(new java.awt.GridLayout(2, 2, UiTokens.PAD_TIGHT, UiTokens.PAD_TIGHT));
+			JPanel grid = new JPanel(new java.awt.GridLayout(0, 2, UiTokens.PAD_TIGHT, UiTokens.PAD_TIGHT));
 			grid.setOpaque(false);
 			grid.setAlignmentX(LEFT_ALIGNMENT);
+			int rows = (FarmingRunModule.SETUP_BUCKETS.size() + 1) / 2;
 			grid.setMaximumSize(new Dimension(Integer.MAX_VALUE,
-				2 * UiTokens.BUTTON_HEIGHT + UiTokens.PAD_TIGHT));
+				rows * (UiTokens.BUTTON_HEIGHT + UiTokens.PAD_TIGHT)));
 			for (String bucket : FarmingRunModule.SETUP_BUCKETS)
 			{
 				grid.add(setupButton(bucket));

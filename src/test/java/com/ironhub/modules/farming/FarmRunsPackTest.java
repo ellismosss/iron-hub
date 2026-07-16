@@ -33,7 +33,8 @@ public class FarmRunsPackTest
 		Map.entry("bush", PatchImplementation.BUSH),
 		Map.entry("allotment", PatchImplementation.ALLOTMENT),
 		Map.entry("flower", PatchImplementation.FLOWER),
-		Map.entry("compost", PatchImplementation.COMPOST));
+		Map.entry("compost", PatchImplementation.COMPOST),
+		Map.entry("hespori", PatchImplementation.HESPORI));
 
 	@Test
 	public void everyStopSitsOnARegionWithItsPatch()
