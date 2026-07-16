@@ -16,6 +16,12 @@ public class StatBox extends StonePanel
 {
 	public StatBox(String label, Icon icon, String value)
 	{
+		this(OsrsSkin.STONE, label, icon, value);
+	}
+
+	public StatBox(OsrsTheme theme, String label, Icon icon, String value)
+	{
+		super(theme);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		add(OsrsLabel.label(label));
 		add(Box.createVerticalStrut(2));

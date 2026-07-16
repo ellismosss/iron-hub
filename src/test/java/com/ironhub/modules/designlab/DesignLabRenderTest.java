@@ -3,6 +3,7 @@ package com.ironhub.modules.designlab;
 import com.ironhub.ui.SwingRender;
 import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.osrs.OsrsSkin;
+import com.ironhub.ui.osrs.OsrsTheme;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
@@ -13,9 +14,9 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Headless render of the OSRS-skin gallery for side-by-side comparison with
- * the wiki's native-1x Character Summary screenshot. Also pins the stone-box
- * anatomy: the corner notch must show BACKGROUND through the box, with the
- * engraved dark/light edge pair on every side.
+ * the source art (wiki 1x Character Summary; Mystic pack sprites). Pins the
+ * stone-box anatomy for BOTH themes: the corner notch must show the theme's
+ * backing through the box, with the engraved dark/light edge pair below.
  */
 public class DesignLabRenderTest
 {
@@ -24,34 +25,34 @@ public class DesignLabRenderTest
 	{
 		BufferedImage image = SwingRender.render(new DesignLabTab());
 		assertEquals(UiTokens.PANEL_WIDTH, image.getWidth());
-		assertTrue(image.getHeight() > 250);
+		assertTrue(image.getHeight() > 500);
 
 		File out = new File("build/reports/designlab-tab.png");
 		out.getParentFile().mkdirs();
 		ImageIO.write(image, "png", out);
 
-		// stone-box anatomy at the first box's top-left corner: the very
-		// corner pixel is notched away (background), and a mid-edge slice
-		// reads dark line, light line, then fill
-		int boxX = 8, boxY = firstBoxTop(image, boxX);
-		assertEquals("corner notch shows the backing",
-			OsrsSkin.BACKGROUND.getRGB(), image.getRGB(boxX, boxY));
-		int midX = boxX + 40;
-		assertEquals(OsrsSkin.EDGE_DARK.getRGB(), image.getRGB(midX, boxY));
-		assertEquals(OsrsSkin.EDGE_LIGHT.getRGB(), image.getRGB(midX, boxY + 1));
-		assertEquals(OsrsSkin.BOX_FILL.getRGB(), image.getRGB(midX, boxY + 2));
+		for (OsrsTheme theme : new OsrsTheme[]{OsrsSkin.STONE, OsrsSkin.MYSTIC})
+		{
+			int boxX = 8, boxY = firstBoxTop(image, boxX, theme);
+			assertEquals("corner notch shows the backing",
+				theme.background.getRGB(), image.getRGB(boxX, boxY));
+			int midX = boxX + 40;
+			assertEquals(theme.edgeDark.getRGB(), image.getRGB(midX, boxY));
+			assertEquals(theme.edgeLight.getRGB(), image.getRGB(midX, boxY + 1));
+			assertEquals(theme.boxFill.getRGB(), image.getRGB(midX, boxY + 2));
+		}
 	}
 
-	/** First row (scanning down at x) whose right neighbourhood turns EDGE_DARK. */
-	private static int firstBoxTop(BufferedImage image, int x)
+	/** First row (scanning down at x) whose right neighbourhood turns the theme's dark edge. */
+	private static int firstBoxTop(BufferedImage image, int x, OsrsTheme theme)
 	{
 		for (int y = 0; y < image.getHeight(); y++)
 		{
-			if (image.getRGB(x + 40, y) == OsrsSkin.EDGE_DARK.getRGB())
+			if (image.getRGB(x + 40, y) == theme.edgeDark.getRGB())
 			{
 				return y;
 			}
 		}
-		throw new AssertionError("no stone box edge found");
+		throw new AssertionError("no stone box edge found for theme");
 	}
 }

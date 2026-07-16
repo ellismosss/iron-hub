@@ -28,6 +28,37 @@ public final class OsrsSkin
 	/** Darker recess (behind the game's tab strip). */
 	public static final Color RECESS = new Color(0x28251E);
 
+	/** The default OSRS stone, as sampled from the wiki 1x screenshot. */
+	public static final OsrsTheme STONE = new OsrsTheme(
+		BACKGROUND, BOX_FILL, EDGE_DARK, EDGE_LIGHT,
+		new String[]{
+			"BBBBBDD",
+			"BBBBBDL",
+			"BBBBBDL",
+			"BBBBDDL",
+			"BBBDDLL",
+			"DDDDLLF",
+			"DLLLLFF",
+		});
+
+	/**
+	 * The Mystic resource pack's grey re-skin (Drunken Monk;
+	 * licenses/mystic-pack-LICENSE) — sampled from the pack's own button
+	 * 9-slice sprites at the pinned commit, exactly like STONE was sampled
+	 * from the wiki screenshot. Fill and backing are near-identical greys by
+	 * design; the border lines carry all the definition.
+	 */
+	public static final OsrsTheme MYSTIC = new OsrsTheme(
+		new Color(0x232323), new Color(0x222222), new Color(0x141414), new Color(0x383838),
+		new String[]{
+			"BBBBDD",
+			"BBBDLL",
+			"BBBDLF",
+			"BDDLLF",
+			"DLLLFF",
+			"DLFFFF",
+		});
+
 	/** Header orange — equal to JagexColors.DARK_ORANGE_INTERFACE_TEXT. */
 	public static final Color TITLE = new Color(0xFF981F);
 	/** Stat label orange ("Combat Level:"). */

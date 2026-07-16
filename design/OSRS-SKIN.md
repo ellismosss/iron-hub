@@ -65,6 +65,48 @@ Painted in Java2D this is pixel-identical to the sprite at any box size — the 
 itself stretches the same art 9-slice-style, so size freedom is native to the design.
 Border insets: 7px minimum so content clears the notch (game text sits ~8px in).
 
+## Themes — the same grammar in different clothes
+
+The atoms are theme-parameterised (`OsrsTheme`: the four surface colors + the corner
+stamp, since geometry differs too). Text colors and fonts stay global — resource packs
+re-sprite the interface but the game's text rendering is unchanged. Two themes exist:
+
+**`OsrsSkin.STONE`** — the vanilla fixed-mode stone above.
+
+**`OsrsSkin.MYSTIC`** — Luke's daily look: the [Mystic resource pack]
+(https://github.com/melkypie/resource-packs/tree/pack-mystic-pack) by Drunken Monk
+(BSD-2-Clause via the resource-packs repo; `licenses/mystic-pack-LICENSE`, pinned commit
+`339ac716`). Ground truth is the pack's own sprite PNGs — its `button/` 9-slice
+(`corner_top_left` 6×6, `edge_*`, `middle` fill tile) is the re-skin of the exact
+`V2StoneButton` art the Character Summary boxes use:
+
+| Token | Mystic | Sampled from |
+|---|---|---|
+| `background` | `#232323` | `fixed_mode/side_panel_background.png` |
+| `boxFill` | `#222222` | `button/middle.png` (subtle ±1 dither; we stay flat) |
+| `edgeDark` | `#141414` | `button/edge_top.png` row 0 |
+| `edgeLight` | `#383838` | `button/edge_top.png` row 1 |
+
+Corner stamp 6×6 (the notch is literally transparent in the sprite — it composites over
+the backing, which is exactly what our `B` token paints):
+
+```
+BBBBDD
+BBBDLL
+BBBDLF
+BDDLLF
+DLLLFF
+DLFFFF
+```
+
+Mystic's fill and backing are near-identical greys *by design* — definition comes from
+the border lines alone. Its Character Summary icons are the pack's own 18×18 redraws
+(`quests_tab/`), bundled under `data/icons/osrs/mystic/`. Note Luke's screenshot is the
+pack in resizable mode (translucent `#1A1A1A` overlay over the game world, so backing
+reads darker/olive in-game); the sampled fixed-mode values are the pack's opaque ground
+truth. The pack also ships hover/selected/disabled 9-slice variants — the phase-2 hover
+states come free.
+
 ## Typography
 
 - Labels/values/body: RuneScape regular, 16px native, `LABEL`/`VALUE` color.
@@ -128,5 +170,6 @@ swap, not a redesign.
 
 `com.ironhub.modules.designlab` — nav row **Design lab**, config toggle `designLab`.
 Its tab is a static recreation of the Character Summary built purely from the atoms
-(sample data, labelled as such — honesty rule). Render: `build/reports/designlab-tab.png`,
-compared side-by-side against the wiki 1x original.
+(sample data, labelled as such — honesty rule), once per theme: OSRS stone on top,
+Mystic below, for in-client comparison. Render: `build/reports/designlab-tab.png`,
+compared side-by-side against the wiki 1x original / the Mystic pack sprites.

@@ -3,15 +3,20 @@ package com.ironhub.ui.osrs;
 import javax.swing.JPanel;
 
 /**
- * A stone box: BOX_FILL interior wearing the engraved StoneBorder. The
+ * A stone box: the theme's fill wearing its engraved StoneBorder. The
  * building block every skinned surface composes from.
  */
 public class StonePanel extends JPanel
 {
 	public StonePanel()
 	{
+		this(OsrsSkin.STONE);
+	}
+
+	public StonePanel(OsrsTheme theme)
+	{
 		setOpaque(true);
-		setBackground(OsrsSkin.BOX_FILL);
-		setBorder(new StoneBorder());
+		setBackground(theme.boxFill);
+		setBorder(new StoneBorder(theme));
 	}
 }

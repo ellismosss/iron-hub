@@ -8,58 +8,48 @@ import javax.swing.border.AbstractBorder;
 
 /**
  * The engraved stone-box border: a 1px dark line outside a 1px light line,
- * with the game's stepped concave notch at each corner. The 7x7 corner stamp
- * is the literal pixel pattern of the Character Summary boxes (sampled from
- * the wiki's 1x screenshot; all four corners are exact mirrors), so at any
- * box size this paints identically to the game's own 9-sliced sprite art.
+ * with the theme's stepped concave notch at each corner. Corner stamps are
+ * the literal pixel patterns of the source art (wiki 1x screenshot for
+ * STONE, the Mystic pack's 9-slice sprites for MYSTIC; all four corners are
+ * exact mirrors), so at any box size this paints identically to the game's
+ * own 9-sliced sprite art.
  */
 public class StoneBorder extends AbstractBorder
 {
-	private static final int CORNER = 7;
-	// B = outside, D = dark line, L = light line, F = box fill
-	private static final String[] STAMP = {
-		"BBBBBDD",
-		"BBBBBDL",
-		"BBBBBDL",
-		"BBBBDDL",
-		"BBBDDLL",
-		"DDDDLLF",
-		"DLLLLFF",
-	};
-
-	private final Color outside;
+	private final OsrsTheme theme;
+	private final int corner;
 
 	public StoneBorder()
 	{
-		this(OsrsSkin.BACKGROUND);
+		this(OsrsSkin.STONE);
 	}
 
-	/** The notch cuts through to whatever the box sits on. */
-	public StoneBorder(Color outside)
+	public StoneBorder(OsrsTheme theme)
 	{
-		this.outside = outside;
+		this.theme = theme;
+		this.corner = theme.cornerStamp.length;
 	}
 
 	@Override
 	public void paintBorder(Component c, Graphics g, int x, int y, int w, int h)
 	{
 		// edges between the corner stamps: dark outside, light inside
-		g.setColor(OsrsSkin.EDGE_DARK);
-		g.fillRect(x + CORNER, y, w - 2 * CORNER, 1);
-		g.fillRect(x + CORNER, y + h - 1, w - 2 * CORNER, 1);
-		g.fillRect(x, y + CORNER, 1, h - 2 * CORNER);
-		g.fillRect(x + w - 1, y + CORNER, 1, h - 2 * CORNER);
-		g.setColor(OsrsSkin.EDGE_LIGHT);
-		g.fillRect(x + CORNER, y + 1, w - 2 * CORNER, 1);
-		g.fillRect(x + CORNER, y + h - 2, w - 2 * CORNER, 1);
-		g.fillRect(x + 1, y + CORNER, 1, h - 2 * CORNER);
-		g.fillRect(x + w - 2, y + CORNER, 1, h - 2 * CORNER);
+		g.setColor(theme.edgeDark);
+		g.fillRect(x + corner, y, w - 2 * corner, 1);
+		g.fillRect(x + corner, y + h - 1, w - 2 * corner, 1);
+		g.fillRect(x, y + corner, 1, h - 2 * corner);
+		g.fillRect(x + w - 1, y + corner, 1, h - 2 * corner);
+		g.setColor(theme.edgeLight);
+		g.fillRect(x + corner, y + 1, w - 2 * corner, 1);
+		g.fillRect(x + corner, y + h - 2, w - 2 * corner, 1);
+		g.fillRect(x + 1, y + corner, 1, h - 2 * corner);
+		g.fillRect(x + w - 2, y + corner, 1, h - 2 * corner);
 
-		for (int row = 0; row < CORNER; row++)
+		for (int row = 0; row < corner; row++)
 		{
-			for (int col = 0; col < CORNER; col++)
+			for (int col = 0; col < corner; col++)
 			{
-				Color color = color(STAMP[row].charAt(col));
+				Color color = color(theme.cornerStamp[row].charAt(col));
 				stamp(g, color, x + col, y + row);
 				stamp(g, color, x + w - 1 - col, y + row);
 				stamp(g, color, x + col, y + h - 1 - row);
@@ -79,13 +69,13 @@ public class StoneBorder extends AbstractBorder
 		switch (token)
 		{
 			case 'D':
-				return OsrsSkin.EDGE_DARK;
+				return theme.edgeDark;
 			case 'L':
-				return OsrsSkin.EDGE_LIGHT;
+				return theme.edgeLight;
 			case 'F':
-				return OsrsSkin.BOX_FILL;
+				return theme.boxFill;
 			default:
-				return outside;
+				return theme.background; // the notch cuts through to the backing
 		}
 	}
 
