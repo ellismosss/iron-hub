@@ -66,6 +66,19 @@ public class OsrsLabel extends JComponent
 		return getPreferredSize();
 	}
 
+	/**
+	 * A UI-less JComponent's default minimum is its CURRENT size — 0x0
+	 * before first layout — and BoxLayout derives a row's cross-axis
+	 * alignment from child minimums: an all-zero-minimum row degenerates to
+	 * alignment 0 and cuts every child to half height, top-anchored. A
+	 * pixel-art label must never shrink below its natural size anyway.
+	 */
+	@Override
+	public Dimension getMinimumSize()
+	{
+		return getPreferredSize();
+	}
+
 	@Override
 	protected void paintComponent(Graphics g)
 	{
@@ -74,10 +87,13 @@ public class OsrsLabel extends JComponent
 			RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 		g2.setFont(getFont());
 		FontMetrics fm = g2.getFontMetrics();
+		// center the text block in whatever height layout assigned, so an
+		// allocation quirk shifts the text instead of clipping it mid-glyph
+		int top = (getHeight() - (LINE_PITCH * lines.length + DESCENT)) / 2;
 		for (int i = 0; i < lines.length; i++)
 		{
 			int x = (getWidth() - fm.stringWidth(lines[i])) / 2;
-			int y = LINE_PITCH * (i + 1);
+			int y = top + LINE_PITCH * (i + 1);
 			g2.setColor(OsrsSkin.TEXT_SHADOW);
 			g2.drawString(lines[i], x + 1, y + 1);
 			g2.setColor(color);

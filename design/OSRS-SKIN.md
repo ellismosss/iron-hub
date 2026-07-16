@@ -137,6 +137,16 @@ game and the boxes stop matching. Antialiasing must be explicitly OFF or the pix
 smears. The quests/achievements spiral icons were cropped 1:1 from the wiki screenshot
 (opaque on `BOX_FILL`, which blends invisibly on our identical boxes).
 
+Proven in-client (2026-07-16, halved captions + off-center XP text): **a UI-less custom
+JComponent must override `getMinimumSize()`** — the default is its *current size*, 0×0
+before first layout, and BoxLayout derives a row's cross-axis alignment from child
+*minimums* (`SizeRequirements.getAlignedSizeRequirements`), so an all-zero-minimum row
+degenerates to alignment 0.0 and cuts every child to half its maximum, top-anchored.
+Multi-pass render harnesses (SwingRender) self-heal this — stale sizes leak into the
+minimums — so the regression test mounts the tab like the client and lays out ONCE.
+OsrsLabel also centers its text block in whatever height it is given, so any future
+allocation quirk shifts text instead of clipping glyphs.
+
 Phase 2 candidates once the look is signed off: stone tab strip (`Tabs.SLANTED_TAB`
 geometry), the mottled outer frame (crop the edge strips from the wiki 1x screenshot and
 tile them), hover/selected fills (`V2StoneButton` has real variants), buttons,

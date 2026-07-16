@@ -97,7 +97,11 @@ requires it).
 - UI: styles only from `UiTokens`; user-visible strings pass GlyphSafetyTest (ASCII plus
   `· … — ×`); 14 px text floor; semantic status colors never repurposed; detail that doesn't
   fit 225 px goes in tooltips; Swing specifics — `mousePressed` not `mouseClicked`, no nested
-  scroll panes, explicit `LEFT_ALIGNMENT`, `getMaximumSize()` override on BoxLayout tabs.
+  scroll panes, explicit `LEFT_ALIGNMENT`, `getMaximumSize()` override on BoxLayout tabs, and
+  UI-less custom JComponents MUST override `getMinimumSize()` (default = current size = 0×0
+  pre-layout, and BoxLayout derives row alignment from child MINIMUMS — an all-zero-min row
+  cuts children to half height top-anchored in the client, while SwingRender's multi-pass
+  layout self-heals it; pin such bugs with a single-pass client-style mount test).
 - Commits: one coherent slice per commit with an explanatory body, ending
   `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`; docs (CLAUDE.md state, README,
   DOMAIN-NOTES for any new game-data knowledge) updated in the same arc.

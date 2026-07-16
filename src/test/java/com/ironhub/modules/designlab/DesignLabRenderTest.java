@@ -55,4 +55,57 @@ public class DesignLabRenderTest
 		}
 		throw new AssertionError("no stone box edge found for theme");
 	}
+
+	/**
+	 * Mount exactly like IronHubPanel.wrap (HubScrollPane viewport) and lay
+	 * out ONCE — the client does a single pass, while SwingRender's repeated
+	 * passes let stale current-sizes leak into BoxLayout minimums and heal
+	 * the very bug this pins: a UI-less label with a 0x0 default minimum
+	 * degenerates its row's alignment and gets cut to half height (proven
+	 * in-client 2026-07-16: halved captions, off-center XP text).
+	 */
+	@Test
+	public void everyLabelKeepsItsHeightUnderTheClientMount()
+	{
+		DesignLabTab tab = new DesignLabTab();
+		com.ironhub.ui.components.HubScrollPane pane = new com.ironhub.ui.components.HubScrollPane(tab);
+		pane.setSize(UiTokens.PANEL_WIDTH, 600);
+		layoutOnce(pane);
+
+		java.util.List<com.ironhub.ui.osrs.OsrsLabel> labels = new java.util.ArrayList<>();
+		collect(tab, labels);
+		assertTrue("no labels found", labels.size() > 10);
+		for (com.ironhub.ui.osrs.OsrsLabel label : labels)
+		{
+			assertTrue("label cut below preferred height: " + label.getBounds(),
+				label.getHeight() >= label.getPreferredSize().height);
+		}
+	}
+
+	private static void layoutOnce(java.awt.Component c)
+	{
+		c.doLayout();
+		if (c instanceof java.awt.Container)
+		{
+			for (java.awt.Component child : ((java.awt.Container) c).getComponents())
+			{
+				layoutOnce(child);
+			}
+		}
+	}
+
+	private static void collect(java.awt.Container root, java.util.List<com.ironhub.ui.osrs.OsrsLabel> out)
+	{
+		for (java.awt.Component child : root.getComponents())
+		{
+			if (child instanceof com.ironhub.ui.osrs.OsrsLabel)
+			{
+				out.add((com.ironhub.ui.osrs.OsrsLabel) child);
+			}
+			if (child instanceof java.awt.Container)
+			{
+				collect((java.awt.Container) child, out);
+			}
+		}
+	}
 }
