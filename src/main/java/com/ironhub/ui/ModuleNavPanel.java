@@ -54,6 +54,7 @@ public class ModuleNavPanel extends JPanel
 		new Category("Daily loop",
 			new Module("FA", "Farming runs", null, null),
 			new Module("DA", "Dailies", "4", UiTokens.STATUS_AVAILABLE),
+			new Module("DN", "Dailies (New)", null, null),
 			new Module("SL", "Slayer", null, null),
 			new Module("CS", "Clues & STASH", null, null)),
 		new Category("Account",

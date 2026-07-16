@@ -336,8 +336,9 @@ class DailiesTab extends JPanel
 		return daily.name + " — need " + String.join(", ", module.missing(daily));
 	}
 
-	/** The wiki's own Wilderness skull, bundled (never a painted stand-in). */
-	private static final javax.swing.Icon SKULL = bundledIcon("/data/icons/wilderness_skull.png");
+	/** The wiki's own Wilderness skull, bundled (never a painted stand-in).
+	 *  Package-visible: Dailies (New) rides the same icon while both live. */
+	static final javax.swing.Icon SKULL = bundledIcon("/data/icons/wilderness_skull.png");
 
 	private static javax.swing.Icon bundledIcon(String resource)
 	{

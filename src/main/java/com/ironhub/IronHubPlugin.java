@@ -102,14 +102,15 @@ public class IronHubPlugin extends Plugin
 		DashboardModule dashboard,
 		DeathRecoveryModule deathRecovery,
 		com.ironhub.modules.loadoutlab.LoadoutLabModule loadoutLab,
-		com.ironhub.modules.designlab.DesignLabModule designLab)
+		com.ironhub.modules.designlab.DesignLabModule designLab,
+		com.ironhub.modules.dailies.DailiesNewModule dailiesNew)
 	{
 		// TODO: skills, boat — see DESIGN.md §3
 		return ImmutableSet.of(
 			gearProgression, quests, diaries, combatAchievements, qol, loadout, loot, bankTracker,
 			farmingRun, dailies, goalPlanner, whatNow, clueStash,
 			slayerOptimizer, suppliesRunway, collectionLog, externalSync,
-			dashboard, deathRecovery, loadoutLab, designLab);
+			dashboard, deathRecovery, loadoutLab, designLab, dailiesNew);
 	}
 
 	@Provides

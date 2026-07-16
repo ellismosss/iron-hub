@@ -1,5 +1,6 @@
 package com.ironhub.ui.osrs;
 
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Insets;
@@ -35,7 +36,21 @@ public class StoneChecklist extends StonePanel
 
 	public StoneChecklist row(String text, boolean checked)
 	{
-		add(new Row(theme, text, checked));
+		add(new Row(theme, text, checked, null, null, null, null));
+		return this;
+	}
+
+	/**
+	 * A row whose label colour is a STATUS the caller owns (the dailies
+	 * scale: green claimable, orange short, faint done...), with an optional
+	 * badge icon after the name and a toggle callback. The caller's state
+	 * change is expected to rebuild the list, so the row does not recolour
+	 * itself the way the simple overload does.
+	 */
+	public StoneChecklist row(String text, boolean checked, Color labelColor, String tooltip,
+		javax.swing.Icon badge, java.util.function.Consumer<Boolean> onToggle)
+	{
+		add(new Row(theme, text, checked, labelColor, tooltip, badge, onToggle));
 		return this;
 	}
 
@@ -60,15 +75,23 @@ public class StoneChecklist extends StonePanel
 		private final OsrsTheme theme;
 		private final StoneCheckbox box;
 		private final OsrsLabel label;
+		private final javax.swing.JLabel badge; // null when the row has none
+		private final java.util.function.Consumer<Boolean> onToggle;
+		private final boolean selfColoring;
 		private boolean checked;
 
-		Row(OsrsTheme theme, String text, boolean checked)
+		Row(OsrsTheme theme, String text, boolean checked, Color labelColor, String tooltip,
+			javax.swing.Icon badgeIcon, java.util.function.Consumer<Boolean> onToggle)
 		{
 			this.theme = theme;
 			this.checked = checked;
+			this.onToggle = onToggle;
+			this.selfColoring = labelColor == null;
 			this.box = new StoneCheckbox(theme, checked);
-			this.label = new OsrsLabel(text, checked ? OsrsSkin.VALUE : OsrsSkin.LABEL, OsrsSkin.font())
-				.leftAligned();
+			this.label = new OsrsLabel(text,
+				labelColor != null ? labelColor : checked ? OsrsSkin.VALUE : OsrsSkin.LABEL,
+				OsrsSkin.font()).leftAligned();
+			this.badge = badgeIcon == null ? null : new javax.swing.JLabel(badgeIcon);
 			setLayout(null);
 			setOpaque(true);
 			setBackground(theme.boxFill);
@@ -76,8 +99,12 @@ public class StoneChecklist extends StonePanel
 			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			add(box);
 			add(label);
+			if (badge != null)
+			{
+				add(badge);
+			}
 
-			addMouseListener(new MouseAdapter()
+			MouseAdapter clicks = new MouseAdapter()
 			{
 				@Override
 				public void mouseEntered(MouseEvent e)
@@ -98,15 +125,31 @@ public class StoneChecklist extends StonePanel
 				{
 					toggle();
 				}
-			});
+			};
+			addMouseListener(clicks);
+			if (tooltip != null)
+			{
+				// a tooltip registers the label's own mouse listeners, which
+				// would swallow the row's — so the label carries both
+				setToolTipText(tooltip);
+				label.setToolTipText(tooltip);
+				label.addMouseListener(clicks);
+			}
 		}
 
 		private void toggle()
 		{
 			checked = !checked;
 			box.setChecked(checked);
-			label.setColor(checked ? OsrsSkin.VALUE : OsrsSkin.LABEL);
+			if (selfColoring)
+			{
+				label.setColor(checked ? OsrsSkin.VALUE : OsrsSkin.LABEL);
+			}
 			repaint();
+			if (onToggle != null)
+			{
+				onToggle.accept(checked);
+			}
 		}
 
 		@Override
@@ -115,9 +158,16 @@ public class StoneChecklist extends StonePanel
 			int h = getHeight();
 			Dimension bp = box.getPreferredSize();
 			box.setBounds(PAD, (h - bp.height) / 2, bp.width, bp.height);
+			int right = getWidth() - PAD;
+			if (badge != null)
+			{
+				Dimension ip = badge.getPreferredSize();
+				badge.setBounds(right - ip.width, (h - ip.height) / 2, ip.width, ip.height);
+				right -= ip.width + GAP;
+			}
 			// the label owns the full row height and centers its own ink in it
 			int x = PAD + bp.width + GAP;
-			label.setBounds(x, 0, Math.max(0, getWidth() - x - PAD), h);
+			label.setBounds(x, 0, Math.max(0, right - x), h);
 		}
 
 		@Override

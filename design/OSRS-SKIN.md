@@ -245,8 +245,23 @@ migration is a styling swap, not a rewrite. The lab demos the scrollbar as a bar
 `JScrollBar`, never a nested `JScrollPane`: the shell owns the one scroll surface, and
 wiring the skin into it is a phase-4 decision.
 
-Still open: the fixed-mode mottled outer frame if anyone wants it, and the migration
-pilot — one real module adopting the skin.
+**Phase 4 — the migration pilot is live: Dailies (New).** The Dailies tab re-clothed in
+the skin, kept BESIDE the classic one (nav row "Dailies (New)", `dailiesNew` toggle) so
+the two can be compared in-client; when Luke signs off, `DailiesNewTab` replaces
+`DailiesTab` and the scaffold module goes. Architecture that must survive the swap: the
+pilot owns NO brain — `DailiesModule` keeps all detection, run state, overlays and
+persistence, and the skinned tab talks to it through the same package-private seam the
+classic tab uses, plus a `tabListeners` hook on `rebuildTab()` so run events reach both
+tabs. Two atoms were added for it: `StoneTile` (a status tile in the checkbox's flat
+grammar — a tile reports, it is not a button, so it must not read like the chamfered nav
+stones; dim = sunken recess + ghosted icon) and a richer `StoneChecklist.row(...)`
+overload (caller-owned status colour, tooltip, badge icon, toggle callback — the dailies
+scale: green claimable / orange short / warm-faint done / neutral-grey locked / muted "?"
+unknown, unticked = FAINT). Renders: `dailies-new-{stone,mystic}.png` + `dailies-new-run.png`
+beside the classic `dailies-tab.png`.
+
+Still open: the fixed-mode mottled outer frame if anyone wants it, and the rest of the
+migration after the pilot verdict.
 
 ## Fidelity assessment — how close can the sidebar get?
 

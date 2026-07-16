@@ -634,11 +634,29 @@ public class DailiesModule implements IronHubModule
 		}
 	}
 
+	/** Views beyond our own tab that mirror the run — Dailies (New) while the
+	 *  two live side by side. Notified on the EDT like the tab itself. */
+	private final List<Runnable> tabListeners = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+	void addTabListener(Runnable listener)
+	{
+		tabListeners.add(listener);
+	}
+
+	void removeTabListener(Runnable listener)
+	{
+		tabListeners.remove(listener);
+	}
+
 	private void rebuildTab()
 	{
 		if (tab != null)
 		{
 			SwingUtilities.invokeLater(tab::rebuild);
+		}
+		for (Runnable listener : tabListeners)
+		{
+			SwingUtilities.invokeLater(listener);
 		}
 	}
 

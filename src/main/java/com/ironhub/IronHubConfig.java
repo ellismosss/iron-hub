@@ -169,6 +169,9 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "osrsTheme", name = "OSRS skin theme", description = "Which stone the OSRS-look surfaces wear: the game's default, or the Mystic resource pack's greys", section = modulesSection, position = 26)
 	default com.ironhub.ui.osrs.OsrsTheme osrsTheme() { return com.ironhub.ui.osrs.OsrsTheme.MYSTIC; }
 
+	@ConfigItem(keyName = "dailiesNew", name = "Dailies (New)", description = "The Dailies tab in the OSRS skin, beside the classic one for comparison (migration preview)", section = modulesSection, position = 27)
+	default boolean dailiesNew() { return true; }
+
 	@ConfigItem(keyName = "discordWebhookUrl", name = "Discord webhook URL", description = "Opt-in: milestone notifications (log slots, uniques, pets, levels, goals)", section = integrationsSection, position = 5)
 	default String discordWebhookUrl() { return ""; }
 }
