@@ -538,7 +538,11 @@ public class DailiesModuleTest
 		net.runelite.client.Notifier notifier = org.mockito.Mockito.mock(
 			net.runelite.client.Notifier.class);
 		DailiesModule module = module(state, notifier);
-		long now = System.currentTimeMillis();
+		// noon UTC today, NOT the wall clock: startUp anchors "already told"
+		// to the real current UTC day, and a raw now+DAY+1h straddles a UTC
+		// midnight whenever the suite runs in the hour before one — this
+		// test used to fail between 00:00 and 01:00 BST and no other time
+		long now = DailyTracker.startOfUtcDay(System.currentTimeMillis()) + DAY / 2;
 
 		// a fresh session, same UTC day it started: today's reset is not news
 		module.notifyReset(now);
