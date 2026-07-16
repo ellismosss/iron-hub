@@ -14,7 +14,6 @@ import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
-import java.util.StringJoiner;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
@@ -24,6 +23,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import net.runelite.client.ui.ColorScheme;
 
 /**
  * Dailies tab: while a run is active, End run is pinned to the TOP with the
@@ -150,27 +150,10 @@ class DailiesTab extends JPanel
 					? ListRow.available(daily.name, skip)
 					: ListRow.locked(daily.name, skip);
 			}
-			row.setToolTipText(stopTooltip(daily));
+			row.setToolTipText(daily.name);
 			body.add(row);
 			body.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
-	}
-
-	/** "Zaff, Varrock · Varrock teleport · bring 840,000 coins". */
-	private String stopTooltip(DailiesPack.Daily daily)
-	{
-		StringJoiner tooltip = new StringJoiner(" · ");
-		tooltip.add(daily.where);
-		if (daily.travel != null)
-		{
-			tooltip.add(daily.travel);
-		}
-		String bring = module.bringLine(daily);
-		if (!bring.isEmpty())
-		{
-			tooltip.add("bring " + bring);
-		}
-		return tooltip.toString();
 	}
 
 	// ── checklist ────────────────────────────────────────────────────
@@ -227,8 +210,7 @@ class DailiesTab extends JPanel
 
 	/**
 	 * One tickable event. The tick is "include this in my runs"; the colour is
-	 * where it stands right now (green done · amber claimable · grey locked ·
-	 * muted unknown), and everything that will not fit 225 px is in the tooltip.
+	 * where it stands right now (see statusColor).
 	 */
 	private JCheckBox checklistRow(DailiesPack.Daily daily)
 	{
@@ -242,7 +224,7 @@ class DailiesTab extends JPanel
 		box.setForeground(statusColor(current));
 		box.setFont(box.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		box.setAlignmentX(LEFT_ALIGNMENT);
-		box.setToolTipText(checklistTooltip(daily, current));
+		box.setToolTipText(daily.name);
 		// Buttons clip their own text with "…" once space runs out, so a long
 		// wiki name degrades gracefully rather than widening the panel.
 		box.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT));
@@ -250,14 +232,20 @@ class DailiesTab extends JPanel
 		return box;
 	}
 
+	/**
+	 * Green means "go and get it", exactly as it does on the farm overview's
+	 * tiles — these are the farm tiles, so they answer to the farm's palette,
+	 * not to UiTokens' green-is-done. A claimed daily is not a success to
+	 * celebrate, it is one fewer thing to look at, so it fades instead.
+	 */
 	private static Color statusColor(DailyTracker.State current)
 	{
 		switch (current)
 		{
-			case DONE:
-				return UiTokens.STATUS_OWNED;
 			case AVAILABLE:
-				return UiTokens.STATUS_AVAILABLE;
+				return ColorScheme.PROGRESS_COMPLETE_COLOR;
+			case DONE:
+				return UiTokens.TEXT_FAINT;
 			case LOCKED:
 				return UiTokens.STATUS_LOCKED;
 			default:
@@ -265,46 +253,13 @@ class DailiesTab extends JPanel
 		}
 	}
 
-	private String checklistTooltip(DailiesPack.Daily daily, DailyTracker.State current)
+	/** Green ready · a plain border for tracked-but-nothing-to-do (claimed, or
+	 *  unknown). Locked/unticked never reach here — they get no border. */
+	private static Color tileBorder(DailyTracker.State current)
 	{
-		StringJoiner tooltip = new StringJoiner(" · ");
-		tooltip.add(daily.name);
-		tooltip.add(daily.where);
-		switch (current)
-		{
-			case DONE:
-				tooltip.add("done" + ("rolling7".equals(daily.reset)
-					? ", back 7 days after your visit" : " today"));
-				break;
-			case AVAILABLE:
-				int qty = module.quantity(daily);
-				tooltip.add(qty > 0 ? "claimable now (" + qty + ")" : "claimable now");
-				break;
-			case LOCKED:
-				tooltip.add("locked: " + DailyTracker.requirement(daily)
-					.missing(state).get(0).describe());
-				break;
-			default:
-				// Honest about the one thing we cannot know — and how to fix it
-				// (see DailyTracker.togState).
-				tooltip.add("unknown — ask Juna for daily reminders, or play it "
-					+ "once with Iron Hub running, and this starts tracking");
-				break;
-		}
-		String bring = module.bringLine(daily);
-		if (!bring.isEmpty() && current != DailyTracker.State.LOCKED)
-		{
-			tooltip.add("bring " + bring);
-		}
-		if (daily.travel != null)
-		{
-			tooltip.add(daily.travel);
-		}
-		if (daily.note != null)
-		{
-			tooltip.add(daily.note);
-		}
-		return "<html><body style='width:240px'>" + tooltip + "</body></html>";
+		return current == DailyTracker.State.AVAILABLE
+			? ColorScheme.PROGRESS_COMPLETE_COLOR.darker()
+			: UiTokens.BORDER_BUTTON;
 	}
 
 	// ── status tiles ─────────────────────────────────────────────────
@@ -332,9 +287,10 @@ class DailiesTab extends JPanel
 	private DailyTile tile(DailiesPack.Daily daily)
 	{
 		DailyTracker.State current = module.stateOf(daily);
-		boolean selected = state.isDailySelected(daily.id);
-		DailyTile tile = new DailyTile(selected ? statusColor(current) : null, !selected,
-			checklistTooltip(daily, current));
+		// Locked and unticked read the same way — not part of your dailies —
+		// so both get the farm strip's nothing-here treatment: dim, no border.
+		boolean mine = state.isDailySelected(daily.id) && current != DailyTracker.State.LOCKED;
+		DailyTile tile = new DailyTile(mine ? tileBorder(current) : null, !mine, daily.name);
 		if (module.itemManager() != null)
 		{
 			net.runelite.client.util.AsyncBufferedImage img =

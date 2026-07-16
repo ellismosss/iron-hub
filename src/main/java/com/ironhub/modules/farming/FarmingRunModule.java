@@ -64,6 +64,68 @@ public class FarmingRunModule implements IronHubModule
 		TEMPLATES.put("Hops run", List.of("hops"));
 	}
 
+	/**
+	 * The icon beside each built-in run — a display choice, so it is stated
+	 * rather than derived: no rule over the route picks a sensible one ("All
+	 * trees" is 7 tree stops and 7 fruit stops, an exact tie, and its first
+	 * stop is a fruit tree). Custom runs fall back to their first stop's
+	 * category. FarmRunsPackTest pins that every route name is covered.
+	 */
+	static final java.util.Map<String, Tab> RUN_ICONS = java.util.Map.ofEntries(
+		java.util.Map.entry("Herb run", Tab.HERB),
+		java.util.Map.entry("All trees run", Tab.TREE),
+		java.util.Map.entry("Hardwood run", Tab.HARDWOOD),
+		java.util.Map.entry("Birdhouse run", Tab.BIRD_HOUSE),
+		java.util.Map.entry("Supercompost run", Tab.BIG_COMPOST),
+		java.util.Map.entry("Hop & bush run", Tab.HOPS),
+		java.util.Map.entry("Allotment, flower & herb run", Tab.ALLOTMENT),
+		java.util.Map.entry("Tree run", Tab.TREE),
+		java.util.Map.entry("Fruit tree run", Tab.FRUIT_TREE),
+		java.util.Map.entry("Hops run", Tab.HOPS));
+
+	/**
+	 * Item id for a run's icon: its stated icon, else its first stop's category.
+	 * 0 when we have nothing honest to show (an empty or unknown custom run).
+	 */
+	int runIcon(String name)
+	{
+		Tab tab = RUN_ICONS.get(name);
+		if (tab == null)
+		{
+			List<FarmRunsPack.Location> locations = runLocations(name);
+			if (locations.isEmpty())
+			{
+				return 0;
+			}
+			tab = iconTab(locations.get(0).category);
+		}
+		return tab == null ? 0 : tab.getItemID();
+	}
+
+	/**
+	 * The Tab whose icon represents a category. Distinct from
+	 * {@link #categoryTab} on purpose: THAT returning null is load-bearing
+	 * ("not a farming patch — never auto-advance or crop-cull it"), so bird
+	 * houses and compost bins must not be added to it just to get a picture.
+	 */
+	static Tab iconTab(String category)
+	{
+		Tab tab = categoryTab(category);
+		if (tab != null)
+		{
+			return tab;
+		}
+		switch (category)
+		{
+			case "birdhouse":
+				return Tab.BIRD_HOUSE;
+			case "compost":
+				return Tab.BIG_COMPOST;
+			default:
+				return null;
+		}
+	}
+
 	private final AccountState state;
 	private final Client client;
 	private final EventBus eventBus;
@@ -740,11 +802,17 @@ public class FarmingRunModule implements IronHubModule
 	 *  category locations. Culling happens later, in startRun. */
 	List<FarmRunsPack.Location> runLocations(String name)
 	{
-		List<String> route = pack.route(name);
-		if (route != null)
+		// A curated route, or a saved custom run — both are just ordered ids.
+		List<String> ids = pack.route(name);
+		if (ids == null)
+		{
+			com.ironhub.state.PersistedState.FarmRun custom = state.getFarmRuns().get(name);
+			ids = custom == null ? null : custom.locationIds;
+		}
+		if (ids != null)
 		{
 			List<FarmRunsPack.Location> out = new java.util.ArrayList<>();
-			for (String id : route)
+			for (String id : ids)
 			{
 				FarmRunsPack.Location location = pack.location(id);
 				if (location != null)
@@ -754,7 +822,11 @@ public class FarmingRunModule implements IronHubModule
 			}
 			return out;
 		}
-		return templateLocations(TEMPLATES.get(name));
+		List<String> categories = TEMPLATES.get(name);
+		// An unknown name has no stops rather than blowing up: every run in the
+		// picker asks for its locations now (to know if it is ready, and which
+		// icon to wear), custom ones included.
+		return categories == null ? List.of() : templateLocations(categories);
 	}
 
 	/** All built-in run names — the curated routes (pack order: Herb, Tree,
@@ -779,21 +851,10 @@ public class FarmingRunModule implements IronHubModule
 	/** Start a saved custom run; unknown location ids are skipped. */
 	void startCustom(String name)
 	{
-		com.ironhub.state.PersistedState.FarmRun run = state.getFarmRuns().get(name);
-		if (run == null)
+		if (state.getFarmRuns().containsKey(name))
 		{
-			return;
+			startRun(name, runLocations(name));
 		}
-		List<FarmRunsPack.Location> locations = new java.util.ArrayList<>();
-		for (String id : run.locationIds)
-		{
-			FarmRunsPack.Location location = pack.location(id);
-			if (location != null)
-			{
-				locations.add(location);
-			}
-		}
-		startRun(name, locations);
 	}
 
 	void endRun(boolean complete)

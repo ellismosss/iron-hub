@@ -420,6 +420,26 @@ class FarmingTab extends JPanel
 		return UiTokens.TEXT_MUTED;
 	}
 
+	/** A run's sprite, sized to sit inside a row. Blank (but still spaced) when
+	 *  we have no icon for it, so the names stay aligned. */
+	private JComponent runIcon(String name)
+	{
+		JLabel icon = new JLabel();
+		icon.setPreferredSize(new Dimension(RUN_ICON, RUN_ICON));
+		icon.setMinimumSize(new Dimension(RUN_ICON, RUN_ICON));
+		icon.setMaximumSize(new Dimension(RUN_ICON, RUN_ICON));
+		int itemId = module.runIcon(name);
+		if (itemManager != null && itemId > 0)
+		{
+			net.runelite.client.util.AsyncBufferedImage img = itemManager.getImage(itemId);
+			img.onLoaded(() -> icon.setIcon(new javax.swing.ImageIcon(
+				img.getScaledInstance(RUN_ICON, RUN_ICON, java.awt.Image.SCALE_SMOOTH))));
+		}
+		return icon;
+	}
+
+	private static final int RUN_ICON = 18;
+
 	/** Grid of clickable category icon tiles — the Time Tracking tab strip. */
 	private JComponent overviewTileStrip(java.util.Map<Tab, List<FarmingRunModule.OverviewPatch>> byCategory, long now)
 	{
@@ -834,15 +854,13 @@ class FarmingTab extends JPanel
 		templates.sort(java.util.Comparator.comparing(n -> !module.runReady(n)));
 		for (String template : templates)
 		{
-			int count = module.unlockedLocations(module.runLocations(template)).size();
-			runs.add(runRow(template, count + " stops", () -> module.startTemplate(template), null));
+			runs.add(runRow(template, () -> module.startTemplate(template), null));
 			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
 
 		for (String name : new TreeMap<>(state.getFarmRuns()).keySet())
 		{
-			int count = state.getFarmRuns().get(name).locationIds.size();
-			runs.add(runRow(name, count + " stops", () -> module.startCustom(name),
+			runs.add(runRow(name, () -> module.startCustom(name),
 				() -> state.deleteFarmRun(name)));
 			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
@@ -875,8 +893,14 @@ class FarmingTab extends JPanel
 	}
 
 	/** A run row: name + stop count, click to start, optional delete. */
-	private JPanel runRow(String name, String detail, Runnable start, Runnable delete)
+	/**
+	 * One run: its icon, its name (green when there is something waiting), and
+	 * "Ready" — or nothing at all, because a run with no work is better said
+	 * with silence than with a stop count nobody reads.
+	 */
+	private JPanel runRow(String name, Runnable start, Runnable delete)
 	{
+		boolean ready = module.runReady(name);
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setBackground(UiTokens.CARD_BG);
@@ -886,18 +910,24 @@ class FarmingTab extends JPanel
 		row.setPreferredSize(new Dimension(0, UiTokens.ROW_HEIGHT));
 		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT));
 		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		row.setToolTipText("Start " + name + " — teleports are picked from what you own");
 
+		row.add(runIcon(name));
+		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		JLabel label = new JLabel(name);
-		label.setForeground(UiTokens.TEXT_PRIMARY);
+		label.setForeground(ready
+			? net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR
+			: UiTokens.TEXT_PRIMARY);
 		label.setFont(label.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
 		label.setMinimumSize(new Dimension(0, 0));
 		row.add(label);
 		row.add(Box.createHorizontalGlue());
-		JLabel count = new JLabel(detail);
-		count.setForeground(UiTokens.TEXT_MUTED);
-		count.setFont(count.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-		row.add(count);
+		if (ready)
+		{
+			JLabel readyLabel = new JLabel("Ready");
+			readyLabel.setForeground(net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR);
+			readyLabel.setFont(readyLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+			row.add(readyLabel);
+		}
 		if (delete != null)
 		{
 			row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));

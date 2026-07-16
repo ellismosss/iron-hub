@@ -20,6 +20,7 @@ import javax.swing.SwingUtilities;
 import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.Notifier;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.plugins.timetracking.TimeTrackingConfig;
 import net.runelite.client.eventbus.EventBus;
 import org.junit.Rule;
 import org.junit.Test;
@@ -409,6 +410,59 @@ public class FarmingRunModuleTest
 		throw new AssertionError("no growing allotment value in the decoder");
 	}
 
+	/**
+	 * Every run in the picker shows an icon. RUN_ICONS is keyed by display
+	 * name, so renaming a run in the pack would silently drop its picture —
+	 * this is what catches that.
+	 */
+	@Test
+	public void everyRunHasAnIcon()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+		for (String name : module.templateNames())
+		{
+			assertTrue("no icon for run: " + name, module.runIcon(name) > 0);
+		}
+		// bird houses and compost bins are not farming patches, so categoryTab
+		// says null on purpose — the icon lookup must not rely on it
+		assertNull(FarmingRunModule.categoryTab("birdhouse"));
+		assertNull(FarmingRunModule.categoryTab("compost"));
+		assertEquals(com.ironhub.modules.farming.rl.Tab.BIRD_HOUSE,
+			FarmingRunModule.iconTab("birdhouse"));
+		assertEquals(com.ironhub.modules.farming.rl.Tab.BIG_COMPOST,
+			FarmingRunModule.iconTab("compost"));
+		module.shutDown();
+	}
+
+	/**
+	 * A custom run is neither a curated route nor a category template, so
+	 * asking it for its locations used to fall through to templateLocations(null)
+	 * and throw — which every picker row now does, to know its icon and whether
+	 * it is ready.
+	 */
+	@Test
+	public void customRunsResolveTheirOwnStops()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		state.saveFarmRun("My run", List.of("herb/falador", "herb/ardougne"));
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+
+		assertEquals(2, module.runLocations("My run").size());
+		assertTrue("a custom run needs an icon too", module.runIcon("My run") > 0);
+		assertFalse(module.runReady("My run")); // no patch data seeded
+		module.startCustom("My run");
+		assertEquals(2, module.stops().size());
+		module.endRun(false);
+
+		// and a name that is no run at all is simply empty, not an exception
+		assertTrue(module.runLocations("no such run").isEmpty());
+		assertEquals(0, module.runIcon("no such run"));
+		assertFalse(module.runReady("no such run"));
+		module.shutDown();
+	}
+
 	@Test
 	public void overviewTilesMergeCalquatCelastrusIntoTreeAndSpecials()
 	{
@@ -763,6 +817,11 @@ public class FarmingRunModuleTest
 		AccountState state = StateFixture.state(temp.getRoot());
 		ConfigManager configManager = TimetrackingFixture.configManager();
 		long now = Instant.now().getEpochSecond();
+		// the core plugin's "prefer soonest" — a category counts as harvestable
+		// once ANY of its patches is, which is what puts a run in the ready state
+		// the picker renders green
+		configManager.setConfiguration(TimeTrackingConfig.CONFIG_GROUP,
+			TimeTrackingConfig.PREFER_SOONEST, "true");
 		// one ready herb patch, one part-grown (a partial tile arc), + bird houses
 		TimetrackingFixture.patch(configManager, FALADOR_REGION, VarbitID.FARMING_TRANSMIT_D,
 			herbValue(Produce.RANARR, CropState.HARVESTABLE, 0), now);
