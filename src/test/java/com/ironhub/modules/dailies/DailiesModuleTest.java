@@ -369,6 +369,48 @@ public class DailiesModuleTest
 		module.shutDown();
 	}
 
+	/** The canvas companion, inside the 250x200 overlay budget. */
+	@Test
+	public void runOverlayRendersInsideTheBudget() throws Exception
+	{
+		// A late-game iron with every gate open — the worst case for the
+		// overlay's height budget. Each tier is its own varbit: completing
+		// Elite does NOT imply Easy, so every gate has to be seeded.
+		AccountState state = state();
+		StateFixture.varbit(state, Varbits.DIARY_VARROCK_ELITE, 1);
+		StateFixture.varbit(state, Varbits.DIARY_KANDARIN_EASY, 1);
+		StateFixture.varbit(state, Varbits.DIARY_ARDOUGNE_MEDIUM, 1);
+		StateFixture.varbit(state, Varbits.DIARY_WESTERN_EASY, 1);
+		StateFixture.varbit(state, Varbits.DIARY_WILDERNESS_EASY, 1);
+		StateFixture.varbit(state, Varbits.DIARY_KOUREND_MEDIUM, 1);
+		StateFixture.varbit(state, Varbits.DIARY_MORYTANIA_MEDIUM, 1);
+		StateFixture.quest(state, Quest.THE_HAND_IN_THE_SAND, QuestState.FINISHED);
+		StateFixture.quest(state, Quest.THRONE_OF_MISCELLANIA, QuestState.FINISHED);
+		StateFixture.quest(state, Quest.TEARS_OF_GUTHIX, QuestState.FINISHED);
+
+		DailiesModule module = module(state);
+		module.startRun();
+		assertEquals("every event open — the overlay's worst case",
+			module.pack().dailies.size(), module.stops().size());
+
+		DailiesRunOverlay overlay = new DailiesRunOverlay(module);
+		java.awt.image.BufferedImage canvas = new java.awt.image.BufferedImage(
+			300, 260, java.awt.image.BufferedImage.TYPE_INT_RGB);
+		java.awt.Graphics2D g = canvas.createGraphics();
+		g.setColor(new java.awt.Color(58, 66, 48));
+		g.fillRect(0, 0, 300, 260);
+		g.setFont(net.runelite.client.ui.FontManager.getRunescapeSmallFont());
+		java.awt.Dimension size = overlay.render(g);
+		g.dispose();
+
+		assertNotNull(size);
+		assertTrue("overlay width " + size.width, size.width <= 250);
+		assertTrue("overlay height " + size.height, size.height <= 200);
+		javax.imageio.ImageIO.write(canvas, "png",
+			new java.io.File("build/reports/dailies-run-overlay.png"));
+		module.shutDown();
+	}
+
 	private static void write(java.awt.image.BufferedImage image, String name) throws Exception
 	{
 		java.io.File out = new java.io.File("build/reports/" + name);

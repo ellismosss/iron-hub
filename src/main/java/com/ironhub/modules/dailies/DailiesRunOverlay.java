@@ -60,9 +60,11 @@ class DailiesRunOverlay extends OverlayPanel
 			String bring = module.bringLine(next);
 			if (!bring.isEmpty())
 			{
+				// Amber (actionable), not red: red is a verified shortfall, and
+				// we never checked your bank — this is a reminder, not a warning.
 				panelComponent.getChildren().add(LineComponent.builder()
 					.left("Bring: " + bring)
-					.leftColor(UiTokens.CANVAS_WARNING)
+					.leftColor(UiTokens.CANVAS_AVAILABLE)
 					.build());
 			}
 		}
