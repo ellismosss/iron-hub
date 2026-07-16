@@ -369,25 +369,8 @@ class FarmingTab extends JPanel
 			}
 		}
 
-		SummaryState birds = tracking.birdHouseSummary();
-		if (birds != SummaryState.UNKNOWN)
-		{
-			boolean ready = birds == SummaryState.COMPLETED || birds == SummaryState.EMPTY;
-			overview.add(overviewRow("Bird houses",
-				birds == SummaryState.EMPTY ? "Empty"
-					: statusText(birds, ready, tracking.birdHouseCompletionTime(), now),
-				ready ? UiTokens.STATUS_AVAILABLE : UiTokens.TEXT_MUTED));
-			overview.add(Box.createVerticalStrut(2));
-		}
-
-		if (tracking.contract().hasContract())
-		{
-			boolean ready = tracking.contractReady();
-			overview.add(overviewRow("Contract · " + tracking.contract().getContractName(),
-				ready ? "Ready" : "Growing",
-				ready ? UiTokens.STATUS_AVAILABLE : UiTokens.TEXT_MUTED));
-		}
-
+		// Bird houses and the farming contract live in the Runs list now — they
+		// are things you go and do, not patches to read.
 		overview.revalidate();
 		overview.repaint();
 	}
@@ -423,15 +406,83 @@ class FarmingTab extends JPanel
 		return UiTokens.TEXT_MUTED;
 	}
 
+	/**
+	 * Bird houses and the farming contract, in the runs list: things you go and
+	 * do, on their own schedule, that no route can start for you. Silent when
+	 * the account has never had one.
+	 */
+	private void buildBirdHouseAndContractRows()
+	{
+		FarmTrackingService tracking = module.tracking();
+		if (tracking == null)
+		{
+			return;
+		}
+		long now = Instant.now().getEpochSecond();
+		SummaryState birds = tracking.birdHouseSummary();
+		if (birds != SummaryState.UNKNOWN)
+		{
+			boolean ready = birds == SummaryState.COMPLETED || birds == SummaryState.EMPTY;
+			runs.add(statusRow("Bird houses", Tab.BIRD_HOUSE.getItemID(),
+				birds == SummaryState.EMPTY ? "Empty"
+					: statusText(birds, ready, tracking.birdHouseCompletionTime(), now),
+				ready));
+			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		}
+		if (tracking.contract().hasContract())
+		{
+			boolean ready = tracking.contractReady();
+			runs.add(statusRow("Contract · " + tracking.contract().getContractName(),
+				Tab.SPECIAL.getItemID(), ready ? "Ready" : "Growing", ready));
+			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		}
+	}
+
+	/** A run-list row you cannot start: icon, name, and where it stands. No
+	 *  checkbox — there is nothing to include in a sequence. */
+	private JPanel statusRow(String name, int itemId, String value, boolean ready)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setBackground(UiTokens.CARD_BG);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
+			new EmptyBorder(0, UiTokens.ROW_GAP, 0, UiTokens.ROW_GAP)));
+		row.setPreferredSize(new Dimension(0, UiTokens.ROW_HEIGHT));
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT));
+		row.add(Box.createHorizontalStrut(CHECK_WIDTH)); // line up with the run names
+		row.add(spriteLabel(itemId));
+		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		JLabel label = new JLabel(name);
+		label.setForeground(ready
+			? net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR
+			: UiTokens.TEXT_PRIMARY);
+		label.setFont(label.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
+		label.setMinimumSize(new Dimension(0, 0));
+		row.add(label);
+		row.add(Box.createHorizontalGlue());
+		JLabel status = new JLabel(value);
+		status.setForeground(ready
+			? net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR : UiTokens.TEXT_MUTED);
+		status.setFont(status.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		row.add(status);
+		return row;
+	}
+
 	/** A run's sprite, sized to sit inside a row. Blank (but still spaced) when
 	 *  we have no icon for it, so the names stay aligned. */
 	private JComponent runIcon(String name)
+	{
+		return spriteLabel(module.runIcon(name));
+	}
+
+	private JLabel spriteLabel(int itemId)
 	{
 		JLabel icon = new JLabel();
 		icon.setPreferredSize(new Dimension(RUN_ICON, RUN_ICON));
 		icon.setMinimumSize(new Dimension(RUN_ICON, RUN_ICON));
 		icon.setMaximumSize(new Dimension(RUN_ICON, RUN_ICON));
-		java.awt.Image sprite = sprites.get(module.runIcon(name), RUN_ICON);
+		java.awt.Image sprite = sprites.get(itemId, RUN_ICON);
 		if (sprite != null)
 		{
 			icon.setIcon(new javax.swing.ImageIcon(sprite));
@@ -440,6 +491,7 @@ class FarmingTab extends JPanel
 	}
 
 	private static final int RUN_ICON = 18;
+	private static final int CHECK_WIDTH = 16;
 
 	/** Grid of clickable category icon tiles — the Time Tracking tab strip. */
 	private JComponent overviewTileStrip(java.util.Map<Tab, List<FarmingRunModule.OverviewPatch>> byCategory, long now)
@@ -845,22 +897,50 @@ class FarmingTab extends JPanel
 
 	private void buildRunPicker()
 	{
-		// ready runs (a patch waiting to be harvested) float to the top; the
-		// wiki/pack order is preserved within the ready and not-ready groups
-		List<String> templates = new ArrayList<>(module.templateNames());
-		templates.sort(java.util.Comparator.comparing(n -> !module.runReady(n)));
-		for (String template : templates)
+		int stops = module.selectedRunStops();
+		JLabel startAll = primaryButton(stops > 0
+			? "Start all runs · " + stops + " stops" : "Nothing to run");
+		if (stops > 0)
 		{
-			runs.add(runRow(template, () -> module.startTemplate(template), null));
-			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			startAll.setToolTipText("Every ticked run, as one sequence, trimmed to "
+				+ "the stops worth doing right now");
+			startAll.addMouseListener(new java.awt.event.MouseAdapter()
+			{
+				@Override
+				public void mousePressed(java.awt.event.MouseEvent e)
+				{
+					module.startAllRuns();
+				}
+			});
 		}
+		else
+		{
+			startAll.setBackground(UiTokens.ICON_BUTTON_BG);
+			startAll.setForeground(UiTokens.TEXT_MUTED);
+			startAll.setBorder(new LineBorder(UiTokens.BORDER_BUTTON));
+			startAll.setCursor(Cursor.getDefaultCursor());
+			startAll.setToolTipText("Nothing ticked is worth a trip right now");
+		}
+		runs.add(startAll);
+		runs.add(Box.createVerticalStrut(UiTokens.PAD));
 
-		for (String name : new TreeMap<>(state.getFarmRuns()).keySet())
+		// picker order = the order "start all" walks (ready first, then the pack's)
+		java.util.Set<String> custom = state.getFarmRuns().keySet();
+		for (String name : module.pickerOrder())
 		{
-			runs.add(runRow(name, () -> module.startCustom(name),
-				() -> state.deleteFarmRun(name)));
+			runs.add(runRow(name, () -> {
+				if (custom.contains(name))
+				{
+					module.startCustom(name);
+				}
+				else
+				{
+					module.startTemplate(name);
+				}
+			}, custom.contains(name) ? () -> state.deleteFarmRun(name) : null));
 			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
+		buildBirdHouseAndContractRows();
 
 		JLabel newRun = new JLabel(builderOpen ? "Cancel new run" : "New custom run…");
 		newRun.setForeground(UiTokens.ACCENT);
@@ -897,7 +977,8 @@ class FarmingTab extends JPanel
 	 */
 	private JPanel runRow(String name, Runnable start, Runnable delete)
 	{
-		boolean ready = module.runReady(name);
+		boolean selected = module.runSelected(name);
+		boolean ready = module.runReady(name) && selected;
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setBackground(UiTokens.CARD_BG);
@@ -908,6 +989,14 @@ class FarmingTab extends JPanel
 		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT));
 		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
+		JCheckBox include = new JCheckBox("", selected);
+		include.setOpaque(false);
+		include.setToolTipText("Include in Start all runs");
+		include.setBorder(new EmptyBorder(0, 0, 0, 0));
+		include.setPreferredSize(new Dimension(CHECK_WIDTH, UiTokens.ROW_HEIGHT));
+		include.setMaximumSize(new Dimension(CHECK_WIDTH, UiTokens.ROW_HEIGHT));
+		include.addActionListener(e -> state.setFarmRunSelected(name, include.isSelected()));
+		row.add(include);
 		row.add(runIcon(name));
 		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		JLabel label = new JLabel(name);

@@ -848,6 +848,60 @@ public class FarmingRunModule implements IronHubModule
 		return names;
 	}
 
+	/**
+	 * Every run in the picker's order: ready ones first (something is waiting),
+	 * then the pack's own order, then saved custom runs. The list the tab draws
+	 * and the order "start all" walks are the same list, so they cannot drift.
+	 */
+	List<String> pickerOrder()
+	{
+		List<String> names = new java.util.ArrayList<>(templateNames());
+		names.sort(java.util.Comparator.comparing(n -> !runReady(n)));
+		names.addAll(new java.util.TreeMap<>(state.getFarmRuns()).keySet());
+		return names;
+	}
+
+	/** Runs ticked into the combined sequence (all of them, until you say not). */
+	boolean runSelected(String name)
+	{
+		return state.isFarmRunSelected(name);
+	}
+
+	/**
+	 * Every selected run's stops, in picker order, each stop appearing once —
+	 * the runs overlap heavily (the herb patches belong to both the Herb run and
+	 * the Allotment/flower/herb run), and nobody wants to be sent to Falador
+	 * twice. Culling then trims the lot as it would any single run.
+	 */
+	List<FarmRunsPack.Location> selectedRunLocations()
+	{
+		java.util.LinkedHashMap<String, FarmRunsPack.Location> combined =
+			new java.util.LinkedHashMap<>();
+		for (String name : pickerOrder())
+		{
+			if (!runSelected(name))
+			{
+				continue;
+			}
+			for (FarmRunsPack.Location location : runLocations(name))
+			{
+				combined.putIfAbsent(location.id, location);
+			}
+		}
+		return new java.util.ArrayList<>(combined.values());
+	}
+
+	/** Stops the combined run would actually visit right now. */
+	int selectedRunStops()
+	{
+		return cull(selectedRunLocations()).size();
+	}
+
+	void startAllRuns()
+	{
+		startRun("All runs", selectedRunLocations());
+	}
+
 	/** Start a saved custom run; unknown location ids are skipped. */
 	void startCustom(String name)
 	{

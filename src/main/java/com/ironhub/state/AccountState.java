@@ -84,6 +84,8 @@ public class AccountState implements StateView
 	private final Map<String, PersistedState.SavedSetup> farmRunSetups = new ConcurrentHashMap<>();
 	// preferred teleport per farm location (location id -> teleport id)
 	private final Map<String, String> farmTeleportPrefs = new ConcurrentHashMap<>();
+	/** Farm runs ticked into the combined "start all" run; absent = included. */
+	private final Map<String, Boolean> farmRunChoice = new ConcurrentHashMap<>();
 
 	/** Rolling consumption events for runway rates, capped. */
 	public static final int MAX_CONSUMPTION_EVENTS = 500;
@@ -503,6 +505,21 @@ public class AccountState implements StateView
 	}
 
 	/** The player's preferred teleport id for a farm location, or null (auto). */
+	/** Whether a run joins the combined "start all runs" sequence. */
+	public boolean isFarmRunSelected(String name)
+	{
+		return farmRunChoice.getOrDefault(name, true);
+	}
+
+	public void setFarmRunSelected(String name, boolean selected)
+	{
+		if (!Boolean.valueOf(selected).equals(farmRunChoice.put(name, selected)))
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
 	public String getFarmTeleportPref(String locationId)
 	{
 		return farmTeleportPrefs.get(locationId);
@@ -1427,6 +1444,8 @@ public class AccountState implements StateView
 		farmRunSetups.putAll(persisted.farmRunSetups);
 		farmTeleportPrefs.clear();
 		farmTeleportPrefs.putAll(persisted.farmTeleportPrefs);
+		farmRunChoice.clear();
+		farmRunChoice.putAll(persisted.farmRunChoice);
 		consumptionLog.clear();
 		consumptionLog.addAll(persisted.consumptionLog);
 		deaths.clear();
@@ -1488,6 +1507,7 @@ public class AccountState implements StateView
 		state.farmRuns = new HashMap<>(farmRuns);
 		state.farmRunSetups = new HashMap<>(farmRunSetups);
 		state.farmTeleportPrefs = new HashMap<>(farmTeleportPrefs);
+		state.farmRunChoice = new HashMap<>(farmRunChoice);
 		state.consumptionLog = new java.util.ArrayList<>(consumptionLog);
 		state.deaths = new java.util.ArrayList<>(deaths);
 		state.selectedGoals = new HashSet<>(selectedGoals);

@@ -28,6 +28,7 @@ public class PersistedState
 	Map<String, FarmRun> farmRuns = new HashMap<>(); // custom run name -> ordered stops
 	Map<String, SavedSetup> farmRunSetups = new HashMap<>(); // run name -> saved gear+inventory
 	Map<String, String> farmTeleportPrefs = new HashMap<>(); // location id -> preferred teleport id
+	Map<String, Boolean> farmRunChoice = new HashMap<>(); // run name -> included in "start all" (absent = on)
 
 	/** A user-built farm run: an ordered list of farm-runs.json location
 	 *  ids. Teleports are auto-picked from what the player owns at run

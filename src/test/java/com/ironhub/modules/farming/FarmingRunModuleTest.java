@@ -463,6 +463,53 @@ public class FarmingRunModuleTest
 		module.shutDown();
 	}
 
+	/**
+	 * "Start all runs" is one sequence over every ticked run. The runs overlap
+	 * hard — the herb patches belong to both the Herb run and the Allotment/
+	 * flower/herb run — so a stop must appear once, not once per run that
+	 * claims it.
+	 */
+	@Test
+	public void startAllRunsCombinesTickedRunsWithoutVisitingAnywhereTwice()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		FarmingRunModule module = module(state, TimetrackingFixture.configManager(), null);
+
+		assertTrue("every run is in until you say otherwise", module.runSelected("Herb run"));
+		List<String> ids = module.selectedRunLocations().stream()
+			.map(l -> l.id).collect(java.util.stream.Collectors.toList());
+		assertEquals("a stop appears once, however many runs want it",
+			ids.size(), new java.util.HashSet<>(ids).size());
+		assertTrue(ids.contains("herb/falador"));
+
+		// untick everything but the herb run and the sequence is just its stops
+		for (String name : module.pickerOrder())
+		{
+			state.setFarmRunSelected(name, name.equals("Herb run"));
+		}
+		assertEquals(module.runLocations("Herb run").stream().map(l -> l.id)
+				.collect(java.util.stream.Collectors.toList()),
+			module.selectedRunLocations().stream().map(l -> l.id)
+				.collect(java.util.stream.Collectors.toList()));
+
+		module.startAllRuns();
+		assertTrue(module.running());
+		assertEquals("All runs", module.runName());
+		// and it is culled like any run — a fresh account only reaches four herb patches
+		assertEquals(4, module.stops().size());
+		module.endRun(false);
+
+		// nothing ticked, nothing to run
+		for (String name : module.pickerOrder())
+		{
+			state.setFarmRunSelected(name, false);
+		}
+		assertTrue(module.selectedRunLocations().isEmpty());
+		assertEquals(0, module.selectedRunStops());
+		module.shutDown();
+	}
+
 	@Test
 	public void overviewTilesMergeCalquatCelastrusIntoTreeAndSpecials()
 	{
