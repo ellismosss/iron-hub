@@ -46,7 +46,7 @@ public class BankTrackerModule implements IronHubModule
 	 *  sidebar's current result list in SKILL view, else the selection. */
 	private volatile java.util.List<Integer> bankDisplay = java.util.List.of();
 	private volatile String bankTitle = "";
-	private BankCollectView collectView;
+	private com.ironhub.ui.components.BankCollectView collectView;
 
 	@Inject
 	public BankTrackerModule(AccountState state, ItemManager itemManager,
@@ -67,7 +67,8 @@ public class BankTrackerModule implements IronHubModule
 		this.overlayManager = overlayManager;
 		this.eventBus = eventBus;
 		this.client = client;
-		this.collectView = new BankCollectView(bankTagsService, tagManager, layoutManager, itemManager);
+		this.collectView = new com.ironhub.ui.components.BankCollectView(
+			"_ironhubbank_", bankTagsService, tagManager, layoutManager, itemManager);
 		this.config = config;
 		this.dataPack = dataPack;
 		this.configManager = configManager;

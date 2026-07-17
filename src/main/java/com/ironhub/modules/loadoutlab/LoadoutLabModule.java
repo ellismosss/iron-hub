@@ -7,11 +7,19 @@ import com.ironhub.state.PersistedState;
 import com.ironhub.ui.UiTokens;
 import com.loadoutlab.LoadoutLabPlugin;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.Box;
@@ -23,20 +31,25 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.EquipmentInventorySlot;
+import net.runelite.api.ItemID;
+import net.runelite.api.VarPlayer;
 import net.runelite.api.Varbits;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.EventBus;
+import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 
 /**
  * Loadout Lab (github.com/ajkatz/runelite-loadout-lab, BSD-2-Clause,
  * imported whole per user direction) as a task-aware Iron Hub module.
  * The upstream engine lives untouched under {@code com.loadoutlab};
- * this wrapper adds the one-stop-shop layer: auto-follows the slayer
- * task / most recently fought or killed NPC (panel.selectExternal),
- * pulls wiki tips for the activity on demand, and remembers full
- * setups — worn gear in the OSRS slot layout, inventory (4x7) and
- * rune pouch, Inventory Setups style — per task/boss.
+ * this wrapper adds the one-stop-shop layer: a LIVE gear+inventory view
+ * (drawn as the game's own interfaces, see SavedSetupView) at the top of
+ * the tab, saved setups viewable as a diff against what is currently
+ * worn/held (orange = swap in, red = deposit-only), a real-bank collect
+ * view of what a viewed setup still needs withdrawn, per-slot item search
+ * editing into a draft, plus the activity auto-follow and wiki tips for
+ * the lab below.
  */
 @Slf4j
 @Singleton
@@ -58,6 +71,8 @@ public class LoadoutLabModule implements IronHubModule
 		Varbits.RUNE_POUCH_AMOUNT1, Varbits.RUNE_POUCH_AMOUNT2,
 		Varbits.RUNE_POUCH_AMOUNT3, Varbits.RUNE_POUCH_AMOUNT4,
 	};
+	/** Autocast spell varbit (gameval; legacy Varbits has no autocast). */
+	private static final int AUTOCAST_SPELL = net.runelite.api.gameval.VarbitID.AUTOCAST_SPELL;
 
 	private final LoadoutLabPlugin lab;
 	private final EventBus eventBus;
@@ -68,6 +83,8 @@ public class LoadoutLabModule implements IronHubModule
 	private final ItemManager itemManager;     // null in unit tests
 	private final com.google.gson.Gson gson;
 	private final okhttp3.OkHttpClient httpClient; // null in unit tests
+	/** Own hidden Bank Tag, never the bank module's — see BankCollectView. */
+	private final com.ironhub.ui.components.BankCollectView collectView;
 
 	/** Visibility-gated once the holder exists (RebuildGate): a hidden lab
 	 *  strip must not rebuild on every state change — pre-build, the plain
@@ -86,22 +103,38 @@ public class LoadoutLabModule implements IronHubModule
 		}
 	};
 	private com.ironhub.modules.loadout.StrategyClient strategyClient;
+	private com.ironhub.data.ItemNameIndex nameIndex;
 	private com.ironhub.ui.osrs.OsrsTheme theme;
 	private JPanel holder;
 	private JPanel strip;
 	private final JPanel activityHolder = new JPanel();
 	private final JPanel tipsPanel = new JPanel();
 	private final JPanel setupView = new JPanel();
+	private final JPanel namesPanel = new JPanel();
+	private final JPanel searchPanel = new JPanel();
+	private final JPanel searchResults = new JPanel();
+	private final JPanel searchTitleHolder = new JPanel();
+	private com.ironhub.ui.osrs.StoneTextField searchField;
+	private com.ironhub.ui.osrs.StoneButton liveButton;
 	private String activityLine = "";
 	private String lastAutoSelected = "";
-	private String viewedSetup; // explicit Load-setup pick, wins over the activity
+	/** Viewing state: a named setup diffed vs current, an unsaved edited
+	 *  draft (wins over the name), or — both null — the live view. */
+	private String viewedSetup;
+	private PersistedState.SavedSetup draft;
+	private boolean namesOpen;
+	private EquipmentInventorySlot searchSlot;
+	private int lastViewFp;
 	private boolean dpsCalcCollapsed;
 	private boolean started;
 
 	@Inject
 	public LoadoutLabModule(LoadoutLabPlugin lab, EventBus eventBus, IronHubConfig config,
 		AccountState state, ClientThread clientThread, net.runelite.api.Client client,
-		ItemManager itemManager, com.google.gson.Gson gson, okhttp3.OkHttpClient httpClient)
+		ItemManager itemManager, com.google.gson.Gson gson, okhttp3.OkHttpClient httpClient,
+		net.runelite.client.plugins.banktags.BankTagsService bankTagsService,
+		net.runelite.client.plugins.banktags.TagManager tagManager,
+		net.runelite.client.plugins.banktags.tabs.LayoutManager layoutManager)
 	{
 		this.lab = lab;
 		this.eventBus = eventBus;
@@ -112,6 +145,8 @@ public class LoadoutLabModule implements IronHubModule
 		this.itemManager = itemManager;
 		this.gson = gson;
 		this.httpClient = httpClient;
+		this.collectView = new com.ironhub.ui.components.BankCollectView(
+			"_ironhubloadout_", bankTagsService, tagManager, layoutManager, itemManager);
 	}
 
 	@Override
@@ -134,6 +169,9 @@ public class LoadoutLabModule implements IronHubModule
 			strategyClient = new com.ironhub.modules.loadout.StrategyClient(
 				httpClient, gson, new com.ironhub.data.ItemNameIndex(gson));
 		}
+		// combat line above the live view: attack style varp + autocast varbit
+		state.watchVarps(VarPlayer.ATTACK_STYLE);
+		state.watchVarbits(AUTOCAST_SPELL);
 		// the upstream panel styles itself at construction from this seam
 		com.loadoutlab.ui.LoadoutLabPanel.setIronHubTheme(config.osrsTheme());
 		lab.setPanelReadyCallback(() -> SwingUtilities.invokeLater(() ->
@@ -142,6 +180,7 @@ public class LoadoutLabModule implements IronHubModule
 			mountPanel();
 		}));
 		eventBus.register(lab);
+		eventBus.register(this); // bank collect for the viewed setup
 		lab.startUp();
 		state.addListener(listener);
 		started = true;
@@ -153,9 +192,14 @@ public class LoadoutLabModule implements IronHubModule
 		if (started)
 		{
 			state.removeListener(listener);
+			eventBus.unregister(this);
 			eventBus.unregister(lab);
 			lab.shutDown();
 			started = false;
+		}
+		if (clientThread != null)
+		{
+			clientThread.invoke(collectView::clear);
 		}
 		holder = null;
 		strip = null;
@@ -168,16 +212,20 @@ public class LoadoutLabModule implements IronHubModule
 		if (holder == null)
 		{
 			theme = config.osrsTheme();
+			lastViewFp = 0;
 			holder = new JPanel(new BorderLayout());
 			// frameless on the theme backing: the hub provides the frame and
 			// the header plate; the upstream lab panel keeps its own look
 			holder.setOpaque(true);
 			holder.setBackground(theme.background);
-			holder.add(buildStrip(), BorderLayout.NORTH);
-			setupView.setLayout(new BoxLayout(setupView, BoxLayout.Y_AXIS));
-			setupView.setOpaque(false);
-			setupView.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
-			holder.add(setupView, BorderLayout.SOUTH); // saved setup sits under the lab
+			// setup section FIRST (Luke): live gear view + saved setups at
+			// the top, activity strip below, the lab panel underneath
+			JPanel top = new JPanel();
+			top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
+			top.setOpaque(false);
+			top.add(buildSetupSection());
+			top.add(buildStrip());
+			holder.add(top, BorderLayout.NORTH);
 			mountPanel();
 			refreshStrip();
 			gatedListener = com.ironhub.ui.components.RebuildGate.install(
@@ -212,15 +260,181 @@ public class LoadoutLabModule implements IronHubModule
 		});
 	}
 
-	/** The activity card: what the module is auto-following, plus wiki tips.
-	 * (Save/Load setup live once, at the bottom with the saved-setup view -
-	 * the old second Save button up here duplicated them.) */
+	// ── the setup section: live view, saved setups, diff, slot search ─
+
+	private JPanel buildSetupSection()
+	{
+		JPanel section = new JPanel();
+		section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
+		section.setOpaque(false);
+		section.setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD_TIGHT, UiTokens.PAD));
+
+		JPanel buttons = new JPanel();
+		buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
+		buttons.setOpaque(false);
+		buttons.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		com.ironhub.ui.osrs.StoneButton save = new com.ironhub.ui.osrs.StoneButton(
+			theme, theme.boxFill, "Save setup", this::saveNamedSetup);
+		save.setToolTipText("Save what the view shows under a name");
+		com.ironhub.ui.osrs.StoneButton viewAll = new com.ironhub.ui.osrs.StoneButton(
+			theme, theme.boxFill, "View all setups", this::toggleAllSetups);
+		viewAll.setToolTipText("List every saved setup; click one to compare it"
+			+ " against what you are wearing and carrying");
+		buttons.add(save);
+		buttons.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		buttons.add(viewAll);
+		buttons.setMaximumSize(new Dimension(Integer.MAX_VALUE, buttons.getPreferredSize().height));
+		section.add(buttons);
+
+		liveButton = new com.ironhub.ui.osrs.StoneButton(
+			theme, theme.boxFill, "Back to live view", this::backToLive);
+		liveButton.setToolTipText("Stop viewing the setup and show what you"
+			+ " currently wear and carry");
+		liveButton.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		liveButton.setVisible(false);
+		section.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+		section.add(liveButton);
+
+		namesPanel.setLayout(new BoxLayout(namesPanel, BoxLayout.Y_AXIS));
+		namesPanel.setOpaque(false);
+		namesPanel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		namesPanel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
+		namesPanel.setVisible(false);
+		section.add(namesPanel);
+
+		setupView.setLayout(new BoxLayout(setupView, BoxLayout.Y_AXIS));
+		setupView.setOpaque(false);
+		setupView.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		setupView.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
+		section.add(setupView);
+
+		buildSearchPanel();
+		section.add(searchPanel);
+		return section;
+	}
+
+	private void buildSearchPanel()
+	{
+		searchPanel.removeAll();
+		searchPanel.setLayout(new BoxLayout(searchPanel, BoxLayout.Y_AXIS));
+		searchPanel.setOpaque(false);
+		searchPanel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		searchPanel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
+		searchPanel.setVisible(false);
+
+		JPanel head = new JPanel();
+		head.setLayout(new BoxLayout(head, BoxLayout.X_AXIS));
+		head.setOpaque(false);
+		head.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		searchTitleHolder.setLayout(new BoxLayout(searchTitleHolder, BoxLayout.X_AXIS));
+		searchTitleHolder.setOpaque(false);
+		head.add(searchTitleHolder);
+		head.add(Box.createHorizontalGlue());
+		com.ironhub.ui.osrs.StoneButton cancel = new com.ironhub.ui.osrs.StoneButton(
+			theme, theme.boxFill, "Cancel", () ->
+		{
+			searchPanel.setVisible(false);
+			holder.revalidate();
+			holder.repaint();
+		});
+		cancel.setMaximumSize(cancel.getPreferredSize());
+		head.add(cancel);
+		head.setMaximumSize(new Dimension(Integer.MAX_VALUE, head.getPreferredSize().height));
+		searchPanel.add(head);
+		searchPanel.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+
+		searchField = new com.ironhub.ui.osrs.StoneTextField(theme, "Item name…");
+		searchField.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+		{
+			@Override
+			public void insertUpdate(javax.swing.event.DocumentEvent e)
+			{
+				updateSearchResults();
+			}
+
+			@Override
+			public void removeUpdate(javax.swing.event.DocumentEvent e)
+			{
+				updateSearchResults();
+			}
+
+			@Override
+			public void changedUpdate(javax.swing.event.DocumentEvent e)
+			{
+				updateSearchResults();
+			}
+		});
+		searchPanel.add(searchField);
+
+		searchResults.setLayout(new BoxLayout(searchResults, BoxLayout.Y_AXIS));
+		searchResults.setOpaque(false);
+		searchResults.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		searchResults.setBorder(new EmptyBorder(UiTokens.ROW_GAP, 0, 0, 0));
+		searchPanel.add(searchResults);
+	}
+
+	private com.ironhub.data.ItemNameIndex nameIndex()
+	{
+		if (nameIndex == null)
+		{
+			nameIndex = new com.ironhub.data.ItemNameIndex(gson);
+		}
+		return nameIndex;
+	}
+
+	private boolean isLive()
+	{
+		return draft == null && (viewedSetup == null || state.savedSetup(viewedSetup) == null);
+	}
+
+	/** The setup currently being viewed (draft wins), or null when live. */
+	private PersistedState.SavedSetup viewedOrDraft()
+	{
+		if (draft != null)
+		{
+			return draft;
+		}
+		return viewedSetup != null ? state.savedSetup(viewedSetup) : null;
+	}
+
+	private void toggleAllSetups()
+	{
+		namesOpen = !namesOpen;
+		namesPanel.setVisible(namesOpen);
+		lastViewFp = 0;
+		renderView();
+	}
+
+	private void viewSetup(String name)
+	{
+		viewedSetup = name;
+		draft = null;
+		searchPanel.setVisible(false);
+		lastViewFp = 0;
+		renderView();
+		applyBankView();
+	}
+
+	private void backToLive()
+	{
+		viewedSetup = null;
+		draft = null;
+		searchPanel.setVisible(false);
+		lastViewFp = 0;
+		renderView();
+		applyBankView();
+	}
+
+	// ── slayer/fight auto-follow (unchanged) ──────────────────────────
+
+	/** The activity card: what the module is auto-following, plus wiki tips. */
 	private JPanel buildStrip()
 	{
 		strip = new JPanel();
 		strip.setLayout(new BoxLayout(strip, BoxLayout.Y_AXIS));
 		strip.setOpaque(false);
-		strip.setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD_TIGHT, UiTokens.PAD));
+		strip.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, UiTokens.PAD, UiTokens.PAD_TIGHT, UiTokens.PAD));
 
 		com.ironhub.ui.osrs.StonePanel card = new com.ironhub.ui.osrs.StonePanel(theme);
 		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
@@ -318,7 +532,7 @@ public class LoadoutLabModule implements IronHubModule
 		activityHolder.add(text);
 		activityHolder.revalidate();
 		activityHolder.repaint();
-		renderSavedSetup();
+		renderView();
 	}
 
 	// ── wiki tips ─────────────────────────────────────────────────────
@@ -375,37 +589,35 @@ public class LoadoutLabModule implements IronHubModule
 		strip.revalidate();
 	}
 
-	// ── remembered setups (gear + inventory + rune pouch) ─────────────
+	// ── saving setups ─────────────────────────────────────────────────
 
-	/** Save-with-name (panel button): prompts, defaults to the activity. */
+	/** Save-with-name: saves what the view SHOWS — the draft or viewed
+	 *  setup when one is up, else a live capture (gear+inv+pouch). */
 	private void saveNamedSetup()
 	{
-		String suggested = activity().isEmpty() ? "My setup" : activity();
+		String suggested = viewedSetup != null ? viewedSetup
+			: activity().isEmpty() ? "My setup" : activity();
 		String name = (String) javax.swing.JOptionPane.showInputDialog(holder,
 			"Setup name:", "Save setup", javax.swing.JOptionPane.PLAIN_MESSAGE,
 			null, null, suggested);
-		if (name != null && !name.trim().isEmpty())
+		if (name == null || name.trim().isEmpty())
 		{
-			captureSetup(name.trim());
-		}
-	}
-
-	/** Load-by-name (panel button): renders the pick under the lab. */
-	private void loadNamedSetup()
-	{
-		List<String> names = state.savedSetupNames();
-		if (names.isEmpty())
-		{
-			javax.swing.JOptionPane.showMessageDialog(holder, "No saved setups yet.");
 			return;
 		}
-		String pick = (String) javax.swing.JOptionPane.showInputDialog(holder,
-			"Setup:", "Load setup", javax.swing.JOptionPane.PLAIN_MESSAGE,
-			null, names.toArray(), names.get(0));
-		if (pick != null)
+		name = name.trim();
+		PersistedState.SavedSetup source = viewedOrDraft();
+		if (source != null)
 		{
-			viewedSetup = pick;
-			renderSavedSetup();
+			state.saveSetup(name, copy(source)); // persists + notifies
+			draft = null;
+			viewedSetup = name;
+			lastViewFp = 0;
+			renderView();
+			applyBankView();
+		}
+		else
+		{
+			captureSetup(name);
 		}
 	}
 
@@ -453,43 +665,462 @@ public class LoadoutLabModule implements IronHubModule
 		}
 	}
 
-	/** The remembered setup drawn as the game's own interfaces (Luke,
-	 * 2026-07-17): the Worn Equipment layout with slot sprites + chain
-	 * links, the rune pouch as slot tiles, and the inventory sitting on the
-	 * game's framed side-panel backing. See SavedSetupView. */
-	private void renderSavedSetup()
+	private static PersistedState.SavedSetup copy(PersistedState.SavedSetup s)
 	{
-		setupView.removeAll();
-		PersistedState.SavedSetup saved = viewedSetup != null
-			? state.savedSetup(viewedSetup) : state.savedSetup(activity());
-		if (saved != null)
+		PersistedState.SavedSetup c = new PersistedState.SavedSetup();
+		c.equipment = new HashMap<>(s.equipment);
+		c.inventory = s.inventory.clone();
+		c.inventoryQty = s.inventoryQty.clone();
+		c.pouchRunes = s.pouchRunes.clone();
+		c.pouchAmounts = s.pouchAmounts.clone();
+		return c;
+	}
+
+	// ── the live/diff view ────────────────────────────────────────────
+
+	/**
+	 * Rune pouch slot count for the view: 3 for the regular pouch, 4 for
+	 * the divine (incl. trouver-locked variants); an unrecognised pouch
+	 * whose 4th rune varbit is populated must be divine-sized too. 0 = no
+	 * pouch carried = no pouch panel (honest).
+	 */
+	static int pouchSlots(Set<Integer> carriedIds, boolean fourthRuneVarbitSet)
+	{
+		if (carriedIds.contains(ItemID.DIVINE_RUNE_POUCH)
+			|| carriedIds.contains(ItemID.DIVINE_RUNE_POUCH_L))
 		{
-			SavedSetupView view = new SavedSetupView(theme, itemManager, state::itemName);
-			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-			setupView.add(new com.ironhub.ui.osrs.OsrsLabel("Saved setup",
-				com.ironhub.ui.osrs.OsrsSkin.MUTED,
-				com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned());
-			setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
-			setupView.add(centered(view.equipment(saved)));
+			return 4;
+		}
+		if (carriedIds.contains(ItemID.RUNE_POUCH) || carriedIds.contains(ItemID.RUNE_POUCH_L))
+		{
+			return fourthRuneVarbitSet ? 4 : 3;
+		}
+		return 0;
+	}
 
-			if (saved.pouchRunes.length > 0 && java.util.Arrays.stream(saved.pouchRunes).anyMatch(r -> r > 0))
+	private Set<Integer> carriedIds()
+	{
+		Set<Integer> ids = new HashSet<>();
+		for (int id : state.getInventorySlots())
+		{
+			if (id > 0)
 			{
-				setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-				setupView.add(smallLabel("Rune pouch"));
-				setupView.add(Box.createVerticalStrut(2));
-				setupView.add(centered(view.runePouch(saved)));
-			}
-
-			if (saved.inventory.length > 0)
-			{
-				setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-				setupView.add(smallLabel("Inventory"));
-				setupView.add(Box.createVerticalStrut(2));
-				setupView.add(centered(view.inventory(saved)));
+				ids.add(id);
 			}
 		}
+		for (int id : state.getEquipmentSlots())
+		{
+			if (id > 0)
+			{
+				ids.add(id);
+			}
+		}
+		return ids;
+	}
+
+	/** Snapshot of what is worn/carried right now, pouch included. */
+	private PersistedState.SavedSetup liveSetup()
+	{
+		PersistedState.SavedSetup live = state.captureSetup();
+		int slots = pouchSlots(carriedIds(),
+			state.getVarbit(Varbits.RUNE_POUCH_RUNE4) > 0);
+		if (slots > 0)
+		{
+			List<Map.Entry<Integer, Integer>> runes =
+				new ArrayList<>(state.getRunePouch().entrySet());
+			runes.sort(Map.Entry.comparingByKey());
+			live.pouchRunes = new int[slots];
+			live.pouchAmounts = new int[slots];
+			Arrays.fill(live.pouchRunes, -1);
+			for (int i = 0; i < runes.size() && i < slots; i++)
+			{
+				live.pouchRunes[i] = runes.get(i).getKey();
+				live.pouchAmounts[i] = runes.get(i).getValue();
+			}
+		}
+		return live;
+	}
+
+	/** EDT. Rebuilds the setup view (live or diffed) + the names list. */
+	private void renderView()
+	{
+		if (holder == null)
+		{
+			return;
+		}
+		int fp = Objects.hash(
+			Arrays.hashCode(state.getEquipmentSlots()),
+			Arrays.hashCode(state.getInventorySlots()),
+			state.getRunePouch(),
+			state.getVarp(VarPlayer.ATTACK_STYLE),
+			state.getVarbit(AUTOCAST_SPELL),
+			state.savedSetupNames(),
+			viewedSetup,
+			draft != null ? draft.equipment : null,
+			namesOpen);
+		if (fp == lastViewFp)
+		{
+			return;
+		}
+		lastViewFp = fp;
+
+		renderNames();
+		boolean live = isLive();
+		liveButton.setVisible(!live);
+		PersistedState.SavedSetup shown = live ? liveSetup() : viewedOrDraft();
+
+		setupView.removeAll();
+		String title = live ? "Live gear & inventory"
+			: (draft != null ? "Draft (unsaved) · vs current" : viewedSetup + " · vs current");
+		com.ironhub.ui.osrs.OsrsLabel titleLabel = new com.ironhub.ui.osrs.OsrsLabel(title,
+			com.ironhub.ui.osrs.OsrsSkin.MUTED, com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
+		setupView.add(titleLabel);
+		if (!live)
+		{
+			com.ironhub.ui.osrs.OsrsLabel legend = new com.ironhub.ui.osrs.OsrsLabel(
+				"Orange = swap · Red = deposit",
+				com.ironhub.ui.osrs.OsrsSkin.FAINT, com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
+			legend.setToolTipText("Orange border: the setup wants this item here"
+				+ " — withdraw or equip it. Red border: you carry this but the"
+				+ " setup has no place for it — deposit it.");
+			setupView.add(legend);
+		}
+		String combat = combatLine();
+		if (combat != null)
+		{
+			com.ironhub.ui.osrs.OsrsLabel combatLabel = new com.ironhub.ui.osrs.OsrsLabel(combat,
+				com.ironhub.ui.osrs.OsrsSkin.LABEL, com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
+			combatLabel.setToolTipText(combatTooltip());
+			setupView.add(combatLabel);
+		}
+		setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+
+		SavedSetupView view = new SavedSetupView(theme, itemManager, state::itemName);
+		// merged display: setup items, plus deposit-only current items in
+		// the slots the setup leaves empty; tints from the pure diff
+		PersistedState.SavedSetup display = shown;
+		Map<String, Color> equipTints = null;
+		Color[] invTints = null;
+		if (!live)
+		{
+			display = copy(shown);
+			equipTints = new HashMap<>();
+			Map<String, SetupDiff.Slot> eq = SetupDiff.equipment(shown, state.getEquipmentSlots());
+			for (Map.Entry<String, SetupDiff.Slot> entry : eq.entrySet())
+			{
+				SetupDiff.Slot slot = entry.getValue();
+				if (slot.itemId > 0)
+				{
+					display.equipment.put(entry.getKey(), slot.itemId);
+				}
+				else
+				{
+					display.equipment.remove(entry.getKey());
+				}
+				Color tint = tintColor(slot.tint);
+				if (tint != null)
+				{
+					equipTints.put(entry.getKey(), tint);
+				}
+			}
+			SetupDiff.Slot[] inv = SetupDiff.inventory(shown, state.getInventorySlots());
+			display.inventory = new int[28];
+			display.inventoryQty = new int[28];
+			invTints = new Color[28];
+			Map<Integer, Integer> carriedQty = state.getInventorySnapshot();
+			for (int i = 0; i < 28; i++)
+			{
+				display.inventory[i] = inv[i].itemId;
+				if (inv[i].itemId > 0)
+				{
+					// deposit-only slots show the CURRENT item; its stack
+					// count comes from what is actually carried
+					display.inventoryQty[i] = inv[i].tint == SetupDiff.Tint.DEPOSIT
+						? carriedQty.getOrDefault(inv[i].itemId, 1)
+						: (i < shown.inventoryQty.length ? Math.max(1, shown.inventoryQty[i]) : 1);
+				}
+				invTints[i] = tintColor(inv[i].tint);
+			}
+		}
+
+		setupView.add(centered(view.equipment(display, equipTints, this::openSlotSearch)));
+
+		if (display.pouchRunes.length > 0
+			&& Arrays.stream(display.pouchRunes).anyMatch(r -> r > 0))
+		{
+			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			setupView.add(smallLabel("Rune pouch"));
+			setupView.add(Box.createVerticalStrut(2));
+			setupView.add(centered(view.runePouch(display)));
+		}
+
+		if (display.inventory.length > 0)
+		{
+			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			setupView.add(smallLabel("Inventory"));
+			setupView.add(Box.createVerticalStrut(2));
+			setupView.add(centered(view.inventory(display, invTints)));
+		}
+
 		setupView.revalidate();
 		setupView.repaint();
+		holder.revalidate();
+		holder.repaint();
+	}
+
+	private static Color tintColor(SetupDiff.Tint tint)
+	{
+		switch (tint)
+		{
+			case SWAP:
+				return com.ironhub.ui.osrs.OsrsSkin.TITLE;       // orange: withdraw/equip
+			case DEPOSIT:
+				return UiTokens.STATUS_WARNING;                  // red: no place in the setup
+			default:
+				return null;
+		}
+	}
+
+	/**
+	 * The selected spell or attack style, or null pre-login. Honesty: the
+	 * client API names neither autocast spells (no enum constant maps the
+	 * varbit) nor per-weapon style names without the weapon-type cache
+	 * walk, so this shows the game's own numbers, never an invented name.
+	 */
+	private String combatLine()
+	{
+		if (state.getEquipmentSlots().length == 0 && state.getInventorySlots().length == 0)
+		{
+			return null; // nothing ingested yet — unknown, so silent
+		}
+		int spell = state.getVarbit(AUTOCAST_SPELL);
+		return spell > 0 ? "Autocast spell " + spell
+			: "Attack style " + (state.getVarp(VarPlayer.ATTACK_STYLE) + 1);
+	}
+
+	private String combatTooltip()
+	{
+		int spell = state.getVarbit(AUTOCAST_SPELL);
+		return spell > 0
+			? "The game's autocast spell number — the client API does not expose its name"
+			: "The selected combat style slot; its name depends on the equipped weapon type";
+	}
+
+	private void renderNames()
+	{
+		namesPanel.removeAll();
+		if (!namesOpen)
+		{
+			return;
+		}
+		List<String> names = state.savedSetupNames();
+		if (names.isEmpty())
+		{
+			namesPanel.add(new com.ironhub.ui.osrs.OsrsLabel("No saved setups yet",
+				com.ironhub.ui.osrs.OsrsSkin.FAINT,
+				com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned());
+			return;
+		}
+		for (String name : names)
+		{
+			boolean active = draft == null && name.equals(viewedSetup);
+			com.ironhub.ui.osrs.OsrsLabel row = new com.ironhub.ui.osrs.OsrsLabel(
+				(active ? "> " : "· ") + name,
+				active ? com.ironhub.ui.osrs.OsrsSkin.TITLE : com.ironhub.ui.osrs.OsrsSkin.MUTED,
+				com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
+			row.setToolTipText(active ? "Viewing — click again for the live view"
+				: "Compare this setup against what you wear and carry");
+			row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			row.addMouseListener(new java.awt.event.MouseAdapter()
+			{
+				@Override
+				public void mousePressed(java.awt.event.MouseEvent e)
+				{
+					if (active)
+					{
+						backToLive();
+					}
+					else
+					{
+						viewSetup(name);
+					}
+				}
+			});
+			namesPanel.add(row);
+		}
+	}
+
+	// ── per-slot item search (edits a draft) ──────────────────────────
+
+	private void openSlotSearch(EquipmentInventorySlot slot)
+	{
+		searchSlot = slot;
+		searchTitleHolder.removeAll();
+		searchTitleHolder.add(new com.ironhub.ui.osrs.OsrsLabel(
+			"Replace " + slot.name().toLowerCase(Locale.ROOT).replace('_', ' '),
+			com.ironhub.ui.osrs.OsrsSkin.MUTED,
+			com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned());
+		searchField.setText("");
+		searchResults.removeAll();
+		searchPanel.setVisible(true);
+		holder.revalidate();
+		holder.repaint();
+		searchField.requestFocusInWindow();
+	}
+
+	private void updateSearchResults()
+	{
+		searchResults.removeAll();
+		String query = searchField.getText().trim();
+		if (query.length() >= 2)
+		{
+			for (String name : nameIndex().search(query, 8))
+			{
+				com.ironhub.ui.osrs.OsrsLabel row = new com.ironhub.ui.osrs.OsrsLabel(name,
+					com.ironhub.ui.osrs.OsrsSkin.MUTED,
+					com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
+				row.setToolTipText("Put this item in the slot (edits the viewed setup)");
+				row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+				row.addMouseListener(new java.awt.event.MouseAdapter()
+				{
+					@Override
+					public void mousePressed(java.awt.event.MouseEvent e)
+					{
+						pickSearchResult(name);
+					}
+				});
+				searchResults.add(row);
+			}
+		}
+		searchResults.revalidate();
+		searchResults.repaint();
+		holder.revalidate();
+	}
+
+	private void pickSearchResult(String name)
+	{
+		Integer id = nameIndex().idOf(name);
+		if (id == null || searchSlot == null)
+		{
+			return; // unresolvable pick changes nothing
+		}
+		if (draft == null)
+		{
+			// viewing live or a saved setup: edits fork an unsaved draft
+			PersistedState.SavedSetup base = viewedOrDraft();
+			draft = copy(base != null ? base : liveSetup());
+		}
+		draft.equipment.put(searchSlot.name(), id);
+		searchPanel.setVisible(false);
+		lastViewFp = 0;
+		renderView();
+		applyBankView();
+	}
+
+	// ── bank collect for the viewed setup ─────────────────────────────
+
+	/** Setup items in display order (gear layout, inventory, pouch). */
+	private static List<Integer> setupOrder(PersistedState.SavedSetup setup)
+	{
+		List<Integer> order = new ArrayList<>(layoutOrder(setup).values());
+		for (int id : setup.inventory)
+		{
+			if (id > 0)
+			{
+				order.add(id);
+			}
+		}
+		for (int id : setup.pouchRunes)
+		{
+			if (id > 0)
+			{
+				order.add(id);
+			}
+		}
+		return order;
+	}
+
+	/** What the viewed setup still needs withdrawn, in setup order. */
+	private List<Integer> withdrawList(PersistedState.SavedSetup setup)
+	{
+		Set<Integer> need = state.setupItemsToWithdraw(setup);
+		List<Integer> out = new ArrayList<>();
+		for (int id : setupOrder(setup))
+		{
+			if (need.contains(id) && !out.contains(id))
+			{
+				out.add(id);
+			}
+		}
+		return out;
+	}
+
+	/** Apply/clear the collected bank view for the current viewing state
+	 *  (live = clear). Safe with the bank closed — the tag opens on the
+	 *  bank's next build via onScriptPreFired. */
+	private void applyBankView()
+	{
+		if (clientThread == null)
+		{
+			return;
+		}
+		PersistedState.SavedSetup shown = viewedOrDraft();
+		List<Integer> list = shown == null ? List.of() : withdrawList(shown);
+		clientThread.invoke(() ->
+		{
+			if (list.isEmpty())
+			{
+				collectView.clear();
+			}
+			else
+			{
+				collectView.apply(list);
+			}
+		});
+	}
+
+	/** Bank building while a setup is viewed: collect what it still needs
+	 *  (recomputed — carried items change as the player withdraws). */
+	@Subscribe
+	public void onScriptPreFired(net.runelite.api.events.ScriptPreFired event)
+	{
+		if (event.getScriptId() != net.runelite.api.ScriptID.BANKMAIN_INIT)
+		{
+			return;
+		}
+		PersistedState.SavedSetup shown = viewedOrDraft();
+		if (shown == null)
+		{
+			return;
+		}
+		List<Integer> list = withdrawList(shown);
+		if (list.isEmpty())
+		{
+			collectView.clear();
+		}
+		else
+		{
+			collectView.apply(list);
+		}
+	}
+
+	/** Readable bank title while collected (Bank Tags shows the raw hidden
+	 *  tag name otherwise — the farm-run lesson). */
+	@Subscribe
+	public void onScriptPostFired(net.runelite.api.events.ScriptPostFired event)
+	{
+		if (event.getScriptId() != net.runelite.api.ScriptID.BANKMAIN_FINISHBUILDING
+			|| client == null || !collectView.isApplied())
+		{
+			return;
+		}
+		net.runelite.api.widgets.Widget title =
+			client.getWidget(net.runelite.api.gameval.InterfaceID.Bankmain.TITLE);
+		if (title != null)
+		{
+			String name = draft != null ? "Draft setup" : viewedSetup;
+			title.setText("<col=ff981f>" + name + "</col> — Iron Hub");
+		}
 	}
 
 	/** Centre a fixed-size canvas in the tab's width. */
@@ -592,12 +1223,14 @@ public class LoadoutLabModule implements IronHubModule
 			: com.ironhub.ui.components.PaintedIcon.Shape.TRIANGLE_DOWN;
 	}
 
-	/** Idempotent: attach all wrapper hooks once the panel exists. */
+	/** Idempotent: attach all wrapper hooks once the panel exists. The
+	 *  panel's Load button now toggles the all-setups list at the top
+	 *  ("View all setups" replaced the old Load-setup dialog). */
 	private void wireHooks()
 	{
 		if (lab.getPanel() != null)
 		{
-			lab.getPanel().setSetupHooks(this::saveNamedSetup, this::loadNamedSetup);
+			lab.getPanel().setSetupHooks(this::saveNamedSetup, this::toggleAllSetups);
 			lab.getPanel().setWornLookup(this::wornItemFor);
 			lab.getPanel().setDpsCalcHook(this::openDpsCalc);
 		}
@@ -691,5 +1324,13 @@ public class LoadoutLabModule implements IronHubModule
 			}
 		}
 		return ordered;
+	}
+
+	// ── test seams ────────────────────────────────────────────────────
+
+	/** Test seam: view a saved setup diffed against current. */
+	void viewSetupForTest(String name)
+	{
+		viewSetup(name);
 	}
 }

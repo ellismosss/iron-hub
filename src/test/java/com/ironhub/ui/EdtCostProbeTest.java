@@ -189,7 +189,7 @@ public class EdtCostProbeTest
 			new DeathRecoveryModule(state, null, config, null),
 			new com.ironhub.modules.loadoutlab.LoadoutLabModule(
 				new com.loadoutlab.LoadoutLabPlugin(), new net.runelite.client.eventbus.EventBus(),
-				config, state, null, null, null, new Gson(), null),
+				config, state, null, null, null, new Gson(), null, null, null, null),
 			new com.ironhub.modules.designlab.DesignLabModule(config,
 				new net.runelite.client.eventbus.EventBus()),
 			new com.ironhub.modules.dailies.DailiesNewModule(

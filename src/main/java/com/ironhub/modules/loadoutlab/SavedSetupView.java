@@ -105,7 +105,19 @@ class SavedSetupView
 	/** The worn-equipment interface for a saved setup. */
 	JComponent equipment(PersistedState.SavedSetup setup)
 	{
-		return new EquipmentCanvas(setup);
+		return new EquipmentCanvas(setup, null, null);
+	}
+
+	/**
+	 * The worn-equipment interface with per-slot diff tint borders (slot
+	 * name -> border colour, null = none) and an optional slot-press
+	 * callback (fires for ANY slot, filled or empty).
+	 */
+	JComponent equipment(PersistedState.SavedSetup setup,
+		Map<String, java.awt.Color> tints,
+		java.util.function.Consumer<EquipmentInventorySlot> onSlotPress)
+	{
+		return new EquipmentCanvas(setup, tints, onSlotPress);
 	}
 
 	/** The rune pouch as a short row of slot tiles. */
@@ -117,7 +129,13 @@ class SavedSetupView
 	/** The inventory: items directly on the game's framed side panel. */
 	JComponent inventory(PersistedState.SavedSetup setup)
 	{
-		return new InventoryCanvas(setup);
+		return new InventoryCanvas(setup, null);
+	}
+
+	/** The inventory with per-slot diff tint borders (28 entries or null). */
+	JComponent inventory(PersistedState.SavedSetup setup, java.awt.Color[] tints)
+	{
+		return new InventoryCanvas(setup, tints);
 	}
 
 	private AsyncBufferedImage sprite(JComponent repaintTarget, int itemId, int quantity)
@@ -223,11 +241,14 @@ class SavedSetupView
 	private class EquipmentCanvas extends JPanel
 	{
 		private final PersistedState.SavedSetup setup;
+		private final Map<String, java.awt.Color> tints;
 		private final Map<EquipmentInventorySlot, AsyncBufferedImage> items = new LinkedHashMap<>();
 
-		EquipmentCanvas(PersistedState.SavedSetup setup)
+		EquipmentCanvas(PersistedState.SavedSetup setup, Map<String, java.awt.Color> tints,
+			java.util.function.Consumer<EquipmentInventorySlot> onSlotPress)
 		{
 			this.setup = setup;
+			this.tints = tints;
 			setOpaque(false);
 			setToolTipText(""); // enables per-point tooltips
 			for (EquipmentInventorySlot slot : SLOTS.keySet())
@@ -242,6 +263,35 @@ class SavedSetupView
 					}
 				}
 			}
+			if (onSlotPress != null)
+			{
+				setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+				addMouseListener(new java.awt.event.MouseAdapter()
+				{
+					@Override
+					public void mousePressed(MouseEvent e)
+					{
+						EquipmentInventorySlot slot = slotAt(e.getX(), e.getY());
+						if (slot != null)
+						{
+							onSlotPress.accept(slot);
+						}
+					}
+				});
+			}
+		}
+
+		private EquipmentInventorySlot slotAt(int x, int y)
+		{
+			for (Map.Entry<EquipmentInventorySlot, Point> entry : SLOTS.entrySet())
+			{
+				Point at = entry.getValue();
+				if (x >= at.x && x < at.x + SLOT && y >= at.y && y < at.y + SLOT)
+				{
+					return entry.getKey();
+				}
+			}
+			return null;
 		}
 
 		@Override
@@ -296,6 +346,14 @@ class SavedSetupView
 					{
 						g2.drawImage(ghost, at.x + 2, at.y + 2, null);
 					}
+				}
+				java.awt.Color tint = tints != null ? tints.get(entry.getKey().name()) : null;
+				if (tint != null)
+				{
+					// 2px diff border on top of the tile (1px vanishes
+					// against the slot art at this size)
+					OsrsSkin.outline(g2, tint, at.x, at.y, SLOT, SLOT);
+					OsrsSkin.outline(g2, tint, at.x + 1, at.y + 1, SLOT - 2, SLOT - 2);
 				}
 			}
 		}
@@ -417,6 +475,7 @@ class SavedSetupView
 	private class InventoryCanvas extends JPanel
 	{
 		private final PersistedState.SavedSetup setup;
+		private final java.awt.Color[] tints;
 		private final AsyncBufferedImage[] items = new AsyncBufferedImage[28];
 		/** The game's bottom-line-mode side panel, per theme: background
 		 *  texture tiled inside the edge/corner frame pieces (Mystic ships
@@ -432,9 +491,10 @@ class SavedSetupView
 		private final BufferedImage cornerBl;
 		private final BufferedImage cornerBr;
 
-		InventoryCanvas(PersistedState.SavedSetup setup)
+		InventoryCanvas(PersistedState.SavedSetup setup, java.awt.Color[] tints)
 		{
 			this.setup = setup;
+			this.tints = tints;
 			setOpaque(false);
 			setToolTipText("");
 			texture = OsrsIcons.image(theme, "dialog_inventory_sprites/background");
@@ -523,11 +583,18 @@ class SavedSetupView
 			}
 			for (int i = 0; i < 28; i++)
 			{
+				int x = INV_X + (i % 4) * INV_DX;
+				int y = INV_Y + (i / 4) * INV_DY;
 				if (items[i] != null)
 				{
-					int x = INV_X + (i % 4) * INV_DX;
-					int y = INV_Y + (i / 4) * INV_DY;
 					g2.drawImage(items[i], x, y, null);
+				}
+				java.awt.Color tint = tints != null && i < tints.length ? tints[i] : null;
+				if (tint != null)
+				{
+					// the game's 36x32 item cell, 2px diff border
+					OsrsSkin.outline(g2, tint, x, y, 36, 32);
+					OsrsSkin.outline(g2, tint, x + 1, y + 1, 34, 30);
 				}
 			}
 		}

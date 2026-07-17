@@ -133,7 +133,10 @@ public class DailiesModule implements IronHubModule
 	@Override
 	public String name()
 	{
-		return "Dailies";
+		// the skinned pilot took the plain "Dailies" name (Luke's rename);
+		// this module keeps the brain but its tab left the nav — the name
+		// must stay UNIQUE or the panel's name->module map crashes
+		return "Dailies (classic)";
 	}
 
 	@Override
