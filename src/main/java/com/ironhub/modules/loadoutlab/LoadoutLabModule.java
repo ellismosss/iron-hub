@@ -122,6 +122,8 @@ public class LoadoutLabModule implements IronHubModule
 			strategyClient = new com.ironhub.modules.loadout.StrategyClient(
 				httpClient, gson, new com.ironhub.data.ItemNameIndex(gson));
 		}
+		// the upstream panel styles itself at construction from this seam
+		com.loadoutlab.ui.LoadoutLabPanel.setIronHubTheme(config.osrsTheme());
 		lab.setPanelReadyCallback(() -> SwingUtilities.invokeLater(() ->
 		{
 			wireHooks();
@@ -169,11 +171,24 @@ public class LoadoutLabModule implements IronHubModule
 		return holder;
 	}
 
-	/** A theme flip re-clothes the wrapper chrome: drop the cached tab, the
-	 *  panel's next mount rebuilds it (the upstream lab panel is re-adopted). */
+	/**
+	 * A theme flip re-clothes everything: the wrapper chrome is dropped (the
+	 * next mount rebuilds it), and because the upstream panel styles itself
+	 * at construction, the lab is RESTARTED so a fresh panel arrives in the
+	 * new theme via the same panelReadyCallback. Runs on the config-event
+	 * thread, exactly like the module's own lifecycle does.
+	 */
 	@Override
 	public void onThemeChanged()
 	{
+		if (started)
+		{
+			com.loadoutlab.ui.LoadoutLabPanel.setIronHubTheme(config.osrsTheme());
+			eventBus.unregister(lab);
+			lab.shutDown();
+			eventBus.register(lab);
+			lab.startUp();
+		}
 		SwingUtilities.invokeLater(() ->
 		{
 			holder = null;
@@ -519,9 +534,10 @@ public class LoadoutLabModule implements IronHubModule
 			com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
 	}
 
-	/** A 46x42 slot box, exactly the Inventory Setups look: darker-grey
-	 * filled slots, dark-grey empties/spacers, sprite centred with the
-	 * stack count baked into the icon. */
+	/** A 46x42 slot box in the Inventory Setups LAYOUT with stone surfaces
+	 * (Luke, 2026-07-17): slots are sunken wells — recess fill inside a 1px
+	 * edge (MatteBorder fills strips, Retina-safe) — and spacer corners are
+	 * bare backing. Sprite centred with the stack count baked into the icon. */
 	private JPanel slotBox(Integer itemId, String emptyTooltip, int quantity)
 	{
 		JPanel box = new JPanel(new BorderLayout());
@@ -530,14 +546,15 @@ public class LoadoutLabModule implements IronHubModule
 		box.setMaximumSize(new Dimension(46, 42));
 		if (emptyTooltip == null && itemId == null)
 		{
-			box.setBackground(net.runelite.client.ui.ColorScheme.DARK_GRAY_COLOR);
-			return box; // spacer corner, a dark box like Inventory Setups
+			box.setOpaque(false);
+			return box; // spacer corner — nothing there, so nothing drawn
 		}
+		box.setBackground(theme.recess);
+		box.setBorder(new javax.swing.border.MatteBorder(1, 1, 1, 1, theme.edgeDark));
 		JLabel icon = new JLabel();
 		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 		if (itemId != null)
 		{
-			box.setBackground(net.runelite.client.ui.ColorScheme.DARKER_GRAY_COLOR);
 			String name = state.itemName(itemId);
 			box.setToolTipText(quantity > 1 ? name + " x" + quantity : name);
 			if (itemManager != null)
@@ -553,7 +570,6 @@ public class LoadoutLabModule implements IronHubModule
 		}
 		else
 		{
-			box.setBackground(net.runelite.client.ui.ColorScheme.DARKER_GRAY_COLOR);
 			box.setToolTipText(emptyTooltip);
 		}
 		box.add(icon, BorderLayout.CENTER);

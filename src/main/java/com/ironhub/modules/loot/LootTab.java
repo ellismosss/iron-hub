@@ -5,12 +5,9 @@ import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneBorder;
 import com.ironhub.ui.osrs.StoneChipRow;
 import com.ironhub.ui.osrs.StoneComboBoxUI;
-import com.ironhub.ui.osrs.StonePanel;
 import java.awt.Dimension;
-import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -144,15 +141,11 @@ class LootTab extends JPanel
 			ids.sort(Comparator.comparingInt((Integer id) -> -loot.get(id))
 				.thenComparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)));
 
-			if (!ids.isEmpty())
+			// flat rows in the Route-list grammar (Luke, 2026-07-17) — no
+			// frame around the list, light text, small icons
+			for (Integer id : ids.subList(0, Math.min(ids.size(), MAX_ROWS)))
 			{
-				StonePanel group = rowGroup();
-				for (Integer id : ids.subList(0, Math.min(ids.size(), MAX_ROWS)))
-				{
-					group.add(itemRow(id, loot.get(id), kills, perKill));
-				}
-				cap(group);
-				list.add(group);
+				list.add(itemRow(id, loot.get(id), kills, perKill));
 			}
 			if (ids.size() > MAX_ROWS)
 			{
@@ -180,52 +173,47 @@ class LootTab extends JPanel
 			int kills = state.getKillCount(selected);
 			boolean perKill = view.getSelected() == 1;
 			List<Integer> ids = new ArrayList<>(used.keySet());
+			// same flat Route-list grammar as the loot rows above
 			ids.sort(Comparator.comparingInt((Integer id) -> -used.get(id))
 				.thenComparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)));
-			StonePanel group = rowGroup();
 			for (Integer id : ids.subList(0, Math.min(ids.size(), MAX_ROWS)))
 			{
-				group.add(itemRow(id, used.get(id), kills, perKill));
+				supplies.add(itemRow(id, used.get(id), kills, perKill));
 			}
-			cap(group);
-			supplies.add(group);
 		}
 		supplies.revalidate();
 		supplies.repaint();
 	}
 
-	/** One notched frame the item rows sit inside, checklist-style. */
-	private StonePanel rowGroup()
-	{
-		StonePanel group = new StonePanel(theme);
-		group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
-		group.setAlignmentX(LEFT_ALIGNMENT);
-		int corner = theme.cornerStamp.length;
-		group.setBorder(new StoneBorder(theme, theme.background,
-			new Insets(corner, corner, corner, corner)));
-		return group;
-	}
-
+	/**
+	 * One item as a flat Route-style row (Luke, 2026-07-17): 16px sprite in
+	 * its own holder, name and count in the light body colour — no green,
+	 * no frame, no stack number baked into the sprite (unreadable at 16px;
+	 * the count is the row's own text).
+	 */
 	private JComponent itemRow(int itemId, int quantity, int kills, boolean perKill)
 	{
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP));
 
 		JLabel icon = new JLabel();
-		Dimension iconSize = new Dimension(UiTokens.TILE_ICON_SIZE, UiTokens.TILE_ICON_SIZE);
+		Dimension iconSize = new Dimension(16, 16);
 		icon.setPreferredSize(iconSize);
 		icon.setMinimumSize(iconSize);
 		icon.setMaximumSize(iconSize);
 		if (itemManager != null)
 		{
-			AsyncBufferedImage sprite = itemManager.getImage(itemId, quantity, quantity > 1);
-			icon.setIcon(new ImageIcon(sprite));
-			sprite.onLoaded(icon::repaint);
+			AsyncBufferedImage sprite = itemManager.getImage(itemId);
+			Runnable apply = () -> icon.setIcon(new ImageIcon(
+				sprite.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH)));
+			apply.run();
+			sprite.onLoaded(apply);
 		}
 		row.add(icon);
-		row.add(Box.createHorizontalStrut(4));
+		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 
 		String name = state.itemName(itemId);
 		OsrsLabel nameLabel = new OsrsLabel(name, OsrsSkin.MUTED, OsrsSkin.font())
@@ -234,9 +222,10 @@ class LootTab extends JPanel
 		row.add(nameLabel);
 		row.add(Box.createHorizontalGlue());
 
-		OsrsLabel count = OsrsLabel.value(perKill
+		OsrsLabel count = new OsrsLabel(perKill
 			? perKillText(quantity, kills)
-			: "×" + QuantityFormatter.quantityToStackSize(quantity));
+			: "×" + QuantityFormatter.quantityToStackSize(quantity),
+			OsrsSkin.MUTED, OsrsSkin.font());
 		count.setToolTipText(quantity + " over " + kills + (kills == 1 ? " kill" : " kills"));
 		row.add(count);
 		cap(row);

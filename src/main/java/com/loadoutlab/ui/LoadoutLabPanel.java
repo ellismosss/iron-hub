@@ -1,10 +1,17 @@
 package com.loadoutlab.ui;
 
 import com.ironhub.ui.UiTokens;
-import com.ironhub.ui.components.HubProgressBar;
-import com.ironhub.ui.components.IconButton;
 import com.ironhub.ui.components.PaintedIcon;
-import com.ironhub.ui.components.SectionLabel;
+import com.ironhub.ui.osrs.OsrsLabel;
+import com.ironhub.ui.osrs.OsrsSkin;
+import com.ironhub.ui.osrs.OsrsTheme;
+import com.ironhub.ui.osrs.StoneButton;
+import com.ironhub.ui.osrs.StoneCheckbox;
+import com.ironhub.ui.osrs.StoneComboBoxUI;
+import com.ironhub.ui.osrs.StonePanel;
+import com.ironhub.ui.osrs.StoneProgressBar;
+import com.ironhub.ui.osrs.StoneScrollBarUI;
+import com.ironhub.ui.osrs.StoneTextField;
 import com.loadoutlab.UsageLog;
 import com.loadoutlab.data.GearItem;
 import com.loadoutlab.data.GearSlot;
@@ -59,7 +66,6 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -70,6 +76,8 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -78,7 +86,6 @@ import javax.swing.event.DocumentListener;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.game.SpriteManager;
-import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.util.AsyncBufferedImage;
 import net.runelite.client.util.LinkBrowser;
@@ -96,6 +103,29 @@ import net.runelite.client.util.ImageUtil;
  */
 public class LoadoutLabPanel extends PluginPanel
 {
+	/**
+	 * Iron Hub's stone-skin theme, set by LoadoutLabModule BEFORE the plugin
+	 * builds this panel (and again before a theme-flip restart). The panel
+	 * styles itself at construction from this value — the module restarts
+	 * the lab on an osrsTheme change so a fresh panel re-clothes.
+	 */
+	private static volatile com.ironhub.ui.osrs.OsrsTheme ironHubTheme =
+		com.ironhub.ui.osrs.OsrsTheme.STONE;
+
+	public static void setIronHubTheme(com.ironhub.ui.osrs.OsrsTheme theme)
+	{
+		ironHubTheme = theme;
+	}
+
+	static com.ironhub.ui.osrs.OsrsTheme ironHubTheme()
+	{
+		return ironHubTheme;
+	}
+
+	/** Captured once per construction — the module rebuilds the panel on a
+	 * theme flip, so construction-time styling is always current. */
+	private final OsrsTheme theme = ironHubTheme();
+
 	/** (monster, f2pOnly, onDone) - the plugin wires this to the optimizer.
 	 * maxTradeables: wilderness kept-slot cap (-1 = unconstrained);
 	 * riskBudgetGp: the total gp the set may drop on a PvP death. */
@@ -234,11 +264,11 @@ public class LoadoutLabPanel extends PluginPanel
 		GearSlot.HANDS, GearSlot.FEET, GearSlot.RING,
 	};
 
-	/** Iron Hub: the text palette maps onto the shared design tokens so the
-	 * embedded lab reads like every other Iron Hub tab (was grey/green/blue). */
-	private static final Color MUTED = UiTokens.TEXT_MUTED;
-	private static final Color GOOD = UiTokens.STATUS_OWNED;
-	private static final Color INFO = UiTokens.TEXT_BODY;
+	/** Iron Hub: the text palette maps onto the stone skin's global text
+	 * tokens so the embedded lab reads like every other skinned tab. */
+	private static final Color MUTED = OsrsSkin.MUTED;
+	private static final Color GOOD = OsrsSkin.VALUE;
+	private static final Color INFO = OsrsSkin.LABEL;
 	private static final Color UNOWNED = new Color(110, 190, 110);
 	private static final Color BORDER_UNOWNED = new Color(100, 145, 100);
 
@@ -263,11 +293,10 @@ public class LoadoutLabPanel extends PluginPanel
 	private final Set<String> usedSources = new java.util.LinkedHashSet<>();
 
 	/** Cell border language: gold = your item IS the game best, blue = the
-	 * spec cell (matches the in-game spec orb), grey = owned/empty. */
+	 * spec cell (matches the in-game spec orb); plain/empty cells wear the
+	 * theme's own engraved-edge greys (see iconGrid). */
 	private static final Color BORDER_BIS = new Color(168, 148, 88);
 	private static final Color BORDER_SPEC = new Color(120, 190, 240);
-	private static final Color BORDER_PLAIN = new Color(70, 70, 70);
-	private static final Color BORDER_EMPTY = new Color(50, 50, 50);
 
 	private final LoadoutData data;
 	private final ItemManager itemManager;
@@ -325,7 +354,7 @@ public class LoadoutLabPanel extends PluginPanel
 		new String[]{"Optimize: Max DPS", "Optimize: Balanced", "Optimize: Tanky"});
 	/** Free-form upgrade budget: "750k", "1m", "1.5b", plain gp, or "-"
 	 * for max. Empty or unparseable = off. */
-	private final JTextField upgradeBudget = new JTextField();
+	private final JTextField upgradeBudget = new StoneTextField(ironHubTheme(), null);
 	private int lastBudgetGp;
 	private final JLabel exclusionsLabel = new JLabel();
 	private final JLabel storedLabel = new JLabel();
@@ -341,16 +370,16 @@ public class LoadoutLabPanel extends PluginPanel
 	private static final Color POSTIT_BG = new Color(222, 212, 150);
 	private static final Color POSTIT_FG = new Color(55, 50, 25);
 
-	// Iron Hub: shared search-field atom (inset bg, accent focus, placeholder)
-	private final JTextField searchField = new com.ironhub.ui.components.SearchField("Search a monster…");
+	// Iron Hub: stone search field (sunken well, faint placeholder)
+	private final JTextField searchField = new StoneTextField(ironHubTheme(), "Search a monster…");
 	private final DefaultListModel<MonsterStats> monsterModel = new DefaultListModel<>();
 	private final JList<MonsterStats> monsterList = new JList<>(monsterModel);
 	private final JScrollPane monsterScroll;
 	private final JPanel selectedRow = new JPanel(new BorderLayout(4, 0));
 	private final JLabel selectedLabel = new JLabel();
 	private final JLabel monsterNote = new JLabel();
-	private final JCheckBox f2pOnly = new JCheckBox("Non-members gear only");
-	private final JCheckBox slayerTask = new JCheckBox("On slayer task");
+	private final ToggleRow f2pOnly = new ToggleRow("Non-members gear only");
+	private final ToggleRow slayerTask = new ToggleRow("On slayer task");
 	private final JComboBox<String> spellbook =
 		new JComboBox<>(new String[]{"Any spellbook", "Standard", "Ancient", "Arceuus"});
 	private final JPanel resultsPanel = new JPanel();
@@ -360,8 +389,8 @@ public class LoadoutLabPanel extends PluginPanel
 	/** Guards against programmatic search-field changes re-opening the list. */
 	private boolean suppressSearchEvents;
 
-	private final JCheckBox lowRisk = new JCheckBox("Low-risk (wilderness)");
-	private final JCheckBox protectItem = new JCheckBox("Protect Item (keep 4)");
+	private final ToggleRow lowRisk = new ToggleRow("Low-risk (wilderness)");
+	private final ToggleRow protectItem = new ToggleRow("Protect Item (keep 4)");
 	/** Wilderness risk-cap dropdown values in gp; 75k is the default. */
 	private static final int[] RISK_STEPS = {0, 25_000, 75_000, 200_000, 1_000_000};
 	private final JComboBox<String> riskBudget = new JComboBox<>(
@@ -407,7 +436,7 @@ public class LoadoutLabPanel extends PluginPanel
 		this.ownedCheck = ownedCheck;
 
 		setLayout(new BorderLayout(0, 6));
-		setBackground(UiTokens.PANEL_BG);
+		setBackground(theme.background);
 		setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
 		JPanel top = new JPanel();
@@ -456,30 +485,36 @@ public class LoadoutLabPanel extends PluginPanel
 		selectedRow.setOpaque(false);
 		selectedRow.setAlignmentX(LEFT_ALIGNMENT);
 		selectedRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
-		// Iron Hub: the target reads as the screen title — primary bold, with
-		// compact 18px icon buttons instead of the chunky default JButtons
-		selectedLabel.setForeground(UiTokens.TEXT_PRIMARY);
-		selectedLabel.setFont(selectedLabel.getFont().deriveFont(Font.BOLD, 15f));
+		// Iron Hub: the target reads as the screen title — game title orange,
+		// with compact hover-glyph affordances instead of chunky JButtons
+		OsrsSkin.crisp(selectedLabel);
+		selectedLabel.setForeground(OsrsSkin.TITLE);
+		selectedLabel.setFont(OsrsSkin.boldFont());
+		selectedLabel.setBorder(new EmptyBorder(2, 0, 2, 0));
 		selectedRow.add(selectedLabel, BorderLayout.CENTER);
 		// lastShownLoadout resets each recompute via the results rebuild
 		JPanel selectedButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
 		selectedButtons.setOpaque(false);
-		selectedButtons.add(new IconButton(new ReloadIcon(11),
+		selectedButtons.add(glyphButton(new ReloadIcon(11), null,
 			"Re-run the search for this monster", this::recompute));
-		selectedButtons.add(new IconButton("×",
+		selectedButtons.add(glyphButton(null, "×",
 			"Choose a different monster", this::clearSelection));
 		selectedRow.add(selectedButtons, BorderLayout.EAST);
 		selectedRow.setVisible(false);
 		top.add(selectedRow);
-		weaknessLabel.setForeground(UiTokens.STATUS_AVAILABLE);
-		weaknessLabel.setFont(weaknessLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		OsrsSkin.crisp(weaknessLabel);
+		weaknessLabel.setForeground(OsrsSkin.VALUE);
+		weaknessLabel.setFont(OsrsSkin.font());
+		weaknessLabel.setBorder(new EmptyBorder(2, 0, 2, 0));
 		weaknessLabel.setAlignmentX(LEFT_ALIGNMENT);
 		weaknessLabel.setVisible(false);
 		top.add(weaknessLabel);
 
 		// Curated mechanics note (finishing items, immunities) for the
 		// selected monster - so a correct suggestion doesn't look wrong.
-		monsterNote.setForeground(UiTokens.STATUS_AVAILABLE);
+		// html-wrapped prose keeps the LAF font (the pixel font and html
+		// measurement disagree and clip mid-word); only the colour maps.
+		monsterNote.setForeground(OsrsSkin.MUTED);
 		monsterNote.setFont(monsterNote.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
 		monsterNote.setAlignmentX(LEFT_ALIGNMENT);
 		monsterNote.setVisible(false);
@@ -495,15 +530,24 @@ public class LoadoutLabPanel extends PluginPanel
 			{
 				super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 				setText(((MonsterStats) value).label());
+				// crisp + top ink headroom: the pixel font floats high in its
+				// em box and antialiases under the LAF's own hint otherwise
+				OsrsSkin.crisp(this);
+				setBorder(new EmptyBorder(2, 4, 1, 4));
 				return this;
 			}
 		});
-		// Iron Hub: inset list chrome matching the search field
-		monsterList.setBackground(UiTokens.INSET_BG);
-		monsterList.setForeground(UiTokens.TEXT_BODY);
-		monsterList.setFont(monsterList.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		// Iron Hub: sunken stone list matching the search field
+		OsrsSkin.crisp(monsterList);
+		monsterList.setBackground(theme.recess);
+		monsterList.setForeground(OsrsSkin.MUTED);
+		monsterList.setSelectionBackground(theme.selectFill);
+		monsterList.setSelectionForeground(OsrsSkin.TITLE);
+		monsterList.setFont(OsrsSkin.font());
 		monsterScroll = new JScrollPane(monsterList);
-		monsterScroll.setBorder(BorderFactory.createLineBorder(UiTokens.BORDER));
+		monsterScroll.getViewport().setBackground(theme.recess);
+		monsterScroll.setBorder(new MatteBorder(1, 1, 1, 1, theme.edgeDark));
+		StoneScrollBarUI.skin(monsterScroll.getVerticalScrollBar(), theme);
 		monsterScroll.setPreferredSize(new Dimension(0, 130));
 		monsterScroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 130));
 		monsterScroll.setAlignmentX(LEFT_ALIGNMENT);
@@ -530,8 +574,8 @@ public class LoadoutLabPanel extends PluginPanel
 
 		// How much gp the set may drop on a wilderness death; 0 = nothing
 		// droppable and no fees at all.
+		StoneComboBoxUI.skin(riskBudget, theme);
 		riskBudget.setAlignmentX(LEFT_ALIGNMENT);
-		riskBudget.setFont(riskBudget.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		riskBudget.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
 		riskBudget.setToolTipText("Total gp the set may drop on a wilderness death");
 		riskBudget.setSelectedIndex(2);
@@ -578,8 +622,11 @@ public class LoadoutLabPanel extends PluginPanel
 		// Iron Hub: optimize selector moves below the results (see bottomControls)
 
 		// Excluded items ("protected" from suggestions) - click to manage.
+		// Semantic warning colour survives the skin; chrome goes stone.
+		OsrsSkin.crisp(exclusionsLabel);
 		exclusionsLabel.setForeground(UiTokens.STATUS_WARNING);
-		exclusionsLabel.setFont(exclusionsLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		exclusionsLabel.setFont(OsrsSkin.font());
+		exclusionsLabel.setBorder(new EmptyBorder(2, 0, 2, 0));
 		exclusionsLabel.setAlignmentX(LEFT_ALIGNMENT);
 		exclusionsLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		exclusionsLabel.addMouseListener(new MouseAdapter()
@@ -594,8 +641,10 @@ public class LoadoutLabPanel extends PluginPanel
 		refreshExclusionsLabel();
 
 		// Stored-elsewhere items (manual owned: STASH, POH, UIM storages).
+		OsrsSkin.crisp(storedLabel);
 		storedLabel.setForeground(GOOD);
-		storedLabel.setFont(storedLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		storedLabel.setFont(OsrsSkin.font());
+		storedLabel.setBorder(new EmptyBorder(2, 0, 2, 0));
 		storedLabel.setAlignmentX(LEFT_ALIGNMENT);
 		storedLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		storedLabel.addMouseListener(new MouseAdapter()
@@ -661,8 +710,10 @@ public class LoadoutLabPanel extends PluginPanel
 		// Iron Hub: the personal note editor is dropped from the embedded panel
 
 		// Pinned items ("always bring") - click to manage.
-		pinnedLabel.setForeground(UiTokens.TEXT_FAINT);
-		pinnedLabel.setFont(pinnedLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		OsrsSkin.crisp(pinnedLabel);
+		pinnedLabel.setForeground(OsrsSkin.FAINT);
+		pinnedLabel.setFont(OsrsSkin.font());
+		pinnedLabel.setBorder(new EmptyBorder(2, 0, 2, 0));
 		pinnedLabel.setAlignmentX(LEFT_ALIGNMENT);
 		pinnedLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		pinnedLabel.addMouseListener(new MouseAdapter()
@@ -691,7 +742,8 @@ public class LoadoutLabPanel extends PluginPanel
 		bottomControls.setLayout(new BoxLayout(bottomControls, BoxLayout.Y_AXIS));
 		bottomControls.setOpaque(false);
 		bottomControls.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
-		SectionLabel assumptions = new SectionLabel("Assumptions", UiTokens.FONT_SIZE_LABEL);
+		OsrsLabel assumptions = new OsrsLabel("Assumptions",
+			OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned();
 		assumptions.setToolTipText("Prayers, potions and spellbook the DPS numbers may assume");
 		bottomControls.add(assumptions);
 		bottomControls.add(Box.createVerticalStrut(4));
@@ -734,43 +786,34 @@ public class LoadoutLabPanel extends PluginPanel
 		bottomControls.add(Box.createVerticalStrut(2));
 		bottomControls.add(centeredRow(spellRow, 3 * 34 + 4, 34));
 		bottomControls.add(Box.createVerticalStrut(8));
-		optimizeMode.setFont(optimizeMode.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		StoneComboBoxUI.skin(optimizeMode, theme);
 		bottomControls.add(optimizeMode);
 		bottomControls.add(Box.createVerticalStrut(8));
 		JPanel setupButtons = new JPanel(new GridLayout(1, 2, 4, 0));
 		setupButtons.setOpaque(false);
 		setupButtons.setAlignmentX(LEFT_ALIGNMENT);
-		setupButtons.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
-		JButton saveSetupButton = new JButton("Save setup");
-		saveSetupButton.setToolTipText("Save this loadout as a named setup");
-		saveSetupButton.addActionListener(e ->
+		setupButtons.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
+		StoneButton saveSetupButton = new StoneButton(theme, "Save setup", () ->
 		{
 			if (saveSetupHook != null)
 			{
 				saveSetupHook.run();
 			}
 		});
-		JButton loadSetupButton = new JButton("Load setup");
-		loadSetupButton.setToolTipText("Show a previously saved setup");
-		loadSetupButton.addActionListener(e ->
+		saveSetupButton.setToolTipText("Save this loadout as a named setup");
+		StoneButton loadSetupButton = new StoneButton(theme, "Load setup", () ->
 		{
 			if (loadSetupHook != null)
 			{
 				loadSetupHook.run();
 			}
 		});
-		flatten(saveSetupButton);
-		flatten(loadSetupButton);
+		loadSetupButton.setToolTipText("Show a previously saved setup");
 		setupButtons.add(saveSetupButton);
 		setupButtons.add(loadSetupButton);
 		bottomControls.add(setupButtons);
 		bottomControls.add(Box.createVerticalStrut(4));
-		JButton openDpsCalc = new JButton("Open OSRS DPS Calc");
-		openDpsCalc.setToolTipText("Open the wiki DPS calculator with this monster and setup mirrored");
-		openDpsCalc.setAlignmentX(LEFT_ALIGNMENT);
-		openDpsCalc.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
-		flatten(openDpsCalc);
-		openDpsCalc.addActionListener(e ->
+		StoneButton openDpsCalc = new StoneButton(theme, "Open OSRS DPS Calc", () ->
 		{
 			if (dpsCalcHook != null && selectedMonster != null && lastShownLoadout != null)
 			{
@@ -778,6 +821,8 @@ public class LoadoutLabPanel extends PluginPanel
 					lastShownLoadout, slayerTask.isSelected());
 			}
 		});
+		openDpsCalc.setToolTipText("Open the wiki DPS calculator with this monster and setup mirrored");
+		openDpsCalc.setAlignmentX(LEFT_ALIGNMENT);
 		bottomControls.add(openDpsCalc);
 		// NORTH-anchor so spare height stays empty instead of stretching cards
 		JPanel resultsAnchor = new JPanel(new BorderLayout());
@@ -789,8 +834,10 @@ public class LoadoutLabPanel extends PluginPanel
 		centerWrap.add(bottomControls, BorderLayout.SOUTH);
 		add(centerWrap, BorderLayout.CENTER);
 
-		statusLabel.setForeground(UiTokens.TEXT_FAINT);
-		statusLabel.setFont(statusLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		OsrsSkin.crisp(statusLabel);
+		statusLabel.setForeground(OsrsSkin.FAINT);
+		statusLabel.setFont(OsrsSkin.font());
+		statusLabel.setBorder(new EmptyBorder(2, 0, 2, 0));
 		add(statusLabel, BorderLayout.SOUTH);
 
 		searchDebounce = new Timer(SEARCH_DEBOUNCE_MS, e -> runSearch());
@@ -812,38 +859,166 @@ public class LoadoutLabPanel extends PluginPanel
 		statusLabel.setText("Search a monster to begin.");
 	}
 
-	/** Shared checkbox chrome; every toggle recomputes on change. */
-	private void initToggle(JCheckBox box, String tooltip)
+	/** Shared toggle chrome (tooltip only — the row itself recomputes on a
+	 * user press; programmatic setSelected never fires, like JCheckBox). */
+	private void initToggle(ToggleRow row, String tooltip)
 	{
-		box.setOpaque(false);
-		box.setForeground(UiTokens.TEXT_BODY);
-		box.setFont(box.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
-		box.setAlignmentX(LEFT_ALIGNMENT);
-		box.setToolTipText(tooltip);
-		box.addActionListener(e -> recompute());
+		row.setToolTipText(tooltip);
 	}
 
-	/** Small 11pt info line - the shape every card row shares. */
+	/**
+	 * Stone checkbox + label row: the whole row is the hit target and a
+	 * user press recomputes (StoneChecklist.Row grammar — hand layout so
+	 * the odd-sized box and the pixel font's ink both center exactly).
+	 */
+	private final class ToggleRow extends JPanel
+	{
+		private static final int PAD = 1;
+		private static final int GAP = 6;
+
+		private final StoneCheckbox box;
+		private final OsrsLabel label;
+
+		ToggleRow(String text)
+		{
+			box = new StoneCheckbox(ironHubTheme(), false);
+			label = new OsrsLabel(text, OsrsSkin.LABEL, OsrsSkin.font()).leftAligned();
+			setLayout(null);
+			setOpaque(false);
+			setAlignmentX(LEFT_ALIGNMENT);
+			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			add(box);
+			add(label);
+			MouseAdapter clicks = new MouseAdapter()
+			{
+				// mousePressed, never mouseClicked — clicked drops the event
+				// if the pointer drifts a pixel between press and release
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					if (!isEnabled())
+					{
+						return;
+					}
+					box.setChecked(!box.isChecked());
+					recompute();
+				}
+			};
+			// tooltips register the children's own mouse listeners, which
+			// would swallow the row's — every part carries the handler
+			addMouseListener(clicks);
+			label.addMouseListener(clicks);
+			box.addMouseListener(clicks);
+		}
+
+		boolean isSelected()
+		{
+			return box.isChecked();
+		}
+
+		void setSelected(boolean selected)
+		{
+			box.setChecked(selected);
+		}
+
+		@Override
+		public void setEnabled(boolean enabled)
+		{
+			super.setEnabled(enabled);
+			label.setColor(enabled ? OsrsSkin.LABEL : OsrsSkin.FAINT);
+			setCursor(enabled ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+				: Cursor.getDefaultCursor());
+		}
+
+		@Override
+		public void setToolTipText(String text)
+		{
+			super.setToolTipText(text);
+			label.setToolTipText(text);
+			box.setToolTipText(text);
+		}
+
+		@Override
+		public void doLayout()
+		{
+			int h = getHeight();
+			Dimension bp = box.getPreferredSize();
+			box.setBounds(PAD, (h - bp.height) / 2, bp.width, bp.height);
+			int x = PAD + bp.width + GAP;
+			label.setBounds(x, 0, Math.max(0, getWidth() - PAD - x), h);
+		}
+
+		@Override
+		public Dimension getPreferredSize()
+		{
+			return new Dimension(0, Math.max(box.getPreferredSize().height + 2 * PAD,
+				label.getPreferredSize().height));
+		}
+
+		@Override
+		public Dimension getMinimumSize()
+		{
+			return getPreferredSize();
+		}
+
+		@Override
+		public Dimension getMaximumSize()
+		{
+			return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+		}
+	}
+
+	/** One info line in the game font - the shape every card row shares. */
 	private static JLabel line(String text, Color fg)
 	{
 		JLabel line = new JLabel(text);
+		OsrsSkin.crisp(line);
 		line.setForeground(fg);
-		line.setFont(line.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		line.setFont(OsrsSkin.font());
+		// vertical ink headroom: the pixel font clips glyph bottoms in
+		// tight JLabels without it
+		line.setBorder(new EmptyBorder(2, 0, 2, 0));
 		line.setAlignmentX(LEFT_ALIGNMENT);
 		return line;
 	}
 
-	/** Iron Hub: flat button chrome from the shared tokens. */
-	private static void flatten(JButton button)
+	/** Compact hover-glyph affordance: a painted icon or text glyph that
+	 * brightens under the pointer; mousePressed fires. */
+	private static JLabel glyphButton(javax.swing.Icon icon, String text,
+		String tooltip, Runnable onClick)
 	{
-		button.setFocusPainted(false);
-		button.setBackground(UiTokens.ICON_BUTTON_BG);
-		button.setForeground(UiTokens.TEXT_BODY);
-		button.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(UiTokens.BORDER_BUTTON),
-			BorderFactory.createEmptyBorder(2, 8, 2, 8)));
-		button.setFont(button.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_BODY));
-		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		JLabel glyph = icon != null ? new JLabel(icon) : new JLabel(text);
+		OsrsSkin.crisp(glyph);
+		glyph.setHorizontalAlignment(SwingConstants.CENTER);
+		glyph.setFont(OsrsSkin.boldFont());
+		glyph.setForeground(OsrsSkin.FAINT);
+		glyph.setToolTipText(tooltip);
+		Dimension size = new Dimension(18, 18);
+		glyph.setPreferredSize(size);
+		glyph.setMinimumSize(size);
+		glyph.setMaximumSize(size);
+		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		glyph.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.LABEL);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.FAINT);
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				onClick.run();
+			}
+		});
+		return glyph;
 	}
 
 	/** Iron Hub: pin a fixed-size component and centre it in a full-width
@@ -1146,9 +1321,7 @@ public class LoadoutLabPanel extends PluginPanel
 		JPanel legend = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
 		legend.setOpaque(false);
 		legend.setAlignmentX(LEFT_ALIGNMENT);
-		JLabel title = new JLabel("Stored:");
-		title.setForeground(MUTED);
-		title.setFont(title.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		JLabel title = line("Stored:", MUTED);
 		legend.add(title);
 		for (Map.Entry<String, Color> entry : SOURCE_COLORS.entrySet())
 		{
@@ -1158,8 +1331,10 @@ public class LoadoutLabPanel extends PluginPanel
 			}
 			JLabel item = new JLabel(entry.getKey(), new SourceDotIcon(entry.getValue()),
 				SwingConstants.LEADING);
+			OsrsSkin.crisp(item);
 			item.setForeground(MUTED);
-			item.setFont(item.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+			item.setFont(OsrsSkin.font());
+			item.setBorder(new EmptyBorder(2, 0, 2, 0));
 			item.setIconTextGap(4);
 			legend.add(item);
 		}
@@ -1560,12 +1735,13 @@ public class LoadoutLabPanel extends PluginPanel
 			spriteManager.addSpriteTo(toggle, spriteId, 0);
 		}
 		final boolean[] on = {initial};
-		// Iron Hub: accent border = on (interaction colour), dim border = off
+		// Stone select grammar: select fill + bevel = on, sunken recess = off
+		// (MatteBorder fills strips — a stroked border halves on Retina)
 		Runnable style = () ->
 		{
-			toggle.setBackground(on[0] ? UiTokens.ICON_BUTTON_BG : UiTokens.INSET_BG);
-			toggle.setBorder(BorderFactory.createLineBorder(
-				on[0] ? UiTokens.ACCENT : UiTokens.BORDER_DIM));
+			toggle.setBackground(on[0] ? theme.selectFill : theme.recess);
+			toggle.setBorder(new MatteBorder(1, 1, 1, 1,
+				on[0] ? theme.selectEdge : theme.edgeDark));
 		};
 		style.run();
 		toggle.addMouseListener(new MouseAdapter()
@@ -1613,13 +1789,13 @@ public class LoadoutLabPanel extends PluginPanel
 		catch (java.io.IOException ignored)
 		{
 		}
-		// Iron Hub: accent border = selected book, dim border = not selected
+		// Stone select grammar: select fill + bevel = the selected book
 		Runnable style = () ->
 		{
 			boolean on = spellbook.getSelectedIndex() == comboIndex;
-			icon.setBackground(on ? UiTokens.ICON_BUTTON_BG : UiTokens.INSET_BG);
-			icon.setBorder(BorderFactory.createLineBorder(
-				on ? UiTokens.ACCENT : UiTokens.BORDER_DIM));
+			icon.setBackground(on ? theme.selectFill : theme.recess);
+			icon.setBorder(new MatteBorder(1, 1, 1, 1,
+				on ? theme.selectEdge : theme.edgeDark));
 		};
 		style.run();
 		spellbook.addActionListener(e -> style.run());
@@ -1650,7 +1826,7 @@ public class LoadoutLabPanel extends PluginPanel
 			(GearItem item) -> -item.roughScore(style)));
 		JPopupMenu menu = new JPopupMenu();
 		JPanel grid = new JPanel(new GridLayout(0, 4, 1, 1));
-		grid.setBackground(net.runelite.client.ui.ColorScheme.DARK_GRAY_COLOR);
+		grid.setBackground(theme.background);
 		int shown = 0;
 		for (GearItem item : candidates)
 		{
@@ -1660,7 +1836,8 @@ public class LoadoutLabPanel extends PluginPanel
 			}
 			JLabel pick = new JLabel();
 			pick.setOpaque(true);
-			pick.setBackground(net.runelite.client.ui.ColorScheme.DARKER_GRAY_COLOR);
+			pick.setBackground(theme.recess);
+			pick.setBorder(new MatteBorder(1, 1, 1, 1, theme.edgeDark));
 			pick.setPreferredSize(new Dimension(46, 42));
 			pick.setHorizontalAlignment(SwingConstants.CENTER);
 			pick.setToolTipText(item.label());
@@ -1683,6 +1860,9 @@ public class LoadoutLabPanel extends PluginPanel
 		if (shown == 0)
 		{
 			JLabel none = new JLabel("Nothing owned for this slot");
+			OsrsSkin.crisp(none);
+			none.setFont(OsrsSkin.font());
+			none.setForeground(MUTED);
 			none.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 8, 4, 8));
 			grid.add(none);
 		}
@@ -2144,13 +2324,9 @@ public class LoadoutLabPanel extends PluginPanel
 	private JPanel styleCard(CombatStyle style, StyleResult result)
 	{
 		renderingStyle = style;
-		JPanel card = new JPanel();
+		// Iron Hub: stone box card — engraved StoneBorder over the theme fill
+		JPanel card = new StonePanel(theme);
 		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		// Iron Hub: shared card chrome - flat CARD_BG fill + 1px border
-		card.setBackground(UiTokens.CARD_BG);
-		card.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(UiTokens.BORDER),
-			BorderFactory.createEmptyBorder(6, 8, 8, 8)));
 		card.setAlignmentX(LEFT_ALIGNMENT);
 
 		boolean hasSet = result != null && result.owned != null && !result.owned.isEmpty();
@@ -2164,10 +2340,10 @@ public class LoadoutLabPanel extends PluginPanel
 		header.setIcon(new PaintedIcon(collapsed
 			? PaintedIcon.Shape.TRIANGLE_RIGHT : PaintedIcon.Shape.TRIANGLE_DOWN, 10));
 		header.setIconTextGap(6);
-		header.setForeground(UiTokens.TEXT_PRIMARY);
-		header.setFont(SectionLabel.letterSpaced(
-			header.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY),
-			UiTokens.LETTER_SPACING_LABEL));
+		OsrsSkin.crisp(header);
+		header.setForeground(OsrsSkin.TITLE);
+		header.setFont(OsrsSkin.boldFont());
+		header.setBorder(new EmptyBorder(2, 0, 2, 0));
 		header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		header.setToolTipText(collapsed ? "Click to expand this set" : "Click to collapse this set");
 		header.addMouseListener(new MouseAdapter()
@@ -2187,13 +2363,10 @@ public class LoadoutLabPanel extends PluginPanel
 		headerRow.setAlignmentX(LEFT_ALIGNMENT);
 		headerRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
 		headerRow.add(header, BorderLayout.WEST);
-		JButton setMenu = new JButton(new DotsIcon(11));
-		setMenu.setToolTipText("Pins and bank-filter items for this set");
-		setMenu.setMargin(new Insets(1, 5, 1, 5));
-		flatten(setMenu);
-		setMenu.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
-		setMenu.setContentAreaFilled(false);
-		setMenu.addActionListener(e ->
+		// Hover-glyph idiom for the compact "more options" affordance
+		final JLabel[] setMenuRef = new JLabel[1];
+		setMenuRef[0] = glyphButton(new DotsIcon(11), null,
+			"Pins and bank-filter items for this set", () ->
 		{
 			JPopupMenu menu = new JPopupMenu();
 			JMenuItem pinThis = new JMenuItem("Pin an item - this set only (search)...");
@@ -2208,16 +2381,19 @@ public class LoadoutLabPanel extends PluginPanel
 			JMenuItem filterAll = new JMenuItem("Bank-filter item - all sets (search)...");
 			filterAll.addActionListener(ev -> searchAndAddFilter(ALL_SETS));
 			menu.add(filterAll);
-			menu.show(setMenu, 0, setMenu.getHeight());
+			menu.show(setMenuRef[0], 0, setMenuRef[0].getHeight());
 		});
+		JLabel setMenu = setMenuRef[0];
 		// Iron Hub: the dps value sits right-aligned in the header - the
 		// single number per style, once (it used to repeat three times).
 		JPanel headerEast = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
 		headerEast.setOpaque(false);
 		JLabel dpsValue = new JLabel(hasSet
 			? String.format("%.2f dps", result.owned.get(0).getDps()) : "no set");
+		OsrsSkin.crisp(dpsValue);
 		dpsValue.setForeground(hasSet ? GOOD : MUTED);
-		dpsValue.setFont(dpsValue.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
+		dpsValue.setFont(OsrsSkin.boldFont());
+		dpsValue.setBorder(new EmptyBorder(2, 0, 2, 0));
 		headerEast.add(dpsValue);
 		headerEast.add(setMenu);
 		headerRow.add(headerEast, BorderLayout.EAST);
@@ -2234,7 +2410,7 @@ public class LoadoutLabPanel extends PluginPanel
 				&& selectedMonster != null && selectedMonster.hasAttribute("flying");
 			boolean immune = MonsterMechanics.styleImmune(selectedMonster, style);
 			boolean leafy = selectedMonster != null && selectedMonster.hasAttribute("leafy");
-			JLabel none = new JLabel(immune
+			JLabel none = line(immune
 				? "Immune to " + style.toString().toLowerCase()
 				: vyre
 				? "Immune - needs a vyre weapon"
@@ -2242,9 +2418,7 @@ public class LoadoutLabPanel extends PluginPanel
 				? "Needs leaf-bladed / broad / Magic Dart"
 				: flying
 					? "Flying - needs a halberd"
-					: "No usable owned set found.");
-			none.setForeground(MUTED);
-			none.setAlignmentX(LEFT_ALIGNMENT);
+					: "No usable owned set found.", MUTED);
 			if (vyre)
 			{
 				none.setToolTipText("Only the Ivandis flail, blisterwood weapons,"
@@ -2267,7 +2441,8 @@ public class LoadoutLabPanel extends PluginPanel
 		if (ceiling > 0)
 		{
 			double fraction = Math.min(1.0, best.getDps() / ceiling);
-			HubProgressBar bar = HubProgressBar.bar(fraction);
+			StoneProgressBar bar = new StoneProgressBar(theme, OsrsSkin.PROGRESS_BLUE, fraction);
+			bar.setAlignmentX(LEFT_ALIGNMENT);
 			bar.setToolTipText(String.format(
 				"You are at %.0f%% of the game-best set (%.2f DPS) - click to inspect it",
 				fraction * 100, ceiling));
@@ -2321,7 +2496,7 @@ public class LoadoutLabPanel extends PluginPanel
 		JPanel bankRow = new JPanel(new GridLayout(1, 2, 4, 0));
 		bankRow.setOpaque(false);
 		bankRow.setAlignmentX(LEFT_ALIGNMENT);
-		bankRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
+		bankRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
 		bankRow.add(bankButton(style, best, result.specWeapon));
 		bankRow.add(bankFilterButton(style, best, result.specWeapon));
 		card.add(Box.createVerticalStrut(6));
@@ -2333,9 +2508,9 @@ public class LoadoutLabPanel extends PluginPanel
 			&& gameBestExpanded.contains(style))
 		{
 			card.add(Box.createVerticalStrut(8));
-			SectionLabel gameBest = new SectionLabel(
+			OsrsLabel gameBest = new OsrsLabel(
 				String.format("Game best · %.2f dps", result.overallBest.getDps()),
-				UiTokens.FONT_SIZE_LABEL);
+				OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned();
 			gameBest.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			gameBest.setToolTipText("Click to hide the game-best set");
 			gameBest.addMouseListener(new MouseAdapter()
@@ -2410,7 +2585,10 @@ public class LoadoutLabPanel extends PluginPanel
 			label.setIcon(icon);
 			label.setIconTextGap(3);
 		}
+		OsrsSkin.crisp(label);
 		label.setForeground(INFO);
+		label.setFont(OsrsSkin.font());
+		label.setBorder(new EmptyBorder(2, 0, 2, 0));
 		return label;
 	}
 
@@ -2864,13 +3042,11 @@ public class LoadoutLabPanel extends PluginPanel
 	}
 
 	/** "Filter bank": a virtual bank tag showing only this set's items. */
-	private JButton bankFilterButton(CombatStyle style, DpsResult best, GearItem specWeapon)
+	private StoneButton bankFilterButton(CombatStyle style, DpsResult best, GearItem specWeapon)
 	{
 		boolean filtering = bankFiltered == style;
-		JButton button = new JButton(filtering ? "Unfilter bank" : "Filter bank");
-		flatten(button);
-		button.setToolTipText("Show only this set's items in the bank (needs Bank Tags enabled)");
-		button.addActionListener(e ->
+		StoneButton button = new StoneButton(theme,
+			filtering ? "Unfilter bank" : "Filter bank", () ->
 		{
 			if (bankFiltered == style)
 			{
@@ -2893,18 +3069,16 @@ public class LoadoutLabPanel extends PluginPanel
 				showResults(selectedMonster, lastResults);
 			}
 		});
+		button.setToolTipText("Show only this set's items in the bank (needs Bank Tags enabled)");
 		return button;
 	}
 
 	/** "Show in bank": outline this set's items while the bank is open. */
-	private JButton bankButton(CombatStyle style, DpsResult best, GearItem specWeapon)
+	private StoneButton bankButton(CombatStyle style, DpsResult best, GearItem specWeapon)
 	{
 		boolean showing = bankShown == style;
-		JButton button = new JButton(showing ? "Stop showing" : "Show in bank");
-		button.setAlignmentX(LEFT_ALIGNMENT);
-		flatten(button);
-		button.setToolTipText("Outline this set's items in the bank");
-		button.addActionListener(e ->
+		StoneButton button = new StoneButton(theme,
+			showing ? "Stop showing" : "Show in bank", () ->
 		{
 			if (bankShown == style)
 			{
@@ -2939,6 +3113,8 @@ public class LoadoutLabPanel extends PluginPanel
 				showResults(selectedMonster, lastResults); // refresh button labels
 			}
 		});
+		button.setAlignmentX(LEFT_ALIGNMENT);
+		button.setToolTipText("Outline this set's items in the bank");
 		return button;
 	}
 
@@ -3003,8 +3179,10 @@ public class LoadoutLabPanel extends PluginPanel
 			else
 			{
 				chip.setText(part);
+				OsrsSkin.crisp(chip);
 				chip.setForeground(MUTED);
-				chip.setFont(chip.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+				chip.setFont(OsrsSkin.font());
+				chip.setBorder(new EmptyBorder(2, 0, 2, 0));
 			}
 			chips.add(chip);
 		}
@@ -3080,7 +3258,7 @@ public class LoadoutLabPanel extends PluginPanel
 			RiskDotLabel slot = new RiskDotLabel();
 			slot.setPreferredSize(new Dimension(cell, cellH));
 			slot.setOpaque(true);
-			slot.setBackground(net.runelite.client.ui.ColorScheme.DARKER_GRAY_COLOR);
+			slot.setBackground(theme.recess);
 			slot.setHorizontalAlignment(SwingConstants.CENTER);
 			List<JMenuItem> extras = slotType == GearSlot.SHIELD
 				? dragonfireMenuEntries() : Collections.emptyList();
@@ -3097,8 +3275,8 @@ public class LoadoutLabPanel extends PluginPanel
 				boolean bis = !unowned && bisItem != null
 					&& (bisItem.getId() == item.getId() || statEquivalent(bisItem, item));
 				Color border = unowned ? BORDER_UNOWNED
-					: bis ? BORDER_BIS : BORDER_PLAIN;
-				slot.setBorder(BorderFactory.createLineBorder(border));
+					: bis ? BORDER_BIS : theme.edgeLight;
+				slot.setBorder(new MatteBorder(1, 1, 1, 1, border));
 				// Quest rewards are earned, not bought: name the quest
 				// instead of quoting a gp price.
 				String quest = QuestRewardItems.questFor(item);
@@ -3180,7 +3358,7 @@ public class LoadoutLabPanel extends PluginPanel
 			}
 			else
 			{
-				slot.setBorder(BorderFactory.createLineBorder(BORDER_EMPTY));
+				slot.setBorder(new MatteBorder(1, 1, 1, 1, theme.edgeDark));
 				slot.setToolTipText(slotName(slotType) + ": empty");
 				if (!extras.isEmpty())
 				{
@@ -3193,12 +3371,12 @@ public class LoadoutLabPanel extends PluginPanel
 		RiskDotLabel specCell = new RiskDotLabel();
 		specCell.setPreferredSize(new Dimension(cell, cellH));
 		specCell.setOpaque(true);
-		specCell.setBackground(net.runelite.client.ui.ColorScheme.DARKER_GRAY_COLOR);
+		specCell.setBackground(theme.recess);
 		specCell.setHorizontalAlignment(SwingConstants.CENTER);
 		if (spec != null && specWeapon != null && specExpected > 0)
 		{
 			// Light sky blue, sampled from the in-game spec orb's gradient.
-			specCell.setBorder(BorderFactory.createLineBorder(BORDER_SPEC));
+			specCell.setBorder(new MatteBorder(1, 1, 1, 1, BORDER_SPEC));
 			String specFate = "";
 			if (fates != null && specWeapon != null)
 			{
@@ -3234,7 +3412,7 @@ public class LoadoutLabPanel extends PluginPanel
 		}
 		else
 		{
-			specCell.setBorder(BorderFactory.createLineBorder(BORDER_EMPTY));
+			specCell.setBorder(new MatteBorder(1, 1, 1, 1, theme.edgeDark));
 			specCell.setToolTipText("Spec: none");
 		}
 		// blank | head | spec, cape | neck | ammo, weapon | body | shield,
@@ -3262,10 +3440,11 @@ public class LoadoutLabPanel extends PluginPanel
 				}
 				else
 				{
+					// non-slots show the card's stone fill, as the game's own
+					// worn-equipment screen leaves them bare
 					JLabel blank = new JLabel();
 					blank.setPreferredSize(new Dimension(cell, cellH));
-					blank.setOpaque(true);
-					blank.setBackground(net.runelite.client.ui.ColorScheme.DARK_GRAY_COLOR);
+					blank.setOpaque(false);
 					icons.add(blank);
 				}
 			}
