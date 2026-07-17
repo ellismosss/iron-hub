@@ -69,6 +69,8 @@ public class AccountState implements StateView
 	private final Map<String, Long> dailiesDoneAt = new ConcurrentHashMap<>();
 	// items hidden from the bank Highest-alchs view (persisted)
 	private final Set<Integer> alchExcluded = ConcurrentHashMap.newKeySet();
+	// bank-tab per-skill target levels: skill name -> level (persisted)
+	private final Map<String, Integer> bankSkillTargets = new ConcurrentHashMap<>();
 	/** Dailies the player has explicitly included/excluded from the guided run.
 	 *  Only explicit choices are stored — an absent id falls back to the pack's
 	 *  own default, so a new event opts in and a Wilderness one stays out. */
@@ -1348,6 +1350,27 @@ public class AccountState implements StateView
 		}
 	}
 
+	// ── bank-tab per-skill target levels (persisted) ──────────────────
+
+	/** The bank tab's target level for a skill, 0 when unset. */
+	public int getBankSkillTarget(String skillName)
+	{
+		return bankSkillTargets.getOrDefault(skillName, 0);
+	}
+
+	/** Set (target > 0) or clear a bank target; no-op when unchanged. */
+	public void setBankSkillTarget(String skillName, int target)
+	{
+		Integer previous = target > 0
+			? bankSkillTargets.put(skillName, target)
+			: bankSkillTargets.remove(skillName);
+		if ((previous == null ? 0 : previous) != Math.max(0, target))
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
 	public void markDaily(String dailyId, boolean done)
 	{
 		if (done)
@@ -1597,6 +1620,8 @@ public class AccountState implements StateView
 		dailiesDoneAt.putAll(persisted.dailiesDoneAt);
 		alchExcluded.clear();
 		alchExcluded.addAll(persisted.alchExcluded);
+		bankSkillTargets.clear();
+		bankSkillTargets.putAll(persisted.bankSkillTargets);
 		dailiesChoice.clear();
 		dailiesChoice.putAll(persisted.dailiesChoice);
 		lootBySource.clear();
@@ -1695,6 +1720,7 @@ public class AccountState implements StateView
 		state.killCounts = new HashMap<>(killCounts);
 		state.dailiesDoneAt = new HashMap<>(dailiesDoneAt);
 		state.alchExcluded = new HashSet<>(alchExcluded);
+		state.bankSkillTargets = new HashMap<>(bankSkillTargets);
 		state.dailiesChoice = new HashMap<>(dailiesChoice);
 		lootBySource.forEach((src, items) -> state.lootBySource.put(src, new HashMap<>(items)));
 		suppliesBySource.forEach((src, items) -> state.suppliesBySource.put(src, new HashMap<>(items)));

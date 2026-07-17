@@ -44,14 +44,17 @@ import net.runelite.client.util.QuantityFormatter;
 /**
  * Bank tab content (frame 2f grown into a workbench, Luke 2026-07-17): the
  * search-gated list (nothing renders until a search, filter or view is
- * chosen), an equipment-stat ranking dropdown, a Highest-alchs view
- * (Alchemiser semantics: HA price x quantity, descending, with persisted
- * per-item exclusions and a reset), and per-skill banked-XP views over the
- * Banked Experience data port. Rows multi-select — selected items glow in
- * the real bank via the shared restock overlay — and hovering any row shows
- * the item's equipment stats (Item Stats-style tooltip). All item values
- * resolve on the CLIENT THREAD once per bank snapshot and cache. Frameless —
- * the host's header plate names the module.
+ * chosen), an equipment-stat ranking dropdown, and an icon strip that is the
+ * mode switchboard — a Highest-alchs view (Alchemiser semantics: HA price x
+ * quantity or per-item, with persisted per-item exclusions and a reset),
+ * five combat stat-group rankings (best gear in the bank per group), a
+ * Runecrafting essence view over data/xp-actions.json, and per-skill
+ * banked-XP views over the Banked Experience data port (with a persisted
+ * per-skill target level + progress meter). Rows multi-select — selected
+ * items glow in the real bank via the shared restock overlay — and hovering
+ * any row shows the item's equipment stats (Item Stats-style tooltip). All
+ * item values resolve on the CLIENT THREAD once per bank snapshot and
+ * cache. Frameless — the host's header plate names the module.
  */
 class BankTab extends JPanel
 {
@@ -59,6 +62,12 @@ class BankTab extends JPanel
 	private static final int MAX_RESULTS = 20;
 	/** Free-standing wrapped hints: the panel minus the tab's side padding. */
 	private static final int HINT_WIDTH = UiTokens.PANEL_WIDTH - 20;
+
+	// gameval names differ from the wiki's (BLANKRUNE = rune essence) —
+	// pinned against data/index/item-names.json in BankTabTest
+	static final int PURE_ESSENCE = net.runelite.api.gameval.ItemID.BLANKRUNE_HIGH;
+	static final int RUNE_ESSENCE = net.runelite.api.gameval.ItemID.BLANKRUNE;
+	static final int DAEYALT_ESSENCE = net.runelite.api.gameval.ItemID.BLANKRUNE_DAEYALT;
 
 	/** Index 0 = no filter; the rest map through {@link #statOf}. */
 	private static final String[] STAT_NAMES = {
@@ -70,7 +79,21 @@ class BankTab extends JPanel
 
 	private enum Mode
 	{
-		SEARCH, ALCH, SKILL
+		SEARCH, ALCH, SKILL, STAT_GROUP, RUNECRAFT
+	}
+
+	/** The strip's combat rankings: bank gear by its best bonus in the group. */
+	enum StatGroup
+	{
+		ATTACK(Skill.ATTACK), STRENGTH(Skill.STRENGTH), DEFENCE(Skill.DEFENCE),
+		RANGED(Skill.RANGED), MAGIC(Skill.MAGIC);
+
+		final Skill icon;
+
+		StatGroup(Skill icon)
+		{
+			this.icon = icon;
+		}
 	}
 
 	private final AccountState state;
@@ -82,6 +105,7 @@ class BankTab extends JPanel
 	/** Pushes (ordered items, readable title) for the collected bank view. */
 	private final java.util.function.BiConsumer<List<Integer>, String> onBankDisplay;
 	private final BankedXpPack bankedXpPack;
+	private final com.ironhub.data.XpActionsPack xpActionsPack;
 	/** The ids actually rendered by the last addRows (capped) — the SKILL
 	 *  view sends exactly these to the bank. */
 	private List<Integer> lastShownIds = List.of();
@@ -92,13 +116,20 @@ class BankTab extends JPanel
 	private final javax.swing.JComboBox<String> statFilter;
 	private final JPanel actionsHolder = new JPanel();
 	private final JPanel skillStrip = new JPanel();
-	private final JPanel snapshotHolder = new JPanel();
 	private final JPanel list = new JPanel();
 	private final StoneChipRow xpView;
+	private final StoneChipRow alchSort;
 	private final JPanel xpSection = new JPanel();
+	/** One long-lived field serves the SKILL and RC target inputs — a
+	 *  per-rebuild field would eat keystrokes (each commit rebuilds). */
+	private final StoneTextField targetField;
+	private boolean seedingTarget;
 
 	private Mode mode = Mode.SEARCH;
 	private Skill skillMode;
+	private StatGroup statGroup;
+	/** The RC method the player picked (action name), else best available. */
+	private String rcMethod;
 	// skill-view session state (Banked Experience interface)
 	private final Set<String> activeModifiers = new java.util.HashSet<>();
 	private final Map<Integer, String> chosenActivity = new HashMap<>();
@@ -116,7 +147,7 @@ class BankTab extends JPanel
 		net.runelite.client.callback.ClientThread clientThread,
 		net.runelite.client.game.SkillIconManager skillIcons, Set<Integer> selection,
 		java.util.function.BiConsumer<List<Integer>, String> onBankDisplay,
-		BankedXpPack bankedXpPack,
+		BankedXpPack bankedXpPack, com.ironhub.data.XpActionsPack xpActionsPack,
 		boolean gridView, java.util.function.Consumer<Boolean> onViewChange, OsrsTheme theme)
 	{
 		this.state = state;
@@ -126,11 +157,36 @@ class BankTab extends JPanel
 		this.selection = selection;
 		this.onBankDisplay = onBankDisplay;
 		this.bankedXpPack = bankedXpPack;
+		this.xpActionsPack = xpActionsPack;
 		this.theme = theme;
 		this.search = new StoneTextField(theme, "Search bank…");
 		this.statFilter = com.ironhub.ui.osrs.StoneComboBoxUI.skin(
 			new javax.swing.JComboBox<>(STAT_NAMES), theme);
 		this.xpView = new StoneChipRow(theme, false, "Grid", "List");
+		this.alchSort = new StoneChipRow(theme, false, "Stack", "Each");
+		this.alchSort.onChange(i -> rebuild());
+		this.targetField = new StoneTextField(theme, "Target…");
+		this.targetField.setColumns(3);
+		this.targetField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+		{
+			@Override
+			public void insertUpdate(javax.swing.event.DocumentEvent e)
+			{
+				commitTarget();
+			}
+
+			@Override
+			public void removeUpdate(javax.swing.event.DocumentEvent e)
+			{
+				commitTarget();
+			}
+
+			@Override
+			public void changedUpdate(javax.swing.event.DocumentEvent e)
+			{
+				commitTarget();
+			}
+		});
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
@@ -159,12 +215,6 @@ class BankTab extends JPanel
 		stripHolder.add(Box.createHorizontalGlue());
 		add(stripHolder);
 		add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-
-		snapshotHolder.setLayout(new BoxLayout(snapshotHolder, BoxLayout.X_AXIS));
-		snapshotHolder.setOpaque(false);
-		snapshotHolder.setAlignmentX(LEFT_ALIGNMENT);
-		add(snapshotHolder);
-		add(Box.createVerticalStrut(UiTokens.PAD));
 
 		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
 		list.setOpaque(false);
@@ -236,6 +286,16 @@ class BankTab extends JPanel
 	{
 		mode = Mode.SKILL;
 		skillMode = skill;
+		seedTargetField();
+		rebuild();
+	}
+
+	/** Test seam: open the Runecrafting essence view as its icon click would. */
+	void showRunecraftView()
+	{
+		mode = Mode.RUNECRAFT;
+		skillMode = null;
+		seedTargetField();
 		rebuild();
 	}
 
@@ -251,7 +311,7 @@ class BankTab extends JPanel
 
 	private void rebuild()
 	{
-		snapshotHolder.removeAll();
+		boolean targetHadFocus = targetField.isFocusOwner();
 		list.removeAll();
 		lastShownIds = List.of(); // set by addRows; stale ids must not linger
 		rebuildActions();
@@ -260,16 +320,14 @@ class BankTab extends JPanel
 
 		if (bank.isEmpty())
 		{
-			setSnapshotLine("no snapshot yet");
 			list.add(faintLine("Open your bank once to take a snapshot."));
 		}
 		else
 		{
-			setSnapshotLine("snapshot from last bank visit · "
-				+ relativeTime(System.currentTimeMillis() - state.getBankTimestamp()));
 			String query = search.getText().trim();
 			int stat = statFilter.getSelectedIndex();
-			boolean needsItemData = mode == Mode.ALCH || (mode == Mode.SEARCH && stat > 0);
+			boolean needsItemData = mode == Mode.ALCH || mode == Mode.STAT_GROUP
+				|| (mode == Mode.SEARCH && stat > 0);
 			if (needsItemData)
 			{
 				ensureItemData();
@@ -283,6 +341,14 @@ class BankTab extends JPanel
 			{
 				rebuildSkillView(bank, query);
 			}
+			else if (mode == Mode.STAT_GROUP)
+			{
+				rebuildStatGroup(bank, query);
+			}
+			else if (mode == Mode.RUNECRAFT)
+			{
+				rebuildRunecraft(bank);
+			}
 			else if (query.isEmpty() && stat <= 0)
 			{
 				// list nothing until asked — an unfiltered dump answers no
@@ -294,8 +360,7 @@ class BankTab extends JPanel
 				List<Row> rows = bank.keySet().stream()
 					.filter(id -> matches(state.itemName(id), query))
 					.sorted(Comparator.comparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)))
-					.map(id -> new Row(id,
-						"×" + QuantityFormatter.quantityToStackSize(bank.get(id)), false))
+					.map(id -> new Row(id, null, false)) // the count IS the figure
 					.collect(Collectors.toList());
 				addRows(rows, bank);
 			}
@@ -323,20 +388,24 @@ class BankTab extends JPanel
 		}
 		pushBankDisplay();
 		rebuildBankedXp();
-		snapshotHolder.revalidate();
-		snapshotHolder.repaint();
 		actionsHolder.revalidate();
 		actionsHolder.repaint();
 		skillStrip.revalidate();
 		skillStrip.repaint();
 		list.revalidate();
 		list.repaint();
+		if (targetHadFocus)
+		{
+			// the commit's own rebuild re-parents the field — keep the caret
+			targetField.requestFocusInWindow();
+		}
 	}
 
 	// ── views ─────────────────────────────────────────────────────────
 
-	/** Alchemiser semantics: HA price × quantity, descending; excluded
-	 *  items hidden (persisted), each row's checkbox excludes it. */
+	/** Alchemiser semantics: HA price × quantity (or per-item, the chip
+	 *  row's pick), descending; excluded items hidden (persisted), each
+	 *  row's checkbox excludes it. */
 	private void rebuildAlch(Map<Integer, Integer> bank, String query)
 	{
 		if (clientThread == null || itemManager == null)
@@ -349,16 +418,24 @@ class BankTab extends JPanel
 			list.add(faintLine("Reading item values…"));
 			return;
 		}
+		JPanel sortHolder = new JPanel();
+		sortHolder.setLayout(new BoxLayout(sortHolder, BoxLayout.X_AXIS));
+		sortHolder.setOpaque(false);
+		sortHolder.setAlignmentX(LEFT_ALIGNMENT);
+		sortHolder.setBorder(new EmptyBorder(0, 4, 3, 4));
+		sortHolder.add(alchSort);
+		sortHolder.add(Box.createHorizontalGlue());
+		cap(sortHolder);
+		list.add(sortHolder);
 		Map<Integer, Long> prices = haPrices;
 		List<Row> rows = prices.keySet().stream()
 			.filter(bank::containsKey)
 			.filter(id -> !state.isAlchExcluded(id))
 			.filter(id -> matches(state.itemName(id), query))
-			.sorted(Comparator.<Integer>comparingLong(id -> -stackValue(prices, bank, id))
+			.sorted(alchComparator(prices, bank, alchSort.getSelected() == 1)
 				.thenComparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)))
 			.map(id -> new Row(id,
-				QuantityFormatter.quantityToStackSize(stackValue(prices, bank, id))
-					+ "/" + prices.get(id) + " gp/ea", true))
+				alchFigure(stackValue(prices, bank, id), prices.get(id)), true))
 			.collect(Collectors.toList());
 		if (rows.isEmpty())
 		{
@@ -370,9 +447,211 @@ class BankTab extends JPanel
 		addRows(rows, bank);
 	}
 
+	/** Stack sort = total HA value of the banked stack; Each = per item. */
+	static Comparator<Integer> alchComparator(Map<Integer, Long> prices,
+		Map<Integer, Integer> bank, boolean byEach)
+	{
+		return Comparator.comparingLong(
+			id -> byEach ? -prices.get(id) : -stackValue(prices, bank, id));
+	}
+
+	/** "941K/192 gp/ea" — both figures RS-decimal truncated. */
+	static String alchFigure(long stack, long each)
+	{
+		return QuantityFormatter.quantityToRSDecimalStack(
+			(int) Math.min(Integer.MAX_VALUE, stack), true)
+			+ "/" + QuantityFormatter.quantityToRSDecimalStack(
+			(int) Math.min(Integer.MAX_VALUE, each), true) + " gp/ea";
+	}
+
 	private static long stackValue(Map<Integer, Long> prices, Map<Integer, Integer> bank, int id)
 	{
 		return prices.get(id) * bank.getOrDefault(id, 0);
+	}
+
+	/** Bank equipment ranked by its best bonus in the clicked stat group. */
+	private void rebuildStatGroup(Map<Integer, Integer> bank, String query)
+	{
+		if (clientThread == null || itemManager == null)
+		{
+			list.add(faintLine("Equipment stats need the game client."));
+			return;
+		}
+		if (!dataReady())
+		{
+			list.add(faintLine("Reading equipment stats…"));
+			return;
+		}
+		Map<Integer, ItemEquipmentStats> equipment = equipStats;
+		StatGroup group = statGroup;
+		List<Row> rows = equipment.keySet().stream()
+			.filter(bank::containsKey)
+			.filter(id -> groupValue(equipment.get(id), group) > 0)
+			.filter(id -> matches(state.itemName(id), query))
+			.sorted(Comparator.<Integer>comparingInt(id -> -groupValue(equipment.get(id), group))
+				.thenComparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)))
+			.map(id -> new Row(id, "+" + groupValue(equipment.get(id), group), false))
+			.collect(Collectors.toList());
+		addRows(rows, bank);
+	}
+
+	/** A stat group's headline number on an equipable item. */
+	static int groupValue(ItemEquipmentStats e, StatGroup group)
+	{
+		switch (group)
+		{
+			case ATTACK: return Math.max(e.getAstab(), Math.max(e.getAslash(), e.getAcrush()));
+			case STRENGTH: return e.getStr();
+			case DEFENCE: return Math.max(Math.max(e.getDstab(), e.getDslash()),
+				Math.max(e.getDcrush(), Math.max(e.getDmagic(), e.getDrange())));
+			case RANGED: return Math.max(e.getArange(), e.getRstr());
+			case MAGIC: return Math.max(e.getAmagic(), Math.round(e.getMdmg()));
+			default: return 0;
+		}
+	}
+
+	// ── Runecrafting view (data/xp-actions.json) ──────────────────────
+
+	/** Essence counts, a Regular-method selector gated on the player's
+	 *  level, and the banked RC xp those essences are worth. */
+	private void rebuildRunecraft(Map<Integer, Integer> bank)
+	{
+		int level = state.getRealLevel(Skill.RUNECRAFT);
+		int pure = bank.getOrDefault(PURE_ESSENCE, 0);
+		int rune = bank.getOrDefault(RUNE_ESSENCE, 0);
+		int daeyalt = bank.getOrDefault(DAEYALT_ESSENCE, 0);
+
+		com.ironhub.data.XpActionsPack.SkillActions ladder = xpActionsPack.ladder(Skill.RUNECRAFT);
+		List<com.ironhub.data.XpActionsPack.XpAction> methods = ladder == null ? List.of()
+			: ladder.actions.stream()
+				.filter(a -> "Regular".equals(a.type) && a.level <= level)
+				.sorted(Comparator.comparingInt(a -> a.level))
+				.collect(Collectors.toList());
+		com.ironhub.data.XpActionsPack.XpAction current = null;
+		for (com.ironhub.data.XpActionsPack.XpAction action : methods)
+		{
+			if (action.name.equals(rcMethod))
+			{
+				current = action;
+			}
+		}
+		if (current == null && !methods.isEmpty())
+		{
+			current = methods.get(methods.size() - 1); // best the level allows
+		}
+		double daeyaltXp = current == null ? Double.NaN : daeyaltXpFor(ladder, current.name);
+		double bankedTotal = current == null ? 0
+			: pure * current.xp + (Double.isNaN(daeyaltXp) ? 0 : daeyalt * daeyaltXp);
+
+		// header card mirrors the skill views: level, target, progress
+		StonePanel card = new StonePanel(theme);
+		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+		card.setAlignmentX(LEFT_ALIGNMENT);
+		card.add(new OsrsLabel(Skill.RUNECRAFT.getName() + " — level " + level,
+			OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
+		addTargetControls(card, Skill.RUNECRAFT.getName(), state.getXp(Skill.RUNECRAFT), bankedTotal);
+		cap(card);
+		list.add(card);
+		list.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+
+		// essence counts — absent = 0, shown honestly
+		StonePanel essences = new StonePanel(theme);
+		essences.setLayout(new BoxLayout(essences, BoxLayout.Y_AXIS));
+		essences.setAlignmentX(LEFT_ALIGNMENT);
+		essences.add(iconNameValueRow(PURE_ESSENCE, "Pure essence",
+			"×" + QuantityFormatter.quantityToStackSize(pure), OsrsSkin.MUTED));
+		essences.add(iconNameValueRow(RUNE_ESSENCE, "Rune essence",
+			"×" + QuantityFormatter.quantityToStackSize(rune), OsrsSkin.MUTED));
+		essences.add(iconNameValueRow(DAEYALT_ESSENCE, "Daeyalt essence",
+			"×" + QuantityFormatter.quantityToStackSize(daeyalt), OsrsSkin.MUTED));
+		cap(essences);
+		list.add(essences);
+		list.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+
+		if (methods.isEmpty())
+		{
+			list.add(faintLine("No runecrafting methods at your level in the pack."));
+			return;
+		}
+		javax.swing.JComboBox<String> picker = com.ironhub.ui.osrs.StoneComboBoxUI.skin(
+			new javax.swing.JComboBox<>(methods.stream()
+				.map(a -> a.name).toArray(String[]::new)), theme);
+		picker.setSelectedIndex(methods.indexOf(current));
+		picker.setAlignmentX(LEFT_ALIGNMENT);
+		List<com.ironhub.data.XpActionsPack.XpAction> options = methods;
+		picker.addActionListener(e ->
+		{
+			rcMethod = options.get(picker.getSelectedIndex()).name;
+			rebuild();
+		});
+		list.add(picker);
+		list.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+
+		list.add(new OsrsLabel("Banked: " + formatXp(pure * current.xp) + " xp · "
+			+ QuantityFormatter.quantityToStackSize(pure) + " × " + trimNumber(current.xp) + " xp",
+			OsrsSkin.VALUE, OsrsSkin.smallFont()).leftAligned().squeezable());
+		if (daeyalt > 0)
+		{
+			// a method with no Daeyalt rate in the pack stays honest: "?"
+			list.add(new OsrsLabel(Double.isNaN(daeyaltXp)
+				? "Daeyalt: ? — no Daeyalt rate for this method"
+				: "Daeyalt: " + formatXp(daeyalt * daeyaltXp) + " xp · "
+					+ QuantityFormatter.quantityToStackSize(daeyalt)
+					+ " × " + trimNumber(daeyaltXp) + " xp",
+				Double.isNaN(daeyaltXp) ? OsrsSkin.MUTED : OsrsSkin.VALUE,
+				OsrsSkin.smallFont()).leftAligned().squeezable());
+		}
+	}
+
+	/** The Daeyalt twin of a Regular action (same name), else NaN. */
+	private static double daeyaltXpFor(com.ironhub.data.XpActionsPack.SkillActions ladder,
+		String name)
+	{
+		for (com.ironhub.data.XpActionsPack.XpAction action : ladder.actions)
+		{
+			if ("Daeyalt".equals(action.type) && name.equals(action.name))
+			{
+				return action.xp;
+			}
+		}
+		return Double.NaN;
+	}
+
+	/** A display-only row: 16px sprite + small-font name + right text. */
+	private JPanel iconNameValueRow(int itemId, String name, String rightText,
+		Color rightColor)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.add(itemIcon(itemId));
+		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		row.add(new OsrsLabel(name, OsrsSkin.LABEL, OsrsSkin.smallFont())
+			.leftAligned().squeezable());
+		row.add(Box.createHorizontalGlue());
+		row.add(new OsrsLabel(rightText, rightColor, OsrsSkin.smallFont()));
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+		return row;
+	}
+
+	/** The 16px scaled item sprite (blank headless — never invented). */
+	private JLabel itemIcon(int itemId)
+	{
+		JLabel icon = new JLabel();
+		Dimension iconSize = new Dimension(16, 16);
+		icon.setPreferredSize(iconSize);
+		icon.setMinimumSize(iconSize);
+		icon.setMaximumSize(iconSize);
+		if (itemManager != null)
+		{
+			AsyncBufferedImage sprite = itemManager.getImage(itemId);
+			Runnable apply = () -> icon.setIcon(new ImageIcon(
+				sprite.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH)));
+			apply.run();
+			sprite.onLoaded(apply);
+		}
+		return icon;
 	}
 
 	/**
@@ -414,31 +693,92 @@ class BankTab extends JPanel
 		if (ids.isEmpty())
 		{
 			list.add(faintLine("No banked " + skillMode.getName() + " XP found."));
+		}
+		else
+		{
+			lastShownIds = ids.subList(0, Math.min(ids.size(), MAX_RESULTS));
+			StonePanel group = new StonePanel(theme);
+			group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
+			group.setAlignmentX(LEFT_ALIGNMENT);
+			int corner = theme.cornerStamp.length;
+			group.setBorder(new StoneBorder(theme, theme.background,
+				new Insets(corner, corner, corner, corner)));
+			for (int id : lastShownIds)
+			{
+				group.add(itemRow(new Row(id,
+					formatXp(bank.get(id) * effectiveXp(chosen.get(id))) + " xp", false),
+					bank.get(id)));
+				if (expandedItems.contains(id))
+				{
+					group.add(skillDetail(id, byItem.get(id), chosen.get(id), bank.get(id)));
+				}
+			}
+			cap(group);
+			list.add(group);
+			if (ids.size() > MAX_RESULTS)
+			{
+				list.add(faintLine("+ " + (ids.size() - MAX_RESULTS) + " more — refine your search"));
+			}
+		}
+		addSecondariesSection(bank, chosen);
+	}
+
+	/**
+	 * The visible Secondaries section (Luke: the per-row expansion stayed
+	 * too hidden): every secondary the CHOSEN entries of ALL counted items
+	 * require, aggregated — required = ceil(sum of qty × item count),
+	 * available = owned everywhere. Absent entirely when nothing needs one.
+	 */
+	private void addSecondariesSection(Map<Integer, Integer> bank,
+		Map<Integer, BankedXpPack.Entry> chosen)
+	{
+		Map<Integer, Double> required = new HashMap<>();
+		for (Map.Entry<Integer, BankedXpPack.Entry> e : chosen.entrySet())
+		{
+			if (e.getValue().getSecondaries() == null)
+			{
+				continue;
+			}
+			for (BankedXpPack.ItemQty secondary : e.getValue().getSecondaries())
+			{
+				required.merge(secondary.getItemId(),
+					secondary.getQty() * bank.getOrDefault(e.getKey(), 0), Double::sum);
+			}
+		}
+		if (required.isEmpty())
+		{
 			return;
 		}
-		lastShownIds = ids.subList(0, Math.min(ids.size(), MAX_RESULTS));
+		JPanel header = new JPanel();
+		header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
+		header.setOpaque(false);
+		header.setAlignmentX(LEFT_ALIGNMENT);
+		header.setBorder(new EmptyBorder(8, 4, 3, 4));
+		header.add(new OsrsLabel("Secondaries", OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+		header.add(Box.createHorizontalGlue());
+		cap(header);
+		list.add(header);
+
 		StonePanel group = new StonePanel(theme);
 		group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
 		group.setAlignmentX(LEFT_ALIGNMENT);
 		int corner = theme.cornerStamp.length;
 		group.setBorder(new StoneBorder(theme, theme.background,
 			new Insets(corner, corner, corner, corner)));
-		for (int id : lastShownIds)
-		{
-			group.add(itemRow(new Row(id,
-				formatXp(bank.get(id) * effectiveXp(chosen.get(id))) + " xp", false),
-				bank.get(id)));
-			if (expandedItems.contains(id))
+		required.entrySet().stream()
+			.sorted(Comparator.<Map.Entry<Integer, Double>>comparingDouble(e -> -e.getValue())
+				.thenComparing(e -> state.itemName(e.getKey()).toLowerCase(Locale.ROOT)))
+			.forEach(e ->
 			{
-				group.add(skillDetail(id, byItem.get(id), chosen.get(id), bank.get(id)));
-			}
-		}
+				long need = (long) Math.ceil(e.getValue());
+				long have = state.ownedCount(e.getKey());
+				group.add(iconNameValueRow(e.getKey(), state.itemName(e.getKey()),
+					QuantityFormatter.quantityToStackSize(have)
+						+ "/" + QuantityFormatter.quantityToStackSize(need),
+					have >= need ? OsrsSkin.VALUE : OsrsSkin.MUTED));
+			});
 		cap(group);
 		list.add(group);
-		if (ids.size() > MAX_RESULTS)
-		{
-			list.add(faintLine("+ " + (ids.size() - MAX_RESULTS) + " more — refine your search"));
-		}
 	}
 
 	/** Skill icon + level now → level banked + xp to next, in a stone card. */
@@ -462,8 +802,91 @@ class BankTab extends JPanel
 				+ formatXp(net.runelite.api.Experience.getXpForLevel(level + 1) - xpNow) + " xp",
 				OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
 		}
+		addTargetControls(card, skillMode.getName(), xpNow, totalXp);
 		cap(card);
 		return card;
+	}
+
+	// ── per-skill target level (persisted) ────────────────────────────
+
+	/** The skill the target field commits to, per the open view. */
+	private String targetSkillName()
+	{
+		return mode == Mode.RUNECRAFT ? Skill.RUNECRAFT.getName()
+			: skillMode != null ? skillMode.getName() : null;
+	}
+
+	/** Reseed the field for the view being opened; guarded so the document
+	 *  listener never commits mid-seed. */
+	private void seedTargetField()
+	{
+		seedingTarget = true;
+		int target = state.getBankSkillTarget(targetSkillName());
+		targetField.setText(target > 0 ? String.valueOf(target) : "");
+		seedingTarget = false;
+	}
+
+	/** Commit on document change when parseable 2..99 (guarded-change in
+	 *  AccountState — same value never persists or notifies). */
+	private void commitTarget()
+	{
+		String skillName = targetSkillName();
+		if (seedingTarget || skillName == null)
+		{
+			return;
+		}
+		try
+		{
+			int target = Integer.parseInt(targetField.getText().trim());
+			if (target >= 2 && target <= 99)
+			{
+				state.setBankSkillTarget(skillName, target);
+			}
+		}
+		catch (NumberFormatException e)
+		{
+			// partial or non-numeric input — the last committed target stands
+		}
+	}
+
+	/** The target input + (when set) progress meter and reach line. */
+	private void addTargetControls(JPanel card, String skillName, int xpNow, double bankedTotal)
+	{
+		card.add(Box.createVerticalStrut(2));
+		JPanel fieldCap = new JPanel(new java.awt.BorderLayout());
+		fieldCap.setOpaque(false);
+		fieldCap.add(targetField);
+		// 3 columns clips the placeholder ("Targe") — measured ink, not
+		// nominal columns, decides the width; the cap keeps it small
+		Dimension pref = targetField.getPreferredSize();
+		int placeholderWidth = targetField.getFontMetrics(targetField.getFont())
+			.stringWidth("Target…") + 12; // edges 2+2 + padding 4+4
+		pref = new Dimension(Math.max(pref.width, placeholderWidth), pref.height);
+		fieldCap.setPreferredSize(pref);
+		fieldCap.setMaximumSize(pref);
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.add(fieldCap);
+		row.add(Box.createHorizontalGlue());
+		cap(row);
+		card.add(row);
+
+		int target = state.getBankSkillTarget(skillName);
+		if (target >= 2)
+		{
+			double goalXp = net.runelite.api.Experience.getXpForLevel(target);
+			com.ironhub.ui.osrs.StoneMeter meter = new com.ironhub.ui.osrs.StoneMeter(
+				theme, OsrsSkin.PROGRESS_BLUE, Math.min(1, (xpNow + bankedTotal) / goalXp));
+			meter.setAlignmentX(LEFT_ALIGNMENT);
+			card.add(Box.createVerticalStrut(2));
+			card.add(meter);
+			int reaches = Math.min(99, net.runelite.api.Experience.getLevelForXp(
+				(int) Math.min(200_000_000, xpNow + bankedTotal)));
+			card.add(new OsrsLabel("Banked reaches level " + reaches + " of target " + target,
+				OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+		}
 	}
 
 	/** One modifier toggle (small font); active reshapes every total. */
@@ -644,12 +1067,6 @@ class BankTab extends JPanel
 		JPanel row = new JPanel(new java.awt.GridLayout(1, 0, 4, 0));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.add(new StoneButton(theme, mode == Mode.ALCH ? "Back to search" : "Highest alchs", () ->
-		{
-			mode = mode == Mode.ALCH ? Mode.SEARCH : Mode.ALCH;
-			skillMode = null;
-			rebuild();
-		}));
 		if (!selection.isEmpty())
 		{
 			row.add(new StoneButton(theme, "Clear selection (" + selection.size() + ")", () ->
@@ -664,38 +1081,77 @@ class BankTab extends JPanel
 			row.add(new StoneButton(theme, "Reset excluded (" + excluded + ")",
 				state::clearAlchExclusions));
 		}
-		cap(row);
-		actionsHolder.add(row);
-		actionsHolder.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		if (row.getComponentCount() > 0)
+		{
+			cap(row);
+			actionsHolder.add(row);
+			actionsHolder.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		}
 	}
 
-	/** One icon per skill the banked-XP pack covers; the active view's icon
-	 *  sits on the select fill. Needs the skill icons — absent headless. */
+	/**
+	 * The icon strip IS the mode switchboard: the High Alchemy spell (wiki
+	 * art, bundled), the five combat stat groups, Runecrafting, then one
+	 * icon per banked-XP pack skill. The active view's icon sits on the
+	 * select fill; clicking it again returns to search. Skill icons need
+	 * the game client's icon manager — those cells are absent headless.
+	 */
 	private void rebuildSkillStrip()
 	{
 		skillStrip.removeAll();
+		java.awt.image.BufferedImage alchArt =
+			com.ironhub.ui.osrs.OsrsIcons.image(theme, "high_alchemy");
+		if (alchArt != null)
+		{
+			skillStrip.add(stripCell(new ImageIcon(alchArt), mode == Mode.ALCH,
+				"Highest alchs", () ->
+				{
+					mode = mode == Mode.ALCH ? Mode.SEARCH : Mode.ALCH;
+					skillMode = null;
+				}));
+		}
 		if (skillIcons == null)
 		{
 			return;
 		}
+		for (StatGroup group : StatGroup.values())
+		{
+			skillStrip.add(stripCell(new ImageIcon(skillIcons.getSkillImage(group.icon, true)),
+				mode == Mode.STAT_GROUP && group == statGroup,
+				group.icon.getName() + " — bank gear ranked", () ->
+				{
+					if (mode == Mode.STAT_GROUP && group == statGroup)
+					{
+						mode = Mode.SEARCH;
+						statGroup = null;
+					}
+					else
+					{
+						mode = Mode.STAT_GROUP;
+						statGroup = group;
+						skillMode = null;
+					}
+				}));
+		}
+		skillStrip.add(stripCell(new ImageIcon(skillIcons.getSkillImage(Skill.RUNECRAFT, true)),
+			mode == Mode.RUNECRAFT, "Runecraft — banked essence", () ->
+			{
+				if (mode == Mode.RUNECRAFT)
+				{
+					mode = Mode.SEARCH;
+				}
+				else
+				{
+					mode = Mode.RUNECRAFT;
+					skillMode = null;
+					seedTargetField();
+				}
+			}));
 		for (Skill skill : packSkills())
 		{
-			JPanel cell = new JPanel(new java.awt.BorderLayout());
-			boolean active = mode == Mode.SKILL && skill == skillMode;
-			cell.setOpaque(active);
-			if (active)
-			{
-				cell.setBackground(theme.selectFill);
-			}
-			cell.setBorder(new EmptyBorder(2, 2, 2, 2));
-			JLabel icon = new JLabel(new ImageIcon(skillIcons.getSkillImage(skill, true)));
-			cell.add(icon, java.awt.BorderLayout.CENTER);
-			cell.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-			cell.setToolTipText(skill.getName() + " — banked XP view");
-			cell.addMouseListener(new MouseAdapter()
-			{
-				@Override
-				public void mousePressed(MouseEvent e)
+			skillStrip.add(stripCell(new ImageIcon(skillIcons.getSkillImage(skill, true)),
+				mode == Mode.SKILL && skill == skillMode,
+				skill.getName() + " — banked XP view", () ->
 				{
 					if (mode == Mode.SKILL && skill == skillMode)
 					{
@@ -706,12 +1162,37 @@ class BankTab extends JPanel
 					{
 						mode = Mode.SKILL;
 						skillMode = skill;
+						seedTargetField();
 					}
-					rebuild();
-				}
-			});
-			skillStrip.add(cell);
+				}));
 		}
+	}
+
+	/** One switchboard cell: icon at native size, select fill when active. */
+	private JPanel stripCell(javax.swing.Icon icon, boolean active, String tooltip,
+		Runnable onPress)
+	{
+		JPanel cell = new JPanel(new java.awt.BorderLayout());
+		cell.setOpaque(active);
+		if (active)
+		{
+			cell.setBackground(theme.selectFill);
+		}
+		cell.setBorder(new EmptyBorder(2, 2, 2, 2));
+		JLabel label = new JLabel(icon);
+		cell.add(label, java.awt.BorderLayout.CENTER);
+		cell.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		cell.setToolTipText(tooltip);
+		cell.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				onPress.run();
+				rebuild();
+			}
+		});
+		return cell;
 	}
 
 	/** The skills the pack has entries for, in Skill enum order. */
@@ -737,13 +1218,15 @@ class BankTab extends JPanel
 	private static final class Row
 	{
 		final int itemId;
-		final String rightText;
+		/** The green headline ("252K xp", "+5", "941K/192 gp/ea") — null for
+		 *  plain search rows, where the muted count IS the figure. */
+		final String figure;
 		final boolean excludable;
 
-		Row(int itemId, String rightText, boolean excludable)
+		Row(int itemId, String figure, boolean excludable)
 		{
 			this.itemId = itemId;
-			this.rightText = rightText;
+			this.figure = figure;
 			this.excludable = excludable;
 		}
 	}
@@ -801,7 +1284,8 @@ class BankTab extends JPanel
 		}
 	}
 
-	/** icon · name · value (+ exclude box in the alch view). Click selects —
+	/** icon · name · muted count · green figure (+ exclude box in the alch
+	 *  view; plain search rows show just the count). Click selects —
 	 *  selected items glow in the real bank; hover shows the item's stats. */
 	private JPanel itemRow(Row spec, int quantity)
 	{
@@ -819,50 +1303,45 @@ class BankTab extends JPanel
 
 		// 16px scaled sprite, count never baked in (the Route-row lesson —
 		// the raw 36x32 sprite cropped in a smaller box)
-		JLabel icon = new JLabel();
-		Dimension iconSize = new Dimension(16, 16);
-		icon.setPreferredSize(iconSize);
-		icon.setMinimumSize(iconSize);
-		icon.setMaximumSize(iconSize);
-		if (itemManager != null)
-		{
-			AsyncBufferedImage sprite = itemManager.getImage(itemId);
-			Runnable apply = () -> icon.setIcon(new ImageIcon(
-				sprite.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH)));
-			apply.run();
-			sprite.onLoaded(apply);
-		}
+		JLabel icon = itemIcon(itemId);
 		row.add(icon);
 		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 
-		// the alch list reads in the small font (Luke, 2026-07-17)
-		java.awt.Font rowFont = spec.excludable ? OsrsSkin.smallFont() : OsrsSkin.font();
+		// every result list reads in the small font (Luke, 2026-07-17)
+		java.awt.Font rowFont = OsrsSkin.smallFont();
 		String tooltip = statsTooltip(itemId, quantity);
 		OsrsLabel nameLabel = new OsrsLabel(state.itemName(itemId), OsrsSkin.LABEL, rowFont)
 			.leftAligned().squeezable();
 		nameLabel.setToolTipText(tooltip);
 		row.add(nameLabel);
 		row.add(Box.createHorizontalGlue());
-		OsrsLabel value = new OsrsLabel(spec.rightText, OsrsSkin.VALUE, rowFont);
-		if (mode == Mode.SKILL)
+		// quantity first, in light text — then the figure
+		row.add(new OsrsLabel("×" + QuantityFormatter.quantityToStackSize(quantity),
+			OsrsSkin.MUTED, rowFont));
+		if (spec.figure != null)
 		{
-			// the xp value opens the item's activity + secondaries detail;
-			// the rest of the row still selects
-			value.setToolTipText("Activity & secondaries");
-			value.addMouseListener(new MouseAdapter()
+			row.add(Box.createHorizontalStrut(4));
+			OsrsLabel value = new OsrsLabel(spec.figure, OsrsSkin.VALUE, rowFont);
+			if (mode == Mode.SKILL)
 			{
-				@Override
-				public void mousePressed(MouseEvent e)
+				// the xp value opens the item's activity + secondaries detail;
+				// the rest of the row still selects
+				value.setToolTipText("Activity & secondaries");
+				value.addMouseListener(new MouseAdapter()
 				{
-					if (!expandedItems.remove(itemId))
+					@Override
+					public void mousePressed(MouseEvent e)
 					{
-						expandedItems.add(itemId);
+						if (!expandedItems.remove(itemId))
+						{
+							expandedItems.add(itemId);
+						}
+						rebuild();
 					}
-					rebuild();
-				}
-			});
+				});
+			}
+			row.add(value);
 		}
-		row.add(value);
 
 		MouseAdapter select = new MouseAdapter()
 		{
@@ -1011,17 +1490,7 @@ class BankTab extends JPanel
 		return value > 0 ? "+" + value : String.valueOf(value);
 	}
 
-	// ── snapshot line + banked XP summary (unchanged grammar) ─────────
-
-	/** Provenance copy — always faint (honesty is a feature); wrapped so a
-	 *  long timestamp flows to a second line instead of clipping mid-word. */
-	private void setSnapshotLine(String text)
-	{
-		snapshotHolder.add(OsrsLabel.wrapped(text, HINT_WIDTH, OsrsSkin.FAINT, OsrsSkin.font())
-			.leftAligned());
-		snapshotHolder.add(Box.createHorizontalGlue());
-		cap(snapshotHolder);
-	}
+	// ── banked XP summary (unchanged grammar) ─────────────────────────
 
 	private void rebuildBankedXp()
 	{
@@ -1114,12 +1583,6 @@ class BankTab extends JPanel
 	{
 		return query.trim().isEmpty()
 			|| itemName.toLowerCase(Locale.ROOT).contains(query.trim().toLowerCase(Locale.ROOT));
-	}
-
-	/** Delegates to the shared formatter — kept for the unit tests. */
-	static String relativeTime(long millisAgo)
-	{
-		return com.ironhub.ui.Format.relativeTime(millisAgo);
 	}
 
 	private static void cap(JComponent c)

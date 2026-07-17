@@ -195,6 +195,7 @@ public class BankTrackerModule implements IronHubModule
 			tab = new BankTab(state, itemManager, clientThread, skillIconManager, selection,
 				this::setBankDisplay,
 				dataPack.load("banked-xp", BankedXpPack.class),
+				dataPack.load("xp-actions", com.ironhub.data.XpActionsPack.class),
 				config.bankedXpGridView(), gridView ->
 				{
 					if (configManager != null)
