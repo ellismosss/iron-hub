@@ -134,10 +134,36 @@ class SavedSetupView
 	/** The game's stack-count yellow. */
 	private static final java.awt.Color STACK_YELLOW = new java.awt.Color(0xFFFF00);
 
-	/** The inside-visible part of a frame sprite (null-safe). */
-	private static BufferedImage sub(BufferedImage source, int x, int y, int w, int h)
+	/** Crop an edge sprite to its exact opaque strip band (null-safe): the
+	 *  strips sit centred in 32px canvases, and their widths differ per
+	 *  theme, so the band is measured rather than assumed. */
+	private static BufferedImage strip(BufferedImage source, boolean horizontal)
 	{
-		return source == null ? null : source.getSubimage(x, y, w, h);
+		if (source == null)
+		{
+			return null;
+		}
+		int min = Integer.MAX_VALUE;
+		int max = -1;
+		for (int y = 0; y < source.getHeight(); y++)
+		{
+			for (int x = 0; x < source.getWidth(); x++)
+			{
+				if ((source.getRGB(x, y) >>> 24) != 0)
+				{
+					int v = horizontal ? y : x;
+					min = Math.min(min, v);
+					max = Math.max(max, v);
+				}
+			}
+		}
+		if (max < 0)
+		{
+			return null;
+		}
+		return horizontal
+			? source.getSubimage(0, min, source.getWidth(), max - min + 1)
+			: source.getSubimage(min, 0, max - min + 1, source.getHeight());
 	}
 
 	/**
@@ -412,22 +438,28 @@ class SavedSetupView
 			setOpaque(false);
 			setToolTipText("");
 			texture = OsrsIcons.image(theme, "dialog_inventory_sprites/background");
-			edgeTop = sub(OsrsIcons.image(theme,
-				"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_top"), 0, 13, 32, 7);
-			edgeBottom = sub(OsrsIcons.image(theme,
-				"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_bottom"), 0, 13, 32, 7);
-			edgeLeft = sub(OsrsIcons.image(theme,
-				"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_left"), 13, 0, 7, 32);
-			edgeRight = sub(OsrsIcons.image(theme,
-				"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_right"), 13, 0, 7, 32);
-			cornerTl = sub(OsrsIcons.image(theme,
-				"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_top_left"), 13, 13, 19, 19);
-			cornerTr = sub(OsrsIcons.image(theme,
-				"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_top_right"), 0, 13, 19, 19);
-			cornerBl = sub(OsrsIcons.image(theme,
-				"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_bottom_left"), 13, 0, 19, 19);
-			cornerBr = sub(OsrsIcons.image(theme,
-				"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_bottom_right"), 0, 0, 19, 19);
+			// edges carry a strip centred in a 32px canvas; each is cropped to
+			// its exact opaque band so top/left anchor at 0 and bottom/right
+			// anchor flush (the band widths differ per theme: 6px vs 7px)
+			edgeTop = strip(OsrsIcons.image(theme,
+				"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_top"), true);
+			edgeBottom = strip(OsrsIcons.image(theme,
+				"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_bottom"), true);
+			edgeLeft = strip(OsrsIcons.image(theme,
+				"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_left"), false);
+			edgeRight = strip(OsrsIcons.image(theme,
+				"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_right"), false);
+			// corners are corner-anchored L-pieces with TRANSPARENT interiors
+			// (Luke: the quadrant crops sliced the ornament) — drawn whole,
+			// over the edge strips, at the four canvas corners
+			cornerTl = OsrsIcons.image(theme,
+				"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_top_left");
+			cornerTr = OsrsIcons.image(theme,
+				"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_top_right");
+			cornerBl = OsrsIcons.image(theme,
+				"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_bottom_left");
+			cornerBr = OsrsIcons.image(theme,
+				"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_bottom_right");
 			for (int i = 0; i < 28 && i < setup.inventory.length; i++)
 			{
 				if (setup.inventory[i] > 0)
@@ -463,16 +495,22 @@ class SavedSetupView
 			if (texture != null)
 			{
 				tile(g2, texture, 0, 0, INV_WIDTH, INV_HEIGHT);
-				tile(g2, edgeTop, 0, 0, INV_WIDTH, 7);
-				tile(g2, edgeBottom, 0, INV_HEIGHT - 7, INV_WIDTH, 7);
-				tile(g2, edgeLeft, 0, 0, 7, INV_HEIGHT);
-				tile(g2, edgeRight, INV_WIDTH - 7, 0, 7, INV_HEIGHT);
+				if (edgeTop != null)
+				{
+					tile(g2, edgeTop, 0, 0, INV_WIDTH, edgeTop.getHeight());
+					tile(g2, edgeBottom, 0, INV_HEIGHT - edgeBottom.getHeight(),
+						INV_WIDTH, edgeBottom.getHeight());
+					tile(g2, edgeLeft, 0, 0, edgeLeft.getWidth(), INV_HEIGHT);
+					tile(g2, edgeRight, INV_WIDTH - edgeRight.getWidth(), 0,
+						edgeRight.getWidth(), INV_HEIGHT);
+				}
 				if (cornerTl != null)
 				{
 					g2.drawImage(cornerTl, 0, 0, null);
-					g2.drawImage(cornerTr, INV_WIDTH - 19, 0, null);
-					g2.drawImage(cornerBl, 0, INV_HEIGHT - 19, null);
-					g2.drawImage(cornerBr, INV_WIDTH - 19, INV_HEIGHT - 19, null);
+					g2.drawImage(cornerTr, INV_WIDTH - cornerTr.getWidth(), 0, null);
+					g2.drawImage(cornerBl, 0, INV_HEIGHT - cornerBl.getHeight(), null);
+					g2.drawImage(cornerBr, INV_WIDTH - cornerBr.getWidth(),
+						INV_HEIGHT - cornerBr.getHeight(), null);
 				}
 			}
 			else
