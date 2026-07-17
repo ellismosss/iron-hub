@@ -3,17 +3,22 @@ package com.ironhub.modules.ca;
 import com.ironhub.IronHubConfig;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
-import com.ironhub.ui.components.HubProgressBar;
-import com.ironhub.ui.components.IconButton;
 import com.ironhub.ui.components.PaintedIcon;
-import com.ironhub.ui.components.SearchField;
-import com.ironhub.ui.components.SectionLabel;
-import com.ironhub.ui.components.SegmentedControl;
+import com.ironhub.ui.osrs.OsrsLabel;
+import com.ironhub.ui.osrs.OsrsSkin;
+import com.ironhub.ui.osrs.OsrsTheme;
+import com.ironhub.ui.osrs.StoneButton;
+import com.ironhub.ui.osrs.StoneChipRow;
+import com.ironhub.ui.osrs.StoneComboBoxUI;
+import com.ironhub.ui.osrs.StoneMeter;
+import com.ironhub.ui.osrs.StonePanel;
+import com.ironhub.ui.osrs.StoneProgressBar;
+import com.ironhub.ui.osrs.StoneTextField;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
@@ -27,31 +32,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
+import javax.swing.border.MatteBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import net.runelite.client.util.LinkBrowser;
 
 /**
- * Combat achievements tab: goal-aware stats card, All/Tracked/Bosses views,
- * search, collapsible filters (tier toggles, status, type, sort), task rows
- * that expand for details with per-task tracking, and a two-column boss
- * grid that drills into each boss's tasks. Feature parity with the Combat
- * Achievements Tracker hub plugin, rendered in the Iron Hub design system.
+ * Combat achievements tab in the OSRS stonework skin: goal-aware stats card,
+ * All/Goals/Bosses views, search, collapsible filters (tier toggles, status,
+ * type, sort), flat hoverable task rows that expand into stone cards with
+ * per-task tracking, and a two-column boss grid that drills into each boss's
+ * tasks. Feature parity with the Combat Achievements Tracker hub plugin —
+ * only the clothing changed. Frameless: the hub host provides the frame.
  */
 class CombatAchievementsTab extends JPanel
 {
@@ -59,27 +62,31 @@ class CombatAchievementsTab extends JPanel
 	private static final String[] TYPE_OPTIONS = {"All types", "Stamina", "Perfection",
 		"Kill Count", "Mechanical", "Restriction", "Speed"};
 	private static final String[] SORT_OPTIONS = {"Tier", "Name", "Completion", "Community %"};
+	/** Wrap widths: free-standing notes vs text inside a stone card. */
+	private static final int NOTE_WIDTH = 195;
+	private static final int CARD_TEXT_WIDTH = 180;
+	/** Marks a child with its own action so a row click never steals it. */
+	private static final String OWN_ACTION = "ironhub.ca.ownAction";
 
 	private final CombatAchievementsModule module;
 	private final AccountState state;
+	private final OsrsTheme theme;
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::onStateChanged);
 
-	// stats card
-	private final JLabel pointsLine = new JLabel(" ");
-	private final HubProgressBar goalBar = HubProgressBar.bar(0);
-	private final JLabel goalLine = new JLabel(" ");
-	private final JLabel trackedLine = new JLabel(" ");
+	// stats card (OsrsLabel text is immutable — refreshStats refills the card)
+	private final StonePanel statsCard;
+	private final StoneProgressBar goalBar;
 
 	// controls
-	private final SegmentedControl views = new SegmentedControl(true, "All", "Goals", "Bosses");
-	private final JTextField search = new SearchField("Search tasks…");
-	private final JLabel filtersHeader = new JLabel("FILTERS");
+	private final StoneChipRow views;
+	private final StoneTextField search;
+	private final JLabel filtersTriangle = triangle();
 	private final JPanel filtersPanel = new JPanel();
 	private final Map<CaTier, Boolean> tierEnabled = new EnumMap<>(CaTier.class);
 	private final JComboBox<String> statusFilter = new JComboBox<>(STATUS_OPTIONS);
 	private final JComboBox<String> typeFilter = new JComboBox<>(TYPE_OPTIONS);
 	private final JComboBox<String> sortFilter = new JComboBox<>(SORT_OPTIONS);
-	private final IconButton sortDirection;
+	private final JLabel sortDirection;
 	private boolean filtersExpanded;
 	private boolean sortAscending = true;
 
@@ -92,32 +99,42 @@ class CombatAchievementsTab extends JPanel
 
 	private static final Map<CaTier, ImageIcon> TIER_ICONS = loadTierIcons();
 
-	CombatAchievementsTab(CombatAchievementsModule module, AccountState state, IronHubConfig config)
+	CombatAchievementsTab(CombatAchievementsModule module, AccountState state,
+		IronHubConfig config, OsrsTheme theme)
 	{
 		this.module = module;
 		this.state = state;
+		this.theme = theme;
 		for (CaTier tier : CaTier.values())
 		{
 			tierEnabled.put(tier, true);
 		}
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		setBackground(UiTokens.PANEL_BG);
-		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
+		setOpaque(true);
+		setBackground(theme.background);
+		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		add(buildStatsCard());
-		add(Box.createVerticalStrut(UiTokens.PAD));
+		add(section("Progress"));
+		statsCard = new StonePanel(theme);
+		statsCard.setLayout(new BoxLayout(statsCard, BoxLayout.Y_AXIS));
+		statsCard.setAlignmentX(LEFT_ALIGNMENT);
+		goalBar = new StoneProgressBar(theme, OsrsSkin.PROGRESS_BLUE, 0);
+		goalBar.setAlignmentX(LEFT_ALIGNMENT);
+		add(pad(statsCard));
+		add(strut(6));
 
-		views.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
+		views = new StoneChipRow(theme, true, "All", "Goals", "Bosses");
 		views.onChange(i ->
 		{
 			selectedBoss = null;
 			rebuildContent();
 		});
-		add(views);
-		add(Box.createVerticalStrut(UiTokens.PAD));
+		add(pad(views));
+		add(strut(4));
 
-		add(search);
+		search = new StoneTextField(theme, "Search tasks…");
+		add(pad(search));
 		search.getDocument().addDocumentListener(new DocumentListener()
 		{
 			public void insertUpdate(DocumentEvent e)
@@ -135,16 +152,17 @@ class CombatAchievementsTab extends JPanel
 				rebuildContent();
 			}
 		});
-		add(Box.createVerticalStrut(UiTokens.PAD));
+		add(strut(4));
 
-		sortDirection = new IconButton(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_UP, 10),
+		sortDirection = glyph(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_UP, 10),
 			"Flip sort direction", this::flipSortDirection);
 		add(buildFiltersSection());
-		add(Box.createVerticalStrut(UiTokens.PAD));
+		add(strut(4));
 
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 		content.setOpaque(false);
 		content.setAlignmentX(LEFT_ALIGNMENT);
+		content.setBorder(new EmptyBorder(0, 4, 0, 4));
 		add(content);
 		add(Box.createVerticalGlue());
 
@@ -163,6 +181,37 @@ class CombatAchievementsTab extends JPanel
 	void onTasksUpdated()
 	{
 		refreshStats();
+		rebuildContent();
+	}
+
+	/** Test seam: switch to the Bosses grid without a mouse. */
+	void showBossesForTest()
+	{
+		views.setSelected(2);
+		selectedBoss = null;
+		rebuildContent();
+	}
+
+	/** Test seam: expand a task's card. */
+	void expandForTest(int taskId)
+	{
+		expanded.add(taskId);
+		rebuildContent();
+	}
+
+	/** Test seam: open the filters section. */
+	void expandFiltersForTest()
+	{
+		filtersExpanded = true;
+		filtersTriangle.setIcon(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_DOWN, 10));
+		filtersPanel.setVisible(true);
+	}
+
+	/** Test seam: drill into a boss's tasks. */
+	void drillForTest(String boss)
+	{
+		views.setSelected(2);
+		selectedBoss = boss;
 		rebuildContent();
 	}
 
@@ -202,71 +251,45 @@ class CombatAchievementsTab extends JPanel
 
 	// ── stats card ────────────────────────────────────────────────────
 
-	private JPanel buildStatsCard()
-	{
-		JPanel card = new JPanel();
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setBackground(UiTokens.CARD_BG);
-		card.setAlignmentX(LEFT_ALIGNMENT);
-		card.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER),
-			new EmptyBorder(6, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD)));
-		card.add(new SectionLabel("Progress"));
-		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		pointsLine.setForeground(UiTokens.TEXT_PRIMARY);
-		pointsLine.setFont(pointsLine.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-		pointsLine.setAlignmentX(LEFT_ALIGNMENT);
-		card.add(pointsLine);
-		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		card.add(goalBar);
-		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		goalLine.setForeground(UiTokens.STATUS_AVAILABLE);
-		goalLine.setFont(goalLine.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
-		goalLine.setAlignmentX(LEFT_ALIGNMENT);
-		goalLine.setToolTipText("Tier goal - set it under Iron Hub settings (Auto advances tier by tier)");
-		card.add(goalLine);
-		trackedLine.setForeground(UiTokens.TEXT_MUTED);
-		trackedLine.setFont(trackedLine.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
-		trackedLine.setAlignmentX(LEFT_ALIGNMENT);
-		card.add(trackedLine);
-		return card;
-	}
-
 	private void refreshStats()
 	{
 		List<CaTask> tasks = module.tasks();
 		int points = module.points();
 		int totalPoints = tasks.stream().mapToInt(t -> t.tier.points).sum();
 		long done = tasks.stream().filter(t -> t.completed).count();
-		pointsLine.setText(tasks.isEmpty()
+		String pointsText = tasks.isEmpty()
 			? points + " pts"
-			: points + "/" + totalPoints + " pts · " + done + "/" + tasks.size() + " tasks");
+			: points + "/" + totalPoints + " pts · " + done + "/" + tasks.size() + " tasks";
 
 		CaTier goal = module.goalTier();
 		int threshold = module.goalThreshold();
+		String goalText;
+		Color goalColor;
 		if (goal == null)
 		{
-			goalLine.setText("All tiers complete!");
-			goalLine.setForeground(UiTokens.STATUS_OWNED);
+			goalText = "All tiers complete!";
+			goalColor = OsrsSkin.VALUE;
 			goalBar.setFraction(1);
 		}
 		else if (points >= threshold && threshold > 0)
 		{
-			goalLine.setText(goal.display + " complete! (" + points + " pts)");
-			goalLine.setForeground(UiTokens.STATUS_OWNED);
+			goalText = goal.display + " complete! (" + points + " pts)";
+			goalColor = OsrsSkin.VALUE;
 			goalBar.setFraction(1);
 		}
 		else
 		{
-			goalLine.setText(threshold > 0
+			goalText = threshold > 0
 				? (threshold - points) + " pts to " + goal.display
-				: "Goal: " + goal.display);
-			goalLine.setForeground(UiTokens.STATUS_AVAILABLE);
+				: "Goal: " + goal.display;
+			goalColor = OsrsSkin.TITLE;
 			goalBar.setFraction(threshold == 0 ? 0 : (double) points / threshold);
 		}
 
+		String trackedText;
 		if (selectedCaGoals().isEmpty())
 		{
-			trackedLine.setText("No CA goals yet");
+			trackedText = "No CA goals yet";
 		}
 		else
 		{
@@ -285,9 +308,24 @@ class CombatAchievementsTab extends JPanel
 					}
 				}
 			}
-			trackedLine.setText("Goals: " + goalDonePts + "/" + goalPts
-				+ " pts (" + found + " tasks)");
+			trackedText = "Goals: " + goalDonePts + "/" + goalPts + " pts (" + found + " tasks)";
 		}
+
+		statsCard.removeAll();
+		statsCard.add(new OsrsLabel(pointsText, OsrsSkin.TITLE, OsrsSkin.boldFont())
+			.leftAligned().squeezable());
+		statsCard.add(strut(3));
+		statsCard.add(goalBar);
+		statsCard.add(strut(3));
+		OsrsLabel goalLine = new OsrsLabel(goalText, goalColor, OsrsSkin.font())
+			.leftAligned().squeezable();
+		goalLine.setToolTipText("Tier goal - set it under Iron Hub settings (Auto advances tier by tier)");
+		statsCard.add(goalLine);
+		statsCard.add(new OsrsLabel(trackedText, OsrsSkin.MUTED, OsrsSkin.font())
+			.leftAligned().squeezable());
+		cap(statsCard);
+		statsCard.revalidate();
+		statsCard.repaint();
 	}
 
 	// ── filters ───────────────────────────────────────────────────────
@@ -299,34 +337,21 @@ class CombatAchievementsTab extends JPanel
 		section.setOpaque(false);
 		section.setAlignmentX(LEFT_ALIGNMENT);
 
-		filtersHeader.setForeground(UiTokens.TEXT_MUTED);
-		filtersHeader.setFont(SectionLabel.letterSpaced(
-			filtersHeader.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LABEL),
-			UiTokens.LETTER_SPACING_LABEL));
-		filtersHeader.setIcon(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
-		filtersHeader.setIconTextGap(UiTokens.ROW_GAP);
-		filtersHeader.setAlignmentX(LEFT_ALIGNMENT);
-		filtersHeader.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		filtersHeader.setToolTipText("Show or hide the tier, status, type and sort filters");
-		filtersHeader.addMouseListener(new MouseAdapter()
+		section.add(collapsibleHeader(filtersTriangle, "Filters",
+			"Show or hide the tier, status, type and sort filters", () ->
 		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				filtersExpanded = !filtersExpanded;
-				filtersHeader.setIcon(new PaintedIcon(filtersExpanded
-					? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
-				filtersPanel.setVisible(filtersExpanded);
-				revalidate();
-				repaint();
-			}
-		});
-		section.add(filtersHeader);
+			filtersExpanded = !filtersExpanded;
+			filtersTriangle.setIcon(new PaintedIcon(filtersExpanded
+				? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+			filtersPanel.setVisible(filtersExpanded);
+			revalidate();
+			repaint();
+		}));
 
 		filtersPanel.setLayout(new BoxLayout(filtersPanel, BoxLayout.Y_AXIS));
 		filtersPanel.setOpaque(false);
 		filtersPanel.setAlignmentX(LEFT_ALIGNMENT);
-		filtersPanel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
+		filtersPanel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 4, 0, 4));
 		filtersPanel.setVisible(false);
 
 		JPanel tierRow = new JPanel(new GridLayout(1, CaTier.values().length, 2, 0));
@@ -338,12 +363,12 @@ class CombatAchievementsTab extends JPanel
 			tierRow.add(tierToggle(tier));
 		}
 		filtersPanel.add(tierRow);
-		filtersPanel.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		filtersPanel.add(strut(UiTokens.PAD_TIGHT));
 
 		filtersPanel.add(filterRow("Status", combo(statusFilter)));
-		filtersPanel.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		filtersPanel.add(strut(UiTokens.PAD_TIGHT));
 		filtersPanel.add(filterRow("Type", combo(typeFilter)));
-		filtersPanel.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		filtersPanel.add(strut(UiTokens.PAD_TIGHT));
 		JPanel sortControls = new JPanel(new BorderLayout(UiTokens.PAD_TIGHT, 0));
 		sortControls.setOpaque(false);
 		sortControls.add(combo(sortFilter), BorderLayout.CENTER);
@@ -353,7 +378,7 @@ class CombatAchievementsTab extends JPanel
 		return section;
 	}
 
-	/** Wiki tier icon toggle; accent border = tier shown (interaction). */
+	/** Wiki tier icon toggle; select fill + bevel = tier shown. */
 	private JLabel tierToggle(CaTier tier)
 	{
 		JLabel toggle = new JLabel(TIER_ICONS.get(tier));
@@ -364,9 +389,9 @@ class CombatAchievementsTab extends JPanel
 		Runnable style = () ->
 		{
 			boolean on = tierEnabled.get(tier);
-			toggle.setBackground(on ? UiTokens.ICON_BUTTON_BG : UiTokens.INSET_BG);
-			toggle.setBorder(BorderFactory.createLineBorder(
-				on ? UiTokens.ACCENT : UiTokens.BORDER_DIM));
+			toggle.setBackground(on ? theme.selectFill : theme.recess);
+			// MatteBorder fills strips — a drawRect border halves on Retina
+			toggle.setBorder(new MatteBorder(1, 1, 1, 1, on ? theme.selectEdge : theme.edgeDark));
 		};
 		style.run();
 		toggle.addMouseListener(new MouseAdapter()
@@ -384,7 +409,7 @@ class CombatAchievementsTab extends JPanel
 
 	private JComboBox<String> combo(JComboBox<String> box)
 	{
-		box.setFont(box.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		StoneComboBoxUI.skin(box, theme);
 		box.addActionListener(e -> rebuildContent());
 		return box;
 	}
@@ -394,12 +419,13 @@ class CombatAchievementsTab extends JPanel
 		JPanel row = new JPanel(new BorderLayout(UiTokens.ROW_GAP, 0));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
-		JLabel name = new JLabel(label);
-		name.setForeground(UiTokens.TEXT_MUTED);
-		name.setFont(name.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
-		name.setPreferredSize(new Dimension(48, UiTokens.BUTTON_HEIGHT));
-		row.add(name, BorderLayout.WEST);
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
+		JPanel nameHolder = new JPanel(new BorderLayout());
+		nameHolder.setOpaque(false);
+		nameHolder.setPreferredSize(new Dimension(48, 22));
+		nameHolder.add(new OsrsLabel(label, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned(),
+			BorderLayout.CENTER);
+		row.add(nameHolder, BorderLayout.WEST);
 		row.add(control, BorderLayout.CENTER);
 		return row;
 	}
@@ -420,7 +446,7 @@ class CombatAchievementsTab extends JPanel
 		List<CaTask> tasks = module.tasks();
 		if (tasks.isEmpty())
 		{
-			content.add(emptyLabel("Log in to load your combat tasks."));
+			content.add(note("Log in to load your combat tasks."));
 		}
 		else if (views.getSelected() == 2)
 		{
@@ -438,14 +464,14 @@ class CombatAchievementsTab extends JPanel
 			List<CaTask> visible = filteredSorted(tasks, views.getSelected() == 1, selectedBoss);
 			if (visible.isEmpty())
 			{
-				content.add(emptyLabel(views.getSelected() == 1
+				content.add(note(views.getSelected() == 1
 					? "No CA goals match the filters. The + on any row adds that task to the Goal planner."
 					: "No tasks match the filters."));
 			}
 			for (CaTask task : visible)
 			{
 				content.add(taskRow(task));
-				content.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+				content.add(strut(UiTokens.PAD_TIGHT));
 			}
 		}
 		content.revalidate();
@@ -517,91 +543,81 @@ class CombatAchievementsTab extends JPanel
 
 	// ── task rows ─────────────────────────────────────────────────────
 
+	/** Collapsed = flat hoverable row; expanded = stone card. Row click
+	 *  toggles; the +/× tracking affordance keeps its own action. */
 	private JPanel taskRow(CaTask task)
 	{
 		boolean goal = isGoal(task);
 		boolean open = expanded.contains(task.id);
 
-		JPanel row = new JPanel();
+		JPanel row;
+		if (open)
+		{
+			row = new StonePanel(theme);
+		}
+		else
+		{
+			row = new JPanel();
+			row.setOpaque(true);
+			row.setBackground(theme.background);
+			row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP));
+		}
 		row.setLayout(new BoxLayout(row, BoxLayout.Y_AXIS));
-		row.setBackground(UiTokens.CARD_BG);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-			new EmptyBorder(UiTokens.PAD_TIGHT, UiTokens.ROW_GAP, UiTokens.PAD_TIGHT, UiTokens.ROW_GAP)));
 		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-		JPanel titleLine = new JPanel();
-		titleLine.setLayout(new BoxLayout(titleLine, BoxLayout.X_AXIS));
-		titleLine.setOpaque(false);
-		titleLine.setAlignmentX(LEFT_ALIGNMENT);
-		JLabel icon = new JLabel(TIER_ICONS.get(task.tier));
-		icon.setToolTipText(task.tier.display + " · " + task.tier.points
-			+ (task.tier.points == 1 ? " pt" : " pts"));
-		titleLine.add(icon);
-		titleLine.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		JLabel name = new JLabel(task.name);
-		name.setForeground(task.completed ? UiTokens.STATUS_OWNED
-			: goal ? UiTokens.STATUS_AVAILABLE : UiTokens.TEXT_PRIMARY);
-		name.setFont(name.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-		name.setToolTipText(task.name + (goal ? " - in your Goal planner" : ""));
-		name.setMinimumSize(new Dimension(0, 0)); // ellipsize before pushing the button out
-		titleLine.add(name);
-		titleLine.add(Box.createHorizontalGlue());
-		titleLine.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		IconButton track = new IconButton(goal ? "×" : "+",
-			goal ? "Remove this task from the Goal planner"
-				: "Add this task as a goal in the Goal planner",
-			() -> toggleGoal(task));
-		titleLine.add(track);
-		row.add(titleLine);
+		row.add(titleLine(task, goal));
 
 		String context = task.boss.isEmpty() ? task.type
 			: task.type.isEmpty() ? task.boss : task.boss + " · " + task.type;
 		if (!context.isEmpty())
 		{
-			JLabel contextLine = new JLabel(context);
-			contextLine.setForeground(UiTokens.TEXT_MUTED);
-			contextLine.setFont(contextLine.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-			contextLine.setAlignmentX(LEFT_ALIGNMENT);
-			row.add(contextLine);
+			row.add(new OsrsLabel(context, OsrsSkin.FAINT, OsrsSkin.font())
+				.leftAligned().squeezable());
 		}
 
 		if (open)
 		{
-			JTextArea description = new JTextArea(task.description);
-			description.setFont(description.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
-			description.setForeground(UiTokens.TEXT_BODY);
-			description.setBackground(UiTokens.CARD_BG);
-			description.setLineWrap(true);
-			description.setWrapStyleWord(true);
-			description.setEditable(false);
-			description.setFocusable(false);
-			description.setBorder(new EmptyBorder(2, 0, 2, 0));
-			description.setAlignmentX(LEFT_ALIGNMENT);
+			OsrsLabel description = OsrsLabel.wrapped(task.description, CARD_TEXT_WIDTH,
+				OsrsSkin.MUTED, OsrsSkin.font()).leftAligned();
 			row.add(description);
 
 			String pct = task.communityPct == null ? "unknown"
 				: String.format("%.1f%% of players", task.communityPct);
-			JLabel details = new JLabel(task.tier.display + " · "
-				+ task.tier.points + (task.tier.points == 1 ? " pt" : " pts") + " · " + pct);
-			details.setForeground(UiTokens.TEXT_FAINT);
-			details.setFont(details.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-			details.setAlignmentX(LEFT_ALIGNMENT);
+			OsrsLabel details = new OsrsLabel(task.tier.display + " · "
+				+ task.tier.points + (task.tier.points == 1 ? " pt" : " pts") + " · " + pct,
+				OsrsSkin.FAINT, OsrsSkin.font()).leftAligned().squeezable();
 			details.setToolTipText("Community completion rate from the wiki's task table (bundled snapshot)");
 			row.add(details);
 		}
 		else
 		{
-			JLabel description = new JLabel(task.description);
-			description.setForeground(UiTokens.TEXT_BODY);
-			description.setFont(description.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
-			description.setAlignmentX(LEFT_ALIGNMENT);
+			OsrsLabel description = new OsrsLabel(task.description, OsrsSkin.MUTED, OsrsSkin.font())
+				.leftAligned().squeezable();
 			description.setToolTipText(task.description);
 			row.add(description);
 		}
 
 		MouseAdapter interaction = new MouseAdapter()
 		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				if (!open)
+				{
+					row.setBackground(theme.hoverFill);
+				}
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				if (!open)
+				{
+					row.setBackground(theme.background);
+				}
+			}
+
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
@@ -628,17 +644,59 @@ class CombatAchievementsTab extends JPanel
 				}
 			}
 		};
-		row.addMouseListener(interaction);
-		for (Component child : row.getComponents())
-		{
-			if (child != titleLine)
-			{
-				child.addMouseListener(interaction);
-			}
-		}
+		clickAnywhere(row, interaction);
 
 		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
 		return row;
+	}
+
+	/** Tier icon + name + the dedicated +/× planner affordance. */
+	private JPanel titleLine(CaTask task, boolean goal)
+	{
+		JPanel titleLine = new JPanel();
+		titleLine.setLayout(new BoxLayout(titleLine, BoxLayout.X_AXIS));
+		titleLine.setOpaque(false);
+		titleLine.setAlignmentX(LEFT_ALIGNMENT);
+		JLabel icon = new JLabel(TIER_ICONS.get(task.tier));
+		icon.setToolTipText(task.tier.display + " · " + task.tier.points
+			+ (task.tier.points == 1 ? " pt" : " pts"));
+		titleLine.add(icon);
+		titleLine.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		OsrsLabel name = new OsrsLabel(task.name,
+			task.completed ? OsrsSkin.VALUE : goal ? OsrsSkin.TITLE : OsrsSkin.MUTED,
+			OsrsSkin.boldFont()).leftAligned().squeezable();
+		name.setToolTipText(task.name + (goal ? " - in your Goal planner" : ""));
+		titleLine.add(name);
+		titleLine.add(Box.createHorizontalGlue());
+		titleLine.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+
+		OsrsLabel track = new OsrsLabel(goal ? "×" : "+", OsrsSkin.FAINT, OsrsSkin.boldFont());
+		track.setToolTipText(goal ? "Remove this task from the Goal planner"
+			: "Add this task as a goal in the Goal planner");
+		track.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		track.putClientProperty(OWN_ACTION, Boolean.TRUE);
+		track.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				track.setColor(OsrsSkin.LABEL);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				track.setColor(OsrsSkin.FAINT);
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				toggleGoal(task);
+			}
+		});
+		titleLine.add(track);
+		return titleLine;
 	}
 
 	/** The '+' action: the task joins the Goal planner as a "ca:" goal. */
@@ -716,15 +774,19 @@ class CombatAchievementsTab extends JPanel
 		Map<String, int[]> totals = bossStats(tasks);
 		if (stats.isEmpty())
 		{
-			content.add(emptyLabel("No bosses match the filters."));
+			content.add(note("No bosses match the filters."));
 			return;
 		}
 		long complete = totals.values().stream().filter(c -> c[0] == c[1]).count();
-		JLabel summary = new JLabel(complete + "/" + totals.size() + " bosses fully complete");
-		summary.setForeground(UiTokens.TEXT_MUTED);
-		summary.setFont(summary.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		JPanel summary = new JPanel();
+		summary.setLayout(new BoxLayout(summary, BoxLayout.X_AXIS));
+		summary.setOpaque(false);
 		summary.setAlignmentX(LEFT_ALIGNMENT);
 		summary.setBorder(new EmptyBorder(0, 0, UiTokens.PAD_TIGHT, 0));
+		summary.add(new OsrsLabel(complete + "/" + totals.size() + " bosses fully complete",
+			OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+		summary.add(Box.createHorizontalGlue());
+		cap(summary);
 		content.add(summary);
 
 		List<String> bosses = new ArrayList<>(stats.keySet());
@@ -747,35 +809,44 @@ class CombatAchievementsTab extends JPanel
 			gridRow.setMaximumSize(new Dimension(Integer.MAX_VALUE,
 				gridRow.getPreferredSize().height));
 			content.add(gridRow);
-			content.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			content.add(strut(UiTokens.PAD_TIGHT));
 		}
 	}
 
+	/** A boss as a stone tile: engraved box, hover fill, click drills in. */
 	private JPanel bossCard(String boss, int[] counts)
 	{
-		JPanel card = new JPanel();
+		StonePanel card = new StonePanel(theme);
 		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setBackground(UiTokens.CARD_BG);
-		card.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-			new EmptyBorder(UiTokens.PAD_TIGHT, UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP)));
 		card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		card.setToolTipText(boss + ": " + counts[0] + "/" + counts[1] + " tasks done");
 
-		JLabel name = new JLabel(boss);
-		name.setForeground(counts[0] == counts[1] ? UiTokens.STATUS_OWNED : UiTokens.TEXT_PRIMARY);
-		name.setFont(name.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-		name.setAlignmentX(LEFT_ALIGNMENT);
+		OsrsLabel name = new OsrsLabel(boss,
+			counts[0] == counts[1] ? OsrsSkin.VALUE : OsrsSkin.MUTED, OsrsSkin.boldFont())
+			.leftAligned().squeezable();
 		card.add(name);
-		JLabel count = new JLabel(counts[0] + "/" + counts[1]);
-		count.setForeground(UiTokens.TEXT_MUTED);
-		count.setFont(count.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-		count.setAlignmentX(LEFT_ALIGNMENT);
-		card.add(count);
-		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		card.add(HubProgressBar.mini((double) counts[0] / Math.max(1, counts[1]), 0));
+		card.add(new OsrsLabel(counts[0] + "/" + counts[1], OsrsSkin.FAINT, OsrsSkin.font())
+			.leftAligned());
+		card.add(strut(UiTokens.PAD_TIGHT));
+		StoneMeter meter = new StoneMeter(theme, OsrsSkin.PROGRESS_BLUE,
+			(double) counts[0] / Math.max(1, counts[1]));
+		meter.setAlignmentX(LEFT_ALIGNMENT);
+		card.add(meter);
 
-		card.addMouseListener(new MouseAdapter()
+		MouseAdapter interaction = new MouseAdapter()
 		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				card.setBackground(theme.hoverFill);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				card.setBackground(theme.boxFill);
+			}
+
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
@@ -798,7 +869,8 @@ class CombatAchievementsTab extends JPanel
 					bossMenu(boss, e);
 				}
 			}
-		});
+		};
+		clickAnywhere(card, interaction);
 		return card;
 	}
 
@@ -818,41 +890,32 @@ class CombatAchievementsTab extends JPanel
 		header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
 		header.setOpaque(false);
 		header.setAlignmentX(LEFT_ALIGNMENT);
-		header.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
-		header.add(new IconButton(new PaintedIcon(PaintedIcon.Shape.CHEVRON_LEFT, 12),
-			"Back to all bosses", () ->
+		StoneButton back = new StoneButton(theme, theme.background, "Back", () ->
 		{
 			selectedBoss = null;
 			rebuildContent();
-		}));
+		});
+		back.setToolTipText("Back to all bosses");
+		back.setMaximumSize(back.getPreferredSize());
+		header.add(back);
 		header.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		JLabel title = new JLabel(selectedBoss);
-		title.setForeground(UiTokens.TEXT_PRIMARY);
-		title.setFont(title.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-		header.add(title);
+		header.add(new OsrsLabel(selectedBoss, OsrsSkin.TITLE, OsrsSkin.boldFont())
+			.leftAligned().squeezable());
+		header.add(Box.createHorizontalGlue());
+		cap(header);
 		content.add(header);
-		content.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		content.add(strut(UiTokens.PAD_TIGHT));
 
 		List<CaTask> visible = filteredSorted(tasks, false, selectedBoss);
 		if (visible.isEmpty())
 		{
-			content.add(emptyLabel("No " + selectedBoss + " tasks match the filters."));
+			content.add(note("No " + selectedBoss + " tasks match the filters."));
 		}
 		for (CaTask task : visible)
 		{
 			content.add(taskRow(task));
-			content.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			content.add(strut(UiTokens.PAD_TIGHT));
 		}
-	}
-
-	private JLabel emptyLabel(String text)
-	{
-		JLabel label = new JLabel("<html>" + text + "</html>");
-		label.setForeground(UiTokens.TEXT_MUTED);
-		label.setFont(label.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
-		label.setBorder(new EmptyBorder(UiTokens.PAD, 0, UiTokens.PAD, 0));
-		label.setAlignmentX(LEFT_ALIGNMENT);
-		return label;
 	}
 
 	private static Map<CaTier, ImageIcon> loadTierIcons()
@@ -874,6 +937,151 @@ class CombatAchievementsTab extends JPanel
 			}
 		}
 		return icons;
+	}
+
+	// ── layout helpers (the DailiesNewTab/FarmingTab grammar) ─────────
+
+	/** Attach a click to a container AND its passive children — labels with
+	 * tooltips register their own listeners and would swallow clicks. Skips
+	 * anything marked as carrying its own action. */
+	private static void clickAnywhere(JComponent container, MouseAdapter click)
+	{
+		container.addMouseListener(click);
+		for (Component child : container.getComponents())
+		{
+			if (child instanceof JComponent
+				&& Boolean.TRUE.equals(((JComponent) child).getClientProperty(OWN_ACTION)))
+			{
+				continue;
+			}
+			if (child instanceof JPanel)
+			{
+				clickAnywhere((JComponent) child, click);
+			}
+			else
+			{
+				child.addMouseListener(click);
+			}
+		}
+	}
+
+	private JComponent section(String text)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new EmptyBorder(8, 4, 3, 4));
+		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font()));
+		row.add(Box.createHorizontalGlue());
+		cap(row);
+		return row;
+	}
+
+	private static JLabel triangle()
+	{
+		JLabel label = new JLabel(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+		label.setForeground(OsrsSkin.MUTED);
+		return label;
+	}
+
+	/** Collapsible section header: triangle + skin label, whole row toggles. */
+	private JComponent collapsibleHeader(JLabel triangleLabel, String title, String tooltip,
+		Runnable onToggle)
+	{
+		JPanel header = new JPanel();
+		header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
+		header.setOpaque(false);
+		header.setAlignmentX(LEFT_ALIGNMENT);
+		header.setBorder(new EmptyBorder(8, 4, 3, 4));
+		header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		OsrsLabel label = new OsrsLabel(title, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned();
+		header.add(triangleLabel);
+		header.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		header.add(label);
+		header.add(Box.createHorizontalGlue());
+		cap(header);
+		MouseAdapter press = new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				onToggle.run();
+			}
+		};
+		header.addMouseListener(press);
+		// a tooltip registers the label's own mouse listeners, which would
+		// swallow the row's — so the children carry the press listener too
+		header.setToolTipText(tooltip);
+		label.setToolTipText(tooltip);
+		label.addMouseListener(press);
+		triangleLabel.addMouseListener(press);
+		return header;
+	}
+
+	/** A small hoverable glyph control — faint until hovered. */
+	private static JLabel glyph(javax.swing.Icon icon, String tooltip, Runnable onPress)
+	{
+		JLabel label = new JLabel(icon);
+		label.setForeground(OsrsSkin.FAINT);
+		label.setToolTipText(tooltip);
+		label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		label.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				label.setForeground(OsrsSkin.LABEL);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				label.setForeground(OsrsSkin.FAINT);
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				onPress.run();
+			}
+		});
+		return label;
+	}
+
+	/** Wrapped muted note — never html (the pixel font disagrees with it). */
+	private JComponent note(String text)
+	{
+		JPanel holder = new JPanel();
+		holder.setLayout(new BoxLayout(holder, BoxLayout.X_AXIS));
+		holder.setOpaque(false);
+		holder.setAlignmentX(LEFT_ALIGNMENT);
+		holder.setBorder(new EmptyBorder(6, 0, 6, 0));
+		holder.add(OsrsLabel.wrapped(text, NOTE_WIDTH, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+		holder.add(Box.createHorizontalGlue());
+		cap(holder);
+		return holder;
+	}
+
+	private JComponent pad(JComponent inner)
+	{
+		JPanel holder = new JPanel(new BorderLayout());
+		holder.setOpaque(false);
+		holder.setAlignmentX(LEFT_ALIGNMENT);
+		holder.setBorder(new EmptyBorder(0, 4, 0, 4));
+		holder.add(inner);
+		cap(holder);
+		return holder;
+	}
+
+	private JComponent strut(int height)
+	{
+		return (JComponent) Box.createVerticalStrut(height);
+	}
+
+	private static void cap(JComponent c)
+	{
+		c.setMaximumSize(new Dimension(Integer.MAX_VALUE, c.getPreferredSize().height));
 	}
 
 	@Override

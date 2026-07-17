@@ -150,7 +150,7 @@ public class CombatAchievementsModuleTest
 	}
 
 	@Test
-	public void tabRendersHeadless()
+	public void tabRendersHeadless() throws Exception
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.varbit(state, VarbitID.CA_POINTS, 214);
@@ -162,17 +162,54 @@ public class CombatAchievementsModuleTest
 		module.startUp();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
+
+		// no client in tests: reflection stands in for loadCatalog so the
+		// render shows real rows, an expanded card and the boss grid
+		List<CaTask> tasks = List.of(
+			new CaTask(0, "Noxious Foe", "Kill an Aberrant Spectre.",
+				CaTier.EASY, "Kill Count", "Aberrant Spectre", true),
+			new CaTask(1, "Zulrah Speed-Trialist", "Kill Zulrah in less than 1 minute 20 seconds.",
+				CaTier.HARD, "Speed", "Zulrah", false),
+			new CaTask(2, "Perfect Zulrah", "Kill Zulrah whilst taking no damage from the following: "
+				+ "Snakelings, Venom Clouds, Zulrah's Green or Crimson phase.",
+				CaTier.ELITE, "Perfection", "Zulrah", false),
+			new CaTask(3, "Hespori Speed-Chaser", "Kill the Hespori in less than 48 seconds.",
+				CaTier.MEDIUM, "Speed", "Hespori", true));
+		tasks.get(1).communityPct = 12.6;
+		java.lang.reflect.Field field = CombatAchievementsModule.class.getDeclaredField("tasks");
+		field.setAccessible(true);
+		field.set(module, tasks);
+		CombatAchievementsTab caTab = (CombatAchievementsTab) tab;
+		caTab.onTasksUpdated();
+		caTab.expandForTest(2);
+
 		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
 		assertTrue(image.getHeight() > 150);
+		write(image, "ca-tab.png");
+
+		caTab.expandFiltersForTest();
+		write(SwingRender.render((JPanel) tab), "ca-tab-filters.png");
+
+		caTab.showBossesForTest();
+		java.awt.image.BufferedImage bosses = SwingRender.render((JPanel) tab);
+		assertTrue(bosses.getHeight() > 150);
+		write(bosses, "ca-tab-bosses.png");
+
+		caTab.drillForTest("Zulrah");
+		write(SwingRender.render((JPanel) tab), "ca-tab-boss-drilldown.png");
+		module.shutDown();
+	}
+
+	private static void write(java.awt.image.BufferedImage image, String name)
+	{
 		try
 		{
-			java.io.File out = new java.io.File("build/reports/ca-tab.png");
+			java.io.File out = new java.io.File("build/reports/" + name);
 			out.getParentFile().mkdirs();
 			javax.imageio.ImageIO.write(image, "png", out);
 		}
 		catch (java.io.IOException ignored)
 		{
 		}
-		module.shutDown();
 	}
 }

@@ -84,9 +84,23 @@ public class GearProgressionModule implements IronHubModule
 					{
 						configManager.setConfiguration(com.ironhub.IronHubConfig.GROUP, "gearHideComplete", hide);
 					}
-				});
+				}, config.osrsTheme());
 		}
 		return tab;
+	}
+
+	/** A theme flip drops the tab; the host rebuilds it in the new clothes. */
+	@Override
+	public void onThemeChanged()
+	{
+		javax.swing.SwingUtilities.invokeLater(() ->
+		{
+			if (tab != null)
+			{
+				tab.dispose();
+				tab = null;
+			}
+		});
 	}
 
 	// ── chart ownership (pure; static for tests) ──────────────────────

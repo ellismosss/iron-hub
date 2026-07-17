@@ -1,11 +1,10 @@
 package com.ironhub.modules.gear;
 
-import com.ironhub.ui.UiTokens;
-import java.awt.AlphaComposite;
+import com.ironhub.ui.osrs.OsrsSkin;
+import com.ironhub.ui.osrs.OsrsTheme;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -18,8 +17,9 @@ import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 
 /**
- * One chart node: the item's game sprite on a flat tile. Obtained =
- * green border + wash; targeted (added to the goal planner) = accent.
+ * One chart node: the item's game sprite in a stone setting (the StoneTile
+ * grammar — engraved edge pair whose inner bevel carries the status).
+ * Green bevel = obtained, orange bevel = targeted in the goal planner.
  * Left-click toggles targeting, right-click opens the context menu,
  * hover shows the tooltip supplied by the tab.
  */
@@ -27,8 +27,8 @@ class ItemTile extends JComponent
 {
 	static final int W = 38;
 	static final int H = 34;
-	private static final float WASH_ALPHA = 0.18f;
 
+	private final OsrsTheme theme;
 	private final String name;
 	private final boolean obtained;
 	private final boolean targeted;
@@ -36,9 +36,10 @@ class ItemTile extends JComponent
 	private final boolean boostReady; // met only with an available temporary boost
 	private BufferedImage icon;
 
-	ItemTile(String name, boolean obtained, boolean targeted, boolean ready, boolean boostReady,
-		String tooltip, Runnable onClick, Consumer<MouseEvent> onContext)
+	ItemTile(OsrsTheme theme, String name, boolean obtained, boolean targeted, boolean ready,
+		boolean boostReady, String tooltip, Runnable onClick, Consumer<MouseEvent> onContext)
 	{
+		this.theme = theme;
 		this.name = name;
 		this.obtained = obtained;
 		this.targeted = targeted;
@@ -87,46 +88,44 @@ class ItemTile extends JComponent
 	protected void paintComponent(Graphics g)
 	{
 		Graphics2D g2 = (Graphics2D) g.create();
-		g2.setColor(UiTokens.TILE_BG_LOCKED);
-		g2.fillRect(0, 0, W, H);
+		// StoneTile grammar: engraved edge pair, the inner bevel is the status
+		OsrsSkin.outline(g2, theme.edgeDark, 0, 0, W, H);
+		Color bevel = obtained ? OsrsSkin.VALUE.darker()
+			: targeted ? OsrsSkin.TITLE.darker() : theme.edgeLight;
+		OsrsSkin.outline(g2, bevel, 1, 1, W - 2, H - 2);
+		g2.setColor(theme.boxFill);
+		g2.fillRect(2, 2, W - 4, H - 4);
 
 		if (icon != null)
 		{
 			// scale down to fit (wiki object icons vary in size); never scale up
 			int w = icon.getWidth();
 			int h = icon.getHeight();
-			double fit = Math.min(1.0, Math.min((W - 4) / (double) w, (H - 4) / (double) h));
+			double fit = Math.min(1.0, Math.min((W - 6) / (double) w, (H - 6) / (double) h));
 			w = (int) Math.round(w * fit);
 			h = (int) Math.round(h * fit);
 			g2.drawImage(icon, (W - w) / 2, (H - h) / 2, w, h, null);
 		}
 		else
 		{
-			// headless / cache-less fallback: two-letter code like GridTile
-			g2.setColor(UiTokens.TEXT_MUTED);
-			g2.setFont(getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_TILE_CODE));
+			// headless / cache-less fallback: two-letter code in the game font
+			g2.setFont(OsrsSkin.font());
 			FontMetrics fm = g2.getFontMetrics();
 			String code = code(name);
-			g2.drawString(code, (W - fm.stringWidth(code)) / 2, (H + fm.getAscent()) / 2 - 2);
+			int x = (W - fm.stringWidth(code)) / 2;
+			int y = (H + fm.getAscent()) / 2 - 2;
+			g2.setColor(OsrsSkin.TEXT_SHADOW);
+			g2.drawString(code, x + 1, y + 1);
+			g2.setColor(OsrsSkin.MUTED);
+			g2.drawString(code, x, y);
 		}
-
-		Color status = obtained ? UiTokens.STATUS_OWNED : targeted ? UiTokens.ACCENT : null;
-		if (status != null)
-		{
-			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, WASH_ALPHA));
-			g2.setColor(status);
-			g2.fillRect(0, 0, W, H);
-			g2.setComposite(AlphaComposite.SrcOver);
-		}
-		g2.setColor(status != null ? status : UiTokens.BORDER_DIM);
-		g2.drawRect(0, 0, W - 1, H - 1);
 
 		if ((ready || boostReady) && !obtained)
 		{
-			// corner triangle: green = requirements met outright,
-			// amber = reachable with a temporary boost you have access to
-			g2.setColor(ready ? UiTokens.STATUS_OWNED : UiTokens.STATUS_AVAILABLE);
-			g2.fillPolygon(new int[]{0, 6, 0}, new int[]{0, 0, 6}, 3);
+			// corner triangle: bright = requirements met outright,
+			// dark = reachable with a temporary boost you have access to
+			g2.setColor(ready ? OsrsSkin.TITLE : OsrsSkin.TITLE.darker());
+			g2.fillPolygon(new int[]{2, 8, 2}, new int[]{2, 2, 8}, 3);
 		}
 		g2.dispose();
 	}

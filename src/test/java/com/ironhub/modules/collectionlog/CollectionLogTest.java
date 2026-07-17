@@ -237,6 +237,9 @@ public class CollectionLogTest
 
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
+		// open the top activity's slot card + the skipped sink so the
+		// expansion surfaces render too
+		((CollectionLogTab) tab).expandTopForRender();
 		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
 		assertTrue(image.getHeight() > 300);
 		java.io.File out = new java.io.File("build/reports/collectionlog-tab.png");

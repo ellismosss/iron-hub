@@ -4,17 +4,16 @@ import com.ironhub.data.DiariesPack;
 import com.ironhub.modules.diaries.DiariesModule.DiaryRegion;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
-import com.ironhub.ui.components.HubProgressBar;
-import com.ironhub.ui.components.IconButton;
 import com.ironhub.ui.components.PaintedIcon;
-import com.ironhub.ui.components.SectionLabel;
-import com.ironhub.ui.components.Status;
-import com.ironhub.ui.components.StatusGlyph;
+import com.ironhub.ui.osrs.OsrsLabel;
+import com.ironhub.ui.osrs.OsrsSkin;
+import com.ironhub.ui.osrs.OsrsTheme;
+import com.ironhub.ui.osrs.StonePanel;
+import com.ironhub.ui.osrs.StoneProgressBar;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -25,26 +24,29 @@ import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 
 /**
- * Diaries tab: built-in-journal-style region rows (task count + four-segment
- * tier bar), expanding into the full task list with requirement lines —
- * amber marks tasks that are incomplete but doable right now — plus a
- * collapsible per-diary Rewards section.
+ * Diaries tab in the OSRS stonework skin: built-in-journal-style region rows
+ * (task count + four-segment tier bar), expanding into the full task list
+ * with requirement lines — orange marks tasks that are incomplete but doable
+ * right now — plus a collapsible per-diary Rewards section. Same brain and
+ * interactions as before the skin; only the clothing changed.
  */
 class DiariesTab extends JPanel
 {
+	/** Wrap widths inside a region card (card interior minus the + column). */
+	private static final int TASK_WRAP = 170;
+	private static final int REWARD_WRAP = 185;
+
 	private final DiariesModule module;
 	private final AccountState state;
+	private final OsrsTheme theme;
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 
-	private final JLabel summary = new JLabel();
-	private final HubProgressBar bar = HubProgressBar.bar(0);
+	private final StonePanel card;
+	private final StoneProgressBar bar;
 	private final JPanel list = new JPanel();
 
 	/** Region whose task list is open (one at a time, like the in-game journal). */
@@ -52,32 +54,26 @@ class DiariesTab extends JPanel
 	/** Regions whose Rewards section is open. */
 	private final Set<String> rewardsOpen = new HashSet<>();
 
-	DiariesTab(DiariesModule module, AccountState state)
+	DiariesTab(DiariesModule module, AccountState state, OsrsTheme theme)
 	{
 		this.module = module;
 		this.state = state;
+		this.theme = theme;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		setBackground(UiTokens.PANEL_BG);
-		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
+		setOpaque(true);
+		setBackground(theme.background);
+		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		JPanel card = new JPanel();
+		add(section("Progress"));
+		card = new StonePanel(theme);
 		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setBackground(UiTokens.CARD_BG);
 		card.setAlignmentX(LEFT_ALIGNMENT);
-		card.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-			new EmptyBorder(UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP)));
-		card.add(new SectionLabel("Progress"));
-		summary.setForeground(UiTokens.TEXT_PRIMARY);
-		summary.setFont(summary.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-		summary.setAlignmentX(LEFT_ALIGNMENT);
-		card.add(summary);
-		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		card.add(bar);
-		add(card);
-		add(Box.createVerticalStrut(UiTokens.PAD));
+		bar = new StoneProgressBar(theme, OsrsSkin.PROGRESS_BLUE, 0);
+		add(pad(card));
+		add(Box.createVerticalStrut(6));
 
 		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
-		list.setBackground(UiTokens.PANEL_BG);
+		list.setOpaque(false);
 		list.setAlignmentX(LEFT_ALIGNMENT);
 		add(list);
 		add(Box.createVerticalGlue());
@@ -110,18 +106,25 @@ class DiariesTab extends JPanel
 			done += module.regionDone(region);
 		}
 		int tiersDone = DiariesModule.totalTiersComplete(state);
-		summary.setText(done + "/" + total + " tasks · " + tiersDone + "/"
-			+ (DiariesModule.REGIONS.length * 4) + " tiers");
+		card.removeAll();
+		// OsrsLabel text is immutable — the card refills each rebuild
+		card.add(new OsrsLabel(done + "/" + total + " tasks · " + tiersDone + "/"
+			+ (DiariesModule.REGIONS.length * 4) + " tiers",
+			OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
+		card.add(Box.createVerticalStrut(3));
 		bar.setFraction(total == 0 ? 0 : (double) done / total);
+		bar.setAlignmentX(LEFT_ALIGNMENT);
+		card.add(bar);
+		cap(card);
 
 		list.removeAll();
 		for (DiariesPack.Region region : pack.regions)
 		{
-			list.add(regionCard(region));
+			list.add(pad(regionCard(region)));
 			list.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
-		list.revalidate();
-		list.repaint();
+		revalidate();
+		repaint();
 	}
 
 	// ── region card ───────────────────────────────────────────────────
@@ -129,7 +132,7 @@ class DiariesTab extends JPanel
 	private JPanel regionCard(DiariesPack.Region region)
 	{
 		boolean open = region.name.equals(expandedRegion);
-		JPanel card = new JPanel()
+		StonePanel regionCard = new StonePanel(theme)
 		{
 			@Override
 			public Dimension getMaximumSize()
@@ -137,41 +140,40 @@ class DiariesTab extends JPanel
 				return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
 			}
 		};
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setBackground(UiTokens.CARD_BG);
-		card.setAlignmentX(LEFT_ALIGNMENT);
-		card.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-			new EmptyBorder(UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP)));
+		regionCard.setLayout(new BoxLayout(regionCard, BoxLayout.Y_AXIS));
+		regionCard.setAlignmentX(LEFT_ALIGNMENT);
 
 		int done = module.regionDone(region);
 		int total = DiariesModule.regionTotal(region);
 
 		JPanel header = new JPanel();
 		header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
-		header.setOpaque(false);
+		// the open region's header wears the theme's select band
+		header.setOpaque(open);
+		if (open)
+		{
+			header.setBackground(theme.selectFill);
+		}
 		header.setAlignmentX(LEFT_ALIGNMENT);
 		header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
 		JLabel chevron = new JLabel(new PaintedIcon(
 			open ? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
-		chevron.setForeground(UiTokens.GLYPH_MUTED);
+		chevron.setForeground(OsrsSkin.MUTED);
 		header.add(chevron);
 		header.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 
-		JLabel name = new JLabel(region.name);
-		name.setForeground(UiTokens.TEXT_PRIMARY);
-		name.setFont(name.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-		name.setMinimumSize(new Dimension(0, 0));
+		OsrsLabel name = new OsrsLabel(region.name, OsrsSkin.TITLE, OsrsSkin.boldFont())
+			.leftAligned().squeezable();
 		name.setToolTipText(region.name); // long names ellipsize at 225 px
 		header.add(name);
 		header.add(Box.createHorizontalGlue());
 
-		JLabel count = new JLabel(done + "/" + total);
-		count.setForeground(done >= total ? UiTokens.STATUS_OWNED : UiTokens.TEXT_BODY);
-		count.setFont(count.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
+		OsrsLabel count = new OsrsLabel(done + "/" + total,
+			done >= total ? OsrsSkin.VALUE : OsrsSkin.MUTED, OsrsSkin.boldFont());
 		header.add(count);
 
-		header.addMouseListener(new MouseAdapter()
+		MouseAdapter press = new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent e)
@@ -179,30 +181,37 @@ class DiariesTab extends JPanel
 				expandedRegion = open ? null : region.name;
 				rebuild();
 			}
-		});
-		card.add(header);
-		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		card.add(tierBar(region));
+		};
+		header.addMouseListener(press);
+		// the name's tooltip registers its own mouse listeners, which would
+		// swallow the header's — the children carry the press listener too
+		name.addMouseListener(press);
+		chevron.addMouseListener(press);
+		count.addMouseListener(press);
+		cap(header);
+		regionCard.add(header);
+		regionCard.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		regionCard.add(tierBar(region));
 
 		if (open)
 		{
-			card.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+			regionCard.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 			for (int i = 0; i < region.tiers.size(); i++)
 			{
 				DiariesPack.Tier tier = region.tiers.get(i);
-				card.add(tierHeader(region, i));
+				regionCard.add(tierHeader(region, i));
 				for (DiariesPack.Task task : tier.tasks)
 				{
-					card.add(taskEntry(region, i, task));
+					regionCard.add(taskEntry(region, i, task));
 				}
-				card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+				regionCard.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 			}
-			card.add(rewardsSection(region));
+			regionCard.add(rewardsSection(region));
 		}
-		return card;
+		return regionCard;
 	}
 
-	/** Four tier segments, in-game-journal style: green complete, amber partial. */
+	/** Four tier segments, in-game-journal style: green complete, orange partial. */
 	private JComponent tierBar(DiariesPack.Region region)
 	{
 		DiaryRegion meta = DiariesModule.regionMeta(region.name);
@@ -230,12 +239,11 @@ class DiariesTab extends JPanel
 				for (int i = 0; i < 4; i++)
 				{
 					int x = i * (w + gap);
-					g.setColor(UiTokens.INSET_BG);
+					g.setColor(OsrsSkin.BAR_TROUGH);
 					g.fillRect(x, 0, w, h);
-					g.setColor(complete[i] ? UiTokens.STATUS_OWNED : UiTokens.STATUS_AVAILABLE);
+					g.setColor(complete[i] ? OsrsSkin.VALUE.darker() : OsrsSkin.TITLE.darker());
 					g.fillRect(x + 1, 1, (int) Math.round((w - 2) * fractions[i]), h - 2);
-					g.setColor(UiTokens.BORDER_DIM);
-					g.drawRect(x, 0, w - 1, h - 1);
+					OsrsSkin.outline(g, theme.edgeDark, x, 0, w, h);
 				}
 			}
 		};
@@ -254,25 +262,17 @@ class DiariesTab extends JPanel
 		DiariesPack.Tier tier = region.tiers.get(tierIndex);
 		int done = module.tierDone(region, tierIndex);
 		int total = tier.tasks.size();
+		Color color = done >= total ? OsrsSkin.VALUE : OsrsSkin.MUTED;
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
 		row.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, UiTokens.PAD_TIGHT, 0));
-		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.CATEGORY_HEADER_HEIGHT));
 
-		JLabel label = new JLabel(tier.tier.toUpperCase());
-		label.setForeground(done >= total ? UiTokens.STATUS_OWNED : UiTokens.TEXT_MUTED);
-		label.setFont(SectionLabel.letterSpaced(
-			label.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LABEL),
-			UiTokens.LETTER_SPACING_LABEL));
-		row.add(label);
+		row.add(new OsrsLabel(tier.tier.toUpperCase(), color, OsrsSkin.font()).leftAligned());
 		row.add(Box.createHorizontalGlue());
-
-		JLabel count = new JLabel(done + "/" + total);
-		count.setForeground(done >= total ? UiTokens.STATUS_OWNED : UiTokens.TEXT_MUTED);
-		count.setFont(count.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-		row.add(count);
+		row.add(new OsrsLabel(done + "/" + total, color, OsrsSkin.font()));
+		cap(row);
 		return row;
 	}
 
@@ -280,9 +280,10 @@ class DiariesTab extends JPanel
 	{
 		boolean complete = module.taskComplete(region, tierIndex, task);
 		boolean doable = !complete && module.taskDoable(region, tierIndex, task);
-		Status status = complete ? Status.OWNED : doable ? Status.AVAILABLE : Status.LOCKED;
-		Color textColor = complete ? UiTokens.TEXT_MUTED
-			: doable ? UiTokens.STATUS_AVAILABLE : UiTokens.TEXT_BODY;
+		// the classic scale in skin colours: green done, orange doable now,
+		// muted otherwise (the status glyph dropped in favour of row colour)
+		Color textColor = complete ? OsrsSkin.VALUE
+			: doable ? OsrsSkin.TITLE : OsrsSkin.MUTED;
 
 		JPanel entry = new JPanel(new BorderLayout(UiTokens.ROW_GAP, 0))
 		{
@@ -296,32 +297,16 @@ class DiariesTab extends JPanel
 		entry.setAlignmentX(LEFT_ALIGNMENT);
 		entry.setBorder(new EmptyBorder(0, 0, UiTokens.PAD_TIGHT, 0));
 
-		JPanel glyphAnchor = new JPanel(new BorderLayout());
-		glyphAnchor.setOpaque(false);
-		JLabel glyph = new JLabel(new StatusGlyph(status));
-		glyph.setToolTipText(complete ? "Complete"
-			: doable ? "Incomplete — requirements met, doable now" : "Incomplete");
-		glyphAnchor.add(glyph, BorderLayout.NORTH);
-		entry.add(glyphAnchor, BorderLayout.WEST);
-
 		JPanel column = new JPanel();
 		column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
 		column.setOpaque(false);
 
-		JTextArea text = new JTextArea(task.task);
-		text.setFont(text.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
-		text.setForeground(textColor);
-		text.setBackground(UiTokens.CARD_BG);
-		text.setLineWrap(true);
-		text.setWrapStyleWord(true);
-		text.setEditable(false);
-		text.setFocusable(false);
-		text.setBorder(new EmptyBorder(0, 0, 0, 0));
-		text.setAlignmentX(LEFT_ALIGNMENT);
-		if (task.note != null && !task.note.isEmpty())
-		{
-			text.setToolTipText("<html><body style='width:200px'>" + task.note + "</body></html>");
-		}
+		OsrsLabel text = OsrsLabel.wrapped(task.task, TASK_WRAP, textColor, OsrsSkin.font())
+			.leftAligned();
+		text.setToolTipText(task.note != null && !task.note.isEmpty()
+			? "<html><body style='width:200px'>" + task.note + "</body></html>"
+			: complete ? "Complete"
+			: doable ? "Incomplete — requirements met, doable now" : "Incomplete");
 		column.add(text);
 
 		if (!complete)
@@ -329,13 +314,9 @@ class DiariesTab extends JPanel
 			for (DiariesPack.Req req : task.reqs)
 			{
 				Boolean met = module.reqMet(req);
-				JLabel line = new JLabel("· " + req.text);
-				line.setForeground(met == null ? UiTokens.TEXT_FAINT
-					: met ? UiTokens.STATUS_OWNED : UiTokens.TEXT_MUTED);
-				line.setFont(line.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-				line.setAlignmentX(LEFT_ALIGNMENT);
-				line.setMinimumSize(new Dimension(0, 0));
-				line.setMaximumSize(new Dimension(Integer.MAX_VALUE, line.getPreferredSize().height));
+				OsrsLabel line = new OsrsLabel("· " + req.text,
+					met == null ? OsrsSkin.FAINT : met ? OsrsSkin.VALUE : OsrsSkin.MUTED,
+					OsrsSkin.font()).leftAligned().squeezable();
 				line.setToolTipText(req.text + (met == null ? ""
 					: met ? " — met" : " — not met"));
 				column.add(line);
@@ -346,11 +327,44 @@ class DiariesTab extends JPanel
 		boolean isGoal = state.getDiaryGoals().containsKey(DiariesModule.slug(task));
 		JPanel buttonAnchor = new JPanel(new BorderLayout());
 		buttonAnchor.setOpaque(false);
-		buttonAnchor.add(new IconButton(isGoal ? "\u00d7" : "+",
+		buttonAnchor.add(goalGlyph(isGoal,
 			isGoal ? "Remove this task from the goal planner" : "Add this task to the goal planner",
 			() -> toggleGoal(region, tierIndex, task)), BorderLayout.NORTH);
 		entry.add(buttonAnchor, BorderLayout.EAST);
 		return entry;
+	}
+
+	/** The per-task +/× affordance in skin colours — faint until hovered
+	 *  (the GoalsTab glyph grammar; a dedicated control, never a row click). */
+	private static JLabel goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
+	{
+		JLabel glyph = new JLabel(isGoal ? "×" : "+");
+		OsrsSkin.crisp(glyph);
+		glyph.setFont(OsrsSkin.font());
+		glyph.setForeground(OsrsSkin.FAINT);
+		glyph.setToolTipText(tooltip);
+		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		glyph.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.TITLE);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.FAINT);
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				onClick.run();
+			}
+		});
+		return glyph;
 	}
 
 	private void toggleGoal(DiariesPack.Region region, int tierIndex, DiariesPack.Task task)
@@ -380,18 +394,21 @@ class DiariesTab extends JPanel
 		section.setOpaque(false);
 		section.setAlignmentX(LEFT_ALIGNMENT);
 
-		JLabel header = new JLabel("REWARDS");
-		header.setForeground(UiTokens.TEXT_MUTED);
-		header.setFont(SectionLabel.letterSpaced(
-			header.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LABEL),
-			UiTokens.LETTER_SPACING_LABEL));
-		header.setIcon(new PaintedIcon(open
-			? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
-		header.setIconTextGap(UiTokens.ROW_GAP);
+		JPanel header = new JPanel();
+		header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
+		header.setOpaque(false);
 		header.setAlignmentX(LEFT_ALIGNMENT);
 		header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		header.setToolTipText("Show or hide this diary's rewards per tier");
-		header.addMouseListener(new MouseAdapter()
+		JLabel triangle = new JLabel(new PaintedIcon(open
+			? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+		triangle.setForeground(OsrsSkin.MUTED);
+		OsrsLabel label = new OsrsLabel("Rewards", OsrsSkin.MUTED, OsrsSkin.font()).leftAligned();
+		header.add(triangle);
+		header.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		header.add(label);
+		header.add(Box.createHorizontalGlue());
+		cap(header);
+		MouseAdapter press = new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent e)
@@ -402,7 +419,15 @@ class DiariesTab extends JPanel
 				}
 				rebuild();
 			}
-		});
+		};
+		header.addMouseListener(press);
+		// a tooltip registers the label's own mouse listeners, which would
+		// swallow the header's — the children carry the press listener too
+		String tooltip = "Show or hide this diary's rewards per tier";
+		header.setToolTipText(tooltip);
+		label.setToolTipText(tooltip);
+		label.addMouseListener(press);
+		triangle.addMouseListener(press);
 		section.add(header);
 
 		if (open)
@@ -410,29 +435,50 @@ class DiariesTab extends JPanel
 			section.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 			for (DiariesPack.Tier tier : region.tiers)
 			{
-				JLabel tierName = new JLabel(tier.tier);
-				tierName.setForeground(UiTokens.TEXT_PRIMARY);
-				tierName.setFont(tierName.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-				tierName.setAlignmentX(LEFT_ALIGNMENT);
-				section.add(tierName);
+				section.add(new OsrsLabel(tier.tier, OsrsSkin.TITLE, OsrsSkin.boldFont())
+					.leftAligned());
 				for (String reward : tier.rewards)
 				{
-					JTextArea line = new JTextArea("· " + reward);
-					line.setFont(line.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-					line.setForeground(UiTokens.TEXT_MUTED);
-					line.setBackground(UiTokens.CARD_BG);
-					line.setLineWrap(true);
-					line.setWrapStyleWord(true);
-					line.setEditable(false);
-					line.setFocusable(false);
-					line.setBorder(new EmptyBorder(0, 0, 2, 0));
-					line.setAlignmentX(LEFT_ALIGNMENT);
+					OsrsLabel line = OsrsLabel.wrapped("· " + reward, REWARD_WRAP,
+						OsrsSkin.MUTED, OsrsSkin.font()).leftAligned();
 					section.add(line);
+					section.add(Box.createVerticalStrut(2));
 				}
 				section.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 			}
 		}
 		return section;
+	}
+
+	// ── layout helpers (the DailiesNewTab/FarmingTab grammar) ─────────
+
+	private JComponent section(String text)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new EmptyBorder(8, 4, 3, 4));
+		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font()));
+		row.add(Box.createHorizontalGlue());
+		cap(row);
+		return row;
+	}
+
+	private JComponent pad(JComponent inner)
+	{
+		JPanel holder = new JPanel(new BorderLayout());
+		holder.setOpaque(false);
+		holder.setAlignmentX(LEFT_ALIGNMENT);
+		holder.setBorder(new EmptyBorder(0, 4, 0, 4));
+		holder.add(inner);
+		cap(holder);
+		return holder;
+	}
+
+	private static void cap(JComponent c)
+	{
+		c.setMaximumSize(new Dimension(Integer.MAX_VALUE, c.getPreferredSize().height));
 	}
 
 	@Override

@@ -142,5 +142,23 @@ public class GearModuleTest
 		out.getParentFile().mkdirs();
 		javax.imageio.ImageIO.write(image, "png", out);
 		module.shutDown();
+
+		// the other theme wears the same geometry in the vanilla palette;
+		// seed one obtained (green bevel) and one targeted (orange bevel) tile
+		com.ironhub.data.GearProgressionPack progression =
+			new DataPack(new Gson()).load("gear-progression", com.ironhub.data.GearProgressionPack.class);
+		List<com.ironhub.data.GearProgressionPack.Item> firstGroup =
+			progression.getPhases().get(0).getGroups().get(0).getItems();
+		state.setUnlocked(firstGroup.get(0).markKey(), true);
+		state.selectGoal(firstGroup.get(1).goalId(), true);
+		GearTab stone = new GearTab(state,
+			progression,
+			new DataPack(new Gson()).load("boosts", com.ironhub.data.BoostsPack.class),
+			null, false, hide -> { }, com.ironhub.ui.osrs.OsrsTheme.STONE);
+		java.awt.image.BufferedImage stoneImage = SwingRender.render(stone);
+		assertTrue(stoneImage.getHeight() > 100);
+		javax.imageio.ImageIO.write(stoneImage, "png",
+			new java.io.File("build/reports/gear-tab-stone.png"));
+		stone.dispose();
 	}
 }

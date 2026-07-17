@@ -113,10 +113,25 @@ public class CombatAchievementsModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new CombatAchievementsTab(this, state, config);
+			tab = new CombatAchievementsTab(this, state, config, config.osrsTheme());
 			tasksListener = tab::onTasksUpdated;
 		}
 		return tab;
+	}
+
+	/** A theme flip re-clothes the tab: the next buildTab dresses it fresh. */
+	@Override
+	public void onThemeChanged()
+	{
+		SwingUtilities.invokeLater(() ->
+		{
+			if (tab != null)
+			{
+				tab.dispose();
+				tab = null;
+				tasksListener = null;
+			}
+		});
 	}
 
 	/** The loaded catalog (immutable snapshot; empty until first load). */

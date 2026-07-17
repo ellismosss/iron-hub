@@ -141,9 +141,23 @@ public class CollectionLogModule implements IronHubModule
 			{
 				startUp();
 			}
-			tab = new CollectionLogTab(this, state, itemManager);
+			tab = new CollectionLogTab(this, state, itemManager, config.osrsTheme());
 		}
 		return tab;
+	}
+
+	/** A theme flip re-clothes the tab: the next buildTab dresses it fresh. */
+	@Override
+	public void onThemeChanged()
+	{
+		javax.swing.SwingUtilities.invokeLater(() ->
+		{
+			if (tab != null)
+			{
+				tab.dispose();
+				tab = null;
+			}
+		});
 	}
 
 	ClogPack pack()

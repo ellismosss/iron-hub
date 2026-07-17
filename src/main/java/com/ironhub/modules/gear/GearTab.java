@@ -5,18 +5,21 @@ import com.ironhub.requirements.Requirement;
 import com.ironhub.requirements.Requirements;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
-import com.ironhub.ui.components.ChipRow;
-import com.ironhub.ui.components.SectionLabel;
+import com.ironhub.ui.osrs.OsrsLabel;
+import com.ironhub.ui.osrs.OsrsSkin;
+import com.ironhub.ui.osrs.OsrsTheme;
+import com.ironhub.ui.osrs.StoneChipRow;
+import com.ironhub.ui.osrs.StonePanel;
+import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Locale;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -27,23 +30,29 @@ import net.runelite.client.util.AsyncBufferedImage;
 import net.runelite.client.util.LinkBrowser;
 
 /**
- * Gear progression chart (Ladlor-style): phases of grouped item sprites
- * connected by subtle arrows in recommended order. Green = obtained (any
- * variant), accent = targeted in the goal planner (left-click toggles),
- * hover lists missing requirements, right-click opens the wiki. Filter
- * chips cut the chart to one combat style / utility / POH / boat.
+ * Gear progression chart (Ladlor-style) in the OSRS stonework skin: phases
+ * of grouped item sprites connected by subtle arrows in recommended order.
+ * Green bevel = obtained (any variant), orange = targeted in the goal
+ * planner (left-click toggles), hover lists missing requirements,
+ * right-click opens the wiki. Filter chips cut the chart to one combat
+ * style / utility / POH / boat. Same brain as the classic tab — only the
+ * clothing changed.
  */
 class GearTab extends JPanel
 {
 	private static final String[] FILTERS_TOP = {"All", "Melee", "Ranged", "Magic"};
 	private static final String[] FILTERS_BOTTOM = {"Utility", "POH", "Boat"};
+	/** Tile-row budget: the panel minus the home border + stone frame +
+	 *  this tab's own padding — the hub slot is narrower than 225px. */
+	private static final int ROW_WIDTH = UiTokens.PANEL_WIDTH - 24;
 
 	private final AccountState state;
 	private final GearProgressionPack pack;
 	private final com.ironhub.data.BoostsPack boostsPack;
 	private final ItemManager itemManager; // null in headless tests
-	private final ChipRow filterTop = new ChipRow(FILTERS_TOP);
-	private final ChipRow filterBottom = new ChipRow(FILTERS_BOTTOM);
+	private final OsrsTheme theme;
+	private final StoneChipRow filterTop;
+	private final StoneChipRow filterBottom;
 	private final JPanel body = new JPanel();
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 	private final java.util.function.Consumer<Boolean> onHideCompleteChange;
@@ -52,18 +61,25 @@ class GearTab extends JPanel
 
 	GearTab(AccountState state, GearProgressionPack pack, com.ironhub.data.BoostsPack boostsPack,
 		ItemManager itemManager,
-		boolean hideComplete, java.util.function.Consumer<Boolean> onHideCompleteChange)
+		boolean hideComplete, java.util.function.Consumer<Boolean> onHideCompleteChange,
+		OsrsTheme theme)
 	{
 		this.state = state;
 		this.pack = pack;
 		this.boostsPack = boostsPack;
 		this.itemManager = itemManager;
+		this.theme = theme;
 		this.hideComplete = hideComplete;
 		this.onHideCompleteChange = onHideCompleteChange;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		setBackground(UiTokens.PANEL_BG);
-		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
+		// frameless: content directly on the theme's backing so a hub host
+		// connects with it as one block
+		setOpaque(true);
+		setBackground(theme.background);
+		setBorder(new EmptyBorder(4, 4, 4, 4));
 
+		filterTop = new StoneChipRow(theme, true, FILTERS_TOP);
+		filterBottom = new StoneChipRow(theme, true, FILTERS_BOTTOM);
 		filterTop.onChange(i -> selectFilter(true, i));
 		filterBottom.onChange(i -> selectFilter(false, i));
 		filterBottom.setSelected(-1);
@@ -75,7 +91,7 @@ class GearTab extends JPanel
 		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 
 		body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
-		body.setBackground(UiTokens.PANEL_BG);
+		body.setOpaque(false);
 		body.setAlignmentX(LEFT_ALIGNMENT);
 		add(body);
 		add(Box.createVerticalGlue());
@@ -89,37 +105,22 @@ class GearTab extends JPanel
 		state.removeListener(listener);
 	}
 
-	/** Bordered toggle chip: painted check square + label, accent when on. */
+	/** Toggle chip in the StoneChipRow grammar: select fill + title text when on. */
 	private JComponent hideCompleteToggle()
 	{
-		JLabel toggle = new JLabel();
-		toggle.setOpaque(true);
-		toggle.setFont(toggle.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
-		toggle.setBorder(new javax.swing.border.CompoundBorder(
-			new javax.swing.border.LineBorder(UiTokens.BORDER_DIM),
-			new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP)));
-		toggle.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		toggle.setAlignmentX(LEFT_ALIGNMENT);
-		styleHideToggle(toggle);
-		toggle.addMouseListener(new java.awt.event.MouseAdapter()
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.add(new ToggleChip(theme, "Hide complete", hideComplete, on ->
 		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				hideComplete = !hideComplete;
-				styleHideToggle(toggle);
-				onHideCompleteChange.accept(hideComplete);
-				rebuild();
-			}
-		});
-		return toggle;
-	}
-
-	private void styleHideToggle(JLabel toggle)
-	{
-		toggle.setText("Hide complete");
-		toggle.setBackground(hideComplete ? UiTokens.ACCENT : UiTokens.ICON_BUTTON_BG);
-		toggle.setForeground(hideComplete ? UiTokens.PANEL_BG : UiTokens.TEXT_MUTED);
+			hideComplete = on;
+			onHideCompleteChange.accept(on);
+			rebuild();
+		}));
+		row.add(Box.createHorizontalGlue());
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+		return row;
 	}
 
 	private void selectFilter(boolean top, int index)
@@ -167,27 +168,23 @@ class GearTab extends JPanel
 				}
 				if (!phaseHasContent)
 				{
-					body.add(new SectionLabel(phase.getName()));
-					body.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+					body.add(section(phase.getName()));
 					phaseHasContent = true;
 				}
 				if (!firstGroup)
 				{
-					body.add(new Arrow());
+					body.add(new Arrow(theme));
 				}
 				firstGroup = false;
 
-				JLabel label = new JLabel(group.getLabel());
-				label.setForeground(UiTokens.TEXT_FAINT);
-				label.setFont(label.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
-				label.setAlignmentX(LEFT_ALIGNMENT);
+				OsrsLabel label = new OsrsLabel(group.getLabel(), OsrsSkin.MUTED, OsrsSkin.font())
+					.leftAligned().squeezable();
 				body.add(label);
 				body.add(Box.createVerticalStrut(2));
 
 				// deterministic chunked rows: WrapLayout's height inside the
 				// scroll view goes stale and clips everything past one row
-				int perRow = (UiTokens.PANEL_WIDTH - 2 * UiTokens.PAD + UiTokens.CHIP_GAP)
-					/ (ItemTile.W + UiTokens.CHIP_GAP);
+				int perRow = (ROW_WIDTH + UiTokens.CHIP_GAP) / (ItemTile.W + UiTokens.CHIP_GAP);
 				for (int start = 0; start < items.size(); start += perRow)
 				{
 					JPanel row = new JPanel();
@@ -214,6 +211,20 @@ class GearTab extends JPanel
 		body.repaint();
 	}
 
+	/** Phase header in the skin's section grammar. */
+	private JComponent section(String text)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new EmptyBorder(2, 0, 3, 0));
+		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.boldFont()).leftAligned());
+		row.add(Box.createHorizontalGlue());
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+		return row;
+	}
+
 	private boolean matchesFilter(GearProgressionPack.Item item)
 	{
 		return filter == null || item.getCategories().contains(filter);
@@ -226,7 +237,7 @@ class GearTab extends JPanel
 		Requirement requirement = requirement(item);
 		boolean ready = !obtained && requirement.isMet(state);
 		boolean boostReady = !obtained && !ready && requirement.isMetWithBoosts(state, boosts);
-		ItemTile tile = new ItemTile(item.getName(), obtained, targeted, ready, boostReady,
+		ItemTile tile = new ItemTile(theme, item.getName(), obtained, targeted, ready, boostReady,
 			tooltip(item, obtained, targeted, ready),
 			() ->
 			{
@@ -351,14 +362,77 @@ class GearTab extends JPanel
 		return menu;
 	}
 
+	/** A single on/off chip in StoneChipRow's exact visual grammar. */
+	private static class ToggleChip extends StonePanel
+	{
+		private final OsrsLabel label;
+		private final java.util.function.Consumer<Boolean> onToggle;
+		private boolean on;
+		private boolean hover;
+
+		ToggleChip(OsrsTheme theme, String text, boolean on, java.util.function.Consumer<Boolean> onToggle)
+		{
+			super(theme);
+			this.on = on;
+			this.onToggle = onToggle;
+			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+			label = new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font());
+			add(label);
+			add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+			refresh();
+			addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mouseEntered(MouseEvent e)
+				{
+					hover = true;
+					refresh();
+				}
+
+				@Override
+				public void mouseExited(MouseEvent e)
+				{
+					hover = false;
+					refresh();
+				}
+
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					ToggleChip.this.on = !ToggleChip.this.on;
+					refresh();
+					ToggleChip.this.onToggle.accept(ToggleChip.this.on);
+				}
+			});
+		}
+
+		private void refresh()
+		{
+			setBackground(on ? theme.selectFill : hover ? theme.hoverFill : theme.boxFill);
+			label.setColor(on ? OsrsSkin.TITLE : OsrsSkin.MUTED);
+			repaint();
+		}
+
+		@Override
+		public Dimension getMaximumSize()
+		{
+			return getPreferredSize();
+		}
+	}
+
 	/** Subtle down-arrow between consecutive groups (the progression flow). */
 	private static class Arrow extends JComponent
 	{
 		private static final int HEIGHT = 11;
+		private final OsrsTheme theme;
 
-		Arrow()
+		Arrow(OsrsTheme theme)
 		{
+			this.theme = theme;
 			setPreferredSize(new Dimension(ItemTile.W, HEIGHT));
+			setMinimumSize(new Dimension(ItemTile.W, HEIGHT));
 			setMaximumSize(new Dimension(Integer.MAX_VALUE, HEIGHT));
 			setAlignmentX(LEFT_ALIGNMENT);
 		}
@@ -367,7 +441,7 @@ class GearTab extends JPanel
 		protected void paintComponent(Graphics g)
 		{
 			int x = ItemTile.W / 2; // aligned under the first tile column
-			g.setColor(UiTokens.GLYPH_MUTED);
+			g.setColor(theme.edgeLight);
 			g.drawLine(x, 1, x, HEIGHT - 4);
 			g.drawLine(x - 3, HEIGHT - 6, x, HEIGHT - 3);
 			g.drawLine(x + 3, HEIGHT - 6, x, HEIGHT - 3);
