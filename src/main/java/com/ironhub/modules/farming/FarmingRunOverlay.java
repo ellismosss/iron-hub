@@ -28,6 +28,14 @@ class FarmingRunOverlay extends OverlayPanel
 
 	private final FarmingRunModule module;
 
+	/** Missing-items + patch-state for the current stop, refreshed at most
+	 *  once per game tick — both walk every patch / expand item variants,
+	 *  and render() runs per frame (2026-07-17 freeze audit). */
+	private long cachedAtMs;
+	private String cachedStopId;
+	private List<FarmRunsPack.Item> cachedMissing = List.of();
+	private String cachedPatch;
+
 	FarmingRunOverlay(FarmingRunModule module)
 	{
 		this.module = module;
@@ -63,7 +71,16 @@ class FarmingRunOverlay extends OverlayPanel
 				.rightColor(module.nearStop(next) ? UiTokens.CANVAS_LOCKED : UiTokens.OVERLAY_VALUE)
 				.build());
 
-			List<FarmRunsPack.Item> missing = module.missingItems(next);
+			long now = System.currentTimeMillis();
+			if (!next.location.id.equals(cachedStopId) || now - cachedAtMs >= 600)
+			{
+				cachedAtMs = now;
+				cachedStopId = next.location.id;
+				cachedMissing = module.missingItems(next);
+				cachedPatch = patchState(module.patchesAt(next.location),
+					FarmingRunModule.categoryTab(next.location.category));
+			}
+			List<FarmRunsPack.Item> missing = cachedMissing;
 			if (!missing.isEmpty())
 			{
 				StringJoiner names = new StringJoiner(", ");
@@ -78,8 +95,7 @@ class FarmingRunOverlay extends OverlayPanel
 					.build());
 			}
 
-			String patch = patchState(module.patchesAt(next.location),
-				FarmingRunModule.categoryTab(next.location.category));
+			String patch = cachedPatch;
 			if (patch != null)
 			{
 				panelComponent.getChildren().add(LineComponent.builder()

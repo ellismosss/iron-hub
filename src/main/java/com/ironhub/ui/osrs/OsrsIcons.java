@@ -16,6 +16,17 @@ import javax.swing.ImageIcon;
  */
 public final class OsrsIcons
 {
+	/**
+	 * Loaded art, keyed by resource path ("mystic/tab/combat"). The set is
+	 * small and fixed (bundled skin sprites), and re-decoding PNGs per call
+	 * was a measured cost — every home rebuild and panel repaint used to
+	 * hit ImageIO (2026-07-17 freeze audit). Optional.empty() caches the
+	 * misses too, so the mystic→vanilla fallback probe stays one lookup.
+	 */
+	private static final java.util.concurrent.ConcurrentHashMap<String,
+		java.util.Optional<java.awt.image.BufferedImage>> CACHE =
+		new java.util.concurrent.ConcurrentHashMap<>();
+
 	private OsrsIcons()
 	{
 	}
@@ -59,19 +70,22 @@ public final class OsrsIcons
 
 	private static java.awt.image.BufferedImage loadImage(String path)
 	{
-		java.net.URL url = OsrsIcons.class.getResource("/data/icons/osrs/" + path + ".png");
-		if (url == null)
+		return CACHE.computeIfAbsent(path, key ->
 		{
-			return null;
-		}
-		try
-		{
-			return javax.imageio.ImageIO.read(url);
-		}
-		catch (java.io.IOException e)
-		{
-			return null;
-		}
+			java.net.URL url = OsrsIcons.class.getResource("/data/icons/osrs/" + key + ".png");
+			if (url == null)
+			{
+				return java.util.Optional.empty();
+			}
+			try
+			{
+				return java.util.Optional.ofNullable(javax.imageio.ImageIO.read(url));
+			}
+			catch (java.io.IOException e)
+			{
+				return java.util.Optional.empty();
+			}
+		}).orElse(null);
 	}
 
 	private static Icon themed(OsrsTheme theme, String path)
@@ -89,7 +103,7 @@ public final class OsrsIcons
 
 	private static Icon load(String path)
 	{
-		java.net.URL url = OsrsIcons.class.getResource("/data/icons/osrs/" + path + ".png");
-		return url == null ? null : new ImageIcon(url);
+		java.awt.image.BufferedImage image = loadImage(path);
+		return image == null ? null : new ImageIcon(image);
 	}
 }

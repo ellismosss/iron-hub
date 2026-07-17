@@ -22,6 +22,8 @@ public class BankRestockOverlay extends WidgetItemOverlay
 	private static final Color FILL = new Color(140, 200, 140, 40);
 
 	private final Supplier<Set<Integer>> highlighted;
+	private Set<Integer> cached = Set.of();
+	private long cachedAtMs;
 
 	public BankRestockOverlay(Supplier<Set<Integer>> highlighted)
 	{
@@ -29,10 +31,28 @@ public class BankRestockOverlay extends WidgetItemOverlay
 		showOnBank();
 	}
 
+	/**
+	 * renderItemOverlay runs once per bank item per FRAME, and the supplier
+	 * is a full carried-vs-setup diff with variant expansion — hundreds of
+	 * recomputations per frame with a bank open (2026-07-17 freeze audit).
+	 * The answer only moves on tick-quantized container changes, so resolve
+	 * it at most once per game tick.
+	 */
+	private Set<Integer> ids()
+	{
+		long now = System.currentTimeMillis();
+		if (now - cachedAtMs >= 600)
+		{
+			cachedAtMs = now;
+			cached = highlighted.get();
+		}
+		return cached;
+	}
+
 	@Override
 	public void renderItemOverlay(Graphics2D graphics, int itemId, WidgetItem widgetItem)
 	{
-		Set<Integer> ids = highlighted.get();
+		Set<Integer> ids = ids();
 		if (ids == null || !ids.contains(itemId))
 		{
 			return;

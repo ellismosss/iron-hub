@@ -23,6 +23,9 @@ public class StoneBorder extends AbstractBorder
 	private final Color outside;
 	private final Insets pad;
 	private final int corner;
+	/** Rendered corner stamps per component fill (rest/hover/press) — EDT only. */
+	private final java.util.Map<Color, java.awt.image.BufferedImage[]> stampCache =
+		new java.util.HashMap<>();
 
 	/** A box sitting directly on the theme's backing. */
 	public StoneBorder(OsrsTheme theme)
@@ -64,26 +67,43 @@ public class StoneBorder extends AbstractBorder
 		g.fillRect(x + 1, y + corner, 1, h - 2 * corner);
 		g.fillRect(x + w - 2, y + corner, 1, h - 2 * corner);
 
+		// pre-rendered corner stamps: the pixel loop was ~200 fillRect(1,1)
+		// calls per paint per box, and every skinned surface repaints many
+		// boxes (2026-07-17 freeze audit). Keyed by the component fill so
+		// hover/press states still reach the corner pixels.
+		Color fill = c.isOpaque() ? c.getBackground() : theme.boxFill;
+		java.awt.image.BufferedImage[] stamps =
+			stampCache.computeIfAbsent(fill, this::renderStamps);
+		g.drawImage(stamps[0], x, y, null);
+		g.drawImage(stamps[1], x + w - corner, y, null);
+		g.drawImage(stamps[2], x, y + h - corner, null);
+		g.drawImage(stamps[3], x + w - corner, y + h - corner, null);
+	}
+
+	/** TL, TR, BL, BR corner images for one component fill colour. */
+	private java.awt.image.BufferedImage[] renderStamps(Color fill)
+	{
+		java.awt.image.BufferedImage[] out = new java.awt.image.BufferedImage[4];
+		for (int i = 0; i < 4; i++)
+		{
+			out[i] = new java.awt.image.BufferedImage(corner, corner,
+				java.awt.image.BufferedImage.TYPE_INT_RGB);
+		}
 		for (int row = 0; row < corner; row++)
 		{
 			for (int col = 0; col < corner; col++)
 			{
-				Color color = color(theme.cornerStamp[row].charAt(col), c);
-				stamp(g, color, x + col, y + row);
-				stamp(g, color, x + w - 1 - col, y + row);
-				stamp(g, color, x + col, y + h - 1 - row);
-				stamp(g, color, x + w - 1 - col, y + h - 1 - row);
+				int rgb = color(theme.cornerStamp[row].charAt(col), fill).getRGB();
+				out[0].setRGB(col, row, rgb);
+				out[1].setRGB(corner - 1 - col, row, rgb);
+				out[2].setRGB(col, corner - 1 - row, rgb);
+				out[3].setRGB(corner - 1 - col, corner - 1 - row, rgb);
 			}
 		}
+		return out;
 	}
 
-	private void stamp(Graphics g, Color color, int px, int py)
-	{
-		g.setColor(color);
-		g.fillRect(px, py, 1, 1);
-	}
-
-	private Color color(char token, Component c)
+	private Color color(char token, Color fill)
 	{
 		switch (token)
 		{
@@ -94,7 +114,7 @@ public class StoneBorder extends AbstractBorder
 			case 'F':
 				// the component's own fill, so hover/press states reach the
 				// corner pixels instead of stranding the resting color there
-				return c.isOpaque() ? c.getBackground() : theme.boxFill;
+				return fill;
 			default:
 				return outside;
 		}
