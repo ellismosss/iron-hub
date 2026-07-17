@@ -37,7 +37,7 @@ public class BankTabTest
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.bank(state, Map.of(4151, 1, 995, 2_500_000));
 		StateFixture.itemNames(state, Map.of(4151, "Abyssal whip", 995, "Coins"));
-		BankTab tab = new BankTab(state, null, null, null, new java.util.HashSet<>(), new com.ironhub.data.DataPack(
+		BankTab tab = new BankTab(state, null, null, null, new java.util.HashSet<>(), null, new com.ironhub.data.DataPack(
 			new com.google.gson.Gson()).load("banked-xp", com.ironhub.data.BankedXpPack.class),
 			true, v -> {}, com.ironhub.ui.osrs.OsrsTheme.STONE);
 		assertFalse("no rows may render before a search or filter",
@@ -97,7 +97,7 @@ public class BankTabTest
 			4151, "Abyssal whip", 995, "Coins", 207, "Grimy ranarr weed", 536, "Dragon bones"));
 
 		BankTrackerModule module = new BankTrackerModule(state, null, null,
-			new net.runelite.client.game.SkillIconManager(), null, new IronHubConfig()
+			new net.runelite.client.game.SkillIconManager(), null, null, null, null, null, null, new IronHubConfig()
 		{
 		}, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null);
 		module.startUp();

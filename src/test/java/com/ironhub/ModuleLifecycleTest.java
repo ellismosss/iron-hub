@@ -55,7 +55,7 @@ public class ModuleLifecycleTest
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
 			new QolModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new LootModule(state, null, config),
-			new BankTrackerModule(state, null, null, null, null, config,
+			new BankTrackerModule(state, null, null, null, null, null, null, null, null, null, config,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
 			new FarmingRunModule(state, null, new net.runelite.client.eventbus.EventBus(), null, null, null, config, null, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null, null, null, null, null),
 			new DailiesModule(state, null, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null, null, null, null, null, null, null, null, null),

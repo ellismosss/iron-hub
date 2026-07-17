@@ -79,7 +79,12 @@ class BankTab extends JPanel
 	private final net.runelite.client.game.SkillIconManager skillIcons; // null headless
 	/** Module-owned selection — the bank glow overlay reads it live. */
 	private final Set<Integer> selection;
+	/** Pushes (ordered items, readable title) for the collected bank view. */
+	private final java.util.function.BiConsumer<List<Integer>, String> onBankDisplay;
 	private final BankedXpPack bankedXpPack;
+	/** The ids actually rendered by the last addRows (capped) — the SKILL
+	 *  view sends exactly these to the bank. */
+	private List<Integer> lastShownIds = List.of();
 	private final OsrsTheme theme;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 
@@ -106,6 +111,7 @@ class BankTab extends JPanel
 	BankTab(AccountState state, ItemManager itemManager,
 		net.runelite.client.callback.ClientThread clientThread,
 		net.runelite.client.game.SkillIconManager skillIcons, Set<Integer> selection,
+		java.util.function.BiConsumer<List<Integer>, String> onBankDisplay,
 		BankedXpPack bankedXpPack,
 		boolean gridView, java.util.function.Consumer<Boolean> onViewChange, OsrsTheme theme)
 	{
@@ -114,6 +120,7 @@ class BankTab extends JPanel
 		this.clientThread = clientThread;
 		this.skillIcons = skillIcons;
 		this.selection = selection;
+		this.onBankDisplay = onBankDisplay;
 		this.bankedXpPack = bankedXpPack;
 		this.theme = theme;
 		this.search = new StoneTextField(theme, "Search bank…");
@@ -224,6 +231,7 @@ class BankTab extends JPanel
 	{
 		snapshotHolder.removeAll();
 		list.removeAll();
+		lastShownIds = List.of(); // set by addRows; stale ids must not linger
 		rebuildActions();
 		rebuildSkillStrip();
 		Map<Integer, Integer> bank = state.getBankSnapshot();
@@ -291,6 +299,7 @@ class BankTab extends JPanel
 				addRows(rows, bank);
 			}
 		}
+		pushBankDisplay();
 		rebuildBankedXp();
 		snapshotHolder.revalidate();
 		snapshotHolder.repaint();
@@ -326,7 +335,8 @@ class BankTab extends JPanel
 			.sorted(Comparator.<Integer>comparingLong(id -> -stackValue(prices, bank, id))
 				.thenComparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)))
 			.map(id -> new Row(id,
-				QuantityFormatter.quantityToStackSize(stackValue(prices, bank, id)) + " gp", true))
+				QuantityFormatter.quantityToStackSize(stackValue(prices, bank, id))
+					+ "/" + prices.get(id) + " gp/ea", true))
 			.collect(Collectors.toList());
 		if (rows.isEmpty())
 		{
@@ -492,8 +502,32 @@ class BankTab extends JPanel
 		}
 	}
 
+	/** What the real bank should collect together right now: the SKILL
+	 *  view's whole result list (selected ones keep the green glow), else
+	 *  just the selected items. Empty = release the bank. */
+	private void pushBankDisplay()
+	{
+		if (onBankDisplay == null)
+		{
+			return;
+		}
+		if (mode == Mode.SKILL && skillMode != null)
+		{
+			onBankDisplay.accept(lastShownIds, skillMode.getName() + " banked XP");
+		}
+		else
+		{
+			List<Integer> selected = selection.stream()
+				.sorted(Comparator.comparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)))
+				.collect(Collectors.toList());
+			onBankDisplay.accept(selected, "Selected items");
+		}
+	}
+
 	private void addRows(List<Row> rows, Map<Integer, Integer> bank)
 	{
+		lastShownIds = rows.subList(0, Math.min(rows.size(), MAX_RESULTS)).stream()
+			.map(row -> row.itemId).collect(Collectors.toList());
 		if (!rows.isEmpty())
 		{
 			// the item rows sit inside one notched frame, checklist-style
@@ -537,27 +571,33 @@ class BankTab extends JPanel
 		row.setAlignmentX(LEFT_ALIGNMENT);
 		row.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
 
+		// 16px scaled sprite, count never baked in (the Route-row lesson —
+		// the raw 36x32 sprite cropped in a smaller box)
 		JLabel icon = new JLabel();
-		Dimension iconSize = new Dimension(UiTokens.TILE_ICON_SIZE, UiTokens.TILE_ICON_SIZE);
+		Dimension iconSize = new Dimension(16, 16);
 		icon.setPreferredSize(iconSize);
 		icon.setMinimumSize(iconSize);
 		icon.setMaximumSize(iconSize);
 		if (itemManager != null)
 		{
-			AsyncBufferedImage sprite = itemManager.getImage(itemId, quantity, quantity > 1);
-			icon.setIcon(new ImageIcon(sprite));
-			sprite.onLoaded(icon::repaint);
+			AsyncBufferedImage sprite = itemManager.getImage(itemId);
+			Runnable apply = () -> icon.setIcon(new ImageIcon(
+				sprite.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH)));
+			apply.run();
+			sprite.onLoaded(apply);
 		}
 		row.add(icon);
 		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 
+		// the alch list reads in the small font (Luke, 2026-07-17)
+		java.awt.Font rowFont = spec.excludable ? OsrsSkin.smallFont() : OsrsSkin.font();
 		String tooltip = statsTooltip(itemId, quantity);
-		OsrsLabel nameLabel = new OsrsLabel(state.itemName(itemId), OsrsSkin.LABEL, OsrsSkin.font())
+		OsrsLabel nameLabel = new OsrsLabel(state.itemName(itemId), OsrsSkin.LABEL, rowFont)
 			.leftAligned().squeezable();
 		nameLabel.setToolTipText(tooltip);
 		row.add(nameLabel);
 		row.add(Box.createHorizontalGlue());
-		row.add(OsrsLabel.value(spec.rightText));
+		row.add(new OsrsLabel(spec.rightText, OsrsSkin.VALUE, rowFont));
 
 		MouseAdapter select = new MouseAdapter()
 		{
