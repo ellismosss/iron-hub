@@ -67,6 +67,8 @@ public class AccountState implements StateView
 
 	// manual daily ticks: daily id -> epoch millis when marked done
 	private final Map<String, Long> dailiesDoneAt = new ConcurrentHashMap<>();
+	// items hidden from the bank Highest-alchs view (persisted)
+	private final Set<Integer> alchExcluded = ConcurrentHashMap.newKeySet();
 	/** Dailies the player has explicitly included/excluded from the guided run.
 	 *  Only explicit choices are stored — an absent id falls back to the pack's
 	 *  own default, so a new event opts in and a Wilderness one stays out. */
@@ -1315,6 +1317,37 @@ public class AccountState implements StateView
 		return dailiesDoneAt.getOrDefault(dailyId, 0L);
 	}
 
+	// ── bank Highest-alchs exclusions (persisted) ─────────────────────
+
+	public boolean isAlchExcluded(int itemId)
+	{
+		return alchExcluded.contains(itemId);
+	}
+
+	public Set<Integer> getAlchExcluded()
+	{
+		return java.util.Set.copyOf(alchExcluded);
+	}
+
+	public void setAlchExcluded(int itemId, boolean excluded)
+	{
+		if (excluded ? alchExcluded.add(itemId) : alchExcluded.remove(itemId))
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	public void clearAlchExclusions()
+	{
+		if (!alchExcluded.isEmpty())
+		{
+			alchExcluded.clear();
+			persist();
+			notifyListeners();
+		}
+	}
+
 	public void markDaily(String dailyId, boolean done)
 	{
 		if (done)
@@ -1562,6 +1595,8 @@ public class AccountState implements StateView
 		killCounts.putAll(persisted.killCounts);
 		dailiesDoneAt.clear();
 		dailiesDoneAt.putAll(persisted.dailiesDoneAt);
+		alchExcluded.clear();
+		alchExcluded.addAll(persisted.alchExcluded);
 		dailiesChoice.clear();
 		dailiesChoice.putAll(persisted.dailiesChoice);
 		lootBySource.clear();
@@ -1659,6 +1694,7 @@ public class AccountState implements StateView
 		state.unlocks = new HashSet<>(unlocks);
 		state.killCounts = new HashMap<>(killCounts);
 		state.dailiesDoneAt = new HashMap<>(dailiesDoneAt);
+		state.alchExcluded = new HashSet<>(alchExcluded);
 		state.dailiesChoice = new HashMap<>(dailiesChoice);
 		lootBySource.forEach((src, items) -> state.lootBySource.put(src, new HashMap<>(items)));
 		suppliesBySource.forEach((src, items) -> state.suppliesBySource.put(src, new HashMap<>(items)));

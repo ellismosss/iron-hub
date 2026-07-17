@@ -171,7 +171,7 @@ public class EdtCostProbeTest
 				new net.runelite.client.eventbus.EventBus(), new DataPack(new Gson()), null),
 			new QolModule(state, config, new DataPack(new Gson())),
 			new LootModule(state, null, config),
-			new BankTrackerModule(state, null, null, config, new DataPack(new Gson()), null),
+			new BankTrackerModule(state, null, null, null, null, config, new DataPack(new Gson()), null),
 			new FarmingRunModule(state, null, new net.runelite.client.eventbus.EventBus(),
 				null, null, null, config, null, new DataPack(new Gson()),
 				null, null, null, null, null, null, null),
