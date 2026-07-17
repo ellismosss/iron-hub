@@ -51,6 +51,8 @@ public class FarmingRunModule implements IronHubModule
 {
 	/** Tracking data moves on farming ticks (minutes) — re-read slowly. */
 	private static final int REFRESH_TICKS = 10;
+	/** Floor between dirty-triggered refreshes (~1.2 s). */
+	private static final int DIRTY_REFRESH_TICKS = 2;
 
 	/** The built-in run templates, keyed by display name → the pack
 	 *  categories they span (one, or several for a combined run). */
@@ -190,6 +192,7 @@ public class FarmingRunModule implements IronHubModule
 
 	// tracking refresh (client thread)
 	private int refreshTick;
+	private int lastRefreshTick;
 	private volatile boolean trackingDirty = true;
 	private String lastFingerprint = "";
 	/** Cross-module read seam (WhatNow, Dashboard): patches ready now. */
@@ -418,9 +421,15 @@ public class FarmingRunModule implements IronHubModule
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
-		if (trackingDirty || ++refreshTick % REFRESH_TICKS == 0)
+		// dirty (a timetracking config write) refreshes soon but never every
+		// tick — while the core plugin writes near patches, per-tick refresh
+		// meant hundreds of ConfigManager lookups per tick (freeze audit)
+		refreshTick++;
+		if (refreshTick - lastRefreshTick >= REFRESH_TICKS
+			|| (trackingDirty && refreshTick - lastRefreshTick >= DIRTY_REFRESH_TICKS))
 		{
 			trackingDirty = false;
+			lastRefreshTick = refreshTick;
 			refreshTracking();
 		}
 		// the patch may have finished growing/been planted since last check

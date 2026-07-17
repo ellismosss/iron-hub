@@ -15,8 +15,10 @@ import net.runelite.client.RuneLite;
 
 /**
  * Profile-scoped JSON persistence under {@code RUNELITE_DIR/iron-hub/<profile>/}
- * (DESIGN.md §2.3). Serialization happens on the caller's thread so callers
- * can hand over mutable state safely; the file write runs on the executor.
+ * (DESIGN.md §2.3). Callers hand over a deep-copied snapshot, so both
+ * serialization and the file write run on the executor — never on the
+ * game thread (the 2026-07-17 freeze audit found toJson of a mature
+ * account measurable per call, and persist fires per kill).
  */
 @Slf4j
 @Singleton
@@ -41,10 +43,13 @@ public class ProfileStore
 
 	void save(long profile, PersistedState state)
 	{
-		String json = gson.toJson(state);
 		File file = stateFile(profile);
 		executor.execute(() ->
 		{
+			// serialize off the caller's thread too — the caller hands over a
+			// deep-copied PersistedState, so toJson of the whole account (bank,
+			// item names, loot logs) never runs on the game thread
+			String json = gson.toJson(state);
 			try
 			{
 				// ponytail: direct write; load tolerates a corrupt file, and a

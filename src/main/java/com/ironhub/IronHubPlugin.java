@@ -141,7 +141,7 @@ public class IronHubPlugin extends Plugin
 		started.forEach(IronHubModule::shutDown);
 		started.clear();
 		clientToolbar.removeNavigation(navButton);
-		accountState.persist();
+		accountState.persistNow(); // flush anything the tick cadence coalesced
 	}
 
 	/** Start newly enabled modules; stop newly disabled ones. */

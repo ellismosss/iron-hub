@@ -43,8 +43,13 @@ import net.runelite.api.events.VarbitChanged;
 @Singleton
 public class AccountState implements StateView
 {
-	/** Quest states refresh at most once per this many ticks (~6 s) when dirty. */
-	private static final int QUEST_REFRESH_TICKS = 10;
+	/** Quest states refresh at most once per this many ticks (~30 s) when
+	 *  dirty. Each refresh runs a clientscript per quest (~210 runScripts —
+	 *  Quest.getState is QUEST_STATUS_GET), and the dirty flag trips on EVERY
+	 *  varbit change, so during any activity this cadence IS the cost. Quest
+	 *  completions are rare; 30 s staleness beats a 6 s script storm
+	 *  (2026-07-17 freeze audit). */
+	private static final int QUEST_REFRESH_TICKS = 50;
 
 	private final Client client;
 	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
@@ -167,6 +172,16 @@ public class AccountState implements StateView
 	private int tick;
 	private int lastQuestRefreshTick;
 	private boolean containersSeeded;
+
+	/** Persist coalescing (2026-07-17 freeze audit): a burst tick can ask to
+	 *  persist dozens of times (2x per kill), and each snapshot deep-copies
+	 *  every collection — so live clients mark dirty and flush on a tick
+	 *  cadence, with immediate flushes at logout/hop/profile-switch/shutdown.
+	 *  Headless (client == null) persists synchronously: tests have no ticks
+	 *  to flush by and assert files right after mutating. */
+	private volatile boolean persistDirty;
+	private int lastPersistTick;
+	private static final int PERSIST_FLUSH_TICKS = 5; // ~3 s
 
 	/** Rune pouch slot varbits: the rune-type index in each slot, paired with
 	 *  the amount varbit at the same index (6 slots covers the divine pouch). */
@@ -1353,7 +1368,7 @@ public class AccountState implements StateView
 				break;
 			case LOGIN_SCREEN:
 			case HOPPING:
-				persist();
+				persistNow(); // ticks stop here — flush anything coalesced
 				break;
 			default:
 				break;
@@ -1445,6 +1460,11 @@ public class AccountState implements StateView
 			inventoryDirty = false;
 			notifyListeners();
 		}
+		if (persistDirty && tick - lastPersistTick >= PERSIST_FLUSH_TICKS)
+		{
+			lastPersistTick = tick;
+			persistNow();
+		}
 	}
 
 	// ── ingestion internals (package-private for tests) ───────────────
@@ -1526,6 +1546,10 @@ public class AccountState implements StateView
 	/** Switch to a profile and load its persisted slice. */
 	void activateProfile(long hash)
 	{
+		if (persistDirty)
+		{
+			persistNow(); // still the OLD profile — never write its coalesced
+		}                 // state under the incoming account's id
 		profile = hash;
 		PersistedState persisted = store.load(hash);
 		bank = Map.copyOf(persisted.bank);
@@ -1610,6 +1634,24 @@ public class AccountState implements StateView
 		{
 			return;
 		}
+		if (client != null)
+		{
+			// live client: coalesce — onGameTick flushes at most every
+			// PERSIST_FLUSH_TICKS, logout/hop/shutdown flush immediately
+			persistDirty = true;
+			return;
+		}
+		persistNow();
+	}
+
+	/** Snapshot and hand off to the store right now — the flush path. */
+	public void persistNow()
+	{
+		if (profile == -1)
+		{
+			return;
+		}
+		persistDirty = false;
 		PersistedState state = new PersistedState();
 		state.bank = new HashMap<>(bank);
 		state.bankTimestamp = bankTimestamp;
