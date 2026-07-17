@@ -83,6 +83,28 @@ public final class StateFixture
 		state.ingestVarp(varpId, value);
 	}
 
+	/** Deliver a varbit the way the live client does — watched ids notify
+	 *  listeners (change-driven module flows), unwatched still store. */
+	public static void varbitChanged(AccountState state, int varbitId, int value)
+	{
+		net.runelite.api.events.VarbitChanged event = new net.runelite.api.events.VarbitChanged();
+		event.setVarbitId(varbitId);
+		event.setValue(value);
+		state.onVarbitChanged(event);
+		state.ingestVarbit(varbitId, value);
+	}
+
+	/** Deliver a raw varp change the way the live client does. */
+	public static void varpChanged(AccountState state, int varpId, int value)
+	{
+		net.runelite.api.events.VarbitChanged event = new net.runelite.api.events.VarbitChanged();
+		event.setVarbitId(-1);
+		event.setVarpId(varpId);
+		event.setValue(value);
+		state.onVarbitChanged(event);
+		state.ingestVarp(varpId, value);
+	}
+
 	public static void checkpointSupplies(AccountState state)
 	{
 		state.checkpointSupplies();

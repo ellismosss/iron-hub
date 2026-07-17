@@ -105,6 +105,14 @@ public class AccountState implements StateView
 	public static final int MAX_FARM_RUN_RECORDS = 100;
 	private final java.util.List<PersistedState.FarmRunRecord> farmRunLog = new CopyOnWriteArrayList<>();
 
+	/** Slayer task records, oldest first; the last may be active (end == 0). */
+	public static final int MAX_SLAYER_RECORDS = 50;
+	private final java.util.List<PersistedState.SlayerTaskRecord> slayerRecords = new CopyOnWriteArrayList<>();
+	private final Map<String, String> slayerNotes = new ConcurrentHashMap<>();
+	private final Map<String, String> slayerLocationPrefs = new ConcurrentHashMap<>();
+	private final Map<String, java.util.List<String>> slayerBlockPrefs = new ConcurrentHashMap<>();
+	private final Map<String, java.util.List<String>> slayerSkipPrefs = new ConcurrentHashMap<>();
+
 	/** Rolling consumption events for runway rates, capped. */
 	public static final int MAX_CONSUMPTION_EVENTS = 500;
 	private final java.util.List<PersistedState.ConsumptionEvent> consumptionLog = new CopyOnWriteArrayList<>();
@@ -502,6 +510,113 @@ public class AccountState implements StateView
 	public void recordHerbRun(long durationMs)
 	{
 		herbRunsMs.add(durationMs);
+		persist();
+		notifyListeners();
+	}
+
+	// ── slayer suite ──────────────────────────────────────────────────
+
+	/** Slayer task records, oldest first (copies — mutate via setSlayerRecords). */
+	public java.util.List<PersistedState.SlayerTaskRecord> getSlayerRecords()
+	{
+		java.util.List<PersistedState.SlayerTaskRecord> out = new java.util.ArrayList<>();
+		for (PersistedState.SlayerTaskRecord r : slayerRecords)
+		{
+			out.add(r.copy());
+		}
+		return out;
+	}
+
+	/** Replace the record list (module owns the working copy); caps and copies. */
+	public void setSlayerRecords(java.util.List<PersistedState.SlayerTaskRecord> records)
+	{
+		java.util.List<PersistedState.SlayerTaskRecord> copies = new java.util.ArrayList<>();
+		int from = Math.max(0, records.size() - MAX_SLAYER_RECORDS);
+		for (PersistedState.SlayerTaskRecord r : records.subList(from, records.size()))
+		{
+			copies.add(r.copy());
+		}
+		slayerRecords.clear();
+		slayerRecords.addAll(copies);
+		persist();
+		notifyListeners();
+	}
+
+	public String getSlayerNote(String task)
+	{
+		return slayerNotes.getOrDefault(task, "");
+	}
+
+	public void setSlayerNote(String task, String note)
+	{
+		if (note == null || note.isBlank())
+		{
+			slayerNotes.remove(task);
+		}
+		else
+		{
+			slayerNotes.put(task, note);
+		}
+		persist();
+		notifyListeners();
+	}
+
+	/** Preferred location name for a task, or null (auto). */
+	public String getSlayerLocationPref(String task)
+	{
+		return slayerLocationPrefs.get(task);
+	}
+
+	public void setSlayerLocationPref(String task, String location)
+	{
+		if (location == null)
+		{
+			slayerLocationPrefs.remove(task);
+		}
+		else
+		{
+			slayerLocationPrefs.put(task, location);
+		}
+		persist();
+		notifyListeners();
+	}
+
+	/** Preferred block list for a master (task names), empty when unset. */
+	public java.util.List<String> getSlayerBlockPref(String master)
+	{
+		return java.util.List.copyOf(slayerBlockPrefs.getOrDefault(master, java.util.List.of()));
+	}
+
+	public void setSlayerBlockPref(String master, java.util.List<String> tasks)
+	{
+		if (tasks == null || tasks.isEmpty())
+		{
+			slayerBlockPrefs.remove(master);
+		}
+		else
+		{
+			slayerBlockPrefs.put(master, new java.util.ArrayList<>(tasks));
+		}
+		persist();
+		notifyListeners();
+	}
+
+	/** Always-skip list for a master (task names), empty when unset. */
+	public java.util.List<String> getSlayerSkipPref(String master)
+	{
+		return java.util.List.copyOf(slayerSkipPrefs.getOrDefault(master, java.util.List.of()));
+	}
+
+	public void setSlayerSkipPref(String master, java.util.List<String> tasks)
+	{
+		if (tasks == null || tasks.isEmpty())
+		{
+			slayerSkipPrefs.remove(master);
+		}
+		else
+		{
+			slayerSkipPrefs.put(master, new java.util.ArrayList<>(tasks));
+		}
 		persist();
 		notifyListeners();
 	}
@@ -1687,6 +1802,16 @@ public class AccountState implements StateView
 		consumptionLog.addAll(persisted.consumptionLog);
 		deaths.clear();
 		deaths.addAll(persisted.deaths);
+		slayerRecords.clear();
+		slayerRecords.addAll(persisted.slayerRecords);
+		slayerNotes.clear();
+		slayerNotes.putAll(persisted.slayerNotes);
+		slayerLocationPrefs.clear();
+		slayerLocationPrefs.putAll(persisted.slayerLocationPrefs);
+		slayerBlockPrefs.clear();
+		slayerBlockPrefs.putAll(persisted.slayerBlockPrefs);
+		slayerSkipPrefs.clear();
+		slayerSkipPrefs.putAll(persisted.slayerSkipPrefs);
 		selectedGoals.clear();
 		selectedGoals.addAll(persisted.selectedGoals);
 		caGoals.clear();
@@ -1770,6 +1895,14 @@ public class AccountState implements StateView
 		state.farmRunLog = new java.util.ArrayList<>(farmRunLog);
 		state.consumptionLog = new java.util.ArrayList<>(consumptionLog);
 		state.deaths = new java.util.ArrayList<>(deaths);
+		for (PersistedState.SlayerTaskRecord r : slayerRecords)
+		{
+			state.slayerRecords.add(r.copy());
+		}
+		state.slayerNotes = new HashMap<>(slayerNotes);
+		state.slayerLocationPrefs = new HashMap<>(slayerLocationPrefs);
+		slayerBlockPrefs.forEach((m, list) -> state.slayerBlockPrefs.put(m, new java.util.ArrayList<>(list)));
+		slayerSkipPrefs.forEach((m, list) -> state.slayerSkipPrefs.put(m, new java.util.ArrayList<>(list)));
 		state.selectedGoals = new HashSet<>(selectedGoals);
 		state.activeGoal = activeGoal;
 		state.caGoals = new HashMap<>(caGoals);

@@ -102,6 +102,12 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "caGoalMessages", name = "CA goal progress in chat", description = "On completing a combat task, show points progress toward your tier goal in the chatbox", section = notificationsSection, position = 7)
 	default boolean caGoalMessages() { return true; }
 
+	@ConfigItem(keyName = "slayerHighlight", name = "Highlight slayer targets", description = "Outline the monsters your current slayer task assigns", section = notificationsSection, position = 8)
+	default boolean slayerHighlight() { return true; }
+
+	@ConfigItem(keyName = "slayerSuperiorNotify", name = "Superior foe notification", description = "Notify when a superior slayer creature appears (turn off if RuneLite's own Slayer plugin already notifies)", section = notificationsSection, position = 9)
+	default boolean slayerSuperiorNotify() { return true; }
+
 	enum CaTierGoal
 	{
 		AUTO("Auto"),

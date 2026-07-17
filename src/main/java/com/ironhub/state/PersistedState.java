@@ -56,6 +56,47 @@ public class PersistedState
 		public Map<String, Integer> xpByBucket = new HashMap<>();
 		public Map<Integer, Integer> herbsByType = new HashMap<>();
 	}
+	java.util.List<SlayerTaskRecord> slayerRecords = new ArrayList<>(); // oldest first, capped; last may be active (end == 0)
+
+	/** One slayer assignment's outcome. The record opens at assignment and
+	 *  closes when the task ends: {@code completed} is set only when the
+	 *  streak varbit was SEEN to increment — a task that vanished without
+	 *  that (points skip, plugin off) stays honest as not-completed. */
+	public static class SlayerTaskRecord
+	{
+		public String name = "";   // canonical catalog task name
+		public String master = ""; // assigning master, "" unknown
+		public int assigned;       // initial amount (0 unknown)
+		public int killed;
+		public int xpStart;        // Slayer xp at assignment (0 = not yet seen)
+		public int xpGained;
+		public long lootValue;     // GE value of drops from task targets
+		public long start;         // epoch ms
+		public long end;           // 0 while active
+		public boolean completed;
+
+		public SlayerTaskRecord copy()
+		{
+			SlayerTaskRecord c = new SlayerTaskRecord();
+			c.name = name;
+			c.master = master;
+			c.assigned = assigned;
+			c.killed = killed;
+			c.xpStart = xpStart;
+			c.xpGained = xpGained;
+			c.lootValue = lootValue;
+			c.start = start;
+			c.end = end;
+			c.completed = completed;
+			return c;
+		}
+	}
+
+	Map<String, String> slayerNotes = new HashMap<>();          // task -> player note
+	Map<String, String> slayerLocationPrefs = new HashMap<>();  // task -> preferred location name
+	Map<String, java.util.List<String>> slayerBlockPrefs = new HashMap<>(); // master -> preferred block list
+	Map<String, java.util.List<String>> slayerSkipPrefs = new HashMap<>();  // master -> always-skip list
+
 	java.util.List<DeathRecord> deaths = new ArrayList<>(); // most recent last, capped
 
 	java.util.List<ConsumptionEvent> consumptionLog = new ArrayList<>(); // rolling, capped

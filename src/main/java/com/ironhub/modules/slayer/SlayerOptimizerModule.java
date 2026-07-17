@@ -1,41 +1,109 @@
 package com.ironhub.modules.slayer;
 
 import com.ironhub.IronHubConfig;
+import com.ironhub.data.DataPack;
+import com.ironhub.data.SlayerTasksPack;
 import com.ironhub.modules.IronHubModule;
 import com.ironhub.state.AccountState;
+import com.ironhub.state.PersistedState;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
-import net.runelite.api.VarPlayer;
+import net.runelite.api.NPC;
+import net.runelite.api.NPCComposition;
+import net.runelite.api.Skill;
+import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.NpcDespawned;
+import net.runelite.api.events.NpcSpawned;
+import net.runelite.api.gameval.DBTableID;
+import net.runelite.api.gameval.VarPlayerID;
 import net.runelite.api.gameval.VarbitID;
+import net.runelite.client.Notifier;
 import net.runelite.client.callback.ClientThread;
+import net.runelite.client.eventbus.EventBus;
+import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.NpcLootReceived;
+import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.npcoverlay.HighlightedNpc;
+import net.runelite.client.game.npcoverlay.NpcOverlayService;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.util.ImageUtil;
+import net.runelite.client.util.Text;
 
 /**
- * Slayer basics (DESIGN.md §3.16): current task (name, remaining, streak,
- * points) from documented varps/varbits, plus the task infobox (frame 3f,
- * visible while on task). Point planning, block/skip advice and per-task
- * readiness arrive with the task-rates data pack.
+ * The slayer suite brain (DESIGN.md §3.16, rebuilt 2026-07-17): current
+ * task from the game's own varps/DBTables (core Slayer plugin parity),
+ * per-task records (kills, Slayer xp, loot value, duration, completed vs
+ * not), NPC target highlighting via {@link NpcOverlayService} using the
+ * pack's core-parity target names, per-master block-list decode from the
+ * game's own varbits, and live point-unlock state mirrored into the
+ * requirement graph's {@code unlock:slayerreward_*} flags.
  */
 @Slf4j
 @Singleton
 public class SlayerOptimizerModule implements IronHubModule
 {
-	/** SLAYER_TARGET value meaning "boss task" — resolve via the boss table. */
+	/** SLAYER_TARGET value meaning "boss task" — resolve via the sublist. */
 	private static final int CREATURE_BOSS = 98;
-	// cache DB tables the client resolves task names through; ids mirror
-	// core's SlayerPlugin.updateTask (table 113 = tasks, 116 = boss rows)
-	private static final int TABLE_TASKS = 113;
-	private static final int TABLE_BOSSES = 116;
-	private static final int COLUMN_TASK_NAME = 10;
-	private static final int COLUMN_BOSS_TASK_ROW = 4;
+	private static final String SUPERIOR_MESSAGE = "A superior foe has appeared...";
+	static final java.awt.Color HIGHLIGHT = java.awt.Color.decode("#DDFF00");
+
+	/**
+	 * Master focus id -> the game's per-master block-slot varbits (6 slots
+	 * + the Lumbridge Elite diary slot), each holding a blocked task id.
+	 * Mapping decoded from clientscript 8025/8026-8033 (slayer_rewards_
+	 * tasks_blocked_draw); Spria (9) shares Turael's list in the game.
+	 */
+	private static final Map<Integer, int[]> BLOCK_VARBITS = Map.of(
+		1, new int[]{VarbitID.SLAYER_BLOCKED_TURAEL_1, VarbitID.SLAYER_BLOCKED_TURAEL_2,
+			VarbitID.SLAYER_BLOCKED_TURAEL_3, VarbitID.SLAYER_BLOCKED_TURAEL_4,
+			VarbitID.SLAYER_BLOCKED_TURAEL_5, VarbitID.SLAYER_BLOCKED_TURAEL_6,
+			VarbitID.SLAYER_BLOCKED_TURAEL_DIARY},
+		2, new int[]{VarbitID.SLAYER_BLOCKED_MAZCHNA_1, VarbitID.SLAYER_BLOCKED_MAZCHNA_2,
+			VarbitID.SLAYER_BLOCKED_MAZCHNA_3, VarbitID.SLAYER_BLOCKED_MAZCHNA_4,
+			VarbitID.SLAYER_BLOCKED_MAZCHNA_5, VarbitID.SLAYER_BLOCKED_MAZCHNA_6,
+			VarbitID.SLAYER_BLOCKED_MAZCHNA_DIARY},
+		3, new int[]{VarbitID.SLAYER_BLOCKED_VANNAKA_1, VarbitID.SLAYER_BLOCKED_VANNAKA_2,
+			VarbitID.SLAYER_BLOCKED_VANNAKA_3, VarbitID.SLAYER_BLOCKED_VANNAKA_4,
+			VarbitID.SLAYER_BLOCKED_VANNAKA_5, VarbitID.SLAYER_BLOCKED_VANNAKA_6,
+			VarbitID.SLAYER_BLOCKED_VANNAKA_DIARY},
+		4, new int[]{VarbitID.SLAYER_BLOCKED_CHAELDAR_1, VarbitID.SLAYER_BLOCKED_CHAELDAR_2,
+			VarbitID.SLAYER_BLOCKED_CHAELDAR_3, VarbitID.SLAYER_BLOCKED_CHAELDAR_4,
+			VarbitID.SLAYER_BLOCKED_CHAELDAR_5, VarbitID.SLAYER_BLOCKED_CHAELDAR_6,
+			VarbitID.SLAYER_BLOCKED_CHAELDAR_DIARY},
+		5, new int[]{VarbitID.SLAYER_BLOCKED_DURADEL_1, VarbitID.SLAYER_BLOCKED_DURADEL_2,
+			VarbitID.SLAYER_BLOCKED_DURADEL_3, VarbitID.SLAYER_BLOCKED_DURADEL_4,
+			VarbitID.SLAYER_BLOCKED_DURADEL_5, VarbitID.SLAYER_BLOCKED_DURADEL_6,
+			VarbitID.SLAYER_BLOCKED_DURADEL_DIARY},
+		6, new int[]{VarbitID.SLAYER_BLOCKED_NIEVE_1, VarbitID.SLAYER_BLOCKED_NIEVE_2,
+			VarbitID.SLAYER_BLOCKED_NIEVE_3, VarbitID.SLAYER_BLOCKED_NIEVE_4,
+			VarbitID.SLAYER_BLOCKED_NIEVE_5, VarbitID.SLAYER_BLOCKED_NIEVE_6,
+			VarbitID.SLAYER_BLOCKED_NIEVE_DIARY},
+		7, new int[]{VarbitID.SLAYER_BLOCKED_KRYSTILIA_1, VarbitID.SLAYER_BLOCKED_KRYSTILIA_2,
+			VarbitID.SLAYER_BLOCKED_KRYSTILIA_3, VarbitID.SLAYER_BLOCKED_KRYSTILIA_4,
+			VarbitID.SLAYER_BLOCKED_KRYSTILIA_5, VarbitID.SLAYER_BLOCKED_KRYSTILIA_6,
+			VarbitID.SLAYER_BLOCKED_KRYSTILIA_DIARY},
+		8, new int[]{VarbitID.SLAYER_BLOCKED_KONAR_1, VarbitID.SLAYER_BLOCKED_KONAR_2,
+			VarbitID.SLAYER_BLOCKED_KONAR_3, VarbitID.SLAYER_BLOCKED_KONAR_4,
+			VarbitID.SLAYER_BLOCKED_KONAR_5, VarbitID.SLAYER_BLOCKED_KONAR_6,
+			VarbitID.SLAYER_BLOCKED_KONAR_DIARY});
 
 	private final AccountState state;
 	private final Client client;
@@ -43,17 +111,44 @@ public class SlayerOptimizerModule implements IronHubModule
 	private final IronHubConfig config;
 	private final InfoBoxManager infoBoxManager;     // null in unit tests
 	private final Provider<? extends Plugin> plugin; // Provider breaks the DI cycle
+	private final EventBus eventBus;                 // null in unit tests
+	private final NpcOverlayService npcOverlayService; // null in unit tests
+	private final ItemManager itemManager;           // null in unit tests
+	private final Notifier notifier;                 // null in unit tests
+
+	private final SlayerTasksPack pack;
+	private final Map<String, Integer> unlockVarbitIds = new LinkedHashMap<>(); // unlock key -> varbit id
 
 	private final Runnable listener = this::onStateChanged;
 	private SlayerTab tab;
 	private SlayerInfoBox infoBox;
+
+	// current task snapshot (client-thread writes, volatile reads anywhere)
 	private volatile String taskName = "";
+	private volatile String areaName = "";
 	private volatile int resolvedCreature = -1;
 	private volatile int resolvedBossId = -1;
+	private volatile int resolvedArea = -1;
+
+	// record bookkeeping — mutated on the client thread, iterated by the EDT tab
+	private final List<PersistedState.SlayerTaskRecord> records = new java.util.concurrent.CopyOnWriteArrayList<>();
+	private int lastRemaining = -1;
+	private int lastStreakSum = -1;
+	private boolean recordsLoaded;
+
+	// NPC highlighting (highlighter built in the ctor — it captures config)
+	private final List<Pattern> targetPatterns = new ArrayList<>();
+	private final Set<NPC> targets = ConcurrentHashMap.newKeySet();
+	private final Function<NPC, HighlightedNpc> highlighter;
+
+	// blocked task id -> name, resolved lazily on the client thread
+	private final Map<Integer, String> taskNamesById = new ConcurrentHashMap<>();
 
 	@Inject
 	public SlayerOptimizerModule(AccountState state, Client client, ClientThread clientThread,
-		IronHubConfig config, InfoBoxManager infoBoxManager, Provider<com.ironhub.IronHubPlugin> plugin)
+		IronHubConfig config, InfoBoxManager infoBoxManager, Provider<com.ironhub.IronHubPlugin> plugin,
+		EventBus eventBus, NpcOverlayService npcOverlayService, ItemManager itemManager,
+		Notifier notifier, DataPack dataPack)
 	{
 		this.state = state;
 		this.client = client;
@@ -61,6 +156,32 @@ public class SlayerOptimizerModule implements IronHubModule
 		this.config = config;
 		this.infoBoxManager = infoBoxManager;
 		this.plugin = plugin;
+		this.eventBus = eventBus;
+		this.npcOverlayService = npcOverlayService;
+		this.itemManager = itemManager;
+		this.notifier = notifier;
+		this.highlighter = npc ->
+			config.slayerHighlight() && targets.contains(npc)
+				? HighlightedNpc.builder().npc(npc).highlightColor(HIGHLIGHT)
+					.outline(true).render(n -> !n.isDead()).build()
+				: null;
+		this.pack = dataPack == null ? null
+			: dataPack.load("slayer-tasks", SlayerTasksPack.class);
+		if (pack != null)
+		{
+			for (SlayerTasksPack.Unlock unlock : pack.unlocks)
+			{
+				try
+				{
+					unlockVarbitIds.put(unlock.key, VarbitID.class.getField(unlock.varbit).getInt(null));
+				}
+				catch (ReflectiveOperationException e)
+				{
+					// SlayerTasksPackTest fails the build first; never crash live
+					log.warn("unresolvable unlock varbit {}", unlock.varbit);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -78,11 +199,29 @@ public class SlayerOptimizerModule implements IronHubModule
 	@Override
 	public void startUp()
 	{
-		state.watchVarps(VarPlayer.SLAYER_TASK_SIZE, VarPlayer.SLAYER_TASK_CREATURE);
-		state.watchVarbits(VarbitID.SLAYER_POINTS, VarbitID.SLAYER_TASKS_COMPLETED,
-			VarbitID.SLAYER_TARGET_BOSSID);
+		state.watchVarps(VarPlayerID.SLAYER_COUNT, VarPlayerID.SLAYER_TARGET,
+			VarPlayerID.SLAYER_AREA, VarPlayerID.SLAYER_COUNT_ORIGINAL);
+		List<Integer> varbits = new ArrayList<>(List.of(VarbitID.SLAYER_POINTS,
+			VarbitID.SLAYER_TASKS_COMPLETED, VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED,
+			VarbitID.SLAYER_TARGET_BOSSID, VarbitID.SLAYER_MASTER));
+		for (int[] slots : BLOCK_VARBITS.values())
+		{
+			for (int id : slots)
+			{
+				varbits.add(id);
+			}
+		}
+		varbits.addAll(unlockVarbitIds.values());
+		state.watchVarbits(varbits.stream().mapToInt(Integer::intValue).toArray());
 		state.addListener(listener);
-
+		if (eventBus != null)
+		{
+			eventBus.register(this);
+		}
+		if (npcOverlayService != null)
+		{
+			npcOverlayService.registerHighlighter(highlighter);
+		}
 		if (infoBoxManager != null)
 		{
 			BufferedImage icon = ImageUtil.loadImageResource(com.ironhub.IronHubPlugin.class, "/icon.png");
@@ -95,6 +234,15 @@ public class SlayerOptimizerModule implements IronHubModule
 	public void shutDown()
 	{
 		state.removeListener(listener);
+		if (eventBus != null)
+		{
+			eventBus.unregister(this);
+		}
+		if (npcOverlayService != null)
+		{
+			npcOverlayService.unregisterHighlighter(highlighter);
+		}
+		targets.clear();
 		if (infoBox != null)
 		{
 			infoBoxManager.removeInfoBox(infoBox);
@@ -120,7 +268,7 @@ public class SlayerOptimizerModule implements IronHubModule
 	@Override
 	public void onThemeChanged()
 	{
-		javax.swing.SwingUtilities.invokeLater(() ->
+		SwingUtilities.invokeLater(() ->
 		{
 			if (tab != null)
 			{
@@ -130,11 +278,21 @@ public class SlayerOptimizerModule implements IronHubModule
 		});
 	}
 
-	// ── reads for tab + infobox ───────────────────────────────────────
+	// ── reads for tab + infobox + overlay ─────────────────────────────
+
+	SlayerTasksPack pack()
+	{
+		return pack;
+	}
 
 	int remaining()
 	{
-		return state.getVarp(VarPlayer.SLAYER_TASK_SIZE);
+		return state.getVarp(VarPlayerID.SLAYER_COUNT);
+	}
+
+	int initialAmount()
+	{
+		return state.getVarp(VarPlayerID.SLAYER_COUNT_ORIGINAL);
 	}
 
 	int points()
@@ -142,9 +300,28 @@ public class SlayerOptimizerModule implements IronHubModule
 		return state.getVarbit(VarbitID.SLAYER_POINTS);
 	}
 
+	/** The streak that applies to the current master (Krystilia's is separate). */
 	int streak()
 	{
-		return state.getVarbit(VarbitID.SLAYER_TASKS_COMPLETED);
+		return masterFocus() == 7
+			? state.getVarbit(VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED)
+			: state.getVarbit(VarbitID.SLAYER_TASKS_COMPLETED);
+	}
+
+	int masterFocus()
+	{
+		return state.getVarbit(VarbitID.SLAYER_MASTER);
+	}
+
+	/** The assigning master's name, or "" when unknown. */
+	String masterName()
+	{
+		if (pack == null)
+		{
+			return "";
+		}
+		SlayerTasksPack.Master master = pack.masterByFocus(masterFocus());
+		return master == null ? "" : master.name;
 	}
 
 	String taskName()
@@ -152,33 +329,414 @@ public class SlayerOptimizerModule implements IronHubModule
 		return taskName;
 	}
 
-	/** Resolve the creature name on the client thread when the task changes. */
+	/** The task's assigned area (Konar), or "" when none. */
+	String areaName()
+	{
+		return areaName;
+	}
+
+	/** Task records, oldest first; the last may be active (end == 0). */
+	List<PersistedState.SlayerTaskRecord> records()
+	{
+		ensureRecordsLoaded();
+		return records;
+	}
+
+	/** The active record, or null when no task. */
+	PersistedState.SlayerTaskRecord activeRecord()
+	{
+		ensureRecordsLoaded();
+		if (!records.isEmpty())
+		{
+			PersistedState.SlayerTaskRecord last = records.get(records.size() - 1);
+			if (last.end == 0)
+			{
+				return last;
+			}
+		}
+		return null;
+	}
+
+	/** Blocked task ids for a master focus id (nonzero slots, diary last). */
+	List<Integer> blockedTaskIds(int focusId)
+	{
+		int[] slots = BLOCK_VARBITS.get(focusId == 9 ? 1 : focusId); // Spria shares Turael
+		if (slots == null)
+		{
+			return List.of();
+		}
+		List<Integer> out = new ArrayList<>();
+		for (int varbit : slots)
+		{
+			int taskId = state.getVarbit(varbit);
+			if (taskId > 0)
+			{
+				out.add(taskId);
+			}
+		}
+		return out;
+	}
+
+	/** Task name for a blocked task id, or null until resolved (client thread). */
+	String taskNameById(int taskId)
+	{
+		String cached = taskNamesById.get(taskId);
+		if (cached == null && client != null && clientThread != null)
+		{
+			clientThread.invoke(() ->
+			{
+				String resolved = lookupTaskName(taskId);
+				if (resolved != null)
+				{
+					taskNamesById.put(taskId, resolved);
+					if (tab != null)
+					{
+						SwingUtilities.invokeLater(tab::rebuild);
+					}
+				}
+			});
+		}
+		return cached;
+	}
+
+	/** Whether a point unlock's varbit is currently on. */
+	boolean unlockOwned(SlayerTasksPack.Unlock unlock)
+	{
+		Integer id = unlockVarbitIds.get(unlock.key);
+		return id != null && state.getVarbit(id) > 0;
+	}
+
+	// ── detection ─────────────────────────────────────────────────────
+
+	private void ensureRecordsLoaded()
+	{
+		if (!recordsLoaded)
+		{
+			recordsLoaded = true;
+			records.clear();
+			records.addAll(state.getSlayerRecords());
+		}
+	}
+
 	private void onStateChanged()
 	{
-		int creature = state.getVarp(VarPlayer.SLAYER_TASK_CREATURE);
+		ensureRecordsLoaded();
+		mirrorUnlockFlags();
+
+		int creature = state.getVarp(VarPlayerID.SLAYER_TARGET);
 		int bossId = state.getVarbit(VarbitID.SLAYER_TARGET_BOSSID);
-		if (creature == resolvedCreature && bossId == resolvedBossId)
+		int area = state.getVarp(VarPlayerID.SLAYER_AREA);
+		if (creature != resolvedCreature || bossId != resolvedBossId || area != resolvedArea)
 		{
-			return;
+			resolvedCreature = creature;
+			resolvedBossId = bossId;
+			resolvedArea = area;
+			if (creature <= 0)
+			{
+				applyResolvedTask("", "");
+			}
+			else if (client != null && clientThread != null)
+			{
+				clientThread.invoke(() -> applyResolvedTask(
+					resolveTaskName(creature, bossId), resolveAreaName(area)));
+			}
 		}
-		resolvedCreature = creature;
-		resolvedBossId = bossId;
-		if (creature <= 0 || client == null || clientThread == null)
+		else
 		{
-			taskName = "";
-			state.setSlayerTask("");
-			return;
+			updateProgress();
 		}
-		clientThread.invoke(() ->
+	}
+
+	/** Adopt a resolved task name + area — the varp path lands here from the
+	 *  client thread; headless tests call it directly. */
+	void applyResolvedTask(String name, String area)
+	{
+		ensureRecordsLoaded();
+		boolean changed = !name.equals(taskName);
+		taskName = name;
+		areaName = area == null ? "" : area;
+		state.setSlayerTask(name); // shared: the loadout tab keys strategies off it
+
+		PersistedState.SlayerTaskRecord active = activeRecord();
+		if (active != null && !active.name.equalsIgnoreCase(name))
 		{
-			taskName = resolveTaskName(creature, bossId);
-			state.setSlayerTask(taskName); // shared: the loadout tab keys strategies off it
+			// the previous task ended without an observed completion
+			// (points skip, or it changed while the plugin was off)
+			active.end = System.currentTimeMillis();
+			finishRecord(active);
+			active = null;
+		}
+		if (active == null && !name.isEmpty())
+		{
+			PersistedState.SlayerTaskRecord record = new PersistedState.SlayerTaskRecord();
+			record.name = name;
+			record.master = masterName();
+			record.assigned = initialAmount();
+			record.start = System.currentTimeMillis();
+			record.xpStart = state.getXp(Skill.SLAYER);
+			records.add(record);
+			lastRemaining = -1;
+			pushRecords();
+		}
+		updateProgress();
+		if (changed)
+		{
+			rebuildTargetPatterns();
+			rebuildTargetList();
+			if (npcOverlayService != null)
+			{
+				npcOverlayService.rebuild();
+			}
 			if (tab != null)
 			{
 				SwingUtilities.invokeLater(tab::rebuild);
 			}
-		});
+		}
 	}
+
+	/** Kill counting, xp attribution and completion detection. */
+	private void updateProgress()
+	{
+		PersistedState.SlayerTaskRecord active = activeRecord();
+		int remaining = remaining();
+		int streakSum = state.getVarbit(VarbitID.SLAYER_TASKS_COMPLETED)
+			+ state.getVarbit(VarbitID.SLAYER_WILDERNESS_TASKS_COMPLETED);
+
+		boolean dirty = false;
+		if (active != null)
+		{
+			if (active.xpStart == 0)
+			{
+				int xp = state.getXp(Skill.SLAYER);
+				if (xp > 0)
+				{
+					active.xpStart = xp; // stats had not landed at assignment
+					dirty = true;
+				}
+			}
+			if (active.assigned == 0 && initialAmount() > 0)
+			{
+				active.assigned = initialAmount();
+				dirty = true;
+			}
+			if (active.master.isEmpty() && !masterName().isEmpty())
+			{
+				active.master = masterName();
+				dirty = true;
+			}
+			int delta = lastRemaining - remaining;
+			// a drop to exactly 0 bigger than a Dusk&Dawn double-kill is a
+			// points skip or reset, never kills
+			if (lastRemaining > 0 && delta > 0 && !(remaining == 0 && delta > 2))
+			{
+				active.killed += delta;
+				if (active.xpStart > 0)
+				{
+					active.xpGained = Math.max(0, state.getXp(Skill.SLAYER) - active.xpStart);
+				}
+				dirty = true;
+			}
+			if (lastStreakSum >= 0 && streakSum > lastStreakSum)
+			{
+				active.completed = true;
+				active.end = System.currentTimeMillis();
+				finishRecord(active);
+				dirty = false; // finishRecord already pushed
+			}
+		}
+		lastRemaining = remaining;
+		lastStreakSum = streakSum;
+		if (dirty)
+		{
+			pushRecords();
+		}
+	}
+
+	private void finishRecord(PersistedState.SlayerTaskRecord record)
+	{
+		if (record.xpStart > 0)
+		{
+			record.xpGained = Math.max(0, state.getXp(Skill.SLAYER) - record.xpStart);
+		}
+		pushRecords();
+	}
+
+	private void pushRecords()
+	{
+		state.setSlayerRecords(records);
+	}
+
+	/** Mirror lit unlock varbits into the graph's unlock:slayerreward_* flags. */
+	private void mirrorUnlockFlags()
+	{
+		List<String> newlyOn = null;
+		for (Map.Entry<String, Integer> e : unlockVarbitIds.entrySet())
+		{
+			if (state.getVarbit(e.getValue()) > 0 && !state.isUnlocked(e.getKey()))
+			{
+				if (newlyOn == null)
+				{
+					newlyOn = new ArrayList<>();
+				}
+				newlyOn.add(e.getKey());
+			}
+		}
+		if (newlyOn != null)
+		{
+			state.setUnlockedBulk(newlyOn);
+		}
+	}
+
+	// ── NPC highlighting (core Slayer plugin parity) ──────────────────
+
+	private void rebuildTargetPatterns()
+	{
+		targetPatterns.clear();
+		targetPatterns.addAll(targetPatterns(taskName,
+			pack == null || pack.task(taskName) == null ? List.of() : pack.task(taskName).targets));
+	}
+
+	/** Core-parity patterns: every pack target name plus the de-pluralized
+	 *  task name, each matched on word boundaries, case-insensitive. */
+	static List<Pattern> targetPatterns(String taskName, List<String> targets)
+	{
+		List<Pattern> out = new ArrayList<>();
+		if (taskName == null || taskName.isEmpty())
+		{
+			return out;
+		}
+		for (String target : targets)
+		{
+			out.add(targetNamePattern(target));
+		}
+		out.add(targetNamePattern(taskName.replaceAll("s$", "")));
+		return out;
+	}
+
+	private static Pattern targetNamePattern(String targetName)
+	{
+		return Pattern.compile("(?:\\s|^)" + Pattern.quote(targetName) + "(?:\\s|$)",
+			Pattern.CASE_INSENSITIVE);
+	}
+
+	/** Pure matcher for tests: NPC display name + menu actions -> on-task. */
+	static boolean matchesTarget(List<Pattern> patterns, String npcName, String[] actions)
+	{
+		if (npcName == null || patterns.isEmpty())
+		{
+			return false;
+		}
+		String name = npcName.replace('\u00A0', ' ').toLowerCase();
+		boolean attackable = false;
+		if (actions != null)
+		{
+			for (String action : actions)
+			{
+				// Pick is for zygomite-fungi (core parity)
+				if ("Attack".equals(action) || "Pick".equals(action))
+				{
+					attackable = true;
+					break;
+				}
+			}
+		}
+		if (!attackable)
+		{
+			return false;
+		}
+		for (Pattern pattern : patterns)
+		{
+			Matcher m = pattern.matcher(name);
+			if (m.find())
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isTarget(NPC npc)
+	{
+		NPCComposition composition = npc.getTransformedComposition();
+		return composition != null
+			&& matchesTarget(targetPatterns, composition.getName(), composition.getActions());
+	}
+
+	private void rebuildTargetList()
+	{
+		targets.clear();
+		if (client == null || targetPatterns.isEmpty())
+		{
+			return;
+		}
+		for (NPC npc : client.getNpcs())
+		{
+			if (isTarget(npc))
+			{
+				targets.add(npc);
+			}
+		}
+	}
+
+	@Subscribe
+	public void onNpcSpawned(NpcSpawned event)
+	{
+		if (!targetPatterns.isEmpty() && isTarget(event.getNpc()))
+		{
+			targets.add(event.getNpc());
+		}
+	}
+
+	@Subscribe
+	public void onNpcDespawned(NpcDespawned event)
+	{
+		targets.remove(event.getNpc());
+	}
+
+	// ── loot + superior ───────────────────────────────────────────────
+
+	@Subscribe
+	public void onNpcLootReceived(NpcLootReceived event)
+	{
+		PersistedState.SlayerTaskRecord active = activeRecord();
+		if (active == null || itemManager == null)
+		{
+			return;
+		}
+		NPCComposition composition = event.getNpc().getTransformedComposition();
+		if (composition == null
+			|| !matchesTarget(targetPatterns, composition.getName(), composition.getActions()))
+		{
+			return;
+		}
+		long value = 0;
+		for (net.runelite.client.game.ItemStack stack : event.getItems())
+		{
+			value += (long) itemManager.getItemPrice(stack.getId()) * stack.getQuantity();
+		}
+		if (value > 0)
+		{
+			active.lootValue += value;
+			pushRecords();
+		}
+	}
+
+	@Subscribe
+	public void onChatMessage(ChatMessage event)
+	{
+		if (event.getType() != ChatMessageType.GAMEMESSAGE
+			&& event.getType() != ChatMessageType.SPAM)
+		{
+			return;
+		}
+		if (SUPERIOR_MESSAGE.equals(Text.removeTags(event.getMessage()))
+			&& notifier != null && config.slayerSuperiorNotify())
+		{
+			notifier.notify(SUPERIOR_MESSAGE);
+		}
+	}
+
+	// ── client-thread DBTable resolution ──────────────────────────────
 
 	private String resolveTaskName(int creature, int bossId)
 	{
@@ -187,28 +745,82 @@ public class SlayerOptimizerModule implements IronHubModule
 			int taskRow;
 			if (creature == CREATURE_BOSS)
 			{
-				var bossRows = client.getDBRowsByValue(TABLE_BOSSES, 1, 0, bossId);
+				var bossRows = client.getDBRowsByValue(DBTableID.SlayerTaskSublist.ID,
+					DBTableID.SlayerTaskSublist.COL_TASK_SUBTABLE_ID, 0, bossId);
 				if (bossRows.isEmpty())
 				{
 					return "Boss task";
 				}
-				taskRow = (Integer) client.getDBTableField(bossRows.get(0), COLUMN_BOSS_TASK_ROW, 0)[0];
+				taskRow = (Integer) client.getDBTableField(bossRows.get(0),
+					DBTableID.SlayerTaskSublist.COL_TASK, 0)[0];
 			}
 			else
 			{
-				var rows = client.getDBRowsByValue(TABLE_TASKS, 0, 0, creature);
+				var rows = client.getDBRowsByValue(DBTableID.SlayerTask.ID,
+					DBTableID.SlayerTask.COL_ID, 0, creature);
 				if (rows.isEmpty())
 				{
 					return "";
 				}
 				taskRow = rows.get(0);
 			}
-			return (String) client.getDBTableField(taskRow, COLUMN_TASK_NAME, 0)[0];
+			return (String) client.getDBTableField(taskRow,
+				DBTableID.SlayerTask.COL_NAME_UPPERCASE, 0)[0];
 		}
 		catch (RuntimeException e)
 		{
 			log.warn("failed to resolve slayer task name", e);
 			return "";
 		}
+	}
+
+	private String resolveAreaName(int areaId)
+	{
+		if (areaId <= 0)
+		{
+			return "";
+		}
+		try
+		{
+			var rows = client.getDBRowsByValue(DBTableID.SlayerArea.ID,
+				DBTableID.SlayerArea.COL_AREA_ID, 0, areaId);
+			if (rows.isEmpty())
+			{
+				return "";
+			}
+			return (String) client.getDBTableField(rows.get(0),
+				DBTableID.SlayerArea.COL_AREA_NAME_IN_HELPER, 0)[0];
+		}
+		catch (RuntimeException e)
+		{
+			log.warn("failed to resolve slayer area name", e);
+			return "";
+		}
+	}
+
+	/** Task id -> catalog name via the SlayerTask DBTable. Client thread. */
+	private String lookupTaskName(int taskId)
+	{
+		try
+		{
+			var rows = client.getDBRowsByValue(DBTableID.SlayerTask.ID,
+				DBTableID.SlayerTask.COL_ID, 0, taskId);
+			if (rows.isEmpty())
+			{
+				return null;
+			}
+			return (String) client.getDBTableField(rows.get(0),
+				DBTableID.SlayerTask.COL_NAME_UPPERCASE, 0)[0];
+		}
+		catch (RuntimeException e)
+		{
+			return null;
+		}
+	}
+
+	/** Test seam: pre-seed a blocked task id's display name. */
+	void seedTaskName(int taskId, String name)
+	{
+		taskNamesById.put(taskId, name);
 	}
 }
