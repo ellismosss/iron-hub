@@ -16,7 +16,8 @@ import net.runelite.api.Skill;
  * {@code skill:<Skill>:<level>} · {@code quest:<name>} ·
  * {@code queststarted:<name>} · {@code item:<itemId>[:qty]} ·
  * {@code unlock:<key>} · {@code kc:<source>:<count>} · {@code qp:<n>} ·
- * {@code diary:<Region>:<Tier>}. Anything unparseable becomes a manual
+ * {@code diary:<Region>:<Tier>} · {@code combat:<level>}. Anything
+ * unparseable becomes a manual
  * (free-text) requirement that is never auto-met — the UI shows those as
  * "check manually" rather than guessing.
  */
@@ -118,6 +119,12 @@ public final class Requirements
 		return map;
 	}
 
+	/** Combat-level gate (slayer masters, wiki task requirements). */
+	public static Requirement combat(int level)
+	{
+		return new CombatRequirement(level);
+	}
+
 	public static Requirement text(String text)
 	{
 		return new TextRequirement(text);
@@ -194,6 +201,8 @@ public final class Requirements
 					return questPoints(Integer.parseInt(parts[1]));
 				case "diary": // diary:<Region>:<Tier> — met once the tier is claimed
 					return diary(parts[1], parts[2]);
+				case "combat": // combat:<level> — derived from the 7 combat skills
+					return combat(Integer.parseInt(parts[1]));
 				default:
 					return text(s);
 			}
@@ -264,6 +273,35 @@ public final class Requirements
 		public String describe()
 		{
 			return level + " " + skill.getName();
+		}
+	}
+
+	private static class CombatRequirement implements Requirement
+	{
+		private final int level;
+
+		CombatRequirement(int level)
+		{
+			this.level = level;
+		}
+
+		@Override
+		public boolean isMet(StateView state)
+		{
+			return net.runelite.api.Experience.getCombatLevel(
+				state.getRealLevel(Skill.ATTACK),
+				state.getRealLevel(Skill.STRENGTH),
+				state.getRealLevel(Skill.DEFENCE),
+				state.getRealLevel(Skill.HITPOINTS),
+				state.getRealLevel(Skill.MAGIC),
+				state.getRealLevel(Skill.RANGED),
+				state.getRealLevel(Skill.PRAYER)) >= level;
+		}
+
+		@Override
+		public String describe()
+		{
+			return "Combat " + level;
 		}
 	}
 

@@ -52,6 +52,25 @@ public class RequirementsTest
 	}
 
 	@Test
+	public void combatRequirementDerivesFromTheSevenSkills()
+	{
+		Requirement req = Requirements.parse("combat:40");
+		assertFalse(Requirements.isManual(req));
+		assertFalse(req.isMet(state)); // fresh account = combat 3
+		// Experience.getCombatLevel(60, 60, 60, 60, 1, 1, 43) = 60-ish melee build
+		StateFixture.stat(state, Skill.ATTACK, 60, 0);
+		StateFixture.stat(state, Skill.STRENGTH, 60, 0);
+		StateFixture.stat(state, Skill.DEFENCE, 60, 0);
+		StateFixture.stat(state, Skill.HITPOINTS, 60, 0);
+		StateFixture.stat(state, Skill.PRAYER, 43, 0);
+		int expected = net.runelite.api.Experience.getCombatLevel(60, 60, 60, 60, 1, 1, 43);
+		assertTrue(expected >= 40);
+		assertTrue(req.isMet(state));
+		assertFalse(Requirements.parse("combat:" + (expected + 1)).isMet(state));
+		assertEquals("Combat 40", req.describe());
+	}
+
+	@Test
 	public void itemRequirementCountsAcrossContainers()
 	{
 		StateFixture.bank(state, Map.of(4151, 1));
