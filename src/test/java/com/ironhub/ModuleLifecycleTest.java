@@ -63,7 +63,7 @@ public class ModuleLifecycleTest
 			new ClueStashModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new SlayerOptimizerModule(state, null, null, config, null, null,
 				new net.runelite.client.eventbus.EventBus(), null, null, null,
-				new com.ironhub.data.DataPack(new com.google.gson.Gson())),
+				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
 			new SuppliesRunwayModule(state, null, config),
 			new CollectionLogModule(state, null, null, new net.runelite.client.eventbus.EventBus(), config,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),

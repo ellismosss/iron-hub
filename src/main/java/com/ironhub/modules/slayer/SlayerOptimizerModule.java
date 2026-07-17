@@ -144,12 +144,15 @@ public class SlayerOptimizerModule implements IronHubModule
 	// blocked task id -> name, resolved lazily on the client thread
 	private final Map<Integer, String> taskNamesById = new ConcurrentHashMap<>();
 
+	private final com.ironhub.integrations.ShortestPathBridge pathBridge; // null in unit tests
+
 	@Inject
 	public SlayerOptimizerModule(AccountState state, Client client, ClientThread clientThread,
 		IronHubConfig config, InfoBoxManager infoBoxManager, Provider<com.ironhub.IronHubPlugin> plugin,
 		EventBus eventBus, NpcOverlayService npcOverlayService, ItemManager itemManager,
-		Notifier notifier, DataPack dataPack)
+		Notifier notifier, DataPack dataPack, com.ironhub.integrations.ShortestPathBridge pathBridge)
 	{
+		this.pathBridge = pathBridge;
 		this.state = state;
 		this.client = client;
 		this.clientThread = clientThread;
@@ -822,5 +825,19 @@ public class SlayerOptimizerModule implements IronHubModule
 	void seedTaskName(int taskId, String name)
 	{
 		taskNamesById.put(taskId, name);
+	}
+
+	/** Route to a point via Shortest Path (inert when not installed). */
+	void route(net.runelite.api.coords.WorldPoint point)
+	{
+		if (pathBridge != null && point != null)
+		{
+			pathBridge.pathTo(point);
+		}
+	}
+
+	ItemManager itemManager()
+	{
+		return itemManager;
 	}
 }

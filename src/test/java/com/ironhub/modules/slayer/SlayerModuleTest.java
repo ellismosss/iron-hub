@@ -37,7 +37,7 @@ public class SlayerModuleTest
 	private SlayerOptimizerModule module(AccountState state)
 	{
 		return new SlayerOptimizerModule(state, null, null, config, null, null,
-			new EventBus(), null, null, null, new DataPack(new Gson()));
+			new EventBus(), null, null, null, new DataPack(new Gson()), null);
 	}
 
 	@Test
@@ -193,22 +193,43 @@ public class SlayerModuleTest
 	}
 
 	@Test
-	public void tabRendersHeadless() throws Exception
+	public void tabRendersAllViewsHeadless() throws Exception
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
-		StateFixture.varp(state, VarPlayerID.SLAYER_COUNT, 87);
+		StateFixture.profile(state, 42L);
+		StateFixture.stat(state, Skill.SLAYER, 72, 900_000);
 		StateFixture.varbit(state, VarbitID.SLAYER_POINTS, 1240);
 		StateFixture.varbit(state, VarbitID.SLAYER_TASKS_COMPLETED, 43);
+		StateFixture.varbit(state, VarbitID.SLAYER_MASTER, 5); // Duradel
+		StateFixture.varbit(state, VarbitID.SLAYER_BLOCKED_DURADEL_1, 41);
+		StateFixture.varbit(state, VarbitID.SLAYER_HELM_UNLOCKED, 1);
+		StateFixture.bank(state, java.util.Map.of(4164, 1)); // facemask owned
 
 		SlayerOptimizerModule module = module(state);
 		module.startUp();
+		module.seedTaskName(41, "Smoke devils");
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_TARGET, 41);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT_ORIGINAL, 150);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT, 150);
+		module.applyResolvedTask("Dust devils", "");
+		StateFixture.stat(state, Skill.SLAYER, 72, 940_000);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT, 63);
+		state.setSlayerNote("Dust devils", "Barrage in the Catacombs");
+		state.setSlayerBlockPref("Duradel", java.util.List.of("Smoke devils", "Cave kraken"));
+		state.setSlayerSkipPref("Duradel", java.util.List.of("Steel dragons"));
+
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
-		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
-		assertTrue(image.getHeight() > 80);
-		java.io.File out = new java.io.File("build/reports/slayer-tab.png");
-		out.getParentFile().mkdirs();
-		javax.imageio.ImageIO.write(image, "png", out);
+		String[] names = {"task", "history", "unlocks", "blocks"};
+		for (int view = 0; view < names.length; view++)
+		{
+			((SlayerTab) tab).selectView(view);
+			java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
+			assertTrue(names[view] + " render too small", image.getHeight() > 80);
+			java.io.File out = new java.io.File("build/reports/slayer-" + names[view] + ".png");
+			out.getParentFile().mkdirs();
+			javax.imageio.ImageIO.write(image, "png", out);
+		}
 		module.shutDown();
 	}
 }
