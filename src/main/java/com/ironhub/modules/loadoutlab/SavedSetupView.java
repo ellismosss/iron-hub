@@ -31,11 +31,10 @@ import net.runelite.client.util.AsyncBufferedImage;
  * link_h/link_v cropped from the same image (resource packs do not redraw
  * the links, so both themes share them). Slot sprites come per theme via
  * OsrsIcons (vanilla = Luke's dropped official set at data/icons/osrs/
- * equipment/, Mystic = the pack's redraws); the inventory backing is the
- * Mystic pack's fixed_mode/side_panel_background for MYSTIC, and for
- * vanilla it is pieced from Luke's dropped dialog_inventory_sprites set —
- * the parchment background texture tiled inside the steel side-panel frame
- * (7px strips centred in 32px canvases; the inside-visible parts cropped).
+ * equipment/, Mystic = the pack's redraws). The inventory is the game's
+ * bottom-line-mode side panel on BOTH themes (Luke's word): the background
+ * texture tiled inside the bottom_line_mode_side_panel edge/corner frame,
+ * each theme shipping its own redraws under dialog_inventory_sprites/.
  */
 class SavedSetupView
 {
@@ -393,9 +392,10 @@ class SavedSetupView
 	{
 		private final PersistedState.SavedSetup setup;
 		private final AsyncBufferedImage[] items = new AsyncBufferedImage[28];
-		/** MYSTIC ships the framed backing as one sprite; vanilla is pieced
-		 *  from Luke's dropped set (texture + the side-panel steel frame). */
-		private final BufferedImage backing;
+		/** The game's bottom-line-mode side panel, per theme: background
+		 *  texture tiled inside the edge/corner frame pieces (Mystic ships
+		 *  its own redraws of both; the strips sit 7px centred in 32px
+		 *  canvases, so the inside-visible parts are cropped). */
 		private final BufferedImage texture;
 		private final BufferedImage edgeTop;
 		private final BufferedImage edgeBottom;
@@ -405,69 +405,29 @@ class SavedSetupView
 		private final BufferedImage cornerTr;
 		private final BufferedImage cornerBl;
 		private final BufferedImage cornerBr;
-		/** The resizeable-mode tan trim (Luke, 2026-07-17): drawn over the
-		 *  backing's edge on BOTH themes — the pack doesn't redraw it, so
-		 *  vanilla art is what a Mystic client shows too. */
-		private final BufferedImage tanTop;
-		private final BufferedImage tanBottom;
-		private final BufferedImage tanLeft;
-		private final BufferedImage tanRight;
-		private final BufferedImage tanTl;
-		private final BufferedImage tanTr;
-		private final BufferedImage tanBl;
-		private final BufferedImage tanBr;
 
 		InventoryCanvas(PersistedState.SavedSetup setup)
 		{
 			this.setup = setup;
 			setOpaque(false);
 			setToolTipText("");
-			backing = theme == OsrsTheme.MYSTIC
-				? OsrsIcons.image(theme, "fixed_mode/side_panel_background") : null;
-			if (backing == null)
-			{
-				texture = OsrsIcons.image(theme, "dialog_inventory_sprites/background");
-				// the frame strip is 7px centred in a 32px canvas (rows/cols
-				// 13..19); corners are full 32x32 caps centred on the corner
-				// point — crop the inside-visible parts so the frame hugs the
-				// panel bounds the way the game draws it
-				edgeTop = sub(OsrsIcons.image(theme,
-					"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_top"), 0, 13, 32, 7);
-				edgeBottom = sub(OsrsIcons.image(theme,
-					"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_bottom"), 0, 13, 32, 7);
-				edgeLeft = sub(OsrsIcons.image(theme,
-					"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_left"), 13, 0, 7, 32);
-				edgeRight = sub(OsrsIcons.image(theme,
-					"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_right"), 13, 0, 7, 32);
-				cornerTl = sub(OsrsIcons.image(theme,
-					"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_top_left"), 13, 13, 19, 19);
-				cornerTr = sub(OsrsIcons.image(theme,
-					"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_top_right"), 0, 13, 19, 19);
-				cornerBl = sub(OsrsIcons.image(theme,
-					"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_bottom_left"), 13, 0, 19, 19);
-				cornerBr = sub(OsrsIcons.image(theme,
-					"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_bottom_right"), 0, 0, 19, 19);
-			}
-			else
-			{
-				texture = null;
-				edgeTop = null;
-				edgeBottom = null;
-				edgeLeft = null;
-				edgeRight = null;
-				cornerTl = null;
-				cornerTr = null;
-				cornerBl = null;
-				cornerBr = null;
-			}
-			tanTop = OsrsIcons.image(theme, "dialog_inventory_sprites/tan_border_top");
-			tanBottom = OsrsIcons.image(theme, "dialog_inventory_sprites/tan_border_bottom");
-			tanLeft = OsrsIcons.image(theme, "dialog_inventory_sprites/tan_border_left");
-			tanRight = OsrsIcons.image(theme, "dialog_inventory_sprites/tan_border_right");
-			tanTl = OsrsIcons.image(theme, "dialog_inventory_sprites/tan_border_corner_top_left");
-			tanTr = OsrsIcons.image(theme, "dialog_inventory_sprites/tan_border_corner_top_right");
-			tanBl = OsrsIcons.image(theme, "dialog_inventory_sprites/tan_border_corner_bottom_left");
-			tanBr = OsrsIcons.image(theme, "dialog_inventory_sprites/tan_border_corner_bottom_right");
+			texture = OsrsIcons.image(theme, "dialog_inventory_sprites/background");
+			edgeTop = sub(OsrsIcons.image(theme,
+				"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_top"), 0, 13, 32, 7);
+			edgeBottom = sub(OsrsIcons.image(theme,
+				"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_bottom"), 0, 13, 32, 7);
+			edgeLeft = sub(OsrsIcons.image(theme,
+				"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_left"), 13, 0, 7, 32);
+			edgeRight = sub(OsrsIcons.image(theme,
+				"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_right"), 13, 0, 7, 32);
+			cornerTl = sub(OsrsIcons.image(theme,
+				"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_top_left"), 13, 13, 19, 19);
+			cornerTr = sub(OsrsIcons.image(theme,
+				"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_top_right"), 0, 13, 19, 19);
+			cornerBl = sub(OsrsIcons.image(theme,
+				"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_bottom_left"), 13, 0, 19, 19);
+			cornerBr = sub(OsrsIcons.image(theme,
+				"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_bottom_right"), 0, 0, 19, 19);
 			for (int i = 0; i < 28 && i < setup.inventory.length; i++)
 			{
 				if (setup.inventory[i] > 0)
@@ -500,14 +460,8 @@ class SavedSetupView
 		protected void paintComponent(Graphics g)
 		{
 			Graphics2D g2 = (Graphics2D) g;
-			if (backing != null)
+			if (texture != null)
 			{
-				g2.drawImage(backing, 0, 0, null);
-			}
-			else if (texture != null)
-			{
-				// vanilla: the game's parchment texture inside the steel
-				// side-panel frame, pieced from the dropped sprite set
 				tile(g2, texture, 0, 0, INV_WIDTH, INV_HEIGHT);
 				tile(g2, edgeTop, 0, 0, INV_WIDTH, 7);
 				tile(g2, edgeBottom, 0, INV_HEIGHT - 7, INV_WIDTH, 7);
@@ -528,20 +482,6 @@ class SavedSetupView
 				g2.fillRect(0, 0, INV_WIDTH, INV_HEIGHT);
 				OsrsSkin.outline(g2, theme.edgeDark, 0, 0, INV_WIDTH, INV_HEIGHT);
 				OsrsSkin.outline(g2, theme.edgeLight, 1, 1, INV_WIDTH - 2, INV_HEIGHT - 2);
-			}
-			// the resizeable-mode tan trim over the backing edge (both themes);
-			// the strips sit edge-aligned inside 9px canvases (top/left at
-			// rows 0-2, bottom/right at 6-8), so full canvases tile in place
-			tile(g2, tanTop, 0, 0, INV_WIDTH, 9);
-			tile(g2, tanBottom, 0, INV_HEIGHT - 9, INV_WIDTH, 9);
-			tile(g2, tanLeft, 0, 0, 9, INV_HEIGHT);
-			tile(g2, tanRight, INV_WIDTH - 9, 0, 9, INV_HEIGHT);
-			if (tanTl != null)
-			{
-				g2.drawImage(tanTl, 0, 0, null);
-				g2.drawImage(tanTr, INV_WIDTH - 9, 0, null);
-				g2.drawImage(tanBl, 0, INV_HEIGHT - 9, null);
-				g2.drawImage(tanBr, INV_WIDTH - 9, INV_HEIGHT - 9, null);
 			}
 			for (int i = 0; i < 28; i++)
 			{

@@ -59,9 +59,11 @@ public class HomePanel extends JPanel
 
 	private final JPanel frame = new JPanel();
 	/**
-	 * The open block's content, INSIDE the home's stone frame so the two read
-	 * as one connected block, scrolling together (Luke, 2026-07-17). Owned by
-	 * IronHubPanel, which mounts hub pages into it; empty when nothing is open.
+	 * The open block's content, BELOW the stone frame on the main backing
+	 * (Luke, 2026-07-17: the raised frame envelops only the hub proper —
+	 * module sections carry their own hierarchy via their header plates),
+	 * still one connected scroll. Owned by IronHubPanel, which mounts hub
+	 * pages into it; empty when nothing is open.
 	 */
 	private final JPanel contentSlot = new JPanel(new java.awt.BorderLayout());
 	private final java.util.Map<String, StoneNavButton> stones = new java.util.LinkedHashMap<>();
@@ -76,7 +78,10 @@ public class HomePanel extends JPanel
 		this.onBlock = onBlock;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
-		setBackground(UiTokens.PANEL_BG);
+		// the MAIN backing is the theme's own — the hub content below the
+		// frame sits directly on it (Luke, 2026-07-17: the raised stone
+		// frame envelops only the hub proper, ending above module headers)
+		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
 		frame.setLayout(new BoxLayout(frame, BoxLayout.Y_AXIS));
@@ -87,6 +92,8 @@ public class HomePanel extends JPanel
 		contentSlot.setOpaque(false);
 		contentSlot.setAlignmentX(LEFT_ALIGNMENT);
 		add(frame);
+		add(Box.createVerticalStrut(6));
+		add(contentSlot);
 		add(Box.createVerticalGlue());
 
 		state.addListener(listener);
@@ -129,10 +136,9 @@ public class HomePanel extends JPanel
 		frame.add(summary());
 		frame.add(strut(6));
 		frame.add(navRow());
-		frame.add(strut(8));
-		// the open block announces itself with its stone header plate
-		// inside the content (an extra header line here doubled it)
-		frame.add(contentSlot);
+		frame.add(strut(4));
+		// the open block's content lives BELOW the frame, on the main
+		// backing — its stone header plates carry the hierarchy from here
 		revalidate();
 		repaint();
 	}

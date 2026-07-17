@@ -94,7 +94,15 @@ public class IronHubPanel extends PluginPanel
 		}
 		home = new HomePanel(state, config.osrsTheme(), this::openBlock);
 		homeCard.removeAll();
-		homeCard.add(new HubScrollPane(home, false), BorderLayout.CENTER);
+		HubScrollPane pane = new HubScrollPane(home, false);
+		// the home scrolls on the THEME backing, not the classic grey — the
+		// hub content below the stone frame sits directly on it
+		java.awt.Color backing = config.osrsTheme().background;
+		homeCard.setBackground(backing);
+		pane.setBackground(backing);
+		pane.getViewport().setBackground(backing);
+		((JComponent) pane.getViewport().getView()).setBackground(backing);
+		homeCard.add(pane, BorderLayout.CENTER);
 		homeCard.revalidate();
 		homeCard.repaint();
 	}
@@ -170,7 +178,9 @@ public class IronHubPanel extends PluginPanel
 	/**
 	 * A module's name plate in a hub page — the Design lab's notched-box
 	 * button look (Luke, 2026-07-17), display-only: no hover fill, no hand
-	 * cursor, because the tab beneath IS the content.
+	 * cursor, because the tab beneath IS the content. Title in the bolder
+	 * game font (the "Assumptions" grammar) — with the stone frame ending
+	 * above the plates, they carry the section hierarchy alone.
 	 */
 	private JComponent moduleHeader(String name)
 	{
@@ -178,7 +188,8 @@ public class IronHubPanel extends PluginPanel
 		com.ironhub.ui.osrs.StonePanel plate = new com.ironhub.ui.osrs.StonePanel(theme);
 		plate.setLayout(new BoxLayout(plate, BoxLayout.X_AXIS));
 		plate.add(Box.createHorizontalGlue());
-		plate.add(com.ironhub.ui.osrs.OsrsLabel.label(name));
+		plate.add(new com.ironhub.ui.osrs.OsrsLabel(name,
+			com.ironhub.ui.osrs.OsrsSkin.TITLE, com.ironhub.ui.osrs.OsrsSkin.boldFont()));
 		plate.add(Box.createHorizontalGlue());
 
 		JPanel pad = new JPanel(new BorderLayout());
