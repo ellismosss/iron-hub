@@ -80,6 +80,23 @@ public class BankedXpTest
 		assertEquals(3.5, gilded.getValue(), 0.001);
 		assertTrue(gilded.getAppliesTo().contains("DRAGON_BONES"));
 
+		// Exclusivity (upstream compatibleWith): the four Prayer bone
+		// consumers share one group; Demonic Offering (ashes) and the
+		// outfits are independent
+		java.util.Map<String, String> groups = new java.util.HashMap<>();
+		for (BankedXpPack.Modifier m : pack.getModifiers())
+		{
+			if (m.getExclusiveGroup() != null)
+			{
+				groups.put(m.getName(), m.getExclusiveGroup());
+			}
+		}
+		assertEquals(java.util.Map.of(
+			"Sinister Offering (300% xp)", "prayer-exclusive",
+			"Lit Gilded Altar (350% xp)", "prayer-exclusive",
+			"Ectofuntus (400% xp)", "prayer-exclusive",
+			"Wildy Altar (350% xp & 50% Save)", "prayer-exclusive"), groups);
+
 		// Floors
 		assertTrue(pack.getModifiers().size() >= 8);
 		assertTrue(pack.getEntries().stream().filter(e -> e.getSecondaries() != null).count() >= 100);

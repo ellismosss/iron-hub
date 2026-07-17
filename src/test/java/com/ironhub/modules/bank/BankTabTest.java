@@ -24,11 +24,16 @@ public class BankTabTest
 
 	private static BankTab newTab(AccountState state)
 	{
+		return newTab(state, new java.util.HashSet<>());
+	}
+
+	private static BankTab newTab(AccountState state, java.util.Set<Integer> selection)
+	{
 		com.ironhub.data.DataPack dataPack = new com.ironhub.data.DataPack(new com.google.gson.Gson());
-		return new BankTab(state, null, null, null, new java.util.HashSet<>(), null,
+		return new BankTab(state, null, null, null, selection, null,
 			dataPack.load("banked-xp", com.ironhub.data.BankedXpPack.class),
 			dataPack.load("xp-actions", com.ironhub.data.XpActionsPack.class),
-			true, v -> {}, com.ironhub.ui.osrs.OsrsTheme.STONE);
+			com.ironhub.ui.osrs.OsrsTheme.STONE);
 	}
 
 	@Test
@@ -88,7 +93,8 @@ public class BankTabTest
 		assertEquals(9, BankTab.groupValue(stats, BankTab.StatGroup.MAGIC)); // round(8.6)
 	}
 
-	/** Stack sorts by HA x quantity; Each by the per-item price alone. */
+	/** Each (the default chip) ranks by per-item price; Stack by HA x qty.
+	 *  A quantity-1 row shows only the per-item figure (Luke, 2026-07-17). */
 	@Test
 	public void alchSortAndFigure()
 	{
@@ -96,13 +102,89 @@ public class BankTabTest
 		Map<Integer, Integer> bank = Map.of(1, 1, 2, 1_000);
 		List<Integer> byStack = new java.util.ArrayList<>(List.of(1, 2));
 		byStack.sort(BankTab.alchComparator(prices, bank, false));
-		assertEquals("total stack value ranks first by default", List.of(2, 1), byStack);
+		assertEquals("Stack ranks by total stack value", List.of(2, 1), byStack);
 		List<Integer> byEach = new java.util.ArrayList<>(List.of(1, 2));
 		byEach.sort(BankTab.alchComparator(prices, bank, true));
 		assertEquals("Each ranks by per-item value", List.of(1, 2), byEach);
 
-		assertEquals("941K/192 gp/ea", BankTab.alchFigure(941_000, 192));
-		assertEquals("1.2M/72.5K gp/ea", BankTab.alchFigure(1_200_000, 72_500));
+		assertEquals("941K/192 gp/ea", BankTab.alchFigure(941_000, 192, 4_901));
+		assertEquals("1.2M/72.5K gp/ea", BankTab.alchFigure(1_200_000, 72_500, 17));
+		assertEquals("a single item has no stack figure",
+			"192 gp/ea", BankTab.alchFigure(192, 192, 1));
+	}
+
+	/** The click grammar: plain = exclusive (again = deselect), cmd/ctrl =
+	 *  toggle, shift = contiguous range from the last-clicked row. */
+	@Test
+	public void selectionClickGrammar()
+	{
+		List<Integer> order = List.of(10, 20, 30, 40);
+		java.util.Set<Integer> sel = new java.util.HashSet<>();
+
+		int last = BankTab.applyClick(sel, order, 1, false, false, -1);
+		assertEquals(java.util.Set.of(20), sel);
+		last = BankTab.applyClick(sel, order, 3, false, false, last);
+		assertEquals("plain click clears other selections", java.util.Set.of(40), sel);
+		last = BankTab.applyClick(sel, order, 3, false, false, last);
+		assertTrue("plain click on the only-selected row deselects", sel.isEmpty());
+
+		last = BankTab.applyClick(sel, order, 0, false, false, last);
+		last = BankTab.applyClick(sel, order, 2, true, false, last);
+		assertEquals("cmd/ctrl adds without clearing", java.util.Set.of(10, 30), sel);
+		last = BankTab.applyClick(sel, order, 2, true, false, last);
+		assertEquals("cmd/ctrl on a selected row removes it", java.util.Set.of(10), sel);
+
+		last = BankTab.applyClick(sel, order, 0, false, false, last);
+		last = BankTab.applyClick(sel, order, 2, false, true, last);
+		assertEquals("shift selects the contiguous range",
+			java.util.Set.of(10, 20, 30), sel);
+		assertEquals(2, last);
+
+		// shift with no valid anchor falls back to a plain exclusive select
+		sel.clear();
+		last = BankTab.applyClick(sel, order, 1, false, true, -1);
+		assertEquals(java.util.Set.of(20), sel);
+		assertEquals(1, last);
+	}
+
+	/** Exclusion memory: excluded at quantity 1 auto-returns once the
+	 *  player owns more (and the auto-return clears the entry, so a fresh
+	 *  exclusion at >1 is permanent); legacy set entries migrate as
+	 *  excluded-at-many (permanent). */
+	@Test
+	public void alchExclusionMemory() throws Exception
+	{
+		// a pre-map profile on disk: the old Set<Integer> shape only
+		java.io.File dir = new java.io.File(temp.getRoot(), "7");
+		dir.mkdirs();
+		java.nio.file.Files.write(new java.io.File(dir, "state.json").toPath(),
+			"{\"alchExcluded\":[4151],\"alchExcludedAtQty\":{\"536\":1}}".getBytes(
+				java.nio.charset.StandardCharsets.UTF_8));
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 7L);
+
+		assertTrue("legacy exclusion is permanent", state.isAlchExcluded(4151, 500));
+		assertTrue("qty-1 exclusion hides while still 1", state.isAlchExcluded(536, 1));
+		assertFalse("qty-1 exclusion shows again at >1", state.isAlchExcluded(536, 2));
+
+		// the auto-return pass REMOVES the outgrown entry...
+		state.autoReturnAlchExclusions(Map.of(536, 3, 4151, 500));
+		assertEquals(java.util.Set.of(4151), state.getAlchExcluded());
+		// ...so excluding again at >1 sticks even when the stack grows
+		state.setAlchExcluded(536, 3);
+		assertTrue(state.isAlchExcluded(536, 3));
+		assertTrue("re-exclusion at >1 is permanent", state.isAlchExcluded(536, 400));
+		state.autoReturnAlchExclusions(Map.of(536, 400));
+		assertTrue(state.getAlchExcluded().contains(536));
+
+		// both shapes round-trip: a reload sees the same picture
+		state.persistNow();
+		AccountState reloaded = StateFixture.state(temp.getRoot());
+		StateFixture.profile(reloaded, 7L);
+		assertTrue(reloaded.isAlchExcluded(4151, 500));
+		assertTrue(reloaded.isAlchExcluded(536, 400));
+		reloaded.clearAlchExclusions();
+		assertTrue(reloaded.getAlchExcluded().isEmpty());
 	}
 
 	private static java.util.List<String> componentTexts(java.awt.Container root)
@@ -122,8 +204,9 @@ public class BankTabTest
 		return texts;
 	}
 
-	/** The Banked Experience interface: header maths + the gilded altar
-	 *  modifier reshaping Prayer totals (3.5x, as the upstream states). */
+	/** The Banked Experience interface: header format (bold name — level,
+	 *  banked level in green), the orange Next-level line, and the gilded
+	 *  altar modifier reshaping Prayer totals (3.5x, as the upstream states). */
 	@Test
 	public void skillViewShowsBankedLevelsAndModifiers() throws Exception
 	{
@@ -134,15 +217,24 @@ public class BankTabTest
 		BankTab tab = newTab(state);
 		tab.showSkillView(net.runelite.api.Skill.PRAYER);
 
+		// header: three labels — "Prayer" (bold) + " — 43" + " (51 banked)"
+		// (50,339 + 72,000 = 122,339 xp = level 51)
+		List<String> texts = componentTexts(tab);
+		assertTrue("bold skill name missing: " + texts, texts.contains("Prayer"));
+		assertTrue("level segment missing", texts.contains(" — 43"));
+		assertTrue("banked level segment missing", texts.contains(" (51 banked)"));
+		assertFalse("the old 'level banked' wording must be gone",
+			texts.stream().anyMatch(t -> t.contains("level banked")));
+
 		// 1,000 dragon bones at base 72 = 72,000 banked xp
 		String base = net.runelite.client.util.QuantityFormatter.quantityToRSDecimalStack(72_000, true);
 		assertTrue("base banked xp missing",
-			componentTexts(tab).stream().anyMatch(t -> t.contains("Banked: " + base + " xp")));
+			texts.stream().anyMatch(t -> t.equals("Banked: " + base + " xp")));
 		tab.toggleModifier("Lit Gilded Altar (350% xp)");
 		// x3.5 = 252,000
 		String altar = net.runelite.client.util.QuantityFormatter.quantityToRSDecimalStack(252_000, true);
 		assertTrue("gilded altar must reshape the total",
-			componentTexts(tab).stream().anyMatch(t -> t.contains("Banked: " + altar + " xp")));
+			componentTexts(tab).stream().anyMatch(t -> t.equals("Banked: " + altar + " xp")));
 
 		java.awt.image.BufferedImage image = com.ironhub.ui.SwingRender.render(tab);
 		java.io.File out = new java.io.File("build/reports/bank-skill-view.png");
@@ -151,8 +243,35 @@ public class BankTabTest
 		tab.dispose();
 	}
 
+	/** Prayer altar consumers are mutually exclusive (upstream
+	 *  compatibleWith, carried as the pack's exclusiveGroup): ticking
+	 *  Ectofuntus unticks the gilded altar; Demonic Offering (ashes) is
+	 *  independent and never disturbs the bone total. */
+	@Test
+	public void altarModifiersAreMutuallyExclusive() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.stat(state, net.runelite.api.Skill.PRAYER, 43, 50_339);
+		StateFixture.bank(state, Map.of(536, 1_000)); // dragon bones, base 72
+		StateFixture.itemNames(state, Map.of(536, "Dragon bones"));
+		BankTab tab = newTab(state);
+		tab.showSkillView(net.runelite.api.Skill.PRAYER);
+
+		tab.toggleModifier("Lit Gilded Altar (350% xp)");
+		tab.toggleModifier("Ectofuntus (400% xp)");
+		// 4x only — were both active the total would read 1M (72K x 14)
+		assertTrue("Ectofuntus must untick the gilded altar",
+			componentTexts(tab).stream().anyMatch(t -> t.equals("Banked: 288K xp")));
+		tab.toggleModifier("Demonic Offering (300% xp)"); // ashes — compatible
+		assertTrue("an ashes modifier must not untick a bone altar",
+			componentTexts(tab).stream().anyMatch(t -> t.equals("Banked: 288K xp")));
+		tab.dispose();
+	}
+
 	/** The visible Secondaries section aggregates chosen entries' needs:
-	 *  100 guam leaf as Guam tar want 1,500 swamp tar against 200 owned. */
+	 *  100 guam leaf as Guam tar want 1,500 swamp tar against 200 owned.
+	 *  Selecting the one item surfaces its activity detail card under the
+	 *  results (the old value-click expansion was invisible — Luke). */
 	@Test
 	public void skillViewAggregatesSecondaries() throws Exception
 	{
@@ -161,7 +280,8 @@ public class BankTabTest
 			net.runelite.api.Experience.getXpForLevel(19));
 		StateFixture.bank(state, Map.of(249, 100, 1939, 200));
 		StateFixture.itemNames(state, Map.of(249, "Guam leaf", 1939, "Swamp tar"));
-		BankTab tab = newTab(state);
+		java.util.Set<Integer> selection = new java.util.HashSet<>();
+		BankTab tab = newTab(state, selection);
 		tab.showSkillView(net.runelite.api.Skill.HERBLORE);
 
 		List<String> texts = componentTexts(tab);
@@ -169,11 +289,51 @@ public class BankTabTest
 			texts.stream().anyMatch(t -> t.equals("Secondaries")));
 		assertTrue("aggregated have/need missing: " + texts,
 			texts.stream().anyMatch(t -> t.equals("200/1,500")));
+		assertFalse("no selection = no detail card",
+			texts.stream().anyMatch(t -> t.contains(" xp each · ")));
+
+		selection.add(249);
+		tab.showSkillView(net.runelite.api.Skill.HERBLORE); // re-render
+		texts = componentTexts(tab);
+		assertTrue("single selection must surface the activity detail: " + texts,
+			texts.stream().anyMatch(t -> t.contains(" xp each · ")));
 		tab.dispose();
 	}
 
-	/** The persisted target level: meter + reach line from the REAL xp
-	 *  table (level 61 needs 302,288 xp, so 122,339 banked reaches 51). */
+	/** Selected items grow a stats card between the strip and the results.
+	 *  Headless there is no client: name and count only, never invented
+	 *  stats — and a count of 1 never renders (item 22). */
+	@Test
+	public void itemStatsCardRenders() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.bank(state, Map.of(536, 120, 4151, 1));
+		StateFixture.itemNames(state, Map.of(536, "Dragon bones", 4151, "Abyssal whip"));
+		java.util.Set<Integer> selection = new java.util.HashSet<>(List.of(536));
+		BankTab tab = newTab(state, selection);
+
+		List<String> texts = componentTexts(tab);
+		assertTrue("card must name the selected item: " + texts,
+			texts.contains("Dragon bones"));
+		assertTrue("card shows the banked count", texts.contains("×120"));
+
+		selection.add(4151); // whip, quantity 1
+		tab.showRunecraftView(); // any rebuild path refreshes the card
+		tab.showRunecraftView(); // back to search mode (toggle off)
+		texts = componentTexts(tab);
+		assertTrue(texts.contains("Abyssal whip"));
+		assertFalse("x1 never renders", texts.stream().anyMatch(t -> t.equals("×1")));
+
+		java.awt.image.BufferedImage image = com.ironhub.ui.SwingRender.render(tab);
+		java.io.File out = new java.io.File("build/reports/bank-item-stats.png");
+		out.getParentFile().mkdirs();
+		javax.imageio.ImageIO.write(image, "png", out);
+		tab.dispose();
+	}
+
+	/** The persisted target level: the meter is flanked by the current
+	 *  level (left) and target (right), with the centered banked-xp line
+	 *  beneath; the old "Banked reaches level…" line is gone. */
 	@Test
 	public void targetLevelProgress() throws Exception
 	{
@@ -187,11 +347,34 @@ public class BankTabTest
 		BankTab tab = newTab(state);
 		tab.showSkillView(net.runelite.api.Skill.PRAYER);
 
-		int reaches = net.runelite.api.Experience.getLevelForXp(50_339 + 72_000);
-		assertEquals("xp-table sanity: 122,339 xp is level 51", 51, reaches);
-		assertTrue("reach line missing",
-			componentTexts(tab).stream().anyMatch(
-				t -> t.contains("Banked reaches level " + reaches + " of target 61")));
+		List<String> texts = componentTexts(tab);
+		assertTrue("current level must flank the meter", texts.contains("43"));
+		assertTrue("target level must flank the meter", texts.contains("61"));
+		assertTrue("centered banked total missing: " + texts, texts.contains("72K xp banked"));
+		assertFalse("the reach line was deleted",
+			texts.stream().anyMatch(t -> t.contains("Banked reaches level")));
+		tab.dispose();
+	}
+
+	/** No persisted target: the field auto-fills with the first unbanked
+	 *  level (banked level + 1) so the bar shows immediately — and the auto
+	 *  value never persists. */
+	@Test
+	public void targetAutoFillsWithFirstUnbankedLevel() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 1L);
+		StateFixture.stat(state, net.runelite.api.Skill.PRAYER, 43, 50_339);
+		StateFixture.bank(state, Map.of(536, 1_000)); // banked level 51
+		StateFixture.itemNames(state, Map.of(536, "Dragon bones"));
+		BankTab tab = newTab(state);
+		tab.showSkillView(net.runelite.api.Skill.PRAYER);
+
+		assertEquals("52", tab.targetFieldText());
+		assertEquals("the auto value must not persist", 0, state.getBankSkillTarget("Prayer"));
+		List<String> texts = componentTexts(tab);
+		assertTrue("the bar shows against the auto target", texts.contains("52"));
+		assertTrue("centered banked total missing", texts.contains("72K xp banked"));
 		tab.dispose();
 	}
 
@@ -235,8 +418,10 @@ public class BankTabTest
 		// daeyalt twin: 1,000 x 13.5 = 13,500 on its own line
 		assertTrue("daeyalt line missing: " + texts,
 			texts.stream().anyMatch(t -> t.contains("Daeyalt: 13.5K xp")));
-		assertTrue("target reach line missing",
-			texts.stream().anyMatch(t -> t.contains("of target 50")));
+		// shared header grammar + level-flanked meter
+		assertTrue("bold skill name missing", texts.contains("Runecraft"));
+		assertTrue("level segment missing", texts.contains(" — 44"));
+		assertTrue("target level must flank the meter", texts.contains("50"));
 
 		java.awt.image.BufferedImage image = com.ironhub.ui.SwingRender.render(tab);
 		java.io.File out = new java.io.File("build/reports/bank-rc-view.png");

@@ -2,7 +2,7 @@
  "$schema": "./schemas/banked-xp.schema.json",
  "source": "github.com/TheStonedTurtle/banked-experience@788fbbf (BSD-2-Clause)",
  "generated": "2026-07-17",
- "version": 3,
+ "version": 4,
  "entries": [
   {
    "skill": "Herblore",
@@ -8386,7 +8386,8 @@
     "HYDRA_BONES",
     "FROST_DRAGON_BONES",
     "STRYKEWYRM_BONES_BURY"
-   ]
+   ],
+   "exclusiveGroup": "prayer-exclusive"
   },
   {
    "skill": "Prayer",
@@ -8417,7 +8418,8 @@
     "HYDRA_BONES",
     "FROST_DRAGON_BONES",
     "STRYKEWYRM_BONES_BURY"
-   ]
+   ],
+   "exclusiveGroup": "prayer-exclusive"
   },
   {
    "skill": "Prayer",
@@ -8447,7 +8449,8 @@
     "DRAKE_BONES",
     "HYDRA_BONES",
     "FROST_DRAGON_BONES"
-   ]
+   ],
+   "exclusiveGroup": "prayer-exclusive"
   },
   {
    "skill": "Prayer",
@@ -8478,7 +8481,8 @@
     "HYDRA_BONES",
     "FROST_DRAGON_BONES",
     "STRYKEWYRM_BONES_BURY"
-   ]
+   ],
+   "exclusiveGroup": "prayer-exclusive"
   },
   {
    "skill": "Farming",

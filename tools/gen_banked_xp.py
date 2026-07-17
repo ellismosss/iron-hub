@@ -19,6 +19,8 @@ We flatten them into the pack: one entry per (item, activity) pair —
 outputId, outputQty} — plus a top-level modifiers array. `activity` is
 the upstream enum constant; modifiers' appliesTo/ignores lists join on
 it (display names collide — two activities are both named "Bury").
+Modifiers that upstream's compatibleWith machinery makes mutually
+exclusive carry a shared `exclusiveGroup` (see exclusive_groups()).
 BankedXp.compute() picks the best method per (skill, item), so listing
 every activity is safe. Byte-faithful conversions:
 
@@ -92,31 +94,41 @@ ITEM_STACK = re.compile(rf"new ItemStack\(ItemID\.(\w+),\s*({NUMBER})\)")
 # The upstream modifiers (Modifiers.createModifiers), each row verified
 # below against the source text at the pinned commit; activity sets are
 # parsed from the same file. (skill, name, value, includedSet, ignored,
-# sourceText). Values are xp multipliers on a banked item.
+# sourceText, kind). Values are xp multipliers on a banked item. `kind`
+# mirrors the upstream class for compatibleWith semantics:
+#   static  = StaticModifier (incompatible with another static touching
+#             the same activity — touchesSameActivity over includedActivities)
+#   wildy   = the Wildy Altar ConsumptionModifier, whose compatibleWith
+#             OVERRIDE also rejects statics touching the same activity
+#   outfit  = SkillingOutfit (ConsumptionModifier; default compatibleWith
+#             = always true, so outfits stay independent)
 MODIFIERS = [
     ("PRAYER", "Demonic Offering (300% xp)", 3.0, "ASHES", [],
-     'new StaticModifier(Skill.PRAYER, "Demonic Offering (300% xp)", 3, ASHES, null'),
+     'new StaticModifier(Skill.PRAYER, "Demonic Offering (300% xp)", 3, ASHES, null', "static"),
     ("PRAYER", "Sinister Offering (300% xp)", 3.0, "BONES", [],
-     'new StaticModifier(Skill.PRAYER, "Sinister Offering (300% xp)", 3, BONES, null'),
+     'new StaticModifier(Skill.PRAYER, "Sinister Offering (300% xp)", 3, BONES, null', "static"),
     ("PRAYER", "Lit Gilded Altar (350% xp)", 3.5, "BONES", [],
-     'new StaticModifier(Skill.PRAYER, "Lit Gilded Altar (350% xp)", 3.5f, BONES, null'),
+     'new StaticModifier(Skill.PRAYER, "Lit Gilded Altar (350% xp)", 3.5f, BONES, null', "static"),
     ("PRAYER", "Ectofuntus (400% xp)", 4.0, "BONES", ["STRYKEWYRM_BONES_BURY"],
      'new StaticModifier(Skill.PRAYER, "Ectofuntus (400% xp)", 4, BONES, '
-     'Set.of(Activity.STRYKEWYRM_BONES_BURY)'),
+     'Set.of(Activity.STRYKEWYRM_BONES_BURY)', "static"),
     # ponytail: 3.5x xp / 0.5 consumption chance = 7x per banked bone —
     # Activity.getXpRate's own math; split into {xp, save} fields if the
     # UI ever models consumption separately.
     ("PRAYER", "Wildy Altar (350% xp & 50% Save)", 7.0, "BONES", [],
-     'new ConsumptionModifier(Skill.PRAYER, "Wildy Altar (350% xp & 50% Save)", 0.5f, BONES, null'),
+     'new ConsumptionModifier(Skill.PRAYER, "Wildy Altar (350% xp & 50% Save)", 0.5f, BONES, null',
+     "wildy"),
     ("FARMING", "Farmer's Outfit", 1.025, None, [],
-     'new SkillingOutfit(Skill.FARMING, "Farmer\'s Outfit", null, null'),
+     'new SkillingOutfit(Skill.FARMING, "Farmer\'s Outfit", null, null', "outfit"),
     ("CONSTRUCTION", "Carpenter's Outfit", 1.025, None,
      ["LONG_BONE", "CURVED_BONE"],
-     'new SkillingOutfit(Skill.CONSTRUCTION, "Carpenter\'s Outfit", null, CONSTRUCTION_BONES'),
+     'new SkillingOutfit(Skill.CONSTRUCTION, "Carpenter\'s Outfit", null, CONSTRUCTION_BONES',
+     "outfit"),
     ("FIREMAKING", "Pyromancer Outfit", 1.025, None, [],
-     'new SkillingOutfit(Skill.FIREMAKING, "Pyromancer Outfit"'),
+     'new SkillingOutfit(Skill.FIREMAKING, "Pyromancer Outfit"', "outfit"),
     ("SAILING", "Horizon's Lure (102.5% xp)", 1.025, "SALVAGE", [],
-     'new StaticModifier(Skill.SAILING, "Horizon\'s Lure (102.5% xp)", 1.025f, SALVAGE, null'),
+     'new StaticModifier(Skill.SAILING, "Horizon\'s Lure (102.5% xp)", 1.025f, SALVAGE, null',
+     "static"),
 ]
 SKIPPED_MODIFIERS = ["Zealot's robes"]  # consumption-only, per-piece save, no xp effect
 
@@ -250,11 +262,67 @@ def parse_modifier_sets(source: str) -> dict:
     return sets
 
 
+def exclusive_groups(sets: dict) -> dict:
+    """name -> exclusiveGroup, replicating upstream compatibleWith pairwise.
+
+    The upstream UI (BankedCalculator.populateModifierComponents) disables
+    any enabled modifier for which !(a.compatibleWith(b) &&
+    b.compatibleWith(a)) when another is ticked. The semantics live in three
+    places at the pinned commit:
+      Modifier.compatibleWith          -> true (default)
+      StaticModifier.compatibleWith    -> !touchesSameActivity for statics
+      Modifiers.java Wildy override    -> !touchesSameActivity for statics
+    touchesSameActivity compares includedActivities (empty = whole skill);
+    the ignored set plays no part. We compute the pairwise-incompatibility
+    graph, require it to decompose into disjoint cliques, and name each
+    clique — the UI then unticks a group's other members on tick.
+    """
+    mods = []
+    for skill, name, _v, included_set, _ign, _src, kind in MODIFIERS:
+        included = frozenset(sets[included_set]) if included_set else frozenset()
+        mods.append((name, kind, skill, included))
+
+    def touches(a, b):
+        if a[2] != b[2]:
+            return False
+        return not a[3] or not b[3] or bool(a[3] & b[3])
+
+    def compatible(a, b):  # a.compatibleWith(b)
+        if a[1] == "static" and b[1] == "static":
+            return not touches(a, b)
+        if a[1] == "wildy" and b[1] == "static":
+            return not touches(a, b)
+        return True
+
+    incompatible = {a[0]: {b[0] for b in mods if a[0] != b[0]
+                           and not (compatible(a, b) and compatible(b, a))}
+                    for a in mods}
+    groups, seen = {}, set()
+    for name, _kind, skill, _inc in mods:
+        if name in seen or not incompatible[name]:
+            continue
+        clique = {name} | incompatible[name]
+        for member in clique:  # disjoint cliques only — anything else needs pairwise modelling
+            assert incompatible[member] == clique - {member}, \
+                f"incompatibility graph is not a clique around {member}"
+        group_id = f"{skill.lower()}-exclusive"
+        for member in clique:
+            assert member not in groups, f"{member} in two exclusive groups"
+            groups[member] = group_id
+        seen |= clique
+    # anchor: the four Prayer bone consumers exclude each other; Demonic
+    # Offering (ashes) and the outfits stay independent
+    assert set(groups) == {"Sinister Offering (300% xp)", "Lit Gilded Altar (350% xp)",
+                           "Ectofuntus (400% xp)", "Wildy Altar (350% xp & 50% Save)"}, groups
+    return groups
+
+
 def build_modifiers(modifiers_source: str, activity_names: set) -> list:
     """activity_names: enum names of emitted (xp > 0) activities."""
     sets = parse_modifier_sets(modifiers_source)
+    groups = exclusive_groups(sets)
     result = []
-    for skill, name, value, included_set, ignored, source_text in MODIFIERS:
+    for skill, name, value, included_set, ignored, source_text, _kind in MODIFIERS:
         assert source_text in modifiers_source, f"modifier drifted upstream: {name}"
         modifier = {
             "skill": skill.capitalize(),
@@ -272,6 +340,8 @@ def build_modifiers(modifiers_source: str, activity_names: set) -> list:
                 assert activity in activity_names, \
                     f"{name} applies to unknown/zero-xp activity {activity}"
             modifier["appliesTo"] = applies
+        if name in groups:
+            modifier["exclusiveGroup"] = groups[name]
         result.append(modifier)
     return result
 
@@ -350,7 +420,7 @@ def main():
         "$schema": "./schemas/banked-xp.schema.json",
         "source": f"github.com/{REPO}@{COMMIT[:7]} (BSD-2-Clause)",
         "generated": datetime.date.today().isoformat(),
-        "version": 3,
+        "version": 4,
         "entries": entries,
         "modifiers": modifiers,
     }

@@ -47,5 +47,6 @@ public class BankedXpPack
 		private List<String> appliesTo; // Entry.activity names; null with appliesToAll = whole skill
 		private boolean appliesToAll;
 		private List<String> ignores;   // only with appliesToAll
+		private String exclusiveGroup;  // ticking one unticks the group's others (upstream compatibleWith); null = independent
 	}
 }

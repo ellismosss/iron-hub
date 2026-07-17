@@ -27,19 +27,43 @@ public class StoneCheckbox extends JComponent
 		{0, 2}, {1, 3}, {2, 4}, {3, 5}, {4, 4}, {5, 3}, {6, 2}, {7, 1}, {8, 0},
 	};
 	private static final Rectangle TICK_BOUNDS = tickBounds();
+	/** The rest glyph's pixel path — a small 'x' of 1px dabs. */
+	private static final int[][] CROSS = {
+		{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}, {4, 0}, {3, 1}, {1, 3}, {0, 4},
+	};
 
 	private final OsrsTheme theme;
+	private final boolean restCross;
 	private boolean checked;
+	private boolean dimmed;
 
 	public StoneCheckbox(OsrsTheme theme, boolean checked)
 	{
+		this(theme, checked, false);
+	}
+
+	/**
+	 * restCross paints a small grey 'x' while UNCHECKED, for boxes whose
+	 * purpose is exclusion — readable at rest without a hover (Luke,
+	 * 2026-07-17: the alch view's exclude box).
+	 */
+	public StoneCheckbox(OsrsTheme theme, boolean checked, boolean restCross)
+	{
 		this.theme = theme;
 		this.checked = checked;
+		this.restCross = restCross;
 	}
 
 	public void setChecked(boolean checked)
 	{
 		this.checked = checked;
+		repaint();
+	}
+
+	/** Ghost the whole box — an inapplicable control (still 15px). */
+	public void setDimmed(boolean dimmed)
+	{
+		this.dimmed = dimmed;
 		repaint();
 	}
 
@@ -70,6 +94,11 @@ public class StoneCheckbox extends JComponent
 	protected void paintComponent(Graphics g)
 	{
 		Graphics2D g2 = (Graphics2D) g;
+		if (dimmed)
+		{
+			g2.setComposite(java.awt.AlphaComposite.getInstance(
+				java.awt.AlphaComposite.SRC_OVER, 0.4f));
+		}
 		OsrsSkin.outline(g2, theme.edgeDark, 0, 0, SIZE, SIZE);
 		OsrsSkin.outline(g2, theme.edgeLight, 1, 1, SIZE - 2, SIZE - 2);
 		g2.setColor(theme.recess);
@@ -77,6 +106,14 @@ public class StoneCheckbox extends JComponent
 
 		if (!checked)
 		{
+			if (restCross)
+			{
+				g2.setColor(OsrsSkin.FAINT);
+				for (int[] p : CROSS)
+				{
+					g2.fillRect(p[0] + 5, p[1] + 5, 1, 1);
+				}
+			}
 			return;
 		}
 		// center the tick's own ink in the box; hand-placed offsets read low

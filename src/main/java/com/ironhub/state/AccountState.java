@@ -67,8 +67,12 @@ public class AccountState implements StateView
 
 	// manual daily ticks: daily id -> epoch millis when marked done
 	private final Map<String, Long> dailiesDoneAt = new ConcurrentHashMap<>();
-	// items hidden from the bank Highest-alchs view (persisted)
-	private final Set<Integer> alchExcluded = ConcurrentHashMap.newKeySet();
+	// items hidden from the bank Highest-alchs view: id -> banked quantity
+	// when excluded (persisted). Excluded at quantity 1 = "not worth alching
+	// my only one" — auto-returns once the player owns more than one.
+	private final Map<Integer, Integer> alchExcludedAtQty = new ConcurrentHashMap<>();
+	/** Migration marker for pre-map exclusions: treated as excluded-at-many (permanent). */
+	private static final int EXCLUDED_AT_MANY = Integer.MAX_VALUE;
 	// bank-tab per-skill target levels: skill name -> level (persisted)
 	private final Map<String, Integer> bankSkillTargets = new ConcurrentHashMap<>();
 	/** Dailies the player has explicitly included/excluded from the guided run.
@@ -1321,30 +1325,55 @@ public class AccountState implements StateView
 
 	// ── bank Highest-alchs exclusions (persisted) ─────────────────────
 
-	public boolean isAlchExcluded(int itemId)
+	/**
+	 * Hidden from Highest alchs? An item excluded while it was the player's
+	 * ONLY one shows again once they own more than one — the exclusion read
+	 * "not worth alching my last one", not "never show this". The auto-return
+	 * itself happens in {@link #autoReturnAlchExclusions}, which clears the
+	 * entry so excluding the item again at &gt;1 sticks until a reset.
+	 */
+	public boolean isAlchExcluded(int itemId, int currentQty)
 	{
-		return alchExcluded.contains(itemId);
+		Integer atQty = alchExcludedAtQty.get(itemId);
+		return atQty != null && !(atQty == 1 && currentQty > 1);
 	}
 
 	public Set<Integer> getAlchExcluded()
 	{
-		return java.util.Set.copyOf(alchExcluded);
+		return java.util.Set.copyOf(alchExcludedAtQty.keySet());
 	}
 
-	public void setAlchExcluded(int itemId, boolean excluded)
+	/** Exclude an item, remembering the banked quantity it was excluded at. */
+	public void setAlchExcluded(int itemId, int quantityWhenExcluded)
 	{
-		if (excluded ? alchExcluded.add(itemId) : alchExcluded.remove(itemId))
+		Integer previous = alchExcludedAtQty.put(itemId, Math.max(1, quantityWhenExcluded));
+		if (previous == null || previous != Math.max(1, quantityWhenExcluded))
 		{
 			persist();
 			notifyListeners();
 		}
 	}
 
+	/**
+	 * Drop qty-1 exclusions the player has outgrown (owns &gt;1 now). The
+	 * alch view calls this as it rebuilds, so it persists without notifying —
+	 * the caller is already rendering the post-return list.
+	 */
+	public void autoReturnAlchExclusions(Map<Integer, Integer> bank)
+	{
+		boolean changed = alchExcludedAtQty.entrySet().removeIf(e ->
+			e.getValue() == 1 && bank.getOrDefault(e.getKey(), 0) > 1);
+		if (changed)
+		{
+			persist();
+		}
+	}
+
 	public void clearAlchExclusions()
 	{
-		if (!alchExcluded.isEmpty())
+		if (!alchExcludedAtQty.isEmpty())
 		{
-			alchExcluded.clear();
+			alchExcludedAtQty.clear();
 			persist();
 			notifyListeners();
 		}
@@ -1618,8 +1647,13 @@ public class AccountState implements StateView
 		killCounts.putAll(persisted.killCounts);
 		dailiesDoneAt.clear();
 		dailiesDoneAt.putAll(persisted.dailiesDoneAt);
-		alchExcluded.clear();
-		alchExcluded.addAll(persisted.alchExcluded);
+		alchExcludedAtQty.clear();
+		alchExcludedAtQty.putAll(persisted.alchExcludedAtQty);
+		for (Integer id : persisted.alchExcluded)
+		{
+			// pre-map profiles: excluded-at-many = permanent until reset
+			alchExcludedAtQty.putIfAbsent(id, EXCLUDED_AT_MANY);
+		}
 		bankSkillTargets.clear();
 		bankSkillTargets.putAll(persisted.bankSkillTargets);
 		dailiesChoice.clear();
@@ -1719,7 +1753,8 @@ public class AccountState implements StateView
 		state.unlocks = new HashSet<>(unlocks);
 		state.killCounts = new HashMap<>(killCounts);
 		state.dailiesDoneAt = new HashMap<>(dailiesDoneAt);
-		state.alchExcluded = new HashSet<>(alchExcluded);
+		state.alchExcluded = new HashSet<>(alchExcludedAtQty.keySet()); // legacy readers
+		state.alchExcludedAtQty = new HashMap<>(alchExcludedAtQty);
 		state.bankSkillTargets = new HashMap<>(bankSkillTargets);
 		state.dailiesChoice = new HashMap<>(dailiesChoice);
 		lootBySource.forEach((src, items) -> state.lootBySource.put(src, new HashMap<>(items)));

@@ -145,9 +145,6 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "womSync", name = "Wise Old Man / TempleOSRS", description = "Opt-in: pull EHP/EHB context and ping gain updates on logout", section = integrationsSection, position = 4)
 	default boolean womSync() { return false; }
 
-	@ConfigItem(keyName = "bankedXpGridView", name = "Banked XP grid view", description = "Internal: banked XP section view preference", hidden = true)
-	default boolean bankedXpGridView() { return true; }
-
 	@ConfigItem(keyName = "gearHideComplete", name = "Gear chart hide complete", description = "Internal: gear chart hide-complete preference", hidden = true)
 	default boolean gearHideComplete() { return false; }
 

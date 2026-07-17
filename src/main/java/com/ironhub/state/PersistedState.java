@@ -19,7 +19,8 @@ public class PersistedState
 	Set<String> unlocks = new HashSet<>();
 	Map<String, Integer> killCounts = new HashMap<>();
 	Map<String, Long> dailiesDoneAt = new HashMap<>(); // daily id -> epoch millis of manual tick
-	Set<Integer> alchExcluded = new HashSet<>(); // items hidden from the bank Highest-alchs view
+	Set<Integer> alchExcluded = new HashSet<>(); // legacy key set (kept readable + written for old profiles)
+	Map<Integer, Integer> alchExcludedAtQty = new HashMap<>(); // item id -> banked qty when excluded (1 = auto-returns once the player owns more)
 	Map<String, Integer> bankSkillTargets = new HashMap<>(); // skill name -> bank-tab target level
 	Map<String, Boolean> dailiesChoice = new HashMap<>(); // daily id -> included in the run (absent = the pack's default)
 	Map<String, Map<Integer, Integer>> lootBySource = new HashMap<>(); // npc -> item id -> total qty

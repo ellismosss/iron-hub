@@ -34,6 +34,8 @@ public class BankTrackerModule implements IronHubModule
 	private final net.runelite.api.Client client;
 	private final IronHubConfig config;
 	private final DataPack dataPack;
+	// ponytail: unused since the Grid/List chips went (2026-07-17); kept so
+	// the injected ctor arity stays pinned by the lifecycle tests
 	private final ConfigManager configManager;
 	private BankTab tab;
 
@@ -197,13 +199,7 @@ public class BankTrackerModule implements IronHubModule
 				this::setBankDisplay,
 				dataPack.load("banked-xp", BankedXpPack.class),
 				dataPack.load("xp-actions", com.ironhub.data.XpActionsPack.class),
-				config.bankedXpGridView(), gridView ->
-				{
-					if (configManager != null)
-					{
-						configManager.setConfiguration(IronHubConfig.GROUP, "bankedXpGridView", gridView);
-					}
-				}, config.osrsTheme());
+				config.osrsTheme());
 		}
 		return tab;
 	}
