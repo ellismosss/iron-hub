@@ -32,4 +32,15 @@ public interface IronHubModule
 	{
 		return null;
 	}
+
+	/**
+	 * The osrsTheme setting flipped (dispatched by IronHubPlugin to every
+	 * started module). Skinned modules drop their cached tab here — the
+	 * panel has already closed the open block, and its next mount calls
+	 * buildTab() again, which builds a fresh tab in the new theme. Runs on
+	 * whatever thread fired the config event: dispose on the EDT.
+	 */
+	default void onThemeChanged()
+	{
+	}
 }

@@ -128,7 +128,6 @@ public class LoadoutLabModule implements IronHubModule
 			mountPanel();
 		}));
 		eventBus.register(lab);
-		eventBus.register(this); // osrsTheme flips re-clothe the wrapper
 		lab.startUp();
 		state.addListener(listener);
 		started = true;
@@ -141,7 +140,6 @@ public class LoadoutLabModule implements IronHubModule
 		{
 			state.removeListener(listener);
 			eventBus.unregister(lab);
-			eventBus.unregister(this);
 			lab.shutDown();
 			started = false;
 		}
@@ -173,17 +171,14 @@ public class LoadoutLabModule implements IronHubModule
 
 	/** A theme flip re-clothes the wrapper chrome: drop the cached tab, the
 	 *  panel's next mount rebuilds it (the upstream lab panel is re-adopted). */
-	@net.runelite.client.eventbus.Subscribe
-	public void onConfigChanged(net.runelite.client.events.ConfigChanged event)
+	@Override
+	public void onThemeChanged()
 	{
-		if (IronHubConfig.GROUP.equals(event.getGroup()) && "osrsTheme".equals(event.getKey()))
+		SwingUtilities.invokeLater(() ->
 		{
-			SwingUtilities.invokeLater(() ->
-			{
-				holder = null;
-				strip = null;
-			});
-		}
+			holder = null;
+			strip = null;
+		});
 	}
 
 	/** The activity card: what the module is auto-following, plus wiki tips.

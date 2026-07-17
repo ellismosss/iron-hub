@@ -248,6 +248,7 @@ public class IronHubPlugin extends Plugin
 			syncModuleLifecycles();
 			if ("osrsTheme".equals(event.getKey()))
 			{
+				started.forEach(IronHubModule::onThemeChanged);
 				panel.themeChanged();
 			}
 		}

@@ -52,7 +52,7 @@ public class NavBlocksTest
 		DailiesModule brain = new DailiesModule(state, null, config, new DataPack(new Gson()),
 			null, null, null, null, null, null, null, null, null, null, null);
 		brain.startUp();
-		dailiesNew = new DailiesNewModule(brain, config, new net.runelite.client.eventbus.EventBus());
+		dailiesNew = new DailiesNewModule(brain, config);
 		farming = new FarmingRunModule(state, null, new net.runelite.client.eventbus.EventBus(),
 			null, null, null, config, null, new DataPack(new Gson()),
 			null, null, null, null, null, null, null);

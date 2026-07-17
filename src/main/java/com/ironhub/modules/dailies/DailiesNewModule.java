@@ -8,9 +8,6 @@ import javax.inject.Singleton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import net.runelite.client.eventbus.EventBus;
-import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.events.ConfigChanged;
 
 /**
  * The OSRS-skin migration pilot (design/OSRS-SKIN.md phase 4): the Dailies
@@ -25,17 +22,15 @@ public class DailiesNewModule implements IronHubModule
 {
 	private final DailiesModule brain;
 	private final IronHubConfig config;
-	private final EventBus eventBus; // null in unit tests
 
 	private JPanel holder;
 	private DailiesNewTab tab;
 
 	@Inject
-	public DailiesNewModule(DailiesModule brain, IronHubConfig config, EventBus eventBus)
+	public DailiesNewModule(DailiesModule brain, IronHubConfig config)
 	{
 		this.brain = brain;
 		this.config = config;
-		this.eventBus = eventBus;
 	}
 
 	@Override
@@ -53,19 +48,11 @@ public class DailiesNewModule implements IronHubModule
 	@Override
 	public void startUp()
 	{
-		if (eventBus != null)
-		{
-			eventBus.register(this);
-		}
 	}
 
 	@Override
 	public void shutDown()
 	{
-		if (eventBus != null)
-		{
-			eventBus.unregister(this);
-		}
 		if (tab != null)
 		{
 			tab.dispose();
@@ -87,11 +74,10 @@ public class DailiesNewModule implements IronHubModule
 	}
 
 	/** A theme flip re-clothes the tab; everything else it hears itself. */
-	@Subscribe
-	public void onConfigChanged(ConfigChanged event)
+	@Override
+	public void onThemeChanged()
 	{
-		if (IronHubConfig.GROUP.equals(event.getGroup()) && "osrsTheme".equals(event.getKey())
-			&& holder != null)
+		if (holder != null)
 		{
 			SwingUtilities.invokeLater(this::rebuild);
 		}

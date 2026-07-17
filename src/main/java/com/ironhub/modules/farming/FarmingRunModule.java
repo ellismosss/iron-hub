@@ -352,20 +352,20 @@ public class FarmingRunModule implements IronHubModule
 		{
 			trackingDirty = true;
 		}
-		// a theme flip re-clothes the tab: drop it and the panel's next mount
-		// builds a fresh one in the new theme (IronHubPanel.themeChanged has
-		// already closed the open block, so nothing stale stays visible)
-		if (IronHubConfig.GROUP.equals(event.getGroup()) && "osrsTheme".equals(event.getKey()))
+	}
+
+	/** A theme flip re-clothes the tab: drop it, the next mount rebuilds. */
+	@Override
+	public void onThemeChanged()
+	{
+		SwingUtilities.invokeLater(() ->
 		{
-			SwingUtilities.invokeLater(() ->
+			if (tab != null)
 			{
-				if (tab != null)
-				{
-					tab.dispose();
-					tab = null;
-				}
-			});
-		}
+				tab.dispose();
+				tab = null;
+			}
+		});
 	}
 
 	/**

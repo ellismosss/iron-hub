@@ -75,7 +75,7 @@ public class ModuleLifecycleTest
 			new com.ironhub.modules.dailies.DailiesNewModule(
 				new DailiesModule(state, null, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()),
 					null, null, null, null, null, null, null, null, null, null, null),
-				config, new net.runelite.client.eventbus.EventBus()));
+				config));
 
 		assertEquals(20, modules.size());
 

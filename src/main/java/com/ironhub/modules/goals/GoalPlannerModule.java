@@ -30,7 +30,6 @@ public class GoalPlannerModule implements IronHubModule
 	private final net.runelite.client.game.ItemManager itemManager; // null in headless tests
 	private final net.runelite.client.game.SkillIconManager skillIconManager; // null in headless tests
 	private final net.runelite.client.ui.overlay.OverlayManager overlayManager; // null in headless tests
-	private net.runelite.client.eventbus.EventBus eventBus; // null in headless tests
 	private PlannerOverlay overlay;
 	private GoalsPack pack;
 	private com.ironhub.data.GearProgressionPack gearPack;
@@ -62,15 +61,14 @@ public class GoalPlannerModule implements IronHubModule
 	public GoalPlannerModule(AccountState state, IronHubConfig config, DataPack dataPack,
 		net.runelite.client.game.ItemManager itemManager)
 	{
-		this(state, config, dataPack, itemManager, null, null, null);
+		this(state, config, dataPack, itemManager, null, null);
 	}
 
 	@Inject
 	public GoalPlannerModule(AccountState state, IronHubConfig config, DataPack dataPack,
 		net.runelite.client.game.ItemManager itemManager,
 		net.runelite.client.game.SkillIconManager skillIconManager,
-		net.runelite.client.ui.overlay.OverlayManager overlayManager,
-		net.runelite.client.eventbus.EventBus eventBus)
+		net.runelite.client.ui.overlay.OverlayManager overlayManager)
 	{
 		this.state = state;
 		this.config = config;
@@ -78,7 +76,6 @@ public class GoalPlannerModule implements IronHubModule
 		this.itemManager = itemManager;
 		this.skillIconManager = skillIconManager;
 		this.overlayManager = overlayManager;
-		this.eventBus = eventBus;
 	}
 
 	@Override
@@ -109,10 +106,6 @@ public class GoalPlannerModule implements IronHubModule
 			dataPack.load("diaries", com.ironhub.data.DiariesPack.class));
 		state.addListener(stateListener);
 		engineActive = true;
-		if (eventBus != null)
-		{
-			eventBus.register(this);
-		}
 		if (overlayManager != null)
 		{
 			overlay = new PlannerOverlay(this, state, config);
@@ -123,20 +116,17 @@ public class GoalPlannerModule implements IronHubModule
 
 	/** A theme flip re-clothes the tab: drop it, the panel's next mount
 	 *  builds a fresh one (the open block is already closed by then). */
-	@net.runelite.client.eventbus.Subscribe
-	public void onConfigChanged(net.runelite.client.events.ConfigChanged event)
+	@Override
+	public void onThemeChanged()
 	{
-		if (IronHubConfig.GROUP.equals(event.getGroup()) && "osrsTheme".equals(event.getKey()))
+		javax.swing.SwingUtilities.invokeLater(() ->
 		{
-			javax.swing.SwingUtilities.invokeLater(() ->
+			if (tab != null)
 			{
-				if (tab != null)
-				{
-					tab.dispose();
-					tab = null;
-				}
-			});
-		}
+				tab.dispose();
+				tab = null;
+			}
+		});
 	}
 
 	@Override
@@ -144,10 +134,6 @@ public class GoalPlannerModule implements IronHubModule
 	{
 		engineActive = false;
 		state.removeListener(stateListener);
-		if (eventBus != null)
-		{
-			eventBus.unregister(this);
-		}
 		sharedPlan = null; // never leak a stale plan across profiles/lifecycles
 		if (overlay != null)
 		{
