@@ -169,6 +169,9 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "dailiesNew", name = "Dailies (New)", description = "The Dailies tab in the OSRS skin, beside the classic one for comparison (migration preview)", section = modulesSection, position = 27)
 	default boolean dailiesNew() { return true; }
 
+	@ConfigItem(keyName = "freezeWatchdog", name = "Freeze detector", description = "Log a stack dump when the client UI stalls, so freezes can be diagnosed (development aid, negligible cost)", section = modulesSection, position = 28)
+	default boolean freezeWatchdog() { return true; }
+
 	@ConfigItem(keyName = "discordWebhookUrl", name = "Discord webhook URL", description = "Opt-in: milestone notifications (log slots, uniques, pets, levels, goals)", section = integrationsSection, position = 5)
 	default String discordWebhookUrl() { return ""; }
 }

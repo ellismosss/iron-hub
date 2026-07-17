@@ -72,7 +72,11 @@ public class IronHubPlugin extends Plugin
 	@Inject
 	private Set<IronHubModule> modules;
 
+	@Inject
+	private IronHubConfig config;
+
 	private final Set<IronHubModule> started = new HashSet<>();
+	private final EdtWatchdog watchdog = new EdtWatchdog();
 	private NavigationButton navButton;
 
 	// RuneLite ships Guice 4.1 no_aop without the multibindings extension,
@@ -132,12 +136,17 @@ public class IronHubPlugin extends Plugin
 		clientToolbar.addNavigation(navButton);
 
 		syncModuleLifecycles();
+		if (config.freezeWatchdog())
+		{
+			watchdog.start();
+		}
 		log.info("Iron Hub started with {}/{} modules enabled", started.size(), modules.size());
 	}
 
 	@Override
 	protected void shutDown()
 	{
+		watchdog.stop();
 		started.forEach(IronHubModule::shutDown);
 		started.clear();
 		clientToolbar.removeNavigation(navButton);
@@ -250,6 +259,17 @@ public class IronHubPlugin extends Plugin
 			{
 				started.forEach(IronHubModule::onThemeChanged);
 				panel.themeChanged();
+			}
+			if ("freezeWatchdog".equals(event.getKey()))
+			{
+				if (config.freezeWatchdog())
+				{
+					watchdog.start();
+				}
+				else
+				{
+					watchdog.stop();
+				}
 			}
 		}
 	}
