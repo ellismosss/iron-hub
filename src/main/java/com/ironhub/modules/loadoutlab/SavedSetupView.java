@@ -15,11 +15,8 @@ import java.util.Map;
 import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import net.runelite.api.EquipmentInventorySlot;
-import net.runelite.api.SpriteID;
 import net.runelite.client.game.ItemManager;
-import net.runelite.client.game.SpriteManager;
 import net.runelite.client.util.AsyncBufferedImage;
 
 /**
@@ -35,9 +32,10 @@ import net.runelite.client.util.AsyncBufferedImage;
  * the links, so both themes share them). Slot sprites come per theme via
  * OsrsIcons (vanilla = Luke's dropped official set at data/icons/osrs/
  * equipment/, Mystic = the pack's redraws); the inventory backing is the
- * Mystic pack's fixed_mode/side_panel_background for MYSTIC and the game's
- * own SpriteID.RS2_SIDE_PANEL_BACKGROUND fetched from the sprite cache at
- * runtime for STONE (headless renders paint an honest plain fallback).
+ * Mystic pack's fixed_mode/side_panel_background for MYSTIC, and for
+ * vanilla it is pieced from Luke's dropped dialog_inventory_sprites set —
+ * the parchment background texture tiled inside the steel side-panel frame
+ * (7px strips centred in 32px canvases; the inside-visible parts cropped).
  */
 class SavedSetupView
 {
@@ -89,18 +87,16 @@ class SavedSetupView
 
 	private final OsrsTheme theme;
 	private final ItemManager itemManager;   // null headless — sprites skipped
-	private final SpriteManager spriteManager; // null headless — backing falls back
 	private final Function<Integer, String> itemName;
 	private final BufferedImage slotTile;
 	private final BufferedImage linkH;
 	private final BufferedImage linkV;
 
-	SavedSetupView(OsrsTheme theme, ItemManager itemManager, SpriteManager spriteManager,
+	SavedSetupView(OsrsTheme theme, ItemManager itemManager,
 		Function<Integer, String> itemName)
 	{
 		this.theme = theme;
 		this.itemManager = itemManager;
-		this.spriteManager = spriteManager;
 		this.itemName = itemName;
 		this.slotTile = OsrsIcons.image(theme, "equipment/slot_tile");
 		this.linkH = OsrsIcons.image(theme, "equipment/link_h");
@@ -134,6 +130,12 @@ class SavedSetupView
 		AsyncBufferedImage image = itemManager.getImage(itemId, Math.max(1, quantity), quantity > 1);
 		image.onLoaded(repaintTarget::repaint);
 		return image;
+	}
+
+	/** The inside-visible part of a frame sprite (null-safe). */
+	private static BufferedImage sub(BufferedImage source, int x, int y, int w, int h)
+	{
+		return source == null ? null : source.getSubimage(x, y, w, h);
 	}
 
 	/** Tile a link strip along its span (stretching would smear the chain). */
@@ -333,23 +335,61 @@ class SavedSetupView
 	{
 		private final PersistedState.SavedSetup setup;
 		private final AsyncBufferedImage[] items = new AsyncBufferedImage[28];
-		private BufferedImage backing;
+		/** MYSTIC ships the framed backing as one sprite; vanilla is pieced
+		 *  from Luke's dropped set (texture + the side-panel steel frame). */
+		private final BufferedImage backing;
+		private final BufferedImage texture;
+		private final BufferedImage edgeTop;
+		private final BufferedImage edgeBottom;
+		private final BufferedImage edgeLeft;
+		private final BufferedImage edgeRight;
+		private final BufferedImage cornerTl;
+		private final BufferedImage cornerTr;
+		private final BufferedImage cornerBl;
+		private final BufferedImage cornerBr;
 
 		InventoryCanvas(PersistedState.SavedSetup setup)
 		{
 			this.setup = setup;
 			setOpaque(false);
 			setToolTipText("");
-			backing = OsrsIcons.image(theme, "fixed_mode/side_panel_background");
-			if (backing == null && spriteManager != null)
+			backing = theme == OsrsTheme.MYSTIC
+				? OsrsIcons.image(theme, "fixed_mode/side_panel_background") : null;
+			if (backing == null)
 			{
-				// vanilla: the game's own framed backing from the sprite cache
-				spriteManager.getSpriteAsync(SpriteID.RS2_SIDE_PANEL_BACKGROUND, 0,
-					image -> SwingUtilities.invokeLater(() ->
-					{
-						backing = image;
-						repaint();
-					}));
+				texture = OsrsIcons.image(theme, "dialog_inventory_sprites/background");
+				// the frame strip is 7px centred in a 32px canvas (rows/cols
+				// 13..19); corners are full 32x32 caps centred on the corner
+				// point — crop the inside-visible parts so the frame hugs the
+				// panel bounds the way the game draws it
+				edgeTop = sub(OsrsIcons.image(theme,
+					"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_top"), 0, 13, 32, 7);
+				edgeBottom = sub(OsrsIcons.image(theme,
+					"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_bottom"), 0, 13, 32, 7);
+				edgeLeft = sub(OsrsIcons.image(theme,
+					"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_left"), 13, 0, 7, 32);
+				edgeRight = sub(OsrsIcons.image(theme,
+					"dialog_inventory_sprites/bottom_line_mode_side_panel_edge_right"), 13, 0, 7, 32);
+				cornerTl = sub(OsrsIcons.image(theme,
+					"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_top_left"), 13, 13, 19, 19);
+				cornerTr = sub(OsrsIcons.image(theme,
+					"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_top_right"), 0, 13, 19, 19);
+				cornerBl = sub(OsrsIcons.image(theme,
+					"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_bottom_left"), 13, 0, 19, 19);
+				cornerBr = sub(OsrsIcons.image(theme,
+					"dialog_inventory_sprites/bottom_line_mode_side_panel_corner_bottom_right"), 0, 0, 19, 19);
+			}
+			else
+			{
+				texture = null;
+				edgeTop = null;
+				edgeBottom = null;
+				edgeLeft = null;
+				edgeRight = null;
+				cornerTl = null;
+				cornerTr = null;
+				cornerBl = null;
+				cornerBr = null;
 			}
 			for (int i = 0; i < 28 && i < setup.inventory.length; i++)
 			{
@@ -387,10 +427,26 @@ class SavedSetupView
 			{
 				g2.drawImage(backing, 0, 0, null);
 			}
+			else if (texture != null)
+			{
+				// vanilla: the game's parchment texture inside the steel
+				// side-panel frame, pieced from the dropped sprite set
+				tile(g2, texture, 0, 0, INV_WIDTH, INV_HEIGHT);
+				tile(g2, edgeTop, 0, 0, INV_WIDTH, 7);
+				tile(g2, edgeBottom, 0, INV_HEIGHT - 7, INV_WIDTH, 7);
+				tile(g2, edgeLeft, 0, 0, 7, INV_HEIGHT);
+				tile(g2, edgeRight, INV_WIDTH - 7, 0, 7, INV_HEIGHT);
+				if (cornerTl != null)
+				{
+					g2.drawImage(cornerTl, 0, 0, null);
+					g2.drawImage(cornerTr, INV_WIDTH - 19, 0, null);
+					g2.drawImage(cornerBl, 0, INV_HEIGHT - 19, null);
+					g2.drawImage(cornerBr, INV_WIDTH - 19, INV_HEIGHT - 19, null);
+				}
+			}
 			else
 			{
-				// honest fallback (headless, or the cache not loaded yet):
-				// a plain recess in the frame grammar, never invented texture
+				// honest fallback: a plain recess, never invented texture
 				g2.setColor(theme.recess);
 				g2.fillRect(0, 0, INV_WIDTH, INV_HEIGHT);
 				OsrsSkin.outline(g2, theme.edgeDark, 0, 0, INV_WIDTH, INV_HEIGHT);

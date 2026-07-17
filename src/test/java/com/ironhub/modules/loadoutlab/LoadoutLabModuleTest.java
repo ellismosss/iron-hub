@@ -64,7 +64,7 @@ public class LoadoutLabModuleTest
 			new net.runelite.client.eventbus.EventBus(), new com.ironhub.IronHubConfig()
 			{
 			},
-			state, null, null, null, new com.google.gson.Gson(), null, null);
+			state, null, null, null, new com.google.gson.Gson(), null);
 		javax.swing.JComponent tab = module.buildTab();
 		java.awt.image.BufferedImage image =
 			com.ironhub.ui.SwingRender.render((javax.swing.JPanel) tab);

@@ -68,7 +68,6 @@ public class LoadoutLabModule implements IronHubModule
 	private final ItemManager itemManager;     // null in unit tests
 	private final com.google.gson.Gson gson;
 	private final okhttp3.OkHttpClient httpClient; // null in unit tests
-	private net.runelite.client.game.SpriteManager spriteManager; // null in unit tests
 
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::onStateChanged);
 	private com.ironhub.modules.loadout.StrategyClient strategyClient;
@@ -87,10 +86,8 @@ public class LoadoutLabModule implements IronHubModule
 	@Inject
 	public LoadoutLabModule(LoadoutLabPlugin lab, EventBus eventBus, IronHubConfig config,
 		AccountState state, ClientThread clientThread, net.runelite.api.Client client,
-		ItemManager itemManager, com.google.gson.Gson gson, okhttp3.OkHttpClient httpClient,
-		net.runelite.client.game.SpriteManager spriteManager)
+		ItemManager itemManager, com.google.gson.Gson gson, okhttp3.OkHttpClient httpClient)
 	{
-		this.spriteManager = spriteManager;
 		this.lab = lab;
 		this.eventBus = eventBus;
 		this.config = config;
@@ -448,8 +445,7 @@ public class LoadoutLabModule implements IronHubModule
 			? state.savedSetup(viewedSetup) : state.savedSetup(activity());
 		if (saved != null)
 		{
-			SavedSetupView view = new SavedSetupView(theme, itemManager, spriteManager,
-				state::itemName);
+			SavedSetupView view = new SavedSetupView(theme, itemManager, state::itemName);
 			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 			setupView.add(new com.ironhub.ui.osrs.OsrsLabel("Saved setup",
 				com.ironhub.ui.osrs.OsrsSkin.MUTED,
