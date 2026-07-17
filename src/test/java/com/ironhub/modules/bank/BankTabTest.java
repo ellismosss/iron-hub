@@ -30,6 +30,55 @@ public class BankTabTest
 		assertFalse(BankTab.matches("Abyssal whip", "ranarr"));
 	}
 
+	/** Nothing lists until the player types or filters (Luke, 2026-07-17). */
+	@Test
+	public void idleBankListsNothing() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.bank(state, Map.of(4151, 1, 995, 2_500_000));
+		StateFixture.itemNames(state, Map.of(4151, "Abyssal whip", 995, "Coins"));
+		BankTab tab = new BankTab(state, null, null, new com.ironhub.data.DataPack(
+			new com.google.gson.Gson()).load("banked-xp", com.ironhub.data.BankedXpPack.class),
+			true, v -> {}, com.ironhub.ui.osrs.OsrsTheme.STONE);
+		assertFalse("no rows may render before a search or filter",
+			componentTexts(tab).stream().anyMatch(t -> t.contains("Abyssal whip")));
+		assertTrue("the idle state must say how to start",
+			componentTexts(tab).stream().anyMatch(t -> t.contains("Type to search")));
+	}
+
+	/** The dropdown's stat indices map to the right equipment fields. */
+	@Test
+	public void statExtraction()
+	{
+		net.runelite.client.game.ItemEquipmentStats stats =
+			net.runelite.client.game.ItemEquipmentStats.builder()
+				.astab(1).aslash(2).acrush(3).amagic(4).arange(5)
+				.str(6).rstr(7).mdmg(8f).prayer(9)
+				.dstab(10).dslash(11).dcrush(12).dmagic(13).drange(14)
+				.build();
+		for (int stat = 1; stat <= 14; stat++)
+		{
+			assertEquals(stat, BankTab.statOf(stats, stat));
+		}
+	}
+
+	private static java.util.List<String> componentTexts(java.awt.Container root)
+	{
+		java.util.List<String> texts = new java.util.ArrayList<>();
+		for (java.awt.Component child : root.getComponents())
+		{
+			if (child instanceof com.ironhub.ui.osrs.OsrsLabel)
+			{
+				texts.add(((com.ironhub.ui.osrs.OsrsLabel) child).text());
+			}
+			if (child instanceof java.awt.Container)
+			{
+				texts.addAll(componentTexts((java.awt.Container) child));
+			}
+		}
+		return texts;
+	}
+
 	@Test
 	public void relativeTimeBuckets()
 	{
@@ -47,7 +96,7 @@ public class BankTabTest
 		StateFixture.itemNames(state, Map.of(
 			4151, "Abyssal whip", 995, "Coins", 207, "Grimy ranarr weed", 536, "Dragon bones"));
 
-		BankTrackerModule module = new BankTrackerModule(state, null, new IronHubConfig()
+		BankTrackerModule module = new BankTrackerModule(state, null, null, new IronHubConfig()
 		{
 		}, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null);
 		module.startUp();

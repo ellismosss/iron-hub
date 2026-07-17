@@ -15,6 +15,7 @@ import com.ironhub.ui.osrs.StoneButton;
 import com.ironhub.ui.osrs.StoneCheckbox;
 import com.ironhub.ui.osrs.StoneChecklist;
 import com.ironhub.ui.osrs.StoneComboBoxUI;
+import com.ironhub.ui.osrs.StoneMeter;
 import com.ironhub.ui.osrs.StonePanel;
 import com.ironhub.ui.osrs.StoneTextField;
 import java.awt.BorderLayout;
@@ -50,10 +51,10 @@ import net.runelite.client.plugins.timetracking.SummaryState;
  * carries the teleport, missing items and live patch states.
  *
  * <p>FRAMELESS and title-less: the host (the Dailies hub) provides the stone
- * frame and the header plate. The per-patch rows inside the overview stay
- * RuneLite's own TimeablePanel with ColorScheme colours — the sanctioned
- * Time Tracking clone Luke walked to the pixel; only the chrome around them
- * wears the skin.
+ * frame and the header plate. The per-patch rows wear the skin too since
+ * 2026-07-17 (Luke's call — the last Time Tracking clone surface): skinned
+ * name/estimate rows over a thin StoneMeter that keeps the tracker's exact
+ * colour semantics (crop-state colour darkened, stage/(stages-1)).
  */
 class FarmingTab extends JPanel
 {
@@ -848,49 +849,70 @@ class FarmingTab extends JPanel
 		}
 	}
 
-	/** One patch line — the core plugin's TimeablePanel, coloured identically
-	 *  (progress bar = crop-state colour, "Done"/"Diseased"/… estimate text).
-	 *  The sanctioned Time Tracking clone: never restyle these rows. */
+	/** One patch line in the SKIN (Luke, 2026-07-17 — supersedes the last
+	 *  Time Tracking clone surface): sprite, name, estimate right, and the
+	 *  thin StoneMeter below keeping the tracker's exact SEMANTICS — fill =
+	 *  crop-state colour darkened, value = stage/(stages-1), hidden for
+	 *  unknown patches and fully-grown weeds. */
 	private JComponent overviewPatchPanel(FarmingRunModule.OverviewPatch patch, long now)
 	{
-		net.runelite.client.plugins.timetracking.TimeablePanel<String> panel =
-			new net.runelite.client.plugins.timetracking.TimeablePanel<>(patch.name, patch.name, 1);
+		JPanel panel = new JPanel(new BorderLayout(UiTokens.ROW_GAP, 0))
+		{
+			@Override
+			public Dimension getMaximumSize()
+			{
+				return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+			}
+		};
+		panel.setOpaque(false);
 		panel.setAlignmentX(LEFT_ALIGNMENT);
-		panel.getNotifyButton().setVisible(false); // ready notifications are per-category config here
+		panel.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP));
+
+		JLabel icon = new JLabel();
+		Dimension iconSize = new Dimension(UiTokens.TILE_ICON_SIZE, UiTokens.TILE_ICON_SIZE);
+		icon.setPreferredSize(iconSize);
+		icon.setMinimumSize(iconSize);
 		if (itemManager != null && patch.produceItemId > 0)
 		{
-			itemManager.getImage(patch.produceItemId).addTo(panel.getIcon());
+			icon.setIcon(new javax.swing.ImageIcon(sprites.get(patch.produceItemId,
+				UiTokens.TILE_ICON_SIZE)));
 		}
+		panel.add(icon, BorderLayout.WEST);
+
+		JPanel column = new JPanel();
+		column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
+		column.setOpaque(false);
+		JPanel nameRow = new JPanel();
+		nameRow.setLayout(new BoxLayout(nameRow, BoxLayout.X_AXIS));
+		nameRow.setOpaque(false);
+		nameRow.setAlignmentX(LEFT_ALIGNMENT);
+		nameRow.add(new OsrsLabel(patch.name, OsrsSkin.MUTED, OsrsSkin.font())
+			.leftAligned().squeezable());
+		nameRow.add(Box.createHorizontalGlue());
+		String estimate = patch.cropState == null ? "Unknown" : estimateText(patch, now);
+		nameRow.add(new OsrsLabel(estimate,
+			"Done".equals(estimate) ? OsrsSkin.VALUE : OsrsSkin.FAINT, OsrsSkin.font()));
+		cap(nameRow);
+		column.add(nameRow);
+
+		boolean grownWeeds = patch.cropState != null
+			&& patch.weeds && patch.stage >= patch.stages - 1;
+		if (patch.cropState != null && !grownWeeds)
+		{
+			column.add(Box.createVerticalStrut(2));
+			double fraction = patch.stages > 1
+				? patch.stage / (double) (patch.stages - 1) : 0;
+			StoneMeter meter = new StoneMeter(theme,
+				patch.cropState.getColor().darker(), fraction);
+			meter.setAlignmentX(LEFT_ALIGNMENT);
+			column.add(meter);
+		}
+		panel.add(column, BorderLayout.CENTER);
+
 		// hovering a patch says what's planted there
 		String planted = patch.cropState == null ? "Unknown state"
 			: (patch.weeds ? "Nothing planted" : patch.produceName);
-		String tooltip = patch.name + " — " + planted;
-		panel.setToolTipText(tooltip);
-		panel.getIcon().setToolTipText(tooltip);
-		panel.getText().setToolTipText(tooltip);
-		panel.getEstimate().setToolTipText(tooltip);
-		net.runelite.client.ui.components.ThinProgressBar bar = panel.getProgress();
-		if (patch.cropState == null)
-		{
-			panel.getEstimate().setText("Unknown");
-			bar.setVisible(false);
-		}
-		else
-		{
-			panel.getEstimate().setText(estimateText(patch, now));
-			// hide the bar for fully-grown weeds (no crop) — Time Tracking parity
-			if (patch.weeds && patch.stage >= patch.stages - 1)
-			{
-				bar.setVisible(false);
-			}
-			else
-			{
-				bar.setForeground(patch.cropState.getColor().darker());
-				bar.setMaximumValue(Math.max(0, patch.stages - 1));
-				bar.setValue(patch.stage);
-				bar.setVisible(true);
-			}
-		}
+		panel.setToolTipText(patch.name + " — " + planted);
 		return panel;
 	}
 

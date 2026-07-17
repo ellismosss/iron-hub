@@ -23,6 +23,7 @@ public class BankTrackerModule implements IronHubModule
 {
 	private final AccountState state;
 	private final ItemManager itemManager;
+	private final net.runelite.client.callback.ClientThread clientThread;
 	private final IronHubConfig config;
 	private final DataPack dataPack;
 	private final ConfigManager configManager;
@@ -30,10 +31,12 @@ public class BankTrackerModule implements IronHubModule
 
 	@Inject
 	public BankTrackerModule(AccountState state, ItemManager itemManager,
+		net.runelite.client.callback.ClientThread clientThread,
 		IronHubConfig config, DataPack dataPack, ConfigManager configManager)
 	{
 		this.state = state;
 		this.itemManager = itemManager;
+		this.clientThread = clientThread;
 		this.config = config;
 		this.dataPack = dataPack;
 		this.configManager = configManager;
@@ -71,7 +74,8 @@ public class BankTrackerModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new BankTab(state, itemManager, dataPack.load("banked-xp", BankedXpPack.class),
+			tab = new BankTab(state, itemManager, clientThread,
+				dataPack.load("banked-xp", BankedXpPack.class),
 				config.bankedXpGridView(), gridView ->
 				{
 					if (configManager != null)

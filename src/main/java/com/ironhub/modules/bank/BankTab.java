@@ -35,8 +35,12 @@ import net.runelite.client.util.QuantityFormatter;
 /**
  * Bank tab content (frame 2f, search section) in the OSRS stonework skin:
  * search the last bank snapshot from anywhere — icon · name · ×count rows,
- * with a faint "snapshot from last bank visit" timestamp line. Frameless —
- * the host's header plate names the module.
+ * with a faint "snapshot from last bank visit" timestamp line. Nothing lists
+ * until the player types or picks a stat filter (Luke, 2026-07-17): a stat
+ * filter ranks the bank by that equipment stat, highest first, with the stat
+ * value on the row. Stats resolve on the client thread (compositions are
+ * client-thread) and cache per bank snapshot. Frameless — the host's header
+ * plate names the module.
  */
 class BankTab extends JPanel
 {
@@ -44,26 +48,45 @@ class BankTab extends JPanel
 	/** Free-standing wrapped hints: the panel minus the tab's side padding. */
 	private static final int HINT_WIDTH = UiTokens.PANEL_WIDTH - 20;
 
+	/** Index 0 = no filter; the rest map through {@link #statOf}. */
+	private static final String[] STAT_NAMES = {
+		"Filter by stat…",
+		"Stab attack", "Slash attack", "Crush attack", "Magic attack", "Ranged attack",
+		"Melee strength", "Ranged strength", "Magic damage", "Prayer",
+		"Stab defence", "Slash defence", "Crush defence", "Magic defence", "Ranged defence",
+	};
+
 	private final AccountState state;
 	private final ItemManager itemManager; // null in unit tests — icons skipped
+	private final net.runelite.client.callback.ClientThread clientThread; // null headless
 	private final BankedXpPack bankedXpPack;
 	private final OsrsTheme theme;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 
 	private final StoneTextField search;
+	private final javax.swing.JComboBox<String> statFilter;
 	private final JPanel snapshotHolder = new JPanel();
 	private final JPanel list = new JPanel();
 	private final StoneChipRow xpView;
 	private final JPanel xpSection = new JPanel();
 
-	BankTab(AccountState state, ItemManager itemManager, BankedXpPack bankedXpPack,
+	/** id → stat value for {@link #statKey}'s (filter, bank snapshot) pair. */
+	private Map<Integer, Integer> statValues = Map.of();
+	private String statKey = "";
+	private boolean statsComputing;
+
+	BankTab(AccountState state, ItemManager itemManager,
+		net.runelite.client.callback.ClientThread clientThread, BankedXpPack bankedXpPack,
 		boolean gridView, java.util.function.Consumer<Boolean> onViewChange, OsrsTheme theme)
 	{
 		this.state = state;
 		this.itemManager = itemManager;
+		this.clientThread = clientThread;
 		this.bankedXpPack = bankedXpPack;
 		this.theme = theme;
 		this.search = new StoneTextField(theme, "Search bank…");
+		this.statFilter = com.ironhub.ui.osrs.StoneComboBoxUI.skin(
+			new javax.swing.JComboBox<>(STAT_NAMES), theme);
 		this.xpView = new StoneChipRow(theme, false, "Grid", "List");
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
@@ -71,6 +94,10 @@ class BankTab extends JPanel
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
 		add(search);
+		add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		statFilter.setAlignmentX(LEFT_ALIGNMENT);
+		statFilter.addActionListener(e -> rebuild());
+		add(statFilter);
 		add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 
 		snapshotHolder.setLayout(new BoxLayout(snapshotHolder, BoxLayout.X_AXIS));
@@ -160,35 +187,40 @@ class BankTab extends JPanel
 			setSnapshotLine("snapshot from last bank visit · "
 				+ relativeTime(System.currentTimeMillis() - state.getBankTimestamp()));
 
-			List<Integer> matches = bank.keySet().stream()
-				.filter(id -> matches(state.itemName(id), search.getText()))
-				.sorted(Comparator.comparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)))
-				.collect(Collectors.toList());
-
-			if (!matches.isEmpty())
+			String query = search.getText().trim();
+			int stat = statFilter.getSelectedIndex();
+			if (query.isEmpty() && stat <= 0)
 			{
-				// the item rows sit inside one notched frame, checklist-style
-				StonePanel group = new StonePanel(theme);
-				group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
-				group.setAlignmentX(LEFT_ALIGNMENT);
-				int corner = theme.cornerStamp.length;
-				group.setBorder(new StoneBorder(theme, theme.background,
-					new Insets(corner, corner, corner, corner)));
-				for (Integer id : matches.subList(0, Math.min(matches.size(), MAX_RESULTS)))
-				{
-					group.add(itemRow(id, bank.get(id)));
-				}
-				cap(group);
-				list.add(group);
-				list.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+				// list nothing until asked — 1,000 idle rows helped freeze
+				// the client, and an unfiltered dump answers no question
+				list.add(faintLine("Type to search, or filter by a stat."));
 			}
-			if (matches.size() > MAX_RESULTS)
+			else if (stat <= 0)
 			{
-				list.add(faintLine("+ " + (matches.size() - MAX_RESULTS) + " more — refine your search"));
+				List<Integer> matches = bank.keySet().stream()
+					.filter(id -> matches(state.itemName(id), query))
+					.sorted(Comparator.comparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)))
+					.collect(Collectors.toList());
+				addRows(matches, bank, null);
 			}
-			else if (matches.isEmpty())
+			else if (clientThread == null || itemManager == null)
 			{
-				list.add(faintLine("No banked items match."));
+				list.add(faintLine("Equipment stats need the game client."));
+			}
+			else if (!currentStatKey(stat).equals(statKey))
+			{
+				ensureStats(stat);
+				list.add(faintLine("Reading equipment stats…"));
+			}
+			else
+			{
+				Map<Integer, Integer> values = statValues;
+				List<Integer> matches = values.keySet().stream()
+					.filter(id -> matches(state.itemName(id), query))
+					.sorted(Comparator.<Integer>comparingInt(id -> -values.get(id))
+						.thenComparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)))
+					.collect(Collectors.toList());
+				addRows(matches, bank, values);
 			}
 		}
 		rebuildBankedXp();
@@ -196,6 +228,105 @@ class BankTab extends JPanel
 		snapshotHolder.repaint();
 		list.revalidate();
 		list.repaint();
+	}
+
+	/** The capped row group: with stat values, the row's right side ranks
+	 *  ("+83"); without, it counts ("×1,200"). */
+	private void addRows(List<Integer> matches, Map<Integer, Integer> bank,
+		Map<Integer, Integer> statValues)
+	{
+		if (!matches.isEmpty())
+		{
+			// the item rows sit inside one notched frame, checklist-style
+			StonePanel group = new StonePanel(theme);
+			group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
+			group.setAlignmentX(LEFT_ALIGNMENT);
+			int corner = theme.cornerStamp.length;
+			group.setBorder(new StoneBorder(theme, theme.background,
+				new Insets(corner, corner, corner, corner)));
+			for (Integer id : matches.subList(0, Math.min(matches.size(), MAX_RESULTS)))
+			{
+				group.add(itemRow(id, bank.getOrDefault(id, 0),
+					statValues == null ? null : statValues.get(id)));
+			}
+			cap(group);
+			list.add(group);
+			list.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		}
+		if (matches.size() > MAX_RESULTS)
+		{
+			list.add(faintLine("+ " + (matches.size() - MAX_RESULTS) + " more — refine your search"));
+		}
+		else if (matches.isEmpty())
+		{
+			list.add(faintLine("No banked items match."));
+		}
+	}
+
+	// ── equipment-stat ranking ────────────────────────────────────────
+
+	private String currentStatKey(int stat)
+	{
+		return stat + "@" + state.getBankTimestamp();
+	}
+
+	/** Resolve the chosen stat for every banked item on the CLIENT THREAD
+	 *  (compositions and stats are client-thread reads), then re-render.
+	 *  Cached per (filter, bank snapshot) pair. */
+	private void ensureStats(int stat)
+	{
+		if (statsComputing)
+		{
+			return;
+		}
+		statsComputing = true;
+		String key = currentStatKey(stat);
+		Map<Integer, Integer> bank = state.getBankSnapshot();
+		clientThread.invokeLater(() ->
+		{
+			Map<Integer, Integer> values = new java.util.HashMap<>();
+			for (int id : bank.keySet())
+			{
+				net.runelite.client.game.ItemStats stats = itemManager.getItemStats(id);
+				net.runelite.client.game.ItemEquipmentStats equipment =
+					stats == null ? null : stats.getEquipment();
+				int value = equipment == null ? 0 : statOf(equipment, stat);
+				if (value > 0)
+				{
+					values.put(id, value);
+				}
+			}
+			SwingUtilities.invokeLater(() ->
+			{
+				statValues = values;
+				statKey = key;
+				statsComputing = false;
+				rebuild();
+			});
+		});
+	}
+
+	/** The dropdown's stat index → its value on an equipable item. */
+	static int statOf(net.runelite.client.game.ItemEquipmentStats e, int stat)
+	{
+		switch (stat)
+		{
+			case 1: return e.getAstab();
+			case 2: return e.getAslash();
+			case 3: return e.getAcrush();
+			case 4: return e.getAmagic();
+			case 5: return e.getArange();
+			case 6: return e.getStr();
+			case 7: return e.getRstr();
+			case 8: return Math.round(e.getMdmg());
+			case 9: return e.getPrayer();
+			case 10: return e.getDstab();
+			case 11: return e.getDslash();
+			case 12: return e.getDcrush();
+			case 13: return e.getDmagic();
+			case 14: return e.getDrange();
+			default: return 0;
+		}
 	}
 
 	/** Provenance copy — always faint (honesty is a feature); wrapped so a
@@ -281,7 +412,9 @@ class BankTab extends JPanel
 		return QuantityFormatter.quantityToRSDecimalStack((int) Math.round(xp), true);
 	}
 
-	private JPanel itemRow(int itemId, int quantity)
+	/** statValue null = count row ("×1,200"); set = ranked row ("+83"),
+	 *  with the banked count moved to the tooltip. */
+	private JPanel itemRow(int itemId, int quantity, Integer statValue)
 	{
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
@@ -305,11 +438,13 @@ class BankTab extends JPanel
 		String name = state.itemName(itemId);
 		OsrsLabel nameLabel = new OsrsLabel(name, OsrsSkin.LABEL, OsrsSkin.font())
 			.leftAligned().squeezable();
-		nameLabel.setToolTipText(name);
+		nameLabel.setToolTipText(statValue == null ? name
+			: name + " — ×" + QuantityFormatter.quantityToStackSize(quantity) + " banked");
 		row.add(nameLabel);
 		row.add(Box.createHorizontalGlue());
 
-		row.add(OsrsLabel.value("×" + QuantityFormatter.quantityToStackSize(quantity)));
+		row.add(OsrsLabel.value(statValue != null ? "+" + statValue
+			: "×" + QuantityFormatter.quantityToStackSize(quantity)));
 		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
 		return row;
 	}

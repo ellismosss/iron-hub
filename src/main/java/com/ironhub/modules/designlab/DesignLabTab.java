@@ -95,10 +95,109 @@ public class DesignLabTab extends JPanel
 			.row("Herb sack", false)
 			.row("Rune pouch", false)));
 
+		frame.add(section("Fonts"));
+		frame.add(pad(fontSpecimen("Bold — plates & titles", OsrsSkin.boldFont(), OsrsSkin.TITLE)));
+		frame.add(strut(2));
+		frame.add(pad(fontSpecimen("Regular — body & labels", OsrsSkin.font(), OsrsSkin.LABEL)));
+		frame.add(strut(2));
+		frame.add(pad(fontSpecimen("Small — task text & bar labels", OsrsSkin.smallFont(), OsrsSkin.MUTED)));
+
+		frame.add(section("Status tiles"));
+		frame.add(pad(tileRow()));
+
+		frame.add(section("Module plate"));
+		frame.add(pad(platePreview()));
+
 		frame.add(strut(6));
 		frame.add(pad(centered(new OsrsLabel("Static preview · sample data", OsrsSkin.MUTED, OsrsSkin.font()))));
 		frame.add(strut(4));
 		add(frame);
+	}
+
+	/** One font of the system, labelled by where it's used. */
+	private JComponent fontSpecimen(String text, java.awt.Font font, Color color)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.add(new OsrsLabel(text, color, font).leftAligned());
+		row.add(Box.createHorizontalGlue());
+		cap(row);
+		return row;
+	}
+
+	/** The slab status tiles (dailies strip / farm overview grammar):
+	 *  status bevel, plain, sunken-excluded, and the perimeter progress
+	 *  trace that hugs the chamfer. */
+	private JComponent tileRow()
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.add(new com.ironhub.ui.osrs.StoneTile(theme, OsrsSkin.VALUE.darker(), false,
+			"Ready — status bevel"));
+		row.add(Box.createHorizontalStrut(4));
+		row.add(new com.ironhub.ui.osrs.StoneTile(theme, null, false, "Tracked — plain bevel"));
+		row.add(Box.createHorizontalStrut(4));
+		row.add(new com.ironhub.ui.osrs.StoneTile(theme, null, true, "Excluded — sunken"));
+		row.add(Box.createHorizontalStrut(4));
+		row.add(progressTile());
+		row.add(Box.createHorizontalGlue());
+		cap(row);
+		return row;
+	}
+
+	/** A slab with the chamfer-hugging perimeter progress trace (62%). */
+	private JComponent progressTile()
+	{
+		JComponent tile = new JComponent()
+		{
+			@Override
+			protected void paintComponent(java.awt.Graphics g)
+			{
+				java.awt.Graphics2D g2 = (java.awt.Graphics2D) g;
+				StoneNavButton.paintSlab(g2, theme, getWidth(), getHeight(),
+					theme.boxFill, theme.edgeLight);
+				g2.setColor(OsrsSkin.TITLE.darker());
+				for (int inset = 0; inset < 2; inset++)
+				{
+					java.util.List<java.awt.Point> path =
+						StoneNavButton.ringPath(inset, getWidth(), getHeight());
+					int covered = (int) Math.round(0.62 * path.size());
+					for (int i = 0; i < covered; i++)
+					{
+						java.awt.Point p = path.get(i);
+						g2.fillRect(p.x, p.y, 1, 1);
+					}
+				}
+			}
+		};
+		Dimension size = new Dimension(com.ironhub.ui.osrs.StoneTile.WIDTH,
+			com.ironhub.ui.osrs.StoneTile.HEIGHT);
+		tile.setPreferredSize(size);
+		tile.setMinimumSize(size);
+		tile.setMaximumSize(size);
+		tile.setToolTipText("Progress trace — growing, 62%");
+		return tile;
+	}
+
+	/** The hub pages' collapsible module plate: triangle + bold title. */
+	private JComponent platePreview()
+	{
+		StonePanel plate = new StonePanel(theme);
+		plate.setLayout(new BoxLayout(plate, BoxLayout.X_AXIS));
+		JLabel triangle = new JLabel(new com.ironhub.ui.components.PaintedIcon(
+			com.ironhub.ui.components.PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+		triangle.setForeground(OsrsSkin.MUTED);
+		plate.add(triangle);
+		plate.add(Box.createHorizontalGlue());
+		plate.add(new OsrsLabel("Collection log", OsrsSkin.TITLE, OsrsSkin.boldFont()));
+		plate.add(Box.createHorizontalGlue());
+		plate.add(Box.createHorizontalStrut(10));
+		cap(plate);
+		return plate;
 	}
 
 	/** The Character Summary recreation — the display grammar. */

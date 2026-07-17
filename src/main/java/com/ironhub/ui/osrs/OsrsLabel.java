@@ -89,6 +89,12 @@ public class OsrsLabel extends JComponent
 		setAlignmentX(CENTER_ALIGNMENT);
 	}
 
+	/** The label's text, newline-joined — render tests read it. */
+	public String text()
+	{
+		return String.join("\n", lines);
+	}
+
 	/** Recolour in place — status changes must not rebuild the row. */
 	public void setColor(Color color)
 	{

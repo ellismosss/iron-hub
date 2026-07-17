@@ -9,7 +9,7 @@ import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
 import com.ironhub.ui.osrs.StonePanel;
-import com.ironhub.ui.osrs.StoneProgressBar;
+import com.ironhub.ui.osrs.StoneMeter;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -39,6 +39,8 @@ class DiariesTab extends JPanel
 	/** Wrap widths inside a region card (card interior minus the + column). */
 	private static final int TASK_WRAP = 170;
 	private static final int REWARD_WRAP = 185;
+	/** The thin-meter height — the small bar variant (Luke, 2026-07-17). */
+	private static final int TIER_BAR_HEIGHT = 5;
 
 	private final DiariesModule module;
 	private final AccountState state;
@@ -46,11 +48,13 @@ class DiariesTab extends JPanel
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 
 	private final StonePanel card;
-	private final StoneProgressBar bar;
+	private final StoneMeter bar;
 	private final JPanel list = new JPanel();
 
 	/** Region whose task list is open (one at a time, like the in-game journal). */
 	private String expandedRegion;
+	/** Expanded task lists show only incomplete tasks unless toggled. */
+	private boolean showAllTasks;
 	/** Regions whose Rewards section is open. */
 	private final Set<String> rewardsOpen = new HashSet<>();
 
@@ -68,7 +72,7 @@ class DiariesTab extends JPanel
 		card = new StonePanel(theme);
 		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 		card.setAlignmentX(LEFT_ALIGNMENT);
-		bar = new StoneProgressBar(theme, OsrsSkin.PROGRESS_BLUE, 0);
+		bar = new StoneMeter(theme, OsrsSkin.PROGRESS_BLUE, 0);
 		add(pad(card));
 		add(Box.createVerticalStrut(6));
 
@@ -163,7 +167,8 @@ class DiariesTab extends JPanel
 		header.add(chevron);
 		header.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 
-		OsrsLabel name = new OsrsLabel(region.name, OsrsSkin.TITLE, OsrsSkin.boldFont())
+		// regular weight (Luke, 2026-07-17): the bold read too heavy per card
+		OsrsLabel name = new OsrsLabel(region.name, OsrsSkin.TITLE, OsrsSkin.font())
 			.leftAligned().squeezable();
 		name.setToolTipText(region.name); // long names ellipsize at 225 px
 		header.add(name);
@@ -196,12 +201,19 @@ class DiariesTab extends JPanel
 		if (open)
 		{
 			regionCard.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+			// incomplete-only by default (Luke, 2026-07-17): the finished
+			// tasks are noise once ticked — a toggle brings them back
+			regionCard.add(taskFilterRow());
 			for (int i = 0; i < region.tiers.size(); i++)
 			{
 				DiariesPack.Tier tier = region.tiers.get(i);
 				regionCard.add(tierHeader(region, i));
 				for (DiariesPack.Task task : tier.tasks)
 				{
+					if (!showAllTasks && module.taskComplete(region, i, task))
+					{
+						continue;
+					}
 					regionCard.add(taskEntry(region, i, task));
 				}
 				regionCard.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
@@ -209,6 +221,34 @@ class DiariesTab extends JPanel
 			regionCard.add(rewardsSection(region));
 		}
 		return regionCard;
+	}
+
+	/** The completed-tasks toggle, right-aligned above the tiers. */
+	private JComponent taskFilterRow()
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		OsrsLabel toggle = new OsrsLabel(showAllTasks ? "Hide completed" : "Show all",
+			OsrsSkin.LABEL, OsrsSkin.smallFont());
+		toggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		toggle.setToolTipText(showAllTasks
+			? "Hide the tasks you've already completed"
+			: "Show completed tasks too");
+		toggle.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				showAllTasks = !showAllTasks;
+				rebuild();
+			}
+		});
+		row.add(Box.createHorizontalGlue());
+		row.add(toggle);
+		cap(row);
+		return row;
 	}
 
 	/** Four tier segments, in-game-journal style: green complete, orange partial. */
@@ -247,9 +287,10 @@ class DiariesTab extends JPanel
 				}
 			}
 		};
-		segments.setPreferredSize(new Dimension(0, UiTokens.PROGRESS_BAR_HEIGHT));
-		segments.setMinimumSize(new Dimension(0, UiTokens.PROGRESS_BAR_HEIGHT));
-		segments.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.PROGRESS_BAR_HEIGHT));
+		// the thin-meter height (Luke, 2026-07-17): the tall bar crowded the card
+		segments.setPreferredSize(new Dimension(0, TIER_BAR_HEIGHT));
+		segments.setMinimumSize(new Dimension(0, TIER_BAR_HEIGHT));
+		segments.setMaximumSize(new Dimension(Integer.MAX_VALUE, TIER_BAR_HEIGHT));
 		segments.setAlignmentX(LEFT_ALIGNMENT);
 		segments.setToolTipText(tip.append("</html>").toString());
 		return segments;
@@ -301,7 +342,8 @@ class DiariesTab extends JPanel
 		column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
 		column.setOpaque(false);
 
-		OsrsLabel text = OsrsLabel.wrapped(task.task, TASK_WRAP, textColor, OsrsSkin.font())
+		// small font (Luke, 2026-07-17) — the progress-bar label size
+		OsrsLabel text = OsrsLabel.wrapped(task.task, TASK_WRAP, textColor, OsrsSkin.smallFont())
 			.leftAligned();
 		text.setToolTipText(task.note != null && !task.note.isEmpty()
 			? "<html><body style='width:200px'>" + task.note + "</body></html>"
@@ -316,7 +358,7 @@ class DiariesTab extends JPanel
 				Boolean met = module.reqMet(req);
 				OsrsLabel line = new OsrsLabel("· " + req.text,
 					met == null ? OsrsSkin.FAINT : met ? OsrsSkin.VALUE : OsrsSkin.MUTED,
-					OsrsSkin.font()).leftAligned().squeezable();
+					OsrsSkin.smallFont()).leftAligned().squeezable();
 				line.setToolTipText(req.text + (met == null ? ""
 					: met ? " — met" : " — not met"));
 				column.add(line);
