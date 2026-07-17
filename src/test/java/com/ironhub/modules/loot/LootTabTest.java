@@ -53,8 +53,11 @@ public class LootTabTest
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		state.incrementKillCount("Zulrah");
+		StateFixture.inventory(state, Map.of(385, 5)); // sharks
+		StateFixture.checkpointSupplies(state);
+		StateFixture.inventory(state, Map.of(385, 3)); // ate two
 		state.ingestLoot("Zulrah", Map.of(12934, 100, 2402, 1));
-		StateFixture.itemNames(state, Map.of(12934, "Zulrah's scales", 2402, "Magic fang"));
+		StateFixture.itemNames(state, Map.of(12934, "Zulrah's scales", 2402, "Magic fang", 385, "Shark"));
 
 		LootModule module = new LootModule(state, null, new IronHubConfig()
 		{

@@ -64,8 +64,22 @@ public class LootModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new LootTab(state, itemManager);
+			tab = new LootTab(state, itemManager, config.osrsTheme());
 		}
 		return tab;
+	}
+
+	/** A theme flip re-clothes the tab: drop it, the next mount rebuilds. */
+	@Override
+	public void onThemeChanged()
+	{
+		javax.swing.SwingUtilities.invokeLater(() ->
+		{
+			if (tab != null)
+			{
+				tab.dispose();
+				tab = null;
+			}
+		});
 	}
 }

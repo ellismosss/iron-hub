@@ -112,9 +112,22 @@ public class SlayerOptimizerModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new SlayerTab(state, this);
+			tab = new SlayerTab(state, this, config.osrsTheme());
 		}
 		return tab;
+	}
+
+	@Override
+	public void onThemeChanged()
+	{
+		javax.swing.SwingUtilities.invokeLater(() ->
+		{
+			if (tab != null)
+			{
+				tab.dispose();
+				tab = null;
+			}
+		});
 	}
 
 	// ── reads for tab + infobox ───────────────────────────────────────

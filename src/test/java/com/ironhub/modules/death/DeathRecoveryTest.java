@@ -58,6 +58,7 @@ public class DeathRecoveryTest
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.inventory(state, Map.of(385, 3, 2434, 2));
 		StateFixture.itemNames(state, Map.of(385, "Shark", 2434, "Prayer potion(4)"));
+		state.recordDeath(new WorldPoint(3288, 3886, 0)); // older death
 		state.recordDeath(new WorldPoint(2273, 4054, 0));
 
 		DeathRecoveryModule module = new DeathRecoveryModule(state, null, new IronHubConfig()

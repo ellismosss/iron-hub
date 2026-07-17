@@ -2,10 +2,15 @@ package com.ironhub.modules.loot;
 
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
-import com.ironhub.ui.components.SectionLabel;
-import com.ironhub.ui.components.SegmentedControl;
+import com.ironhub.ui.osrs.OsrsLabel;
+import com.ironhub.ui.osrs.OsrsSkin;
+import com.ironhub.ui.osrs.OsrsTheme;
+import com.ironhub.ui.osrs.StoneBorder;
+import com.ironhub.ui.osrs.StoneChipRow;
+import com.ironhub.ui.osrs.StoneComboBoxUI;
+import com.ironhub.ui.osrs.StonePanel;
 import java.awt.Dimension;
-import java.awt.Font;
+import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -15,20 +20,20 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.util.AsyncBufferedImage;
 import net.runelite.client.util.QuantityFormatter;
 
 /**
- * Loot tab content (frame 2g): source selector with kill count,
- * Total / Per kill toggle, and sprite rows sorted by quantity.
- * GP value deliberately de-emphasized — irons care about items.
+ * Loot tab content (frame 2g) in the OSRS stonework skin: source selector
+ * with kill count, Total / Per kill toggle, and sprite rows sorted by
+ * quantity. GP value deliberately de-emphasized — irons care about items.
+ * Frameless — the host's header plate names the module.
  */
 class LootTab extends JPanel
 {
@@ -36,50 +41,53 @@ class LootTab extends JPanel
 
 	private final AccountState state;
 	private final ItemManager itemManager; // null in unit tests — icons skipped
+	private final OsrsTheme theme;
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::sourcesChanged);
 
 	private final JComboBox<String> source = new JComboBox<>();
-	private final SegmentedControl view = new SegmentedControl(true, "Total", "Per kill");
-	private final JLabel killsLine = new JLabel();
+	private final StoneChipRow view;
+	private final JPanel killsLine = new JPanel();
 	private final JPanel list = new JPanel();
 	private final JPanel supplies = new JPanel();
 	private List<String> sources = new ArrayList<>();
 
-	LootTab(AccountState state, ItemManager itemManager)
+	LootTab(AccountState state, ItemManager itemManager, OsrsTheme theme)
 	{
 		this.state = state;
 		this.itemManager = itemManager;
+		this.theme = theme;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		setBackground(UiTokens.PANEL_BG);
-		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
+		setOpaque(true);
+		setBackground(theme.background);
+		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		add(new SectionLabel("Loot"));
-		add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+		add(Box.createVerticalStrut(4));
 
+		StoneComboBoxUI.skin(source, theme);
 		source.setAlignmentX(LEFT_ALIGNMENT);
-		source.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
+		source.setMaximumSize(new Dimension(Integer.MAX_VALUE, source.getPreferredSize().height));
 		source.addActionListener(e -> rebuild());
 		add(source);
-		add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		add(Box.createVerticalStrut(3));
 
-		killsLine.setForeground(UiTokens.TEXT_FAINT);
-		killsLine.setFont(killsLine.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
+		killsLine.setLayout(new BoxLayout(killsLine, BoxLayout.X_AXIS));
+		killsLine.setOpaque(false);
 		killsLine.setAlignmentX(LEFT_ALIGNMENT);
 		add(killsLine);
-		add(Box.createVerticalStrut(UiTokens.PAD));
+		add(Box.createVerticalStrut(4));
 
+		view = new StoneChipRow(theme, true, "Total", "Per kill");
 		view.onChange(i -> rebuild());
 		add(view);
-		add(Box.createVerticalStrut(UiTokens.PAD));
+		add(Box.createVerticalStrut(4));
 
 		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
-		list.setBackground(UiTokens.PANEL_BG);
+		list.setOpaque(false);
 		list.setAlignmentX(LEFT_ALIGNMENT);
 		add(list);
-		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 
 		supplies.setLayout(new BoxLayout(supplies, BoxLayout.Y_AXIS));
-		supplies.setBackground(UiTokens.PANEL_BG);
+		supplies.setOpaque(false);
 		supplies.setAlignmentX(LEFT_ALIGNMENT);
 		add(supplies);
 		add(Box.createVerticalGlue());
@@ -116,17 +124,19 @@ class LootTab extends JPanel
 	private void rebuild()
 	{
 		list.removeAll();
+		killsLine.removeAll();
 		String selected = (String) source.getSelectedItem();
 
 		if (selected == null)
 		{
-			killsLine.setText("no loot recorded yet");
+			killsLine.add(new OsrsLabel("no loot recorded yet", OsrsSkin.FAINT, OsrsSkin.font()).leftAligned());
 			list.add(faintLine("Kill something — drops are tracked automatically."));
 		}
 		else
 		{
 			int kills = state.getKillCount(selected);
-			killsLine.setText(kills + (kills == 1 ? " kill" : " kills") + " recorded");
+			killsLine.add(new OsrsLabel(kills + (kills == 1 ? " kill" : " kills") + " recorded",
+				OsrsSkin.FAINT, OsrsSkin.font()).leftAligned());
 			boolean perKill = view.getSelected() == 1;
 
 			Map<Integer, Integer> loot = state.lootFor(selected);
@@ -134,17 +144,26 @@ class LootTab extends JPanel
 			ids.sort(Comparator.comparingInt((Integer id) -> -loot.get(id))
 				.thenComparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)));
 
-			for (Integer id : ids.subList(0, Math.min(ids.size(), MAX_ROWS)))
+			if (!ids.isEmpty())
 			{
-				list.add(itemRow(id, loot.get(id), kills, perKill));
-				list.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+				StonePanel group = rowGroup();
+				for (Integer id : ids.subList(0, Math.min(ids.size(), MAX_ROWS)))
+				{
+					group.add(itemRow(id, loot.get(id), kills, perKill));
+				}
+				cap(group);
+				list.add(group);
 			}
 			if (ids.size() > MAX_ROWS)
 			{
+				list.add(Box.createVerticalStrut(3));
 				list.add(faintLine("+ " + (ids.size() - MAX_ROWS) + " more items"));
 			}
 		}
 		rebuildSupplies(selected);
+		cap(killsLine);
+		killsLine.revalidate();
+		killsLine.repaint();
 		list.revalidate();
 		list.repaint();
 	}
@@ -156,34 +175,43 @@ class LootTab extends JPanel
 		Map<Integer, Integer> used = selected == null ? Map.of() : state.suppliesFor(selected);
 		if (!used.isEmpty())
 		{
-			supplies.add(new SectionLabel("Supplies used"));
-			supplies.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+			supplies.add(section("Supplies used"));
 
 			int kills = state.getKillCount(selected);
 			boolean perKill = view.getSelected() == 1;
 			List<Integer> ids = new ArrayList<>(used.keySet());
 			ids.sort(Comparator.comparingInt((Integer id) -> -used.get(id))
 				.thenComparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)));
+			StonePanel group = rowGroup();
 			for (Integer id : ids.subList(0, Math.min(ids.size(), MAX_ROWS)))
 			{
-				supplies.add(itemRow(id, used.get(id), kills, perKill));
-				supplies.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+				group.add(itemRow(id, used.get(id), kills, perKill));
 			}
+			cap(group);
+			supplies.add(group);
 		}
 		supplies.revalidate();
 		supplies.repaint();
 	}
 
-	private JPanel itemRow(int itemId, int quantity, int kills, boolean perKill)
+	/** One notched frame the item rows sit inside, checklist-style. */
+	private StonePanel rowGroup()
+	{
+		StonePanel group = new StonePanel(theme);
+		group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
+		group.setAlignmentX(LEFT_ALIGNMENT);
+		int corner = theme.cornerStamp.length;
+		group.setBorder(new StoneBorder(theme, theme.background,
+			new Insets(corner, corner, corner, corner)));
+		return group;
+	}
+
+	private JComponent itemRow(int itemId, int quantity, int kills, boolean perKill)
 	{
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-		row.setBackground(UiTokens.CARD_BG);
+		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-			new EmptyBorder(0, UiTokens.ROW_GAP, 0, UiTokens.ROW_GAP)));
-		row.setPreferredSize(new Dimension(0, UiTokens.ROW_HEIGHT));
-		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT));
 
 		JLabel icon = new JLabel();
 		Dimension iconSize = new Dimension(UiTokens.TILE_ICON_SIZE, UiTokens.TILE_ICON_SIZE);
@@ -197,34 +225,53 @@ class LootTab extends JPanel
 			sprite.onLoaded(icon::repaint);
 		}
 		row.add(icon);
-		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		row.add(Box.createHorizontalStrut(4));
 
 		String name = state.itemName(itemId);
-		JLabel nameLabel = new JLabel(name);
-		nameLabel.setForeground(UiTokens.TEXT_BODY);
-		nameLabel.setFont(nameLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_BODY));
+		OsrsLabel nameLabel = new OsrsLabel(name, OsrsSkin.MUTED, OsrsSkin.font())
+			.leftAligned().squeezable();
 		nameLabel.setToolTipText(name);
-		nameLabel.setMinimumSize(new Dimension(0, 0));
 		row.add(nameLabel);
 		row.add(Box.createHorizontalGlue());
 
-		JLabel count = new JLabel(perKill
+		OsrsLabel count = OsrsLabel.value(perKill
 			? perKillText(quantity, kills)
 			: "×" + QuantityFormatter.quantityToStackSize(quantity));
-		count.setForeground(UiTokens.TEXT_PRIMARY);
-		count.setFont(count.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
 		count.setToolTipText(quantity + " over " + kills + (kills == 1 ? " kill" : " kills"));
 		row.add(count);
+		cap(row);
 		return row;
 	}
 
-	private JLabel faintLine(String text)
+	private JComponent faintLine(String text)
 	{
-		JLabel label = new JLabel(text);
-		label.setForeground(UiTokens.TEXT_FAINT);
-		label.setFont(label.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
-		label.setAlignmentX(LEFT_ALIGNMENT);
-		return label;
+		JPanel holder = new JPanel();
+		holder.setLayout(new BoxLayout(holder, BoxLayout.X_AXIS));
+		holder.setOpaque(false);
+		holder.setAlignmentX(LEFT_ALIGNMENT);
+		holder.add(OsrsLabel.wrapped(text, 195, OsrsSkin.FAINT, OsrsSkin.font()).leftAligned());
+		holder.add(Box.createHorizontalGlue());
+		cap(holder);
+		return holder;
+	}
+
+	/** Section header in the skin grammar (the FarmingTab pattern). */
+	private JComponent section(String text)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new EmptyBorder(8, 4, 3, 4));
+		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font()));
+		row.add(Box.createHorizontalGlue());
+		cap(row);
+		return row;
+	}
+
+	private void cap(JComponent c)
+	{
+		c.setMaximumSize(new Dimension(Integer.MAX_VALUE, c.getPreferredSize().height));
 	}
 
 	/** "0.8/kill" — static for unit testing. */

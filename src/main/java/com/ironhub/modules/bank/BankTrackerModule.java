@@ -78,8 +78,22 @@ public class BankTrackerModule implements IronHubModule
 					{
 						configManager.setConfiguration(IronHubConfig.GROUP, "bankedXpGridView", gridView);
 					}
-				});
+				}, config.osrsTheme());
 		}
 		return tab;
+	}
+
+	/** A theme flip re-clothes the tab: drop it, the next mount rebuilds. */
+	@Override
+	public void onThemeChanged()
+	{
+		javax.swing.SwingUtilities.invokeLater(() ->
+		{
+			if (tab != null)
+			{
+				tab.dispose();
+				tab = null;
+			}
+		});
 	}
 }
