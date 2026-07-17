@@ -24,20 +24,27 @@ public class HubScrollPane extends JScrollPane
 	}
 
 	/**
-	 * showBar=false hides the scrollbar entirely (wheel scrolling still
-	 * works): the unified home view scrolls at the full 225px, because a
-	 * visible bar narrowed the content below the persistent header and the
-	 * two no longer lined up (Luke, in-client 2026-07-17).
+	 * showBar=false makes the scrollbar take ZERO pixels while wheel
+	 * scrolling keeps working: the unified home view scrolls at the full
+	 * 225px, because a visible bar narrowed the content below the persistent
+	 * header and the two no longer lined up (Luke, in-client 2026-07-17).
+	 *
+	 * <p>NOT the NEVER policy: Swing's wheel handler refuses to scroll
+	 * unless the vertical scrollbar isVisible() (BasicScrollPaneUI checks
+	 * it), so NEVER silently killed the wheel — Luke's next report. The bar
+	 * stays, sized to nothing.
 	 */
 	public HubScrollPane(JComponent content, boolean showBar)
 	{
-		super(northAnchor(content),
-			showBar ? VERTICAL_SCROLLBAR_AS_NEEDED : VERTICAL_SCROLLBAR_NEVER,
-			HORIZONTAL_SCROLLBAR_NEVER);
+		super(northAnchor(content), VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
 		setBorder(null);
 		setBackground(UiTokens.PANEL_BG);
 		getViewport().setBackground(UiTokens.PANEL_BG);
 		getVerticalScrollBar().setUnitIncrement(UiTokens.SCROLL_UNIT);
+		if (!showBar)
+		{
+			getVerticalScrollBar().setPreferredSize(new Dimension(0, 0));
+		}
 	}
 
 	private static JPanel northAnchor(JComponent content)

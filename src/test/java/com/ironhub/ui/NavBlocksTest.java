@@ -102,6 +102,30 @@ public class NavBlocksTest
 		assertEquals(null, home.selectedBlock());
 	}
 
+	/**
+	 * The home view's scrollbar takes no pixels but must stay wheel-capable:
+	 * Swing's wheel handler only scrolls when the vertical bar isVisible(),
+	 * so the NEVER policy silently killed the wheel (Luke, in-client
+	 * 2026-07-17). Zero width + visible is the contract.
+	 */
+	@Test
+	public void homeScrollsByWheelWithoutShowingABar() throws Exception
+	{
+		build();
+		javax.swing.SwingUtilities.invokeAndWait(() -> home.pressBlock("Dailies"));
+		javax.swing.JScrollPane pane = find(panel, javax.swing.JScrollPane.class);
+		assertNotNull(pane);
+		// content far taller than the viewport — the bar must engage
+		pane.setSize(UiTokens.PANEL_WIDTH, 400);
+		pane.doLayout();
+		pane.getViewport().doLayout();
+		javax.swing.JScrollBar bar = pane.getVerticalScrollBar();
+		assertTrue("wheel needs a visible bar", bar.isVisible());
+		assertEquals("the bar must take no pixels", 0, bar.getWidth());
+		assertEquals("content must span the full panel width",
+			UiTokens.PANEL_WIDTH, pane.getViewport().getWidth());
+	}
+
 	@Test
 	public void wiredPanelRendersWithTheDailiesHubOpen() throws Exception
 	{
