@@ -1,6 +1,5 @@
 package com.ironhub.ui.osrs;
 
-import com.ironhub.ui.UiTokens;
 import java.awt.Color;
 
 /**
@@ -46,12 +45,14 @@ public enum OsrsTheme
 	/**
 	 * The Mystic resource pack's grey re-skin (Drunken Monk;
 	 * licenses/mystic-pack-LICENSE) — sampled from the pack's own sprites at
-	 * the pinned commit. The backing is the pack's resizable-mode translucent
-	 * overlay composited over the RuneLite panel the skin sits on, the same
-	 * way the game composites it over the world.
+	 * the pinned commit. The backing was originally the pack's translucent
+	 * overlay flattened over the RuneLite panel (#1D1D1D); Luke lightened it
+	 * to #282828 (2026-07-17) so buttons and stone slabs pop.
 	 */
 	MYSTIC("Mystic (resource pack)",
-		overlay(0xBA, new Color(0x1A1A1A), UiTokens.PANEL_BG), // background -> #1D1D1D
+		// Luke's pick (2026-07-17): a shade lighter than the pack's #1D1D1D
+		// translucent-overlay result, so buttons and stone slabs pop
+		new Color(0x282828),  // background
 		new Color(0x222222),  // boxFill: button/middle.png
 		new Color(0x141414),  // edgeDark: button/edge_top.png row 0
 		new Color(0x383838),  // edgeLight: button/edge_top.png row 1
@@ -137,14 +138,6 @@ public enum OsrsTheme
 		this.cornerStamp = cornerStamp;
 	}
 
-	/** Flatten a translucent overlay onto what it sits over (alpha 0-255). */
-	private static Color overlay(int alpha, Color over, Color under)
-	{
-		return new Color(
-			(over.getRed() * alpha + under.getRed() * (255 - alpha)) / 255,
-			(over.getGreen() * alpha + under.getGreen() * (255 - alpha)) / 255,
-			(over.getBlue() * alpha + under.getBlue() * (255 - alpha)) / 255);
-	}
 
 	@Override
 	public String toString()
