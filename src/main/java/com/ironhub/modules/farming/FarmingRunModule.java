@@ -236,7 +236,7 @@ public class FarmingRunModule implements IronHubModule
 	@Override
 	public String name()
 	{
-		return "Farming runs";
+		return "Farm runs";
 	}
 
 	@Override

@@ -322,7 +322,7 @@ public class DashboardPanel extends JPanel
 		int ready = FarmingRunModule.sharedReadyPatches();
 		if (ready > 0)
 		{
-			chips.add(alertChip(ready + " patches ready", Status.AVAILABLE, "Farming runs"));
+			chips.add(alertChip(ready + " patches ready", Status.AVAILABLE, "Farm runs"));
 		}
 		SuppliesRunwayModule.compute(state).values().stream()
 			.filter(r -> r.hoursLeft() < 6)

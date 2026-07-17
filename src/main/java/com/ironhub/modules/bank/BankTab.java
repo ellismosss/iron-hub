@@ -109,6 +109,9 @@ class BankTab extends JPanel
 	/** The ids actually rendered by the last addRows (capped) — the SKILL
 	 *  view sends exactly these to the bank. */
 	private List<Integer> lastShownIds = List.of();
+	/** The UNCAPPED result ids of the last addRows — stat-group views send
+	 *  the whole ranking to the bank while the sidebar stays top-20. */
+	private List<Integer> fullResultIds = List.of();
 	private final OsrsTheme theme;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 
@@ -314,6 +317,7 @@ class BankTab extends JPanel
 		boolean targetHadFocus = targetField.isFocusOwner();
 		list.removeAll();
 		lastShownIds = List.of(); // set by addRows; stale ids must not linger
+		fullResultIds = List.of();
 		rebuildActions();
 		rebuildSkillStrip();
 		Map<Integer, Integer> bank = state.getBankSnapshot();
@@ -667,17 +671,23 @@ class BankTab extends JPanel
 		Map<Integer, List<BankedXpPack.Entry>> byItem = entriesByItem(skillMode);
 		Map<Integer, BankedXpPack.Entry> chosen = new HashMap<>();
 		double totalXp = 0;
+		double selectionXp = 0;
 		for (Map.Entry<Integer, List<BankedXpPack.Entry>> e : byItem.entrySet())
 		{
 			if (bank.containsKey(e.getKey()))
 			{
 				BankedXpPack.Entry pick = chosenEntry(e.getKey(), e.getValue());
 				chosen.put(e.getKey(), pick);
-				totalXp += bank.get(e.getKey()) * effectiveXp(pick);
+				double xp = bank.get(e.getKey()) * effectiveXp(pick);
+				totalXp += xp;
+				if (selection.contains(e.getKey()))
+				{
+					selectionXp += xp;
+				}
 			}
 		}
 
-		list.add(skillHeader(totalXp));
+		list.add(skillHeader(totalXp, selectionXp));
 		for (BankedXpPack.Modifier modifier : skillModifiers(skillMode))
 		{
 			list.add(modifierRow(modifier));
@@ -782,7 +792,7 @@ class BankTab extends JPanel
 	}
 
 	/** Skill icon + level now → level banked + xp to next, in a stone card. */
-	private JComponent skillHeader(double totalXp)
+	private JComponent skillHeader(double totalXp, double selectionXp)
 	{
 		int level = state.getRealLevel(skillMode);
 		int xpNow = state.getXp(skillMode);
@@ -796,6 +806,11 @@ class BankTab extends JPanel
 		card.add(new OsrsLabel("Banked: " + formatXp(totalXp) + " xp · level banked: " + banked
 			+ (banked > level ? " (+" + (banked - level) + ")" : ""),
 			OsrsSkin.VALUE, OsrsSkin.smallFont()).leftAligned());
+		if (selectionXp > 0)
+		{
+			card.add(new OsrsLabel("Selection: " + formatXp(selectionXp) + " xp",
+				OsrsSkin.VALUE, OsrsSkin.smallFont()).leftAligned());
+		}
 		if (level < 99)
 		{
 			card.add(new OsrsLabel("Next level: "
@@ -1244,6 +1259,12 @@ class BankTab extends JPanel
 		{
 			onBankDisplay.accept(lastShownIds, skillMode.getName() + " banked XP");
 		}
+		else if (mode == Mode.STAT_GROUP && statGroup != null)
+		{
+			// a combat-style search shows EVERYTHING in the bank interface,
+			// highest ranking first (Luke) — the sidebar stays capped
+			onBankDisplay.accept(fullResultIds, statGroup.icon.getName() + " equipment");
+		}
 		else
 		{
 			List<Integer> selected = selection.stream()
@@ -1257,6 +1278,7 @@ class BankTab extends JPanel
 	{
 		lastShownIds = rows.subList(0, Math.min(rows.size(), MAX_RESULTS)).stream()
 			.map(row -> row.itemId).collect(Collectors.toList());
+		fullResultIds = rows.stream().map(row -> row.itemId).collect(Collectors.toList());
 		if (!rows.isEmpty())
 		{
 			// the item rows sit inside one notched frame, checklist-style

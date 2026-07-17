@@ -75,7 +75,7 @@ public class NavBlocksTest
 		JComponent dailiesTab = dailiesNew.buildTab();
 		assertTrue("first module's tab must open by default",
 			javax.swing.SwingUtilities.isDescendingFrom(dailiesTab, panel));
-		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Dailies", "Farming runs"));
+		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Dailies", "Farm runs"));
 		JComponent farmingTab = farming.buildTab();
 		assertTrue("expanded module's tab not in the panel",
 			javax.swing.SwingUtilities.isDescendingFrom(farmingTab, panel));

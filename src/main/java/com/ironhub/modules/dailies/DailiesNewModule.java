@@ -36,7 +36,7 @@ public class DailiesNewModule implements IronHubModule
 	@Override
 	public String name()
 	{
-		return "Dailies (New)";
+		return "Dailies";
 	}
 
 	@Override

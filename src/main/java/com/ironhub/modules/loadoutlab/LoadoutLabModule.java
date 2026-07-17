@@ -117,7 +117,7 @@ public class LoadoutLabModule implements IronHubModule
 	@Override
 	public String name()
 	{
-		return "Loadout Lab";
+		return "Loadout";
 	}
 
 	@Override
