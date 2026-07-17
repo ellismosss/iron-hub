@@ -4,9 +4,7 @@ import com.ironhub.data.DataPack;
 import com.ironhub.modules.IronHubModule;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.components.HubScrollPane;
-import com.ironhub.ui.components.NavHeader;
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
 import java.awt.Component;
 import java.util.HashMap;
 import java.util.List;
@@ -31,28 +29,33 @@ import net.runelite.client.ui.PluginPanel;
  * changes. Its scrollbar is hidden (wheel still scrolls): a visible bar
  * narrowed the content and misaligned it under the header (Luke's list).
  *
- * <p>The classic escape hatch keeps the old card shape: the Modules button
- * swaps to the module nav, and each module tab opens as its own card with a
- * fixed back header. Module tabs are singletons with ONE Swing parent — the
- * Dailies hub shows the same tabs the classic cards do, so every view MOUNTS
- * the tabs it needs when shown, adopting them from wherever they last lived.
+ * <p>All six blocks are wired (Luke, 2026-07-17), so the nav stones are the
+ * whole navigation — the Modules button and the classic per-module cards are
+ * gone. Module tabs are singletons with ONE Swing parent, so every hub page
+ * MOUNTS the tabs it needs when shown, adopting them from wherever they last
+ * lived (a theme swap rebuilds the pages and re-adopts).
  */
 @Singleton
 public class IronHubPanel extends PluginPanel
 {
-	private static final String CARD_HOME = "home";
-	private static final String CARD_MODULES = "modules";
-
-	/** Block name → the module tabs its hub page stacks, top to bottom. */
+	/**
+	 * Block name → the module tabs its hub page stacks, top to bottom.
+	 * Luke's groupings, plus the homes the classic nav's removal forced:
+	 * Loot & supplies rides with Combat, the Design lab under Settings.
+	 * The classic Dailies tab left the nav — its module keeps the brain
+	 * (detection, runs, overlays) that Dailies (New) renders.
+	 */
 	private static final Map<String, List<String>> BLOCKS = Map.of(
-		"Dailies", List.of("Dailies (New)", "Farming runs"));
+		"Goals", List.of("Goal planner"),
+		"Combat", List.of("Loadout Lab", "Slayer", "Loot & supplies"),
+		"Dailies", List.of("Dailies (New)", "Farming runs"),
+		"Progression", List.of("Collection log", "Combat achievements", "Gear progression",
+			"Achievement diaries", "Quests", "Clues & STASH", "QoL checklist"),
+		"Bank", List.of("Bank & banked XP", "Supplies runway", "Death recovery"),
+		"Settings", List.of("Design lab"));
 
-	private final CardLayout cards = new CardLayout();
-	private final JPanel cardPanel = new JPanel(cards);
 	private final JPanel homeCard = new JPanel(new BorderLayout());
 	private final Map<String, IronHubModule> modulesByName;
-	private final Map<String, JPanel> moduleSlots = new HashMap<>();
-	private final Map<String, Component> moduleWrappers = new HashMap<>();
 	private final Map<String, Map<String, JPanel>> hubSlots = new HashMap<>();
 	private final Map<String, JComponent> hubPages = new HashMap<>();
 	private final AccountState state;
@@ -71,13 +74,15 @@ public class IronHubPanel extends PluginPanel
 
 		setLayout(new BorderLayout());
 		setBackground(UiTokens.PANEL_BG);
-
 		homeCard.setBackground(UiTokens.PANEL_BG);
-		cardPanel.setBackground(UiTokens.PANEL_BG);
-		cardPanel.add(homeCard, CARD_HOME);
-		cardPanel.add(new ModuleNavPanel(this::showDashboard, this::openModule), CARD_MODULES);
-		add(cardPanel, BorderLayout.CENTER);
+		add(homeCard, BorderLayout.CENTER);
 		mountHome();
+	}
+
+	/** Every block's contents — the lifecycle test proves each name resolves. */
+	public static Map<String, List<String>> blockContents()
+	{
+		return BLOCKS;
 	}
 
 	/** The home view: one bare scroll over the frame + whatever block is open. */
@@ -87,7 +92,7 @@ public class IronHubPanel extends PluginPanel
 		{
 			home.dispose();
 		}
-		home = new HomePanel(state, config.osrsTheme(), this::showModules, this::openBlock);
+		home = new HomePanel(state, config.osrsTheme(), this::openBlock);
 		homeCard.removeAll();
 		homeCard.add(new HubScrollPane(home, false), BorderLayout.CENTER);
 		homeCard.revalidate();
@@ -102,26 +107,13 @@ public class IronHubPanel extends PluginPanel
 			hubPages.clear();
 			hubSlots.clear();
 			mountHome();
-			cards.show(cardPanel, CARD_HOME);
 		});
-	}
-
-	public void showDashboard()
-	{
-		home.clearSelection();
-		openBlock(null);
-		cards.show(cardPanel, CARD_HOME);
-	}
-
-	public void showModules()
-	{
-		cards.show(cardPanel, CARD_MODULES);
 	}
 
 	/**
 	 * A nav block was selected (null = the open one was clicked shut): its
 	 * hub page mounts inside the home's frame. Only blocks listed in BLOCKS
-	 * have pages yet; the rest say so honestly.
+	 * have pages; anything else says so honestly.
 	 */
 	public void openBlock(String name)
 	{
@@ -136,48 +128,22 @@ public class IronHubPanel extends PluginPanel
 		}
 		slot.revalidate();
 		slot.repaint();
-		cards.show(cardPanel, CARD_HOME);
 	}
 
-	/** Open a module tab by nav name; rows without a live tab are inert. */
-	public void openModule(String name)
-	{
-		IronHubModule module = modulesByName.get(name);
-		if (module == null || !module.enabled())
-		{
-			return;
-		}
-		Component wrapper = moduleWrappers.get(name);
-		if (wrapper == null)
-		{
-			if (module.buildTab() == null)
-			{
-				return;
-			}
-			JPanel slot = slot();
-			moduleSlots.put(name, slot);
-			wrapper = wrap(name, slot);
-			moduleWrappers.put(name, wrapper);
-			cardPanel.add(wrapper, "module:" + name);
-		}
-		mount(name, moduleSlots.get(name));
-		cards.show(cardPanel, "module:" + name);
-	}
-
-	/** Drop a module's cached card (module was shut down / re-enabled). */
+	/** A module toggled on or off: any hub slot carrying its tab re-mounts. */
 	public void invalidateModule(String name)
 	{
-		Component wrapper = moduleWrappers.remove(name);
-		moduleSlots.remove(name);
-		if (wrapper != null)
+		javax.swing.SwingUtilities.invokeLater(() ->
 		{
-			boolean showing = wrapper.isVisible();
-			cardPanel.remove(wrapper);
-			if (showing)
+			for (Map<String, JPanel> slots : hubSlots.values())
 			{
-				showDashboard();
+				JPanel slot = slots.get(name);
+				if (slot != null)
+				{
+					mount(name, slot);
+				}
 			}
-		}
+		});
 	}
 
 	// ── hub pages ─────────────────────────────────────────────────────
@@ -191,6 +157,7 @@ public class IronHubPanel extends PluginPanel
 		Map<String, JPanel> slots = new HashMap<>();
 		for (String moduleName : BLOCKS.get(name))
 		{
+			stack.add(moduleHeader(moduleName));
 			JPanel slot = slot();
 			slots.put(moduleName, slot);
 			stack.add(slot);
@@ -198,6 +165,30 @@ public class IronHubPanel extends PluginPanel
 		}
 		hubSlots.put(name, slots);
 		return stack;
+	}
+
+	/**
+	 * A module's name plate in a hub page — the Design lab's notched-box
+	 * button look (Luke, 2026-07-17), display-only: no hover fill, no hand
+	 * cursor, because the tab beneath IS the content.
+	 */
+	private JComponent moduleHeader(String name)
+	{
+		com.ironhub.ui.osrs.OsrsTheme theme = config.osrsTheme();
+		com.ironhub.ui.osrs.StonePanel plate = new com.ironhub.ui.osrs.StonePanel(theme);
+		plate.setLayout(new BoxLayout(plate, BoxLayout.X_AXIS));
+		plate.add(Box.createHorizontalGlue());
+		plate.add(com.ironhub.ui.osrs.OsrsLabel.label(name));
+		plate.add(Box.createHorizontalGlue());
+
+		JPanel pad = new JPanel(new BorderLayout());
+		pad.setOpaque(false);
+		pad.setAlignmentX(Component.LEFT_ALIGNMENT);
+		pad.setBorder(new javax.swing.border.EmptyBorder(0, 4, 3, 4));
+		pad.add(plate, BorderLayout.CENTER);
+		pad.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE,
+			pad.getPreferredSize().height));
+		return pad;
 	}
 
 	/** Adopt every tab this hub shows — from wherever each last lived. */
@@ -255,15 +246,5 @@ public class IronHubPanel extends PluginPanel
 			com.ironhub.ui.osrs.OsrsSkin.font());
 		page.add(note, BorderLayout.NORTH);
 		return page;
-	}
-
-	private JPanel wrap(String name, JComponent slot)
-	{
-		// back header fixed at the top; only the tab content scrolls
-		JPanel wrapper = new JPanel(new BorderLayout());
-		wrapper.setBackground(UiTokens.PANEL_BG);
-		wrapper.add(new NavHeader(name, this::showModules), BorderLayout.NORTH);
-		wrapper.add(new HubScrollPane(slot), BorderLayout.CENTER);
-		return wrapper;
 	}
 }

@@ -64,7 +64,7 @@ public class NavBlocksTest
 	}
 
 	@Test
-	public void dailiesBlockStacksBothTabsAndSurvivesModuleHopping() throws Exception
+	public void dailiesBlockStacksBothTabsAndSurvivesAThemeSwap() throws Exception
 	{
 		build();
 		javax.swing.SwingUtilities.invokeAndWait(() -> home.pressBlock("Dailies"));
@@ -78,21 +78,20 @@ public class NavBlocksTest
 			javax.swing.SwingUtilities.isDescendingFrom(farmingTab, panel));
 		Container hubHost = farmingTab.getParent();
 
-		// hop to the classic module card: it adopts the singleton tab...
-		javax.swing.SwingUtilities.invokeAndWait(() -> panel.openModule("Farming runs"));
-		assertNotSame("module card must adopt the tab", hubHost, farmingTab.getParent());
-
-		// ...and returning to the hub adopts it straight back
-		javax.swing.SwingUtilities.invokeAndWait(() ->
-		{
-			home.pressBlock("Dailies"); // toggle off
-			home.pressBlock("Dailies"); // and on again — remounts
-		});
-		assertEquals(hubHost, farmingTab.getParent());
+		// a theme swap rebuilds the home and drops every cached hub page:
+		// the freshly built slots must ADOPT the singleton tabs
+		panel.themeChanged();
+		javax.swing.SwingUtilities.invokeAndWait(() -> {}); // flush the queued rebuild
+		home = find(panel, HomePanel.class);
+		assertNotNull("theme swap must rebuild the home", home);
+		javax.swing.SwingUtilities.invokeAndWait(() -> home.pressBlock("Dailies"));
+		assertNotSame("fresh hub slots must adopt the tab", hubHost, farmingTab.getParent());
+		assertTrue("farming tab lost in the theme swap",
+			javax.swing.SwingUtilities.isDescendingFrom(farmingTab, panel));
 	}
 
 	@Test
-	public void unwiredBlocksSaySoAndTheHeaderFollowsSelection() throws Exception
+	public void blocksToggleLikeTheGamesOwnTabs() throws Exception
 	{
 		build();
 		javax.swing.SwingUtilities.invokeAndWait(() -> home.pressBlock("Bank"));
@@ -100,6 +99,18 @@ public class NavBlocksTest
 		// clicking the open block again closes it, like the game's own tabs
 		javax.swing.SwingUtilities.invokeAndWait(() -> home.pressBlock("Bank"));
 		assertEquals(null, home.selectedBlock());
+	}
+
+	/** Every stone routes somewhere — a NAV name missing from BLOCKS is an
+	 *  honest-but-dead "not built yet" page nobody intends any more. */
+	@Test
+	public void everyNavBlockHasAHubPage()
+	{
+		for (String name : HomePanel.blockNames())
+		{
+			assertTrue("nav stone without a hub page: " + name,
+				IronHubPanel.blockContents().containsKey(name));
+		}
 	}
 
 	/**

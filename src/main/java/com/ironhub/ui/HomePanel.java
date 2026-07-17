@@ -6,7 +6,6 @@ import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
 import com.ironhub.ui.osrs.StatBox;
-import com.ironhub.ui.osrs.StoneButton;
 import com.ironhub.ui.osrs.StoneFrame;
 import com.ironhub.ui.osrs.StoneNavButton;
 import com.ironhub.ui.osrs.StoneProgressBar;
@@ -27,11 +26,10 @@ import net.runelite.api.Skill;
 
 /**
  * The reworked home (2026-07-16, Luke's nav spec): the player's name over a
- * brief Character-Summary-style card, then SEVEN nav blocks — Goals, Combat,
- * Dailies, Current task (dynamic later; slayer helm for now), Progression,
- * Bank, Settings — in the OSRS stonework skin. The blocks are NOT wired yet:
- * this round builds the interface; the Modules button below keeps every
- * existing area reachable through the classic nav in the meantime.
+ * brief Character-Summary-style card, then SIX nav blocks — Goals, Combat,
+ * Dailies, Progression, Bank, Settings — in the OSRS stonework skin. Every
+ * block is wired (2026-07-17), so the stones are the whole navigation; the
+ * interim Modules button is gone.
  */
 public class HomePanel extends JPanel
 {
@@ -56,7 +54,6 @@ public class HomePanel extends JPanel
 
 	private final AccountState state;
 	private final OsrsTheme theme;
-	private final Runnable onModules;
 	private final java.util.function.Consumer<String> onBlock;
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::refresh);
 
@@ -71,12 +68,11 @@ public class HomePanel extends JPanel
 	private String selectedBlock;
 	private long statsFingerprint = -1;
 
-	public HomePanel(AccountState state, OsrsTheme theme, Runnable onModules,
+	public HomePanel(AccountState state, OsrsTheme theme,
 		java.util.function.Consumer<String> onBlock)
 	{
 		this.state = state;
 		this.theme = theme;
-		this.onModules = onModules;
 		this.onBlock = onBlock;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
@@ -134,10 +130,8 @@ public class HomePanel extends JPanel
 		frame.add(strut(6));
 		frame.add(navRow());
 		frame.add(strut(8));
-		// always the Modules button — the open block announces itself with
-		// its own title inside the content (the extra header doubled it)
-		frame.add(centered(modulesButton()));
-		frame.add(strut(4));
+		// the open block announces itself with its stone header plate
+		// inside the content (an extra header line here doubled it)
 		frame.add(contentSlot);
 		revalidate();
 		repaint();
@@ -151,8 +145,7 @@ public class HomePanel extends JPanel
 
 	/**
 	 * A stone was pressed: select it (or deselect, clicking the open one
-	 * again — the game's own tab stones close the same way). The bottom slot
-	 * swaps between the Modules button and the open block's header.
+	 * again — the game's own tab stones close the same way).
 	 */
 	private void toggleBlock(String name)
 	{
@@ -189,6 +182,17 @@ public class HomePanel extends JPanel
 	public void pressBlock(String name)
 	{
 		toggleBlock(name);
+	}
+
+	/** Test seam: the nav block names in stone order — each needs a hub page. */
+	static java.util.List<String> blockNames()
+	{
+		java.util.List<String> names = new java.util.ArrayList<>();
+		for (String[] block : NAV)
+		{
+			names.add(block[1]);
+		}
+		return names;
 	}
 
 	/** Combat level, total level and total XP — live, from the shared state. */
@@ -287,17 +291,6 @@ public class HomePanel extends JPanel
 		row.add(Box.createHorizontalGlue());
 		cap(row);
 		return row;
-	}
-
-	private JComponent modulesButton()
-	{
-		StoneButton modules = new StoneButton(theme, "Modules", onModules);
-		modules.setToolTipText("All module tabs (the classic navigation)");
-		Dimension pref = new Dimension(modules.getPreferredSize().width + 24,
-			modules.getPreferredSize().height);
-		modules.setPreferredSize(pref);
-		modules.setMaximumSize(pref);
-		return modules;
 	}
 
 	private JComponent centered(JComponent inner)

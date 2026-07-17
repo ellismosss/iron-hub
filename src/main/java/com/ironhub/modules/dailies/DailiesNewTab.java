@@ -163,8 +163,7 @@ class DailiesNewTab extends JPanel
 
 	private void buildChecklist()
 	{
-		frame.add(strut(4));
-		frame.add(centered(OsrsLabel.title("Dailies")));
+		// no title of its own: the host's stone header plate names the module
 		frame.add(strut(4));
 		frame.add(pad(tileStrip()));
 		frame.add(strut(3));
@@ -328,19 +327,6 @@ class DailiesNewTab extends JPanel
 		row.add(Box.createHorizontalGlue());
 		cap(row);
 		return row;
-	}
-
-	private JComponent centered(JComponent inner)
-	{
-		JPanel holder = new JPanel();
-		holder.setLayout(new BoxLayout(holder, BoxLayout.X_AXIS));
-		holder.setOpaque(false);
-		holder.setAlignmentX(LEFT_ALIGNMENT);
-		holder.add(Box.createHorizontalGlue());
-		holder.add(inner);
-		holder.add(Box.createHorizontalGlue());
-		cap(holder);
-		return holder;
 	}
 
 	private JComponent pad(JComponent inner)

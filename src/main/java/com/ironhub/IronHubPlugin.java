@@ -154,6 +154,9 @@ public class IronHubPlugin extends Plugin
 			{
 				module.startUp();
 				started.add(module);
+				// re-mount the fresh tab into any hub slot showing the
+				// "Enable the module" note from its shutdown
+				panel.invalidateModule(module.name());
 			}
 			else if (!shouldRun && started.contains(module))
 			{

@@ -79,6 +79,20 @@ public class ModuleLifecycleTest
 
 		assertEquals(20, modules.size());
 
+		// the nav blocks route by exact module name — a mismatch is a hub
+		// slot forever showing "Enable the <name> module" for a module that
+		// does not exist (the classic nav's row-name guard, re-homed)
+		java.util.Set<String> names = new java.util.HashSet<>();
+		modules.forEach(module -> names.add(module.name()));
+		for (java.util.List<String> content : com.ironhub.ui.IronHubPanel.blockContents().values())
+		{
+			for (String routed : content)
+			{
+				assertTrue("nav block routes to unknown module: " + routed,
+					names.contains(routed));
+			}
+		}
+
 		for (IronHubModule module : modules)
 		{
 			assertFalse("blank module name: " + module.getClass(), module.name().trim().isEmpty());
