@@ -181,7 +181,7 @@ public class EdtCostProbeTest
 			new ClueStashModule(state, config, new DataPack(new Gson())),
 			new SlayerOptimizerModule(state, null, null, config, null, null,
 				new net.runelite.client.eventbus.EventBus(), null, null, null,
-				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
+				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null, null, null, null),
 			new SuppliesRunwayModule(state, null, config),
 			new CollectionLogModule(state, null, null,
 				new net.runelite.client.eventbus.EventBus(), config, new DataPack(new Gson()), null),

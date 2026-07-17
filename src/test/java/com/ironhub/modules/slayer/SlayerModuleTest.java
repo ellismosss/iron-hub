@@ -37,7 +37,8 @@ public class SlayerModuleTest
 	private SlayerOptimizerModule module(AccountState state)
 	{
 		return new SlayerOptimizerModule(state, null, null, config, null, null,
-			new EventBus(), null, null, null, new DataPack(new Gson()), null);
+			new EventBus(), null, null, null, new DataPack(new Gson()), null,
+			null, null, null, null, null);
 	}
 
 	@Test
@@ -189,6 +190,100 @@ public class SlayerModuleTest
 		assertFalse(state.isUnlocked("slayerreward_malevolentmasquerade"));
 		StateFixture.varbitChanged(state, VarbitID.SLAYER_HELM_UNLOCKED, 1);
 		assertTrue(state.isUnlocked("slayerreward_malevolentmasquerade"));
+		module.shutDown();
+	}
+
+	@Test
+	public void blockAdviceComparesPrefsAgainstLiveSlots()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		SlayerOptimizerModule module = module(state);
+		module.startUp();
+
+		com.ironhub.data.SlayerTasksPack pack = new DataPack(new Gson())
+			.load("slayer-tasks", com.ironhub.data.SlayerTasksPack.class);
+		com.ironhub.data.SlayerTasksPack.Master duradel = pack.masterByName("Duradel");
+
+		// no prefs: silent
+		assertNull(module.blockAdvice(duradel));
+
+		state.setSlayerBlockPref("Duradel", List.of("Smoke devils", "Cave kraken"));
+		StateFixture.varbitChanged(state, VarbitID.SLAYER_BLOCKED_DURADEL_1, 41);
+
+		// a live slot's id is unresolved: never advise on a guess
+		assertNull(module.blockAdvice(duradel));
+
+		module.seedTaskName(41, "Smoke devils");
+		String advice = module.blockAdvice(duradel);
+		assertNotNull(advice);
+		assertTrue(advice, advice.contains("Cave kraken"));
+		assertFalse(advice, advice.contains("Smoke devils")); // already blocked
+
+		// everything preferred is blocked: silent again
+		StateFixture.varbitChanged(state, VarbitID.SLAYER_BLOCKED_DURADEL_2, 42);
+		module.seedTaskName(42, "Cave kraken");
+		assertNull(module.blockAdvice(duradel));
+		module.shutDown();
+	}
+
+	@Test
+	public void missingBringChecksCarriedNotBanked()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		SlayerOptimizerModule module = module(state);
+		module.startUp();
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_TARGET, 41); // keeps later ingests from clearing the task
+		module.applyResolvedTask("Dust devils", "");
+
+		// facemask in the BANK is not carried — still missing
+		StateFixture.bank(state, java.util.Map.of(4164, 1));
+		assertTrue(module.missingBring().toString(),
+			module.missingBring().stream().anyMatch(s -> s.toLowerCase().contains("facemask")));
+
+		StateFixture.inventory(state, java.util.Map.of(4164, 1));
+		assertFalse(module.missingBring().stream().anyMatch(s -> s.toLowerCase().contains("facemask")));
+		module.shutDown();
+	}
+
+	@Test
+	public void overlayRendersWithinBudget() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		SlayerOptimizerModule module = module(state);
+		module.startUp();
+		StateFixture.varbit(state, VarbitID.SLAYER_MASTER, 5);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_TARGET, 41);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT_ORIGINAL, 150);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT, 150);
+		module.applyResolvedTask("Dust devils", "");
+		StateFixture.stat(state, Skill.SLAYER, 72, 940_000);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT, 63);
+		state.setSlayerSkipPref("Duradel", List.of("Dust devils"));
+
+		SlayerSuiteOverlay overlay = new SlayerSuiteOverlay(module, config, null);
+		java.awt.image.BufferedImage canvas = new java.awt.image.BufferedImage(
+			300, 260, java.awt.image.BufferedImage.TYPE_INT_RGB);
+		java.awt.Graphics2D g = canvas.createGraphics();
+		g.setColor(new java.awt.Color(58, 66, 48));
+		g.fillRect(0, 0, 300, 260);
+		g.setFont(net.runelite.client.ui.FontManager.getRunescapeSmallFont());
+		java.awt.Dimension size = overlay.render(g);
+		g.dispose();
+		assertNotNull(size);
+		assertTrue("overlay width " + size.width, size.width <= 250);
+		assertTrue("overlay height " + size.height, size.height <= 200);
+		java.io.File out = new java.io.File("build/reports/slayer-overlay.png");
+		out.getParentFile().mkdirs();
+		javax.imageio.ImageIO.write(canvas, "png", out);
+
+		// no task -> the overlay stays silent
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT, 0);
+		module.applyResolvedTask("", "");
+		java.awt.Graphics2D g2 = canvas.createGraphics();
+		assertNull(overlay.render(g2));
+		g2.dispose();
 		module.shutDown();
 	}
 

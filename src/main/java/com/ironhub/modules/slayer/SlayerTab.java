@@ -271,6 +271,47 @@ class SlayerTab extends JPanel
 			}
 		}
 
+		content.add(section("Gear"));
+		PersistedState.SavedSetup setup = module.taskSetup();
+		if (setup == null)
+		{
+			content.add(textLine("No setup saved for this task", OsrsSkin.FAINT, OsrsSkin.smallFont()));
+		}
+		else
+		{
+			int items = setupItemCount(setup);
+			content.add(textLine("Setup saved · " + items + " items — the Loadout tab shows it",
+				OsrsSkin.VALUE, OsrsSkin.smallFont()));
+		}
+		JPanel gearButtons = row(2);
+		StoneButton save = new StoneButton(theme,
+			setup == null ? "Save current gear" : "Replace with current gear",
+			module::saveTaskSetup);
+		save.setMaximumSize(save.getPreferredSize());
+		gearButtons.add(save);
+		if (setup != null)
+		{
+			gearButtons.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+			boolean armed = module.bankShowArmed();
+			StoneButton show = new StoneButton(theme,
+				armed ? "Stop bank layout" : "Show in bank",
+				() ->
+				{
+					module.setBankShow(!armed);
+					javax.swing.SwingUtilities.invokeLater(this::rebuild);
+				});
+			show.setMaximumSize(show.getPreferredSize());
+			gearButtons.add(show);
+		}
+		gearButtons.add(Box.createHorizontalGlue());
+		cap(gearButtons);
+		content.add(gearButtons);
+		if (module.bankShowArmed())
+		{
+			content.add(textLine("Opening the bank lays this setup out",
+				OsrsSkin.FAINT, OsrsSkin.smallFont()));
+		}
+
 		content.add(section("Notes"));
 		if (noteField == null || !noteTask.equals(entry.name))
 		{
@@ -812,6 +853,33 @@ class SlayerTab extends JPanel
 			lines.add(xp + " Slayer xp per kill");
 		}
 		return lines;
+	}
+
+	/** Worn + inventory item count of a saved setup. */
+	static int setupItemCount(PersistedState.SavedSetup setup)
+	{
+		int count = 0;
+		if (setup.equipment != null)
+		{
+			for (Integer id : setup.equipment.values())
+			{
+				if (id != null && id > 0)
+				{
+					count++;
+				}
+			}
+		}
+		if (setup.inventory != null)
+		{
+			for (int id : setup.inventory)
+			{
+				if (id > 0)
+				{
+					count++;
+				}
+			}
+		}
+		return count;
 	}
 
 	private static void cap(JComponent c)

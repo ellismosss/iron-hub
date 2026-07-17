@@ -108,6 +108,12 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "slayerSuperiorNotify", name = "Superior foe notification", description = "Notify when a superior slayer creature appears (turn off if RuneLite's own Slayer plugin already notifies)", section = notificationsSection, position = 9)
 	default boolean slayerSuperiorNotify() { return true; }
 
+	@ConfigItem(keyName = "slayerOverlay", name = "Slayer task overlay", description = "Floating overlay with the current task, progress, location hints, missing items and advisories", section = notificationsSection, position = 10)
+	default boolean slayerOverlay() { return true; }
+
+	@ConfigItem(keyName = "slayerBlockAdvice", name = "Block/skip advice in chat", description = "When you visit a slayer master, note preferred blocks not yet made; when a task on your always-skip list is assigned, say so", section = notificationsSection, position = 11)
+	default boolean slayerBlockAdvice() { return true; }
+
 	enum CaTierGoal
 	{
 		AUTO("Auto"),

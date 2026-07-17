@@ -451,6 +451,61 @@ the same claim varbit and the stop culls itself.
 **NMZ herb boxes are ironman-blocked by the game** — core literally checks
 `IRONMAN == 0` — so they are not in the pack at all.
 
+## Slayer detection & block lists (module: slayer, pack: slayer-tasks.json)
+
+**Current task** lives in varps the core Slayer plugin reads: `SLAYER_COUNT`
+(394, remaining kills), `SLAYER_TARGET` (395, task id), `SLAYER_AREA` (2096,
+Konar's assigned area id), `SLAYER_COUNT_ORIGINAL` (4258, the assigned
+amount). Target id **98 is the boss-task sentinel** — the real task resolves
+through `DBTableID.SlayerTaskSublist` by `VarbitID.SLAYER_TARGET_BOSSID`.
+Names come from `DBTableID.SlayerTask.COL_NAME_UPPERCASE` and areas from
+`DBTableID.SlayerArea.COL_AREA_NAME_IN_HELPER` — **DBTable reads are
+client-thread only** (they hit the cache).
+
+**The assigning master** is `VarbitID.SLAYER_MASTER` (4067). Its values are
+the same "focus ids" the game's own block-list clientscripts (8025–8033)
+switch on: 1 Turael/Aya · 2 Mazchna · 3 Vannaka · 4 Chaeldar · 5 Duradel ·
+6 Nieve/Steve · 7 Krystilia (corroborated by core's
+`KRYSTILIA_SLAYER_MASTER = 7`) · 8 Konar · 9 Spria. **Spria shares Turael's
+block list** (script8025 routes 1 and 9 to the same reader).
+
+**Block lists are per-master in the game itself** (post-2025): varbits
+`SLAYER_BLOCKED_<MASTER>_1..6` (17812–17859) plus `_DIARY` (17860–17867,
+the Lumbridge Elite slot), each holding a blocked task's `SlayerTask.COL_ID`.
+The `SLAYER_BLOCKED_*_OLD` varbits (17805–17811) are the retired global
+list. Resolve slot values to names through the DBTable; a slot value with no
+row is unknowable — show "Task #N", never guess.
+
+**Completion vs skip**: `SLAYER_TASKS_COMPLETED` increments only on genuine
+completion (`SLAYER_WILDERNESS_TASKS_COMPLETED` is Krystilia's separate
+streak — sum both for the completion signal). A points skip zeroes
+`SLAYER_COUNT` without touching either streak, so **never infer kills or
+completion from the count reaching 0** — a drop to exactly 0 bigger than a
+Dusk&Dawn double-kill (2) is a skip or reset.
+
+**Point unlocks are individually named varbits** (`SLAYER_UNLOCK_*`,
+`SLAYER_LONGER_*` extends, `SLAYER_AUTOKILL_*`, `SLAYER_HELM/RING/AMMO_
+UNLOCKED`) — no bitfield decoding needed; the packed
+`SLAYER_REWARDS_UNLOCKS*` varps are the transport, not the API. The pack
+joins wiki reward names (which are puns and change tone, never guess —
+"I Wildy More Slayer" costs 0 points) to varbit constant names, verified
+reflectively by the pack test.
+
+**NPC target matching (core parity)**: alternate names per task come from
+core's package-private `Task` enum (generated into the pack at the pinned
+tag); match `(?:\s|^)NAME(?:\s|$)` case-insensitive against
+`npc.getTransformedComposition().getName()` with NBSP→space, and require an
+`Attack` action (`Pick` for zygomite Fungi). Composition, not spawn ids —
+variants and transforms just work.
+
+**Wiki sources**: Turael/Mazchna/Nieve/Duradel keep their assignment tables
+on `<Master>/Slayer_assignments` subpages; Spria/Vannaka/Chaeldar/Konar/
+Krystilia inline them under `==Tasks==` with different columns (Krystilia
+uses rowspan groups for wilderness bosses — continuation rows have fewer
+cells than headers). Monster stats come from the wiki's **Bucket API**
+(`action=bucket`, bucket `infobox_monster`, hard 5000-row cap per query) —
+fetched at generation time only; the client never phones home.
+
 ## Swing/data gotcha — never key a HashMap by an enum and iterate it
 
 Java enums inherit `Object.hashCode()`, i.e. an **identity** hash, so a

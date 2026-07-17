@@ -794,6 +794,12 @@ public class AccountState implements StateView
 		return out;
 	}
 
+	/** Inventory + worn + rune pouch count of an item, variants included. */
+	public int carriedCount(int itemId)
+	{
+		return carriedVariants(itemId);
+	}
+
 	/** Inventory + worn + rune pouch, counting every variant of an item. */
 	private int carriedVariants(int itemId)
 	{

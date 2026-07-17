@@ -145,14 +145,32 @@ public class SlayerOptimizerModule implements IronHubModule
 	private final Map<Integer, String> taskNamesById = new ConcurrentHashMap<>();
 
 	private final com.ironhub.integrations.ShortestPathBridge pathBridge; // null in unit tests
+	private final net.runelite.client.ui.overlay.OverlayManager overlayManager; // null in unit tests
+	private final net.runelite.client.chat.ChatMessageManager chatMessageManager; // null in unit tests
+	private final com.ironhub.modules.farming.FarmBankLayout bankLayout; // null-service tolerant
+
+	private SlayerSuiteOverlay overlay;
+	private volatile long superiorSeenMs;
+	/** "Show in bank" armed from the tab; the next bank opens lay the setup out. */
+	private volatile boolean bankShow;
+	private String lastAdvisedMaster;
 
 	@Inject
 	public SlayerOptimizerModule(AccountState state, Client client, ClientThread clientThread,
 		IronHubConfig config, InfoBoxManager infoBoxManager, Provider<com.ironhub.IronHubPlugin> plugin,
 		EventBus eventBus, NpcOverlayService npcOverlayService, ItemManager itemManager,
-		Notifier notifier, DataPack dataPack, com.ironhub.integrations.ShortestPathBridge pathBridge)
+		Notifier notifier, DataPack dataPack, com.ironhub.integrations.ShortestPathBridge pathBridge,
+		net.runelite.client.ui.overlay.OverlayManager overlayManager,
+		net.runelite.client.chat.ChatMessageManager chatMessageManager,
+		net.runelite.client.plugins.banktags.BankTagsService bankTagsService,
+		net.runelite.client.plugins.banktags.TagManager tagManager,
+		net.runelite.client.plugins.banktags.tabs.LayoutManager layoutManager)
 	{
 		this.pathBridge = pathBridge;
+		this.overlayManager = overlayManager;
+		this.chatMessageManager = chatMessageManager;
+		this.bankLayout = new com.ironhub.modules.farming.FarmBankLayout(
+			bankTagsService, tagManager, layoutManager, itemManager);
 		this.state = state;
 		this.client = client;
 		this.clientThread = clientThread;
@@ -231,6 +249,11 @@ public class SlayerOptimizerModule implements IronHubModule
 			infoBox = new SlayerInfoBox(icon, plugin.get(), this);
 			infoBoxManager.addInfoBox(infoBox);
 		}
+		if (overlayManager != null)
+		{
+			overlay = new SlayerSuiteOverlay(this, config, client);
+			overlayManager.add(overlay);
+		}
 	}
 
 	@Override
@@ -246,6 +269,16 @@ public class SlayerOptimizerModule implements IronHubModule
 			npcOverlayService.unregisterHighlighter(highlighter);
 		}
 		targets.clear();
+		if (overlay != null)
+		{
+			overlayManager.remove(overlay);
+			overlay = null;
+		}
+		if (clientThread != null)
+		{
+			clientThread.invoke(bankLayout::clear);
+		}
+		bankShow = false;
 		if (infoBox != null)
 		{
 			infoBoxManager.removeInfoBox(infoBox);
@@ -490,6 +523,10 @@ public class SlayerOptimizerModule implements IronHubModule
 			{
 				npcOverlayService.rebuild();
 			}
+			if (!name.isEmpty() && onSkipList() && config.slayerBlockAdvice())
+			{
+				chat("You always skip " + name + " — 30 pts at the rewards board");
+			}
 			if (tab != null)
 			{
 				SwingUtilities.invokeLater(tab::rebuild);
@@ -732,11 +769,245 @@ public class SlayerOptimizerModule implements IronHubModule
 		{
 			return;
 		}
-		if (SUPERIOR_MESSAGE.equals(Text.removeTags(event.getMessage()))
-			&& notifier != null && config.slayerSuperiorNotify())
+		if (SUPERIOR_MESSAGE.equals(Text.removeTags(event.getMessage())))
 		{
-			notifier.notify(SUPERIOR_MESSAGE);
+			superiorSeenMs = System.currentTimeMillis();
+			if (notifier != null && config.slayerSuperiorNotify())
+			{
+				notifier.notify(SUPERIOR_MESSAGE);
+			}
 		}
+	}
+
+	// ── master-visit block advice + bank setup layout ─────────────────
+
+	@Subscribe
+	public void onGameTick(net.runelite.api.events.GameTick tick)
+	{
+		if (client == null || pack == null)
+		{
+			return;
+		}
+		net.runelite.api.widgets.Widget nameWidget =
+			client.getWidget(net.runelite.api.gameval.InterfaceID.ChatLeft.NAME);
+		String speaker = nameWidget == null ? null : Text.removeTags(nameWidget.getText());
+		SlayerTasksPack.Master master = pack.masterByName(speaker);
+		if (master == null)
+		{
+			lastAdvisedMaster = null; // next visit advises again
+			return;
+		}
+		if (master.name.equals(lastAdvisedMaster))
+		{
+			return;
+		}
+		lastAdvisedMaster = master.name;
+		if (config.slayerBlockAdvice())
+		{
+			String advice = blockAdvice(master);
+			if (advice != null)
+			{
+				chat(advice);
+			}
+		}
+	}
+
+	/**
+	 * "Block Cave kraken, Smoke devils here — 100 pts each" for preferred
+	 * blocks not yet made at this master, or null. Stays silent while any
+	 * live slot's task id is still unresolved — never advise on a guess.
+	 */
+	String blockAdvice(SlayerTasksPack.Master master)
+	{
+		List<String> prefs = state.getSlayerBlockPref(master.name);
+		if (prefs.isEmpty())
+		{
+			return null;
+		}
+		List<String> liveLower = new ArrayList<>();
+		for (Integer taskId : blockedTaskIds(master.focusId))
+		{
+			String name = taskNamesById.get(taskId);
+			if (name == null)
+			{
+				taskNameById(taskId); // schedule resolution for next time
+				return null;
+			}
+			liveLower.add(name.toLowerCase());
+		}
+		List<String> toBlock = new ArrayList<>();
+		for (String pref : prefs)
+		{
+			if (!liveLower.contains(pref.toLowerCase()))
+			{
+				toBlock.add(pref);
+			}
+		}
+		if (toBlock.isEmpty())
+		{
+			return null;
+		}
+		return "Block " + String.join(", ", toBlock) + " here — 100 pts each (you have "
+			+ points() + ")";
+	}
+
+	private void chat(String message)
+	{
+		if (chatMessageManager == null)
+		{
+			return;
+		}
+		chatMessageManager.queue(net.runelite.client.chat.QueuedMessage.builder()
+			.type(ChatMessageType.CONSOLE)
+			.runeLiteFormattedMessage(new net.runelite.client.chat.ChatMessageBuilder()
+				.append(java.awt.Color.CYAN, "[Iron Hub] ")
+				.append(java.awt.Color.WHITE, message)
+				.build())
+			.build());
+	}
+
+	@Subscribe
+	public void onScriptPreFired(net.runelite.api.events.ScriptPreFired event)
+	{
+		if (event.getScriptId() != net.runelite.api.ScriptID.BANKMAIN_INIT || !bankShow)
+		{
+			return;
+		}
+		PersistedState.SavedSetup setup = taskSetup();
+		if (setup == null || clientThread == null)
+		{
+			return;
+		}
+		String name = taskName;
+		// never open a bank tag during the bank's own build script — defer
+		// (2026-07-18 bank-open freeze audit)
+		clientThread.invokeLater(() -> bankLayout.apply("slayer " + name, setup));
+	}
+
+	@Subscribe
+	public void onScriptPostFired(net.runelite.api.events.ScriptPostFired event)
+	{
+		if (event.getScriptId() != net.runelite.api.ScriptID.BANKMAIN_FINISHBUILDING
+			|| client == null || !bankLayout.isApplied())
+		{
+			return;
+		}
+		net.runelite.api.widgets.Widget title =
+			client.getWidget(net.runelite.api.gameval.InterfaceID.Bankmain.TITLE);
+		if (title != null)
+		{
+			title.setText("<col=ff981f>" + taskName + "</col> — slayer setup");
+		}
+	}
+
+	/** The saved gear+inventory setup for the current task (Loadout key space). */
+	PersistedState.SavedSetup taskSetup()
+	{
+		return taskName.isEmpty() ? null : state.savedSetup(taskName);
+	}
+
+	/** Save the player's current gear+inventory as this task's setup. */
+	void saveTaskSetup()
+	{
+		if (!taskName.isEmpty())
+		{
+			state.saveSetup(taskName, state.captureSetup());
+		}
+	}
+
+	boolean bankShowArmed()
+	{
+		return bankShow;
+	}
+
+	/** Arm/disarm the bank layout; disarming clears an applied layout. */
+	void setBankShow(boolean show)
+	{
+		bankShow = show;
+		if (!show && clientThread != null)
+		{
+			clientThread.invoke(bankLayout::clear);
+		}
+	}
+
+	// ── overlay reads ─────────────────────────────────────────────────
+
+	boolean superiorRecentlySeen()
+	{
+		return System.currentTimeMillis() - superiorSeenMs < 10_000;
+	}
+
+	/** Whether the current task is on its master's always-skip list. */
+	boolean onSkipList()
+	{
+		if (taskName.isEmpty())
+		{
+			return false;
+		}
+		for (String task : state.getSlayerSkipPref(masterName()))
+		{
+			if (task.equalsIgnoreCase(taskName))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** Required bring items not currently carried (names). */
+	List<String> missingBring()
+	{
+		SlayerTasksPack.Task entry = pack == null ? null : pack.task(taskName);
+		if (entry == null || entry.bring == null)
+		{
+			return List.of();
+		}
+		List<String> missing = new ArrayList<>();
+		for (SlayerTasksPack.BringItem item : entry.bring)
+		{
+			if (item.required && item.id != null && state.carriedCount(item.id) == 0)
+			{
+				missing.add(item.name);
+			}
+		}
+		return missing;
+	}
+
+	/** The preferred location's name (or the first routable one), or null. */
+	String preferredLocationName(SlayerTasksPack.Task entry)
+	{
+		String pref = state.getSlayerLocationPref(entry.name);
+		if (pref != null)
+		{
+			return pref;
+		}
+		return entry.locations == null || entry.locations.isEmpty()
+			? null : entry.locations.get(0).name;
+	}
+
+	/** True while the player stands inside any of the task's Turael kill areas. */
+	boolean inTuraelArea()
+	{
+		SlayerTasksPack.Task entry = pack == null ? null : pack.task(taskName);
+		if (entry == null || entry.turael == null || client == null
+			|| client.getLocalPlayer() == null)
+		{
+			return false;
+		}
+		net.runelite.api.coords.WorldPoint at = client.getLocalPlayer().getWorldLocation();
+		for (SlayerTasksPack.TuraelLocation location : entry.turael.locations)
+		{
+			for (List<Integer> area : location.areas)
+			{
+				if (area.size() >= 5 && at.getPlane() == area.get(4)
+					&& at.getX() >= area.get(0) && at.getX() <= area.get(2)
+					&& at.getY() >= area.get(1) && at.getY() <= area.get(3))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	// ── client-thread DBTable resolution ──────────────────────────────
