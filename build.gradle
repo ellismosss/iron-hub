@@ -47,6 +47,17 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
+// A test dependency drags slf4j-api to 2.x, which ignores the client's
+// logback 1.2.9 binding — the dev client then logs to a NO-OP logger and
+// every error (including the game thread's dying stack) vanishes. Force
+// the 1.7 API so RuneLite's own logging works in runClient (console +
+// ~/.runelite/logs/client.log). Found during the 2026-07-18 bank-open
+// freeze hunt: the frozen client's thread dump showed the game loop
+// thread dead and nothing logged anywhere.
+configurations.testRuntimeClasspath {
+    resolutionStrategy.force 'org.slf4j:slf4j-api:1.7.36'
+}
+
 // dev-client smoke test: ./gradlew runClient
 tasks.register('runClient', JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
