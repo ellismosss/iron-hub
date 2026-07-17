@@ -58,6 +58,45 @@ public class BankedXpTest
 	}
 
 	@Test
+	public void secondariesOutputsAndModifiers()
+	{
+		// Secondaries anchor (upstream: PRAYER_POTION consumes Secondaries.PRAYER_POTION
+		// = 1x snape grass (231), outputs Prayer potion(3) (139))
+		BankedXpPack.Entry prayerPotion = pack.getEntries().stream()
+			.filter(e -> e.getActivity().equals("PRAYER_POTION"))
+			.findFirst().orElseThrow(IllegalStateException::new);
+		assertEquals(1, prayerPotion.getSecondaries().size());
+		assertEquals(231, prayerPotion.getSecondaries().get(0).getItemId());
+		assertEquals(1.0, prayerPotion.getSecondaries().get(0).getQty(), 0.001);
+		assertEquals(139, prayerPotion.getOutputId());
+		assertEquals(1.0, prayerPotion.getOutputQty(), 0.001);
+
+		// Modifier anchor (upstream: "Lit Gilded Altar (350% xp)", 3.5f, BONES)
+		BankedXpPack.Modifier gilded = pack.getModifiers().stream()
+			.filter(m -> m.getName().equals("Lit Gilded Altar (350% xp)"))
+			.findFirst().orElseThrow(IllegalStateException::new);
+		assertEquals("Prayer", gilded.getSkill());
+		assertEquals("multiplier", gilded.getType());
+		assertEquals(3.5, gilded.getValue(), 0.001);
+		assertTrue(gilded.getAppliesTo().contains("DRAGON_BONES"));
+
+		// Floors
+		assertTrue(pack.getModifiers().size() >= 8);
+		assertTrue(pack.getEntries().stream().filter(e -> e.getSecondaries() != null).count() >= 100);
+		// Every appliesTo/ignores name joins onto a real entry activity
+		java.util.Set<String> activities = pack.getEntries().stream()
+			.map(BankedXpPack.Entry::getActivity)
+			.collect(java.util.stream.Collectors.toSet());
+		for (BankedXpPack.Modifier m : pack.getModifiers())
+		{
+			if (m.getAppliesTo() != null)
+			{
+				assertTrue(m.getName(), activities.containsAll(m.getAppliesTo()));
+			}
+		}
+	}
+
+	@Test
 	public void sortedLargestFirstAndSharedItemsCountPerSkill()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());

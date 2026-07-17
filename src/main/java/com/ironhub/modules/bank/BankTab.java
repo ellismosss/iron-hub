@@ -99,6 +99,10 @@ class BankTab extends JPanel
 
 	private Mode mode = Mode.SEARCH;
 	private Skill skillMode;
+	// skill-view session state (Banked Experience interface)
+	private final Set<String> activeModifiers = new java.util.HashSet<>();
+	private final Map<Integer, String> chosenActivity = new HashMap<>();
+	private final Set<Integer> expandedItems = new java.util.HashSet<>();
 
 	/** Per-item equipment stats + high-alch prices for {@link #itemDataKey}'s
 	 *  bank snapshot — one client-thread sweep serves the stat ranking, the
@@ -227,6 +231,24 @@ class BankTab extends JPanel
 		state.removeListener(listener);
 	}
 
+	/** Test seam: open a skill's banked-XP view as an icon click would. */
+	void showSkillView(Skill skill)
+	{
+		mode = Mode.SKILL;
+		skillMode = skill;
+		rebuild();
+	}
+
+	/** Test seam: toggle a modifier as its checkbox row would. */
+	void toggleModifier(String name)
+	{
+		if (!activeModifiers.remove(name))
+		{
+			activeModifiers.add(name);
+		}
+		rebuild();
+	}
+
 	private void rebuild()
 	{
 		snapshotHolder.removeAll();
@@ -353,38 +375,262 @@ class BankTab extends JPanel
 		return prices.get(id) * bank.getOrDefault(id, 0);
 	}
 
-	/** Banked Experience port: bank items with entries for the skill,
-	 *  ranked by total banked XP (quantity × best method's xp). */
+	/**
+	 * The Banked Experience interface (Luke, 2026-07-17): level now → level
+	 * banked, xp to next, modifier toggles, then the owned items ranked by
+	 * total banked XP — each expandable into an activity selector with
+	 * effective xp and secondaries (have/need). Totals count EVERY owned
+	 * item at its chosen activity under the active modifiers; the list
+	 * shows the top 20.
+	 */
 	private void rebuildSkillView(Map<Integer, Integer> bank, String query)
 	{
-		Map<Integer, BankedXpPack.Entry> best = bestEntries(skillMode);
-		List<Row> rows = best.keySet().stream()
-			.filter(bank::containsKey)
+		Map<Integer, List<BankedXpPack.Entry>> byItem = entriesByItem(skillMode);
+		Map<Integer, BankedXpPack.Entry> chosen = new HashMap<>();
+		double totalXp = 0;
+		for (Map.Entry<Integer, List<BankedXpPack.Entry>> e : byItem.entrySet())
+		{
+			if (bank.containsKey(e.getKey()))
+			{
+				BankedXpPack.Entry pick = chosenEntry(e.getKey(), e.getValue());
+				chosen.put(e.getKey(), pick);
+				totalXp += bank.get(e.getKey()) * effectiveXp(pick);
+			}
+		}
+
+		list.add(skillHeader(totalXp));
+		for (BankedXpPack.Modifier modifier : skillModifiers(skillMode))
+		{
+			list.add(modifierRow(modifier));
+		}
+		list.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+
+		List<Integer> ids = chosen.keySet().stream()
 			.filter(id -> matches(state.itemName(id), query))
 			.sorted(Comparator.<Integer>comparingDouble(
-					id -> -bank.get(id) * best.get(id).getXpEach())
+					id -> -bank.get(id) * effectiveXp(chosen.get(id)))
 				.thenComparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)))
-			.map(id -> new Row(id,
-				formatXp(bank.get(id) * best.get(id).getXpEach()) + " xp", false))
 			.collect(Collectors.toList());
-		if (rows.isEmpty())
+		if (ids.isEmpty())
 		{
 			list.add(faintLine("No banked " + skillMode.getName() + " XP found."));
 			return;
 		}
-		addRows(rows, bank);
+		lastShownIds = ids.subList(0, Math.min(ids.size(), MAX_RESULTS));
+		StonePanel group = new StonePanel(theme);
+		group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
+		group.setAlignmentX(LEFT_ALIGNMENT);
+		int corner = theme.cornerStamp.length;
+		group.setBorder(new StoneBorder(theme, theme.background,
+			new Insets(corner, corner, corner, corner)));
+		for (int id : lastShownIds)
+		{
+			group.add(itemRow(new Row(id,
+				formatXp(bank.get(id) * effectiveXp(chosen.get(id))) + " xp", false),
+				bank.get(id)));
+			if (expandedItems.contains(id))
+			{
+				group.add(skillDetail(id, byItem.get(id), chosen.get(id), bank.get(id)));
+			}
+		}
+		cap(group);
+		list.add(group);
+		if (ids.size() > MAX_RESULTS)
+		{
+			list.add(faintLine("+ " + (ids.size() - MAX_RESULTS) + " more — refine your search"));
+		}
 	}
 
-	/** Best (highest-xp) pack entry per item for one skill. */
-	private Map<Integer, BankedXpPack.Entry> bestEntries(Skill skill)
+	/** Skill icon + level now → level banked + xp to next, in a stone card. */
+	private JComponent skillHeader(double totalXp)
 	{
-		Map<Integer, BankedXpPack.Entry> best = new HashMap<>();
+		int level = state.getRealLevel(skillMode);
+		int xpNow = state.getXp(skillMode);
+		int banked = Math.min(99,
+			net.runelite.api.Experience.getLevelForXp((int) Math.min(200_000_000, xpNow + totalXp)));
+		StonePanel card = new StonePanel(theme);
+		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+		card.setAlignmentX(LEFT_ALIGNMENT);
+		card.add(new OsrsLabel(skillMode.getName() + " — level " + level,
+			OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
+		card.add(new OsrsLabel("Banked: " + formatXp(totalXp) + " xp · level banked: " + banked
+			+ (banked > level ? " (+" + (banked - level) + ")" : ""),
+			OsrsSkin.VALUE, OsrsSkin.smallFont()).leftAligned());
+		if (level < 99)
+		{
+			card.add(new OsrsLabel("Next level: "
+				+ formatXp(net.runelite.api.Experience.getXpForLevel(level + 1) - xpNow) + " xp",
+				OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+		}
+		cap(card);
+		return card;
+	}
+
+	/** One modifier toggle (small font); active reshapes every total. */
+	private JComponent modifierRow(BankedXpPack.Modifier modifier)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 0, UiTokens.ROW_GAP));
+		StoneCheckbox box = new StoneCheckbox(theme, activeModifiers.contains(modifier.getName()));
+		row.add(box);
+		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		row.add(new OsrsLabel(modifier.getName(), OsrsSkin.MUTED, OsrsSkin.smallFont())
+			.leftAligned().squeezable());
+		row.add(Box.createHorizontalGlue());
+		row.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		row.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				if (!activeModifiers.remove(modifier.getName()))
+				{
+					activeModifiers.add(modifier.getName());
+				}
+				rebuild();
+			}
+		});
+		cap(row);
+		return row;
+	}
+
+	/** Expanded item detail: activity selector, effective xp, level gate,
+	 *  secondaries with have/need from owned counts. */
+	private JComponent skillDetail(int itemId, List<BankedXpPack.Entry> options,
+		BankedXpPack.Entry current, int quantity)
+	{
+		JPanel detail = new JPanel();
+		detail.setLayout(new BoxLayout(detail, BoxLayout.Y_AXIS));
+		detail.setOpaque(false);
+		detail.setAlignmentX(LEFT_ALIGNMENT);
+		detail.setBorder(new EmptyBorder(0, 22, UiTokens.PAD_TIGHT, UiTokens.ROW_GAP));
+
+		if (options.size() > 1)
+		{
+			String[] names = options.stream().map(BankedXpPack.Entry::getMethod)
+				.toArray(String[]::new);
+			javax.swing.JComboBox<String> picker = com.ironhub.ui.osrs.StoneComboBoxUI.skin(
+				new javax.swing.JComboBox<>(names), theme);
+			picker.setSelectedIndex(options.indexOf(current));
+			picker.setAlignmentX(LEFT_ALIGNMENT);
+			picker.addActionListener(e ->
+			{
+				chosenActivity.put(itemId, options.get(picker.getSelectedIndex()).getActivity());
+				rebuild();
+			});
+			detail.add(picker);
+			detail.add(Box.createVerticalStrut(2));
+		}
+		StringBuilder line = new StringBuilder(trimNumber(effectiveXp(current)))
+			.append(" xp each · ").append(formatXp(quantity * effectiveXp(current))).append(" total");
+		if (current.getLevel() > state.getRealLevel(skillMode))
+		{
+			line.append(" · needs ").append(current.getLevel());
+		}
+		detail.add(new OsrsLabel(line.toString(), OsrsSkin.MUTED, OsrsSkin.smallFont())
+			.leftAligned().squeezable());
+		if (current.getSecondaries() != null)
+		{
+			for (BankedXpPack.ItemQty secondary : current.getSecondaries())
+			{
+				long need = (long) Math.ceil(secondary.getQty() * quantity);
+				detail.add(new OsrsLabel("· " + trimNumber(secondary.getQty()) + "x "
+					+ state.itemName(secondary.getItemId())
+					+ " — have " + QuantityFormatter.quantityToStackSize(
+						state.ownedCount(secondary.getItemId()))
+					+ " of " + QuantityFormatter.quantityToStackSize(need),
+					state.ownedCount(secondary.getItemId()) >= need
+						? OsrsSkin.VALUE : OsrsSkin.MUTED,
+					OsrsSkin.smallFont()).leftAligned().squeezable());
+			}
+		}
+		return detail;
+	}
+
+	/** "72", "202.5", "0.04" — never trailing zeros, never invented digits. */
+	private static String trimNumber(double value)
+	{
+		return value == Math.rint(value) ? String.valueOf((long) value)
+			: String.valueOf(value);
+	}
+
+	private List<BankedXpPack.Modifier> skillModifiers(Skill skill)
+	{
+		List<BankedXpPack.Modifier> out = new ArrayList<>();
+		if (bankedXpPack.getModifiers() != null)
+		{
+			for (BankedXpPack.Modifier modifier : bankedXpPack.getModifiers())
+			{
+				if (skill.getName().equalsIgnoreCase(modifier.getSkill()))
+				{
+					out.add(modifier);
+				}
+			}
+		}
+		return out;
+	}
+
+	private boolean applies(BankedXpPack.Modifier modifier, String activity)
+	{
+		if (modifier.isAppliesToAll())
+		{
+			return modifier.getIgnores() == null || !modifier.getIgnores().contains(activity);
+		}
+		return modifier.getAppliesTo() != null && modifier.getAppliesTo().contains(activity);
+	}
+
+	/** xpEach under the active modifiers (all ported ones are multipliers). */
+	private double effectiveXp(BankedXpPack.Entry entry)
+	{
+		double xp = entry.getXpEach();
+		for (BankedXpPack.Modifier modifier : skillModifiers(skillMode))
+		{
+			if (activeModifiers.contains(modifier.getName()) && applies(modifier, entry.getActivity()))
+			{
+				xp = "additive".equals(modifier.getType())
+					? xp + modifier.getValue() : xp * modifier.getValue();
+			}
+		}
+		return xp;
+	}
+
+	/** All entries per item for one skill (activity options). */
+	private Map<Integer, List<BankedXpPack.Entry>> entriesByItem(Skill skill)
+	{
+		Map<Integer, List<BankedXpPack.Entry>> byItem = new HashMap<>();
 		for (BankedXpPack.Entry entry : bankedXpPack.getEntries())
 		{
 			if (skill.getName().equalsIgnoreCase(entry.getSkill()))
 			{
-				best.merge(entry.getItemId(), entry,
-					(a, b) -> a.getXpEach() >= b.getXpEach() ? a : b);
+				byItem.computeIfAbsent(entry.getItemId(), k -> new ArrayList<>()).add(entry);
+			}
+		}
+		return byItem;
+	}
+
+	/** The player's activity pick for an item, else the best effective xp. */
+	private BankedXpPack.Entry chosenEntry(int itemId, List<BankedXpPack.Entry> options)
+	{
+		String picked = chosenActivity.get(itemId);
+		if (picked != null)
+		{
+			for (BankedXpPack.Entry option : options)
+			{
+				if (picked.equals(option.getActivity()))
+				{
+					return option;
+				}
+			}
+		}
+		BankedXpPack.Entry best = options.get(0);
+		for (BankedXpPack.Entry option : options)
+		{
+			if (effectiveXp(option) > effectiveXp(best))
+			{
+				best = option;
 			}
 		}
 		return best;
@@ -597,7 +843,26 @@ class BankTab extends JPanel
 		nameLabel.setToolTipText(tooltip);
 		row.add(nameLabel);
 		row.add(Box.createHorizontalGlue());
-		row.add(new OsrsLabel(spec.rightText, OsrsSkin.VALUE, rowFont));
+		OsrsLabel value = new OsrsLabel(spec.rightText, OsrsSkin.VALUE, rowFont);
+		if (mode == Mode.SKILL)
+		{
+			// the xp value opens the item's activity + secondaries detail;
+			// the rest of the row still selects
+			value.setToolTipText("Activity & secondaries");
+			value.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					if (!expandedItems.remove(itemId))
+					{
+						expandedItems.add(itemId);
+					}
+					rebuild();
+				}
+			});
+		}
+		row.add(value);
 
 		MouseAdapter select = new MouseAdapter()
 		{

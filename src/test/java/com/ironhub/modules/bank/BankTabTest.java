@@ -79,6 +79,38 @@ public class BankTabTest
 		return texts;
 	}
 
+	/** The Banked Experience interface: header maths + the gilded altar
+	 *  modifier reshaping Prayer totals (3.5x, as the upstream states). */
+	@Test
+	public void skillViewShowsBankedLevelsAndModifiers() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.stat(state, net.runelite.api.Skill.PRAYER, 43, 50_339);
+		StateFixture.bank(state, Map.of(536, 1_000)); // dragon bones
+		StateFixture.itemNames(state, Map.of(536, "Dragon bones"));
+		BankTab tab = new BankTab(state, null, null, null, new java.util.HashSet<>(), null,
+			new com.ironhub.data.DataPack(new com.google.gson.Gson())
+				.load("banked-xp", com.ironhub.data.BankedXpPack.class),
+			true, v -> {}, com.ironhub.ui.osrs.OsrsTheme.STONE);
+		tab.showSkillView(net.runelite.api.Skill.PRAYER);
+
+		// 1,000 dragon bones at base 72 = 72,000 banked xp
+		String base = net.runelite.client.util.QuantityFormatter.quantityToRSDecimalStack(72_000, true);
+		assertTrue("base banked xp missing",
+			componentTexts(tab).stream().anyMatch(t -> t.contains("Banked: " + base + " xp")));
+		tab.toggleModifier("Lit Gilded Altar (350% xp)");
+		// x3.5 = 252,000
+		String altar = net.runelite.client.util.QuantityFormatter.quantityToRSDecimalStack(252_000, true);
+		assertTrue("gilded altar must reshape the total",
+			componentTexts(tab).stream().anyMatch(t -> t.contains("Banked: " + altar + " xp")));
+
+		java.awt.image.BufferedImage image = com.ironhub.ui.SwingRender.render(tab);
+		java.io.File out = new java.io.File("build/reports/bank-skill-view.png");
+		out.getParentFile().mkdirs();
+		javax.imageio.ImageIO.write(image, "png", out);
+		tab.dispose();
+	}
+
 	@Test
 	public void relativeTimeBuckets()
 	{
