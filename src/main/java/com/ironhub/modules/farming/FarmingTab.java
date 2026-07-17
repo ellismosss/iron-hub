@@ -21,7 +21,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.FontMetrics;
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -958,7 +957,7 @@ class FarmingTab extends JPanel
 
 	/** Wrapping secondary text as a multi-line OsrsLabel — html measurement
 	 *  and the pixel font disagree (lines lay out wider than they paint and
-	 *  clip mid-word), so the wrapping is done here with real FontMetrics. */
+	 *  clip mid-word), so the wrapping is done with real FontMetrics. */
 	private JComponent hint(String text, Color color)
 	{
 		JPanel holder = new JPanel();
@@ -966,32 +965,10 @@ class FarmingTab extends JPanel
 		holder.setOpaque(false);
 		holder.setAlignmentX(LEFT_ALIGNMENT);
 		holder.setBorder(new EmptyBorder(0, 0, UiTokens.PAD_TIGHT, 0));
-		holder.add(new OsrsLabel(wrap(text, HINT_WIDTH), color, OsrsSkin.font()).leftAligned());
+		holder.add(OsrsLabel.wrapped(text, HINT_WIDTH, color, OsrsSkin.font()).leftAligned());
 		holder.add(Box.createHorizontalGlue());
 		cap(holder);
 		return holder;
-	}
-
-	/** Greedy word wrap at a pixel width in the game font. */
-	static String wrap(String text, int width)
-	{
-		FontMetrics fm = new JLabel().getFontMetrics(OsrsSkin.font());
-		StringBuilder out = new StringBuilder();
-		StringBuilder line = new StringBuilder();
-		for (String word : text.split(" "))
-		{
-			String candidate = line.length() == 0 ? word : line + " " + word;
-			if (fm.stringWidth(candidate) > width && line.length() > 0)
-			{
-				out.append(line).append('\n');
-				line = new StringBuilder(word);
-			}
-			else
-			{
-				line = new StringBuilder(candidate);
-			}
-		}
-		return out.append(line).toString();
 	}
 
 	// ── runs (templates, saved runs, builder, live checklist) ─────────

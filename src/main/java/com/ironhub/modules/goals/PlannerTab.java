@@ -6,27 +6,24 @@ import com.ironhub.engine.Action;
 import com.ironhub.engine.Plan;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
-import com.ironhub.ui.components.ChipRow;
 import com.ironhub.ui.components.PaintedIcon;
-import com.ironhub.ui.components.SearchField;
-import com.ironhub.ui.components.SectionLabel;
-import com.ironhub.ui.components.SegmentedControl;
-import com.ironhub.ui.components.Status;
-import com.ironhub.ui.components.StatusGlyph;
+import com.ironhub.ui.osrs.OsrsLabel;
+import com.ironhub.ui.osrs.OsrsSkin;
+import com.ironhub.ui.osrs.OsrsTheme;
+import com.ironhub.ui.osrs.StoneButton;
+import com.ironhub.ui.osrs.StoneChipRow;
+import com.ironhub.ui.osrs.StonePanel;
+import com.ironhub.ui.osrs.StoneTextField;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
@@ -34,39 +31,43 @@ import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
 import net.runelite.api.Skill;
 import net.runelite.client.util.LinkBrowser;
 
 /**
  * The goal planner's three views over one plan (design/PLANNER-UX.md,
- * frames 4a–4f): Today (session view — budget chips, NOW card, up next,
- * passive lane), Route (the chaptered full plan with a no-silent-reshuffle
- * update banner and explain-card expands), and Goals (add-goal search with
- * live merge preview + the proven goals list). Reorder by constraint:
- * pin / snooze / ban via right-click or the explain card — never by drag.
+ * frames 4a–4f) in the OSRS stonework skin: Today (session view — budget
+ * chips, NOW card, up next, passive lane), Route (the chaptered full plan
+ * with a no-silent-reshuffle update banner and explain-card expands), and
+ * Goals (add-goal search with live merge preview + the proven goals list).
+ * Reorder by constraint: pin / snooze / ban via right-click or the explain
+ * card — never by drag. Route steps are flat colour-coded rows, the game's
+ * own quest-list idiom; frameless — the hub provides frame and header plate.
  */
 class PlannerTab extends JPanel
 {
 	private static final String[] BUDGETS = {"30m", "1h", "2h+", "AFK"};
 	private static final double[] BUDGET_HOURS = {0.55, 1.3, Double.MAX_VALUE, Double.MAX_VALUE};
+	/** Wrap widths: free-standing notes vs text inside a stone card. */
+	private static final int NOTE_WIDTH = 195;
+	private static final int CARD_TEXT_WIDTH = 180;
 
 	private final GoalPlannerModule module;
 	private final AccountState state;
+	private final OsrsTheme theme;
 	private final GoalsTab goalsTab; // the proven 2d list, embedded as the Goals view
 
 	private final CardLayout cards = new CardLayout();
 	private final JPanel content = new JPanel(cards);
-	private final SegmentedControl views = new SegmentedControl(true, "Today", "Route", "Goals");
-	private final JPanel todayView = column(UiTokens.PANEL_BG);
-	private final JPanel routeView = column(UiTokens.PANEL_BG);
-	private final JPanel goalsView = column(UiTokens.PANEL_BG);
-	private final ChipRow budgetChips = new ChipRow(BUDGETS);
+	private final StoneChipRow views;
+	private final JPanel todayView = column();
+	private final JPanel routeView = column();
+	private final JPanel goalsView = column();
+	private final StoneChipRow budgetChips;
 
 	/** The plan the Route list currently shows (never silently replaced). */
 	private Plan displayedPlan;
@@ -91,25 +92,31 @@ class PlannerTab extends JPanel
 
 	PlannerTab(GoalPlannerModule module, AccountState state, GoalsPack pack,
 		GearProgressionPack gearPack, net.runelite.client.game.ItemManager itemManager,
-		net.runelite.client.game.SkillIconManager skillIconManager)
+		net.runelite.client.game.SkillIconManager skillIconManager, OsrsTheme theme)
 	{
 		this.module = module;
 		this.state = state;
+		this.theme = theme;
 		this.itemManager = itemManager;
 		this.skillIconManager = skillIconManager;
-		this.goalsTab = new GoalsTab(state, pack, gearPack, itemManager);
+		this.goalsTab = new GoalsTab(state, pack, gearPack, itemManager, theme);
+		this.views = new StoneChipRow(theme, true, "Today", "Route", "Goals");
+		this.budgetChips = new StoneChipRow(theme, false, BUDGETS);
+		this.addSearch = new StoneTextField(theme, "Add a goal — search…");
+		this.addSearch.setToolTipText("Search goals, gear, or type a skill level like \"agility 70\"");
 
 		setLayout(new BorderLayout());
-		setBackground(UiTokens.PANEL_BG);
+		setOpaque(true);
+		setBackground(theme.background);
 
-		JPanel header = column(UiTokens.PANEL_BG);
+		JPanel header = column();
 		header.setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, 0, UiTokens.PAD));
 		views.onChange(i -> showView(i));
 		header.add(views);
 		header.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		add(header, BorderLayout.NORTH);
 
-		content.setBackground(UiTokens.PANEL_BG);
+		content.setOpaque(false);
 		content.add(wrap(todayView), "0");
 		content.add(wrap(routeView), "1");
 		content.add(wrap(goalsView), "2");
@@ -190,7 +197,7 @@ class PlannerTab extends JPanel
 		else
 		{
 			List<Plan.Step> fitting = fittingSteps(plan);
-			todayView.add(new SectionLabel("Now"));
+			todayView.add(section("Now"));
 			if (fitting.isEmpty())
 			{
 				todayView.add(mutedNote("Nothing fits this budget — try a bigger one."));
@@ -201,7 +208,7 @@ class PlannerTab extends JPanel
 				if (fitting.size() > 1)
 				{
 					todayView.add(Box.createVerticalStrut(UiTokens.PAD));
-					todayView.add(new SectionLabel("Up next"));
+					todayView.add(section("Up next"));
 					for (int i = 1; i < Math.min(4, fitting.size()); i++)
 					{
 						todayView.add(denseRow(fitting.get(i), -1, false));
@@ -213,7 +220,7 @@ class PlannerTab extends JPanel
 			if (lane != null)
 			{
 				todayView.add(Box.createVerticalStrut(UiTokens.PAD));
-				todayView.add(new SectionLabel("Passive lane"));
+				todayView.add(section("Passive lane"));
 				todayView.add(lane);
 			}
 			JComponent session = sinceLastSession(plan);
@@ -231,12 +238,12 @@ class PlannerTab extends JPanel
 	private JComponent horizonRow(Plan plan)
 	{
 		JPanel row = row();
-		JLabel total = new JLabel(plan == null ? "All goals · —" : "All goals · " + totalText(plan));
-		total.setForeground(UiTokens.TEXT_PRIMARY);
-		total.setFont(total.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
+		OsrsLabel total = new OsrsLabel(plan == null ? "All goals · —" : "All goals · " + totalText(plan),
+			OsrsSkin.LABEL, OsrsSkin.boldFont()).leftAligned().squeezable();
 		total.setToolTipText("Known-time steps only; \"+n?\" steps have no honest estimate yet");
 		row.add(total);
 		row.add(Box.createHorizontalGlue());
+		cap(row);
 		return row;
 	}
 
@@ -272,39 +279,41 @@ class PlannerTab extends JPanel
 		return out;
 	}
 
+	/** The emphasized card of the Today view: the select-fill band (the same
+	 *  "do this now" reading as the dailies run's next stop). */
 	private JComponent nowCard(Plan.Step step)
 	{
-		JPanel card = column(UiTokens.CARD_BG);
-		card.setBorder(new CompoundBorder(new LineBorder(UiTokens.ACCENT),
-			new EmptyBorder(UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP)));
+		StonePanel card = new StonePanel(theme);
+		card.setBackground(theme.selectFill);
+		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+		card.setAlignmentX(LEFT_ALIGNMENT);
 		card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
 		JPanel title = row();
-		JLabel name = new JLabel(step.action.name);
-		name.setForeground(UiTokens.TEXT_PRIMARY);
-		name.setFont(name.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-		name.setMinimumSize(new Dimension(0, 0));
+		OsrsLabel name = new OsrsLabel(step.action.name, OsrsSkin.TITLE, OsrsSkin.boldFont())
+			.leftAligned().squeezable();
 		title.add(name);
 		title.add(Box.createHorizontalGlue());
-		title.add(timeLabel(step, UiTokens.ACCENT, true));
+		title.add(timeLabel(step, OsrsSkin.TITLE, true));
 		card.add(title);
 
-		JTextArea why = wrapText(step.why, UiTokens.STATUS_AVAILABLE, UiTokens.CARD_BG);
-		card.add(why);
+		card.add(wrapped(step.why, OsrsSkin.MUTED));
 
 		JPanel foot = row();
-		JLabel serves = new JLabel("serves " + step.action.neededBy.size()
-			+ (step.action.neededBy.size() == 1 ? " goal" : " goals"));
-		serves.setForeground(UiTokens.TEXT_MUTED);
-		serves.setFont(serves.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		OsrsLabel serves = new OsrsLabel("serves " + step.action.neededBy.size()
+			+ (step.action.neededBy.size() == 1 ? " goal" : " goals"),
+			OsrsSkin.FAINT, OsrsSkin.font()).leftAligned();
 		serves.setToolTipText(servedGoalNames(step));
 		foot.add(serves);
 		foot.add(Box.createHorizontalGlue());
 		String nowWiki = wikiUrl(step);
 		if (nowWiki != null)
 		{
-			foot.add(new com.ironhub.ui.components.IconButton("W", "Open the wiki page",
-				() -> LinkBrowser.browse(nowWiki)));
+			StoneButton wiki = new StoneButton(theme, theme.selectFill, "Wiki",
+				() -> LinkBrowser.browse(nowWiki));
+			wiki.setToolTipText("Open the wiki page");
+			wiki.setMaximumSize(wiki.getPreferredSize());
+			foot.add(wiki);
 		}
 		card.add(foot);
 		MouseAdapter open = new MouseAdapter()
@@ -354,22 +363,12 @@ class PlannerTab extends JPanel
 		{
 			return null;
 		}
-		JPanel card = column(UiTokens.CARD_BG);
-		card.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-			new EmptyBorder(UiTokens.PAD_TIGHT, UiTokens.ROW_GAP, UiTokens.PAD_TIGHT, UiTokens.ROW_GAP)));
+		StonePanel card = new StonePanel(theme);
+		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+		card.setAlignmentX(LEFT_ALIGNMENT);
 		for (String line : lines)
 		{
-			JPanel row = row();
-			JLabel glyph = new JLabel(new StatusGlyph(Status.OWNED));
-			row.add(glyph);
-			row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-			JLabel text = new JLabel(line);
-			text.setForeground(UiTokens.TEXT_BODY);
-			text.setFont(text.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-			text.setMinimumSize(new Dimension(0, 0));
-			row.add(text);
-			row.add(Box.createHorizontalGlue());
-			card.add(row);
+			card.add(wrapped(line, OsrsSkin.MUTED));
 		}
 		card.setMaximumSize(new Dimension(Integer.MAX_VALUE, card.getPreferredSize().height));
 		return card;
@@ -382,20 +381,14 @@ class PlannerTab extends JPanel
 		{
 			return null;
 		}
-		JPanel row = row();
-		row.setBackground(new Color(0x25, 0x25, 0x25));
-		row.setOpaque(true);
-		row.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-			new EmptyBorder(UiTokens.PAD_TIGHT, UiTokens.ROW_GAP, UiTokens.PAD_TIGHT, UiTokens.ROW_GAP)));
-		JLabel glyph = new JLabel(new StatusGlyph(Status.OWNED));
-		row.add(glyph);
-		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		JLabel text = new JLabel(String.format(Locale.ROOT,
-			"since last session: plan -%.1fh", anchor - plan.knownHours));
-		text.setForeground(UiTokens.TEXT_MUTED);
-		text.setFont(text.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-		row.add(text);
+		StonePanel row = new StonePanel(theme);
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.add(new OsrsLabel(String.format(Locale.ROOT,
+			"since last session: plan -%.1fh", anchor - plan.knownHours),
+			OsrsSkin.FAINT, OsrsSkin.font()).leftAligned());
 		row.add(Box.createHorizontalGlue());
+		cap(row);
 		return row;
 	}
 
@@ -423,18 +416,18 @@ class PlannerTab extends JPanel
 		else
 		{
 			JPanel head = row();
-			JLabel total = new JLabel("All goals · " + totalText(plan));
-			total.setForeground(UiTokens.TEXT_PRIMARY);
-			total.setFont(total.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
+			OsrsLabel total = new OsrsLabel("All goals · " + totalText(plan),
+				OsrsSkin.LABEL, OsrsSkin.boldFont()).leftAligned().squeezable();
 			total.setToolTipText("Steps are listed in the order the planner recommends doing them");
 			head.add(total);
 			head.add(Box.createHorizontalGlue());
+			cap(head);
 			routeView.add(head);
 			routeView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 
 			JPanel layoutRow = row();
 			layoutRow.add(Box.createHorizontalGlue());
-			SegmentedControl layout = new SegmentedControl(false, "Order", "Chapters");
+			StoneChipRow layout = new StoneChipRow(theme, false, "Order", "Chapters");
 			layout.setSelected(state.isPlannerRouteChapters() ? 1 : 0);
 			layout.setToolTipText("Same recommended order either way — Chapters only adds section headers");
 			layout.onChange(i ->
@@ -443,6 +436,7 @@ class PlannerTab extends JPanel
 				rebuildRoute();
 			});
 			layoutRow.add(layout);
+			cap(layoutRow);
 			routeView.add(layoutRow);
 			routeView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 
@@ -499,25 +493,14 @@ class PlannerTab extends JPanel
 
 	private JComponent updateBanner()
 	{
-		JPanel banner = row();
-		banner.setOpaque(true);
-		banner.setBackground(new Color(0x2E, 0x2A, 0x20));
-		banner.setBorder(new CompoundBorder(new LineBorder(UiTokens.STATUS_AVAILABLE),
-			new EmptyBorder(UiTokens.PAD_TIGHT, UiTokens.ROW_GAP, UiTokens.PAD_TIGHT, UiTokens.ROW_GAP)));
+		StonePanel banner = new StonePanel(theme);
+		banner.setLayout(new BoxLayout(banner, BoxLayout.X_AXIS));
+		banner.setAlignmentX(LEFT_ALIGNMENT);
 		banner.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		JLabel glyph = new JLabel(new StatusGlyph(Status.WARNING));
-		banner.add(glyph);
-		banner.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		JLabel text = new JLabel("Plan updated" + bannerDelta());
-		text.setForeground(UiTokens.STATUS_AVAILABLE);
-		text.setFont(text.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-		text.setMinimumSize(new Dimension(0, 0));
-		banner.add(text);
+		banner.add(new OsrsLabel("Plan updated" + bannerDelta(),
+			OsrsSkin.MUTED, OsrsSkin.font()).leftAligned().squeezable());
 		banner.add(Box.createHorizontalGlue());
-		JLabel apply = new JLabel("apply");
-		apply.setForeground(UiTokens.ACCENT);
-		apply.setFont(apply.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
-		banner.add(apply);
+		banner.add(new OsrsLabel("apply", OsrsSkin.TITLE, OsrsSkin.boldFont()));
 		banner.addMouseListener(new MouseAdapter()
 		{
 			@Override
@@ -527,7 +510,7 @@ class PlannerTab extends JPanel
 				rebuildRoute();
 			}
 		});
-		banner.setMaximumSize(new Dimension(Integer.MAX_VALUE, banner.getPreferredSize().height));
+		cap(banner);
 		return banner;
 	}
 
@@ -564,51 +547,43 @@ class PlannerTab extends JPanel
 		}
 		String label = chapter.toUpperCase(Locale.ROOT)
 			+ (hours >= 0.05 ? " · ~" + compactHours(hours) : "") + (unknown ? " +?" : "");
-		return new SectionLabel(label);
+		return section(label);
 	}
 
+	/** A route step as a flat colour-coded row — the game's quest-list idiom:
+	 *  no boxes, the head in title orange, position and time in the margins. */
 	private JComponent denseRow(Plan.Step step, int position, boolean expandable)
 	{
 		JPanel row = row();
 		row.setOpaque(true);
-		row.setBackground(UiTokens.CARD_BG);
-		row.setBorder(new CompoundBorder(
-			step.pinned
-				? new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-					new MatteBorder(0, 2, 0, 0, UiTokens.ACCENT))
-				: new LineBorder(UiTokens.BORDER_ROW),
-			new EmptyBorder(0, UiTokens.ROW_GAP, 0, UiTokens.ROW_GAP)));
-		row.setPreferredSize(new Dimension(0, UiTokens.ROW_HEIGHT_DENSE));
-		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT_DENSE));
+		row.setBackground(theme.background);
+		EmptyBorder inner = new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP);
+		row.setBorder(step.pinned
+			? new CompoundBorder(new MatteBorder(0, 2, 0, 0, OsrsSkin.TITLE.darker()), inner)
+			: inner);
 		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
 		if (position > 0)
 		{
-			JLabel pos = new JLabel(String.valueOf(position));
-			pos.setForeground(UiTokens.TEXT_FAINT);
-			pos.setFont(pos.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-			row.add(pos);
+			row.add(new OsrsLabel(String.valueOf(position), OsrsSkin.FAINT, OsrsSkin.font()));
 			row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		}
-		JLabel glyph = new JLabel(new StatusGlyph(
-			position <= 1 ? Status.AVAILABLE : Status.LOCKED));
-		row.add(glyph);
-		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 
 		javax.swing.Icon rowIcon = stepIcon(step);
 		String shortTitle = step.action.kind == Action.Kind.TRAIN && rowIcon != null
 			? "to " + step.action.trainToLevel + gatesSuffix(step)
 			: step.action.name;
-		JLabel name = new JLabel(shortTitle
-			+ (step.action.neededBy.size() > 1 ? "  ×" + step.action.neededBy.size() : ""));
 		if (rowIcon != null)
 		{
-			name.setIcon(rowIcon);
-			name.setIconTextGap(UiTokens.PAD_TIGHT);
+			row.add(new JLabel(rowIcon));
+			row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		}
-		name.setForeground(UiTokens.TEXT_BODY);
-		name.setFont(name.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
-		name.setMinimumSize(new Dimension(0, 0));
+		// text always paints through OsrsLabel — a raw JLabel positions the
+		// pixel font by its (wrong) FontMetrics and clips glyph bottoms
+		OsrsLabel name = new OsrsLabel(shortTitle
+			+ (step.action.neededBy.size() > 1 ? "  ×" + step.action.neededBy.size() : ""),
+			position == 1 ? OsrsSkin.TITLE : OsrsSkin.MUTED, OsrsSkin.font())
+			.leftAligned().squeezable();
 		String hover = "<html><b>" + step.action.name + "</b><br>" + step.why
 			+ (step.action.neededBy.size() > 1
 				? "<br>serves: " + servedGoalNames(step) : "") + "</html>";
@@ -616,10 +591,22 @@ class PlannerTab extends JPanel
 		row.setToolTipText(hover);
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
-		row.add(timeLabel(step, UiTokens.TEXT_MUTED, false));
+		row.add(timeLabel(step, OsrsSkin.MUTED, false));
 
 		MouseAdapter click = new MouseAdapter()
 		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				row.setBackground(theme.hoverFill);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				row.setBackground(theme.background);
+			}
+
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
@@ -644,17 +631,20 @@ class PlannerTab extends JPanel
 			}
 		};
 		clickAnywhere(row, click);
+		cap(row);
 		return row;
 	}
 
 	/** Attach a click to a container AND its passive children — labels with
-	 * tooltips register their own listeners and would swallow clicks. */
+	 * tooltips register their own listeners and would swallow clicks. Skips
+	 * anything with its own action. */
 	private static void clickAnywhere(JComponent container, MouseAdapter click)
 	{
 		container.addMouseListener(click);
 		for (java.awt.Component child : container.getComponents())
 		{
-			if (child instanceof com.ironhub.ui.components.IconButton)
+			if (child instanceof com.ironhub.ui.components.IconButton
+				|| child instanceof StoneButton)
 			{
 				continue; // keeps its own action
 			}
@@ -665,53 +655,42 @@ class PlannerTab extends JPanel
 	/** The explain card (frame 4b): why + serves + alternatives + constraints. */
 	private JComponent explainCard(Plan.Step step, int position)
 	{
-		JPanel card = column(UiTokens.CARD_BG);
-		card.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_BUTTON),
-			new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD)));
+		StonePanel card = new StonePanel(theme);
+		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+		card.setAlignmentX(LEFT_ALIGNMENT);
 
 		JPanel title = row();
 		javax.swing.Icon icon = stepIcon(step);
 		String shortTitle = step.action.kind == Action.Kind.TRAIN && icon != null
 			? "to " + step.action.trainToLevel : step.action.name;
-		JLabel name = new JLabel(position + ". " + shortTitle);
 		if (icon != null)
 		{
-			name.setIcon(icon);
-			name.setIconTextGap(UiTokens.PAD_TIGHT);
+			title.add(new JLabel(icon));
+			title.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		}
-		name.setForeground(UiTokens.TEXT_PRIMARY);
-		name.setFont(name.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-		name.setMinimumSize(new Dimension(0, 0));
+		OsrsLabel name = new OsrsLabel(position + ". " + shortTitle,
+			OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned().squeezable();
 		name.setToolTipText(step.action.name);
 		title.add(name);
 		title.add(Box.createHorizontalGlue());
-		title.add(timeLabel(step, UiTokens.ACCENT, true));
+		title.add(timeLabel(step, OsrsSkin.TITLE, true));
 		card.add(title);
 
-		card.add(wrapText(step.why, UiTokens.TEXT_BODY, UiTokens.CARD_BG));
+		card.add(wrapped(step.why, OsrsSkin.MUTED));
 		if (step.methodName != null)
 		{
 			card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-			card.add(new SectionLabel("Suggested method"));
-			JLabel method = new JLabel(step.methodName);
-			method.setForeground(UiTokens.TEXT_PRIMARY);
-			method.setFont(method.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
-			method.setAlignmentX(LEFT_ALIGNMENT);
-			card.add(method);
+			card.add(section("Suggested method"));
+			card.add(new OsrsLabel(step.methodName, OsrsSkin.LABEL, OsrsSkin.boldFont())
+				.leftAligned().squeezable());
 			String rateLine = (step.methodRate > 0 ? compactXp(step.methodRate) + " xp/hr" : "rate unknown")
 				+ (step.methodStyle != null ? " · " + step.methodStyle : "");
-			JLabel rate = new JLabel(rateLine);
-			rate.setForeground(UiTokens.TEXT_BODY);
-			rate.setFont(rate.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-			rate.setAlignmentX(LEFT_ALIGNMENT);
-			card.add(rate);
+			card.add(new OsrsLabel(rateLine, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
 			if (step.trainXpRemaining > 0)
 			{
-				JLabel span = new JLabel(step.trainFromLevel + " to " + step.action.trainToLevel
-					+ " · " + compactXp(step.trainXpRemaining) + " xp to go");
-				span.setForeground(UiTokens.TEXT_MUTED);
-				span.setFont(span.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-				span.setAlignmentX(LEFT_ALIGNMENT);
+				OsrsLabel span = new OsrsLabel(step.trainFromLevel + " to " + step.action.trainToLevel
+					+ " · " + compactXp(step.trainXpRemaining) + " xp to go",
+					OsrsSkin.FAINT, OsrsSkin.font()).leftAligned();
 				span.setToolTipText("From your level when this step starts — earlier plan steps"
 					+ " (quest xp, banked xp) are already credited");
 				card.add(span);
@@ -721,36 +700,36 @@ class PlannerTab extends JPanel
 		if (!step.resources.isEmpty())
 		{
 			card.add(Box.createVerticalStrut(UiTokens.PAD));
-			SectionLabel resHeader = new SectionLabel("Resources");
+			JComponent resHeader = section("Resources");
 			resHeader.setToolTipText("Counts what your bank, inventory and equipment"
 				+ " already hold (last bank snapshot)");
 			card.add(resHeader);
 			for (Plan.Resource resource : step.resources)
 			{
-				JLabel need = new JLabel(resource.name + " \u00d7" + formatCount(resource.needed));
+				JPanel need = row();
 				if (itemManager != null && resource.itemId > 0)
 				{
+					JLabel sprite = new JLabel();
 					net.runelite.client.util.AsyncBufferedImage image =
 						itemManager.getImage(resource.itemId);
-					Runnable apply = () -> need.setIcon(new javax.swing.ImageIcon(
+					Runnable apply = () -> sprite.setIcon(new javax.swing.ImageIcon(
 						image.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH)));
 					apply.run();
 					image.onLoaded(apply);
-					need.setIconTextGap(UiTokens.PAD_TIGHT);
+					need.add(sprite);
+					need.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 				}
-				need.setForeground(UiTokens.TEXT_PRIMARY);
-				need.setFont(need.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
-				need.setAlignmentX(LEFT_ALIGNMENT);
+				need.add(new OsrsLabel(resource.name + " ×" + formatCount(resource.needed),
+					OsrsSkin.MUTED, OsrsSkin.boldFont()).leftAligned().squeezable());
+				need.add(Box.createHorizontalGlue());
+				cap(need);
 				card.add(need);
 				boolean covered = resource.missing == 0;
-				JLabel stock = new JLabel(covered
+				card.add(new OsrsLabel(covered
 					? formatCount(resource.banked) + " banked — covered"
 					: formatCount(resource.banked) + " banked · "
-						+ formatCount(resource.missing) + " short");
-				stock.setForeground(covered ? UiTokens.STATUS_OWNED : UiTokens.STATUS_AVAILABLE);
-				stock.setFont(stock.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-				stock.setAlignmentX(LEFT_ALIGNMENT);
-				card.add(stock);
+						+ formatCount(resource.missing) + " short",
+					covered ? OsrsSkin.VALUE : OsrsSkin.TITLE, OsrsSkin.font()).leftAligned());
 				card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 			}
 		}
@@ -758,28 +737,23 @@ class PlannerTab extends JPanel
 		if (!step.alternatives.isEmpty())
 		{
 			card.add(Box.createVerticalStrut(UiTokens.PAD));
-			card.add(new SectionLabel("Alternatives"));
+			card.add(section("Alternatives"));
 			for (Plan.Alternative alt : step.alternatives)
 			{
 				JPanel row = row();
 				row.setOpaque(true);
-				row.setBackground(new Color(0x25, 0x25, 0x25));
-				row.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-					new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP)));
-				JLabel text = new JLabel(alt.name + " · " + compactXp(alt.rate) + "/hr · "
+				row.setBackground(theme.recess);
+				row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP));
+				OsrsLabel text = new OsrsLabel(alt.name + " · " + compactXp(alt.rate) + "/hr · "
 					+ String.format(Locale.ROOT, "%s%.1fh", alt.deltaHours >= 0 ? "+" : "-",
-						Math.abs(alt.deltaHours)) + " · " + alt.style);
-				text.setForeground(UiTokens.TEXT_BODY);
-				text.setFont(text.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-				text.setMinimumSize(new Dimension(0, 0));
+						Math.abs(alt.deltaHours)) + " · " + alt.style,
+					OsrsSkin.MUTED, OsrsSkin.font()).leftAligned().squeezable();
 				String hover = alternativeHover(alt);
 				text.setToolTipText(hover);
 				row.setToolTipText(hover);
 				row.add(text);
 				row.add(Box.createHorizontalGlue());
-				JLabel prefer = new JLabel("prefer");
-				prefer.setForeground(UiTokens.ACCENT);
-				prefer.setFont(prefer.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+				OsrsLabel prefer = new OsrsLabel("prefer", OsrsSkin.TITLE, OsrsSkin.font());
 				prefer.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 				prefer.setToolTipText("Use this method for " + step.action.trainSkill.getName()
 					+ " wherever it applies");
@@ -828,42 +802,44 @@ class PlannerTab extends JPanel
 			reqStrings = module.diaryTaskReqs(
 				step.action.unlockKey.substring("diarytask_".length()));
 		}
-		if (true)
+		if (reqStrings != null && !reqStrings.isEmpty())
 		{
-			if (reqStrings != null && !reqStrings.isEmpty())
+			card.add(Box.createVerticalStrut(UiTokens.PAD));
+			card.add(section("Requirements"));
+			for (String raw : reqStrings)
 			{
-				card.add(Box.createVerticalStrut(UiTokens.PAD));
-				card.add(new SectionLabel("Requirements"));
-				for (String raw : reqStrings)
-				{
-					card.add(requirementLine(raw));
-				}
+				card.add(requirementLine(raw));
 			}
 		}
 
 		card.add(Box.createVerticalStrut(UiTokens.PAD));
+		// short labels: a third of the card can't fit "Pin next" in the game
+		// font — the tooltips (and the right-click menu) carry the long form
 		JPanel buttons = new JPanel(new java.awt.GridLayout(1, 3, UiTokens.PAD_TIGHT, 0));
 		buttons.setOpaque(false);
 		buttons.setAlignmentX(LEFT_ALIGNMENT);
-		buttons.add(flatButton(step.pinned ? "Unpin" : "Pin next",
-			() -> constraintAction(() -> state.togglePlannerPin(step.action.id)), UiTokens.ACCENT));
-		buttons.add(flatButton(step.snoozed ? "Unsnooze" : "Snooze",
-			() -> constraintAction(() -> state.togglePlannerSnooze(step.action.id)), UiTokens.TEXT_BODY));
+		buttons.add(cardButton(step.pinned ? "Unpin" : "Pin",
+			step.pinned ? "Release this step" : "Pin this step next",
+			() -> constraintAction(() -> state.togglePlannerPin(step.action.id)), OsrsSkin.TITLE));
+		buttons.add(cardButton(step.snoozed ? "Wake" : "Snooze",
+			step.snoozed ? "Unsnooze — back into the route" : "Snooze out of the route",
+			() -> constraintAction(() -> state.togglePlannerSnooze(step.action.id)), OsrsSkin.MUTED));
 		if (step.methodId != null)
 		{
-			buttons.add(flatButton("Ban method",
-				() -> constraintAction(() -> state.togglePlannerBan(step.methodId)), UiTokens.STATUS_WARNING));
+			buttons.add(cardButton("Ban", "Ban " + step.methodName + " everywhere",
+				() -> constraintAction(() -> state.togglePlannerBan(step.methodId)),
+				UiTokens.STATUS_WARNING));
 		}
 		else if (step.action.kind == Action.Kind.MANUAL && step.action.unlockKey != null)
 		{
-			buttons.add(flatButton("Mark done",
-				() -> state.setUnlocked(step.action.unlockKey, true), UiTokens.STATUS_OWNED));
+			buttons.add(cardButton("Done", "Mark this manual step as done",
+				() -> state.setUnlocked(step.action.unlockKey, true), OsrsSkin.VALUE));
 		}
 		else
 		{
 			buttons.add(Box.createHorizontalStrut(1));
 		}
-		buttons.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
+		buttons.setMaximumSize(new Dimension(Integer.MAX_VALUE, buttons.getPreferredSize().height));
 		card.add(buttons);
 
 		card.setMaximumSize(new Dimension(Integer.MAX_VALUE, card.getPreferredSize().height));
@@ -915,18 +891,19 @@ class PlannerTab extends JPanel
 
 	private JComponent snoozedSection(List<Plan.Step> snoozed)
 	{
-		JPanel section = column(UiTokens.PANEL_BG);
-		JLabel header = new JLabel("SNOOZED (" + snoozed.size() + ")");
-		header.setForeground(UiTokens.TEXT_FAINT);
-		header.setFont(SectionLabel.letterSpaced(
-			header.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LABEL),
-			UiTokens.LETTER_SPACING_LABEL));
-		header.setIcon(new PaintedIcon(snoozedOpen
+		JPanel section = column();
+		JPanel header = row();
+		JLabel triangle = new JLabel(new PaintedIcon(snoozedOpen
 			? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
-		header.setIconTextGap(UiTokens.ROW_GAP);
-		header.setAlignmentX(LEFT_ALIGNMENT);
+		triangle.setForeground(OsrsSkin.FAINT);
+		header.add(triangle);
+		header.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		header.add(new OsrsLabel("SNOOZED (" + snoozed.size() + ")",
+			OsrsSkin.FAINT, OsrsSkin.font()).leftAligned());
+		header.add(Box.createHorizontalGlue());
 		header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		header.addMouseListener(new MouseAdapter()
+		cap(header);
+		MouseAdapter press = new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent e)
@@ -934,7 +911,8 @@ class PlannerTab extends JPanel
 				snoozedOpen = !snoozedOpen;
 				rebuildRoute();
 			}
-		});
+		};
+		clickAnywhere(header, press);
 		section.add(header);
 		if (snoozedOpen)
 		{
@@ -950,8 +928,8 @@ class PlannerTab extends JPanel
 
 	// ── Goals (frame 4e/4f: add-goal search + merge preview + 2d list) ──
 
-	private final SearchField addSearch = new SearchField("Add a goal — search goals, gear, skills…");
-	private final JPanel addResults = column(UiTokens.PANEL_BG);
+	private final StoneTextField addSearch;
+	private final JPanel addResults = column();
 	private boolean goalsBuilt;
 
 	private void rebuildGoals()
@@ -1093,25 +1071,37 @@ class PlannerTab extends JPanel
 
 	private JComponent candidateRow(GoalsPack.Goal candidate)
 	{
-		JPanel container = column(UiTokens.PANEL_BG);
+		JPanel container = column();
 		JPanel row = row();
 		row.setOpaque(true);
-		row.setBackground(UiTokens.CARD_BG);
 		boolean selected = candidate == previewCandidate;
-		row.setBorder(new CompoundBorder(
-			new LineBorder(selected ? UiTokens.ACCENT : UiTokens.BORDER_ROW),
-			new EmptyBorder(0, UiTokens.ROW_GAP, 0, UiTokens.ROW_GAP)));
-		row.setPreferredSize(new Dimension(0, UiTokens.ROW_HEIGHT));
-		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT));
+		row.setBackground(selected ? theme.selectFill : theme.background);
+		row.setBorder(new EmptyBorder(3, UiTokens.ROW_GAP, 3, UiTokens.ROW_GAP));
 		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		JLabel name = new JLabel(candidate.getName());
-		name.setForeground(UiTokens.TEXT_PRIMARY);
-		name.setFont(name.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-		name.setMinimumSize(new Dimension(0, 0));
-		row.add(name);
+		row.add(new OsrsLabel(candidate.getName(),
+			selected ? OsrsSkin.TITLE : OsrsSkin.LABEL, OsrsSkin.font())
+			.leftAligned().squeezable());
 		row.add(Box.createHorizontalGlue());
 		row.addMouseListener(new MouseAdapter()
 		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				if (!selected)
+				{
+					row.setBackground(theme.hoverFill);
+				}
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				if (!selected)
+				{
+					row.setBackground(theme.background);
+				}
+			}
+
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
@@ -1121,6 +1111,7 @@ class PlannerTab extends JPanel
 				rebuildAddResultsKeepQuery();
 			}
 		});
+		cap(row);
 		container.add(row);
 
 		if (selected)
@@ -1172,49 +1163,36 @@ class PlannerTab extends JPanel
 
 	private JComponent previewCard(GoalsPack.Goal candidate)
 	{
-		JPanel card = column(UiTokens.CARD_BG);
-		card.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-			new EmptyBorder(UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP)));
+		StonePanel card = new StonePanel(theme);
+		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+		card.setAlignmentX(LEFT_ALIGNMENT);
 		if (preview == null)
 		{
-			card.add(mutedNote("computing merge preview…"));
+			card.add(wrapped("computing merge preview…", OsrsSkin.FAINT));
 		}
 		else
 		{
 			String added = preview.addedHours < 0.05 ? "almost nothing"
 				: "~" + compactHours(preview.addedHours);
-			JTextArea text = wrapText("adds " + added + " to the plan · "
+			card.add(wrapped("adds " + added + " to the plan · "
 				+ preview.shared + " of " + preview.steps + " steps already shared with your goals",
-				UiTokens.TEXT_BODY, UiTokens.CARD_BG);
-			card.add(text);
+				OsrsSkin.MUTED));
 		}
-		JLabel add = new JLabel("+ Add goal", javax.swing.SwingConstants.CENTER);
-		add.setOpaque(true);
-		add.setBackground(UiTokens.ACCENT);
-		add.setForeground(UiTokens.ACCENT_TEXT_ON);
-		add.setFont(add.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
-		add.setBorder(new EmptyBorder(3, 8, 3, 8));
-		add.setAlignmentX(LEFT_ALIGNMENT);
-		add.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		add.addMouseListener(new MouseAdapter()
+		StoneButton add = new StoneButton(theme, theme.boxFill, "+ Add goal", () ->
 		{
-			@Override
-			public void mousePressed(MouseEvent e)
+			if (candidate.getId().startsWith("custom:"))
 			{
-				if (candidate.getId().startsWith("custom:"))
-				{
-					state.addCustomGoal(candidate.getId(), candidate.getName(),
-						candidate.getSteps().get(0).getRequirement());
-				}
-				else
-				{
-					state.selectGoal(candidate.getId(), true);
-				}
-				previewCandidate = null;
-				preview = null;
-				addSearch.setText("");
-				rebuildAddResults("");
+				state.addCustomGoal(candidate.getId(), candidate.getName(),
+					candidate.getSteps().get(0).getRequirement());
 			}
+			else
+			{
+				state.selectGoal(candidate.getId(), true);
+			}
+			previewCandidate = null;
+			preview = null;
+			addSearch.setText("");
+			rebuildAddResults("");
 		});
 		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		card.add(add);
@@ -1281,11 +1259,11 @@ class PlannerTab extends JPanel
 		return module.methodsPack();
 	}
 
-	private static JPanel column(Color bg)
+	private static JPanel column()
 	{
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-		panel.setBackground(bg);
+		panel.setOpaque(false);
 		panel.setAlignmentX(LEFT_ALIGNMENT);
 		return panel;
 	}
@@ -1303,24 +1281,31 @@ class PlannerTab extends JPanel
 	{
 		view.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
 		JPanel anchor = new JPanel(new BorderLayout());
-		anchor.setBackground(UiTokens.PANEL_BG);
+		anchor.setOpaque(false);
 		anchor.add(view, BorderLayout.NORTH);
 		return anchor;
 	}
 
-	private static JTextArea wrapText(String text, Color fg, Color bg)
+	/** Wrapping body text for cards — the skin's wrapped OsrsLabel. */
+	private JComponent wrapped(String text, Color color)
 	{
-		JTextArea area = new JTextArea(text);
-		area.setFont(area.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-		area.setForeground(fg);
-		area.setBackground(bg);
-		area.setLineWrap(true);
-		area.setWrapStyleWord(true);
-		area.setEditable(false);
-		area.setFocusable(false);
-		area.setBorder(new EmptyBorder(2, 0, 2, 0));
-		area.setAlignmentX(LEFT_ALIGNMENT);
-		return area;
+		JPanel holder = row();
+		holder.setBorder(new EmptyBorder(2, 0, 2, 0));
+		holder.add(OsrsLabel.wrapped(text, CARD_TEXT_WIDTH, color, OsrsSkin.font()).leftAligned());
+		holder.add(Box.createHorizontalGlue());
+		cap(holder);
+		return holder;
+	}
+
+	/** Section header in the skin grammar. */
+	private JComponent section(String text)
+	{
+		JPanel row = row();
+		row.setBorder(new EmptyBorder(4, 0, 3, 0));
+		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+		row.add(Box.createHorizontalGlue());
+		cap(row);
+		return row;
 	}
 
 	private static javax.swing.Icon bundledIcon(String resource)
@@ -1472,7 +1457,7 @@ class PlannerTab extends JPanel
 			.append(" vs suggested)");
 		for (Plan.Resource resource : alt.resources)
 		{
-			html.append("<br>").append(resource.name).append(" \u00d7")
+			html.append("<br>").append(resource.name).append(" ×")
 				.append(formatCount(resource.needed)).append(" — ")
 				.append(resource.missing == 0
 					? formatCount(resource.banked) + " banked, covered"
@@ -1509,17 +1494,20 @@ class PlannerTab extends JPanel
 				}
 			}
 		}
-		JLabel line = new JLabel(text);
+		JPanel line = row();
 		if (icon != null)
 		{
-			line.setIcon(icon);
-			line.setIconTextGap(UiTokens.PAD_TIGHT);
+			line.add(new JLabel(icon));
+			line.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		}
-		line.setForeground(met ? UiTokens.STATUS_OWNED : UiTokens.TEXT_MUTED);
-		line.setFont(line.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-		line.setAlignmentX(LEFT_ALIGNMENT);
-		line.setMinimumSize(new Dimension(0, 0));
-		line.setToolTipText(parsed.describe() + (met ? " — met" : " — not yet"));
+		OsrsLabel label = new OsrsLabel(text, met ? OsrsSkin.VALUE : OsrsSkin.MUTED,
+			OsrsSkin.font()).leftAligned().squeezable();
+		String tooltip = parsed.describe() + (met ? " — met" : " — not yet");
+		label.setToolTipText(tooltip);
+		line.setToolTipText(tooltip);
+		line.add(label);
+		line.add(Box.createHorizontalGlue());
+		cap(line);
 		return line;
 	}
 
@@ -1531,42 +1519,30 @@ class PlannerTab extends JPanel
 		action.run();
 	}
 
-	private static JComponent mutedNote(String text)
+	private JComponent mutedNote(String text)
 	{
-		JLabel note = new JLabel(text);
-		note.setForeground(UiTokens.TEXT_MUTED);
-		note.setFont(note.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-		note.setAlignmentX(LEFT_ALIGNMENT);
-		note.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, UiTokens.PAD_TIGHT, 0));
-		return note;
+		JPanel holder = row();
+		holder.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, UiTokens.PAD_TIGHT, 0));
+		holder.add(OsrsLabel.wrapped(text, NOTE_WIDTH, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+		holder.add(Box.createHorizontalGlue());
+		cap(holder);
+		return holder;
 	}
 
-	private JLabel flatButton(String label, Runnable onClick, Color fg)
+	/** Explain-card constraint button: a stone button with a status label. */
+	private JComponent cardButton(String label, String tooltip, Runnable onClick, Color fg)
 	{
-		JLabel button = new JLabel(label, javax.swing.SwingConstants.CENTER);
-		button.setOpaque(true);
-		button.setBackground(UiTokens.ICON_BUTTON_BG);
-		button.setForeground(fg);
-		button.setFont(button.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-		button.setBorder(BorderFactory.createLineBorder(UiTokens.BORDER_BUTTON));
-		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		button.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				onClick.run();
-			}
-		});
+		StoneButton button = new StoneButton(theme, theme.boxFill, label, onClick);
+		button.labelColor(fg);
+		button.setToolTipText(tooltip);
 		return button;
 	}
 
-	private JLabel timeLabel(Plan.Step step, Color color, boolean bold)
+	private OsrsLabel timeLabel(Plan.Step step, Color color, boolean bold)
 	{
-		JLabel time = new JLabel(timeText(step.hours));
-		time.setForeground(Double.isNaN(step.hours) ? UiTokens.TEXT_FAINT : color);
-		time.setFont(time.getFont().deriveFont(bold ? Font.BOLD : Font.PLAIN,
-			UiTokens.FONT_SIZE_SECONDARY));
+		OsrsLabel time = new OsrsLabel(timeText(step.hours),
+			Double.isNaN(step.hours) ? OsrsSkin.FAINT : color,
+			bold ? OsrsSkin.boldFont() : OsrsSkin.font());
 		if (Double.isNaN(step.hours))
 		{
 			time.setToolTipText("No honest time estimate for this yet — never invented");
@@ -1616,6 +1592,11 @@ class PlannerTab extends JPanel
 	{
 		String known = compactHours(plan.knownHours);
 		return "~" + known + (plan.unknownCount > 0 ? " +" + plan.unknownCount + "?" : "");
+	}
+
+	private static void cap(JComponent c)
+	{
+		c.setMaximumSize(new Dimension(Integer.MAX_VALUE, c.getPreferredSize().height));
 	}
 
 	private String wikiPage(Plan.Step step)

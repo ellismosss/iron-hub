@@ -57,6 +57,29 @@ public class OsrsLabel extends JComponent
 		return new OsrsLabel(text, OsrsSkin.VALUE, OsrsSkin.font());
 	}
 
+	/** Multi-line label greedily word-wrapped at a pixel width — the skin's
+	 *  wrapping text (html measurement and the pixel font disagree). */
+	public static OsrsLabel wrapped(String text, int width, Color color, Font font)
+	{
+		FontMetrics fm = new javax.swing.JLabel().getFontMetrics(font);
+		StringBuilder out = new StringBuilder();
+		StringBuilder line = new StringBuilder();
+		for (String word : text.split(" "))
+		{
+			String candidate = line.length() == 0 ? word : line + " " + word;
+			if (fm.stringWidth(candidate) > width && line.length() > 0)
+			{
+				out.append(line).append('\n');
+				line = new StringBuilder(word);
+			}
+			else
+			{
+				line = new StringBuilder(candidate);
+			}
+		}
+		return new OsrsLabel(out.append(line).toString(), color, font);
+	}
+
 	public OsrsLabel(String text, Color color, Font font)
 	{
 		this.lines = text.split("\n");
@@ -73,10 +96,13 @@ public class OsrsLabel extends JComponent
 		repaint();
 	}
 
-	/** Left-align the ink — for a label given a whole row's width. */
+	/** Left-align the ink — for a label given a whole row's width. Also
+	 *  claims LEFT_ALIGNMENT: one centre-aligned child in a vertical
+	 *  BoxLayout drifts every left-aligned sibling off the edge. */
 	public OsrsLabel leftAligned()
 	{
 		this.leftAligned = true;
+		setAlignmentX(LEFT_ALIGNMENT);
 		return this;
 	}
 
@@ -103,12 +129,21 @@ public class OsrsLabel extends JComponent
 	 * before first layout — and BoxLayout derives a row's cross-axis
 	 * alignment from child minimums: an all-zero-minimum row degenerates to
 	 * alignment 0 and cuts every child to half height, top-anchored. A
-	 * pixel-art label must never shrink below its natural size anyway.
+	 * pixel-art label must never shrink below its natural size by default;
+	 * an EXPLICIT minimum (squeezable) still wins.
 	 */
 	@Override
 	public Dimension getMinimumSize()
 	{
-		return getPreferredSize();
+		return isMinimumSizeSet() ? super.getMinimumSize() : getPreferredSize();
+	}
+
+	/** Let a row squeeze this label below its text width (it ellipsizes at
+	 *  paint); the minimum HEIGHT stays honest for BoxLayout alignment. */
+	public OsrsLabel squeezable()
+	{
+		setMinimumSize(new Dimension(0, getPreferredSize().height));
+		return this;
 	}
 
 	@Override

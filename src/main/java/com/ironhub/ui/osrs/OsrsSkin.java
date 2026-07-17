@@ -47,6 +47,10 @@ public final class OsrsSkin
 	 */
 	public static final Color BAR_TROUGH = new Color(0x3E3830);
 
+	/** Goal/xp progress fill — RuneLite's XP-tracker blue, so a progress bar
+	 *  reads as progress, never as a status colour. */
+	public static final Color PROGRESS_BLUE = new Color(0x3D5FBF);
+
 	/**
 	 * Stop a Swing text component antialiasing the pixel font.
 	 *

@@ -34,7 +34,7 @@ import net.runelite.api.Skill;
 public class HomePanel extends JPanel
 {
 	/** RuneLite's XP-tracker blue — the goal bar reads as progress, not status. */
-	private static final java.awt.Color GOAL_BLUE = new java.awt.Color(0x3D5FBF);
+	private static final java.awt.Color GOAL_BLUE = OsrsSkin.PROGRESS_BLUE;
 
 	/**
 	 * name → tooltip, in Luke's order; icon files live at data/icons/osrs/nav/.

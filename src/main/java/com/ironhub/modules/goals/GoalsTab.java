@@ -4,31 +4,30 @@ import com.ironhub.data.GoalsPack;
 import com.ironhub.modules.goals.GoalPlannerModule.CompiledStep;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
-import com.ironhub.ui.components.HubProgressBar;
-import com.ironhub.ui.components.ListRow;
-import com.ironhub.ui.components.SectionLabel;
-import com.ironhub.ui.components.Status;
-import com.ironhub.ui.components.StatusGlyph;
+import com.ironhub.ui.osrs.OsrsLabel;
+import com.ironhub.ui.osrs.OsrsSkin;
+import com.ironhub.ui.osrs.OsrsTheme;
+import com.ironhub.ui.osrs.StonePanel;
+import com.ironhub.ui.osrs.StoneProgressBar;
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 
 /**
- * Goal planner tab (frame 2d, checklist-first): active goal card (accent
- * outline) with its live step checklist, other selected goals, and a
- * browse list of targets. Detectable steps auto-complete; manual steps
- * are click-to-tick.
+ * Goal planner tab (frame 2d, checklist-first) in the OSRS stonework skin:
+ * active goal card (select-fill emphasis) with its live step checklist,
+ * other selected goals, and a browse list of targets. Detectable steps
+ * auto-complete; manual steps are click-to-tick.
  */
 class GoalsTab extends JPanel
 {
@@ -36,22 +35,24 @@ class GoalsTab extends JPanel
 	private final GoalsPack pack;
 	private final com.ironhub.data.GearProgressionPack gearPack;
 	private final net.runelite.client.game.ItemManager itemManager; // null in headless tests
+	private final OsrsTheme theme;
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 	private final JPanel content = new JPanel();
 
 	GoalsTab(AccountState state, GoalsPack pack, com.ironhub.data.GearProgressionPack gearPack,
-		net.runelite.client.game.ItemManager itemManager)
+		net.runelite.client.game.ItemManager itemManager, OsrsTheme theme)
 	{
 		this.state = state;
 		this.pack = pack;
 		this.gearPack = gearPack;
 		this.itemManager = itemManager;
+		this.theme = theme;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		setBackground(UiTokens.PANEL_BG);
-		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
+		setOpaque(false);
+		setBorder(new EmptyBorder(UiTokens.PAD, 0, 0, 0));
 
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-		content.setBackground(UiTokens.PANEL_BG);
+		content.setOpaque(false);
 		content.setAlignmentX(LEFT_ALIGNMENT);
 		add(content);
 		add(Box.createVerticalGlue());
@@ -135,8 +136,7 @@ class GoalsTab extends JPanel
 			.findFirst().orElse(null);
 		if (active != null && !completed.contains(active))
 		{
-			content.add(new SectionLabel("Active goal"));
-			content.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+			content.add(section("Active goal"));
 			content.add(activeCard(active));
 			content.add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 		}
@@ -148,8 +148,7 @@ class GoalsTab extends JPanel
 			.collect(java.util.stream.Collectors.toList());
 		if (!others.isEmpty())
 		{
-			content.add(new SectionLabel("Other goals"));
-			content.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+			content.add(section("Other goals"));
 			for (GoalsPack.Goal goal : others)
 			{
 				content.add(goalRow(goal, true));
@@ -164,8 +163,7 @@ class GoalsTab extends JPanel
 			.collect(java.util.stream.Collectors.toList());
 		if (!browse.isEmpty())
 		{
-			content.add(new SectionLabel("Browse targets"));
-			content.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+			content.add(section("Browse targets"));
 			for (GoalsPack.Goal goal : browse)
 			{
 				content.add(goalRow(goal, false));
@@ -176,13 +174,20 @@ class GoalsTab extends JPanel
 
 		if (!completed.isEmpty())
 		{
-			content.add(new SectionLabel("Completed"));
-			content.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+			content.add(section("Completed"));
 			for (GoalsPack.Goal goal : completed)
 			{
-				ListRow row = ListRow.owned(goal.getName());
-				row.setToolTipText(goal.getName() + " — detected on your account");
-				applyIcon(goal, row::setNameIcon);
+				JPanel row = flatRow();
+				JLabel icon = iconHolder(goal);
+				row.add(icon);
+				OsrsLabel name = new OsrsLabel(goal.getName(), OsrsSkin.VALUE, OsrsSkin.font())
+					.leftAligned().squeezable();
+				String tooltip = goal.getName() + " — detected on your account";
+				name.setToolTipText(tooltip);
+				row.setToolTipText(tooltip);
+				row.add(name);
+				row.add(Box.createHorizontalGlue());
+				cap(row);
 				content.add(row);
 				content.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 			}
@@ -191,39 +196,34 @@ class GoalsTab extends JPanel
 		content.repaint();
 	}
 
-	/** Accent-outlined card: name, %, bar, live checklist. */
+	/** The emphasized card: select-fill band, name, %, bar, live checklist. */
 	private JPanel activeCard(GoalsPack.Goal goal)
 	{
-		JPanel card = new JPanel();
+		StonePanel card = new StonePanel(theme);
+		card.setBackground(theme.selectFill);
 		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setBackground(UiTokens.CARD_BG);
 		card.setAlignmentX(LEFT_ALIGNMENT);
-		card.setBorder(new CompoundBorder(new LineBorder(UiTokens.ACCENT),
-			new EmptyBorder(UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP)));
 
 		double progress = GoalPlannerModule.progress(goal, state);
 		JPanel title = new JPanel();
 		title.setLayout(new BoxLayout(title, BoxLayout.X_AXIS));
 		title.setOpaque(false);
 		title.setAlignmentX(LEFT_ALIGNMENT);
-		JLabel name = new JLabel(goal.getName());
-		name.setForeground(UiTokens.TEXT_PRIMARY);
-		name.setFont(name.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-		name.setIconTextGap(UiTokens.PAD_TIGHT);
-		applyIcon(goal, name::setIcon);
+		title.add(iconHolder(goal));
+		OsrsLabel name = new OsrsLabel(goal.getName(), OsrsSkin.TITLE, OsrsSkin.boldFont())
+			.leftAligned().squeezable();
 		title.add(name);
 		title.add(Box.createHorizontalGlue());
-		JLabel pct = new JLabel(Math.round(progress * 100) + "%");
-		pct.setForeground(UiTokens.ACCENT);
-		pct.setFont(pct.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
-		title.add(pct);
+		title.add(new OsrsLabel(Math.round(progress * 100) + "%",
+			OsrsSkin.TITLE, OsrsSkin.boldFont()));
 		title.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		title.add(new com.ironhub.ui.components.IconButton("\u00d7",
-			"Remove from your goals",
+		title.add(removeGlyph("Remove from your goals",
 			() -> GoalPlannerModule.removeGoal(state, goal.getId())));
 		card.add(title);
 		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		card.add(HubProgressBar.bar(progress));
+		StoneProgressBar bar = new StoneProgressBar(theme, OsrsSkin.PROGRESS_BLUE, progress);
+		bar.setAlignmentX(LEFT_ALIGNMENT);
+		card.add(bar);
 		card.add(Box.createVerticalStrut(UiTokens.PAD));
 
 		boolean nextFound = false;
@@ -234,12 +234,9 @@ class GoalsTab extends JPanel
 			card.add(stepLine(step, isNext));
 			card.add(Box.createVerticalStrut(2));
 		}
-		JLabel note = new JLabel("detected steps auto-complete from account state");
-		note.setForeground(UiTokens.TEXT_FAINT);
-		note.setFont(note.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
-		note.setAlignmentX(LEFT_ALIGNMENT);
 		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		card.add(note);
+		card.add(OsrsLabel.wrapped("detected steps auto-complete from account state",
+			180, OsrsSkin.FAINT, OsrsSkin.font()).leftAligned());
 		return card;
 	}
 
@@ -250,63 +247,77 @@ class GoalsTab extends JPanel
 		line.setOpaque(false);
 		line.setAlignmentX(LEFT_ALIGNMENT);
 
-		Status status = step.met ? Status.OWNED : isNext ? Status.AVAILABLE : Status.LOCKED;
-		line.add(new JLabel(new StatusGlyph(status)));
-		line.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-
-		JLabel label = new JLabel(step.label);
-		label.setForeground(step.met ? UiTokens.TEXT_MUTED
-			: isNext ? UiTokens.TEXT_PRIMARY : UiTokens.TEXT_BODY);
-		label.setFont(label.getFont().deriveFont(
-			isNext ? Font.BOLD : Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
-		label.setMinimumSize(new Dimension(0, 0));
-		label.setToolTipText(step.manual
+		OsrsLabel label = new OsrsLabel(step.label,
+			step.met ? OsrsSkin.FAINT : isNext ? OsrsSkin.TITLE : OsrsSkin.MUTED,
+			isNext ? OsrsSkin.boldFont() : OsrsSkin.font()).leftAligned().squeezable();
+		String tooltip = step.manual
 			? step.label + " — manual step, click to " + (step.met ? "untick" : "tick")
-			: step.label);
+			: step.label;
+		label.setToolTipText(tooltip);
 		line.add(label);
 		line.add(Box.createHorizontalGlue());
 
 		if (step.manual)
 		{
-			JLabel tag = new JLabel(step.met ? "manual" : "tick");
-			tag.setForeground(UiTokens.TEXT_FAINT);
-			tag.setFont(tag.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
-			line.add(tag);
+			line.add(new OsrsLabel(step.met ? "manual" : "tick",
+				OsrsSkin.FAINT, OsrsSkin.font()));
 			line.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			line.addMouseListener(new MouseAdapter()
+			MouseAdapter tick = new MouseAdapter()
 			{
 				@Override
 				public void mousePressed(MouseEvent e)
 				{
 					state.setUnlocked(step.unlockKey, !step.met);
 				}
-			});
+			};
+			// the label's tooltip swallows row clicks — it carries both
+			line.addMouseListener(tick);
+			label.addMouseListener(tick);
 		}
 		else if (step.met)
 		{
-			JLabel tag = new JLabel("auto");
-			tag.setForeground(UiTokens.STATUS_OWNED);
-			tag.setFont(tag.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
-			line.add(tag);
+			line.add(new OsrsLabel("auto", OsrsSkin.VALUE, OsrsSkin.font()));
 		}
+		cap(line);
 		return line;
 	}
 
 	/** Selected goals activate on click; browse targets add on click. */
-	private ListRow goalRow(GoalsPack.Goal goal, boolean selected)
+	private JComponent goalRow(GoalsPack.Goal goal, boolean selected)
 	{
 		int pct = (int) Math.round(GoalPlannerModule.progress(goal, state) * 100);
-		ListRow row = selected
-			? ListRow.available(goal.getName(), new com.ironhub.ui.components.IconButton("\u00d7",
-				"Remove from your goals", () -> GoalPlannerModule.removeGoal(state, goal.getId())))
-			: ListRow.locked(goal.getName());
-		applyIcon(goal, row::setNameIcon);
-		row.setToolTipText(selected
-			? goal.getName() + " — " + pct + "% · click to make active"
-			: goal.getName() + " — click to add to your goals");
+		JPanel row = flatRow();
 		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		row.addMouseListener(new MouseAdapter()
+		row.add(iconHolder(goal));
+		OsrsLabel name = new OsrsLabel(goal.getName(),
+			selected ? OsrsSkin.LABEL : OsrsSkin.MUTED, OsrsSkin.font())
+			.leftAligned().squeezable();
+		String tooltip = selected
+			? goal.getName() + " — " + pct + "% · click to make active"
+			: goal.getName() + " — click to add to your goals";
+		name.setToolTipText(tooltip);
+		row.setToolTipText(tooltip);
+		row.add(name);
+		row.add(Box.createHorizontalGlue());
+		if (selected)
 		{
+			row.add(removeGlyph("Remove from your goals",
+				() -> GoalPlannerModule.removeGoal(state, goal.getId())));
+		}
+		MouseAdapter click = new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				row.setBackground(theme.hoverFill);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				row.setBackground(theme.background);
+			}
+
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
@@ -319,8 +330,89 @@ class GoalsTab extends JPanel
 					state.selectGoal(goal.getId(), true);
 				}
 			}
-		});
+		};
+		// the name's tooltip swallows row clicks — it carries both
+		row.addMouseListener(click);
+		name.addMouseListener(click);
+		cap(row);
 		return row;
+	}
+
+	/** A flat hoverable row on the tab background (quest-list idiom). */
+	private JPanel flatRow()
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(true);
+		row.setBackground(theme.background);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP));
+		return row;
+	}
+
+	/** The goal's icon in its own holder, filled async — text stays an
+	 *  OsrsLabel (a raw JLabel clips the pixel font's glyph bottoms). */
+	private JLabel iconHolder(GoalsPack.Goal goal)
+	{
+		JLabel icon = new JLabel();
+		icon.setBorder(new EmptyBorder(0, 0, 0, UiTokens.PAD_TIGHT));
+		applyIcon(goal, image ->
+		{
+			icon.setIcon(image);
+			icon.revalidate();
+		});
+		return icon;
+	}
+
+	/** A small × affordance in skin colours — faint until hovered. */
+	private static JLabel removeGlyph(String tooltip, Runnable onClick)
+	{
+		JLabel glyph = new JLabel("×");
+		OsrsSkin.crisp(glyph);
+		glyph.setFont(OsrsSkin.font());
+		glyph.setForeground(OsrsSkin.FAINT);
+		glyph.setToolTipText(tooltip);
+		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		glyph.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.TITLE);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.FAINT);
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				onClick.run();
+			}
+		});
+		return glyph;
+	}
+
+	/** Section header in the skin grammar. */
+	private JComponent section(String text)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new EmptyBorder(4, 0, 3, 0));
+		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+		row.add(Box.createHorizontalGlue());
+		cap(row);
+		return row;
+	}
+
+	private static void cap(JComponent c)
+	{
+		c.setMaximumSize(new Dimension(Integer.MAX_VALUE, c.getPreferredSize().height));
 	}
 
 	@Override
