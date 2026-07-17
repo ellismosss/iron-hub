@@ -6,6 +6,8 @@
   "required": ["version", "entries"],
   "properties": {
     "$schema": {"type": "string"},
+    "source": {"type": "string"},
+    "generated": {"type": "string"},
     "version": {"type": "integer", "minimum": 1},
     "entries": {
       "type": "array",
@@ -19,7 +21,8 @@
           "method": {"type": "string", "minLength": 1},
           "itemId": {"type": "integer", "minimum": 1},
           "name": {"type": "string", "minLength": 1},
-          "xpEach": {"type": "number", "exclusiveMinimum": 0}
+          "xpEach": {"type": "number", "exclusiveMinimum": 0},
+          "level": {"type": "integer", "minimum": 2, "maximum": 99}
         }
       }
     }

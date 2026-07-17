@@ -1,57 +1,4967 @@
 {
-  "$schema": "./schemas/banked-xp.schema.json",
-  "version": 1,
-  "entries": [
-    {"skill": "Prayer", "method": "bury", "itemId": 526, "name": "Bones", "xpEach": 4.5},
-    {"skill": "Prayer", "method": "bury", "itemId": 532, "name": "Big bones", "xpEach": 15},
-    {"skill": "Prayer", "method": "bury", "itemId": 534, "name": "Babydragon bones", "xpEach": 30},
-    {"skill": "Prayer", "method": "bury", "itemId": 536, "name": "Dragon bones", "xpEach": 72},
-    {"skill": "Prayer", "method": "bury", "itemId": 6729, "name": "Dagannoth bones", "xpEach": 125},
-    {"skill": "Prayer", "method": "bury", "itemId": 22124, "name": "Superior dragon bones", "xpEach": 150},
-    {"skill": "Prayer", "method": "gilded altar", "itemId": 536, "name": "Dragon bones", "xpEach": 252},
-    {"skill": "Prayer", "method": "gilded altar", "itemId": 6729, "name": "Dagannoth bones", "xpEach": 437.5},
-    {"skill": "Prayer", "method": "gilded altar", "itemId": 22124, "name": "Superior dragon bones", "xpEach": 525},
-    {"skill": "Herblore", "method": "clean herbs", "itemId": 199, "name": "Grimy guam leaf", "xpEach": 2.5},
-    {"skill": "Herblore", "method": "clean herbs", "itemId": 201, "name": "Grimy marrentill", "xpEach": 3.8},
-    {"skill": "Herblore", "method": "clean herbs", "itemId": 203, "name": "Grimy tarromin", "xpEach": 5},
-    {"skill": "Herblore", "method": "clean herbs", "itemId": 205, "name": "Grimy harralander", "xpEach": 6.25},
-    {"skill": "Herblore", "method": "clean herbs", "itemId": 207, "name": "Grimy ranarr weed", "xpEach": 7.5},
-    {"skill": "Herblore", "method": "clean herbs", "itemId": 3049, "name": "Grimy toadflax", "xpEach": 8},
-    {"skill": "Herblore", "method": "clean herbs", "itemId": 209, "name": "Grimy irit leaf", "xpEach": 8.8},
-    {"skill": "Herblore", "method": "clean herbs", "itemId": 211, "name": "Grimy avantoe", "xpEach": 10},
-    {"skill": "Herblore", "method": "clean herbs", "itemId": 213, "name": "Grimy kwuarm", "xpEach": 11.3},
-    {"skill": "Herblore", "method": "clean herbs", "itemId": 3051, "name": "Grimy snapdragon", "xpEach": 11.8},
-    {"skill": "Herblore", "method": "clean herbs", "itemId": 215, "name": "Grimy cadantine", "xpEach": 12.6},
-    {"skill": "Herblore", "method": "clean herbs", "itemId": 2485, "name": "Grimy lantadyme", "xpEach": 13.1},
-    {"skill": "Herblore", "method": "clean herbs", "itemId": 217, "name": "Grimy dwarf weed", "xpEach": 13.8},
-    {"skill": "Herblore", "method": "clean herbs", "itemId": 219, "name": "Grimy torstol", "xpEach": 15},
-    {"skill": "Cooking", "method": "cook", "itemId": 335, "name": "Raw trout", "xpEach": 70},
-    {"skill": "Cooking", "method": "cook", "itemId": 331, "name": "Raw salmon", "xpEach": 90},
-    {"skill": "Cooking", "method": "cook", "itemId": 359, "name": "Raw tuna", "xpEach": 100},
-    {"skill": "Cooking", "method": "cook", "itemId": 377, "name": "Raw lobster", "xpEach": 120},
-    {"skill": "Cooking", "method": "cook", "itemId": 371, "name": "Raw swordfish", "xpEach": 140},
-    {"skill": "Cooking", "method": "cook", "itemId": 7944, "name": "Raw monkfish", "xpEach": 150},
-    {"skill": "Cooking", "method": "cook", "itemId": 3142, "name": "Raw karambwan", "xpEach": 190},
-    {"skill": "Cooking", "method": "cook", "itemId": 383, "name": "Raw shark", "xpEach": 210},
-    {"skill": "Cooking", "method": "cook", "itemId": 13439, "name": "Raw anglerfish", "xpEach": 230},
-    {"skill": "Firemaking", "method": "burn", "itemId": 1511, "name": "Logs", "xpEach": 40},
-    {"skill": "Firemaking", "method": "burn", "itemId": 1521, "name": "Oak logs", "xpEach": 60},
-    {"skill": "Firemaking", "method": "burn", "itemId": 1519, "name": "Willow logs", "xpEach": 90},
-    {"skill": "Firemaking", "method": "burn", "itemId": 1517, "name": "Maple logs", "xpEach": 135},
-    {"skill": "Firemaking", "method": "burn", "itemId": 1515, "name": "Yew logs", "xpEach": 202.5},
-    {"skill": "Firemaking", "method": "burn", "itemId": 1513, "name": "Magic logs", "xpEach": 303.8},
-    {"skill": "Firemaking", "method": "burn", "itemId": 19669, "name": "Redwood logs", "xpEach": 350},
-    {"skill": "Fletching", "method": "yew longbow (u)", "itemId": 1515, "name": "Yew logs", "xpEach": 75},
-    {"skill": "Fletching", "method": "magic longbow (u)", "itemId": 1513, "name": "Magic logs", "xpEach": 91.5},
-    {"skill": "Construction", "method": "build furniture", "itemId": 960, "name": "Plank", "xpEach": 29},
-    {"skill": "Construction", "method": "oak furniture", "itemId": 8778, "name": "Oak plank", "xpEach": 60},
-    {"skill": "Construction", "method": "teak furniture", "itemId": 8780, "name": "Teak plank", "xpEach": 90},
-    {"skill": "Construction", "method": "mahogany furniture", "itemId": 8782, "name": "Mahogany plank", "xpEach": 140},
-    {"skill": "Crafting", "method": "green d'hide bodies", "itemId": 1745, "name": "Green dragon leather", "xpEach": 62},
-    {"skill": "Crafting", "method": "blue d'hide bodies", "itemId": 2505, "name": "Blue dragon leather", "xpEach": 70},
-    {"skill": "Crafting", "method": "red d'hide bodies", "itemId": 2507, "name": "Red dragon leather", "xpEach": 78},
-    {"skill": "Crafting", "method": "black d'hide bodies", "itemId": 2509, "name": "Black dragon leather", "xpEach": 86},
-    {"skill": "Smithing", "method": "cannonballs", "itemId": 2353, "name": "Steel bar", "xpEach": 25.6},
-    {"skill": "Smithing", "method": "smelt gold (furnace)", "itemId": 444, "name": "Gold ore", "xpEach": 22.5}
-  ]
+ "$schema": "./schemas/banked-xp.schema.json",
+ "source": "github.com/TheStonedTurtle/banked-experience@788fbbf (BSD-2-Clause)",
+ "generated": "2026-07-17",
+ "version": 2,
+ "entries": [
+  {
+   "skill": "Herblore",
+   "method": "Guam tar",
+   "itemId": 249,
+   "name": "Guam leaf",
+   "xpEach": 30.0,
+   "level": 19
+  },
+  {
+   "skill": "Herblore",
+   "method": "Attack potion",
+   "itemId": 91,
+   "name": "Guam potion unf",
+   "xpEach": 25.0,
+   "level": 3
+  },
+  {
+   "skill": "Herblore",
+   "method": "Marrentill tar",
+   "itemId": 251,
+   "name": "Marrentill",
+   "xpEach": 42.5,
+   "level": 31
+  },
+  {
+   "skill": "Herblore",
+   "method": "Antipoison",
+   "itemId": 93,
+   "name": "Marrentill potion unf",
+   "xpEach": 37.5,
+   "level": 5
+  },
+  {
+   "skill": "Herblore",
+   "method": "Tarromin tar",
+   "itemId": 253,
+   "name": "Tarromin",
+   "xpEach": 55.0,
+   "level": 39
+  },
+  {
+   "skill": "Herblore",
+   "method": "Strength potion",
+   "itemId": 95,
+   "name": "Tarromin potion unf",
+   "xpEach": 50.0,
+   "level": 12
+  },
+  {
+   "skill": "Herblore",
+   "method": "Serum 207",
+   "itemId": 95,
+   "name": "Tarromin potion unf",
+   "xpEach": 50.0,
+   "level": 15
+  },
+  {
+   "skill": "Herblore",
+   "method": "Harralander tar",
+   "itemId": 255,
+   "name": "Harralander",
+   "xpEach": 72.5,
+   "level": 44
+  },
+  {
+   "skill": "Herblore",
+   "method": "Compost potion",
+   "itemId": 97,
+   "name": "Harralander potion unf",
+   "xpEach": 60.0,
+   "level": 21
+  },
+  {
+   "skill": "Herblore",
+   "method": "Restore potion",
+   "itemId": 97,
+   "name": "Harralander potion unf",
+   "xpEach": 62.5,
+   "level": 22
+  },
+  {
+   "skill": "Herblore",
+   "method": "Energy potion",
+   "itemId": 97,
+   "name": "Harralander potion unf",
+   "xpEach": 67.5,
+   "level": 26
+  },
+  {
+   "skill": "Herblore",
+   "method": "Combat potion",
+   "itemId": 97,
+   "name": "Harralander potion unf",
+   "xpEach": 84.0,
+   "level": 36
+  },
+  {
+   "skill": "Herblore",
+   "method": "Goading potion",
+   "itemId": 97,
+   "name": "Harralander potion unf",
+   "xpEach": 132.0,
+   "level": 54
+  },
+  {
+   "skill": "Herblore",
+   "method": "Defence potion",
+   "itemId": 99,
+   "name": "Ranarr potion unf",
+   "xpEach": 75.0,
+   "level": 30
+  },
+  {
+   "skill": "Herblore",
+   "method": "Prayer potion",
+   "itemId": 99,
+   "name": "Ranarr potion unf",
+   "xpEach": 87.5,
+   "level": 38
+  },
+  {
+   "skill": "Herblore",
+   "method": "Agility potion",
+   "itemId": 3002,
+   "name": "Toadflax potion unf",
+   "xpEach": 80.0,
+   "level": 34
+  },
+  {
+   "skill": "Herblore",
+   "method": "Antidote+",
+   "itemId": 5942,
+   "name": "Antidote unf",
+   "xpEach": 155.0,
+   "level": 68
+  },
+  {
+   "skill": "Herblore",
+   "method": "Saradomin brew",
+   "itemId": 3002,
+   "name": "Toadflax potion unf",
+   "xpEach": 180.0,
+   "level": 81
+  },
+  {
+   "skill": "Herblore",
+   "method": "Super attack",
+   "itemId": 101,
+   "name": "Irit potion unf",
+   "xpEach": 100.0,
+   "level": 45
+  },
+  {
+   "skill": "Herblore",
+   "method": "Superantipoison",
+   "itemId": 101,
+   "name": "Irit potion unf",
+   "xpEach": 106.3,
+   "level": 48
+  },
+  {
+   "skill": "Herblore",
+   "method": "Antidote++",
+   "itemId": 5951,
+   "name": "Antidote plus plus potion unf",
+   "xpEach": 177.5,
+   "level": 79
+  },
+  {
+   "skill": "Herblore",
+   "method": "Fishing potion",
+   "itemId": 103,
+   "name": "Avantoe potion unf",
+   "xpEach": 112.5,
+   "level": 50
+  },
+  {
+   "skill": "Herblore",
+   "method": "Super energy potion",
+   "itemId": 103,
+   "name": "Avantoe potion unf",
+   "xpEach": 117.5,
+   "level": 52
+  },
+  {
+   "skill": "Herblore",
+   "method": "Hunter potion",
+   "itemId": 103,
+   "name": "Avantoe potion unf",
+   "xpEach": 120.0,
+   "level": 53
+  },
+  {
+   "skill": "Herblore",
+   "method": "Super strength",
+   "itemId": 105,
+   "name": "Kwuarm potion unf",
+   "xpEach": 125.0,
+   "level": 55
+  },
+  {
+   "skill": "Herblore",
+   "method": "Weapon Poison",
+   "itemId": 105,
+   "name": "Kwuarm potion unf",
+   "xpEach": 137.5,
+   "level": 60
+  },
+  {
+   "skill": "Herblore",
+   "method": "Super restore",
+   "itemId": 3004,
+   "name": "Snapdragon potion unf",
+   "xpEach": 142.5,
+   "level": 63
+  },
+  {
+   "skill": "Herblore",
+   "method": "Sanfew serum",
+   "itemId": 3004,
+   "name": "Snapdragon potion unf",
+   "xpEach": 160.0,
+   "level": 65
+  },
+  {
+   "skill": "Herblore",
+   "method": "Super defence",
+   "itemId": 107,
+   "name": "Cadantine potion unf",
+   "xpEach": 150.0,
+   "level": 66
+  },
+  {
+   "skill": "Herblore",
+   "method": "Bastion potion",
+   "itemId": 22443,
+   "name": "Cadantine blood potion unf",
+   "xpEach": 155.0,
+   "level": 80
+  },
+  {
+   "skill": "Herblore",
+   "method": "Battlemage potion",
+   "itemId": 22443,
+   "name": "Cadantine blood potion unf",
+   "xpEach": 155.0,
+   "level": 80
+  },
+  {
+   "skill": "Herblore",
+   "method": "Anti-fire potion",
+   "itemId": 2483,
+   "name": "Lantadyme potion unf",
+   "xpEach": 157.5,
+   "level": 69
+  },
+  {
+   "skill": "Herblore",
+   "method": "Magic potion",
+   "itemId": 2483,
+   "name": "Lantadyme potion unf",
+   "xpEach": 172.5,
+   "level": 76
+  },
+  {
+   "skill": "Herblore",
+   "method": "Ranging potion",
+   "itemId": 109,
+   "name": "Dwarf weed potion unf",
+   "xpEach": 162.5,
+   "level": 72
+  },
+  {
+   "skill": "Herblore",
+   "method": "Ancient Brew",
+   "itemId": 109,
+   "name": "Dwarf weed potion unf",
+   "xpEach": 190.0,
+   "level": 85
+  },
+  {
+   "skill": "Herblore",
+   "method": "Menaphite remedy",
+   "itemId": 109,
+   "name": "Dwarf weed potion unf",
+   "xpEach": 200.0,
+   "level": 88
+  },
+  {
+   "skill": "Herblore",
+   "method": "Super combat",
+   "itemId": 269,
+   "name": "Torstol",
+   "xpEach": 150.0,
+   "level": 90
+  },
+  {
+   "skill": "Herblore",
+   "method": "Anti-venom+",
+   "itemId": 269,
+   "name": "Torstol",
+   "xpEach": 125.0,
+   "level": 94
+  },
+  {
+   "skill": "Herblore",
+   "method": "Zamorak brew",
+   "itemId": 111,
+   "name": "Torstol potion unf",
+   "xpEach": 175.0,
+   "level": 78
+  },
+  {
+   "skill": "Herblore",
+   "method": "Super combat",
+   "itemId": 111,
+   "name": "Torstol potion unf",
+   "xpEach": 150.0,
+   "level": 90
+  },
+  {
+   "skill": "Herblore",
+   "method": "Extended Anti-venom+",
+   "itemId": 29784,
+   "name": "Araxyte venom sac",
+   "xpEach": 20.0,
+   "level": 94
+  },
+  {
+   "skill": "Herblore",
+   "method": "Prayer regeneration",
+   "itemId": 30100,
+   "name": "Huasca potion unf",
+   "xpEach": 132.0,
+   "level": 58
+  },
+  {
+   "skill": "Herblore",
+   "method": "Unfinished potion",
+   "itemId": 31662,
+   "name": "Elkhorn potion unf",
+   "xpEach": 27.0,
+   "level": 56
+  },
+  {
+   "skill": "Herblore",
+   "method": "Haemostatic dressing",
+   "itemId": 31587,
+   "name": "Haemostatic poultice",
+   "xpEach": 100.0,
+   "level": 56
+  },
+  {
+   "skill": "Herblore",
+   "method": "Super fishing",
+   "itemId": 31665,
+   "name": "Pillar potion unf",
+   "xpEach": 140.5,
+   "level": 62
+  },
+  {
+   "skill": "Herblore",
+   "method": "Super hunter",
+   "itemId": 31665,
+   "name": "Pillar potion unf",
+   "xpEach": 154.0,
+   "level": 67
+  },
+  {
+   "skill": "Herblore",
+   "method": "Armadyl brew",
+   "itemId": 31668,
+   "name": "Umbral potion unf",
+   "xpEach": 205.0,
+   "level": 89
+  },
+  {
+   "skill": "Herblore",
+   "method": "Clean guam",
+   "itemId": 199,
+   "name": "Grimy guam leaf",
+   "xpEach": 2.5,
+   "level": 3
+  },
+  {
+   "skill": "Herblore",
+   "method": "Clean marrentill",
+   "itemId": 201,
+   "name": "Grimy marrentill",
+   "xpEach": 3.8,
+   "level": 5
+  },
+  {
+   "skill": "Herblore",
+   "method": "Clean tarromin",
+   "itemId": 203,
+   "name": "Grimy tarromin",
+   "xpEach": 5.0,
+   "level": 11
+  },
+  {
+   "skill": "Herblore",
+   "method": "Clean harralander",
+   "itemId": 205,
+   "name": "Grimy harralander",
+   "xpEach": 6.3,
+   "level": 20
+  },
+  {
+   "skill": "Herblore",
+   "method": "Clean ranarr weed",
+   "itemId": 207,
+   "name": "Grimy ranarr weed",
+   "xpEach": 7.5,
+   "level": 25
+  },
+  {
+   "skill": "Herblore",
+   "method": "Clean toadflax",
+   "itemId": 3049,
+   "name": "Grimy toadflax",
+   "xpEach": 8.0,
+   "level": 30
+  },
+  {
+   "skill": "Herblore",
+   "method": "Clean irit leaf",
+   "itemId": 209,
+   "name": "Grimy irit leaf",
+   "xpEach": 8.8,
+   "level": 40
+  },
+  {
+   "skill": "Herblore",
+   "method": "Clean avantoe",
+   "itemId": 211,
+   "name": "Grimy avantoe",
+   "xpEach": 10.0,
+   "level": 48
+  },
+  {
+   "skill": "Herblore",
+   "method": "Clean kwuarm",
+   "itemId": 213,
+   "name": "Grimy kwuarm",
+   "xpEach": 11.3,
+   "level": 54
+  },
+  {
+   "skill": "Herblore",
+   "method": "Clean snapdragon",
+   "itemId": 3051,
+   "name": "Grimy snapdragon",
+   "xpEach": 11.8,
+   "level": 59
+  },
+  {
+   "skill": "Herblore",
+   "method": "Clean cadantine",
+   "itemId": 215,
+   "name": "Grimy cadantine",
+   "xpEach": 12.5,
+   "level": 65
+  },
+  {
+   "skill": "Herblore",
+   "method": "Clean lantadyme",
+   "itemId": 2485,
+   "name": "Grimy lantadyme",
+   "xpEach": 13.1,
+   "level": 67
+  },
+  {
+   "skill": "Herblore",
+   "method": "Clean dwarf weed",
+   "itemId": 217,
+   "name": "Grimy dwarf weed",
+   "xpEach": 13.8,
+   "level": 70
+  },
+  {
+   "skill": "Herblore",
+   "method": "Clean torstol",
+   "itemId": 219,
+   "name": "Grimy torstol",
+   "xpEach": 15.0,
+   "level": 75
+  },
+  {
+   "skill": "Herblore",
+   "method": "Clean huasca",
+   "itemId": 30094,
+   "name": "Grimy huasca",
+   "xpEach": 11.8,
+   "level": 58
+  },
+  {
+   "skill": "Herblore",
+   "method": "Degrime guam",
+   "itemId": 199,
+   "name": "Grimy guam leaf",
+   "xpEach": 1.2,
+   "level": 3
+  },
+  {
+   "skill": "Herblore",
+   "method": "Degrime marrentill",
+   "itemId": 201,
+   "name": "Grimy marrentill",
+   "xpEach": 1.9,
+   "level": 5
+  },
+  {
+   "skill": "Herblore",
+   "method": "Degrime tarromin",
+   "itemId": 203,
+   "name": "Grimy tarromin",
+   "xpEach": 2.5,
+   "level": 11
+  },
+  {
+   "skill": "Herblore",
+   "method": "Degrime harralander",
+   "itemId": 205,
+   "name": "Grimy harralander",
+   "xpEach": 3.1,
+   "level": 20
+  },
+  {
+   "skill": "Herblore",
+   "method": "Degrime ranarr weed",
+   "itemId": 207,
+   "name": "Grimy ranarr weed",
+   "xpEach": 3.7,
+   "level": 25
+  },
+  {
+   "skill": "Herblore",
+   "method": "Degrime toadflax",
+   "itemId": 3049,
+   "name": "Grimy toadflax",
+   "xpEach": 4.0,
+   "level": 30
+  },
+  {
+   "skill": "Herblore",
+   "method": "Degrime irit leaf",
+   "itemId": 209,
+   "name": "Grimy irit leaf",
+   "xpEach": 4.4,
+   "level": 40
+  },
+  {
+   "skill": "Herblore",
+   "method": "Degrime avantoe",
+   "itemId": 211,
+   "name": "Grimy avantoe",
+   "xpEach": 5.0,
+   "level": 48
+  },
+  {
+   "skill": "Herblore",
+   "method": "Degrime kwuarm",
+   "itemId": 213,
+   "name": "Grimy kwuarm",
+   "xpEach": 5.6,
+   "level": 54
+  },
+  {
+   "skill": "Herblore",
+   "method": "Degrime snapdragon",
+   "itemId": 3051,
+   "name": "Grimy snapdragon",
+   "xpEach": 5.9,
+   "level": 59
+  },
+  {
+   "skill": "Herblore",
+   "method": "Degrime cadantine",
+   "itemId": 215,
+   "name": "Grimy cadantine",
+   "xpEach": 6.2,
+   "level": 65
+  },
+  {
+   "skill": "Herblore",
+   "method": "Degrime lantadyme",
+   "itemId": 2485,
+   "name": "Grimy lantadyme",
+   "xpEach": 6.5,
+   "level": 67
+  },
+  {
+   "skill": "Herblore",
+   "method": "Degrime dwarf weed",
+   "itemId": 217,
+   "name": "Grimy dwarf weed",
+   "xpEach": 6.9,
+   "level": 70
+  },
+  {
+   "skill": "Herblore",
+   "method": "Degrime torstol",
+   "itemId": 219,
+   "name": "Grimy torstol",
+   "xpEach": 7.5,
+   "level": 75
+  },
+  {
+   "skill": "Herblore",
+   "method": "Degrime huasca",
+   "itemId": 30094,
+   "name": "Grimy huasca",
+   "xpEach": 5.9,
+   "level": 58
+  },
+  {
+   "skill": "Herblore",
+   "method": "Mox Paste",
+   "itemId": 249,
+   "name": "Guam leaf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Mox Paste",
+   "itemId": 251,
+   "name": "Marrentill",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Mox Paste",
+   "itemId": 253,
+   "name": "Tarromin",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Mox Paste",
+   "itemId": 255,
+   "name": "Harralander",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Lye Paste",
+   "itemId": 257,
+   "name": "Ranarr weed",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Lye Paste",
+   "itemId": 2998,
+   "name": "Toadflax",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Aga Paste",
+   "itemId": 259,
+   "name": "Irit leaf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Lye Paste",
+   "itemId": 261,
+   "name": "Avantoe",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Lye Paste",
+   "itemId": 263,
+   "name": "Kwuarm",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Lye Paste",
+   "itemId": 3000,
+   "name": "Snapdragon",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Aga Paste",
+   "itemId": 265,
+   "name": "Cadantine",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Aga Paste",
+   "itemId": 2481,
+   "name": "Lantadyme",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Aga Paste",
+   "itemId": 267,
+   "name": "Dwarf weed",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Aga Paste",
+   "itemId": 269,
+   "name": "Torstol",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Aga Paste",
+   "itemId": 30097,
+   "name": "Huasca",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Mox Paste",
+   "itemId": 91,
+   "name": "Guam potion unf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Mox Paste",
+   "itemId": 93,
+   "name": "Marrentill potion unf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Mox Paste",
+   "itemId": 95,
+   "name": "Tarromin potion unf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Mox Paste",
+   "itemId": 97,
+   "name": "Harralander potion unf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Lye Paste",
+   "itemId": 99,
+   "name": "Ranarr potion unf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Lye Paste",
+   "itemId": 3002,
+   "name": "Toadflax potion unf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Aga Paste",
+   "itemId": 101,
+   "name": "Irit potion unf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Lye Paste",
+   "itemId": 103,
+   "name": "Avantoe potion unf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Lye Paste",
+   "itemId": 105,
+   "name": "Kwuarm potion unf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Lye Paste",
+   "itemId": 3004,
+   "name": "Snapdragon potion unf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Aga Paste",
+   "itemId": 107,
+   "name": "Cadantine potion unf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Aga Paste",
+   "itemId": 2483,
+   "name": "Lantadyme potion unf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Aga Paste",
+   "itemId": 109,
+   "name": "Dwarf weed potion unf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Aga Paste",
+   "itemId": 111,
+   "name": "Torstol potion unf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Aga Paste",
+   "itemId": 30100,
+   "name": "Huasca potion unf",
+   "xpEach": 6.0
+  },
+  {
+   "skill": "Herblore",
+   "method": "Mastering Mixology",
+   "itemId": 30005,
+   "name": "Mox paste",
+   "xpEach": 5.5,
+   "level": 60
+  },
+  {
+   "skill": "Herblore",
+   "method": "Mastering Mixology",
+   "itemId": 30007,
+   "name": "Aga paste",
+   "xpEach": 6.33,
+   "level": 60
+  },
+  {
+   "skill": "Herblore",
+   "method": "Mastering Mixology",
+   "itemId": 30009,
+   "name": "Lye paste",
+   "xpEach": 6.33,
+   "level": 60
+  },
+  {
+   "skill": "Herblore",
+   "method": "Weapon poison(+)",
+   "itemId": 5936,
+   "name": "Weapon poison unf",
+   "xpEach": 190.0,
+   "level": 73
+  },
+  {
+   "skill": "Herblore",
+   "method": "Weapon poison(++)",
+   "itemId": 5939,
+   "name": "Weapon poison plus plus unf",
+   "xpEach": 190.0,
+   "level": 82
+  },
+  {
+   "skill": "Herblore",
+   "method": "Forgotten Brew",
+   "itemId": 26346,
+   "name": "Ancient brew1",
+   "xpEach": 36.0,
+   "level": 91
+  },
+  {
+   "skill": "Herblore",
+   "method": "Forgotten Brew",
+   "itemId": 26344,
+   "name": "Ancient brew2",
+   "xpEach": 72.0,
+   "level": 91
+  },
+  {
+   "skill": "Herblore",
+   "method": "Forgotten Brew",
+   "itemId": 26342,
+   "name": "Ancient brew3",
+   "xpEach": 108.0,
+   "level": 91
+  },
+  {
+   "skill": "Herblore",
+   "method": "Forgotten Brew",
+   "itemId": 26340,
+   "name": "Ancient brew4",
+   "xpEach": 144.0,
+   "level": 91
+  },
+  {
+   "skill": "Herblore",
+   "method": "Stamina potion",
+   "itemId": 12640,
+   "name": "Amylase crystal",
+   "xpEach": 25.5,
+   "level": 77
+  },
+  {
+   "skill": "Herblore",
+   "method": "Extended stamina potion",
+   "itemId": 12631,
+   "name": "Stamina potion1",
+   "xpEach": 27.5,
+   "level": 85
+  },
+  {
+   "skill": "Herblore",
+   "method": "Extended stamina potion",
+   "itemId": 12629,
+   "name": "Stamina potion2",
+   "xpEach": 55.0,
+   "level": 85
+  },
+  {
+   "skill": "Herblore",
+   "method": "Extended stamina potion",
+   "itemId": 12627,
+   "name": "Stamina potion3",
+   "xpEach": 82.5,
+   "level": 85
+  },
+  {
+   "skill": "Herblore",
+   "method": "Extended stamina potion",
+   "itemId": 12625,
+   "name": "Stamina potion4",
+   "xpEach": 110.0,
+   "level": 85
+  },
+  {
+   "skill": "Herblore",
+   "method": "Extreme energy potion",
+   "itemId": 3022,
+   "name": "Super energy1",
+   "xpEach": 21.0,
+   "level": 66
+  },
+  {
+   "skill": "Herblore",
+   "method": "Extreme energy potion",
+   "itemId": 3020,
+   "name": "Super energy2",
+   "xpEach": 42.0,
+   "level": 66
+  },
+  {
+   "skill": "Herblore",
+   "method": "Extreme energy potion",
+   "itemId": 3018,
+   "name": "Super energy3",
+   "xpEach": 63.0,
+   "level": 66
+  },
+  {
+   "skill": "Herblore",
+   "method": "Extreme energy potion",
+   "itemId": 3016,
+   "name": "Super energy4",
+   "xpEach": 84.0,
+   "level": 66
+  },
+  {
+   "skill": "Herblore",
+   "method": "Extended antifire",
+   "itemId": 11994,
+   "name": "Lava scale shard",
+   "xpEach": 27.5,
+   "level": 84
+  },
+  {
+   "skill": "Herblore",
+   "method": "Extended super antifire",
+   "itemId": 11994,
+   "name": "Lava scale shard",
+   "xpEach": 40.0,
+   "level": 98
+  },
+  {
+   "skill": "Herblore",
+   "method": "Extended super antifire",
+   "itemId": 11951,
+   "name": "Extended antifire4",
+   "xpEach": 180.0,
+   "level": 98
+  },
+  {
+   "skill": "Herblore",
+   "method": "Antivenom",
+   "itemId": 5958,
+   "name": "Antivenom",
+   "xpEach": 30.0,
+   "level": 87
+  },
+  {
+   "skill": "Herblore",
+   "method": "Antivenom",
+   "itemId": 5956,
+   "name": "Antivenom",
+   "xpEach": 60.0,
+   "level": 87
+  },
+  {
+   "skill": "Herblore",
+   "method": "Antivenom",
+   "itemId": 5954,
+   "name": "Antivenom",
+   "xpEach": 90.0,
+   "level": 87
+  },
+  {
+   "skill": "Herblore",
+   "method": "Antivenom",
+   "itemId": 5952,
+   "name": "Antivenom",
+   "xpEach": 120.0,
+   "level": 87
+  },
+  {
+   "skill": "Construction",
+   "method": "Regular plank products",
+   "itemId": 960,
+   "name": "Plank",
+   "xpEach": 29.0
+  },
+  {
+   "skill": "Construction",
+   "method": "Oak products",
+   "itemId": 8778,
+   "name": "Oak plank",
+   "xpEach": 60.0,
+   "level": 15
+  },
+  {
+   "skill": "Construction",
+   "method": "Teak products",
+   "itemId": 8780,
+   "name": "Teak plank",
+   "xpEach": 90.0,
+   "level": 35
+  },
+  {
+   "skill": "Construction",
+   "method": "Mythical cape racks",
+   "itemId": 8780,
+   "name": "Teak plank",
+   "xpEach": 123.33,
+   "level": 47
+  },
+  {
+   "skill": "Construction",
+   "method": "Mahogany products",
+   "itemId": 8782,
+   "name": "Mahogany plank",
+   "xpEach": 140.0,
+   "level": 40
+  },
+  {
+   "skill": "Construction",
+   "method": "Long Bone",
+   "itemId": 10976,
+   "name": "Long bone",
+   "xpEach": 4500.0,
+   "level": 30
+  },
+  {
+   "skill": "Construction",
+   "method": "Curved Bone",
+   "itemId": 10977,
+   "name": "Curved bone",
+   "xpEach": 6750.0,
+   "level": 30
+  },
+  {
+   "skill": "Construction",
+   "method": "Mahogany Homes",
+   "itemId": 960,
+   "name": "Plank",
+   "xpEach": 93.65
+  },
+  {
+   "skill": "Construction",
+   "method": "Mahogany Homes",
+   "itemId": 8778,
+   "name": "Oak plank",
+   "xpEach": 200.0,
+   "level": 20
+  },
+  {
+   "skill": "Construction",
+   "method": "Mahogany Homes",
+   "itemId": 8780,
+   "name": "Teak plank",
+   "xpEach": 287.85,
+   "level": 50
+  },
+  {
+   "skill": "Construction",
+   "method": "Mahogany Homes",
+   "itemId": 8782,
+   "name": "Mahogany plank",
+   "xpEach": 346.12,
+   "level": 70
+  },
+  {
+   "skill": "Construction",
+   "method": "Repair kit",
+   "itemId": 960,
+   "name": "Plank",
+   "xpEach": 21.75
+  },
+  {
+   "skill": "Construction",
+   "method": "Repair kit",
+   "itemId": 8778,
+   "name": "Oak plank",
+   "xpEach": 45.0,
+   "level": 19
+  },
+  {
+   "skill": "Construction",
+   "method": "Repair kit",
+   "itemId": 8780,
+   "name": "Teak plank",
+   "xpEach": 67.5,
+   "level": 30
+  },
+  {
+   "skill": "Construction",
+   "method": "Repair kit",
+   "itemId": 8782,
+   "name": "Mahogany plank",
+   "xpEach": 105.0,
+   "level": 47
+  },
+  {
+   "skill": "Construction",
+   "method": "Repair kit",
+   "itemId": 31432,
+   "name": "Camphor plank",
+   "xpEach": 127.5,
+   "level": 66
+  },
+  {
+   "skill": "Construction",
+   "method": "Repair kit",
+   "itemId": 31435,
+   "name": "Ironwood plank",
+   "xpEach": 300.0,
+   "level": 80
+  },
+  {
+   "skill": "Construction",
+   "method": "Repair kit",
+   "itemId": 31438,
+   "name": "Rosewood plank",
+   "xpEach": 330.0,
+   "level": 92
+  },
+  {
+   "skill": "Construction",
+   "method": "Hull part",
+   "itemId": 960,
+   "name": "Plank",
+   "xpEach": 14.5
+  },
+  {
+   "skill": "Construction",
+   "method": "Hull part",
+   "itemId": 8778,
+   "name": "Oak plank",
+   "xpEach": 30.0,
+   "level": 8
+  },
+  {
+   "skill": "Construction",
+   "method": "Hull part",
+   "itemId": 8780,
+   "name": "Teak plank",
+   "xpEach": 45.0,
+   "level": 23
+  },
+  {
+   "skill": "Construction",
+   "method": "Hull part",
+   "itemId": 8782,
+   "name": "Mahogany plank",
+   "xpEach": 70.0,
+   "level": 41
+  },
+  {
+   "skill": "Construction",
+   "method": "Hull part",
+   "itemId": 31432,
+   "name": "Camphor plank",
+   "xpEach": 80.0,
+   "level": 59
+  },
+  {
+   "skill": "Construction",
+   "method": "Hull part",
+   "itemId": 31435,
+   "name": "Ironwood plank",
+   "xpEach": 87.5,
+   "level": 77
+  },
+  {
+   "skill": "Construction",
+   "method": "Hull part",
+   "itemId": 31438,
+   "name": "Rosewood plank",
+   "xpEach": 95.0,
+   "level": 84
+  },
+  {
+   "skill": "Prayer",
+   "method": "Bones",
+   "itemId": 526,
+   "name": "Bones",
+   "xpEach": 4.5
+  },
+  {
+   "skill": "Prayer",
+   "method": "Wolf bones",
+   "itemId": 2859,
+   "name": "Wolf bones",
+   "xpEach": 4.5
+  },
+  {
+   "skill": "Prayer",
+   "method": "Burnt bones",
+   "itemId": 528,
+   "name": "Burnt bones",
+   "xpEach": 4.5
+  },
+  {
+   "skill": "Prayer",
+   "method": "Monkey bones",
+   "itemId": 3183,
+   "name": "Monkey bones",
+   "xpEach": 5.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Bat bones",
+   "itemId": 530,
+   "name": "Bat bones",
+   "xpEach": 5.3
+  },
+  {
+   "skill": "Prayer",
+   "method": "Jogre bones",
+   "itemId": 3125,
+   "name": "Jogre bones",
+   "xpEach": 15.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Big bones",
+   "itemId": 532,
+   "name": "Big bones",
+   "xpEach": 15.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Zogre bones",
+   "itemId": 4812,
+   "name": "Zogre bones",
+   "xpEach": 22.5
+  },
+  {
+   "skill": "Prayer",
+   "method": "Shaikahan bones",
+   "itemId": 3123,
+   "name": "Shaikahan bones",
+   "xpEach": 25.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Babydragon bones",
+   "itemId": 534,
+   "name": "Babydragon bones",
+   "xpEach": 30.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Wyvern bones",
+   "itemId": 6812,
+   "name": "Wyvern bones",
+   "xpEach": 72.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Dragon bones",
+   "itemId": 536,
+   "name": "Dragon bones",
+   "xpEach": 72.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Fayrg bones",
+   "itemId": 4830,
+   "name": "Fayrg bones",
+   "xpEach": 84.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Lava dragon bones",
+   "itemId": 11943,
+   "name": "Lava dragon bones",
+   "xpEach": 85.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Raurg bones",
+   "itemId": 4832,
+   "name": "Raurg bones",
+   "xpEach": 96.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Dagannoth bones",
+   "itemId": 6729,
+   "name": "Dagannoth bones",
+   "xpEach": 125.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ourg bones",
+   "itemId": 4834,
+   "name": "Ourg bones",
+   "xpEach": 140.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Superior dragon bones",
+   "itemId": 22124,
+   "name": "Superior dragon bones",
+   "xpEach": 150.0,
+   "level": 70
+  },
+  {
+   "skill": "Prayer",
+   "method": "Wyrm bones",
+   "itemId": 22780,
+   "name": "Wyrm bones",
+   "xpEach": 50.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Drake bones",
+   "itemId": 22783,
+   "name": "Drake bones",
+   "xpEach": 80.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Hydra bones",
+   "itemId": 22786,
+   "name": "Hydra bones",
+   "xpEach": 110.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Frost dragon bones",
+   "itemId": 31729,
+   "name": "Frost dragon bones",
+   "xpEach": 100.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Bury",
+   "itemId": 28899,
+   "name": "Wyrmling bones",
+   "xpEach": 21.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Sinister offering",
+   "itemId": 28899,
+   "name": "Wyrmling bones",
+   "xpEach": 63.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Lit Gilded altar",
+   "itemId": 28899,
+   "name": "Wyrmling bones",
+   "xpEach": 73.5
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ectofuntus",
+   "itemId": 28899,
+   "name": "Wyrmling bones",
+   "xpEach": 120.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Wildy altar",
+   "itemId": 28899,
+   "name": "Wyrmling bones",
+   "xpEach": 147.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Bury",
+   "itemId": 31726,
+   "name": "Strykewyrm bones",
+   "xpEach": 60.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Bonemeal",
+   "itemId": 31726,
+   "name": "Strykewyrm bones",
+   "xpEach": 60.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Blessed wine",
+   "itemId": 29381,
+   "name": "Blessed bone shards",
+   "xpEach": 5.0,
+   "level": 30
+  },
+  {
+   "skill": "Prayer",
+   "method": "Sunfire wine",
+   "itemId": 29381,
+   "name": "Blessed bone shards",
+   "xpEach": 6.0,
+   "level": 30
+  },
+  {
+   "skill": "Prayer",
+   "method": "Bonemeal",
+   "itemId": 4255,
+   "name": "Bonemeal",
+   "xpEach": 18.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Wolf bonemeal",
+   "itemId": 4262,
+   "name": "Wolf bonemeal",
+   "xpEach": 18.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Burnt bonemeal",
+   "itemId": 4258,
+   "name": "Burnt bonemeal",
+   "xpEach": 18.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Monkey bonemeal",
+   "itemId": 4267,
+   "name": "Monkey bonemeal",
+   "xpEach": 20.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Bat bonemeal",
+   "itemId": 4256,
+   "name": "Bat bonemeal",
+   "xpEach": 21.2
+  },
+  {
+   "skill": "Prayer",
+   "method": "Jogre bonemeal",
+   "itemId": 4271,
+   "name": "Jogre bonemeal",
+   "xpEach": 60.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Big bonemeal",
+   "itemId": 4257,
+   "name": "Big bonemeal",
+   "xpEach": 60.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Zogre bonemeal",
+   "itemId": 4852,
+   "name": "Zogre bonemeal",
+   "xpEach": 90.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Shaikahan bonemeal",
+   "itemId": 5615,
+   "name": "Shaikahan bonemeal",
+   "xpEach": 100.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Babydragon bonemeal",
+   "itemId": 4260,
+   "name": "Baby dragon bonemeal",
+   "xpEach": 120.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Wyvern bonemeal",
+   "itemId": 6810,
+   "name": "Wyvern bonemeal",
+   "xpEach": 288.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Dragon bonemeal",
+   "itemId": 4261,
+   "name": "Dragon bonemeal",
+   "xpEach": 288.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Fayrg bonemeal",
+   "itemId": 4853,
+   "name": "Fayrg bonemeal",
+   "xpEach": 336.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Lava dragon bonemeal",
+   "itemId": 11922,
+   "name": "Lava dragon bonemeal",
+   "xpEach": 340.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Raurg bonemeal",
+   "itemId": 4854,
+   "name": "Raurg bonemeal",
+   "xpEach": 384.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Dagannoth bonemeal",
+   "itemId": 6728,
+   "name": "Dagannothking bonemeal",
+   "xpEach": 500.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ourg bonemeal",
+   "itemId": 4855,
+   "name": "Ourg bonemeal",
+   "xpEach": 560.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Superior dragon bonemeal",
+   "itemId": 22116,
+   "name": "Superior dragon bonemeal",
+   "xpEach": 600.0,
+   "level": 70
+  },
+  {
+   "skill": "Prayer",
+   "method": "Wyrm bonemeal",
+   "itemId": 22754,
+   "name": "Wyrm bonemeal",
+   "xpEach": 200.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Drake bonemeal",
+   "itemId": 22756,
+   "name": "Drake bonemeal",
+   "xpEach": 320.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Hydra bonemeal",
+   "itemId": 22758,
+   "name": "Hydra bonemeal",
+   "xpEach": 440.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Frost dragon bonemeal",
+   "itemId": 31335,
+   "name": "Frost dragon bonemeal",
+   "xpEach": 400.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Strykewyrm bonemeal",
+   "itemId": 31333,
+   "name": "Strykewyrm bonemeal",
+   "xpEach": 200.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled goblin head",
+   "itemId": 13448,
+   "name": "Ensouled goblin head",
+   "xpEach": 130.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled monkey head",
+   "itemId": 13451,
+   "name": "Ensouled monkey head",
+   "xpEach": 182.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled imp head",
+   "itemId": 13454,
+   "name": "Ensouled imp head",
+   "xpEach": 286.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled minotaur head",
+   "itemId": 13457,
+   "name": "Ensouled minotaur head",
+   "xpEach": 364.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled scorpion head",
+   "itemId": 13460,
+   "name": "Ensouled scorpion head",
+   "xpEach": 454.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled bear head",
+   "itemId": 13463,
+   "name": "Ensouled bear head",
+   "xpEach": 480.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled unicorn head",
+   "itemId": 13466,
+   "name": "Ensouled unicorn head",
+   "xpEach": 494.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled dog head",
+   "itemId": 13469,
+   "name": "Ensouled dog head",
+   "xpEach": 520.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled druid head",
+   "itemId": 13472,
+   "name": "Ensouled chaos druid head",
+   "xpEach": 584.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled giant head",
+   "itemId": 13475,
+   "name": "Ensouled giant head",
+   "xpEach": 650.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled ogre head",
+   "itemId": 13478,
+   "name": "Ensouled ogre head",
+   "xpEach": 716.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled elf head",
+   "itemId": 13481,
+   "name": "Ensouled elf head",
+   "xpEach": 754.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled troll head",
+   "itemId": 13484,
+   "name": "Ensouled troll head",
+   "xpEach": 780.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled horror head",
+   "itemId": 13487,
+   "name": "Ensouled horror head",
+   "xpEach": 832.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled kalphite head",
+   "itemId": 13490,
+   "name": "Ensouled kalphite head",
+   "xpEach": 884.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled dagannoth head",
+   "itemId": 13493,
+   "name": "Ensouled dagannoth head",
+   "xpEach": 936.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled bloodveld head",
+   "itemId": 13496,
+   "name": "Ensouled bloodveld head",
+   "xpEach": 1040.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled tzhaar head",
+   "itemId": 13499,
+   "name": "Ensouled tzhaar head",
+   "xpEach": 1104.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled demon head",
+   "itemId": 13502,
+   "name": "Ensouled demon head",
+   "xpEach": 1170.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled hellhound head",
+   "itemId": 26997,
+   "name": "Ensouled hellhound head",
+   "xpEach": 1200.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled aviansie head",
+   "itemId": 13505,
+   "name": "Ensouled aviansie head",
+   "xpEach": 1234.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled abyssal head",
+   "itemId": 13508,
+   "name": "Ensouled abyssal head",
+   "xpEach": 1300.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Ensouled dragon head",
+   "itemId": 13511,
+   "name": "Ensouled dragon head",
+   "xpEach": 1560.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Small fossil",
+   "itemId": 21562,
+   "name": "Unidentified small fossil",
+   "xpEach": 500.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Medium fossil",
+   "itemId": 21564,
+   "name": "Unidentified medium fossil",
+   "xpEach": 1000.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Large fossil",
+   "itemId": 21566,
+   "name": "Unidentified large fossil",
+   "xpEach": 1500.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Rare fossil",
+   "itemId": 21568,
+   "name": "Unidentified rare fossil",
+   "xpEach": 2500.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Fiendish ashes",
+   "itemId": 25766,
+   "name": "Fiendish ashes",
+   "xpEach": 10.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Vile ashes",
+   "itemId": 25769,
+   "name": "Vile ashes",
+   "xpEach": 25.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Malicious ashes",
+   "itemId": 25772,
+   "name": "Malicious ashes",
+   "xpEach": 65.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Abyssal ashes",
+   "itemId": 25775,
+   "name": "Abyssal ashes",
+   "xpEach": 85.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Infernal ashes",
+   "itemId": 25778,
+   "name": "Infernal ashes",
+   "xpEach": 110.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Offer bird's egg",
+   "itemId": 5076,
+   "name": "Birds egg",
+   "xpEach": 100.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Offer bird's egg",
+   "itemId": 5077,
+   "name": "Bird egg blue",
+   "xpEach": 100.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Offer bird's egg",
+   "itemId": 5078,
+   "name": "Bird egg green",
+   "xpEach": 100.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Crawling hand",
+   "itemId": 7975,
+   "name": "Crawling hand",
+   "xpEach": 2500.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Cockatrice head",
+   "itemId": 7976,
+   "name": "Cockatrice head",
+   "xpEach": 2500.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Basilisk head",
+   "itemId": 7977,
+   "name": "Basilisk head",
+   "xpEach": 2500.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Kurask head",
+   "itemId": 7978,
+   "name": "Kurask head",
+   "xpEach": 2500.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Abyssal head",
+   "itemId": 7979,
+   "name": "Abyssal head",
+   "xpEach": 2500.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Kbd heads",
+   "itemId": 7980,
+   "name": "Kbd heads",
+   "xpEach": 2500.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Kq head",
+   "itemId": 7981,
+   "name": "Kq head",
+   "xpEach": 2500.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Vorkaths head",
+   "itemId": 2425,
+   "name": "Vorkaths head",
+   "xpEach": 1000.0
+  },
+  {
+   "skill": "Prayer",
+   "method": "Alchemical hydra heads",
+   "itemId": 23077,
+   "name": "Alchemical hydra heads",
+   "xpEach": 2500.0
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked meat",
+   "itemId": 2132,
+   "name": "Raw beef",
+   "xpEach": 30.0
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked meat",
+   "itemId": 2134,
+   "name": "Raw rat meat",
+   "xpEach": 30.0
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked meat",
+   "itemId": 2136,
+   "name": "Raw bear meat",
+   "xpEach": 30.0
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked meat",
+   "itemId": 10816,
+   "name": "Raw yak meat",
+   "xpEach": 40.0
+  },
+  {
+   "skill": "Cooking",
+   "method": "Ugthanki meat",
+   "itemId": 1859,
+   "name": "Raw ugthanki meat",
+   "xpEach": 40.0
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked chicken",
+   "itemId": 2138,
+   "name": "Raw chicken",
+   "xpEach": 30.0
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked rabbit",
+   "itemId": 3226,
+   "name": "Raw rabbit",
+   "xpEach": 30.0
+  },
+  {
+   "skill": "Cooking",
+   "method": "Shrimps",
+   "itemId": 317,
+   "name": "Raw shrimps",
+   "xpEach": 30.0
+  },
+  {
+   "skill": "Cooking",
+   "method": "Sardine",
+   "itemId": 327,
+   "name": "Raw sardine",
+   "xpEach": 40.0
+  },
+  {
+   "skill": "Cooking",
+   "method": "Anchovies",
+   "itemId": 321,
+   "name": "Raw anchovies",
+   "xpEach": 30.0
+  },
+  {
+   "skill": "Cooking",
+   "method": "Herring",
+   "itemId": 345,
+   "name": "Raw herring",
+   "xpEach": 50.0,
+   "level": 5
+  },
+  {
+   "skill": "Cooking",
+   "method": "Mackerel",
+   "itemId": 353,
+   "name": "Raw mackerel",
+   "xpEach": 60.0,
+   "level": 10
+  },
+  {
+   "skill": "Cooking",
+   "method": "Roast bird meat",
+   "itemId": 9978,
+   "name": "Raw bird meat",
+   "xpEach": 62.5,
+   "level": 11
+  },
+  {
+   "skill": "Cooking",
+   "method": "Thin snail meat",
+   "itemId": 3363,
+   "name": "Thin snail",
+   "xpEach": 70.0,
+   "level": 12
+  },
+  {
+   "skill": "Cooking",
+   "method": "Trout",
+   "itemId": 335,
+   "name": "Raw trout",
+   "xpEach": 70.0,
+   "level": 15
+  },
+  {
+   "skill": "Cooking",
+   "method": "Lean snail meat",
+   "itemId": 3365,
+   "name": "Lean snail",
+   "xpEach": 80.0,
+   "level": 17
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cod",
+   "itemId": 341,
+   "name": "Raw cod",
+   "xpEach": 75.0,
+   "level": 18
+  },
+  {
+   "skill": "Cooking",
+   "method": "Pike",
+   "itemId": 349,
+   "name": "Raw pike",
+   "xpEach": 80.0,
+   "level": 20
+  },
+  {
+   "skill": "Cooking",
+   "method": "Fat snail meat",
+   "itemId": 3367,
+   "name": "Fat snail",
+   "xpEach": 95.0,
+   "level": 22
+  },
+  {
+   "skill": "Cooking",
+   "method": "Roast beast meat",
+   "itemId": 9986,
+   "name": "Raw beast meat",
+   "xpEach": 82.5,
+   "level": 21
+  },
+  {
+   "skill": "Cooking",
+   "method": "Salmon",
+   "itemId": 331,
+   "name": "Raw salmon",
+   "xpEach": 90.0,
+   "level": 25
+  },
+  {
+   "skill": "Cooking",
+   "method": "Tuna",
+   "itemId": 359,
+   "name": "Raw tuna",
+   "xpEach": 100.0,
+   "level": 30
+  },
+  {
+   "skill": "Cooking",
+   "method": "Rainbow fish",
+   "itemId": 10138,
+   "name": "Raw rainbow fish",
+   "xpEach": 110.0,
+   "level": 35
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked Karambwan",
+   "itemId": 3142,
+   "name": "Raw karambwan",
+   "xpEach": 190.0,
+   "level": 30
+  },
+  {
+   "skill": "Cooking",
+   "method": "Lobster",
+   "itemId": 377,
+   "name": "Raw lobster",
+   "xpEach": 120.0,
+   "level": 40
+  },
+  {
+   "skill": "Cooking",
+   "method": "Bass",
+   "itemId": 363,
+   "name": "Raw bass",
+   "xpEach": 130.0,
+   "level": 43
+  },
+  {
+   "skill": "Cooking",
+   "method": "Swordfish",
+   "itemId": 371,
+   "name": "Raw swordfish",
+   "xpEach": 140.0,
+   "level": 45
+  },
+  {
+   "skill": "Cooking",
+   "method": "Monkfish",
+   "itemId": 7944,
+   "name": "Raw monkfish",
+   "xpEach": 150.0,
+   "level": 62
+  },
+  {
+   "skill": "Cooking",
+   "method": "Shark",
+   "itemId": 383,
+   "name": "Raw shark",
+   "xpEach": 210.0,
+   "level": 80
+  },
+  {
+   "skill": "Cooking",
+   "method": "Sea turtle",
+   "itemId": 395,
+   "name": "Raw sea turtle",
+   "xpEach": 211.3,
+   "level": 82
+  },
+  {
+   "skill": "Cooking",
+   "method": "Anglerfish",
+   "itemId": 13439,
+   "name": "Raw anglerfish",
+   "xpEach": 230.0,
+   "level": 84
+  },
+  {
+   "skill": "Cooking",
+   "method": "Dark crab",
+   "itemId": 11934,
+   "name": "Raw dark crab",
+   "xpEach": 215.0,
+   "level": 90
+  },
+  {
+   "skill": "Cooking",
+   "method": "Manta ray",
+   "itemId": 389,
+   "name": "Raw manta ray",
+   "xpEach": 216.2,
+   "level": 91
+  },
+  {
+   "skill": "Cooking",
+   "method": "Giant krill",
+   "itemId": 32309,
+   "name": "Raw giant krill",
+   "xpEach": 177.5,
+   "level": 69
+  },
+  {
+   "skill": "Cooking",
+   "method": "Haddock",
+   "itemId": 32317,
+   "name": "Raw haddock",
+   "xpEach": 180.0,
+   "level": 73
+  },
+  {
+   "skill": "Cooking",
+   "method": "Yellowfin",
+   "itemId": 32325,
+   "name": "Raw yellowfin",
+   "xpEach": 200.0,
+   "level": 79
+  },
+  {
+   "skill": "Cooking",
+   "method": "Halibut",
+   "itemId": 32333,
+   "name": "Raw halibut",
+   "xpEach": 212.5,
+   "level": 83
+  },
+  {
+   "skill": "Cooking",
+   "method": "Bluefin",
+   "itemId": 32341,
+   "name": "Raw bluefin",
+   "xpEach": 215.0,
+   "level": 87
+  },
+  {
+   "skill": "Cooking",
+   "method": "Marlin",
+   "itemId": 32349,
+   "name": "Raw marlin",
+   "xpEach": 225.0,
+   "level": 93
+  },
+  {
+   "skill": "Cooking",
+   "method": "Swordtip squid",
+   "itemId": 31553,
+   "name": "Raw swordtip squid",
+   "xpEach": 55.0,
+   "level": 52
+  },
+  {
+   "skill": "Cooking",
+   "method": "Jumbo squid",
+   "itemId": 31561,
+   "name": "Raw jumbo squid",
+   "xpEach": 180.0,
+   "level": 71
+  },
+  {
+   "skill": "Cooking",
+   "method": "Jug of wine",
+   "itemId": 1987,
+   "name": "Grapes",
+   "xpEach": 200.0,
+   "level": 35
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked sweetcorn",
+   "itemId": 5986,
+   "name": "Sweetcorn",
+   "xpEach": 104.0,
+   "level": 28
+  },
+  {
+   "skill": "Cooking",
+   "method": "Stew",
+   "itemId": 2001,
+   "name": "Uncooked stew",
+   "xpEach": 117.0,
+   "level": 25
+  },
+  {
+   "skill": "Cooking",
+   "method": "Curry",
+   "itemId": 2009,
+   "name": "Uncooked curry",
+   "xpEach": 280.0,
+   "level": 60
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked wild kebbit",
+   "itemId": 29104,
+   "name": "Raw wild kebbit",
+   "xpEach": 73.0,
+   "level": 23
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked larupia",
+   "itemId": 29122,
+   "name": "Raw larupia",
+   "xpEach": 92.0,
+   "level": 31
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked barb-tailed kebbit",
+   "itemId": 29101,
+   "name": "Raw barbtailed kebbit",
+   "xpEach": 106.0,
+   "level": 32
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked graahk",
+   "itemId": 29119,
+   "name": "Raw graahk",
+   "xpEach": 124.0,
+   "level": 41
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked kyatt",
+   "itemId": 29125,
+   "name": "Raw kyatt",
+   "xpEach": 143.0,
+   "level": 51
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked pyre fox",
+   "itemId": 29110,
+   "name": "Raw pyre fox",
+   "xpEach": 154.0,
+   "level": 59
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked sunlight antelope",
+   "itemId": 29116,
+   "name": "Raw sunlight antelope",
+   "xpEach": 175.0,
+   "level": 68
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked dashing kebbit",
+   "itemId": 29107,
+   "name": "Raw dashing kebbit",
+   "xpEach": 215.0,
+   "level": 82
+  },
+  {
+   "skill": "Cooking",
+   "method": "Cooked moonlight antelope",
+   "itemId": 29113,
+   "name": "Raw moonlight antelope",
+   "xpEach": 220.0,
+   "level": 92
+  },
+  {
+   "skill": "Cooking",
+   "method": "Scrambled egg",
+   "itemId": 7076,
+   "name": "Uncooked egg",
+   "xpEach": 50.0,
+   "level": 13
+  },
+  {
+   "skill": "Cooking",
+   "method": "Churn cream",
+   "itemId": 1927,
+   "name": "Bucket of milk",
+   "xpEach": 18.0,
+   "level": 21
+  },
+  {
+   "skill": "Cooking",
+   "method": "Churn butter",
+   "itemId": 2130,
+   "name": "Pot of cream",
+   "xpEach": 22.5,
+   "level": 38
+  },
+  {
+   "skill": "Cooking",
+   "method": "Churn butter",
+   "itemId": 1927,
+   "name": "Bucket of milk",
+   "xpEach": 40.5,
+   "level": 38
+  },
+  {
+   "skill": "Cooking",
+   "method": "Churn cheese",
+   "itemId": 6697,
+   "name": "Pat of butter",
+   "xpEach": 23.5,
+   "level": 48
+  },
+  {
+   "skill": "Cooking",
+   "method": "Churn cheese",
+   "itemId": 24788,
+   "name": "Pat of not garlic butter",
+   "xpEach": 23.5,
+   "level": 48
+  },
+  {
+   "skill": "Cooking",
+   "method": "Churn cheese",
+   "itemId": 2130,
+   "name": "Pot of cream",
+   "xpEach": 46.0,
+   "level": 48
+  },
+  {
+   "skill": "Cooking",
+   "method": "Churn cheese",
+   "itemId": 1927,
+   "name": "Bucket of milk",
+   "xpEach": 64.0,
+   "level": 48
+  },
+  {
+   "skill": "Cooking",
+   "method": "Baked potato",
+   "itemId": 1942,
+   "name": "Potato",
+   "xpEach": 15.0,
+   "level": 7
+  },
+  {
+   "skill": "Cooking",
+   "method": "Potato with butter",
+   "itemId": 6701,
+   "name": "Baked potato",
+   "xpEach": 40.0,
+   "level": 39
+  },
+  {
+   "skill": "Cooking",
+   "method": "Potato with cheese",
+   "itemId": 1985,
+   "name": "Cheese",
+   "xpEach": 40.0,
+   "level": 47
+  },
+  {
+   "skill": "Cooking",
+   "method": "Egg potato",
+   "itemId": 7064,
+   "name": "Egg and tomato",
+   "xpEach": 45.0,
+   "level": 51
+  },
+  {
+   "skill": "Cooking",
+   "method": "Fried onions",
+   "itemId": 1871,
+   "name": "Chopped onion",
+   "xpEach": 60.0,
+   "level": 42
+  },
+  {
+   "skill": "Crafting",
+   "method": "Ball of wool",
+   "itemId": 1737,
+   "name": "Wool",
+   "xpEach": 2.5
+  },
+  {
+   "skill": "Crafting",
+   "method": "Linen yarn",
+   "itemId": 1779,
+   "name": "Flax",
+   "xpEach": 16.0,
+   "level": 12
+  },
+  {
+   "skill": "Crafting",
+   "method": "Hemp yarn",
+   "itemId": 31457,
+   "name": "Hemp",
+   "xpEach": 60.0,
+   "level": 39
+  },
+  {
+   "skill": "Crafting",
+   "method": "Cotton yarn",
+   "itemId": 31460,
+   "name": "Cotton boll",
+   "xpEach": 105.0,
+   "level": 73
+  },
+  {
+   "skill": "Crafting",
+   "method": "Bolt of linen",
+   "itemId": 31463,
+   "name": "Linen yarn",
+   "xpEach": 10.0,
+   "level": 12
+  },
+  {
+   "skill": "Crafting",
+   "method": "Bolt of canvas",
+   "itemId": 31466,
+   "name": "Hemp yarn",
+   "xpEach": 37.5,
+   "level": 39
+  },
+  {
+   "skill": "Crafting",
+   "method": "Bolt of cotton",
+   "itemId": 31469,
+   "name": "Cotton yarn",
+   "xpEach": 66.0,
+   "level": 73
+  },
+  {
+   "skill": "Crafting",
+   "method": "Bow string",
+   "itemId": 1779,
+   "name": "Flax",
+   "xpEach": 15.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "Beer glass",
+   "itemId": 1775,
+   "name": "Molten glass",
+   "xpEach": 17.5
+  },
+  {
+   "skill": "Crafting",
+   "method": "Candle lantern",
+   "itemId": 1775,
+   "name": "Molten glass",
+   "xpEach": 19.0,
+   "level": 4
+  },
+  {
+   "skill": "Crafting",
+   "method": "Oil lamp",
+   "itemId": 1775,
+   "name": "Molten glass",
+   "xpEach": 25.0,
+   "level": 12
+  },
+  {
+   "skill": "Crafting",
+   "method": "Vial",
+   "itemId": 1775,
+   "name": "Molten glass",
+   "xpEach": 35.0,
+   "level": 33
+  },
+  {
+   "skill": "Crafting",
+   "method": "Empty fishbowl",
+   "itemId": 1775,
+   "name": "Molten glass",
+   "xpEach": 42.5,
+   "level": 42
+  },
+  {
+   "skill": "Crafting",
+   "method": "Unpowered orb",
+   "itemId": 1775,
+   "name": "Molten glass",
+   "xpEach": 52.5,
+   "level": 46
+  },
+  {
+   "skill": "Crafting",
+   "method": "Lantern lens",
+   "itemId": 1775,
+   "name": "Molten glass",
+   "xpEach": 55.0,
+   "level": 49
+  },
+  {
+   "skill": "Crafting",
+   "method": "Empty Light orb",
+   "itemId": 1775,
+   "name": "Molten glass",
+   "xpEach": 70.0,
+   "level": 87
+  },
+  {
+   "skill": "Crafting",
+   "method": "Light orb",
+   "itemId": 10981,
+   "name": "Cave goblin wire",
+   "xpEach": 104.0,
+   "level": 87
+  },
+  {
+   "skill": "Crafting",
+   "method": "Dorgesh-Kaan lamps",
+   "itemId": 10973,
+   "name": "Light orb",
+   "xpEach": 550.0,
+   "level": 52
+  },
+  {
+   "skill": "Crafting",
+   "method": "Leather gloves",
+   "itemId": 1741,
+   "name": "Leather",
+   "xpEach": 13.8
+  },
+  {
+   "skill": "Crafting",
+   "method": "Leather boots",
+   "itemId": 1741,
+   "name": "Leather",
+   "xpEach": 16.2,
+   "level": 7
+  },
+  {
+   "skill": "Crafting",
+   "method": "Leather cowl",
+   "itemId": 1741,
+   "name": "Leather",
+   "xpEach": 18.5,
+   "level": 9
+  },
+  {
+   "skill": "Crafting",
+   "method": "Leather vambraces",
+   "itemId": 1741,
+   "name": "Leather",
+   "xpEach": 22.0,
+   "level": 11
+  },
+  {
+   "skill": "Crafting",
+   "method": "Leather body",
+   "itemId": 1741,
+   "name": "Leather",
+   "xpEach": 25.0,
+   "level": 14
+  },
+  {
+   "skill": "Crafting",
+   "method": "Leather chaps",
+   "itemId": 1741,
+   "name": "Leather",
+   "xpEach": 27.0,
+   "level": 18
+  },
+  {
+   "skill": "Crafting",
+   "method": "Coif",
+   "itemId": 1741,
+   "name": "Leather",
+   "xpEach": 37.0,
+   "level": 38
+  },
+  {
+   "skill": "Crafting",
+   "method": "Hardleather body",
+   "itemId": 1743,
+   "name": "Hard leather",
+   "xpEach": 35.0,
+   "level": 28
+  },
+  {
+   "skill": "Crafting",
+   "method": "Hard leather shield",
+   "itemId": 1743,
+   "name": "Hard leather",
+   "xpEach": 70.0,
+   "level": 41
+  },
+  {
+   "skill": "Crafting",
+   "method": "Studded chaps",
+   "itemId": 2370,
+   "name": "Steel studs",
+   "xpEach": 40.0,
+   "level": 41
+  },
+  {
+   "skill": "Crafting",
+   "method": "Studded chaps",
+   "itemId": 2370,
+   "name": "Steel studs",
+   "xpEach": 42.0,
+   "level": 44
+  },
+  {
+   "skill": "Crafting",
+   "method": "Green D'hide product",
+   "itemId": 1745,
+   "name": "Green dragon leather",
+   "xpEach": 62.0,
+   "level": 57
+  },
+  {
+   "skill": "Crafting",
+   "method": "Blue D'hide product",
+   "itemId": 2505,
+   "name": "Blue dragon leather",
+   "xpEach": 70.0,
+   "level": 66
+  },
+  {
+   "skill": "Crafting",
+   "method": "Red D'hide product",
+   "itemId": 2507,
+   "name": "Red dragon leather",
+   "xpEach": 78.0,
+   "level": 73
+  },
+  {
+   "skill": "Crafting",
+   "method": "Black D'hide product",
+   "itemId": 2509,
+   "name": "Black dragon leather",
+   "xpEach": 86.0,
+   "level": 79
+  },
+  {
+   "skill": "Crafting",
+   "method": "Cut opal",
+   "itemId": 1625,
+   "name": "Uncut opal",
+   "xpEach": 15.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "Cut jade",
+   "itemId": 1627,
+   "name": "Uncut jade",
+   "xpEach": 20.0,
+   "level": 13
+  },
+  {
+   "skill": "Crafting",
+   "method": "Cut red topaz",
+   "itemId": 1629,
+   "name": "Uncut red topaz",
+   "xpEach": 25.0,
+   "level": 16
+  },
+  {
+   "skill": "Crafting",
+   "method": "Cut sapphire",
+   "itemId": 1623,
+   "name": "Uncut sapphire",
+   "xpEach": 50.0,
+   "level": 20
+  },
+  {
+   "skill": "Crafting",
+   "method": "Cut emerald",
+   "itemId": 1621,
+   "name": "Uncut emerald",
+   "xpEach": 67.5,
+   "level": 27
+  },
+  {
+   "skill": "Crafting",
+   "method": "Cut ruby",
+   "itemId": 1619,
+   "name": "Uncut ruby",
+   "xpEach": 85.0,
+   "level": 34
+  },
+  {
+   "skill": "Crafting",
+   "method": "Cut diamond",
+   "itemId": 1617,
+   "name": "Uncut diamond",
+   "xpEach": 107.5,
+   "level": 43
+  },
+  {
+   "skill": "Crafting",
+   "method": "Cut dragonstone",
+   "itemId": 1631,
+   "name": "Uncut dragonstone",
+   "xpEach": 137.5,
+   "level": 55
+  },
+  {
+   "skill": "Crafting",
+   "method": "Cut onyx",
+   "itemId": 6571,
+   "name": "Uncut onyx",
+   "xpEach": 167.5,
+   "level": 67
+  },
+  {
+   "skill": "Crafting",
+   "method": "Cut zenyte",
+   "itemId": 19496,
+   "name": "Uncut zenyte",
+   "xpEach": 200.0,
+   "level": 89
+  },
+  {
+   "skill": "Crafting",
+   "method": "Opal ring",
+   "itemId": 1609,
+   "name": "Opal",
+   "xpEach": 10.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "Opal necklace",
+   "itemId": 1609,
+   "name": "Opal",
+   "xpEach": 35.0,
+   "level": 16
+  },
+  {
+   "skill": "Crafting",
+   "method": "Unstrung Symbol",
+   "itemId": 2355,
+   "name": "Silver bar",
+   "xpEach": 50.0,
+   "level": 16
+  },
+  {
+   "skill": "Crafting",
+   "method": "Unstrung Emblem",
+   "itemId": 2355,
+   "name": "Silver bar",
+   "xpEach": 50.0,
+   "level": 17
+  },
+  {
+   "skill": "Crafting",
+   "method": "Silver Sickel",
+   "itemId": 2355,
+   "name": "Silver bar",
+   "xpEach": 50.0,
+   "level": 18
+  },
+  {
+   "skill": "Crafting",
+   "method": "Opal bracelet",
+   "itemId": 1609,
+   "name": "Opal",
+   "xpEach": 45.0,
+   "level": 22
+  },
+  {
+   "skill": "Crafting",
+   "method": "Tiara",
+   "itemId": 2355,
+   "name": "Silver bar",
+   "xpEach": 52.5,
+   "level": 23
+  },
+  {
+   "skill": "Crafting",
+   "method": "Opal amulet (u)",
+   "itemId": 1609,
+   "name": "Opal",
+   "xpEach": 55.0,
+   "level": 27
+  },
+  {
+   "skill": "Crafting",
+   "method": "Jade ring",
+   "itemId": 1611,
+   "name": "Jade",
+   "xpEach": 32.0,
+   "level": 13
+  },
+  {
+   "skill": "Crafting",
+   "method": "Jade necklace",
+   "itemId": 1611,
+   "name": "Jade",
+   "xpEach": 54.0,
+   "level": 25
+  },
+  {
+   "skill": "Crafting",
+   "method": "Jade bracelet",
+   "itemId": 1611,
+   "name": "Jade",
+   "xpEach": 60.0,
+   "level": 29
+  },
+  {
+   "skill": "Crafting",
+   "method": "Jade amulet (u)",
+   "itemId": 1611,
+   "name": "Jade",
+   "xpEach": 70.0,
+   "level": 34
+  },
+  {
+   "skill": "Crafting",
+   "method": "Topaz ring",
+   "itemId": 1613,
+   "name": "Red topaz",
+   "xpEach": 35.0,
+   "level": 16
+  },
+  {
+   "skill": "Crafting",
+   "method": "Topaz necklace",
+   "itemId": 1613,
+   "name": "Red topaz",
+   "xpEach": 70.0,
+   "level": 32
+  },
+  {
+   "skill": "Crafting",
+   "method": "Topaz bracelet",
+   "itemId": 1613,
+   "name": "Red topaz",
+   "xpEach": 75.0,
+   "level": 38
+  },
+  {
+   "skill": "Crafting",
+   "method": "Topaz amulet (u)",
+   "itemId": 1613,
+   "name": "Red topaz",
+   "xpEach": 80.0,
+   "level": 45
+  },
+  {
+   "skill": "Crafting",
+   "method": "Sapphire ring",
+   "itemId": 1607,
+   "name": "Sapphire",
+   "xpEach": 40.0,
+   "level": 20
+  },
+  {
+   "skill": "Crafting",
+   "method": "Sapphire necklace",
+   "itemId": 1607,
+   "name": "Sapphire",
+   "xpEach": 55.0,
+   "level": 22
+  },
+  {
+   "skill": "Crafting",
+   "method": "Sapphire bracelet",
+   "itemId": 1607,
+   "name": "Sapphire",
+   "xpEach": 60.0,
+   "level": 23
+  },
+  {
+   "skill": "Crafting",
+   "method": "Sapphire amulet (u)",
+   "itemId": 1607,
+   "name": "Sapphire",
+   "xpEach": 65.0,
+   "level": 24
+  },
+  {
+   "skill": "Crafting",
+   "method": "Emerald ring",
+   "itemId": 1605,
+   "name": "Emerald",
+   "xpEach": 55.0,
+   "level": 27
+  },
+  {
+   "skill": "Crafting",
+   "method": "Emerald necklace",
+   "itemId": 1605,
+   "name": "Emerald",
+   "xpEach": 60.0,
+   "level": 29
+  },
+  {
+   "skill": "Crafting",
+   "method": "Emerald bracelet",
+   "itemId": 1605,
+   "name": "Emerald",
+   "xpEach": 65.0,
+   "level": 30
+  },
+  {
+   "skill": "Crafting",
+   "method": "Emerald amulet (u)",
+   "itemId": 1605,
+   "name": "Emerald",
+   "xpEach": 70.0,
+   "level": 31
+  },
+  {
+   "skill": "Crafting",
+   "method": "Ruby ring",
+   "itemId": 1603,
+   "name": "Ruby",
+   "xpEach": 70.0,
+   "level": 34
+  },
+  {
+   "skill": "Crafting",
+   "method": "Ruby necklace",
+   "itemId": 1603,
+   "name": "Ruby",
+   "xpEach": 75.0,
+   "level": 40
+  },
+  {
+   "skill": "Crafting",
+   "method": "Ruby bracelet",
+   "itemId": 1603,
+   "name": "Ruby",
+   "xpEach": 80.0,
+   "level": 42
+  },
+  {
+   "skill": "Crafting",
+   "method": "Ruby amulet (u)",
+   "itemId": 1603,
+   "name": "Ruby",
+   "xpEach": 85.0,
+   "level": 50
+  },
+  {
+   "skill": "Crafting",
+   "method": "Diamond ring",
+   "itemId": 1601,
+   "name": "Diamond",
+   "xpEach": 85.0,
+   "level": 43
+  },
+  {
+   "skill": "Crafting",
+   "method": "Diamond necklace",
+   "itemId": 1601,
+   "name": "Diamond",
+   "xpEach": 90.0,
+   "level": 56
+  },
+  {
+   "skill": "Crafting",
+   "method": "Diamond bracelet",
+   "itemId": 1601,
+   "name": "Diamond",
+   "xpEach": 95.0,
+   "level": 58
+  },
+  {
+   "skill": "Crafting",
+   "method": "Diamond amulet (u)",
+   "itemId": 1601,
+   "name": "Diamond",
+   "xpEach": 100.0,
+   "level": 70
+  },
+  {
+   "skill": "Crafting",
+   "method": "Dragonstone ring",
+   "itemId": 1615,
+   "name": "Dragonstone",
+   "xpEach": 100.0,
+   "level": 55
+  },
+  {
+   "skill": "Crafting",
+   "method": "Dragon necklace",
+   "itemId": 1615,
+   "name": "Dragonstone",
+   "xpEach": 105.0,
+   "level": 72
+  },
+  {
+   "skill": "Crafting",
+   "method": "Dragonstone bracelet",
+   "itemId": 1615,
+   "name": "Dragonstone",
+   "xpEach": 110.0,
+   "level": 74
+  },
+  {
+   "skill": "Crafting",
+   "method": "Dragonstone amulet (u)",
+   "itemId": 1615,
+   "name": "Dragonstone",
+   "xpEach": 150.0,
+   "level": 80
+  },
+  {
+   "skill": "Crafting",
+   "method": "Onyx ring",
+   "itemId": 6573,
+   "name": "Onyx",
+   "xpEach": 115.0,
+   "level": 67
+  },
+  {
+   "skill": "Crafting",
+   "method": "Onyx necklace",
+   "itemId": 6573,
+   "name": "Onyx",
+   "xpEach": 120.0,
+   "level": 82
+  },
+  {
+   "skill": "Crafting",
+   "method": "Regen bracelet",
+   "itemId": 6573,
+   "name": "Onyx",
+   "xpEach": 125.0,
+   "level": 84
+  },
+  {
+   "skill": "Crafting",
+   "method": "Onyx amulet (u)",
+   "itemId": 6573,
+   "name": "Onyx",
+   "xpEach": 165.0,
+   "level": 90
+  },
+  {
+   "skill": "Crafting",
+   "method": "Zenyte ring",
+   "itemId": 19493,
+   "name": "Zenyte",
+   "xpEach": 150.0,
+   "level": 89
+  },
+  {
+   "skill": "Crafting",
+   "method": "Zenyte necklace",
+   "itemId": 19493,
+   "name": "Zenyte",
+   "xpEach": 165.0,
+   "level": 92
+  },
+  {
+   "skill": "Crafting",
+   "method": "Zenyte bracelet",
+   "itemId": 19493,
+   "name": "Zenyte",
+   "xpEach": 180.0,
+   "level": 95
+  },
+  {
+   "skill": "Crafting",
+   "method": "Zenyte amulet (u)",
+   "itemId": 19493,
+   "name": "Zenyte",
+   "xpEach": 200.0,
+   "level": 98
+  },
+  {
+   "skill": "Crafting",
+   "method": "Water battlestaff",
+   "itemId": 571,
+   "name": "Water orb",
+   "xpEach": 100.0,
+   "level": 54
+  },
+  {
+   "skill": "Crafting",
+   "method": "Earth battlestaff",
+   "itemId": 575,
+   "name": "Earth orb",
+   "xpEach": 112.5,
+   "level": 58
+  },
+  {
+   "skill": "Crafting",
+   "method": "Fire battlestaff",
+   "itemId": 569,
+   "name": "Fire orb",
+   "xpEach": 125.0,
+   "level": 62
+  },
+  {
+   "skill": "Crafting",
+   "method": "Air battlestaff",
+   "itemId": 573,
+   "name": "Air orb",
+   "xpEach": 137.5,
+   "level": 66
+  },
+  {
+   "skill": "Crafting",
+   "method": "Gold ring",
+   "itemId": 2357,
+   "name": "Gold bar",
+   "xpEach": 15.0,
+   "level": 5
+  },
+  {
+   "skill": "Crafting",
+   "method": "Gold necklace",
+   "itemId": 2357,
+   "name": "Gold bar",
+   "xpEach": 20.0,
+   "level": 6
+  },
+  {
+   "skill": "Crafting",
+   "method": "Gold bracelet",
+   "itemId": 2357,
+   "name": "Gold bar",
+   "xpEach": 25.0,
+   "level": 7
+  },
+  {
+   "skill": "Crafting",
+   "method": "Gold amulet (u)",
+   "itemId": 2357,
+   "name": "Gold bar",
+   "xpEach": 30.0,
+   "level": 8
+  },
+  {
+   "skill": "Crafting",
+   "method": "Gold tiara",
+   "itemId": 2357,
+   "name": "Gold bar",
+   "xpEach": 35.0,
+   "level": 42
+  },
+  {
+   "skill": "Crafting",
+   "method": "Amethyst bolt tips",
+   "itemId": 21347,
+   "name": "Amethyst",
+   "xpEach": 60.0,
+   "level": 83
+  },
+  {
+   "skill": "Crafting",
+   "method": "Amethyst arrowtips",
+   "itemId": 21347,
+   "name": "Amethyst",
+   "xpEach": 60.0,
+   "level": 85
+  },
+  {
+   "skill": "Crafting",
+   "method": "Amethyst javelin heads",
+   "itemId": 21347,
+   "name": "Amethyst",
+   "xpEach": 60.0,
+   "level": 87
+  },
+  {
+   "skill": "Crafting",
+   "method": "Amethyst dart tips",
+   "itemId": 21347,
+   "name": "Amethyst",
+   "xpEach": 60.0,
+   "level": 89
+  },
+  {
+   "skill": "Crafting",
+   "method": "Furnace",
+   "itemId": 1781,
+   "name": "Soda ash",
+   "xpEach": 20.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "SGM [1.3x]",
+   "itemId": 1781,
+   "name": "Soda ash",
+   "xpEach": 10.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "SGM [1.3x]",
+   "itemId": 401,
+   "name": "Seaweed",
+   "xpEach": 10.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "SGM 18:3 Pickup [1.6x]",
+   "itemId": 21504,
+   "name": "Giant seaweed",
+   "xpEach": 60.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "SGM 18:3 [1.45x]",
+   "itemId": 21504,
+   "name": "Giant seaweed",
+   "xpEach": 60.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "SGM 12:2 [1.45x]",
+   "itemId": 21504,
+   "name": "Giant seaweed",
+   "xpEach": 60.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "String blessed symbol",
+   "itemId": 1714,
+   "name": "Unstrung symbol",
+   "xpEach": 4.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "String emblem",
+   "itemId": 1720,
+   "name": "Unstrung emblem",
+   "xpEach": 4.0,
+   "level": 17
+  },
+  {
+   "skill": "Crafting",
+   "method": "String gold amulet",
+   "itemId": 1673,
+   "name": "Gold amulet u",
+   "xpEach": 4.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "String opal amulet",
+   "itemId": 21099,
+   "name": "Opal amulet u",
+   "xpEach": 4.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "String jade amulet",
+   "itemId": 21102,
+   "name": "Jade amulet u",
+   "xpEach": 4.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "String topaz amulet",
+   "itemId": 21105,
+   "name": "Topaz amulet u",
+   "xpEach": 4.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "String sapphire amulet",
+   "itemId": 1675,
+   "name": "Sapphire amulet u",
+   "xpEach": 4.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "String emerald amulet",
+   "itemId": 1677,
+   "name": "Emerald amulet u",
+   "xpEach": 4.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "String ruby amulet",
+   "itemId": 1679,
+   "name": "Ruby amulet u",
+   "xpEach": 4.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "String diamond amulet",
+   "itemId": 1681,
+   "name": "Diamond amulet u",
+   "xpEach": 4.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "String dragonstone amulet",
+   "itemId": 1683,
+   "name": "Dragonstone amulet u",
+   "xpEach": 4.0
+  },
+  {
+   "skill": "Crafting",
+   "method": "String onyx amulet",
+   "itemId": 6579,
+   "name": "Onyx amulet u",
+   "xpEach": 165.0,
+   "level": 90
+  },
+  {
+   "skill": "Crafting",
+   "method": "String zenyte amulet",
+   "itemId": 19501,
+   "name": "Zenyte amulet u",
+   "xpEach": 200.0,
+   "level": 98
+  },
+  {
+   "skill": "Crafting",
+   "method": "Crossbow string",
+   "itemId": 9436,
+   "name": "Sinew",
+   "xpEach": 15.0,
+   "level": 10
+  },
+  {
+   "skill": "Crafting",
+   "method": "Perfect Shell",
+   "itemId": 10995,
+   "name": "Perfect shell",
+   "xpEach": 500.0
+  },
+  {
+   "skill": "Smithing",
+   "method": "Iron bar",
+   "itemId": 440,
+   "name": "Iron ore",
+   "xpEach": 12.5,
+   "level": 15
+  },
+  {
+   "skill": "Smithing",
+   "method": "Elemental bar",
+   "itemId": 2892,
+   "name": "Elemental ore",
+   "xpEach": 8.0,
+   "level": 20
+  },
+  {
+   "skill": "Smithing",
+   "method": "Steel bar",
+   "itemId": 440,
+   "name": "Iron ore",
+   "xpEach": 17.5,
+   "level": 30
+  },
+  {
+   "skill": "Smithing",
+   "method": "Silver Bar",
+   "itemId": 442,
+   "name": "Silver ore",
+   "xpEach": 13.67,
+   "level": 20
+  },
+  {
+   "skill": "Smithing",
+   "method": "Gold bar",
+   "itemId": 444,
+   "name": "Gold ore",
+   "xpEach": 22.5,
+   "level": 40
+  },
+  {
+   "skill": "Smithing",
+   "method": "Goldsmith gauntlets",
+   "itemId": 444,
+   "name": "Gold ore",
+   "xpEach": 56.2,
+   "level": 40
+  },
+  {
+   "skill": "Smithing",
+   "method": "Lovakite bar",
+   "itemId": 13356,
+   "name": "Lovakite ore",
+   "xpEach": 20.0,
+   "level": 45
+  },
+  {
+   "skill": "Smithing",
+   "method": "Mithril bar",
+   "itemId": 447,
+   "name": "Mithril ore",
+   "xpEach": 30.0,
+   "level": 50
+  },
+  {
+   "skill": "Smithing",
+   "method": "Adamantite bar",
+   "itemId": 449,
+   "name": "Adamantite ore",
+   "xpEach": 37.5,
+   "level": 70
+  },
+  {
+   "skill": "Smithing",
+   "method": "Runite bar",
+   "itemId": 451,
+   "name": "Runite ore",
+   "xpEach": 50.0,
+   "level": 85
+  },
+  {
+   "skill": "Smithing",
+   "method": "SC Elemental bar",
+   "itemId": 2892,
+   "name": "Elemental ore",
+   "xpEach": 16.0,
+   "level": 20
+  },
+  {
+   "skill": "Smithing",
+   "method": "SC Steel bar",
+   "itemId": 440,
+   "name": "Iron ore",
+   "xpEach": 35.0,
+   "level": 30
+  },
+  {
+   "skill": "Smithing",
+   "method": "SC Lovakite bar",
+   "itemId": 13356,
+   "name": "Lovakite ore",
+   "xpEach": 40.0,
+   "level": 45
+  },
+  {
+   "skill": "Smithing",
+   "method": "SC Mithril bar",
+   "itemId": 447,
+   "name": "Mithril ore",
+   "xpEach": 60.0,
+   "level": 50
+  },
+  {
+   "skill": "Smithing",
+   "method": "SC Adamantite bar",
+   "itemId": 449,
+   "name": "Adamantite ore",
+   "xpEach": 75.0,
+   "level": 70
+  },
+  {
+   "skill": "Smithing",
+   "method": "SC Runite bar",
+   "itemId": 451,
+   "name": "Runite ore",
+   "xpEach": 100.0,
+   "level": 85
+  },
+  {
+   "skill": "Smithing",
+   "method": "BF Steel Bar",
+   "itemId": 440,
+   "name": "Iron ore",
+   "xpEach": 17.5,
+   "level": 30
+  },
+  {
+   "skill": "Smithing",
+   "method": "BF Mithril Bar",
+   "itemId": 447,
+   "name": "Mithril ore",
+   "xpEach": 30.0,
+   "level": 50
+  },
+  {
+   "skill": "Smithing",
+   "method": "BF Adamantite bar",
+   "itemId": 449,
+   "name": "Adamantite ore",
+   "xpEach": 37.5,
+   "level": 70
+  },
+  {
+   "skill": "Smithing",
+   "method": "BF Runite bar",
+   "itemId": 451,
+   "name": "Runite ore",
+   "xpEach": 50.0,
+   "level": 85
+  },
+  {
+   "skill": "Smithing",
+   "method": "Bronze products",
+   "itemId": 2349,
+   "name": "Bronze bar",
+   "xpEach": 12.5
+  },
+  {
+   "skill": "Smithing",
+   "method": "Iron products",
+   "itemId": 2351,
+   "name": "Iron bar",
+   "xpEach": 25.0,
+   "level": 15
+  },
+  {
+   "skill": "Smithing",
+   "method": "Steel products",
+   "itemId": 2353,
+   "name": "Steel bar",
+   "xpEach": 37.5,
+   "level": 30
+  },
+  {
+   "skill": "Smithing",
+   "method": "Cannonballs",
+   "itemId": 2353,
+   "name": "Steel bar",
+   "xpEach": 25.5,
+   "level": 35
+  },
+  {
+   "skill": "Smithing",
+   "method": "Mithril products",
+   "itemId": 2359,
+   "name": "Mithril bar",
+   "xpEach": 50.0,
+   "level": 50
+  },
+  {
+   "skill": "Smithing",
+   "method": "Adamantite products",
+   "itemId": 2361,
+   "name": "Adamantite bar",
+   "xpEach": 62.5,
+   "level": 70
+  },
+  {
+   "skill": "Smithing",
+   "method": "Runite products",
+   "itemId": 2363,
+   "name": "Runite bar",
+   "xpEach": 75.0,
+   "level": 85
+  },
+  {
+   "skill": "Farming",
+   "method": "Hespori",
+   "itemId": 22875,
+   "name": "Hespori seed",
+   "xpEach": 12662.0,
+   "level": 65
+  },
+  {
+   "skill": "Farming",
+   "method": "Oak tree",
+   "itemId": 5370,
+   "name": "Oak sapling",
+   "xpEach": 481.3,
+   "level": 15
+  },
+  {
+   "skill": "Farming",
+   "method": "Willow tree",
+   "itemId": 5371,
+   "name": "Willow sapling",
+   "xpEach": 1481.5,
+   "level": 30
+  },
+  {
+   "skill": "Farming",
+   "method": "Maple tree",
+   "itemId": 5372,
+   "name": "Maple sapling",
+   "xpEach": 3448.4,
+   "level": 45
+  },
+  {
+   "skill": "Farming",
+   "method": "Yew tree",
+   "itemId": 5373,
+   "name": "Yew sapling",
+   "xpEach": 7150.9,
+   "level": 60
+  },
+  {
+   "skill": "Farming",
+   "method": "Magic tree",
+   "itemId": 5374,
+   "name": "Magic sapling",
+   "xpEach": 13913.8,
+   "level": 75
+  },
+  {
+   "skill": "Farming",
+   "method": "Apple tree",
+   "itemId": 5496,
+   "name": "Apple sapling",
+   "xpEach": 1272.5,
+   "level": 27
+  },
+  {
+   "skill": "Farming",
+   "method": "Banana tree",
+   "itemId": 5497,
+   "name": "Banana sapling",
+   "xpEach": 1841.5,
+   "level": 33
+  },
+  {
+   "skill": "Farming",
+   "method": "Orange tree",
+   "itemId": 5498,
+   "name": "Orange sapling",
+   "xpEach": 2586.7,
+   "level": 39
+  },
+  {
+   "skill": "Farming",
+   "method": "Curry tree",
+   "itemId": 5499,
+   "name": "Curry sapling",
+   "xpEach": 3036.9,
+   "level": 42
+  },
+  {
+   "skill": "Farming",
+   "method": "Pineapple tree",
+   "itemId": 5500,
+   "name": "Pineapple sapling",
+   "xpEach": 4791.7,
+   "level": 51
+  },
+  {
+   "skill": "Farming",
+   "method": "Papaya tree",
+   "itemId": 5501,
+   "name": "Papaya sapling",
+   "xpEach": 6380.4,
+   "level": 57
+  },
+  {
+   "skill": "Farming",
+   "method": "Palm tree",
+   "itemId": 5502,
+   "name": "Palm sapling",
+   "xpEach": 10509.6,
+   "level": 68
+  },
+  {
+   "skill": "Farming",
+   "method": "Calquat tree",
+   "itemId": 5503,
+   "name": "Calquat sapling",
+   "xpEach": 12516.5,
+   "level": 72
+  },
+  {
+   "skill": "Farming",
+   "method": "Teak tree",
+   "itemId": 21477,
+   "name": "Teak sapling",
+   "xpEach": 7325.0,
+   "level": 35
+  },
+  {
+   "skill": "Farming",
+   "method": "Mahogany tree",
+   "itemId": 21480,
+   "name": "Mahogany sapling",
+   "xpEach": 15783.0,
+   "level": 55
+  },
+  {
+   "skill": "Farming",
+   "method": "Spirit tree",
+   "itemId": 5375,
+   "name": "Spirit sapling",
+   "xpEach": 19500.0,
+   "level": 83
+  },
+  {
+   "skill": "Farming",
+   "method": "Dragonfruit tree",
+   "itemId": 22866,
+   "name": "Dragonfruit sapling",
+   "xpEach": 17825.0,
+   "level": 81
+  },
+  {
+   "skill": "Farming",
+   "method": "Celastrus tree",
+   "itemId": 22856,
+   "name": "Celastrus sapling",
+   "xpEach": 14404.5,
+   "level": 85
+  },
+  {
+   "skill": "Farming",
+   "method": "Redwood tree",
+   "itemId": 22859,
+   "name": "Redwood sapling",
+   "xpEach": 22680.0,
+   "level": 90
+  },
+  {
+   "skill": "Farming",
+   "method": "Crystal tree",
+   "itemId": 23659,
+   "name": "Crystal sapling",
+   "xpEach": 13366.0,
+   "level": 74
+  },
+  {
+   "skill": "Fletching",
+   "method": "Headless arrow",
+   "itemId": 52,
+   "name": "Arrow shaft",
+   "xpEach": 1.0
+  },
+  {
+   "skill": "Fletching",
+   "method": "Arrow shaft",
+   "itemId": 1511,
+   "name": "Logs",
+   "xpEach": 5.0
+  },
+  {
+   "skill": "Fletching",
+   "method": "Shortbow (u)",
+   "itemId": 1511,
+   "name": "Logs",
+   "xpEach": 5.0,
+   "level": 5
+  },
+  {
+   "skill": "Fletching",
+   "method": "Wooden stock",
+   "itemId": 1511,
+   "name": "Logs",
+   "xpEach": 6.0,
+   "level": 9
+  },
+  {
+   "skill": "Fletching",
+   "method": "Longbow (u)",
+   "itemId": 1511,
+   "name": "Logs",
+   "xpEach": 10.0,
+   "level": 10
+  },
+  {
+   "skill": "Fletching",
+   "method": "Arrow shaft",
+   "itemId": 1521,
+   "name": "Oak logs",
+   "xpEach": 10.0,
+   "level": 15
+  },
+  {
+   "skill": "Fletching",
+   "method": "Oak shortbow (u)",
+   "itemId": 1521,
+   "name": "Oak logs",
+   "xpEach": 16.5,
+   "level": 20
+  },
+  {
+   "skill": "Fletching",
+   "method": "Oak stock",
+   "itemId": 1521,
+   "name": "Oak logs",
+   "xpEach": 16.0,
+   "level": 24
+  },
+  {
+   "skill": "Fletching",
+   "method": "Oak longbow (u)",
+   "itemId": 1521,
+   "name": "Oak logs",
+   "xpEach": 25.0,
+   "level": 25
+  },
+  {
+   "skill": "Fletching",
+   "method": "Oak shield",
+   "itemId": 1521,
+   "name": "Oak logs",
+   "xpEach": 25.0,
+   "level": 27
+  },
+  {
+   "skill": "Fletching",
+   "method": "Arrow shaft",
+   "itemId": 1519,
+   "name": "Willow logs",
+   "xpEach": 15.0,
+   "level": 30
+  },
+  {
+   "skill": "Fletching",
+   "method": "Willow shortbow (u)",
+   "itemId": 1519,
+   "name": "Willow logs",
+   "xpEach": 33.3,
+   "level": 35
+  },
+  {
+   "skill": "Fletching",
+   "method": "Willow stock",
+   "itemId": 1519,
+   "name": "Willow logs",
+   "xpEach": 22.0,
+   "level": 39
+  },
+  {
+   "skill": "Fletching",
+   "method": "Willow longbow (u)",
+   "itemId": 1519,
+   "name": "Willow logs",
+   "xpEach": 41.5,
+   "level": 40
+  },
+  {
+   "skill": "Fletching",
+   "method": "Willow shield",
+   "itemId": 1519,
+   "name": "Willow logs",
+   "xpEach": 41.5,
+   "level": 42
+  },
+  {
+   "skill": "Fletching",
+   "method": "Teak stock",
+   "itemId": 6333,
+   "name": "Teak logs",
+   "xpEach": 27.0,
+   "level": 46
+  },
+  {
+   "skill": "Fletching",
+   "method": "Arrow shaft",
+   "itemId": 1517,
+   "name": "Maple logs",
+   "xpEach": 20.0,
+   "level": 45
+  },
+  {
+   "skill": "Fletching",
+   "method": "Maple shortbow (u)",
+   "itemId": 1517,
+   "name": "Maple logs",
+   "xpEach": 50.0,
+   "level": 50
+  },
+  {
+   "skill": "Fletching",
+   "method": "Maple stock",
+   "itemId": 1517,
+   "name": "Maple logs",
+   "xpEach": 32.0,
+   "level": 54
+  },
+  {
+   "skill": "Fletching",
+   "method": "Maple longbow (u)",
+   "itemId": 1517,
+   "name": "Maple logs",
+   "xpEach": 58.3,
+   "level": 55
+  },
+  {
+   "skill": "Fletching",
+   "method": "Maple shield",
+   "itemId": 1517,
+   "name": "Maple logs",
+   "xpEach": 58.25,
+   "level": 57
+  },
+  {
+   "skill": "Fletching",
+   "method": "Mahogany stock",
+   "itemId": 6332,
+   "name": "Mahogany logs",
+   "xpEach": 41.0,
+   "level": 61
+  },
+  {
+   "skill": "Fletching",
+   "method": "Arrow shaft",
+   "itemId": 1515,
+   "name": "Yew logs",
+   "xpEach": 25.0,
+   "level": 60
+  },
+  {
+   "skill": "Fletching",
+   "method": "Yew shortbow (u)",
+   "itemId": 1515,
+   "name": "Yew logs",
+   "xpEach": 67.5,
+   "level": 65
+  },
+  {
+   "skill": "Fletching",
+   "method": "Yew stock",
+   "itemId": 1515,
+   "name": "Yew logs",
+   "xpEach": 50.0,
+   "level": 69
+  },
+  {
+   "skill": "Fletching",
+   "method": "Yew longbow (u)",
+   "itemId": 1515,
+   "name": "Yew logs",
+   "xpEach": 75.0,
+   "level": 70
+  },
+  {
+   "skill": "Fletching",
+   "method": "Yew shield",
+   "itemId": 1515,
+   "name": "Yew logs",
+   "xpEach": 75.0,
+   "level": 72
+  },
+  {
+   "skill": "Fletching",
+   "method": "Arrow shaft",
+   "itemId": 1513,
+   "name": "Magic logs",
+   "xpEach": 30.0,
+   "level": 75
+  },
+  {
+   "skill": "Fletching",
+   "method": "Magic stock",
+   "itemId": 1513,
+   "name": "Magic logs",
+   "xpEach": 70.0,
+   "level": 78
+  },
+  {
+   "skill": "Fletching",
+   "method": "Magic shortbow (u)",
+   "itemId": 1513,
+   "name": "Magic logs",
+   "xpEach": 83.3,
+   "level": 80
+  },
+  {
+   "skill": "Fletching",
+   "method": "Magic longbow (u)",
+   "itemId": 1513,
+   "name": "Magic logs",
+   "xpEach": 91.5,
+   "level": 85
+  },
+  {
+   "skill": "Fletching",
+   "method": "Magic shield",
+   "itemId": 1513,
+   "name": "Magic logs",
+   "xpEach": 91.5,
+   "level": 87
+  },
+  {
+   "skill": "Fletching",
+   "method": "Arrow shaft",
+   "itemId": 19669,
+   "name": "Redwood logs",
+   "xpEach": 35.0,
+   "level": 90
+  },
+  {
+   "skill": "Fletching",
+   "method": "Redwood shield",
+   "itemId": 19669,
+   "name": "Redwood logs",
+   "xpEach": 108.0,
+   "level": 92
+  },
+  {
+   "skill": "Fletching",
+   "method": "Shortbow",
+   "itemId": 50,
+   "name": "Shortbow u",
+   "xpEach": 5.0,
+   "level": 5
+  },
+  {
+   "skill": "Fletching",
+   "method": "Longbow",
+   "itemId": 48,
+   "name": "Longbow u",
+   "xpEach": 10.0,
+   "level": 10
+  },
+  {
+   "skill": "Fletching",
+   "method": "Oak shortbow",
+   "itemId": 54,
+   "name": "Oak shortbow u",
+   "xpEach": 16.5,
+   "level": 20
+  },
+  {
+   "skill": "Fletching",
+   "method": "Oak longbow",
+   "itemId": 56,
+   "name": "Oak longbow u",
+   "xpEach": 25.0,
+   "level": 25
+  },
+  {
+   "skill": "Fletching",
+   "method": "Willow shortbow",
+   "itemId": 60,
+   "name": "Willow shortbow u",
+   "xpEach": 33.2,
+   "level": 35
+  },
+  {
+   "skill": "Fletching",
+   "method": "Willow longbow",
+   "itemId": 58,
+   "name": "Willow longbow u",
+   "xpEach": 41.5,
+   "level": 40
+  },
+  {
+   "skill": "Fletching",
+   "method": "Maple shortbow",
+   "itemId": 64,
+   "name": "Maple shortbow u",
+   "xpEach": 50.0,
+   "level": 50
+  },
+  {
+   "skill": "Fletching",
+   "method": "Maple longbow",
+   "itemId": 62,
+   "name": "Maple longbow u",
+   "xpEach": 58.2,
+   "level": 55
+  },
+  {
+   "skill": "Fletching",
+   "method": "Yew shortbow",
+   "itemId": 68,
+   "name": "Yew shortbow u",
+   "xpEach": 67.5,
+   "level": 65
+  },
+  {
+   "skill": "Fletching",
+   "method": "Yew longbow",
+   "itemId": 66,
+   "name": "Yew longbow u",
+   "xpEach": 75.0,
+   "level": 70
+  },
+  {
+   "skill": "Fletching",
+   "method": "Magic shortbow",
+   "itemId": 72,
+   "name": "Magic shortbow u",
+   "xpEach": 83.2,
+   "level": 80
+  },
+  {
+   "skill": "Fletching",
+   "method": "Magic longbow",
+   "itemId": 70,
+   "name": "Magic longbow u",
+   "xpEach": 91.5,
+   "level": 85
+  },
+  {
+   "skill": "Fletching",
+   "method": "Bronze dart",
+   "itemId": 819,
+   "name": "Bronze dart tip",
+   "xpEach": 1.8,
+   "level": 10
+  },
+  {
+   "skill": "Fletching",
+   "method": "Iron dart",
+   "itemId": 820,
+   "name": "Iron dart tip",
+   "xpEach": 3.8,
+   "level": 22
+  },
+  {
+   "skill": "Fletching",
+   "method": "Steel dart",
+   "itemId": 821,
+   "name": "Steel dart tip",
+   "xpEach": 7.5,
+   "level": 37
+  },
+  {
+   "skill": "Fletching",
+   "method": "Mithril dart",
+   "itemId": 822,
+   "name": "Mithril dart tip",
+   "xpEach": 11.2,
+   "level": 52
+  },
+  {
+   "skill": "Fletching",
+   "method": "Adamant dart",
+   "itemId": 823,
+   "name": "Adamant dart tip",
+   "xpEach": 15.0,
+   "level": 67
+  },
+  {
+   "skill": "Fletching",
+   "method": "Rune dart",
+   "itemId": 824,
+   "name": "Rune dart tip",
+   "xpEach": 18.8,
+   "level": 81
+  },
+  {
+   "skill": "Fletching",
+   "method": "Amethyst dart",
+   "itemId": 25853,
+   "name": "Amethyst dart tip",
+   "xpEach": 21.0,
+   "level": 90
+  },
+  {
+   "skill": "Fletching",
+   "method": "Dragon dart",
+   "itemId": 11232,
+   "name": "Dragon dart tip",
+   "xpEach": 25.0,
+   "level": 95
+  },
+  {
+   "skill": "Fletching",
+   "method": "Bronze arrow",
+   "itemId": 39,
+   "name": "Bronze arrowtips",
+   "xpEach": 1.0
+  },
+  {
+   "skill": "Fletching",
+   "method": "Iron arrow",
+   "itemId": 40,
+   "name": "Iron arrowtips",
+   "xpEach": 2.5
+  },
+  {
+   "skill": "Fletching",
+   "method": "Steel arrow",
+   "itemId": 41,
+   "name": "Steel arrowtips",
+   "xpEach": 5.0,
+   "level": 30
+  },
+  {
+   "skill": "Fletching",
+   "method": "Mithril arrow",
+   "itemId": 42,
+   "name": "Mithril arrowtips",
+   "xpEach": 7.5,
+   "level": 45
+  },
+  {
+   "skill": "Fletching",
+   "method": "Broad arrow",
+   "itemId": 11874,
+   "name": "Broad arrowheads",
+   "xpEach": 10.0,
+   "level": 52
+  },
+  {
+   "skill": "Fletching",
+   "method": "Adamant arrow",
+   "itemId": 43,
+   "name": "Adamant arrowtips",
+   "xpEach": 10.0,
+   "level": 60
+  },
+  {
+   "skill": "Fletching",
+   "method": "Rune arrow",
+   "itemId": 44,
+   "name": "Rune arrowtips",
+   "xpEach": 12.5,
+   "level": 75
+  },
+  {
+   "skill": "Fletching",
+   "method": "Amethyst arrow",
+   "itemId": 21350,
+   "name": "Amethyst arrowtips",
+   "xpEach": 13.5,
+   "level": 82
+  },
+  {
+   "skill": "Fletching",
+   "method": "Dragon arrow",
+   "itemId": 11237,
+   "name": "Dragon arrowtips",
+   "xpEach": 15.0,
+   "level": 90
+  },
+  {
+   "skill": "Fletching",
+   "method": "Bronze bolts",
+   "itemId": 9375,
+   "name": "Bronze bolts unf",
+   "xpEach": 0.5,
+   "level": 9
+  },
+  {
+   "skill": "Fletching",
+   "method": "Blurite bolts",
+   "itemId": 9376,
+   "name": "Blurite bolts unf",
+   "xpEach": 1.0,
+   "level": 24
+  },
+  {
+   "skill": "Fletching",
+   "method": "Kebbit bolts",
+   "itemId": 10105,
+   "name": "Kebbit spike",
+   "xpEach": 5.8,
+   "level": 32
+  },
+  {
+   "skill": "Fletching",
+   "method": "Iron bolts",
+   "itemId": 9377,
+   "name": "Iron bolts unf",
+   "xpEach": 1.5,
+   "level": 39
+  },
+  {
+   "skill": "Fletching",
+   "method": "Silver bolts",
+   "itemId": 9382,
+   "name": "Silver bolts unf",
+   "xpEach": 2.5,
+   "level": 43
+  },
+  {
+   "skill": "Fletching",
+   "method": "Steel bolts",
+   "itemId": 9378,
+   "name": "Steel bolts unf",
+   "xpEach": 3.5,
+   "level": 46
+  },
+  {
+   "skill": "Fletching",
+   "method": "Mithril bolts",
+   "itemId": 9379,
+   "name": "Mithril bolts unf",
+   "xpEach": 5.0,
+   "level": 54
+  },
+  {
+   "skill": "Fletching",
+   "method": "Broad bolts",
+   "itemId": 11876,
+   "name": "Unfinished broad bolts",
+   "xpEach": 3.0,
+   "level": 55
+  },
+  {
+   "skill": "Fletching",
+   "method": "Adamant bolts",
+   "itemId": 9380,
+   "name": "Adamant boltsunf",
+   "xpEach": 7.0,
+   "level": 61
+  },
+  {
+   "skill": "Fletching",
+   "method": "Sunlight antler bolts",
+   "itemId": 29168,
+   "name": "Sunlight antelope antler",
+   "xpEach": 10.0,
+   "level": 62
+  },
+  {
+   "skill": "Fletching",
+   "method": "Runite bolts",
+   "itemId": 9381,
+   "name": "Runite bolts unf",
+   "xpEach": 10.0,
+   "level": 69
+  },
+  {
+   "skill": "Fletching",
+   "method": "Moonlight antler bolts",
+   "itemId": 29171,
+   "name": "Moonlight antelope antler",
+   "xpEach": 12.0,
+   "level": 72
+  },
+  {
+   "skill": "Fletching",
+   "method": "Dragon bolts",
+   "itemId": 21930,
+   "name": "Dragon bolts unf",
+   "xpEach": 12.0,
+   "level": 84
+  },
+  {
+   "skill": "Fletching",
+   "method": "Bronze crossbow (u)",
+   "itemId": 9440,
+   "name": "Wooden stock",
+   "xpEach": 12.0,
+   "level": 9
+  },
+  {
+   "skill": "Fletching",
+   "method": "Blurite crossbow (u)",
+   "itemId": 9442,
+   "name": "Oak stock",
+   "xpEach": 32.0,
+   "level": 24
+  },
+  {
+   "skill": "Fletching",
+   "method": "Iron crossbow (u)",
+   "itemId": 9444,
+   "name": "Willow stock",
+   "xpEach": 44.0,
+   "level": 39
+  },
+  {
+   "skill": "Fletching",
+   "method": "Steel crossbow (u)",
+   "itemId": 9446,
+   "name": "Teak stock",
+   "xpEach": 54.0,
+   "level": 46
+  },
+  {
+   "skill": "Fletching",
+   "method": "Mithril crossbow (u)",
+   "itemId": 9448,
+   "name": "Maple stock",
+   "xpEach": 64.0,
+   "level": 54
+  },
+  {
+   "skill": "Fletching",
+   "method": "Adamantite crossbow (u)",
+   "itemId": 9450,
+   "name": "Mahogany stock",
+   "xpEach": 82.0,
+   "level": 61
+  },
+  {
+   "skill": "Fletching",
+   "method": "Runite crossbow (u)",
+   "itemId": 9452,
+   "name": "Yew stock",
+   "xpEach": 100.0,
+   "level": 69
+  },
+  {
+   "skill": "Fletching",
+   "method": "Dragon crossbow (u)",
+   "itemId": 21952,
+   "name": "Magic stock",
+   "xpEach": 135.0,
+   "level": 78
+  },
+  {
+   "skill": "Fletching",
+   "method": "Bronze crossbow",
+   "itemId": 9454,
+   "name": "Bronze crossbow u",
+   "xpEach": 6.0,
+   "level": 9
+  },
+  {
+   "skill": "Fletching",
+   "method": "Blurite crossbow",
+   "itemId": 9456,
+   "name": "Blurite crossbow u",
+   "xpEach": 16.0,
+   "level": 24
+  },
+  {
+   "skill": "Fletching",
+   "method": "Iron crossbow",
+   "itemId": 9457,
+   "name": "Iron crossbow u",
+   "xpEach": 22.0,
+   "level": 39
+  },
+  {
+   "skill": "Fletching",
+   "method": "Steel crossbow",
+   "itemId": 9459,
+   "name": "Steel crossbow u",
+   "xpEach": 27.0,
+   "level": 46
+  },
+  {
+   "skill": "Fletching",
+   "method": "Mithril crossbow",
+   "itemId": 9461,
+   "name": "Mithril crossbow u",
+   "xpEach": 32.0,
+   "level": 54
+  },
+  {
+   "skill": "Fletching",
+   "method": "Adamant crossbow",
+   "itemId": 9463,
+   "name": "Adamant crossbow u",
+   "xpEach": 41.0,
+   "level": 61
+  },
+  {
+   "skill": "Fletching",
+   "method": "Rune crossbow",
+   "itemId": 9465,
+   "name": "Runite crossbow u",
+   "xpEach": 50.0,
+   "level": 69
+  },
+  {
+   "skill": "Fletching",
+   "method": "Dragon crossbow",
+   "itemId": 21921,
+   "name": "Dragon crossbow u",
+   "xpEach": 70.0,
+   "level": 78
+  },
+  {
+   "skill": "Fletching",
+   "method": "Battlestaff",
+   "itemId": 22935,
+   "name": "Celastrus bark",
+   "xpEach": 80.0,
+   "level": 40
+  },
+  {
+   "skill": "Fletching",
+   "method": "Bronze javelins",
+   "itemId": 19570,
+   "name": "Bronze javelin tips",
+   "xpEach": 1.0,
+   "level": 3
+  },
+  {
+   "skill": "Fletching",
+   "method": "Iron javelins",
+   "itemId": 19572,
+   "name": "Iron javelin tips",
+   "xpEach": 2.0,
+   "level": 17
+  },
+  {
+   "skill": "Fletching",
+   "method": "Steel javelins",
+   "itemId": 19574,
+   "name": "Steel javelin tips",
+   "xpEach": 5.0,
+   "level": 32
+  },
+  {
+   "skill": "Fletching",
+   "method": "Mithril javelins",
+   "itemId": 19576,
+   "name": "Mithril javelin tips",
+   "xpEach": 8.0,
+   "level": 47
+  },
+  {
+   "skill": "Fletching",
+   "method": "Adamant javelins",
+   "itemId": 19578,
+   "name": "Adamant javelin tips",
+   "xpEach": 10.0,
+   "level": 62
+  },
+  {
+   "skill": "Fletching",
+   "method": "Rune javelins",
+   "itemId": 19580,
+   "name": "Rune javelin tips",
+   "xpEach": 12.4,
+   "level": 77
+  },
+  {
+   "skill": "Fletching",
+   "method": "Amethyst javelins",
+   "itemId": 21352,
+   "name": "Amethyst javelin tips",
+   "xpEach": 13.5,
+   "level": 84
+  },
+  {
+   "skill": "Fletching",
+   "method": "Dragon javelins",
+   "itemId": 19582,
+   "name": "Dragon javelin tips",
+   "xpEach": 15.0,
+   "level": 92
+  },
+  {
+   "skill": "Hunter",
+   "method": "Bird house",
+   "itemId": 1511,
+   "name": "Logs",
+   "xpEach": 280.0,
+   "level": 5
+  },
+  {
+   "skill": "Hunter",
+   "method": "Bird house",
+   "itemId": 21512,
+   "name": "Bird house",
+   "xpEach": 280.0,
+   "level": 5
+  },
+  {
+   "skill": "Hunter",
+   "method": "Oak bird house",
+   "itemId": 1521,
+   "name": "Oak logs",
+   "xpEach": 420.0,
+   "level": 14
+  },
+  {
+   "skill": "Hunter",
+   "method": "Oak bird house",
+   "itemId": 21515,
+   "name": "Oak bird house",
+   "xpEach": 420.0,
+   "level": 14
+  },
+  {
+   "skill": "Hunter",
+   "method": "Willow bird house",
+   "itemId": 1519,
+   "name": "Willow logs",
+   "xpEach": 560.0,
+   "level": 24
+  },
+  {
+   "skill": "Hunter",
+   "method": "Willow bird house",
+   "itemId": 21518,
+   "name": "Willow bird house",
+   "xpEach": 560.0,
+   "level": 24
+  },
+  {
+   "skill": "Hunter",
+   "method": "Teak bird house",
+   "itemId": 6333,
+   "name": "Teak logs",
+   "xpEach": 700.0,
+   "level": 34
+  },
+  {
+   "skill": "Hunter",
+   "method": "Teak bird house",
+   "itemId": 21521,
+   "name": "Teak bird house",
+   "xpEach": 700.0,
+   "level": 34
+  },
+  {
+   "skill": "Hunter",
+   "method": "Maple bird house",
+   "itemId": 1517,
+   "name": "Maple logs",
+   "xpEach": 820.0,
+   "level": 44
+  },
+  {
+   "skill": "Hunter",
+   "method": "Maple bird house",
+   "itemId": 22192,
+   "name": "Maple bird house",
+   "xpEach": 820.0,
+   "level": 44
+  },
+  {
+   "skill": "Hunter",
+   "method": "Mahogany bird house",
+   "itemId": 6332,
+   "name": "Mahogany logs",
+   "xpEach": 960.0,
+   "level": 49
+  },
+  {
+   "skill": "Hunter",
+   "method": "Mahogany bird house",
+   "itemId": 22195,
+   "name": "Mahogany bird house",
+   "xpEach": 960.0,
+   "level": 49
+  },
+  {
+   "skill": "Hunter",
+   "method": "Yew bird house",
+   "itemId": 1515,
+   "name": "Yew logs",
+   "xpEach": 1020.0,
+   "level": 59
+  },
+  {
+   "skill": "Hunter",
+   "method": "Yew bird house",
+   "itemId": 22198,
+   "name": "Yew bird house",
+   "xpEach": 1020.0,
+   "level": 59
+  },
+  {
+   "skill": "Hunter",
+   "method": "Magic bird house",
+   "itemId": 1513,
+   "name": "Magic logs",
+   "xpEach": 1140.0,
+   "level": 74
+  },
+  {
+   "skill": "Hunter",
+   "method": "Magic bird house",
+   "itemId": 22201,
+   "name": "Magic bird house",
+   "xpEach": 1140.0,
+   "level": 74
+  },
+  {
+   "skill": "Hunter",
+   "method": "Redwood bird house",
+   "itemId": 19669,
+   "name": "Redwood logs",
+   "xpEach": 1200.0,
+   "level": 89
+  },
+  {
+   "skill": "Hunter",
+   "method": "Redwood bird house",
+   "itemId": 22204,
+   "name": "Redwood bird house",
+   "xpEach": 1200.0,
+   "level": 89
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn logs",
+   "itemId": 1511,
+   "name": "Logs",
+   "xpEach": 40.0
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Achey Tree logs",
+   "itemId": 2862,
+   "name": "Achey tree logs",
+   "xpEach": 40.0
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Oak logs",
+   "itemId": 1521,
+   "name": "Oak logs",
+   "xpEach": 60.0,
+   "level": 15
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Willow Logs",
+   "itemId": 1519,
+   "name": "Willow logs",
+   "xpEach": 90.0,
+   "level": 30
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Teak logs",
+   "itemId": 6333,
+   "name": "Teak logs",
+   "xpEach": 105.0,
+   "level": 35
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Jatoba logs",
+   "itemId": 32902,
+   "name": "Jatoba logs",
+   "xpEach": 120.0,
+   "level": 40
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Arctic Pine logs",
+   "itemId": 10810,
+   "name": "Arctic pine logs",
+   "xpEach": 125.0,
+   "level": 42
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Maple logs",
+   "itemId": 1517,
+   "name": "Maple logs",
+   "xpEach": 135.0,
+   "level": 45
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Mahogany logs",
+   "itemId": 6332,
+   "name": "Mahogany logs",
+   "xpEach": 157.5,
+   "level": 50
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Yew logs",
+   "itemId": 1515,
+   "name": "Yew logs",
+   "xpEach": 202.5,
+   "level": 60
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Blisterwood logs",
+   "itemId": 24691,
+   "name": "Blisterwood logs",
+   "xpEach": 96.0,
+   "level": 62
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Camphor logs",
+   "itemId": 32904,
+   "name": "Camphor logs",
+   "xpEach": 180.0,
+   "level": 66
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Camphor logs (Barbarian)",
+   "itemId": 32904,
+   "name": "Camphor logs",
+   "xpEach": 245.0,
+   "level": 86
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Magic logs",
+   "itemId": 1513,
+   "name": "Magic logs",
+   "xpEach": 303.8,
+   "level": 75
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Ironwood logs",
+   "itemId": 32907,
+   "name": "Ironwood logs",
+   "xpEach": 220.5,
+   "level": 80
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Ironwood logs (Barbarian)",
+   "itemId": 32907,
+   "name": "Ironwood logs",
+   "xpEach": 320.0,
+   "level": 99
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Redwood logs",
+   "itemId": 19669,
+   "name": "Redwood logs",
+   "xpEach": 350.0,
+   "level": 90
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Rosewood logs",
+   "itemId": 32910,
+   "name": "Rosewood logs",
+   "xpEach": 268.0,
+   "level": 92
+  },
+  {
+   "skill": "Firemaking",
+   "method": "Burn Rosewood logs (Barbarian)",
+   "itemId": 32910,
+   "name": "Rosewood logs",
+   "xpEach": 420.0,
+   "level": 99
+  },
+  {
+   "skill": "Thieving",
+   "method": "Redeem sq'irkjuice",
+   "itemId": 10851,
+   "name": "Winter sqirkjuice",
+   "xpEach": 350.0
+  },
+  {
+   "skill": "Thieving",
+   "method": "Redeem sq'irkjuice",
+   "itemId": 10848,
+   "name": "Spring sqirkjuice",
+   "xpEach": 1350.0,
+   "level": 25
+  },
+  {
+   "skill": "Thieving",
+   "method": "Redeem sq'irkjuice",
+   "itemId": 10850,
+   "name": "Autumn sqirkjuice",
+   "xpEach": 2350.0,
+   "level": 45
+  },
+  {
+   "skill": "Thieving",
+   "method": "Redeem sq'irkjuice",
+   "itemId": 10849,
+   "name": "Summer sqirkjuice",
+   "xpEach": 3000.0,
+   "level": 65
+  },
+  {
+   "skill": "Sailing",
+   "method": "Sort small salvage",
+   "itemId": 32847,
+   "name": "Small salvage",
+   "xpEach": 5.5,
+   "level": 15
+  },
+  {
+   "skill": "Sailing",
+   "method": "Sort fishy salvage",
+   "itemId": 32849,
+   "name": "Fishy salvage",
+   "xpEach": 9.0,
+   "level": 26
+  },
+  {
+   "skill": "Sailing",
+   "method": "Sort barracuda salvage",
+   "itemId": 32851,
+   "name": "Barracuda salvage",
+   "xpEach": 15.5,
+   "level": 35
+  },
+  {
+   "skill": "Sailing",
+   "method": "Sort large salvage",
+   "itemId": 32853,
+   "name": "Large salvage",
+   "xpEach": 24.0,
+   "level": 53
+  },
+  {
+   "skill": "Sailing",
+   "method": "Sort plundered salvage",
+   "itemId": 32855,
+   "name": "Plundered salvage",
+   "xpEach": 31.5,
+   "level": 64
+  },
+  {
+   "skill": "Sailing",
+   "method": "Sort martial salvage",
+   "itemId": 32857,
+   "name": "Martial salvage",
+   "xpEach": 63.5,
+   "level": 73
+  },
+  {
+   "skill": "Sailing",
+   "method": "Sort Fremennik salvage",
+   "itemId": 32859,
+   "name": "Fremennik salvage",
+   "xpEach": 75.0,
+   "level": 80
+  },
+  {
+   "skill": "Sailing",
+   "method": "Sort opulent salvage",
+   "itemId": 32861,
+   "name": "Opulent salvage",
+   "xpEach": 95.0,
+   "level": 87
+  }
+ ]
 }

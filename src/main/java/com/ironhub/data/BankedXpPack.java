@@ -22,5 +22,6 @@ public class BankedXpPack
 		private int itemId;
 		private String name;
 		private double xpEach;
+		private int level;      // activity level requirement; 0/absent = none
 	}
 }
