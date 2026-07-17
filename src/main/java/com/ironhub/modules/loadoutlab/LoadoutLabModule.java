@@ -1084,24 +1084,30 @@ public class LoadoutLabModule implements IronHubModule
 	@Subscribe
 	public void onScriptPreFired(net.runelite.api.events.ScriptPreFired event)
 	{
-		if (event.getScriptId() != net.runelite.api.ScriptID.BANKMAIN_INIT)
+		if (event.getScriptId() != net.runelite.api.ScriptID.BANKMAIN_INIT
+			|| viewedOrDraft() == null || clientThread == null)
 		{
 			return;
 		}
-		PersistedState.SavedSetup shown = viewedOrDraft();
-		if (shown == null)
+		// AFTER the init script finishes — opening a tag mid-init forces an
+		// extra relayout; the apply no-ops when our tag is already active
+		clientThread.invokeLater(() ->
 		{
-			return;
-		}
-		List<Integer> list = withdrawList(shown);
-		if (list.isEmpty())
-		{
-			collectView.clear();
-		}
-		else
-		{
-			collectView.apply(list);
-		}
+			PersistedState.SavedSetup shown = viewedOrDraft();
+			if (shown == null)
+			{
+				return;
+			}
+			List<Integer> list = withdrawList(shown);
+			if (list.isEmpty())
+			{
+				collectView.clear();
+			}
+			else
+			{
+				collectView.apply(list);
+			}
+		});
 	}
 
 	/** Readable bank title while collected (Bank Tags shows the raw hidden

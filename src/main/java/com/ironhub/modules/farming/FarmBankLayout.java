@@ -118,6 +118,14 @@ public class FarmBankLayout
 		String tag = TAG_PREFIX + runName.toLowerCase().replaceAll("[^a-z0-9]", "");
 		Map<Integer, Integer> byPos = positions(setup);
 		int signature = byPos.hashCode();
+		if (tag.equals(appliedTag) && signature == appliedSignature
+			&& tag.equals(bankTagsService.getActiveTag()))
+		{
+			// already showing exactly this — every openBankTag forces a full
+			// bank relayout, and Bank Tags keeps its active tag across bank
+			// rebuilds (2026-07-18 bank-open freeze audit)
+			return;
+		}
 		if (!tag.equals(appliedTag) || signature != appliedSignature)
 		{
 			removeApplied();

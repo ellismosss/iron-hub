@@ -152,10 +152,22 @@ class BankTab extends JPanel
 	/** Per-item equipment stats + high-alch prices for {@link #itemDataKey}'s
 	 *  bank snapshot — one client-thread sweep serves the stat ranking, the
 	 *  alch view and the hover tooltips. */
-	private Map<Integer, ItemEquipmentStats> equipStats = Map.of();
-	private Map<Integer, Long> haPrices = Map.of();
+	/** CUMULATIVE per-item caches (stats and alch prices are immutable per
+	 *  id): a bank change only ever scans the NEW ids, in chunks of a game
+	 *  frame — the old whole-bank sweep in one client-thread callback was
+	 *  a seconds-long game stall on a cold composition cache (Luke's
+	 *  "crashing when I open my bank", 2026-07-18). */
+	private final Map<Integer, ItemEquipmentStats> equipStats =
+		new java.util.concurrent.ConcurrentHashMap<>();
+	private final Map<Integer, Long> haPrices =
+		new java.util.concurrent.ConcurrentHashMap<>();
+	private final Set<Integer> scannedIds =
+		java.util.concurrent.ConcurrentHashMap.newKeySet();
 	private String itemDataKey = "";
 	private boolean itemDataComputing;
+	/** Ids resolved per client frame — keeps each callback inside the frame
+	 *  budget instead of one long stall. */
+	private static final int SCAN_CHUNK = 128;
 
 	BankTab(AccountState state, ItemManager itemManager,
 		net.runelite.client.callback.ClientThread clientThread,
@@ -1787,34 +1799,46 @@ class BankTab extends JPanel
 		{
 			return;
 		}
-		itemDataComputing = true;
 		String key = "@" + state.getBankTimestamp();
-		Map<Integer, Integer> bank = state.getBankSnapshot();
+		List<Integer> missing = state.getBankSnapshot().keySet().stream()
+			.filter(id -> !scannedIds.contains(id))
+			.collect(Collectors.toList());
+		if (missing.isEmpty())
+		{
+			itemDataKey = key; // everything current is already cached
+			return;
+		}
+		itemDataComputing = true;
+		java.util.Iterator<Integer> pending = missing.iterator();
 		clientThread.invokeLater(() ->
 		{
-			Map<Integer, ItemEquipmentStats> equipment = new HashMap<>();
-			Map<Integer, Long> prices = new HashMap<>();
-			for (int id : bank.keySet())
+			int scanned = 0;
+			while (pending.hasNext() && scanned++ < SCAN_CHUNK)
 			{
+				int id = pending.next();
 				ItemStats stats = itemManager.getItemStats(id);
 				if (stats != null && stats.getEquipment() != null)
 				{
-					equipment.put(id, stats.getEquipment());
+					equipStats.put(id, stats.getEquipment());
 				}
 				long haPrice = itemManager.getItemComposition(id).getHaPrice();
 				if (haPrice > 0)
 				{
-					prices.put(id, haPrice);
+					haPrices.put(id, haPrice);
 				}
+				scannedIds.add(id);
+			}
+			if (pending.hasNext())
+			{
+				return false; // continue on the next client frame
 			}
 			SwingUtilities.invokeLater(() ->
 			{
-				equipStats = equipment;
-				haPrices = prices;
 				itemDataKey = key;
 				itemDataComputing = false;
 				rebuild();
 			});
+			return true;
 		});
 	}
 

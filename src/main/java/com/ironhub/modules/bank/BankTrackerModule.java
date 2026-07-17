@@ -161,14 +161,22 @@ public class BankTrackerModule implements IronHubModule
 		}
 	}
 
-	/** Re-assert the collected view whenever the bank rebuilds itself. */
+	/** Re-assert the collected view when the bank opens — AFTER the init
+	 *  script finishes (opening a tag mid-init forces an extra relayout;
+	 *  the apply is a no-op when our tag is already active). */
 	@net.runelite.client.eventbus.Subscribe
 	public void onScriptPreFired(net.runelite.api.events.ScriptPreFired event)
 	{
 		if (event.getScriptId() == net.runelite.api.ScriptID.BANKMAIN_INIT
-			&& !bankDisplay.isEmpty())
+			&& !bankDisplay.isEmpty() && clientThread != null)
 		{
-			collectView.apply(bankDisplay);
+			clientThread.invokeLater(() ->
+			{
+				if (!bankDisplay.isEmpty())
+				{
+					collectView.apply(bankDisplay);
+				}
+			});
 		}
 	}
 

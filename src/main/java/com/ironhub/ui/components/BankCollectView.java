@@ -62,6 +62,15 @@ public class BankCollectView
 			return;
 		}
 		int signature = itemIds.hashCode();
+		if (applied && signature == appliedSignature
+			&& tag.equals(bankTagsService.getActiveTag()))
+		{
+			// already showing exactly this — every openBankTag call forces a
+			// full bank relayout (bankSearch.reset), and Bank Tags itself
+			// keeps its active tag across bank rebuilds, so a redundant
+			// re-open is pure relayout churn (2026-07-18 bank-open freeze)
+			return;
+		}
 		if (!applied || signature != appliedSignature)
 		{
 			removeApplied();
