@@ -68,9 +68,23 @@ public class QolModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new QolTab(state, dataPack.load("qol", QolPack.class));
+			tab = new QolTab(state, dataPack.load("qol", QolPack.class), config.osrsTheme());
 		}
 		return tab;
+	}
+
+	/** A theme flip drops the tab; the host rebuilds it in the new clothes. */
+	@Override
+	public void onThemeChanged()
+	{
+		javax.swing.SwingUtilities.invokeLater(() ->
+		{
+			if (tab != null)
+			{
+				tab.dispose();
+				tab = null;
+			}
+		});
 	}
 
 	/** Owned > available (reqs met) > locked. Static for unit testing. */

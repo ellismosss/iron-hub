@@ -71,9 +71,23 @@ public class SuppliesRunwayModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new RunwayTab(state, itemManager, this);
+			tab = new RunwayTab(state, itemManager, this, config.osrsTheme());
 		}
 		return tab;
+	}
+
+	/** A theme flip re-clothes the tab: drop it, the next mount rebuilds. */
+	@Override
+	public void onThemeChanged()
+	{
+		javax.swing.SwingUtilities.invokeLater(() ->
+		{
+			if (tab != null)
+			{
+				tab.dispose();
+				tab = null;
+			}
+		});
 	}
 
 	int warningHours()

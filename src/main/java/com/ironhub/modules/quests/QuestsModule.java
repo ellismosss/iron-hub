@@ -61,8 +61,22 @@ public class QuestsModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new QuestsTab(state);
+			tab = new QuestsTab(state, config.osrsTheme());
 		}
 		return tab;
+	}
+
+	/** A theme flip re-clothes the tab: the next buildTab dresses it fresh. */
+	@Override
+	public void onThemeChanged()
+	{
+		javax.swing.SwingUtilities.invokeLater(() ->
+		{
+			if (tab != null)
+			{
+				tab.dispose();
+				tab = null;
+			}
+		});
 	}
 }

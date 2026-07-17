@@ -2,14 +2,18 @@ package com.ironhub.modules.quests;
 
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
-import com.ironhub.ui.components.ChipRow;
-import com.ironhub.ui.components.HubProgressBar;
-import com.ironhub.ui.components.IconButton;
-import com.ironhub.ui.components.ListRow;
-import com.ironhub.ui.components.SearchField;
-import com.ironhub.ui.components.SectionLabel;
+import com.ironhub.ui.osrs.OsrsLabel;
+import com.ironhub.ui.osrs.OsrsSkin;
+import com.ironhub.ui.osrs.OsrsTheme;
+import com.ironhub.ui.osrs.StoneChipRow;
+import com.ironhub.ui.osrs.StonePanel;
+import com.ironhub.ui.osrs.StoneProgressBar;
+import com.ironhub.ui.osrs.StoneTextField;
+import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -17,87 +21,80 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JLabel;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import net.runelite.api.Quest;
 import net.runelite.api.QuestState;
 import net.runelite.client.util.LinkBrowser;
 
 /**
- * Quests tab content: summary card (QP + completion bar), search, state
- * filter chips, and one shared list row per quest.
+ * Quests tab content in the OSRS stonework skin: summary card (QP +
+ * completion bar), search, state filter chips, and one flat quest-list row
+ * per quest — the game's own journal idiom (green done, orange in progress).
  */
 class QuestsTab extends JPanel
 {
 	static final String[] FILTERS = {"All", "Active", "Todo", "Done"};
 
 	private final AccountState state;
+	private final OsrsTheme theme;
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 
-	private final JLabel summary = new JLabel();
-	private final HubProgressBar bar = HubProgressBar.bar(0);
-	private final SearchField search = new SearchField("Search quests…");
-	private final ChipRow filters = new ChipRow(FILTERS);
+	private final StonePanel card;
+	private final StoneProgressBar bar;
+	private final StoneTextField search;
+	private final StoneChipRow filters;
 	private final JPanel list = new JPanel();
 
-	QuestsTab(AccountState state)
+	QuestsTab(AccountState state, OsrsTheme theme)
 	{
 		this.state = state;
+		this.theme = theme;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		setBackground(UiTokens.PANEL_BG);
-		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
+		setOpaque(true);
+		setBackground(theme.background);
+		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		JPanel card = new JPanel();
+		add(section("Quest points"));
+		card = new StonePanel(theme);
 		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setBackground(UiTokens.CARD_BG);
 		card.setAlignmentX(LEFT_ALIGNMENT);
-		card.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-			new EmptyBorder(UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP, UiTokens.ROW_GAP)));
-		SectionLabel label = new SectionLabel("Quest points");
-		card.add(label);
-		summary.setForeground(UiTokens.TEXT_PRIMARY);
-		summary.setFont(summary.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-		summary.setAlignmentX(LEFT_ALIGNMENT);
-		card.add(summary);
-		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		card.add(bar);
-		add(card);
-		add(Box.createVerticalStrut(UiTokens.PAD));
+		bar = new StoneProgressBar(theme, OsrsSkin.PROGRESS_BLUE, 0);
+		add(pad(card));
+		add(Box.createVerticalStrut(6));
 
-		add(search);
-		add(Box.createVerticalStrut(UiTokens.PAD));
-		add(filters);
-		add(Box.createVerticalStrut(UiTokens.PAD));
+		search = new StoneTextField(theme, "Search quests…");
+		add(pad(search));
+		add(Box.createVerticalStrut(4));
+		filters = new StoneChipRow(theme, true, FILTERS);
+		add(pad(filters));
+		add(Box.createVerticalStrut(4));
 
 		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
-		list.setBackground(UiTokens.PANEL_BG);
+		list.setOpaque(false);
 		list.setAlignmentX(LEFT_ALIGNMENT);
 		add(list);
 		add(Box.createVerticalGlue());
 
 		filters.onChange(i -> rebuild());
-		search.getDocument().addDocumentListener(new DocumentListener()
+		search.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
 		{
 			@Override
-			public void insertUpdate(DocumentEvent e)
+			public void insertUpdate(javax.swing.event.DocumentEvent e)
 			{
 				rebuild();
 			}
 
 			@Override
-			public void removeUpdate(DocumentEvent e)
+			public void removeUpdate(javax.swing.event.DocumentEvent e)
 			{
 				rebuild();
 			}
 
 			@Override
-			public void changedUpdate(DocumentEvent e)
+			public void changedUpdate(javax.swing.event.DocumentEvent e)
 			{
 				rebuild();
 			}
@@ -122,32 +119,90 @@ class QuestsTab extends JPanel
 		long done = Arrays.stream(Quest.values())
 			.filter(q -> state.getQuestState(q) == QuestState.FINISHED)
 			.count();
-		summary.setText(state.getQuestPoints() + " QP · " + done + "/" + Quest.values().length + " complete");
+		card.removeAll();
+		// OsrsLabel text is immutable — the card refills each rebuild
+		card.add(new OsrsLabel(state.getQuestPoints() + " QP · " + done + "/"
+			+ Quest.values().length + " complete", OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
+		card.add(Box.createVerticalStrut(3));
 		bar.setFraction((double) done / Quest.values().length);
+		bar.setAlignmentX(LEFT_ALIGNMENT);
+		card.add(bar);
+		cap(card);
 
 		list.removeAll();
 		for (Quest quest : quests)
 		{
 			list.add(row(quest));
-			list.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
-		list.revalidate();
-		list.repaint();
+		revalidate();
+		repaint();
 	}
 
-	private ListRow row(Quest quest)
+	/** A quest as a flat colour-coded row. The wiki stays behind its own
+	 *  compact W affordance — a whole-row click launching a browser is an
+	 *  interaction change, not a clothing swap. */
+	private JComponent row(Quest quest)
 	{
-		IconButton wiki = IconButton.wiki(() ->
-			LinkBrowser.browse("https://oldschool.runescape.wiki/w/" + quest.getName().replace(' ', '_')));
+		Color color;
 		switch (state.getQuestState(quest))
 		{
 			case FINISHED:
-				return ListRow.owned(quest.getName(), wiki);
+				color = OsrsSkin.VALUE;
+				break;
 			case IN_PROGRESS:
-				return ListRow.available(quest.getName(), wiki);
+				color = OsrsSkin.TITLE;
+				break;
 			default:
-				return ListRow.locked(quest.getName(), wiki);
+				color = OsrsSkin.MUTED;
+				break;
 		}
+
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(true);
+		row.setBackground(theme.background);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP));
+
+		OsrsLabel name = new OsrsLabel(quest.getName(), color, OsrsSkin.font())
+			.leftAligned().squeezable();
+		name.setToolTipText(quest.getName());
+		row.setToolTipText(quest.getName());
+		row.add(name);
+		row.add(Box.createHorizontalGlue());
+		row.add(wikiGlyph(quest.getName()));
+		cap(row);
+		return row;
+	}
+
+	/** A small W affordance in skin colours — faint until hovered. */
+	private static OsrsLabel wikiGlyph(String questName)
+	{
+		OsrsLabel glyph = new OsrsLabel("W", OsrsSkin.FAINT, OsrsSkin.font());
+		glyph.setToolTipText("Open the wiki page");
+		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		glyph.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				glyph.setColor(OsrsSkin.LABEL);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				glyph.setColor(OsrsSkin.FAINT);
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				LinkBrowser.browse("https://oldschool.runescape.wiki/w/"
+					+ questName.replace(' ', '_'));
+			}
+		});
+		return glyph;
 	}
 
 	/** Filter predicate — static for direct unit testing. */
@@ -169,6 +224,37 @@ class QuestsTab extends JPanel
 			default:
 				return true;
 		}
+	}
+
+	// ── layout helpers (the DailiesNewTab/FarmingTab grammar) ─────────
+
+	private JComponent section(String text)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new EmptyBorder(8, 4, 3, 4));
+		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font()));
+		row.add(Box.createHorizontalGlue());
+		cap(row);
+		return row;
+	}
+
+	private JComponent pad(JComponent inner)
+	{
+		JPanel holder = new JPanel(new java.awt.BorderLayout());
+		holder.setOpaque(false);
+		holder.setAlignmentX(LEFT_ALIGNMENT);
+		holder.setBorder(new EmptyBorder(0, 4, 0, 4));
+		holder.add(inner);
+		cap(holder);
+		return holder;
+	}
+
+	private static void cap(JComponent c)
+	{
+		c.setMaximumSize(new Dimension(Integer.MAX_VALUE, c.getPreferredSize().height));
 	}
 
 	@Override

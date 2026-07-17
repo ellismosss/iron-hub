@@ -68,9 +68,24 @@ public class ClueStashModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new CluesTab(state, dataPack.load("clue-items", ClueItemsPack.class));
+			tab = new CluesTab(state, dataPack.load("clue-items", ClueItemsPack.class),
+				config.osrsTheme());
 		}
 		return tab;
+	}
+
+	/** A theme flip drops the tab; the next buildTab re-clothes it. */
+	@Override
+	public void onThemeChanged()
+	{
+		javax.swing.SwingUtilities.invokeLater(() ->
+		{
+			if (tab != null)
+			{
+				tab.dispose();
+				tab = null;
+			}
+		});
 	}
 
 	static Requirement requirement(ClueItemsPack.Clue clue)

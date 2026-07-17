@@ -18,6 +18,7 @@ import static org.junit.Assert.assertTrue;
 public class RunwayTest
 {
 	private static final int SHARK = 385;
+	private static final int LOBSTER = 379;
 
 	@Rule
 	public TemporaryFolder temp = new TemporaryFolder();
@@ -26,22 +27,24 @@ public class RunwayTest
 	private AccountState stateWithSharkRate() throws Exception
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
-		StateFixture.inventory(state, Map.of(SHARK, 28));
+		StateFixture.inventory(state, Map.of(SHARK, 28, LOBSTER, 26));
 		StateFixture.checkpointSupplies(state);
-		StateFixture.inventory(state, Map.of(SHARK, 18)); // ate 10
+		StateFixture.inventory(state, Map.of(SHARK, 18, LOBSTER, 25)); // ate 10 sharks, 1 lobster
 		state.ingestLoot("Zulrah", Map.of(1, 1));
-		// backdate the first event by an hour so the span is meaningful
+		// backdate the first events by an hour so the span is meaningful
 		java.lang.reflect.Field f = AccountState.class.getDeclaredField("consumptionLog");
 		f.setAccessible(true);
 		java.util.List<?> log = (java.util.List<?>) f.get(state);
-		Object first = log.get(0);
-		java.lang.reflect.Field t = first.getClass().getDeclaredField("timeMs");
-		t.setAccessible(true);
-		t.setLong(first, t.getLong(first) - 3_600_000);
+		for (Object event : log)
+		{
+			java.lang.reflect.Field t = event.getClass().getDeclaredField("timeMs");
+			t.setAccessible(true);
+			t.setLong(event, t.getLong(event) - 3_600_000);
+		}
 
-		StateFixture.inventory(state, Map.of(SHARK, 8)); // ate 10 more
+		StateFixture.inventory(state, Map.of(SHARK, 8, LOBSTER, 24)); // ate 10 more, 1 more
 		state.ingestLoot("Zulrah", Map.of(1, 1));
-		StateFixture.bank(state, Map.of(SHARK, 100)); // stock
+		StateFixture.bank(state, Map.of(SHARK, 100, LOBSTER, 5000)); // stock; lobsters plentiful
 		return state;
 	}
 
@@ -80,7 +83,7 @@ public class RunwayTest
 	public void tabRendersHeadless() throws Exception
 	{
 		AccountState state = stateWithSharkRate();
-		StateFixture.itemNames(state, Map.of(SHARK, "Shark"));
+		StateFixture.itemNames(state, Map.of(SHARK, "Shark", LOBSTER, "Lobster"));
 		SuppliesRunwayModule module = new SuppliesRunwayModule(state, null, new IronHubConfig()
 		{
 		});
