@@ -124,12 +124,30 @@ public class OsrsLabel extends JComponent
 		int top = (getHeight() - (LINE_PITCH * lines.length + DESCENT)) / 2;
 		for (int i = 0; i < lines.length; i++)
 		{
-			int x = leftAligned ? 0 : (getWidth() - fm.stringWidth(lines[i])) / 2;
+			// a line wider than the assigned width ellipsizes at paint time —
+			// hard-clipped glyphs read as broken, and only paint knows the
+			// real width (a hub-hosted tab is narrower than the 225px panel)
+			String line = lines[i];
+			if (fm.stringWidth(line) + 1 > getWidth())
+			{
+				line = ellipsize(line, fm, getWidth() - 1);
+			}
+			int x = leftAligned ? 0 : Math.max(0, (getWidth() - fm.stringWidth(line)) / 2);
 			int y = top + BASELINE + LINE_PITCH * i;
 			g2.setColor(OsrsSkin.TEXT_SHADOW);
-			g2.drawString(lines[i], x + 1, y + 1);
+			g2.drawString(line, x + 1, y + 1);
 			g2.setColor(color);
-			g2.drawString(lines[i], x, y);
+			g2.drawString(line, x, y);
 		}
+	}
+
+	private static String ellipsize(String text, FontMetrics fm, int width)
+	{
+		String out = text;
+		while (out.length() > 1 && fm.stringWidth(out + "…") > width)
+		{
+			out = out.substring(0, out.length() - 1);
+		}
+		return out + "…";
 	}
 }

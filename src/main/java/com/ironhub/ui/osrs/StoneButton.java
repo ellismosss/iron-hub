@@ -20,6 +20,7 @@ import javax.swing.BoxLayout;
 public class StoneButton extends StonePanel
 {
 	private final Runnable onClick;
+	private final OsrsLabel label;
 	private boolean hover;
 	private boolean pressed;
 
@@ -35,7 +36,8 @@ public class StoneButton extends StonePanel
 		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 		setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		add(Box.createHorizontalGlue());
-		add(OsrsLabel.label(text));
+		label = OsrsLabel.label(text);
+		add(label);
 		add(Box.createHorizontalGlue());
 
 		addMouseListener(new MouseAdapter()
@@ -75,6 +77,13 @@ public class StoneButton extends StonePanel
 				repaintFill();
 			}
 		});
+	}
+
+	/** Recolour the button's text (e.g. green = saved) — chainable. */
+	public StoneButton labelColor(Color color)
+	{
+		label.setColor(color);
+		return this;
 	}
 
 	/** Test seam: the fill a given pointer state paints. */

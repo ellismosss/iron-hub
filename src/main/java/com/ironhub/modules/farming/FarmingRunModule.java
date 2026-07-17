@@ -314,7 +314,7 @@ public class FarmingRunModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new FarmingTab(state, this, itemManager);
+			tab = new FarmingTab(state, this, itemManager, config.osrsTheme());
 		}
 		return tab;
 	}
@@ -351,6 +351,20 @@ public class FarmingRunModule implements IronHubModule
 		if (TimeTrackingConfig.CONFIG_GROUP.equals(event.getGroup()))
 		{
 			trackingDirty = true;
+		}
+		// a theme flip re-clothes the tab: drop it and the panel's next mount
+		// builds a fresh one in the new theme (IronHubPanel.themeChanged has
+		// already closed the open block, so nothing stale stays visible)
+		if (IronHubConfig.GROUP.equals(event.getGroup()) && "osrsTheme".equals(event.getKey()))
+		{
+			SwingUtilities.invokeLater(() ->
+			{
+				if (tab != null)
+				{
+					tab.dispose();
+					tab = null;
+				}
+			});
 		}
 	}
 

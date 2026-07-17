@@ -5,17 +5,24 @@ import com.ironhub.modules.farming.rl.Tab;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.Format;
 import com.ironhub.ui.UiTokens;
-import com.ironhub.ui.components.IconButton;
-import com.ironhub.ui.components.ListRow;
 import com.ironhub.ui.components.PaintedIcon;
-import com.ironhub.ui.components.SearchField;
-import com.ironhub.ui.components.SectionLabel;
 import com.ironhub.ui.components.SpriteCache;
+import com.ironhub.ui.osrs.OsrsLabel;
+import com.ironhub.ui.osrs.OsrsSkin;
+import com.ironhub.ui.osrs.OsrsTheme;
+import com.ironhub.ui.osrs.StoneBorder;
+import com.ironhub.ui.osrs.StoneButton;
+import com.ironhub.ui.osrs.StoneCheckbox;
+import com.ironhub.ui.osrs.StoneChecklist;
+import com.ironhub.ui.osrs.StoneComboBoxUI;
+import com.ironhub.ui.osrs.StonePanel;
+import com.ironhub.ui.osrs.StoneTextField;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.Instant;
@@ -25,67 +32,73 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.TreeMap;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import net.runelite.client.plugins.timetracking.SummaryState;
 
 /**
- * Farming tab content (frame 2e): a Time Tracking-style patch overview
- * (every category with data, bird houses, the farming contract), then the
+ * Farming tab content in the OSRS stonework skin (design/OSRS-SKIN.md): a
+ * Time Tracking-style patch overview (every category with data), then the
  * run planner — built-in template runs, saved custom runs, a compact run
  * builder, and the live stop checklist while a run is active. Teleports
  * are auto-picked from what the player owns; each stop row's tooltip
  * carries the teleport, missing items and live patch states.
+ *
+ * <p>FRAMELESS and title-less: the host (the Dailies hub) provides the stone
+ * frame and the header plate. The per-patch rows inside the overview stay
+ * RuneLite's own TimeablePanel with ColorScheme colours — the sanctioned
+ * Time Tracking clone Luke walked to the pixel; only the chrome around them
+ * wears the skin.
  */
 class FarmingTab extends JPanel
 {
 	private final AccountState state;
 	private final FarmingRunModule module;
 	private final net.runelite.client.game.ItemManager itemManager; // null in headless tests
+	private final OsrsTheme theme;
 	private final SpriteCache sprites;
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
 	/** The one category expanded under the overview tile strip (null = none). */
 	private Tab expandedOverview;
 
 	private final JPanel topBar = new JPanel();
-	private final JLabel stats = new JLabel();
+	private final JPanel statsHolder = new JPanel();
 	private final JPanel xpStats = new JPanel();
 	private final JPanel overview = new JPanel();
 	private final JPanel runs = new JPanel();
-	private final JLabel teleportHeader = new JLabel("Teleport preferences");
+	private final JLabel teleportTriangle = triangle();
 	private final JPanel teleportPanel = new JPanel();
 	private boolean teleportsOpen;
-	// "Configure gear & inventory" is the ask, but the letter-spaced header
-	// clips past 225 px — the tooltip carries the longer intent
-	private final JLabel setupHeader = new JLabel("Gear & inventory");
+	// "Configure gear & inventory" is the ask, but it clips past 225 px —
+	// the tooltip carries the longer intent
+	private final JLabel setupTriangle = triangle();
 	private final JPanel setupPanel = new JPanel();
 	private boolean setupsOpen;
 
 	// run builder state
 	private boolean builderOpen;
-	private final JTextField builderName = new SearchField("Run name…");
+	private final StoneTextField builderName;
 	private final Set<String> builderSelection = new LinkedHashSet<>();
 
-	FarmingTab(AccountState state, FarmingRunModule module, net.runelite.client.game.ItemManager itemManager)
+	FarmingTab(AccountState state, FarmingRunModule module,
+		net.runelite.client.game.ItemManager itemManager, OsrsTheme theme)
 	{
 		this.state = state;
 		this.module = module;
 		this.itemManager = itemManager;
+		this.theme = theme;
 		this.sprites = new SpriteCache(itemManager, this::rebuild);
+		this.builderName = new StoneTextField(theme, "Run name…");
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		setBackground(UiTokens.PANEL_BG);
-		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
+		setOpaque(true);
+		setBackground(theme.background);
+		setBorder(new EmptyBorder(4, 4, 4, 4));
 
 		// The active-run cockpit lives at the very top so End run is the
 		// first thing you see during a run, not buried under the overview.
@@ -94,20 +107,17 @@ class FarmingTab extends JPanel
 		topBar.setAlignmentX(LEFT_ALIGNMENT);
 		add(topBar);
 
-		add(new SectionLabel("Patch overview"));
-		add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+		add(section("Patch overview"));
 		overview.setLayout(new BoxLayout(overview, BoxLayout.Y_AXIS));
 		overview.setOpaque(false);
 		overview.setAlignmentX(LEFT_ALIGNMENT);
 		add(overview);
-		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 
-		add(new SectionLabel("Runs"));
-		add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		stats.setForeground(UiTokens.TEXT_FAINT);
-		stats.setFont(stats.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_LABEL));
-		stats.setAlignmentX(LEFT_ALIGNMENT);
-		add(stats);
+		add(section("Runs"));
+		statsHolder.setLayout(new BoxLayout(statsHolder, BoxLayout.Y_AXIS));
+		statsHolder.setOpaque(false);
+		statsHolder.setAlignmentX(LEFT_ALIGNMENT);
+		add(statsHolder);
 		add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 		xpStats.setLayout(new BoxLayout(xpStats, BoxLayout.Y_AXIS));
 		xpStats.setOpaque(false);
@@ -118,14 +128,67 @@ class FarmingTab extends JPanel
 		runs.setAlignmentX(LEFT_ALIGNMENT);
 		add(runs);
 
-		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 		add(buildTeleportSection());
-		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 		add(buildSetupSection());
 		add(Box.createVerticalGlue());
 
 		state.addListener(listener);
 		rebuild();
+	}
+
+	/** Section header in the skin grammar (the DailiesNewTab pattern). */
+	private JComponent section(String text)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new EmptyBorder(8, 4, 3, 4));
+		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font()));
+		row.add(Box.createHorizontalGlue());
+		cap(row);
+		return row;
+	}
+
+	private static JLabel triangle()
+	{
+		JLabel label = new JLabel(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+		label.setForeground(OsrsSkin.MUTED);
+		return label;
+	}
+
+	/** Collapsible section header: triangle + skin label, whole row toggles. */
+	private JComponent collapsibleHeader(JLabel triangleLabel, String title, String tooltip,
+		Runnable onToggle)
+	{
+		JPanel header = new JPanel();
+		header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
+		header.setOpaque(false);
+		header.setAlignmentX(LEFT_ALIGNMENT);
+		header.setBorder(new EmptyBorder(8, 4, 3, 4));
+		header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		OsrsLabel label = new OsrsLabel(title, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned();
+		header.add(triangleLabel);
+		header.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		header.add(label);
+		header.add(Box.createHorizontalGlue());
+		cap(header);
+		MouseAdapter press = new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				onToggle.run();
+			}
+		};
+		header.addMouseListener(press);
+		// a tooltip registers the label's own mouse listeners, which would
+		// swallow the row's — so the children carry the press listener too
+		header.setToolTipText(tooltip);
+		label.setToolTipText(tooltip);
+		label.addMouseListener(press);
+		triangleLabel.addMouseListener(press);
+		return header;
 	}
 
 	/** Collapsible "Teleport preferences": choose the teleport used to reach
@@ -137,33 +200,20 @@ class FarmingTab extends JPanel
 		section.setOpaque(false);
 		section.setAlignmentX(LEFT_ALIGNMENT);
 
-		teleportHeader.setForeground(UiTokens.TEXT_MUTED);
-		teleportHeader.setFont(SectionLabel.letterSpaced(
-			teleportHeader.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LABEL),
-			UiTokens.LETTER_SPACING_LABEL));
-		teleportHeader.setIcon(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
-		teleportHeader.setIconTextGap(UiTokens.ROW_GAP);
-		teleportHeader.setAlignmentX(LEFT_ALIGNMENT);
-		teleportHeader.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		teleportHeader.setToolTipText("Pick the teleport used to reach each patch");
-		teleportHeader.addMouseListener(new MouseAdapter()
+		section.add(collapsibleHeader(teleportTriangle, "Teleport preferences",
+			"Pick the teleport used to reach each patch", () ->
 		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				teleportsOpen = !teleportsOpen;
-				teleportHeader.setIcon(new PaintedIcon(teleportsOpen
-					? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
-				teleportPanel.setVisible(teleportsOpen);
-				rebuildTeleports();
-			}
-		});
-		section.add(teleportHeader);
+			teleportsOpen = !teleportsOpen;
+			teleportTriangle.setIcon(new PaintedIcon(teleportsOpen
+				? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+			teleportPanel.setVisible(teleportsOpen);
+			rebuildTeleports();
+		}));
 
 		teleportPanel.setLayout(new BoxLayout(teleportPanel, BoxLayout.Y_AXIS));
 		teleportPanel.setOpaque(false);
 		teleportPanel.setAlignmentX(LEFT_ALIGNMENT);
-		teleportPanel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
+		teleportPanel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 4, 0, 4));
 		teleportPanel.setVisible(false);
 		section.add(teleportPanel);
 		return section;
@@ -204,17 +254,17 @@ class FarmingTab extends JPanel
 		JPanel row = new JPanel(new BorderLayout(UiTokens.ROW_GAP, 0));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
 
-		JLabel name = new JLabel(rep.name);
-		name.setForeground(UiTokens.TEXT_BODY);
-		name.setFont(name.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
-		name.setPreferredSize(new Dimension(82, UiTokens.BUTTON_HEIGHT));
+		JPanel nameHolder = new JPanel(new BorderLayout());
+		nameHolder.setOpaque(false);
+		nameHolder.setPreferredSize(new Dimension(82, 22));
+		OsrsLabel name = new OsrsLabel(rep.name, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned();
 		name.setToolTipText(rep.name);
-		row.add(name, BorderLayout.WEST);
+		nameHolder.add(name, BorderLayout.CENTER);
+		row.add(nameHolder, BorderLayout.WEST);
 
-		JComboBox<String> combo = new JComboBox<>();
-		combo.setFont(combo.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
+		JComboBox<String> combo = StoneComboBoxUI.skin(new JComboBox<>(), theme);
 		combo.addItem("Auto");
 		for (FarmRunsPack.Teleport teleport : rep.teleports)
 		{
@@ -268,11 +318,11 @@ class FarmingTab extends JPanel
 	}
 
 	/**
-	 * Collapsible "Configure gear & inventory": one button per run type
-	 * (Trees / Herbs / Birdhouses / Others) that snapshots the player's
-	 * current gear + inventory as that type's bank setup. During a run of
-	 * that type the bank lays the setup out (a run's own saved setup, made
-	 * from the active-run view, still wins).
+	 * Collapsible "Gear & inventory": one button per run type (Trees / Herbs /
+	 * Birdhouses / Others) that snapshots the player's current gear +
+	 * inventory as that type's bank setup. During a run of that type the bank
+	 * lays the setup out (a run's own saved setup, made from the active-run
+	 * view, still wins).
 	 */
 	private JPanel buildSetupSection()
 	{
@@ -281,34 +331,20 @@ class FarmingTab extends JPanel
 		section.setOpaque(false);
 		section.setAlignmentX(LEFT_ALIGNMENT);
 
-		setupHeader.setForeground(UiTokens.TEXT_MUTED);
-		setupHeader.setFont(SectionLabel.letterSpaced(
-			setupHeader.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LABEL),
-			UiTokens.LETTER_SPACING_LABEL));
-		setupHeader.setIcon(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
-		setupHeader.setIconTextGap(UiTokens.ROW_GAP);
-		setupHeader.setAlignmentX(LEFT_ALIGNMENT);
-		setupHeader.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		setupHeader.setToolTipText("Save your current gear + inventory as the bank "
-			+ "setup for each type of run");
-		setupHeader.addMouseListener(new MouseAdapter()
+		section.add(collapsibleHeader(setupTriangle, "Gear & inventory",
+			"Save your current gear + inventory as the bank setup for each type of run", () ->
 		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				setupsOpen = !setupsOpen;
-				setupHeader.setIcon(new PaintedIcon(setupsOpen
-					? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
-				setupPanel.setVisible(setupsOpen);
-				rebuildSetups();
-			}
-		});
-		section.add(setupHeader);
+			setupsOpen = !setupsOpen;
+			setupTriangle.setIcon(new PaintedIcon(setupsOpen
+				? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+			setupPanel.setVisible(setupsOpen);
+			rebuildSetups();
+		}));
 
 		setupPanel.setLayout(new BoxLayout(setupPanel, BoxLayout.Y_AXIS));
 		setupPanel.setOpaque(false);
 		setupPanel.setAlignmentX(LEFT_ALIGNMENT);
-		setupPanel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
+		setupPanel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 4, 0, 4));
 		setupPanel.setVisible(false);
 		section.add(setupPanel);
 		return section;
@@ -319,21 +355,17 @@ class FarmingTab extends JPanel
 		setupPanel.removeAll();
 		if (setupsOpen)
 		{
-			// the width pin makes the html label report its true wrapped height
-			// (BoxLayout otherwise sizes it for one line and clips the rest)
-			setupPanel.add(hint("<div style='width:180px'>Wear and carry the loadout "
-				+ "you restock with, then click its run type. The bank shows it "
-				+ "during those runs.</div>", UiTokens.TEXT_FAINT));
+			setupPanel.add(hint("Wear and carry the loadout you restock with, "
+				+ "then click its run type. The bank shows it during those runs.",
+				OsrsSkin.FAINT));
 			JPanel grid = new JPanel(new java.awt.GridLayout(0, 2, UiTokens.PAD_TIGHT, UiTokens.PAD_TIGHT));
 			grid.setOpaque(false);
 			grid.setAlignmentX(LEFT_ALIGNMENT);
-			int rows = (FarmingRunModule.SETUP_BUCKETS.size() + 1) / 2;
-			grid.setMaximumSize(new Dimension(Integer.MAX_VALUE,
-				rows * (UiTokens.BUTTON_HEIGHT + UiTokens.PAD_TIGHT)));
 			for (String bucket : FarmingRunModule.SETUP_BUCKETS)
 			{
 				grid.add(setupButton(bucket));
 			}
+			grid.setMaximumSize(new Dimension(Integer.MAX_VALUE, grid.getPreferredSize().height));
 			setupPanel.add(grid);
 		}
 		setupPanel.revalidate();
@@ -344,38 +376,33 @@ class FarmingTab extends JPanel
 	 *  click on an already-green button otherwise looks like nothing happened. */
 	private String justSavedBucket;
 
-	/** One run type's capture button — green once a setup is saved, with the
-	 *  saved item count in the tooltip so an overwrite is verifiable. */
-	private JLabel setupButton(String bucket)
+	/** One run type's capture button — green text once a setup is saved, with
+	 *  the saved item count in the tooltip so an overwrite is verifiable. */
+	private JComponent setupButton(String bucket)
 	{
 		com.ironhub.state.PersistedState.SavedSetup existing =
 			state.getFarmRunSetup(FarmingRunModule.bucketKey(bucket));
 		boolean flash = bucket.equals(justSavedBucket);
-		JLabel button = secondaryButton(flash ? "Saved" : bucket);
+		StoneButton button = new StoneButton(theme, flash ? "Saved" : bucket, () ->
+		{
+			state.saveFarmRunSetup(FarmingRunModule.bucketKey(bucket), state.captureSetup());
+			justSavedBucket = bucket;
+			javax.swing.Timer restore = new javax.swing.Timer(1500, done ->
+			{
+				justSavedBucket = null;
+				rebuildSetups();
+			});
+			restore.setRepeats(false);
+			restore.start();
+		});
 		if (existing != null)
 		{
-			button.setForeground(net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR);
+			button.labelColor(OsrsSkin.VALUE);
 		}
 		button.setToolTipText(existing != null
 			? bucket + " setup saved · " + setupItemCount(existing)
 				+ " items — click to replace it with your current gear + inventory"
 			: "Save your current gear + inventory as the " + bucket + " setup");
-		button.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				state.saveFarmRunSetup(FarmingRunModule.bucketKey(bucket), state.captureSetup());
-				justSavedBucket = bucket;
-				javax.swing.Timer restore = new javax.swing.Timer(1500, done ->
-				{
-					justSavedBucket = null;
-					rebuildSetups();
-				});
-				restore.setRepeats(false);
-				restore.start();
-			}
-		});
 		return button;
 	}
 
@@ -423,14 +450,18 @@ class FarmingTab extends JPanel
 	void expandSetups()
 	{
 		setupsOpen = true;
-		setupHeader.setIcon(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_DOWN, 10));
+		setupTriangle.setIcon(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_DOWN, 10));
 		setupPanel.setVisible(true);
 		rebuildSetups();
 	}
 
 	void rebuild()
 	{
-		stats.setText(FarmingRunModule.statsLine(state.getHerbRunsMs()));
+		statsHolder.removeAll();
+		OsrsLabel stats = new OsrsLabel(FarmingRunModule.statsLine(state.getHerbRunsMs()),
+			OsrsSkin.FAINT, OsrsSkin.font()).leftAligned();
+		stats.setAlignmentX(LEFT_ALIGNMENT);
+		statsHolder.add(pad(stats));
 		rebuildTopBar();
 		rebuildOverview();
 		rebuildRuns();
@@ -471,9 +502,9 @@ class FarmingTab extends JPanel
 		int xp = state.getXp(apiSkill);
 		int level = net.runelite.api.Experience.getLevelForXp(xp);
 		int runs = FarmingRunModule.runsToNextLevel(avg, xp);
-		JPanel row = overviewRow(label, compactXp(avg) + " " + unit, UiTokens.TEXT_BODY);
+		JComponent row = overviewRow(label, compactXp(avg) + " " + unit);
 		row.setToolTipText(tooltip);
-		xpStats.add(row);
+		xpStats.add(pad(row));
 		xpStats.add(Box.createVerticalStrut(2));
 
 		// "Farming 76 in ~11 runs: Grow attas plants …" — the countdown and
@@ -487,12 +518,12 @@ class FarmingTab extends JPanel
 			{
 				text += ": " + unlocks.get(0) + (unlocks.size() > 1 ? " …" : "");
 			}
-			JLabel line = hint("<div style='width:180px'>" + text + "</div>", UiTokens.TEXT_FAINT);
+			JComponent line = hint(text, OsrsSkin.FAINT);
 			if (!unlocks.isEmpty())
 			{
 				line.setToolTipText("<html>" + String.join("<br>", unlocks) + "</html>");
 			}
-			xpStats.add(line);
+			xpStats.add(pad(line));
 		}
 	}
 
@@ -510,25 +541,19 @@ class FarmingTab extends JPanel
 		topBar.removeAll();
 		if (module.running())
 		{
-			JLabel end = primaryButton("End run");
-			end.setToolTipText("Stop " + module.runName() + " now (an abandoned run isn't logged)");
-			end.addMouseListener(new java.awt.event.MouseAdapter()
+			topBar.add(Box.createVerticalStrut(4));
+			StoneButton end = new StoneButton(theme, "End run", () ->
 			{
-				@Override
-				public void mousePressed(java.awt.event.MouseEvent e)
-				{
-					module.endRun(false);
-					rebuild();
-				}
+				module.endRun(false);
+				rebuild();
 			});
-			topBar.add(end);
-			topBar.add(Box.createVerticalStrut(2));
-			JLabel status = new JLabel(module.runName() + " · "
-				+ module.visitedCount() + "/" + module.stops().size() + " stops");
-			status.setForeground(UiTokens.TEXT_MUTED);
-			status.setFont(status.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-			status.setAlignmentX(LEFT_ALIGNMENT);
-			topBar.add(status);
+			end.setToolTipText("Stop " + module.runName() + " now (an abandoned run isn't logged)");
+			topBar.add(pad(end));
+			topBar.add(Box.createVerticalStrut(3));
+			OsrsLabel status = new OsrsLabel(module.runName() + " · "
+				+ module.visitedCount() + "/" + module.stops().size() + " stops",
+				OsrsSkin.MUTED, OsrsSkin.font()).leftAligned();
+			topBar.add(pad(status));
 			topBar.add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 		}
 		topBar.revalidate();
@@ -544,13 +569,13 @@ class FarmingTab extends JPanel
 
 		if (tracking == null || tracking.coreTrackingDisabled())
 		{
-			overview.add(hint("Enable the core Time Tracking plugin — Iron Hub "
-				+ "reads its patch data.", UiTokens.STATUS_AVAILABLE));
+			overview.add(pad(hint("Enable the core Time Tracking plugin — Iron Hub "
+				+ "reads its patch data.", OsrsSkin.TITLE)));
 		}
 		else if (!tracking.hasAnyData())
 		{
-			overview.add(hint("No tracking data yet. The Time Tracking plugin "
-				+ "records each patch as you visit it.", UiTokens.TEXT_FAINT));
+			overview.add(pad(hint("No tracking data yet. The Time Tracking plugin "
+				+ "records each patch as you visit it.", OsrsSkin.FAINT)));
 		}
 
 		if (tracking == null)
@@ -571,7 +596,7 @@ class FarmingTab extends JPanel
 		}
 		if (!byCategory.isEmpty())
 		{
-			overview.add(overviewTileStrip(byCategory, now));
+			overview.add(pad(overviewTileStrip(byCategory, now)));
 			overview.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 			for (java.util.Map.Entry<Tab, List<FarmingRunModule.OverviewPatch>> entry : byCategory.entrySet())
 			{
@@ -588,9 +613,9 @@ class FarmingTab extends JPanel
 					if (subLabels && patch.sourceTab != lastTab)
 					{
 						lastTab = patch.sourceTab;
-						overview.add(overviewSubLabel(patch.sourceTab.getName()));
+						overview.add(pad(overviewSubLabel(patch.sourceTab.getName())));
 					}
-					overview.add(overviewPatchPanel(patch, now));
+					overview.add(pad(overviewPatchPanel(patch, now)));
 					overview.add(Box.createVerticalStrut(2));
 				}
 				overview.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
@@ -623,7 +648,7 @@ class FarmingTab extends JPanel
 
 	/** A run's sprite, sized to sit inside a row. Blank (but still spaced) when
 	 *  we have no icon for it, so the names stay aligned. */
-	private JComponent runIcon(String name)
+	private JLabel runIcon(String name)
 	{
 		return spriteLabel(module.runIcon(name));
 	}
@@ -643,9 +668,9 @@ class FarmingTab extends JPanel
 	}
 
 	private static final int RUN_ICON = 18;
-	/** A checkbox at its natural width — pinning it to a hardcoded 16 px
-	 *  squashed the check icon (the LAF's box plus insets is wider). */
-	private static final int CHECK_WIDTH = new JCheckBox().getPreferredSize().width;
+	/** Run rows are 23 px: ODD, so the 15 px checkbox and the label's odd ink
+	 *  block both centre exactly (the skin's parity rule). */
+	private static final int RUN_ROW_HEIGHT = 23;
 	private static final int ARROWS_WIDTH = 11;
 
 	/** Grid of clickable category icon tiles — the Time Tracking tab strip. */
@@ -663,7 +688,7 @@ class FarmingTab extends JPanel
 		return strip;
 	}
 
-	/** One category tile: its icon, a green border when every patch is ready/
+	/** One category tile: its icon, a green bevel when every patch is ready/
 	 *  dead/empty, else an orange clockwise arc for progress toward the next
 	 *  ready patch. Click toggles the category's patch list. */
 	private JComponent overviewTile(Tab category, List<FarmingRunModule.OverviewPatch> patches, long now)
@@ -721,17 +746,25 @@ class FarmingTab extends JPanel
 	}
 
 	/** Sub-section label inside a merged tile (e.g. "Calquat Patches"). */
-	private JLabel overviewSubLabel(String name)
+	private JComponent overviewSubLabel(String name)
 	{
-		JLabel label = new JLabel(name);
-		label.setForeground(UiTokens.TEXT_MUTED);
-		label.setFont(label.getFont().deriveFont(UiTokens.FONT_SIZE_LABEL));
-		label.setAlignmentX(LEFT_ALIGNMENT);
-		label.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
-		return label;
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		row.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
+		row.add(new OsrsLabel(name, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+		row.add(Box.createHorizontalGlue());
+		cap(row);
+		return row;
 	}
 
-	/** Category tile with a status-coloured border/arc (see overviewTile). */
+	/**
+	 * Category tile with a status bevel/arc, in StoneTile's flat grammar:
+	 * engraved edge pair, green inner bevel when every patch is ready, an
+	 * orange perimeter arc for progress, recess fill while expanded. A
+	 * weeds-only tile paints no engraving at all — nothing planted, no status.
+	 */
 	private class OverviewTile extends JComponent
 	{
 		private java.awt.Image icon;
@@ -771,38 +804,32 @@ class FarmingTab extends JPanel
 		protected void paintComponent(java.awt.Graphics g)
 		{
 			java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
-			g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
-				java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
 			int w = getWidth();
 			int h = getHeight();
-			g2.setColor(expanded ? UiTokens.INSET_BG : UiTokens.ICON_BUTTON_BG);
-			g2.fillRect(0, 0, w, h);
+			java.awt.Color fill = expanded ? theme.recess : theme.boxFill;
+			if (onlyWeeds)
+			{
+				// nothing planted — a bare slab, no engraving of any kind
+				g2.setColor(fill);
+				g2.fillRect(0, 0, w, h);
+			}
+			else
+			{
+				OsrsSkin.outline(g2, theme.edgeDark, 0, 0, w, h);
+				OsrsSkin.outline(g2, ready ? OsrsSkin.VALUE.darker() : theme.edgeLight,
+					1, 1, w - 2, h - 2);
+				g2.setColor(fill);
+				g2.fillRect(2, 2, w - 4, h - 4);
+			}
 			if (icon != null)
 			{
 				g2.drawImage(icon, (w - 24) / 2, (h - 24) / 2, null);
 			}
-			if (onlyWeeds)
+			if (!onlyWeeds && !ready && progress > 0)
 			{
-				g2.dispose(); // nothing planted — no border of any kind
-				return;
-			}
-			if (ready)
-			{
-				g2.setColor(net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR.darker());
-				g2.setStroke(new java.awt.BasicStroke(1));
-				g2.drawRect(0, 0, w - 1, h - 1);
-			}
-			else
-			{
-				g2.setColor(UiTokens.BORDER_BUTTON);
-				g2.setStroke(new java.awt.BasicStroke(1));
-				g2.drawRect(0, 0, w - 1, h - 1);
-				if (progress > 0)
-				{
-					g2.setColor(net.runelite.client.ui.ColorScheme.PROGRESS_INPROGRESS_COLOR);
-					g2.setStroke(new java.awt.BasicStroke(2));
-					paintPerimeterProgress(g2, w, h, progress);
-				}
+				g2.setColor(OsrsSkin.TITLE.darker());
+				g2.setStroke(new java.awt.BasicStroke(2));
+				paintPerimeterProgress(g2, w, h, progress);
 			}
 			g2.dispose();
 		}
@@ -845,7 +872,8 @@ class FarmingTab extends JPanel
 	}
 
 	/** One patch line — the core plugin's TimeablePanel, coloured identically
-	 *  (progress bar = crop-state colour, "Done"/"Diseased"/… estimate text). */
+	 *  (progress bar = crop-state colour, "Done"/"Diseased"/… estimate text).
+	 *  The sanctioned Time Tracking clone: never restyle these rows. */
 	private JComponent overviewPatchPanel(FarmingRunModule.OverviewPatch patch, long now)
 	{
 		net.runelite.client.plugins.timetracking.TimeablePanel<String> panel =
@@ -912,37 +940,58 @@ class FarmingTab extends JPanel
 		}
 	}
 
-	private JPanel overviewRow(String name, String value, Color valueColor)
+	/** A label · value line in a stone box (the stat-row grammar). */
+	private JComponent overviewRow(String name, String value)
 	{
-		JPanel row = new JPanel();
+		StonePanel row = new StonePanel(theme);
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-		row.setBackground(UiTokens.CARD_BG);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-			new EmptyBorder(0, UiTokens.ROW_GAP, 0, UiTokens.ROW_GAP)));
-		row.setPreferredSize(new Dimension(0, UiTokens.ROW_HEIGHT_DENSE));
-		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT_DENSE));
-		JLabel label = new JLabel(name);
-		label.setForeground(UiTokens.TEXT_BODY);
-		label.setFont(label.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
-		label.setMinimumSize(new Dimension(0, 0));
-		row.add(label);
+		row.add(new OsrsLabel(name, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
 		row.add(Box.createHorizontalGlue());
-		JLabel status = new JLabel(value);
-		status.setForeground(valueColor);
-		status.setFont(status.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
-		row.add(status);
+		row.add(OsrsLabel.value(value));
+		cap(row);
 		return row;
 	}
 
-	private JLabel hint(String text, Color color)
+	/** The width hints wrap at: the panel minus the tab's side padding. */
+	private static final int HINT_WIDTH = UiTokens.PANEL_WIDTH - 20;
+
+	/** Wrapping secondary text as a multi-line OsrsLabel — html measurement
+	 *  and the pixel font disagree (lines lay out wider than they paint and
+	 *  clip mid-word), so the wrapping is done here with real FontMetrics. */
+	private JComponent hint(String text, Color color)
 	{
-		JLabel label = new JLabel("<html>" + text + "</html>");
-		label.setForeground(color);
-		label.setFont(label.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-		label.setAlignmentX(LEFT_ALIGNMENT);
-		label.setBorder(new EmptyBorder(0, 0, UiTokens.PAD_TIGHT, 0));
-		return label;
+		JPanel holder = new JPanel();
+		holder.setLayout(new BoxLayout(holder, BoxLayout.X_AXIS));
+		holder.setOpaque(false);
+		holder.setAlignmentX(LEFT_ALIGNMENT);
+		holder.setBorder(new EmptyBorder(0, 0, UiTokens.PAD_TIGHT, 0));
+		holder.add(new OsrsLabel(wrap(text, HINT_WIDTH), color, OsrsSkin.font()).leftAligned());
+		holder.add(Box.createHorizontalGlue());
+		cap(holder);
+		return holder;
+	}
+
+	/** Greedy word wrap at a pixel width in the game font. */
+	static String wrap(String text, int width)
+	{
+		FontMetrics fm = new JLabel().getFontMetrics(OsrsSkin.font());
+		StringBuilder out = new StringBuilder();
+		StringBuilder line = new StringBuilder();
+		for (String word : text.split(" "))
+		{
+			String candidate = line.length() == 0 ? word : line + " " + word;
+			if (fm.stringWidth(candidate) > width && line.length() > 0)
+			{
+				out.append(line).append('\n');
+				line = new StringBuilder(word);
+			}
+			else
+			{
+				line = new StringBuilder(candidate);
+			}
+		}
+		return out.append(line).toString();
 	}
 
 	// ── runs (templates, saved runs, builder, live checklist) ─────────
@@ -972,67 +1021,82 @@ class FarmingTab extends JPanel
 		if (!module.combinedRun())
 		{
 			boolean hasSetup = state.getFarmRunSetup(module.runName()) != null;
-			JLabel saveSetup = secondaryButton(
-				hasSetup ? "Update bank setup" : "Save gear + inventory as bank setup");
+			StoneButton saveSetup = new StoneButton(theme,
+				hasSetup ? "Update bank setup" : "Save gear + inventory as bank setup", () ->
+			{
+				state.saveFarmRunSetup(module.runName(), state.captureSetup());
+				rebuild();
+			});
 			saveSetup.setToolTipText("Snapshot your worn gear and inventory now; while this "
 				+ "run is active, opening the bank lays it out for you to re-stock fast");
-			saveSetup.addMouseListener(new java.awt.event.MouseAdapter()
-			{
-				@Override
-				public void mousePressed(java.awt.event.MouseEvent e)
-				{
-					state.saveFarmRunSetup(module.runName(), state.captureSetup());
-					rebuild();
-				}
-			});
-			runs.add(saveSetup);
+			runs.add(pad(saveSetup));
 			if (hasSetup)
 			{
-				JLabel clear = new JLabel("Clear setup");
-				clear.setForeground(UiTokens.TEXT_MUTED);
-				clear.setFont(clear.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+				OsrsLabel clear = new OsrsLabel("Clear setup", OsrsSkin.FAINT, OsrsSkin.font())
+					.leftAligned();
 				clear.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-				clear.setAlignmentX(LEFT_ALIGNMENT);
-				clear.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
-				clear.addMouseListener(new java.awt.event.MouseAdapter()
+				clear.addMouseListener(new MouseAdapter()
 				{
 					@Override
-					public void mousePressed(java.awt.event.MouseEvent e)
+					public void mousePressed(MouseEvent e)
 					{
 						state.saveFarmRunSetup(module.runName(), null);
 						rebuild();
 					}
 				});
-				runs.add(clear);
+				runs.add(Box.createVerticalStrut(3));
+				runs.add(pad(clear));
 			}
 			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
 
+		// the stop checklist, one stone box (the DailiesNewTab run grammar)
+		StonePanel list = new StonePanel(theme);
+		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
+		list.setAlignmentX(LEFT_ALIGNMENT);
 		FarmingRunModule.Stop next = module.nextStop();
 		for (FarmingRunModule.Stop stop : module.stops())
 		{
-			String label = module.stopLabel(stop);
-			ListRow row;
-			if (module.isVisited(stop.location.id))
-			{
-				row = ListRow.owned(label); // done — nothing to skip
-			}
-			else
-			{
-				String id = stop.location.id;
-				IconButton skip = IconButton.skip(() ->
-				{
-					module.markThrough(id); // skip this stop (and any before it)
-					rebuild();
-				});
-				row = (next != null && stop == next)
-					? ListRow.available(label, skip)
-					: ListRow.locked(label, skip);
-			}
-			row.setToolTipText(stopTooltip(stop));
-			runs.add(row);
-			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			list.add(stopRow(stop, next != null && stop == next));
 		}
+		cap(list);
+		runs.add(pad(list));
+	}
+
+	/** One run stop: name coloured by progress, Skip on what is still to do. */
+	private JComponent stopRow(FarmingRunModule.Stop stop, boolean isNext)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(isNext);
+		if (isNext)
+		{
+			row.setBackground(theme.selectFill);
+		}
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		boolean visited = module.isVisited(stop.location.id);
+		Color color = visited ? OsrsSkin.VALUE : isNext ? OsrsSkin.TITLE : OsrsSkin.MUTED;
+		OsrsLabel name = new OsrsLabel(module.stopLabel(stop), color, OsrsSkin.font()).leftAligned();
+		String tooltip = stopTooltip(stop);
+		name.setToolTipText(tooltip);
+		row.setToolTipText(tooltip);
+		row.add(name);
+		row.add(Box.createHorizontalGlue());
+		if (!visited)
+		{
+			String id = stop.location.id;
+			StoneButton skip = new StoneButton(theme, isNext ? theme.selectFill : theme.boxFill,
+				"Skip", () ->
+			{
+				module.markThrough(id); // skip this stop (and any before it)
+				rebuild();
+			});
+			skip.setToolTipText("Skip this stop (and any before it)");
+			skip.setMaximumSize(skip.getPreferredSize());
+			row.add(skip);
+		}
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+		return row;
 	}
 
 	/** "Explorers ring · Missing: Law rune · Herb ready" for a stop row. */
@@ -1058,48 +1122,52 @@ class FarmingTab extends JPanel
 	private void buildRunPicker()
 	{
 		int stops = module.selectedRunStops();
-		JLabel startAll = primaryButton(stops > 0
-			? "Start all runs · " + stops + " stops" : "Nothing to run");
 		if (stops > 0)
 		{
+			StoneButton startAll = new StoneButton(theme,
+				"Start all runs · " + stops + " stops", module::startAllRuns);
 			startAll.setToolTipText("Every ticked run, as one sequence, trimmed to "
 				+ "the stops worth doing right now");
-			startAll.addMouseListener(new java.awt.event.MouseAdapter()
-			{
-				@Override
-				public void mousePressed(java.awt.event.MouseEvent e)
-				{
-					module.startAllRuns();
-				}
-			});
+			runs.add(pad(startAll));
 		}
 		else
 		{
-			startAll.setBackground(UiTokens.ICON_BUTTON_BG);
-			startAll.setForeground(UiTokens.TEXT_MUTED);
-			startAll.setBorder(new LineBorder(UiTokens.BORDER_BUTTON));
-			startAll.setCursor(Cursor.getDefaultCursor());
-			startAll.setToolTipText("Nothing ticked is worth a trip right now");
+			// nothing to do is a real state — a dead button would lie
+			StonePanel none = new StonePanel(theme);
+			none.setLayout(new BoxLayout(none, BoxLayout.X_AXIS));
+			none.setAlignmentX(LEFT_ALIGNMENT);
+			none.add(Box.createHorizontalGlue());
+			none.add(new OsrsLabel("Nothing to run", OsrsSkin.FAINT, OsrsSkin.font()));
+			none.add(Box.createHorizontalGlue());
+			none.setToolTipText("Nothing ticked is worth a trip right now");
+			cap(none);
+			runs.add(pad(none));
 		}
-		runs.add(startAll);
 		// what the ticked runs are short on — compost, seeds, saplings — so a
 		// shortage is a warning you read, never a stop that silently vanishes
 		for (String warning : module.supplyWarnings())
 		{
 			runs.add(Box.createVerticalStrut(2));
-			JLabel line = hint("<div style='width:180px'>" + warning + "</div>",
-				UiTokens.STATUS_WARNING);
+			JComponent line = hint(warning, UiTokens.STATUS_WARNING);
 			line.setToolTipText("The ticked runs need more than you own "
 				+ "(bank + inventory + worn)");
-			runs.add(line);
+			runs.add(pad(line));
 		}
 		runs.add(Box.createVerticalStrut(UiTokens.PAD));
 
-		// picker order = the order "start all" walks (ready first, then the pack's)
+		// picker order = the order "start all" walks (ready first, then the
+		// pack's); the rows sit inside one notched frame, checklist-style
+		StonePanel group = new StonePanel(theme);
+		group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
+		group.setAlignmentX(LEFT_ALIGNMENT);
+		int corner = theme.cornerStamp.length;
+		group.setBorder(new StoneBorder(theme, theme.background,
+			new Insets(corner, corner, corner, corner)));
 		java.util.Set<String> custom = state.getFarmRuns().keySet();
 		for (String name : module.pickerOrder())
 		{
-			runs.add(runRow(name, () -> {
+			group.add(new RunRow(name, () ->
+			{
 				if (custom.contains(name))
 				{
 					module.startCustom(name);
@@ -1109,29 +1177,23 @@ class FarmingTab extends JPanel
 					module.startTemplate(name);
 				}
 			}, custom.contains(name) ? () -> state.deleteFarmRun(name) : null));
-			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
+		cap(group);
+		runs.add(pad(group));
+		runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 
-		JLabel newRun = new JLabel(builderOpen ? "Cancel new run" : "New custom run…");
-		newRun.setForeground(UiTokens.ACCENT);
-		newRun.setFont(newRun.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-		newRun.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		newRun.setAlignmentX(LEFT_ALIGNMENT);
-		newRun.addMouseListener(new java.awt.event.MouseAdapter()
+		StoneButton newRun = new StoneButton(theme,
+			builderOpen ? "Cancel new run" : "New custom run…", () ->
 		{
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
+			builderOpen = !builderOpen;
+			if (!builderOpen)
 			{
-				builderOpen = !builderOpen;
-				if (!builderOpen)
-				{
-					builderSelection.clear();
-					builderName.setText("");
-				}
-				rebuildRuns();
+				builderSelection.clear();
+				builderName.setText("");
 			}
+			rebuildRuns();
 		});
-		runs.add(newRun);
+		runs.add(pad(newRun));
 		if (builderOpen)
 		{
 			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
@@ -1139,80 +1201,155 @@ class FarmingTab extends JPanel
 		}
 	}
 
-	/** A run row: name + stop count, click to start, optional delete. */
 	/**
-	 * One run: its icon, its name (green when there is something waiting), and
-	 * "Ready" — or nothing at all, because a run with no work is better said
-	 * with silence than with a stop count nobody reads.
+	 * One run in the picker: reorder arrows, an include checkbox, its icon,
+	 * its name (green when there is something waiting), and "Ready" — or
+	 * nothing at all, because a run with no work is better said with silence
+	 * than with a stop count nobody reads. Click anywhere else starts it.
+	 * Laid out by hand (the StoneChecklist.Row precedent): the row must
+	 * centre the 15 px box and the odd-height ink block in the same height.
 	 */
-	private JPanel runRow(String name, Runnable start, Runnable delete)
+	private class RunRow extends JPanel
 	{
-		// selected but covered by a bigger ticked run (All trees over Tree run):
-		// greyed out of the combined sequence until the big run is unticked —
-		// derived, so the small run's own choice survives untouched.
-		String supersededBy = module.supersededBy(name);
-		boolean selected = module.runSelected(name) && supersededBy == null;
-		boolean ready = module.runReady(name) && selected;
-		JPanel row = new JPanel();
-		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-		row.setBackground(UiTokens.CARD_BG);
-		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setBorder(new CompoundBorder(new LineBorder(UiTokens.BORDER_ROW),
-			new EmptyBorder(0, UiTokens.ROW_GAP, 0, UiTokens.ROW_GAP)));
-		row.setPreferredSize(new Dimension(0, UiTokens.ROW_HEIGHT));
-		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ROW_HEIGHT));
-		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		private final StoneCheckbox box;
+		private final JComponent arrows;
+		private final JLabel icon;
+		private final OsrsLabel name;
+		private final OsrsLabel ready; // null when the run has no work waiting
+		private final JLabel delete;   // null for template runs
 
-		row.add(reorderArrows(name));
-		JCheckBox include = new JCheckBox("", selected);
-		include.setOpaque(false);
-		include.setEnabled(supersededBy == null);
-		include.setToolTipText(supersededBy != null
-			? "Covered by " + supersededBy : "Include in Start all runs");
-		include.setBorder(new EmptyBorder(0, 0, 0, 0));
-		include.setPreferredSize(new Dimension(CHECK_WIDTH, UiTokens.ROW_HEIGHT));
-		include.setMaximumSize(new Dimension(CHECK_WIDTH, UiTokens.ROW_HEIGHT));
-		include.addActionListener(e -> state.setFarmRunSelected(name, include.isSelected()));
-		row.add(include);
-		row.add(runIcon(name));
-		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		JLabel label = new JLabel(name);
-		label.setForeground(supersededBy != null ? UiTokens.TEXT_FAINT
-			: ready ? net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR
-			: UiTokens.TEXT_PRIMARY);
-		label.setFont(label.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_BODY));
-		label.setMinimumSize(new Dimension(0, 0));
-		row.add(label);
-		row.add(Box.createHorizontalGlue());
-		if (ready)
+		RunRow(String runName, Runnable start, Runnable onDelete)
 		{
-			JLabel readyLabel = new JLabel("Ready");
-			readyLabel.setForeground(net.runelite.client.ui.ColorScheme.PROGRESS_COMPLETE_COLOR);
-			readyLabel.setFont(readyLabel.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-			row.add(readyLabel);
-		}
-		if (delete != null)
-		{
-			row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-			row.add(new IconButton("×", "Delete this run", () ->
+			// selected but covered by a bigger ticked run (All trees over Tree
+			// run): greyed out of the combined sequence until the big run is
+			// unticked — derived, so the small run's own choice survives.
+			String supersededBy = module.supersededBy(runName);
+			boolean selected = module.runSelected(runName) && supersededBy == null;
+			boolean isReady = module.runReady(runName) && selected;
+
+			setLayout(null);
+			setOpaque(true);
+			setBackground(theme.boxFill);
+			setAlignmentX(LEFT_ALIGNMENT);
+			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+			arrows = reorderArrows(runName);
+			add(arrows);
+			box = new StoneCheckbox(theme, selected);
+			box.setToolTipText(supersededBy != null
+				? "Covered by " + supersededBy : "Include in Start all runs");
+			if (supersededBy == null)
 			{
-				delete.run();
-				rebuild();
-			}));
-		}
-		row.addMouseListener(new java.awt.event.MouseAdapter()
-		{
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
-			{
-				if (SwingUtilities.isLeftMouseButton(e))
+				box.addMouseListener(new MouseAdapter()
 				{
-					start.run();
-					rebuild();
-				}
+					@Override
+					public void mousePressed(MouseEvent e)
+					{
+						box.setChecked(!box.isChecked());
+						state.setFarmRunSelected(runName, box.isChecked());
+					}
+				});
 			}
-		});
-		return row;
+			add(box);
+			icon = runIcon(runName);
+			add(icon);
+			ready = isReady ? new OsrsLabel("Ready", OsrsSkin.VALUE, OsrsSkin.font()) : null;
+			if (ready != null)
+			{
+				add(ready);
+			}
+			delete = onDelete == null ? null : deleteGlyph(() ->
+			{
+				onDelete.run();
+				rebuild();
+			});
+			if (delete != null)
+			{
+				add(delete);
+			}
+			// OsrsLabel ellipsizes at paint time when the row runs short of
+			// room; the row's tooltip carries the full name (dailies parity)
+			name = new OsrsLabel(runName,
+				supersededBy != null ? OsrsSkin.FAINT
+					: isReady ? OsrsSkin.VALUE : OsrsSkin.MUTED,
+				OsrsSkin.font()).leftAligned();
+			add(name);
+			setToolTipText(runName);
+
+			MouseAdapter clicks = new MouseAdapter()
+			{
+				@Override
+				public void mouseEntered(MouseEvent e)
+				{
+					setBackground(theme.hoverFill);
+					repaint();
+				}
+
+				@Override
+				public void mouseExited(MouseEvent e)
+				{
+					setBackground(theme.boxFill);
+					repaint();
+				}
+
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					if (SwingUtilities.isLeftMouseButton(e))
+					{
+						start.run();
+						rebuild();
+					}
+				}
+			};
+			addMouseListener(clicks);
+			// the name has no tooltip, so clicks on it fall through to the row
+		}
+
+		@Override
+		public void doLayout()
+		{
+			int h = getHeight();
+			arrows.setBounds(1, 0, ARROWS_WIDTH, h);
+			Dimension bp = box.getPreferredSize();
+			int x = 1 + ARROWS_WIDTH + 3;
+			box.setBounds(x, (h - bp.height) / 2, bp.width, bp.height);
+			x += bp.width + 6;
+			icon.setBounds(x, (h - RUN_ICON) / 2, RUN_ICON, RUN_ICON);
+			x += RUN_ICON + 4;
+			int right = getWidth() - 4;
+			if (delete != null)
+			{
+				Dimension dp = delete.getPreferredSize();
+				delete.setBounds(right - dp.width, 0, dp.width, h);
+				right -= dp.width + 6;
+			}
+			if (ready != null)
+			{
+				Dimension rp = ready.getPreferredSize();
+				ready.setBounds(right - rp.width, 0, rp.width, h);
+				right -= rp.width + 6;
+			}
+			name.setBounds(x, 0, Math.max(0, right - x), h);
+		}
+
+		@Override
+		public Dimension getPreferredSize()
+		{
+			return new Dimension(0, RUN_ROW_HEIGHT);
+		}
+
+		@Override
+		public Dimension getMinimumSize()
+		{
+			return getPreferredSize();
+		}
+
+		@Override
+		public Dimension getMaximumSize()
+		{
+			return new Dimension(Integer.MAX_VALUE, RUN_ROW_HEIGHT);
+		}
 	}
 
 	/** Two stacked triangles left of a run's checkbox: move it up/down the
@@ -1222,9 +1359,6 @@ class FarmingTab extends JPanel
 		JPanel column = new JPanel();
 		column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
 		column.setOpaque(false);
-		Dimension size = new Dimension(ARROWS_WIDTH, UiTokens.ROW_HEIGHT);
-		column.setPreferredSize(size);
-		column.setMaximumSize(size);
 		column.add(Box.createVerticalGlue());
 		column.add(arrow(PaintedIcon.Shape.TRIANGLE_UP, "Move up", () -> module.moveRun(name, -1)));
 		column.add(arrow(PaintedIcon.Shape.TRIANGLE_DOWN, "Move down", () -> module.moveRun(name, 1)));
@@ -1235,7 +1369,7 @@ class FarmingTab extends JPanel
 	private JLabel arrow(PaintedIcon.Shape shape, String tooltip, Runnable onClick)
 	{
 		JLabel arrow = new JLabel(new PaintedIcon(shape, 9));
-		arrow.setForeground(UiTokens.GLYPH_MUTED);
+		arrow.setForeground(OsrsSkin.FAINT);
 		arrow.setToolTipText(tooltip);
 		arrow.setAlignmentX(LEFT_ALIGNMENT);
 		arrow.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -1244,13 +1378,13 @@ class FarmingTab extends JPanel
 			@Override
 			public void mouseEntered(MouseEvent e)
 			{
-				arrow.setForeground(UiTokens.ACCENT);
+				arrow.setForeground(OsrsSkin.LABEL);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent e)
 			{
-				arrow.setForeground(UiTokens.GLYPH_MUTED);
+				arrow.setForeground(OsrsSkin.FAINT);
 			}
 
 			@Override
@@ -1262,108 +1396,123 @@ class FarmingTab extends JPanel
 		return arrow;
 	}
 
+	/** A small × affordance in skin colours — faint until hovered. */
+	private JLabel deleteGlyph(Runnable onDelete)
+	{
+		JLabel glyph = new JLabel("×", javax.swing.SwingConstants.CENTER);
+		OsrsSkin.crisp(glyph);
+		glyph.setFont(OsrsSkin.font());
+		glyph.setForeground(OsrsSkin.FAINT);
+		glyph.setToolTipText("Delete this run");
+		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		glyph.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.TITLE);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.FAINT);
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				onDelete.run();
+			}
+		});
+		return glyph;
+	}
+
 	/** Compact builder: name, one checkbox per pack location (route order
-	 *  within each category), Save. */
+	 *  within each category, each category in its own notched frame), Save. */
 	private void buildRunBuilder()
 	{
 		builderName.setAlignmentX(LEFT_ALIGNMENT);
-		runs.add(builderName);
+		runs.add(pad(builderName));
 		runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 
 		String lastCategory = "";
+		StoneChecklist list = null;
 		for (FarmRunsPack.Location location : module.pack().locations)
 		{
 			if (!location.category.equals(lastCategory))
 			{
 				lastCategory = location.category;
-				JLabel header = new JLabel(location.category.toUpperCase(Locale.ROOT));
-				header.setForeground(UiTokens.TEXT_MUTED);
-				header.setFont(SectionLabel.letterSpaced(
-					header.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_LABEL),
-					UiTokens.LETTER_SPACING_LABEL));
+				JPanel header = new JPanel();
+				header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
+				header.setOpaque(false);
 				header.setAlignmentX(LEFT_ALIGNMENT);
-				header.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 2, 0));
+				header.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 4, 2, 4));
+				header.add(new OsrsLabel(location.category.toUpperCase(Locale.ROOT),
+					OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+				header.add(Box.createHorizontalGlue());
+				cap(header);
 				runs.add(header);
+				list = new StoneChecklist(theme);
+				cap(list);
+				runs.add(pad(list));
 			}
-			JCheckBox box = new JCheckBox(location.name, builderSelection.contains(location.id));
-			box.setOpaque(false);
-			box.setForeground(UiTokens.TEXT_BODY);
-			box.setFont(box.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
-			box.setAlignmentX(LEFT_ALIGNMENT);
-			box.addActionListener(e ->
+			String id = location.id;
+			list.row(location.name, builderSelection.contains(id), null, null, null, ticked ->
 			{
-				if (box.isSelected())
+				if (ticked)
 				{
-					builderSelection.add(location.id);
+					builderSelection.add(id);
 				}
 				else
 				{
-					builderSelection.remove(location.id);
+					builderSelection.remove(id);
 				}
 			});
-			runs.add(box);
 		}
 
 		runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		JLabel save = primaryButton("Save run");
-		save.addMouseListener(new java.awt.event.MouseAdapter()
+		StoneButton save = new StoneButton(theme, "Save run", () ->
 		{
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
+			String name = builderName.getText().trim();
+			if (name.isEmpty() || builderSelection.isEmpty()
+				|| FarmingRunModule.TEMPLATES.containsKey(name))
 			{
-				String name = builderName.getText().trim();
-				if (name.isEmpty() || builderSelection.isEmpty()
-					|| FarmingRunModule.TEMPLATES.containsKey(name))
-				{
-					return;
-				}
-				// keep the pack's route order, not click order
-				List<String> ordered = new ArrayList<>();
-				for (FarmRunsPack.Location location : module.pack().locations)
-				{
-					if (builderSelection.contains(location.id))
-					{
-						ordered.add(location.id);
-					}
-				}
-				state.saveFarmRun(name, ordered);
-				builderOpen = false;
-				builderSelection.clear();
-				builderName.setText("");
-				rebuild();
+				return;
 			}
+			// keep the pack's route order, not click order
+			List<String> ordered = new ArrayList<>();
+			for (FarmRunsPack.Location location : module.pack().locations)
+			{
+				if (builderSelection.contains(location.id))
+				{
+					ordered.add(location.id);
+				}
+			}
+			state.saveFarmRun(name, ordered);
+			builderOpen = false;
+			builderSelection.clear();
+			builderName.setText("");
+			rebuild();
 		});
-		runs.add(save);
+		runs.add(pad(save));
 	}
 
-	private JLabel primaryButton(String text)
+	/** 4 px side inset for content rows (the DailiesNewTab grammar). */
+	private JComponent pad(JComponent inner)
 	{
-		JLabel button = new JLabel(text, javax.swing.SwingConstants.CENTER);
-		button.setOpaque(true);
-		button.setBackground(UiTokens.ACCENT);
-		button.setForeground(UiTokens.ACCENT_TEXT_ON);
-		button.setBorder(new LineBorder(UiTokens.ACCENT));
-		button.setFont(button.getFont().deriveFont(Font.BOLD, UiTokens.FONT_SIZE_SECONDARY));
-		button.setAlignmentX(LEFT_ALIGNMENT);
-		button.setPreferredSize(new Dimension(0, UiTokens.BUTTON_HEIGHT));
-		button.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
-		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		return button;
+		JPanel holder = new JPanel(new BorderLayout());
+		holder.setOpaque(false);
+		holder.setAlignmentX(LEFT_ALIGNMENT);
+		holder.setBorder(new EmptyBorder(0, 0, 0, 0));
+		holder.add(inner);
+		cap(holder);
+		return holder;
 	}
 
-	private JLabel secondaryButton(String text)
+	private static void cap(JComponent c)
 	{
-		JLabel button = new JLabel(text, javax.swing.SwingConstants.CENTER);
-		button.setOpaque(true);
-		button.setBackground(UiTokens.ICON_BUTTON_BG);
-		button.setForeground(UiTokens.TEXT_BODY);
-		button.setBorder(new LineBorder(UiTokens.BORDER_BUTTON));
-		button.setFont(button.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
-		button.setAlignmentX(LEFT_ALIGNMENT);
-		button.setPreferredSize(new Dimension(0, UiTokens.BUTTON_HEIGHT));
-		button.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.BUTTON_HEIGHT));
-		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		return button;
+		c.setMaximumSize(new Dimension(Integer.MAX_VALUE, c.getPreferredSize().height));
 	}
 
 	@Override
