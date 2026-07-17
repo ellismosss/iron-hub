@@ -5,13 +5,10 @@ import com.ironhub.modules.IronHubModule;
 import com.ironhub.state.AccountState;
 import com.ironhub.state.PersistedState;
 import com.ironhub.ui.UiTokens;
-import com.ironhub.ui.components.GridTile;
-import com.ironhub.ui.components.SectionLabel;
 import com.loadoutlab.LoadoutLabPlugin;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.GridLayout;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -77,11 +74,13 @@ public class LoadoutLabModule implements IronHubModule
 
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::onStateChanged);
 	private com.ironhub.modules.loadout.StrategyClient strategyClient;
+	private com.ironhub.ui.osrs.OsrsTheme theme;
 	private JPanel holder;
 	private JPanel strip;
-	private final JLabel activityLabel = new JLabel();
-	private final JLabel tipsLabel = new JLabel();
+	private final JPanel activityHolder = new JPanel();
+	private final JPanel tipsPanel = new JPanel();
 	private final JPanel setupView = new JPanel();
+	private String activityLine = "";
 	private String lastAutoSelected = "";
 	private String viewedSetup; // explicit Load-setup pick, wins over the activity
 	private boolean dpsCalcCollapsed;
@@ -129,6 +128,7 @@ public class LoadoutLabModule implements IronHubModule
 			mountPanel();
 		}));
 		eventBus.register(lab);
+		eventBus.register(this); // osrsTheme flips re-clothe the wrapper
 		lab.startUp();
 		state.addListener(listener);
 		started = true;
@@ -141,6 +141,7 @@ public class LoadoutLabModule implements IronHubModule
 		{
 			state.removeListener(listener);
 			eventBus.unregister(lab);
+			eventBus.unregister(this);
 			lab.shutDown();
 			started = false;
 		}
@@ -153,8 +154,12 @@ public class LoadoutLabModule implements IronHubModule
 	{
 		if (holder == null)
 		{
+			theme = config.osrsTheme();
 			holder = new JPanel(new BorderLayout());
-			holder.setBackground(UiTokens.PANEL_BG);
+			// frameless on the theme backing: the hub provides the frame and
+			// the header plate; the upstream lab panel keeps its own look
+			holder.setOpaque(true);
+			holder.setBackground(theme.background);
 			holder.add(buildStrip(), BorderLayout.NORTH);
 			setupView.setLayout(new BoxLayout(setupView, BoxLayout.Y_AXIS));
 			setupView.setOpaque(false);
@@ -166,6 +171,21 @@ public class LoadoutLabModule implements IronHubModule
 		return holder;
 	}
 
+	/** A theme flip re-clothes the wrapper chrome: drop the cached tab, the
+	 *  panel's next mount rebuilds it (the upstream lab panel is re-adopted). */
+	@net.runelite.client.eventbus.Subscribe
+	public void onConfigChanged(net.runelite.client.events.ConfigChanged event)
+	{
+		if (IronHubConfig.GROUP.equals(event.getGroup()) && "osrsTheme".equals(event.getKey()))
+		{
+			SwingUtilities.invokeLater(() ->
+			{
+				holder = null;
+				strip = null;
+			});
+		}
+	}
+
 	/** The activity card: what the module is auto-following, plus wiki tips.
 	 * (Save/Load setup live once, at the bottom with the saved-setup view -
 	 * the old second Save button up here duplicated them.) */
@@ -173,78 +193,56 @@ public class LoadoutLabModule implements IronHubModule
 	{
 		strip = new JPanel();
 		strip.setLayout(new BoxLayout(strip, BoxLayout.Y_AXIS));
-		strip.setBackground(UiTokens.PANEL_BG);
+		strip.setOpaque(false);
 		strip.setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD_TIGHT, UiTokens.PAD));
 
-		JPanel card = new JPanel();
+		com.ironhub.ui.osrs.StonePanel card = new com.ironhub.ui.osrs.StonePanel(theme);
 		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setBackground(UiTokens.CARD_BG);
 		card.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-		card.setBorder(javax.swing.BorderFactory.createCompoundBorder(
-			new javax.swing.border.LineBorder(UiTokens.BORDER),
-			new EmptyBorder(6, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD)));
 
-		JPanel headerRow = new JPanel(new BorderLayout());
+		JPanel headerRow = new JPanel();
+		headerRow.setLayout(new BoxLayout(headerRow, BoxLayout.X_AXIS));
 		headerRow.setOpaque(false);
 		headerRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-		headerRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ICON_BUTTON_SIZE + 2));
-		headerRow.add(new SectionLabel("Activity", UiTokens.FONT_SIZE_LABEL), BorderLayout.WEST);
-		headerRow.add(button("Wiki tips",
-			"Fetch tips for this task/boss from its wiki strategy page"
-				+ " (user-initiated request); click again to hide them",
-			this::fetchTips), BorderLayout.EAST);
+		headerRow.add(new com.ironhub.ui.osrs.OsrsLabel("Activity",
+			com.ironhub.ui.osrs.OsrsSkin.MUTED, com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned());
+		headerRow.add(Box.createHorizontalGlue());
+		com.ironhub.ui.osrs.StoneButton tips = new com.ironhub.ui.osrs.StoneButton(
+			theme, theme.boxFill, "Wiki tips", this::fetchTips);
+		tips.setToolTipText("Fetch tips for this task/boss from its wiki strategy page"
+			+ " (user-initiated request); click again to hide them");
+		tips.setMaximumSize(tips.getPreferredSize());
+		headerRow.add(tips);
+		headerRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, headerRow.getPreferredSize().height));
 		card.add(headerRow);
 		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 
-		activityLabel.setForeground(UiTokens.TEXT_BODY);
-		activityLabel.setFont(activityLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_BODY));
-		activityLabel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-		card.add(activityLabel);
+		activityHolder.setLayout(new BoxLayout(activityHolder, BoxLayout.Y_AXIS));
+		activityHolder.setOpaque(false);
+		activityHolder.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		card.add(activityHolder);
 
-		tipsLabel.setForeground(UiTokens.TEXT_BODY);
-		tipsLabel.setFont(tipsLabel.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
-		tipsLabel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-		tipsLabel.setVisible(false);
-		tipsLabel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
-		tipsLabel.setToolTipText("Click to dismiss");
-		tipsLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		tipsLabel.addMouseListener(new java.awt.event.MouseAdapter()
+		tipsPanel.setLayout(new BoxLayout(tipsPanel, BoxLayout.Y_AXIS));
+		tipsPanel.setOpaque(false);
+		tipsPanel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		tipsPanel.setVisible(false);
+		tipsPanel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
+		tipsPanel.setToolTipText("Click to dismiss");
+		tipsPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		tipsPanel.addMouseListener(new java.awt.event.MouseAdapter()
 		{
 			@Override
 			public void mousePressed(java.awt.event.MouseEvent e)
 			{
-				tipsLabel.setVisible(false);
+				tipsPanel.setVisible(false);
 				strip.revalidate();
 				strip.repaint();
 			}
 		});
-		card.add(tipsLabel);
+		card.add(tipsPanel);
 
 		strip.add(card);
 		return strip;
-	}
-
-	private JLabel button(String label, String tooltip, Runnable onClick)
-	{
-		JLabel button = new JLabel(label, javax.swing.SwingConstants.CENTER);
-		button.setOpaque(true);
-		button.setBackground(UiTokens.ICON_BUTTON_BG);
-		button.setForeground(UiTokens.TEXT_BODY);
-		button.setBorder(javax.swing.BorderFactory.createCompoundBorder(
-			new javax.swing.border.LineBorder(UiTokens.BORDER_BUTTON),
-			new EmptyBorder(1, 6, 1, 6)));
-		button.setFont(button.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
-		button.setToolTipText(tooltip);
-		button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		button.addMouseListener(new java.awt.event.MouseAdapter()
-		{
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
-			{
-				onClick.run();
-			}
-		});
-		return button;
 	}
 
 	/** Slayer task wins for planning; the last fight/kill breaks ties. */
@@ -285,8 +283,15 @@ public class LoadoutLabModule implements IronHubModule
 		{
 			line.append(line.length() > 0 ? " · " : "").append("Last fought: ").append(fighting);
 		}
-		activityLabel.setText(line.length() > 0 ? line.toString() : "No task or fight detected yet");
-		activityLabel.setToolTipText(activityLabel.getText());
+		activityLine = line.length() > 0 ? line.toString() : "No task or fight detected yet";
+		activityHolder.removeAll();
+		com.ironhub.ui.osrs.OsrsLabel text = com.ironhub.ui.osrs.OsrsLabel.wrapped(
+			activityLine, 180, com.ironhub.ui.osrs.OsrsSkin.LABEL,
+			com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
+		text.setToolTipText(activityLine);
+		activityHolder.add(text);
+		activityHolder.revalidate();
+		activityHolder.repaint();
 		renderSavedSetup();
 	}
 
@@ -295,9 +300,9 @@ public class LoadoutLabModule implements IronHubModule
 	private void fetchTips()
 	{
 		// second press = dismiss (the tips had no way to close)
-		if (tipsLabel.isVisible())
+		if (tipsPanel.isVisible())
 		{
-			tipsLabel.setVisible(false);
+			tipsPanel.setVisible(false);
 			strip.revalidate();
 			strip.repaint();
 			return;
@@ -314,23 +319,33 @@ public class LoadoutLabModule implements IronHubModule
 
 	private void showTips(String activity, List<com.ironhub.modules.loadout.WikiStrategy> strategies)
 	{
-		StringBuilder tips = new StringBuilder();
+		tipsPanel.removeAll();
+		boolean any = false;
 		for (com.ironhub.modules.loadout.WikiStrategy strategy : strategies)
 		{
 			if (!strategy.notes.isEmpty())
 			{
-				if (tips.length() > 0)
+				if (any)
 				{
-					tips.append("<br><br>");
+					tipsPanel.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 				}
-				tips.append("<b>").append(strategy.name()).append("</b><br>")
-					.append(strategy.notes.replace("&", "&amp;").replace("<", "&lt;"));
+				any = true;
+				tipsPanel.add(new com.ironhub.ui.osrs.OsrsLabel(strategy.name(),
+					com.ironhub.ui.osrs.OsrsSkin.MUTED,
+					com.ironhub.ui.osrs.OsrsSkin.boldFont()).leftAligned());
+				tipsPanel.add(com.ironhub.ui.osrs.OsrsLabel.wrapped(strategy.notes, 180,
+					com.ironhub.ui.osrs.OsrsSkin.MUTED,
+					com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned());
 			}
 		}
-		tipsLabel.setText(tips.length() == 0
-			? "<html><body style='width:190px'>No wiki tips found for " + activity + "</body></html>"
-			: "<html><body style='width:190px'>" + tips + "</body></html>");
-		tipsLabel.setVisible(true);
+		if (!any)
+		{
+			tipsPanel.add(com.ironhub.ui.osrs.OsrsLabel.wrapped(
+				"No wiki tips found for " + activity, 180,
+				com.ironhub.ui.osrs.OsrsSkin.FAINT,
+				com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned());
+		}
+		tipsPanel.setVisible(true);
 		strip.revalidate();
 	}
 
@@ -422,7 +437,9 @@ public class LoadoutLabModule implements IronHubModule
 		if (saved != null)
 		{
 			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-			setupView.add(new SectionLabel("Saved setup", UiTokens.FONT_SIZE_LABEL));
+			setupView.add(new com.ironhub.ui.osrs.OsrsLabel("Saved setup",
+				com.ironhub.ui.osrs.OsrsSkin.MUTED,
+				com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned());
 			setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 
 			// Inventory Setups look: fixed 46x42 slot boxes, 1px gaps,
@@ -452,8 +469,7 @@ public class LoadoutLabModule implements IronHubModule
 			if (saved.pouchRunes.length > 0 && java.util.Arrays.stream(saved.pouchRunes).anyMatch(r -> r > 0))
 			{
 				setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-				JLabel pouch = smallLabel("Rune pouch");
-				setupView.add(pouch);
+				setupView.add(smallLabel("Rune pouch"));
 				JPanel runes = new JPanel(new GridLayout(1, 4, 1, 1));
 				runes.setOpaque(false);
 				runes.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
@@ -502,13 +518,10 @@ public class LoadoutLabModule implements IronHubModule
 		setupView.repaint();
 	}
 
-	private JLabel smallLabel(String text)
+	private JComponent smallLabel(String text)
 	{
-		JLabel label = new JLabel(text);
-		label.setForeground(UiTokens.TEXT_MUTED);
-		label.setFont(label.getFont().deriveFont(Font.PLAIN, UiTokens.FONT_SIZE_SECONDARY));
-		label.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-		return label;
+		return new com.ironhub.ui.osrs.OsrsLabel(text, com.ironhub.ui.osrs.OsrsSkin.FAINT,
+			com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
 	}
 
 	/** A 46x42 slot box, exactly the Inventory Setups look: darker-grey
@@ -569,26 +582,40 @@ public class LoadoutLabModule implements IronHubModule
 		if (lab.getPanel() != null)
 		{
 			// collapsible DPS Calc section wrapping the whole lab panel -
-			// styled like every other Iron Hub section header (triangle glyph)
+			// the skin's collapsible header (triangle + game label); the lab
+			// panel itself keeps upstream's own look
 			JPanel section = new JPanel(new BorderLayout());
-			section.setBackground(UiTokens.PANEL_BG);
-			SectionLabel header = new SectionLabel("DPS Calc", UiTokens.FONT_SIZE_LABEL);
-			header.setIcon(new com.ironhub.ui.components.PaintedIcon(triangle(), 10));
-			header.setIconTextGap(UiTokens.ROW_GAP);
+			section.setOpaque(false);
+			JPanel header = new JPanel();
+			header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
+			header.setOpaque(false);
 			header.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, UiTokens.PAD, UiTokens.PAD_TIGHT, UiTokens.PAD));
 			header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			header.setToolTipText("Show or hide the DPS calculator");
-			header.addMouseListener(new java.awt.event.MouseAdapter()
+			JLabel triangleLabel = new JLabel(new com.ironhub.ui.components.PaintedIcon(triangle(), 10));
+			triangleLabel.setForeground(com.ironhub.ui.osrs.OsrsSkin.MUTED);
+			header.add(triangleLabel);
+			header.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+			com.ironhub.ui.osrs.OsrsLabel title = new com.ironhub.ui.osrs.OsrsLabel("DPS Calc",
+				com.ironhub.ui.osrs.OsrsSkin.MUTED, com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
+			title.setToolTipText("Show or hide the DPS calculator");
+			header.add(title);
+			header.add(Box.createHorizontalGlue());
+			java.awt.event.MouseAdapter toggle = new java.awt.event.MouseAdapter()
 			{
 				@Override
 				public void mousePressed(java.awt.event.MouseEvent e)
 				{
 					dpsCalcCollapsed = !dpsCalcCollapsed;
 					lab.getPanel().setVisible(!dpsCalcCollapsed);
-					header.setIcon(new com.ironhub.ui.components.PaintedIcon(triangle(), 10));
+					triangleLabel.setIcon(new com.ironhub.ui.components.PaintedIcon(triangle(), 10));
 					holder.revalidate();
 				}
-			});
+			};
+			// the title's tooltip swallows row clicks — children carry it too
+			header.addMouseListener(toggle);
+			title.addMouseListener(toggle);
+			triangleLabel.addMouseListener(toggle);
 			section.add(header, BorderLayout.NORTH);
 			section.add(lab.getPanel(), BorderLayout.CENTER);
 			lab.getPanel().setVisible(!dpsCalcCollapsed);
@@ -598,8 +625,13 @@ public class LoadoutLabModule implements IronHubModule
 		}
 		else
 		{
-			JLabel loading = new JLabel("Loading gear dataset...", JLabel.CENTER);
-			loading.setForeground(UiTokens.TEXT_MUTED);
+			JPanel loading = new JPanel();
+			loading.setLayout(new BoxLayout(loading, BoxLayout.X_AXIS));
+			loading.setOpaque(false);
+			loading.add(Box.createHorizontalGlue());
+			loading.add(new com.ironhub.ui.osrs.OsrsLabel("Loading gear dataset…",
+				com.ironhub.ui.osrs.OsrsSkin.FAINT, com.ironhub.ui.osrs.OsrsSkin.font()));
+			loading.add(Box.createHorizontalGlue());
 			holder.add(loading, BorderLayout.CENTER);
 		}
 		holder.revalidate();

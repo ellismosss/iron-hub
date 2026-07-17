@@ -42,6 +42,38 @@ public class LoadoutLabModuleTest
 		assertTrue(after.savedSetup("Zulrah") == null);
 	}
 
+	/** The wrapper chrome (activity card, saved setup, loading note) in the
+	 *  stone skin — the upstream lab panel is absent headless, so the tab
+	 *  shows the honest loading note where it would mount. */
+	@Test
+	public void wrapperChromeRendersInTheStoneSkin() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 7L);
+		state.setSlayerTask("Kalphites");
+		PersistedState.SavedSetup setup = new PersistedState.SavedSetup();
+		setup.equipment.put("WEAPON", 12926);
+		setup.equipment.put("HEAD", 13197);
+		setup.inventory = new int[]{385, -1, 2434};
+		setup.inventoryQty = new int[]{5, 0, 1};
+		setup.pouchRunes = new int[]{554, 555, -1, -1};
+		setup.pouchAmounts = new int[]{1000, 500, 0, 0};
+		state.saveSetup("Kalphites", setup);
+
+		LoadoutLabModule module = new LoadoutLabModule(new com.loadoutlab.LoadoutLabPlugin(),
+			new net.runelite.client.eventbus.EventBus(), new com.ironhub.IronHubConfig()
+			{
+			},
+			state, null, null, null, new com.google.gson.Gson(), null);
+		javax.swing.JComponent tab = module.buildTab();
+		java.awt.image.BufferedImage image =
+			com.ironhub.ui.SwingRender.render((javax.swing.JPanel) tab);
+		assertTrue(image.getHeight() > 100);
+		java.io.File out = new java.io.File("build/reports/loadoutlab-wrapper.png");
+		out.getParentFile().mkdirs();
+		javax.imageio.ImageIO.write(image, "png", out);
+	}
+
 	@Test
 	public void equipmentRendersInOsrsLayoutOrder()
 	{
