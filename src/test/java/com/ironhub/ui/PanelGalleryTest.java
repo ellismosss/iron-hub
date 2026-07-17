@@ -47,7 +47,7 @@ public class PanelGalleryTest
 			com.ironhub.state.StateFixture.state(temp.getRoot());
 		for (com.ironhub.ui.osrs.OsrsTheme theme : com.ironhub.ui.osrs.OsrsTheme.values())
 		{
-			HomePanel home = new HomePanel(state, theme, () -> {});
+			HomePanel home = new HomePanel(state, theme, () -> {}, name -> {});
 			BufferedImage image = SwingRender.render(home);
 			assertEquals(UiTokens.PANEL_WIDTH, image.getWidth());
 			assertTrue(image.getHeight() > 150);

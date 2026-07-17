@@ -57,16 +57,21 @@ public class HomePanel extends JPanel
 	private final AccountState state;
 	private final OsrsTheme theme;
 	private final Runnable onModules;
+	private final java.util.function.Consumer<String> onBlock;
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::refresh);
 
 	private final JPanel frame = new JPanel();
+	private final java.util.Map<String, StoneNavButton> stones = new java.util.LinkedHashMap<>();
+	private String selectedBlock;
 	private long statsFingerprint = -1;
 
-	public HomePanel(AccountState state, OsrsTheme theme, Runnable onModules)
+	public HomePanel(AccountState state, OsrsTheme theme, Runnable onModules,
+		java.util.function.Consumer<String> onBlock)
 	{
 		this.state = state;
 		this.theme = theme;
 		this.onModules = onModules;
+		this.onBlock = onBlock;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(UiTokens.PANEL_BG);
@@ -121,10 +126,53 @@ public class HomePanel extends JPanel
 		frame.add(strut(6));
 		frame.add(navRow());
 		frame.add(strut(8));
-		frame.add(centered(modulesButton()));
+		frame.add(centered(selectedBlock == null
+			? modulesButton() : OsrsLabel.title(selectedBlock)));
 		frame.add(strut(4));
 		revalidate();
 		repaint();
+	}
+
+	/**
+	 * A stone was pressed: select it (or deselect, clicking the open one
+	 * again — the game's own tab stones close the same way). The bottom slot
+	 * swaps between the Modules button and the open block's header.
+	 */
+	private void toggleBlock(String name)
+	{
+		selectedBlock = name.equals(selectedBlock) ? null : name;
+		for (java.util.Map.Entry<String, StoneNavButton> stone : stones.entrySet())
+		{
+			stone.getValue().setSelected(stone.getKey().equals(selectedBlock));
+		}
+		rebuild();
+		if (onBlock != null)
+		{
+			onBlock.accept(selectedBlock);
+		}
+	}
+
+	/** UI-only reset (theme flips, back navigation) — never fires the callback. */
+	public void clearSelection()
+	{
+		selectedBlock = null;
+		for (StoneNavButton stone : stones.values())
+		{
+			stone.setSelected(false);
+		}
+		rebuild();
+	}
+
+	/** Test seam. */
+	public String selectedBlock()
+	{
+		return selectedBlock;
+	}
+
+	/** Test seam: press a block by name, exactly as a stone click would. */
+	public void pressBlock(String name)
+	{
+		toggleBlock(name);
 	}
 
 	/** Combat level, total level and total XP — live, from the shared state. */
@@ -213,9 +261,11 @@ public class HomePanel extends JPanel
 		row.add(Box.createHorizontalGlue());
 		for (String[] block : NAV)
 		{
-			StoneNavButton stone = new StoneNavButton(theme,
-				OsrsIcons.nav(theme, block[0]), false, null);
-			stone.setToolTipText(block[1]);
+			String name = block[1];
+			StoneNavButton stone = stones.computeIfAbsent(name, key ->
+				new StoneNavButton(theme, OsrsIcons.nav(theme, block[0]),
+					false, () -> toggleBlock(key)));
+			stone.setToolTipText(name);
 			row.add(stone);
 		}
 		row.add(Box.createHorizontalGlue());
