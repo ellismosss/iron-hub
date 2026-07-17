@@ -759,10 +759,11 @@ class FarmingTab extends JPanel
 	}
 
 	/**
-	 * Category tile with a status bevel/arc, in StoneTile's flat grammar:
-	 * engraved edge pair, green inner bevel when every patch is ready, an
-	 * orange perimeter arc for progress, recess fill while expanded. A
-	 * weeds-only tile paints no engraving at all — nothing planted, no status.
+	 * Category tile with a status bevel/arc, on the nav stone's chamfered
+	 * slab (Luke, 2026-07-17): green inner bevel when every patch is ready,
+	 * an orange perimeter trace hugging the chamfer for progress, recess
+	 * fill while expanded. A weeds-only tile paints the bare silhouette —
+	 * nothing planted, no status.
 	 */
 	private class OverviewTile extends JComponent
 	{
@@ -808,17 +809,13 @@ class FarmingTab extends JPanel
 			java.awt.Color fill = expanded ? theme.recess : theme.boxFill;
 			if (onlyWeeds)
 			{
-				// nothing planted — a bare slab, no engraving of any kind
-				g2.setColor(fill);
-				g2.fillRect(0, 0, w, h);
+				// nothing planted — the bare chamfered silhouette, no engraving
+				com.ironhub.ui.osrs.StoneNavButton.paintSilhouette(g2, w, h, fill);
 			}
 			else
 			{
-				OsrsSkin.outline(g2, theme.edgeDark, 0, 0, w, h);
-				OsrsSkin.outline(g2, ready ? OsrsSkin.VALUE.darker() : theme.edgeLight,
-					1, 1, w - 2, h - 2);
-				g2.setColor(fill);
-				g2.fillRect(2, 2, w - 4, h - 4);
+				com.ironhub.ui.osrs.StoneNavButton.paintSlab(g2, theme, w, h, fill,
+					ready ? OsrsSkin.VALUE.darker() : theme.edgeLight);
 			}
 			if (icon != null)
 			{
@@ -827,45 +824,26 @@ class FarmingTab extends JPanel
 			if (!onlyWeeds && !ready && progress > 0)
 			{
 				g2.setColor(OsrsSkin.TITLE.darker());
-				g2.setStroke(new java.awt.BasicStroke(2));
 				paintPerimeterProgress(g2, w, h, progress);
 			}
 			g2.dispose();
 		}
 	}
 
-	/** Trace an orange line clockwise from the top-centre around the tile
-	 *  perimeter for `fraction` of the way round. */
+	/** Trace an orange line clockwise from the top-centre around the tile,
+	 *  hugging the slab's chamfered outline (both ring paths = 2px weight),
+	 *  for `fraction` of the way round. */
 	private static void paintPerimeterProgress(java.awt.Graphics2D g, int w, int h, double fraction)
 	{
-		double target = fraction * 2.0 * (w + h);
-		int cx = w / 2;
-		double[][] segments = {
-			{cx, 0, w, 0},   // top-centre -> top-right
-			{w, 0, w, h},    // -> bottom-right
-			{w, h, 0, h},    // -> bottom-left
-			{0, h, 0, 0},    // -> top-left
-			{0, 0, cx, 0},   // -> top-centre
-		};
-		double drawn = 0;
-		for (double[] s : segments)
+		for (int inset = 0; inset < 2; inset++)
 		{
-			double len = Math.hypot(s[2] - s[0], s[3] - s[1]);
-			if (len <= 0)
+			java.util.List<java.awt.Point> path =
+				com.ironhub.ui.osrs.StoneNavButton.ringPath(inset, w, h);
+			int covered = (int) Math.round(fraction * path.size());
+			for (int i = 0; i < covered && i < path.size(); i++)
 			{
-				continue;
-			}
-			if (drawn + len <= target)
-			{
-				g.drawLine((int) s[0], (int) s[1], (int) s[2], (int) s[3]);
-				drawn += len;
-			}
-			else
-			{
-				double t = (target - drawn) / len;
-				g.drawLine((int) s[0], (int) s[1],
-					(int) (s[0] + (s[2] - s[0]) * t), (int) (s[1] + (s[3] - s[1]) * t));
-				break;
+				java.awt.Point p = path.get(i);
+				g.fillRect(p.x, p.y, 1, 1);
 			}
 		}
 	}

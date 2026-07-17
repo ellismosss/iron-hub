@@ -53,6 +53,10 @@ import net.runelite.client.util.LinkBrowser;
 class CollectionLogTab extends JPanel
 {
 	private static final int TOP_N = 30;
+	/** Hard row ceiling (the Bank tab's grammar, Luke 2026-07-17) — "Show
+	 *  all" and searches render at most this many; hundreds of sprite rows
+	 *  per rebuild was a measured freeze contributor. */
+	private static final int MAX_ROWS = 50;
 	private static final String[] SHOW_OPTIONS = {"All", "Combat", "Minigame", "Miscellaneous", "Slayer"};
 	/** Marks a child that keeps its own click (the +/× glyphs) so the row's
 	 *  clickAnywhere listener never doubles it. */
@@ -343,13 +347,13 @@ class CollectionLogTab extends JPanel
 				: "Every rankable slot is obtained."));
 		}
 
-		int limit = searching || showAll ? visible.size() : Math.min(TOP_N, visible.size());
+		int limit = Math.min(searching || showAll ? MAX_ROWS : TOP_N, visible.size());
 		for (int i = 0; i < limit; i++)
 		{
 			content.add(activityRow(visible.get(i), false));
 			content.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
-		if (limit < visible.size())
+		if (limit < visible.size() && !searching && !showAll)
 		{
 			OsrsLabel more = new OsrsLabel("Show all (" + (visible.size() - limit) + " more)",
 				OsrsSkin.LABEL, OsrsSkin.font()).leftAligned();
@@ -369,6 +373,12 @@ class CollectionLogTab extends JPanel
 			moreRow.add(Box.createHorizontalGlue());
 			cap(moreRow);
 			content.add(moreRow);
+		}
+		else if (limit < visible.size())
+		{
+			// past the ceiling even expanded — the Bank tab's honest hint
+			content.add(emptyLabel("+ " + (visible.size() - limit)
+				+ " more — refine your search"));
 		}
 
 		List<ClogRanker.Ranked> skipped = ClogRanker.rankSkipped(module.pack(),

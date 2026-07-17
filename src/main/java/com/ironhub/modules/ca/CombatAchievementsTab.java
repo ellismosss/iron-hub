@@ -468,11 +468,7 @@ class CombatAchievementsTab extends JPanel
 					? "No CA goals match the filters. The + on any row adds that task to the Goal planner."
 					: "No tasks match the filters."));
 			}
-			for (CaTask task : visible)
-			{
-				content.add(taskRow(task));
-				content.add(strut(UiTokens.PAD_TIGHT));
-			}
+			addTaskRows(visible);
 		}
 		content.revalidate();
 		content.repaint();
@@ -911,10 +907,26 @@ class CombatAchievementsTab extends JPanel
 		{
 			content.add(note("No " + selectedBoss + " tasks match the filters."));
 		}
-		for (CaTask task : visible)
+		addTaskRows(visible);
+	}
+
+	/** Hard row ceiling (the Bank tab's grammar, Luke 2026-07-17): the full
+	 *  catalog is ~500+ tasks and rendering it per rebuild was a measured
+	 *  freeze contributor — cap and say so, never render hundreds of rows. */
+	private static final int MAX_ROWS = 50;
+
+	private void addTaskRows(List<CaTask> visible)
+	{
+		int limit = Math.min(MAX_ROWS, visible.size());
+		for (int i = 0; i < limit; i++)
 		{
-			content.add(taskRow(task));
+			content.add(taskRow(visible.get(i)));
 			content.add(strut(UiTokens.PAD_TIGHT));
+		}
+		if (limit < visible.size())
+		{
+			content.add(note("+ " + (visible.size() - limit)
+				+ " more — refine your search or filters"));
 		}
 	}
 

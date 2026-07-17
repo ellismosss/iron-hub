@@ -129,8 +129,82 @@ public class StoneNavButton extends JComponent
 		}
 	}
 
+	/**
+	 * The slab grammar shared with status tiles (Luke, 2026-07-17: the farm
+	 * overview and dailies tiles wear the nav stone's chamfered slab, keeping
+	 * their own status bevel colour): dark outer ring, coloured bevel ring,
+	 * chamfered fill. No background clear — callers own what shows through
+	 * the notched corners.
+	 */
+	public static void paintSlab(Graphics2D g2, OsrsTheme theme, int w, int h,
+		Color fill, Color bevel)
+	{
+		g2.setColor(theme.edgeDark);
+		paintRing(g2, 0, w, h);
+		g2.setColor(bevel);
+		paintRing(g2, 1, w, h);
+		g2.setColor(fill);
+		fillBody(g2, 2, w, h);
+	}
+
+	/** The whole chamfered silhouette in one colour — dim/bare tiles. */
+	public static void paintSilhouette(Graphics2D g2, int w, int h, Color fill)
+	{
+		g2.setColor(fill);
+		fillBody(g2, 0, w, h);
+	}
+
+	/**
+	 * The outer ring's pixels in clockwise order from the top centre — the
+	 * path a perimeter-progress trace follows so it hugs the chamfer instead
+	 * of cutting across the notched corners.
+	 */
+	public static java.util.List<java.awt.Point> ringPath(int inset, int w, int h)
+	{
+		int c = CORNER - inset;
+		java.util.List<java.awt.Point> path = new java.util.ArrayList<>();
+		int cx = w / 2;
+		for (int x = cx; x <= w - 1 - inset - c; x++) // top edge, right half
+		{
+			path.add(new java.awt.Point(x, inset));
+		}
+		for (int step = c - 1; step >= 0; step--) // top-right chamfer, downward
+		{
+			path.add(new java.awt.Point(w - 1 - inset - step, inset + c - step));
+		}
+		for (int y = inset + c + 1; y <= h - 1 - inset - c; y++) // right edge
+		{
+			path.add(new java.awt.Point(w - 1 - inset, y));
+		}
+		for (int step = 0; step < c; step++) // bottom-right chamfer
+		{
+			path.add(new java.awt.Point(w - 1 - inset - step, h - 1 - inset - c + step));
+		}
+		for (int x = w - 1 - inset - c; x >= inset + c; x--) // bottom edge
+		{
+			path.add(new java.awt.Point(x, h - 1 - inset));
+		}
+		for (int step = c - 1; step >= 0; step--) // bottom-left chamfer, upward
+		{
+			path.add(new java.awt.Point(inset + step, h - 1 - inset - c + step));
+		}
+		for (int y = h - 1 - inset - c - 1; y >= inset + c; y--) // left edge
+		{
+			path.add(new java.awt.Point(inset, y));
+		}
+		for (int step = 0; step < c; step++) // top-left chamfer, upward
+		{
+			path.add(new java.awt.Point(inset + step, inset + c - step));
+		}
+		for (int x = inset + c; x < cx; x++) // top edge, left half
+		{
+			path.add(new java.awt.Point(x, inset));
+		}
+		return path;
+	}
+
 	/** One 1px ring of the chamfered box, `inset` px in from the edge. */
-	private void paintRing(Graphics2D g2, int inset, int w, int h)
+	private static void paintRing(Graphics2D g2, int inset, int w, int h)
 	{
 		int c = CORNER - inset;
 		g2.fillRect(inset + c, inset, w - 2 * (inset + c), 1);
@@ -147,7 +221,7 @@ public class StoneNavButton extends JComponent
 		}
 	}
 
-	private void fillBody(Graphics2D g2, int inset, int w, int h)
+	private static void fillBody(Graphics2D g2, int inset, int w, int h)
 	{
 		int c = Math.max(0, CORNER - inset);
 		g2.fillRect(inset, inset + c, w - 2 * inset, h - 2 * (inset + c));

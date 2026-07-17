@@ -10,13 +10,14 @@ import javax.swing.JComponent;
 
 /**
  * A small status tile: an item sprite in a stone setting whose inner bevel
- * carries a status colour (green = go, per the farm/dailies scale). Uses the
- * checkbox's flat rectangular grammar, NOT the chamfered nav stone — a tile
- * reports, it is not a button, and the two must not read alike.
+ * carries a status colour (green = go, per the farm/dailies scale). Wears
+ * the nav stone's chamfered slab (Luke, 2026-07-17 — superseding the
+ * earlier flat-rectangle rule; the status bevel colour survives on the
+ * slab's inner ring).
  *
- * <p>A dimmed tile (excluded, or locked) sinks: recess fill, no engraving,
- * ghosted icon — "not part of your routine", the same reading as the farm
- * overview's nothing-planted tiles.
+ * <p>A dimmed tile (excluded, or locked) sinks: the bare chamfered
+ * silhouette in recess, no engraving, ghosted icon — "not part of your
+ * routine", the same reading as the farm overview's nothing-planted tiles.
  */
 public class StoneTile extends JComponent
 {
@@ -68,15 +69,12 @@ public class StoneTile extends JComponent
 		int w = getWidth(), h = getHeight();
 		if (dim)
 		{
-			g2.setColor(theme.recess);
-			g2.fillRect(0, 0, w, h);
+			StoneNavButton.paintSilhouette(g2, w, h, theme.recess);
 		}
 		else
 		{
-			OsrsSkin.outline(g2, theme.edgeDark, 0, 0, w, h);
-			OsrsSkin.outline(g2, statusBevel != null ? statusBevel : theme.edgeLight, 1, 1, w - 2, h - 2);
-			g2.setColor(theme.boxFill);
-			g2.fillRect(2, 2, w - 4, h - 4);
+			StoneNavButton.paintSlab(g2, theme, w, h, theme.boxFill,
+				statusBevel != null ? statusBevel : theme.edgeLight);
 		}
 		if (icon != null)
 		{
