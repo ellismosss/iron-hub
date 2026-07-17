@@ -9,7 +9,6 @@ import com.loadoutlab.LoadoutLabPlugin;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +16,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -29,7 +27,6 @@ import net.runelite.api.Varbits;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.game.ItemManager;
-import net.runelite.client.util.AsyncBufferedImage;
 
 /**
  * Loadout Lab (github.com/ajkatz/runelite-loadout-lab, BSD-2-Clause,
@@ -71,6 +68,7 @@ public class LoadoutLabModule implements IronHubModule
 	private final ItemManager itemManager;     // null in unit tests
 	private final com.google.gson.Gson gson;
 	private final okhttp3.OkHttpClient httpClient; // null in unit tests
+	private net.runelite.client.game.SpriteManager spriteManager; // null in unit tests
 
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::onStateChanged);
 	private com.ironhub.modules.loadout.StrategyClient strategyClient;
@@ -89,8 +87,10 @@ public class LoadoutLabModule implements IronHubModule
 	@Inject
 	public LoadoutLabModule(LoadoutLabPlugin lab, EventBus eventBus, IronHubConfig config,
 		AccountState state, ClientThread clientThread, net.runelite.api.Client client,
-		ItemManager itemManager, com.google.gson.Gson gson, okhttp3.OkHttpClient httpClient)
+		ItemManager itemManager, com.google.gson.Gson gson, okhttp3.OkHttpClient httpClient,
+		net.runelite.client.game.SpriteManager spriteManager)
 	{
+		this.spriteManager = spriteManager;
 		this.lab = lab;
 		this.eventBus = eventBus;
 		this.config = config;
@@ -437,8 +437,10 @@ public class LoadoutLabModule implements IronHubModule
 		}
 	}
 
-	/** The remembered setup, Inventory Setups style: OSRS equipment layout,
-	 * 4x7 inventory, rune pouch row. */
+	/** The remembered setup drawn as the game's own interfaces (Luke,
+	 * 2026-07-17): the Worn Equipment layout with slot sprites + chain
+	 * links, the rune pouch as slot tiles, and the inventory sitting on the
+	 * game's framed side-panel backing. See SavedSetupView. */
 	private void renderSavedSetup()
 	{
 		setupView.removeAll();
@@ -446,134 +448,52 @@ public class LoadoutLabModule implements IronHubModule
 			? state.savedSetup(viewedSetup) : state.savedSetup(activity());
 		if (saved != null)
 		{
+			SavedSetupView view = new SavedSetupView(theme, itemManager, spriteManager,
+				state::itemName);
 			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 			setupView.add(new com.ironhub.ui.osrs.OsrsLabel("Saved setup",
 				com.ironhub.ui.osrs.OsrsSkin.MUTED,
 				com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned());
 			setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
-
-			// Inventory Setups look: fixed 46x42 slot boxes, 1px gaps,
-			// blank corners as dark boxes
-			JPanel equipment = new JPanel(new GridLayout(5, 3, 1, 1));
-			equipment.setOpaque(false);
-			equipment.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-			equipment.setMaximumSize(new Dimension(3 * 46 + 2, 5 * 42 + 4));
-			for (EquipmentInventorySlot[] row : GRID)
-			{
-				for (EquipmentInventorySlot slot : row)
-				{
-					Integer id = slot == null ? null : saved.equipment.get(slot.name());
-					equipment.add(slotBox(id, slot == null ? null
-						: slot.name().toLowerCase(java.util.Locale.ROOT), 0));
-				}
-			}
-			JPanel equipmentRow = new JPanel();
-			equipmentRow.setLayout(new BoxLayout(equipmentRow, BoxLayout.X_AXIS));
-			equipmentRow.setOpaque(false);
-			equipmentRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-			equipmentRow.add(Box.createHorizontalGlue());
-			equipmentRow.add(equipment);
-			equipmentRow.add(Box.createHorizontalGlue());
-			setupView.add(equipmentRow);
+			setupView.add(centered(view.equipment(saved)));
 
 			if (saved.pouchRunes.length > 0 && java.util.Arrays.stream(saved.pouchRunes).anyMatch(r -> r > 0))
 			{
 				setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 				setupView.add(smallLabel("Rune pouch"));
-				JPanel runes = new JPanel(new GridLayout(1, 4, 1, 1));
-				runes.setOpaque(false);
-				runes.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-				runes.setMaximumSize(new Dimension(4 * 46 + 3, 42));
-				for (int i = 0; i < saved.pouchRunes.length; i++)
-				{
-					runes.add(slotBox(saved.pouchRunes[i] > 0 ? saved.pouchRunes[i] : null,
-						"empty", saved.pouchAmounts.length > i ? saved.pouchAmounts[i] : 0));
-				}
-				JPanel runesRow = new JPanel();
-				runesRow.setLayout(new BoxLayout(runesRow, BoxLayout.X_AXIS));
-				runesRow.setOpaque(false);
-				runesRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-				runesRow.add(Box.createHorizontalGlue());
-				runesRow.add(runes);
-				runesRow.add(Box.createHorizontalGlue());
-				setupView.add(runesRow);
+				setupView.add(Box.createVerticalStrut(2));
+				setupView.add(centered(view.runePouch(saved)));
 			}
 
 			if (saved.inventory.length > 0)
 			{
 				setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 				setupView.add(smallLabel("Inventory"));
-				JPanel inv = new JPanel(new GridLayout(7, 4, 1, 1));
-				inv.setOpaque(false);
-				inv.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-				inv.setMaximumSize(new Dimension(4 * 46 + 3, 7 * 42 + 6));
-				for (int i = 0; i < 28; i++)
-				{
-					Integer id = i < saved.inventory.length && saved.inventory[i] > 0
-						? saved.inventory[i] : null;
-					inv.add(slotBox(id, "empty",
-						id != null && saved.inventoryQty.length > i ? saved.inventoryQty[i] : 0));
-				}
-				JPanel invRow = new JPanel();
-				invRow.setLayout(new BoxLayout(invRow, BoxLayout.X_AXIS));
-				invRow.setOpaque(false);
-				invRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-				invRow.add(Box.createHorizontalGlue());
-				invRow.add(inv);
-				invRow.add(Box.createHorizontalGlue());
-				setupView.add(invRow);
+				setupView.add(Box.createVerticalStrut(2));
+				setupView.add(centered(view.inventory(saved)));
 			}
 		}
 		setupView.revalidate();
 		setupView.repaint();
 	}
 
+	/** Centre a fixed-size canvas in the tab's width. */
+	private static JPanel centered(java.awt.Component inner)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		row.add(Box.createHorizontalGlue());
+		row.add(inner);
+		row.add(Box.createHorizontalGlue());
+		return row;
+	}
+
 	private JComponent smallLabel(String text)
 	{
 		return new com.ironhub.ui.osrs.OsrsLabel(text, com.ironhub.ui.osrs.OsrsSkin.FAINT,
 			com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
-	}
-
-	/** A 46x42 slot box in the Inventory Setups LAYOUT with stone surfaces
-	 * (Luke, 2026-07-17): slots are sunken wells — recess fill inside a 1px
-	 * edge (MatteBorder fills strips, Retina-safe) — and spacer corners are
-	 * bare backing. Sprite centred with the stack count baked into the icon. */
-	private JPanel slotBox(Integer itemId, String emptyTooltip, int quantity)
-	{
-		JPanel box = new JPanel(new BorderLayout());
-		box.setPreferredSize(new Dimension(46, 42));
-		box.setMinimumSize(new Dimension(46, 42));
-		box.setMaximumSize(new Dimension(46, 42));
-		if (emptyTooltip == null && itemId == null)
-		{
-			box.setOpaque(false);
-			return box; // spacer corner — nothing there, so nothing drawn
-		}
-		box.setBackground(theme.recess);
-		box.setBorder(new javax.swing.border.MatteBorder(1, 1, 1, 1, theme.edgeDark));
-		JLabel icon = new JLabel();
-		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-		if (itemId != null)
-		{
-			String name = state.itemName(itemId);
-			box.setToolTipText(quantity > 1 ? name + " x" + quantity : name);
-			if (itemManager != null)
-			{
-				AsyncBufferedImage sprite = itemManager.getImage(itemId, Math.max(1, quantity), quantity > 1);
-				icon.setIcon(new ImageIcon(sprite));
-				sprite.onLoaded(() ->
-				{
-					icon.setIcon(new ImageIcon(sprite));
-					icon.repaint();
-				});
-			}
-		}
-		else
-		{
-			box.setToolTipText(emptyTooltip);
-		}
-		box.add(icon, BorderLayout.CENTER);
-		return box;
 	}
 
 	/** The lab panel arrives async (its ~3MB dataset parses off-thread). */

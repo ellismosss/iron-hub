@@ -38,6 +38,42 @@ public final class OsrsIcons
 		return themed(theme, "nav/" + name);
 	}
 
+	/**
+	 * A themed sprite as a raw image, for custom painting (equipment slot
+	 * tiles, panel backings). Same mystic-falls-back-to-vanilla rule; null
+	 * when neither theme ships the file — callers render the absence
+	 * honestly (e.g. fall back to the game's sprite cache at runtime).
+	 */
+	public static java.awt.image.BufferedImage image(OsrsTheme theme, String path)
+	{
+		if (theme == OsrsTheme.MYSTIC)
+		{
+			java.awt.image.BufferedImage redraw = loadImage("mystic/" + path);
+			if (redraw != null)
+			{
+				return redraw;
+			}
+		}
+		return loadImage(path);
+	}
+
+	private static java.awt.image.BufferedImage loadImage(String path)
+	{
+		java.net.URL url = OsrsIcons.class.getResource("/data/icons/osrs/" + path + ".png");
+		if (url == null)
+		{
+			return null;
+		}
+		try
+		{
+			return javax.imageio.ImageIO.read(url);
+		}
+		catch (java.io.IOException e)
+		{
+			return null;
+		}
+	}
+
 	private static Icon themed(OsrsTheme theme, String path)
 	{
 		if (theme == OsrsTheme.MYSTIC)
