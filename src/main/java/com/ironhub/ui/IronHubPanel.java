@@ -33,7 +33,10 @@ import net.runelite.client.ui.PluginPanel;
  * whole navigation — the Modules button and the classic per-module cards are
  * gone. Module tabs are singletons with ONE Swing parent, so every hub page
  * MOUNTS the tabs it needs when shown, adopting them from wherever they last
- * lived (a theme swap rebuilds the pages and re-adopts).
+ * lived (a theme swap rebuilds the pages and re-adopts). Hub sections are
+ * collapsible and EXCLUSIVE (Luke, same day): only one module's tab is built
+ * and mounted at a time — a seven-module hub built in one click was a
+ * resource spike the dev client felt.
  */
 @Singleton
 public class IronHubPanel extends PluginPanel
@@ -57,7 +60,16 @@ public class IronHubPanel extends PluginPanel
 	private final JPanel homeCard = new JPanel(new BorderLayout());
 	private final Map<String, IronHubModule> modulesByName;
 	private final Map<String, Map<String, JPanel>> hubSlots = new HashMap<>();
+	private final Map<String, Map<String, JLabel>> hubTriangles = new HashMap<>();
 	private final Map<String, JComponent> hubPages = new HashMap<>();
+	/**
+	 * Hub name → the ONE module whose tab is built and shown (Luke,
+	 * 2026-07-17: sections are collapsible and EXCLUSIVE — building a
+	 * seven-tab hub page in one click was a resource spike, and only one
+	 * module is read at a time anyway). Null = all collapsed. Survives
+	 * theme swaps so the re-adopted page reopens where the player was.
+	 */
+	private final Map<String, String> expandedModules = new HashMap<>();
 	private final AccountState state;
 	private final com.ironhub.IronHubConfig config;
 	private HomePanel home;
@@ -114,6 +126,9 @@ public class IronHubPanel extends PluginPanel
 		{
 			hubPages.clear();
 			hubSlots.clear();
+			hubTriangles.clear();
+			// expandedModules survives: the rebuilt page reopens where the
+			// player was
 			mountHome();
 		});
 	}
@@ -131,22 +146,23 @@ public class IronHubPanel extends PluginPanel
 		{
 			JComponent page = hubPages.computeIfAbsent(name,
 				key -> BLOCKS.containsKey(key) ? hubPage(key) : placeholder(key));
-			mountHub(name);
+			refreshHub(name);
 			slot.add(page, BorderLayout.CENTER);
 		}
 		slot.revalidate();
 		slot.repaint();
 	}
 
-	/** A module toggled on or off: any hub slot carrying its tab re-mounts. */
+	/** A module toggled on or off: any hub slot SHOWING its tab re-mounts
+	 *  (collapsed slots are empty and stay that way until expanded). */
 	public void invalidateModule(String name)
 	{
 		javax.swing.SwingUtilities.invokeLater(() ->
 		{
-			for (Map<String, JPanel> slots : hubSlots.values())
+			for (Map.Entry<String, Map<String, JPanel>> hub : hubSlots.entrySet())
 			{
-				JPanel slot = slots.get(name);
-				if (slot != null)
+				JPanel slot = hub.getValue().get(name);
+				if (slot != null && name.equals(expandedModules.get(hub.getKey())))
 				{
 					mount(name, slot);
 				}
@@ -154,43 +170,77 @@ public class IronHubPanel extends PluginPanel
 		});
 	}
 
+	/**
+	 * Expand one module in a hub (collapsing whichever was open — the
+	 * sections are exclusive), or collapse it if it was the open one.
+	 * The header plates route here; also the test seam.
+	 */
+	public void toggleModule(String hub, String module)
+	{
+		String open = expandedModules.get(hub);
+		expandedModules.put(hub, module.equals(open) ? null : module);
+		refreshHub(hub);
+	}
+
 	// ── hub pages ─────────────────────────────────────────────────────
 
-	/** The block's modules stacked, transparent so the frame connects them. */
+	/** The block's modules stacked, transparent so the frame connects them.
+	 *  Only the expanded module's slot holds a tab; the first module opens
+	 *  by default so a hub never lands empty. */
 	private JComponent hubPage(String name)
 	{
 		JPanel stack = new JPanel();
 		stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
 		stack.setOpaque(false);
 		Map<String, JPanel> slots = new HashMap<>();
+		Map<String, JLabel> triangles = new HashMap<>();
 		for (String moduleName : BLOCKS.get(name))
 		{
-			stack.add(moduleHeader(moduleName));
+			stack.add(moduleHeader(name, moduleName, triangles));
 			JPanel slot = slot();
 			slots.put(moduleName, slot);
 			stack.add(slot);
 			stack.add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 		}
 		hubSlots.put(name, slots);
+		hubTriangles.put(name, triangles);
+		expandedModules.putIfAbsent(name, BLOCKS.get(name).get(0));
 		return stack;
 	}
 
 	/**
 	 * A module's name plate in a hub page — the Design lab's notched-box
-	 * button look (Luke, 2026-07-17), display-only: no hover fill, no hand
-	 * cursor, because the tab beneath IS the content. Title in the bolder
-	 * game font (the "Assumptions" grammar) — with the stone frame ending
-	 * above the plates, they carry the section hierarchy alone.
+	 * button look, now a COLLAPSE TOGGLE (Luke, 2026-07-17: exclusive
+	 * sections, one module shown at a time): triangle affordance on the
+	 * left, press anywhere to expand/collapse. Title in the bolder game
+	 * font (the "Assumptions" grammar) — with the stone frame ending above
+	 * the plates, they carry the section hierarchy alone.
 	 */
-	private JComponent moduleHeader(String name)
+	private JComponent moduleHeader(String hubName, String name, Map<String, JLabel> triangles)
 	{
 		com.ironhub.ui.osrs.OsrsTheme theme = config.osrsTheme();
 		com.ironhub.ui.osrs.StonePanel plate = new com.ironhub.ui.osrs.StonePanel(theme);
 		plate.setLayout(new BoxLayout(plate, BoxLayout.X_AXIS));
+		JLabel triangle = new JLabel(new com.ironhub.ui.components.PaintedIcon(
+			com.ironhub.ui.components.PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+		triangle.setForeground(com.ironhub.ui.osrs.OsrsSkin.MUTED);
+		triangles.put(name, triangle);
+		plate.add(triangle);
 		plate.add(Box.createHorizontalGlue());
 		plate.add(new com.ironhub.ui.osrs.OsrsLabel(name,
 			com.ironhub.ui.osrs.OsrsSkin.TITLE, com.ironhub.ui.osrs.OsrsSkin.boldFont()));
 		plate.add(Box.createHorizontalGlue());
+		// mirror the triangle's width so the title stays optically centred
+		plate.add(Box.createHorizontalStrut(10));
+		plate.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		plate.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				toggleModule(hubName, name);
+			}
+		});
 
 		JPanel pad = new JPanel(new BorderLayout());
 		pad.setOpaque(false);
@@ -202,17 +252,37 @@ public class IronHubPanel extends PluginPanel
 		return pad;
 	}
 
-	/** Adopt every tab this hub shows — from wherever each last lived. */
-	private void mountHub(String name)
+	/** Show the hub's expanded module (adopting its singleton tab), keep
+	 *  the rest collapsed-empty, and point every triangle the right way. */
+	private void refreshHub(String name)
 	{
 		Map<String, JPanel> slots = hubSlots.get(name);
 		if (slots == null)
 		{
 			return;
 		}
+		String open = expandedModules.get(name);
+		Map<String, JLabel> triangles = hubTriangles.get(name);
 		for (Map.Entry<String, JPanel> entry : slots.entrySet())
 		{
-			mount(entry.getKey(), entry.getValue());
+			boolean expanded = entry.getKey().equals(open);
+			JLabel triangle = triangles == null ? null : triangles.get(entry.getKey());
+			if (triangle != null)
+			{
+				triangle.setIcon(new com.ironhub.ui.components.PaintedIcon(
+					expanded ? com.ironhub.ui.components.PaintedIcon.Shape.TRIANGLE_DOWN
+						: com.ironhub.ui.components.PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+			}
+			if (expanded)
+			{
+				mount(entry.getKey(), entry.getValue());
+			}
+			else if (entry.getValue().getComponentCount() > 0)
+			{
+				entry.getValue().removeAll();
+				entry.getValue().revalidate();
+				entry.getValue().repaint();
+			}
 		}
 	}
 

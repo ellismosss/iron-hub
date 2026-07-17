@@ -33,7 +33,12 @@ public class ModuleRoutingTest
 		assertNotNull(qol.buildTab());
 
 		IronHubPanel panel = new IronHubPanel(Set.of((IronHubModule) qol), state, new DataPack(new Gson()), config);
-		javax.swing.SwingUtilities.invokeAndWait(() -> panel.openBlock("Progression"));
+		javax.swing.SwingUtilities.invokeAndWait(() ->
+		{
+			panel.openBlock("Progression");
+			// sections are exclusive: expand the QoL plate like a click would
+			panel.toggleModule("Progression", "QoL checklist");
+		});
 		assertTrue("QoL tab not mounted by its block",
 			javax.swing.SwingUtilities.isDescendingFrom(qol.buildTab(), panel));
 

@@ -64,22 +64,28 @@ public class NavBlocksTest
 	}
 
 	@Test
-	public void dailiesBlockStacksBothTabsAndSurvivesAThemeSwap() throws Exception
+	public void dailiesBlockShowsOneModuleAtATimeAndSurvivesAThemeSwap() throws Exception
 	{
 		build();
 		javax.swing.SwingUtilities.invokeAndWait(() -> home.pressBlock("Dailies"));
 		assertEquals("Dailies", home.selectedBlock());
 
+		// exclusive sections (Luke, 2026-07-17): the first module opens by
+		// default; expanding another collapses it — never both at once
 		JComponent dailiesTab = dailiesNew.buildTab();
-		JComponent farmingTab = farming.buildTab();
-		assertTrue("dailies tab not in the panel",
+		assertTrue("first module's tab must open by default",
 			javax.swing.SwingUtilities.isDescendingFrom(dailiesTab, panel));
-		assertTrue("farming tab not in the panel",
+		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Dailies", "Farming runs"));
+		JComponent farmingTab = farming.buildTab();
+		assertTrue("expanded module's tab not in the panel",
 			javax.swing.SwingUtilities.isDescendingFrom(farmingTab, panel));
+		assertTrue("collapsing must unmount the other module's tab",
+			!javax.swing.SwingUtilities.isDescendingFrom(dailiesTab, panel));
 		Container hubHost = farmingTab.getParent();
 
-		// a theme swap rebuilds the home and drops every cached hub page:
-		// the freshly built slots must ADOPT the singleton tabs
+		// a theme swap rebuilds the home and drops every cached hub page: the
+		// freshly built slots must ADOPT the singleton tab of the module that
+		// was open (the expansion choice survives the swap)
 		panel.themeChanged();
 		javax.swing.SwingUtilities.invokeAndWait(() -> {}); // flush the queued rebuild
 		home = find(panel, HomePanel.class);

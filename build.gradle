@@ -51,7 +51,10 @@ tasks.withType(JavaCompile).configureEach {
 tasks.register('runClient', JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.ironhub.IronHubPluginTest'
-    jvmArgs '-ea'
+    // 2G matches the real launcher's environment; a heap dump on OOM turns
+    // an unexplained dev-client crash into evidence (build/ is gitignored)
+    jvmArgs '-ea', '-Xmx2g', '-XX:+HeapDumpOnOutOfMemoryError',
+        "-XX:HeapDumpPath=${layout.buildDirectory.get()}/oom.hprof"
 }
 
 test {
