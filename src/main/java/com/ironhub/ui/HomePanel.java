@@ -61,6 +61,12 @@ public class HomePanel extends JPanel
 	private final Runnable listener = () -> SwingUtilities.invokeLater(this::refresh);
 
 	private final JPanel frame = new JPanel();
+	/**
+	 * The open block's content, INSIDE the home's stone frame so the two read
+	 * as one connected block, scrolling together (Luke, 2026-07-17). Owned by
+	 * IronHubPanel, which mounts hub pages into it; empty when nothing is open.
+	 */
+	private final JPanel contentSlot = new JPanel(new java.awt.BorderLayout());
 	private final java.util.Map<String, StoneNavButton> stones = new java.util.LinkedHashMap<>();
 	private String selectedBlock;
 	private long statsFingerprint = -1;
@@ -82,6 +88,8 @@ public class HomePanel extends JPanel
 		frame.setBackground(theme.background);
 		frame.setBorder(new StoneFrame(theme));
 		frame.setAlignmentX(LEFT_ALIGNMENT);
+		contentSlot.setOpaque(false);
+		contentSlot.setAlignmentX(LEFT_ALIGNMENT);
 		add(frame);
 		add(Box.createVerticalGlue());
 
@@ -126,11 +134,19 @@ public class HomePanel extends JPanel
 		frame.add(strut(6));
 		frame.add(navRow());
 		frame.add(strut(8));
-		frame.add(centered(selectedBlock == null
-			? modulesButton() : OsrsLabel.title(selectedBlock)));
+		// always the Modules button — the open block announces itself with
+		// its own title inside the content (the extra header doubled it)
+		frame.add(centered(modulesButton()));
 		frame.add(strut(4));
+		frame.add(contentSlot);
 		revalidate();
 		repaint();
+	}
+
+	/** Where the open block's page lives — inside the frame, one block. */
+	public JPanel contentSlot()
+	{
+		return contentSlot;
 	}
 
 	/**

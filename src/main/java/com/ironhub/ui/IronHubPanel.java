@@ -24,21 +24,23 @@ import javax.swing.JPanel;
 import net.runelite.client.ui.PluginPanel;
 
 /**
- * Root side panel, in the 2026-07-16 nav-rework shape: the OSRS-skinned
- * {@link HomePanel} is PERSISTENT at the top — it never leaves, so the player
- * can hop anywhere from anywhere (Luke's spec) — and everything else swaps in
- * the card area beneath it: a nav block's hub page, the classic module nav,
- * or a single module tab.
+ * Root side panel, in the 2026-07-17 nav shape: the home view is ONE scroll
+ * surface — the OSRS-skinned {@link HomePanel} with the open block's hub page
+ * mounted INSIDE its stone frame, so header and content read as a single
+ * connected block and scroll together; only the content beneath the stones
+ * changes. Its scrollbar is hidden (wheel still scrolls): a visible bar
+ * narrowed the content and misaligned it under the header (Luke's list).
  *
- * <p>Module tabs are singletons owned by their modules, and a Swing component
- * has ONE parent — the Dailies hub shows the same tabs the classic module
- * cards do, so every view MOUNTS the tabs it needs when shown, adopting them
- * from wherever they last lived. Whoever is visible owns the tab.
+ * <p>The classic escape hatch keeps the old card shape: the Modules button
+ * swaps to the module nav, and each module tab opens as its own card with a
+ * fixed back header. Module tabs are singletons with ONE Swing parent — the
+ * Dailies hub shows the same tabs the classic cards do, so every view MOUNTS
+ * the tabs it needs when shown, adopting them from wherever they last lived.
  */
 @Singleton
 public class IronHubPanel extends PluginPanel
 {
-	private static final String CARD_DEFAULT = "default";
+	private static final String CARD_HOME = "home";
 	private static final String CARD_MODULES = "modules";
 
 	/** Block name → the module tabs its hub page stacks, top to bottom. */
@@ -47,11 +49,12 @@ public class IronHubPanel extends PluginPanel
 
 	private final CardLayout cards = new CardLayout();
 	private final JPanel cardPanel = new JPanel(cards);
+	private final JPanel homeCard = new JPanel(new BorderLayout());
 	private final Map<String, IronHubModule> modulesByName;
 	private final Map<String, JPanel> moduleSlots = new HashMap<>();
 	private final Map<String, Component> moduleWrappers = new HashMap<>();
 	private final Map<String, Map<String, JPanel>> hubSlots = new HashMap<>();
-	private final Map<String, Component> hubCards = new HashMap<>();
+	private final Map<String, JComponent> hubPages = new HashMap<>();
 	private final AccountState state;
 	private final com.ironhub.IronHubConfig config;
 	private HomePanel home;
@@ -69,27 +72,26 @@ public class IronHubPanel extends PluginPanel
 		setLayout(new BorderLayout());
 		setBackground(UiTokens.PANEL_BG);
 
+		homeCard.setBackground(UiTokens.PANEL_BG);
 		cardPanel.setBackground(UiTokens.PANEL_BG);
-		JPanel blank = new JPanel();
-		blank.setBackground(UiTokens.PANEL_BG);
-		cardPanel.add(blank, CARD_DEFAULT);
+		cardPanel.add(homeCard, CARD_HOME);
 		cardPanel.add(new ModuleNavPanel(this::showDashboard, this::openModule), CARD_MODULES);
 		add(cardPanel, BorderLayout.CENTER);
 		mountHome();
 	}
 
-	/** The persistent OSRS-skinned home. Rebuilt on theme flips. */
+	/** The home view: one bare scroll over the frame + whatever block is open. */
 	private void mountHome()
 	{
 		if (home != null)
 		{
-			remove(home);
 			home.dispose();
 		}
 		home = new HomePanel(state, config.osrsTheme(), this::showModules, this::openBlock);
-		add(home, BorderLayout.NORTH);
-		revalidate();
-		repaint();
+		homeCard.removeAll();
+		homeCard.add(new HubScrollPane(home, false), BorderLayout.CENTER);
+		homeCard.revalidate();
+		homeCard.repaint();
 	}
 
 	/** The osrsTheme setting changed — re-clothe the home (EDT). */
@@ -97,15 +99,18 @@ public class IronHubPanel extends PluginPanel
 	{
 		javax.swing.SwingUtilities.invokeLater(() ->
 		{
+			hubPages.clear();
+			hubSlots.clear();
 			mountHome();
-			cards.show(cardPanel, CARD_DEFAULT);
+			cards.show(cardPanel, CARD_HOME);
 		});
 	}
 
 	public void showDashboard()
 	{
 		home.clearSelection();
-		cards.show(cardPanel, CARD_DEFAULT);
+		openBlock(null);
+		cards.show(cardPanel, CARD_HOME);
 	}
 
 	public void showModules()
@@ -114,25 +119,24 @@ public class IronHubPanel extends PluginPanel
 	}
 
 	/**
-	 * A nav block was selected (null = the open one was clicked shut). Only
-	 * blocks listed in BLOCKS have hub pages yet; the rest say so honestly.
+	 * A nav block was selected (null = the open one was clicked shut): its
+	 * hub page mounts inside the home's frame. Only blocks listed in BLOCKS
+	 * have pages yet; the rest say so honestly.
 	 */
 	public void openBlock(String name)
 	{
-		if (name == null)
+		JPanel slot = home.contentSlot();
+		slot.removeAll();
+		if (name != null)
 		{
-			cards.show(cardPanel, CARD_DEFAULT);
-			return;
+			JComponent page = hubPages.computeIfAbsent(name,
+				key -> BLOCKS.containsKey(key) ? hubPage(key) : placeholder(key));
+			mountHub(name);
+			slot.add(page, BorderLayout.CENTER);
 		}
-		String card = "block:" + name;
-		if (!hubCards.containsKey(card))
-		{
-			Component hub = BLOCKS.containsKey(name) ? hubPage(name) : placeholder(name);
-			hubCards.put(card, hub);
-			cardPanel.add(hub, card);
-		}
-		mountHub(name);
-		cards.show(cardPanel, card);
+		slot.revalidate();
+		slot.repaint();
+		cards.show(cardPanel, CARD_HOME);
 	}
 
 	/** Open a module tab by nav name; rows without a live tab are inert. */
@@ -178,12 +182,12 @@ public class IronHubPanel extends PluginPanel
 
 	// ── hub pages ─────────────────────────────────────────────────────
 
-	/** The block's modules stacked in one scroll surface. */
-	private Component hubPage(String name)
+	/** The block's modules stacked, transparent so the frame connects them. */
+	private JComponent hubPage(String name)
 	{
 		JPanel stack = new JPanel();
 		stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
-		stack.setBackground(UiTokens.PANEL_BG);
+		stack.setOpaque(false);
 		Map<String, JPanel> slots = new HashMap<>();
 		for (String moduleName : BLOCKS.get(name))
 		{
@@ -193,7 +197,7 @@ public class IronHubPanel extends PluginPanel
 			stack.add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 		}
 		hubSlots.put(name, slots);
-		return new HubScrollPane(stack);
+		return stack;
 	}
 
 	/** Adopt every tab this hub shows — from wherever each last lived. */
@@ -235,19 +239,20 @@ public class IronHubPanel extends PluginPanel
 	private JPanel slot()
 	{
 		JPanel slot = new JPanel(new BorderLayout());
-		slot.setBackground(UiTokens.PANEL_BG);
+		slot.setOpaque(false);
 		slot.setAlignmentX(Component.LEFT_ALIGNMENT);
 		return slot;
 	}
 
 	/** An unwired block: say so, never fake a page. */
-	private Component placeholder(String name)
+	private JComponent placeholder(String name)
 	{
 		JPanel page = new JPanel(new BorderLayout());
-		page.setBackground(UiTokens.PANEL_BG);
-		JLabel note = new JLabel(name + " is not built yet", javax.swing.SwingConstants.CENTER);
-		note.setForeground(UiTokens.TEXT_MUTED);
-		note.setFont(note.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
+		page.setOpaque(false);
+		page.setBorder(new javax.swing.border.EmptyBorder(4, 4, 8, 4));
+		com.ironhub.ui.osrs.OsrsLabel note = new com.ironhub.ui.osrs.OsrsLabel(
+			name + " is not built yet", com.ironhub.ui.osrs.OsrsSkin.MUTED,
+			com.ironhub.ui.osrs.OsrsSkin.font());
 		page.add(note, BorderLayout.NORTH);
 		return page;
 	}

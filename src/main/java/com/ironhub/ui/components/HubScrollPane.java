@@ -20,7 +20,20 @@ public class HubScrollPane extends JScrollPane
 {
 	public HubScrollPane(JComponent content)
 	{
-		super(northAnchor(content), VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+		this(content, true);
+	}
+
+	/**
+	 * showBar=false hides the scrollbar entirely (wheel scrolling still
+	 * works): the unified home view scrolls at the full 225px, because a
+	 * visible bar narrowed the content below the persistent header and the
+	 * two no longer lined up (Luke, in-client 2026-07-17).
+	 */
+	public HubScrollPane(JComponent content, boolean showBar)
+	{
+		super(northAnchor(content),
+			showBar ? VERTICAL_SCROLLBAR_AS_NEEDED : VERTICAL_SCROLLBAR_NEVER,
+			HORIZONTAL_SCROLLBAR_NEVER);
 		setBorder(null);
 		setBackground(UiTokens.PANEL_BG);
 		getViewport().setBackground(UiTokens.PANEL_BG);

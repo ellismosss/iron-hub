@@ -2,14 +2,12 @@ package com.ironhub.modules.dailies;
 
 import com.ironhub.data.DailiesPack;
 import com.ironhub.state.AccountState;
-import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.components.SpriteCache;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
 import com.ironhub.ui.osrs.StoneButton;
 import com.ironhub.ui.osrs.StoneChecklist;
-import com.ironhub.ui.osrs.StoneFrame;
 import com.ironhub.ui.osrs.StonePanel;
 import com.ironhub.ui.osrs.StoneProgressBar;
 import com.ironhub.ui.osrs.StoneTile;
@@ -55,15 +53,15 @@ class DailiesNewTab extends JPanel
 		this.state = module.state();
 		this.theme = theme;
 		this.sprites = new SpriteCache(module.itemManager(), this::rebuild);
+		// frameless: the tab renders its content directly on the theme's
+		// backing, so a host (the Dailies hub inside the home's stone frame)
+		// connects with it as ONE block — no frame-in-frame seam (Luke)
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
-		setBackground(UiTokens.PANEL_BG);
-		setBorder(new EmptyBorder(4, 4, 4, 4));
+		setBackground(theme.background);
 
 		frame.setLayout(new BoxLayout(frame, BoxLayout.Y_AXIS));
-		frame.setOpaque(true);
-		frame.setBackground(theme.background);
-		frame.setBorder(new StoneFrame(theme));
+		frame.setOpaque(false);
 		frame.setAlignmentX(LEFT_ALIGNMENT);
 		add(frame);
 		add(Box.createVerticalGlue());
