@@ -34,7 +34,7 @@ class CluesTab extends JPanel
 	private final AccountState state;
 	private final ClueItemsPack pack;
 	private final OsrsTheme theme;
-	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 	private final JPanel content = new JPanel();
 
 	CluesTab(AccountState state, ClueItemsPack pack, OsrsTheme theme)

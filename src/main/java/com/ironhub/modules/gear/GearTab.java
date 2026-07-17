@@ -54,7 +54,7 @@ class GearTab extends JPanel
 	private final StoneChipRow filterTop;
 	private final StoneChipRow filterBottom;
 	private final JPanel body = new JPanel();
-	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 	private final java.util.function.Consumer<Boolean> onHideCompleteChange;
 	private String filter; // lower-case category, null = all
 	private boolean hideComplete;

@@ -30,7 +30,7 @@ class RunwayTab extends JPanel
 	private final ItemManager itemManager; // unused until restock links; kept for symmetry
 	private final SuppliesRunwayModule module;
 	private final OsrsTheme theme;
-	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 	private final JPanel list = new JPanel();
 
 	RunwayTab(AccountState state, ItemManager itemManager, SuppliesRunwayModule module, OsrsTheme theme)

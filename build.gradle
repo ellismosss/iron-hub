@@ -56,4 +56,8 @@ tasks.register('runClient', JavaExec) {
 
 test {
 	useJUnitPlatform()
+	// deterministic RebuildGate behaviour: headless keeps the old
+	// always-rebuild listener semantics for render/state tests, regardless
+	// of whether the machine running them has a window server
+	systemProperty 'java.awt.headless', 'true'
 }

@@ -71,7 +71,7 @@ class CombatAchievementsTab extends JPanel
 	private final CombatAchievementsModule module;
 	private final AccountState state;
 	private final OsrsTheme theme;
-	private final Runnable listener = () -> SwingUtilities.invokeLater(this::onStateChanged);
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::onStateChanged);
 
 	// stats card (OsrsLabel text is immutable — refreshStats refills the card)
 	private final StonePanel statsCard;

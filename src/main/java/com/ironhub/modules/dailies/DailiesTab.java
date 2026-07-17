@@ -38,7 +38,7 @@ class DailiesTab extends JPanel
 {
 	private final DailiesModule module;
 	private final AccountState state;
-	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 
 	private final JPanel topBar = new JPanel();
 	private final JPanel body = new JPanel();

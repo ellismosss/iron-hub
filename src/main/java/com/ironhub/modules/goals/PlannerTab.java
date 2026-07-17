@@ -80,7 +80,10 @@ class PlannerTab extends JPanel
 	private GoalsPack.Goal previewCandidate;
 	private GoalPlannerModule.MergePreview preview;
 
-	private final Runnable planListener = this::refreshFromModule;
+	/** Visibility-gated: replans land every few seconds during play, and a
+	 *  hidden planner must not rebuild three views each time (freeze audit). */
+	private final Runnable planListener =
+		com.ironhub.ui.components.RebuildGate.install(this, this::refreshFromModule);
 
 	private void refreshFromModule()
 	{

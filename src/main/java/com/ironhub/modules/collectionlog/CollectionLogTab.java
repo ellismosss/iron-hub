@@ -68,7 +68,7 @@ class CollectionLogTab extends JPanel
 	private final AccountState state;
 	private final ItemManager itemManager; // null in headless tests
 	private final OsrsTheme theme;
-	private final Runnable listener = () -> SwingUtilities.invokeLater(this::onStateChanged);
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::onStateChanged);
 
 	// stats card — OsrsLabel text is immutable, so refreshStats refills it
 	private final StonePanel card;

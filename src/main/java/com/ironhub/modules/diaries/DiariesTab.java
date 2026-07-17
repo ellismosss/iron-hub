@@ -43,7 +43,7 @@ class DiariesTab extends JPanel
 	private final DiariesModule module;
 	private final AccountState state;
 	private final OsrsTheme theme;
-	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 
 	private final StonePanel card;
 	private final StoneProgressBar bar;

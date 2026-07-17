@@ -36,7 +36,7 @@ class GoalsTab extends JPanel
 	private final com.ironhub.data.GearProgressionPack gearPack;
 	private final net.runelite.client.game.ItemManager itemManager; // null in headless tests
 	private final OsrsTheme theme;
-	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 	private final JPanel content = new JPanel();
 
 	GoalsTab(AccountState state, GoalsPack pack, com.ironhub.data.GearProgressionPack gearPack,

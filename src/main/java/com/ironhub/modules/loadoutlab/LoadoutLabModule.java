@@ -69,7 +69,22 @@ public class LoadoutLabModule implements IronHubModule
 	private final com.google.gson.Gson gson;
 	private final okhttp3.OkHttpClient httpClient; // null in unit tests
 
-	private final Runnable listener = () -> SwingUtilities.invokeLater(this::onStateChanged);
+	/** Visibility-gated once the holder exists (RebuildGate): a hidden lab
+	 *  strip must not rebuild on every state change — pre-build, the plain
+	 *  path is a cheap no-op (refreshStrip guards on null). */
+	private volatile Runnable gatedListener;
+	private final Runnable listener = () ->
+	{
+		Runnable gated = gatedListener;
+		if (gated != null)
+		{
+			gated.run();
+		}
+		else
+		{
+			SwingUtilities.invokeLater(this::onStateChanged);
+		}
+	};
 	private com.ironhub.modules.loadout.StrategyClient strategyClient;
 	private com.ironhub.ui.osrs.OsrsTheme theme;
 	private JPanel holder;
@@ -144,6 +159,7 @@ public class LoadoutLabModule implements IronHubModule
 		}
 		holder = null;
 		strip = null;
+		gatedListener = null;
 	}
 
 	@Override
@@ -164,6 +180,8 @@ public class LoadoutLabModule implements IronHubModule
 			holder.add(setupView, BorderLayout.SOUTH); // saved setup sits under the lab
 			mountPanel();
 			refreshStrip();
+			gatedListener = com.ironhub.ui.components.RebuildGate.install(
+				holder, this::onStateChanged);
 		}
 		return holder;
 	}
@@ -190,6 +208,7 @@ public class LoadoutLabModule implements IronHubModule
 		{
 			holder = null;
 			strip = null;
+			gatedListener = null; // the gate watched the dropped holder
 		});
 	}
 

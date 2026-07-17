@@ -55,7 +55,7 @@ public class HomePanel extends JPanel
 	private final AccountState state;
 	private final OsrsTheme theme;
 	private final java.util.function.Consumer<String> onBlock;
-	private final Runnable listener = () -> SwingUtilities.invokeLater(this::refresh);
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::refresh);
 
 	private final JPanel frame = new JPanel();
 	/**

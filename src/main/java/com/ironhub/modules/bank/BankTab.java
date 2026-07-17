@@ -48,7 +48,7 @@ class BankTab extends JPanel
 	private final ItemManager itemManager; // null in unit tests — icons skipped
 	private final BankedXpPack bankedXpPack;
 	private final OsrsTheme theme;
-	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 
 	private final StoneTextField search;
 	private final JPanel snapshotHolder = new JPanel();

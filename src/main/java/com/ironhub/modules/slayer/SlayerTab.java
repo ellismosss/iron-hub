@@ -23,7 +23,7 @@ class SlayerTab extends JPanel
 	private final AccountState state;
 	private final SlayerOptimizerModule module;
 	private final OsrsTheme theme;
-	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 	private final JPanel content = new JPanel();
 
 	SlayerTab(AccountState state, SlayerOptimizerModule module, OsrsTheme theme)

@@ -42,7 +42,7 @@ class DailiesNewTab extends JPanel
 	private final AccountState state;
 	private final OsrsTheme theme;
 	private final SpriteCache sprites;
-	private final Runnable stateListener = () -> SwingUtilities.invokeLater(this::rebuild);
+	private final Runnable stateListener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 	private final Runnable runListener = this::rebuild; // already on the EDT
 
 	private final JPanel frame = new JPanel();

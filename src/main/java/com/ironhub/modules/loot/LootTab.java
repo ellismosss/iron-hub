@@ -39,7 +39,7 @@ class LootTab extends JPanel
 	private final AccountState state;
 	private final ItemManager itemManager; // null in unit tests — icons skipped
 	private final OsrsTheme theme;
-	private final Runnable listener = () -> SwingUtilities.invokeLater(this::sourcesChanged);
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::sourcesChanged);
 
 	private final JComboBox<String> source = new JComboBox<>();
 	private final StoneChipRow view;

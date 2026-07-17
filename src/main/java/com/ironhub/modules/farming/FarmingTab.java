@@ -62,7 +62,7 @@ class FarmingTab extends JPanel
 	private final net.runelite.client.game.ItemManager itemManager; // null in headless tests
 	private final OsrsTheme theme;
 	private final SpriteCache sprites;
-	private final Runnable listener = () -> SwingUtilities.invokeLater(this::rebuild);
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 	/** The one category expanded under the overview tile strip (null = none). */
 	private Tab expandedOverview;
 
