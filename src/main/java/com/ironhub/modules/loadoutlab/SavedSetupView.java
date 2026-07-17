@@ -132,10 +132,48 @@ class SavedSetupView
 		return image;
 	}
 
+	/** The game's stack-count yellow. */
+	private static final java.awt.Color STACK_YELLOW = new java.awt.Color(0xFFFF00);
+
 	/** The inside-visible part of a frame sprite (null-safe). */
 	private static BufferedImage sub(BufferedImage source, int x, int y, int w, int h)
 	{
 		return source == null ? null : source.getSubimage(x, y, w, h);
+	}
+
+	/**
+	 * Draw an item sprite with its visible INK centred on a slot tile — the
+	 * art floats off-centre inside the 36x32 sprite canvas, so a canvas-
+	 * aligned draw reads visibly off (the skin's centre-measured-ink rule,
+	 * applied to sprites). Falls back to canvas-aligned while still loading.
+	 */
+	private static void drawInkCentred(Graphics2D g, BufferedImage image, int tileX, int tileY)
+	{
+		int minX = Integer.MAX_VALUE;
+		int minY = Integer.MAX_VALUE;
+		int maxX = -1;
+		int maxY = -1;
+		for (int y = 0; y < image.getHeight(); y++)
+		{
+			for (int x = 0; x < image.getWidth(); x++)
+			{
+				if ((image.getRGB(x, y) >>> 24) != 0)
+				{
+					minX = Math.min(minX, x);
+					minY = Math.min(minY, y);
+					maxX = Math.max(maxX, x);
+					maxY = Math.max(maxY, y);
+				}
+			}
+		}
+		if (maxX < 0)
+		{
+			g.drawImage(image, tileX, tileY + 2, null); // not loaded yet
+			return;
+		}
+		int w = maxX - minX + 1;
+		int h = maxY - minY + 1;
+		g.drawImage(image, tileX + (SLOT - w) / 2 - minX, tileY + (SLOT - h) / 2 - minY, null);
 	}
 
 	/** Tile a link strip along its span (stretching would smear the chain). */
@@ -270,10 +308,16 @@ class SavedSetupView
 			setToolTipText("");
 			for (int i = 0; i < setup.pouchRunes.length; i++)
 			{
-				if (setup.pouchRunes[i] > 0)
+				if (setup.pouchRunes[i] > 0 && itemManager != null)
 				{
-					runes[i] = sprite(this, setup.pouchRunes[i],
-						setup.pouchAmounts.length > i ? setup.pouchAmounts[i] : 0);
+					// stack-correct art WITHOUT the baked count: the number
+					// is painted separately so the rune can be INK-centred
+					// (rune art sits off-centre in its sprite canvas — the
+					// canvas-aligned draw read visibly off, Luke)
+					int amount = setup.pouchAmounts.length > i ? setup.pouchAmounts[i] : 1;
+					runes[i] = itemManager.getImage(setup.pouchRunes[i],
+						Math.max(1, amount), false);
+					runes[i].onLoaded(this::repaint);
 				}
 			}
 		}
@@ -299,16 +343,30 @@ class SavedSetupView
 		@Override
 		protected void paintComponent(Graphics g)
 		{
+			Graphics2D g2 = (Graphics2D) g;
 			for (int i = 0; i < setup.pouchRunes.length; i++)
 			{
 				int x = i * PITCH;
 				if (slotTile != null)
 				{
-					g.drawImage(slotTile, x, 0, null);
+					g2.drawImage(slotTile, x, 0, null);
 				}
 				if (runes[i] != null)
 				{
-					g.drawImage(runes[i], x, 2, null);
+					drawInkCentred(g2, runes[i], x, 0);
+					int amount = setup.pouchAmounts.length > i ? setup.pouchAmounts[i] : 0;
+					if (amount > 0)
+					{
+						// the game's stack number: yellow, small font, top-left
+						g2.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+							java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+						g2.setFont(OsrsSkin.smallFont());
+						String count = String.valueOf(amount);
+						g2.setColor(java.awt.Color.BLACK);
+						g2.drawString(count, x + 2, 11);
+						g2.setColor(STACK_YELLOW);
+						g2.drawString(count, x + 1, 10);
+					}
 				}
 			}
 		}
@@ -347,6 +405,17 @@ class SavedSetupView
 		private final BufferedImage cornerTr;
 		private final BufferedImage cornerBl;
 		private final BufferedImage cornerBr;
+		/** The resizeable-mode tan trim (Luke, 2026-07-17): drawn over the
+		 *  backing's edge on BOTH themes — the pack doesn't redraw it, so
+		 *  vanilla art is what a Mystic client shows too. */
+		private final BufferedImage tanTop;
+		private final BufferedImage tanBottom;
+		private final BufferedImage tanLeft;
+		private final BufferedImage tanRight;
+		private final BufferedImage tanTl;
+		private final BufferedImage tanTr;
+		private final BufferedImage tanBl;
+		private final BufferedImage tanBr;
 
 		InventoryCanvas(PersistedState.SavedSetup setup)
 		{
@@ -391,6 +460,14 @@ class SavedSetupView
 				cornerBl = null;
 				cornerBr = null;
 			}
+			tanTop = OsrsIcons.image(theme, "dialog_inventory_sprites/tan_border_top");
+			tanBottom = OsrsIcons.image(theme, "dialog_inventory_sprites/tan_border_bottom");
+			tanLeft = OsrsIcons.image(theme, "dialog_inventory_sprites/tan_border_left");
+			tanRight = OsrsIcons.image(theme, "dialog_inventory_sprites/tan_border_right");
+			tanTl = OsrsIcons.image(theme, "dialog_inventory_sprites/tan_border_corner_top_left");
+			tanTr = OsrsIcons.image(theme, "dialog_inventory_sprites/tan_border_corner_top_right");
+			tanBl = OsrsIcons.image(theme, "dialog_inventory_sprites/tan_border_corner_bottom_left");
+			tanBr = OsrsIcons.image(theme, "dialog_inventory_sprites/tan_border_corner_bottom_right");
 			for (int i = 0; i < 28 && i < setup.inventory.length; i++)
 			{
 				if (setup.inventory[i] > 0)
@@ -451,6 +528,20 @@ class SavedSetupView
 				g2.fillRect(0, 0, INV_WIDTH, INV_HEIGHT);
 				OsrsSkin.outline(g2, theme.edgeDark, 0, 0, INV_WIDTH, INV_HEIGHT);
 				OsrsSkin.outline(g2, theme.edgeLight, 1, 1, INV_WIDTH - 2, INV_HEIGHT - 2);
+			}
+			// the resizeable-mode tan trim over the backing edge (both themes);
+			// the strips sit edge-aligned inside 9px canvases (top/left at
+			// rows 0-2, bottom/right at 6-8), so full canvases tile in place
+			tile(g2, tanTop, 0, 0, INV_WIDTH, 9);
+			tile(g2, tanBottom, 0, INV_HEIGHT - 9, INV_WIDTH, 9);
+			tile(g2, tanLeft, 0, 0, 9, INV_HEIGHT);
+			tile(g2, tanRight, INV_WIDTH - 9, 0, 9, INV_HEIGHT);
+			if (tanTl != null)
+			{
+				g2.drawImage(tanTl, 0, 0, null);
+				g2.drawImage(tanTr, INV_WIDTH - 9, 0, null);
+				g2.drawImage(tanBl, 0, INV_HEIGHT - 9, null);
+				g2.drawImage(tanBr, INV_WIDTH - 9, INV_HEIGHT - 9, null);
 			}
 			for (int i = 0; i < 28; i++)
 			{

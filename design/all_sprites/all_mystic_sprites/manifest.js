@@ -1,0 +1,1 @@
+{"internalName":"pack-mystic-pack","commit":"339ac716295f628c928df72c3bf68ac4afef61d7","displayName":"Mystic","compatibleVersion":"1.10.5","author":"Drunken Monk","tags":["dark","mode","mystic","spell","prayer","sprite","pixel","monk"],"repo":"https://github.com/melkypie/resource-packs/tree/pack-mystic-pack","hasIcon":true}

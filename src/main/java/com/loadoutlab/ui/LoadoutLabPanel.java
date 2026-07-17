@@ -782,9 +782,9 @@ public class LoadoutLabPanel extends PluginPanel
 				com.loadoutlab.optimizer.BoostSelector.HEART_ASSUMED = on;
 				recompute();
 			}));
-		bottomControls.add(centeredRow(boostRow, 5 * 34 + 8, 34));
+		bottomControls.add(centeredRow(boostRow, 5 * 36 + 8, 36));
 		bottomControls.add(Box.createVerticalStrut(2));
-		bottomControls.add(centeredRow(spellRow, 3 * 34 + 4, 34));
+		bottomControls.add(centeredRow(spellRow, 3 * 36 + 4, 36));
 		bottomControls.add(Box.createVerticalStrut(8));
 		StoneComboBoxUI.skin(optimizeMode, theme);
 		bottomControls.add(optimizeMode);
@@ -1720,37 +1720,55 @@ public class LoadoutLabPanel extends PluginPanel
 
 	/** Right-click menu on a suggested item: exclude it and recompute. A
 	 * container weapon (blowpipe) also offers its loaded ammo. */
-	/** Iron Hub: 34px toggle showing a game sprite; dim = off. */
+	/** Iron Hub: a toggle on the game's own 36px equipment slot slab — the
+	 * slot tile as the resting state, the game's slot_selected highlight
+	 * when on (Luke, 2026-07-17: same slabs as the Saved setup slots). */
+	private JLabel slabToggle(String tooltip, java.util.function.Supplier<Boolean> isOn)
+	{
+		java.awt.image.BufferedImage tile =
+			com.ironhub.ui.osrs.OsrsIcons.image(theme, "equipment/slot_tile");
+		java.awt.image.BufferedImage selected =
+			com.ironhub.ui.osrs.OsrsIcons.image(theme, "equipment/slot_selected");
+		JLabel toggle = new JLabel()
+		{
+			@Override
+			protected void paintComponent(java.awt.Graphics g)
+			{
+				if (tile != null)
+				{
+					g.drawImage(tile, 0, 0, null);
+				}
+				if (isOn.get() && selected != null)
+				{
+					g.drawImage(selected, 0, 0, null);
+				}
+				super.paintComponent(g); // the icon on top
+			}
+		};
+		toggle.setOpaque(false);
+		toggle.setHorizontalAlignment(SwingConstants.CENTER);
+		toggle.setPreferredSize(new Dimension(36, 36));
+		toggle.setToolTipText(tooltip);
+		toggle.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		return toggle;
+	}
+
 	private JLabel iconToggle(int spriteId, String tooltip, boolean initial,
 		java.util.function.Consumer<Boolean> onChange)
 	{
-		JLabel toggle = new JLabel();
-		toggle.setOpaque(true);
-		toggle.setHorizontalAlignment(SwingConstants.CENTER);
-		toggle.setPreferredSize(new Dimension(34, 34));
-		toggle.setToolTipText(tooltip);
-		toggle.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		final boolean[] on = {initial};
+		JLabel toggle = slabToggle(tooltip, () -> on[0]);
 		if (spriteId > 0)
 		{
 			spriteManager.addSpriteTo(toggle, spriteId, 0);
 		}
-		final boolean[] on = {initial};
-		// Stone select grammar: select fill + bevel = on, sunken recess = off
-		// (MatteBorder fills strips — a stroked border halves on Retina)
-		Runnable style = () ->
-		{
-			toggle.setBackground(on[0] ? theme.selectFill : theme.recess);
-			toggle.setBorder(new MatteBorder(1, 1, 1, 1,
-				on[0] ? theme.selectEdge : theme.edgeDark));
-		};
-		style.run();
 		toggle.addMouseListener(new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
 				on[0] = !on[0];
-				style.run();
+				toggle.repaint();
 				onChange.accept(on[0]);
 			}
 		});
@@ -1769,15 +1787,11 @@ public class LoadoutLabPanel extends PluginPanel
 	}
 
 	/** Spellbook icon: selects that book in the (hidden) combo; click the
-	 * active one again for Any spellbook. */
+	 * active one again for Any spellbook. Same slab grammar as the boosts. */
 	private JLabel spellbookIcon(String bookFile, String tooltip, int comboIndex)
 	{
-		JLabel icon = new JLabel();
-		icon.setOpaque(true);
-		icon.setHorizontalAlignment(SwingConstants.CENTER);
-		icon.setPreferredSize(new Dimension(34, 34));
-		icon.setToolTipText(tooltip + " (click again for any spellbook)");
-		icon.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		JLabel icon = slabToggle(tooltip + " (click again for any spellbook)",
+			() -> spellbook.getSelectedIndex() == comboIndex);
 		try (java.io.InputStream in = getClass().getResourceAsStream(
 			"/data/icons/spellbooks/" + bookFile))
 		{
@@ -1789,16 +1803,7 @@ public class LoadoutLabPanel extends PluginPanel
 		catch (java.io.IOException ignored)
 		{
 		}
-		// Stone select grammar: select fill + bevel = the selected book
-		Runnable style = () ->
-		{
-			boolean on = spellbook.getSelectedIndex() == comboIndex;
-			icon.setBackground(on ? theme.selectFill : theme.recess);
-			icon.setBorder(new MatteBorder(1, 1, 1, 1,
-				on ? theme.selectEdge : theme.edgeDark));
-		};
-		style.run();
-		spellbook.addActionListener(e -> style.run());
+		spellbook.addActionListener(e -> icon.repaint());
 		icon.addMouseListener(new MouseAdapter()
 		{
 			@Override
