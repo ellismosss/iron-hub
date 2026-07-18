@@ -92,6 +92,8 @@ public class PersistedState
 		}
 	}
 
+	java.util.Set<String> pohBuilt = new java.util.HashSet<>();     // built POH tier ids (pack keys)
+
 	java.util.Set<Integer> stashBuilt = new java.util.HashSet<>();  // built STASH object ids
 	java.util.Set<Integer> stashFilled = new java.util.HashSet<>(); // filled STASH object ids
 

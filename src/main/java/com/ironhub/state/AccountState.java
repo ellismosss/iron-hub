@@ -105,6 +105,9 @@ public class AccountState implements StateView
 	public static final int MAX_FARM_RUN_RECORDS = 100;
 	private final java.util.List<PersistedState.FarmRunRecord> farmRunLog = new CopyOnWriteArrayList<>();
 
+	// built POH tiers (pack tier ids)
+	private final Set<String> pohBuilt = ConcurrentHashMap.newKeySet();
+
 	// STASH units (object ids) + clue-step goal seeds
 	private final Set<Integer> stashBuilt = ConcurrentHashMap.newKeySet();
 	private final Set<Integer> stashFilled = ConcurrentHashMap.newKeySet();
@@ -517,6 +520,33 @@ public class AccountState implements StateView
 		herbRunsMs.add(durationMs);
 		persist();
 		notifyListeners();
+	}
+
+	// ── POH progression ───────────────────────────────────────────────
+
+	public boolean isPohBuilt(String tierId)
+	{
+		return pohBuilt.contains(tierId);
+	}
+
+	public void setPohBuilt(String tierId, boolean built)
+	{
+		boolean changed = built ? pohBuilt.add(tierId) : pohBuilt.remove(tierId);
+		if (changed)
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	/** Bulk mark from an own-house sweep — one persist + notify. */
+	public void setPohBuiltBulk(java.util.Collection<String> tierIds)
+	{
+		if (pohBuilt.addAll(tierIds))
+		{
+			persist();
+			notifyListeners();
+		}
 	}
 
 	// ── clues & STASH ─────────────────────────────────────────────────
@@ -1891,6 +1921,8 @@ public class AccountState implements StateView
 		consumptionLog.addAll(persisted.consumptionLog);
 		deaths.clear();
 		deaths.addAll(persisted.deaths);
+		pohBuilt.clear();
+		pohBuilt.addAll(persisted.pohBuilt);
 		stashBuilt.clear();
 		stashBuilt.addAll(persisted.stashBuilt);
 		stashFilled.clear();
@@ -1990,6 +2022,7 @@ public class AccountState implements StateView
 		state.farmRunLog = new java.util.ArrayList<>(farmRunLog);
 		state.consumptionLog = new java.util.ArrayList<>(consumptionLog);
 		state.deaths = new java.util.ArrayList<>(deaths);
+		state.pohBuilt = new HashSet<>(pohBuilt);
 		state.stashBuilt = new HashSet<>(stashBuilt);
 		state.stashFilled = new HashSet<>(stashFilled);
 		state.clueGoals = new HashMap<>(clueGoals);

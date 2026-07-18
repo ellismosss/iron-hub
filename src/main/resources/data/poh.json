@@ -1,0 +1,706 @@
+{
+ "version": 1,
+ "sources": {
+  "wiki": "oldschool.runescape.wiki per-furniture Infobox Construction; curation per Guide:POH_Progression_&_Layout_Guide"
+ },
+ "spaces": [
+  {
+   "id": "pool",
+   "name": "Pool",
+   "tiers": [
+    {
+     "id": "pool:restoration_pool",
+     "name": "Restoration pool",
+     "page": "Restoration pool",
+     "level": 65,
+     "reqs": [
+      "skillb:Construction:65"
+     ],
+     "objectIds": [
+      29237
+     ],
+     "icon": 20639
+    },
+    {
+     "id": "pool:revitalisation_pool",
+     "name": "Revitalisation pool",
+     "page": "Revitalisation pool",
+     "level": 70,
+     "reqs": [
+      "skillb:Construction:70"
+     ],
+     "objectIds": [
+      29238
+     ],
+     "icon": 20640
+    },
+    {
+     "id": "pool:rejuvenation_pool",
+     "name": "Rejuvenation pool",
+     "page": "Rejuvenation pool",
+     "level": 80,
+     "reqs": [
+      "skillb:Construction:80"
+     ],
+     "objectIds": [
+      29239
+     ],
+     "icon": 20641
+    },
+    {
+     "id": "pool:fancy_rejuvenation_pool",
+     "name": "Fancy rejuvenation pool",
+     "page": "Fancy rejuvenation pool",
+     "level": 85,
+     "reqs": [
+      "skillb:Construction:85"
+     ],
+     "objectIds": [
+      29240
+     ],
+     "icon": 20642
+    },
+    {
+     "id": "pool:ornate_rejuvenation_pool",
+     "name": "Ornate rejuvenation pool",
+     "page": "Ornate rejuvenation pool",
+     "level": 90,
+     "reqs": [
+      "skillb:Construction:90"
+     ],
+     "objectIds": [
+      29241
+     ],
+     "icon": 20643
+    }
+   ],
+   "room": "Superior garden",
+   "icon": 20643
+  },
+  {
+   "id": "jewellery_box",
+   "name": "Jewellery box",
+   "tiers": [
+    {
+     "id": "jewellery_box:basic_jewellery_box",
+     "name": "Basic jewellery box",
+     "page": "Basic jewellery box",
+     "level": 81,
+     "reqs": [
+      "skillb:Construction:81"
+     ],
+     "objectIds": [
+      37492,
+      37493,
+      37494,
+      37495,
+      37496,
+      37497,
+      37498,
+      37499,
+      37500,
+      50710
+     ],
+     "icon": 20626
+    },
+    {
+     "id": "jewellery_box:fancy_jewellery_box",
+     "name": "Fancy jewellery box",
+     "page": "Fancy jewellery box",
+     "level": 86,
+     "reqs": [
+      "skillb:Construction:86"
+     ],
+     "objectIds": [
+      37501,
+      37502,
+      37503,
+      37504,
+      37505,
+      37506,
+      37507,
+      37508,
+      37509,
+      37510,
+      37511,
+      37512,
+      37513,
+      37514,
+      37515,
+      37516,
+      37517,
+      37518,
+      37519,
+      50711
+     ],
+     "icon": 20627
+    },
+    {
+     "id": "jewellery_box:ornate_jewellery_box",
+     "name": "Ornate jewellery box",
+     "page": "Ornate jewellery box",
+     "level": 91,
+     "reqs": [
+      "skillb:Construction:91"
+     ],
+     "objectIds": [
+      37520,
+      37521,
+      37522,
+      37523,
+      37524,
+      37525,
+      37526,
+      37527,
+      37528,
+      37529,
+      37530,
+      37531,
+      37532,
+      37533,
+      37534,
+      37535,
+      37536,
+      37537,
+      37538,
+      37539,
+      37540,
+      37541,
+      37542,
+      37543,
+      37544,
+      37545,
+      37546,
+      50712
+     ],
+     "icon": 20628
+    }
+   ],
+   "room": "Achievement Gallery",
+   "icon": 20628
+  },
+  {
+   "id": "altar",
+   "name": "Chapel altar",
+   "tiers": [
+    {
+     "id": "altar:oak_altar",
+     "name": "Oak altar",
+     "page": "Oak altar",
+     "level": 45,
+     "reqs": [
+      "skillb:Construction:45"
+     ],
+     "objectIds": [
+      13179,
+      13180,
+      13181
+     ],
+     "icon": 8062
+    },
+    {
+     "id": "altar:teak_altar",
+     "name": "Teak altar",
+     "page": "Teak altar",
+     "level": 50,
+     "reqs": [
+      "skillb:Construction:50"
+     ],
+     "objectIds": [
+      13182,
+      13183,
+      13184
+     ],
+     "icon": 8063
+    },
+    {
+     "id": "altar:cloth_covered_altar",
+     "name": "Cloth-covered altar",
+     "page": "Cloth-covered altar",
+     "level": 56,
+     "reqs": [
+      "skillb:Construction:56"
+     ],
+     "objectIds": [
+      13185,
+      13186,
+      13187
+     ],
+     "icon": 8064
+    },
+    {
+     "id": "altar:mahogany_altar",
+     "name": "Mahogany altar",
+     "page": "Mahogany altar",
+     "level": 60,
+     "reqs": [
+      "skillb:Construction:60"
+     ],
+     "objectIds": [
+      13188,
+      13189,
+      13190
+     ],
+     "icon": 8065
+    },
+    {
+     "id": "altar:limestone_altar",
+     "name": "Limestone altar",
+     "page": "Limestone altar",
+     "level": 64,
+     "reqs": [
+      "skillb:Construction:64"
+     ],
+     "objectIds": [
+      13191,
+      13192,
+      13193
+     ],
+     "icon": 8066
+    },
+    {
+     "id": "altar:marble_altar",
+     "name": "Marble altar",
+     "page": "Marble altar",
+     "level": 70,
+     "reqs": [
+      "skillb:Construction:70"
+     ],
+     "objectIds": [
+      13194,
+      13195,
+      13196
+     ],
+     "icon": 8067
+    },
+    {
+     "id": "altar:gilded_altar",
+     "name": "Gilded altar",
+     "page": "Gilded altar",
+     "level": 75,
+     "reqs": [
+      "skillb:Construction:75"
+     ],
+     "objectIds": [
+      13197,
+      13198,
+      13199
+     ],
+     "icon": 8068
+    }
+   ],
+   "room": "Chapel",
+   "icon": 8068
+  },
+  {
+   "id": "spellbook_altar",
+   "name": "Spellbook altar",
+   "tiers": [
+    {
+     "id": "spellbook_altar:ancient_altar",
+     "name": "Ancient altar",
+     "page": "Ancient altar",
+     "level": 80,
+     "reqs": [
+      "skillb:Construction:80"
+     ],
+     "objectIds": [
+      29147
+     ],
+     "icon": 20617
+    },
+    {
+     "id": "spellbook_altar:lunar_altar",
+     "name": "Lunar altar",
+     "page": "Lunar altar",
+     "level": 80,
+     "reqs": [
+      "skillb:Construction:80",
+      "quest:Lunar Diplomacy"
+     ],
+     "objectIds": [
+      29148
+     ],
+     "icon": 20618
+    },
+    {
+     "id": "spellbook_altar:dark_altar_construction",
+     "name": "Dark altar",
+     "page": "Dark altar (Construction)",
+     "level": 80,
+     "reqs": [
+      "skillb:Construction:80"
+     ],
+     "objectIds": [
+      29149
+     ],
+     "icon": 20619
+    },
+    {
+     "id": "spellbook_altar:occult_altar",
+     "name": "Occult altar",
+     "page": "Occult altar",
+     "level": 90,
+     "reqs": [
+      "skillb:Construction:90",
+      "quest:Lunar Diplomacy"
+     ],
+     "objectIds": [
+      31858,
+      31859,
+      31860,
+      31861
+     ],
+     "icon": 20620
+    }
+   ],
+   "room": "Achievement Gallery",
+   "icon": 20620
+  },
+  {
+   "id": "portal_nexus",
+   "name": "Portal nexus",
+   "tiers": [
+    {
+     "id": "portal_nexus:marble_portal_nexus",
+     "name": "Marble portal nexus",
+     "page": "Marble portal nexus",
+     "level": 72,
+     "reqs": [
+      "skillb:Construction:72"
+     ],
+     "objectIds": [
+      33408
+     ],
+     "icon": 22705
+    },
+    {
+     "id": "portal_nexus:gilded_portal_nexus",
+     "name": "Gilded portal nexus",
+     "page": "Gilded portal nexus",
+     "level": 82,
+     "reqs": [
+      "skillb:Construction:82"
+     ],
+     "objectIds": [
+      33409
+     ],
+     "icon": 22706
+    },
+    {
+     "id": "portal_nexus:crystalline_portal_nexus",
+     "name": "Crystalline portal nexus",
+     "page": "Crystalline portal nexus",
+     "level": 92,
+     "reqs": [
+      "skillb:Construction:92"
+     ],
+     "objectIds": [
+      33410
+     ]
+    }
+   ],
+   "room": "Portal Nexus",
+   "icon": 22706
+  },
+  {
+   "id": "teleport_space",
+   "name": "Fairy ring & spirit tree",
+   "tiers": [
+    {
+     "id": "teleport_space:spirit_tree_construction",
+     "name": "Spirit tree",
+     "page": "Spirit tree (Construction)",
+     "level": 75,
+     "reqs": [
+      "skillb:Construction:75",
+      "quest:Tree Gnome Village"
+     ],
+     "objectIds": [
+      29227
+     ]
+    },
+    {
+     "id": "teleport_space:fairy_ring_construction",
+     "name": "Fairy ring",
+     "page": "Fairy ring (Construction)",
+     "level": 85,
+     "reqs": [
+      "skillb:Construction:85",
+      "queststarted:Fairytale II - Cure a Queen"
+     ],
+     "objectIds": [
+      29228
+     ],
+     "icon": 20636
+    },
+    {
+     "id": "teleport_space:spirit_tree_fairy_ring",
+     "name": "Spirit tree & fairy ring",
+     "page": "Spirit tree & fairy ring",
+     "level": 95,
+     "reqs": [
+      "skillb:Construction:95",
+      "quest:Tree Gnome Village",
+      "queststarted:Fairytale II - Cure a Queen"
+     ],
+     "objectIds": [
+      29229
+     ]
+    }
+   ],
+   "room": "Superior garden",
+   "icon": 20636
+  },
+  {
+   "id": "glory",
+   "name": "Mounted glory",
+   "tiers": [
+    {
+     "id": "glory:amulet_of_glory_mounted",
+     "name": "Amulet of glory",
+     "page": "Amulet of glory (mounted)",
+     "level": 47,
+     "reqs": [
+      "skillb:Construction:47",
+      "item:1704:1:Amulet of glory"
+     ],
+     "objectIds": [
+      13523
+     ],
+     "icon": 8283
+    }
+   ],
+   "room": "Quest Hall",
+   "icon": 8283
+  },
+  {
+   "id": "mythical_cape",
+   "name": "Mythical cape",
+   "tiers": [
+    {
+     "id": "mythical_cape:mythical_cape_mounted",
+     "name": "Mythical cape",
+     "page": "Mythical cape (mounted)",
+     "level": 47,
+     "reqs": [
+      "skillb:Construction:47",
+      "item:22114:1:Mythical cape"
+     ],
+     "objectIds": [
+      31986
+     ],
+     "icon": 21913
+    }
+   ],
+   "room": "Quest hall",
+   "icon": 21913
+  },
+  {
+   "id": "xerics_talisman",
+   "name": "Xeric's talisman",
+   "tiers": [
+    {
+     "id": "xerics_talisman:mounted_xeric_s_talisman",
+     "name": "xeric's talisman",
+     "page": "Mounted xeric's talisman",
+     "level": 72,
+     "reqs": [
+      "skillb:Construction:72",
+      "item:13393:1:Xeric's talisman"
+     ],
+     "objectIds": [
+      33411,
+      33412,
+      33413,
+      33414,
+      33415,
+      33419
+     ],
+     "icon": 22708
+    }
+   ],
+   "room": "Portal Nexus",
+   "icon": 22708
+  },
+  {
+   "id": "digsite_pendant",
+   "name": "Digsite pendant",
+   "tiers": [
+    {
+     "id": "digsite_pendant:mounted_digsite_pendant",
+     "name": "digsite pendant",
+     "page": "Mounted digsite pendant",
+     "level": 82,
+     "reqs": [
+      "skillb:Construction:82",
+      "item:11194:1:Digsite pendant"
+     ],
+     "objectIds": [
+      33416,
+      33417,
+      33418,
+      33420
+     ],
+     "icon": 22709
+    }
+   ],
+   "room": "Portal nexus",
+   "icon": 22709
+  },
+  {
+   "id": "cape_hanger",
+   "name": "Cape hanger",
+   "tiers": [
+    {
+     "id": "cape_hanger:cape_hanger",
+     "name": "Cape hanger",
+     "page": "Cape hanger",
+     "level": 80,
+     "reqs": [
+      "skillb:Construction:80"
+     ],
+     "objectIds": [
+      29166
+     ],
+     "icon": 20632
+    }
+   ],
+   "room": "Achievement gallery",
+   "icon": 20632
+  },
+  {
+   "id": "lectern",
+   "name": "Lectern",
+   "tiers": [
+    {
+     "id": "lectern:oak_lectern",
+     "name": "Oak lectern",
+     "page": "Oak lectern",
+     "level": 40,
+     "reqs": [
+      "skillb:Construction:40"
+     ],
+     "objectIds": [
+      13642
+     ],
+     "icon": 8334
+    },
+    {
+     "id": "lectern:eagle_lectern",
+     "name": "Eagle lectern",
+     "page": "Eagle lectern",
+     "level": 47,
+     "reqs": [
+      "skillb:Construction:47"
+     ],
+     "objectIds": [
+      13643
+     ],
+     "icon": 8335
+    },
+    {
+     "id": "lectern:demon_lectern",
+     "name": "Demon lectern",
+     "page": "Demon lectern",
+     "level": 47,
+     "reqs": [
+      "skillb:Construction:47"
+     ],
+     "objectIds": [
+      13644
+     ],
+     "icon": 8336
+    },
+    {
+     "id": "lectern:teak_eagle_lectern",
+     "name": "Teak eagle lectern",
+     "page": "Teak eagle lectern",
+     "level": 57,
+     "reqs": [
+      "skillb:Construction:57"
+     ],
+     "objectIds": [
+      13645
+     ],
+     "icon": 8337
+    },
+    {
+     "id": "lectern:teak_demon_lectern",
+     "name": "Teak demon lectern",
+     "page": "Teak demon lectern",
+     "level": 57,
+     "reqs": [
+      "skillb:Construction:57"
+     ],
+     "objectIds": [
+      13646
+     ],
+     "icon": 8338
+    },
+    {
+     "id": "lectern:mahogany_eagle_lectern",
+     "name": "Mahogany eagle lectern",
+     "page": "Mahogany eagle lectern",
+     "level": 67,
+     "reqs": [
+      "skillb:Construction:67"
+     ],
+     "objectIds": [
+      13647
+     ],
+     "icon": 8339
+    },
+    {
+     "id": "lectern:mahogany_demon_lectern",
+     "name": "Mahogany demon lectern",
+     "page": "Mahogany demon lectern",
+     "level": 67,
+     "reqs": [
+      "skillb:Construction:67"
+     ],
+     "objectIds": [
+      13648
+     ],
+     "icon": 8340
+    },
+    {
+     "id": "lectern:marble_lectern",
+     "name": "Marble lectern",
+     "page": "Marble lectern",
+     "level": 77,
+     "reqs": [
+      "skillb:Construction:77"
+     ],
+     "objectIds": [
+      37349
+     ],
+     "icon": 24132
+    }
+   ],
+   "room": "Study",
+   "icon": 24132
+  },
+  {
+   "id": "armour_stand",
+   "name": "Armour stand",
+   "tiers": [
+    {
+     "id": "armour_stand:armour_stand",
+     "name": "Armour stand",
+     "page": "Armour stand",
+     "level": 55,
+     "reqs": [
+      "skillb:Construction:55"
+     ],
+     "objectIds": [
+      6802
+     ],
+     "icon": 8391
+    }
+   ],
+   "room": "Workshop",
+   "icon": 8391
+  }
+ ]
+}

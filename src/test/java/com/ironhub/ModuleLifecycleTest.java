@@ -78,9 +78,12 @@ public class ModuleLifecycleTest
 			new com.ironhub.modules.dailies.DailiesNewModule(
 				new DailiesModule(state, null, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()),
 					null, null, null, null, null, null, null, null, null, null, null),
-				config));
+				config),
+			new com.ironhub.modules.poh.PohModule(state, config,
+				new com.ironhub.data.DataPack(new com.google.gson.Gson()),
+				new net.runelite.client.eventbus.EventBus(), null));
 
-		assertEquals(20, modules.size());
+		assertEquals(21, modules.size());
 
 		// the nav blocks route by exact module name — a mismatch is a hub
 		// slot forever showing "Enable the <name> module" for a module that

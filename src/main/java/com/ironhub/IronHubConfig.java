@@ -56,6 +56,9 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "clueStash", name = "Clues & STASH", description = "STASH tracking and emote-clue readiness", section = modulesSection, position = 14)
 	default boolean clueStash() { return true; }
 
+	@ConfigItem(keyName = "pohProgression", name = "PoH progression", description = "Useful house builds: built, buildable and locked tiers per space", section = modulesSection, position = 13)
+	default boolean pohProgression() { return true; }
+
 	@ConfigItem(keyName = "slayerOptimizer", name = "Slayer optimizer", description = "Point planning, block/skip advisor and per-task readiness", section = modulesSection, position = 15)
 	default boolean slayerOptimizer() { return true; }
 
