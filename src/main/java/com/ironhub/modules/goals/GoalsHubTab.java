@@ -66,9 +66,9 @@ class GoalsHubTab extends JPanel
 	private static final Color EDGE_MEDIUM = new Color(0xB5701C);
 	private static final Color EDGE_LOW = new Color(0x3E7A34);
 
-	/** Goal/task row icon height — matched to the native item-sprite height so
-	 *  the system badges (quest/skill/CA/diary/clue) read the same size (1). */
-	private static final int BADGE_H = 32;
+	/** Goal/task row icon height — a small, consistent size for every icon
+	 *  (system badges AND item sprites), the tidy small variation Luke prefers. */
+	private static final int BADGE_H = 18;
 
 	/** Clue-scroll sprite per tier, for a clue Route's icon (16). */
 	private static final Map<String, Integer> CLUE_TIER_ITEM = Map.of(
@@ -217,7 +217,9 @@ class GoalsHubTab extends JPanel
 		{
 			for (Map.Entry<String, List<GoalsPack.Goal>> e : groupByCategory(routes).entrySet())
 			{
-				content.add(pad(categorySlab(e.getKey(), e.getValue())));
+				// full-width, matching the main section's header plate (no extra
+				// pad inset) so the rows get the most text space (Luke)
+				content.add(categorySlab(e.getKey(), e.getValue()));
 				content.add(strut(3));
 			}
 		}
@@ -469,19 +471,19 @@ class GoalsHubTab extends JPanel
 		boolean expanded = id.equals(expandedRoute);
 		List<Plan.Step> slice = routeSlice(route);
 		boolean single = slice.size() <= 1; // a one-task goal needs no meter/count
-		StonePanel card = new StonePanel(theme);
+		// flat row on the slab (no nested stone border — frees text width);
+		// pinned rows fill selectFill, a 1px darker left strip marks priority
+		JPanel card = new JPanel();
+		card.setOpaque(pinned);
 		if (pinned)
 		{
 			card.setBackground(theme.selectFill);
 		}
-		// a 1px darker left edge INSIDE the tile marks the priority tier (17/19)
 		Color edge = "high".equals(tier) ? EDGE_HIGH
 			: "medium".equals(tier) ? EDGE_MEDIUM : low ? EDGE_LOW : null;
-		if (edge != null)
-		{
-			card.setBorder(new javax.swing.border.CompoundBorder(card.getBorder(),
-				new javax.swing.border.MatteBorder(0, 1, 0, 0, edge)));
-		}
+		javax.swing.border.Border inner = new EmptyBorder(1, edge != null ? 3 : 2, 1, 2);
+		card.setBorder(edge != null ? new javax.swing.border.CompoundBorder(
+			new javax.swing.border.MatteBorder(0, 1, 0, 0, edge), inner) : inner);
 		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 		card.setAlignmentX(LEFT_ALIGNMENT);
 		card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -663,8 +665,10 @@ class GoalsHubTab extends JPanel
 			line.add(new JLabel(icon));
 			line.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		}
+		// Task-tile text is the small font (Goal tiles + CURRENT TASK keep the
+		// regular font) — Luke, to fit more in the row
 		OsrsLabel name = new OsrsLabel(taskName(step, route), current ? OsrsSkin.TITLE : OsrsSkin.MUTED,
-			OsrsSkin.font()).leftAligned().squeezable().tooltipWhenClipped();
+			OsrsSkin.smallFont()).leftAligned().squeezable().tooltipWhenClipped();
 		line.add(name);
 		line.add(Box.createHorizontalGlue());
 		line.add(new OsrsLabel(timeText(step), OsrsSkin.MUTED, OsrsSkin.smallFont()));
@@ -672,7 +676,7 @@ class GoalsHubTab extends JPanel
 		line.add(taskPinGlyph(step.action.id));
 		block.add(line);
 
-		String sub = taskSubLine(step);
+		String sub = taskSubLine(step, route);
 		if (sub != null)
 		{
 			JPanel s = row();
@@ -724,10 +728,22 @@ class GoalsHubTab extends JPanel
 		return pin;
 	}
 
-	/** The faint sub-line for a Task: the recommended method + xp/hr (TRAIN),
-	 *  the drop odds + source (OBTAIN/KILL), the unlucky spread, or nothing. */
-	private String taskSubLine(Plan.Step step)
+	/** The faint sub-line for a Task: the required stock (Supplies Routes),
+	 *  the recommended method + xp/hr (TRAIN), the drop odds + source
+	 *  (OBTAIN/KILL), the unlucky spread, or nothing. */
+	private String taskSubLine(Plan.Step step, GoalsPack.Goal route)
 	{
+		// Supplies Routes note the resource required: how many to stock, and
+		// how many are already owned (Luke)
+		if (route != null && "Supplies".equals(categoryOf(route.getId()))
+			&& step.action.kind == com.ironhub.engine.Action.Kind.OBTAIN)
+		{
+			String supply = supplyNote(route);
+			if (supply != null)
+			{
+				return supply;
+			}
+		}
 		// the TRAIN task name IS the method (11), so the sub-line is just the
 		// rate — never "via <method>" again
 		if (step.action.kind == com.ironhub.engine.Action.Kind.TRAIN)
@@ -752,12 +768,41 @@ class GoalsHubTab extends JPanel
 		return null;
 	}
 
+	/** "Stock N · M owned" for a supply Route — the resource it requires, read
+	 *  from its {@code item:<id>:<qty>} step and the live owned count. */
+	private String supplyNote(GoalsPack.Goal route)
+	{
+		for (GoalsPack.Step s : route.getSteps())
+		{
+			String req = s.getRequirement();
+			if (req == null || !req.startsWith("item:"))
+			{
+				continue;
+			}
+			String[] p = req.split(":");
+			if (p.length >= 3)
+			{
+				try
+				{
+					int itemId = Integer.parseInt(p[1]);
+					int qty = Integer.parseInt(p[2]);
+					return "Stock " + qty + " · " + state.canonicalStock(itemId) + " owned";
+				}
+				catch (NumberFormatException ignored)
+				{
+					return null;
+				}
+			}
+		}
+		return null;
+	}
+
 	/** A remaining manual checklist step when there's no plan slice. */
 	private JComponent manualTaskRow(CompiledStep step)
 	{
 		JPanel row = row();
 		row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP + 6, 2, UiTokens.ROW_GAP));
-		row.add(new OsrsLabel(step.label, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned().squeezable());
+		row.add(new OsrsLabel(step.label, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned().squeezable());
 		row.add(Box.createHorizontalGlue());
 		if (step.manual)
 		{
@@ -1255,7 +1300,7 @@ class GoalsHubTab extends JPanel
 		if (step.action.kind == com.ironhub.engine.Action.Kind.OBTAIN && itemManager != null
 			&& step.action.itemId > 0)
 		{
-			return new ImageIcon(itemManager.getImage(step.action.itemId));
+			return sized(itemManager.getImage(step.action.itemId));
 		}
 		return null;
 	}
@@ -1318,12 +1363,12 @@ class GoalsHubTab extends JPanel
 			int scroll = clueTierItem(goal.getName());
 			if (scroll > 0)
 			{
-				return new ImageIcon(itemManager.getImage(scroll));
+				return sized(itemManager.getImage(scroll));
 			}
 		}
 		if (itemManager != null && goal.icon() != null)
 		{
-			return new ImageIcon(itemManager.getImage(goal.icon()));
+			return sized(itemManager.getImage(goal.icon()));
 		}
 		return null;
 	}
@@ -1414,6 +1459,9 @@ class GoalsHubTab extends JPanel
 		StonePanel slab = new StonePanel(theme);
 		slab.setLayout(new BoxLayout(slab, BoxLayout.Y_AXIS));
 		slab.setAlignmentX(LEFT_ALIGNMENT);
+		// inner padding inside the engraved edge; the flat rows fill the rest
+		slab.setBorder(new javax.swing.border.CompoundBorder(slab.getBorder(),
+			new EmptyBorder(3, 4, 4, 4)));
 		slab.add(categoryHeader(name, routesInCat.size()));
 		if (!collapsedCategories.contains(name))
 		{

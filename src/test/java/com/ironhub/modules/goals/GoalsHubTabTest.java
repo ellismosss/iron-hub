@@ -62,6 +62,8 @@ public class GoalsHubTabTest
 		// a clog Route whose obtain step carries a real drop rate (1/400 Tempoross)
 		state.addGoalSeed(com.ironhub.state.GoalSeeds.clog(25580, "Tackle box",
 			"Fishing from the reward pool (tempoross)", java.util.List.of("skill:Fishing:35")));
+		// a Supplies Route: its task notes the resource required (stock N)
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.supply(2434, "Prayer potion(4)", 100));
 		state.setGoalPriority("bowfa", "someday"); // dimmed + grey edge (if selected)
 		// one archived (dated) + one detected, so the hero + archive fill
 		PersistedState.GoalRecord dated = new PersistedState.GoalRecord();
@@ -112,6 +114,11 @@ public class GoalsHubTabTest
 			javax.swing.SwingUtilities.invokeAndWait(() -> holder[0].expandRoute("custom:quest:dragon-slayer-i"));
 			javax.swing.SwingUtilities.invokeAndWait(() -> { });
 			write(SwingRender.render(holder[0]), "goals-hub-quest-" + theme.name().toLowerCase());
+
+			// a Supplies Route expanded: its Task notes the resource required
+			javax.swing.SwingUtilities.invokeAndWait(() -> holder[0].expandRoute("supply:2434"));
+			javax.swing.SwingUtilities.invokeAndWait(() -> { });
+			write(SwingRender.render(holder[0]), "goals-hub-supply-" + theme.name().toLowerCase());
 
 			// the completed archive (depth 2)
 			javax.swing.SwingUtilities.invokeAndWait(holder[0]::openArchive);
