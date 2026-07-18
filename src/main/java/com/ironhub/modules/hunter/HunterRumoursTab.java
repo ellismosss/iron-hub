@@ -184,6 +184,47 @@ class HunterRumoursTab extends JPanel
 				+ " (was " + rumour.pity + ")", OsrsSkin.FAINT, OsrsSkin.smallFont()));
 		}
 
+		content.add(section("Gear"));
+		PersistedState.SavedSetup setup = module.rumourSetup();
+		if (setup == null)
+		{
+			content.add(textLine("No setup saved for " + rumour.trap.toLowerCase() + " rumours",
+				OsrsSkin.FAINT, OsrsSkin.smallFont()));
+		}
+		else
+		{
+			content.add(textLine("Setup saved for " + rumour.trap.toLowerCase()
+				+ " rumours — the Loadout tab shows it", OsrsSkin.VALUE, OsrsSkin.smallFont()));
+		}
+		JPanel gearButtons = row(2);
+		StoneButton save = new StoneButton(theme,
+			setup == null ? "Save current gear" : "Replace with current gear",
+			module::saveRumourSetup);
+		save.setMaximumSize(save.getPreferredSize());
+		gearButtons.add(save);
+		if (setup != null)
+		{
+			gearButtons.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+			boolean armed = module.bankShowArmed();
+			StoneButton show = new StoneButton(theme,
+				armed ? "Stop bank layout" : "Show in bank",
+				() ->
+				{
+					module.setBankShow(!armed);
+					javax.swing.SwingUtilities.invokeLater(this::rebuild);
+				});
+			show.setMaximumSize(show.getPreferredSize());
+			gearButtons.add(show);
+		}
+		gearButtons.add(Box.createHorizontalGlue());
+		cap(gearButtons);
+		content.add(gearButtons);
+		if (module.bankShowArmed())
+		{
+			content.add(textLine("Opening the bank lays this setup out",
+				OsrsSkin.FAINT, OsrsSkin.smallFont()));
+		}
+
 		List<HunterRumoursPack.Location> areas = module.pack().locationsFor(rumour.creature);
 		if (!areas.isEmpty())
 		{

@@ -84,7 +84,8 @@ public class ModuleLifecycleTest
 				new net.runelite.client.eventbus.EventBus(), null),
 			new com.ironhub.modules.hunter.HunterRumoursModule(state, config,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()),
-				null, null, new net.runelite.client.eventbus.EventBus(), null, null));
+				null, null, new net.runelite.client.eventbus.EventBus(), null, null,
+				null, null, null, null, null, null));
 
 		assertEquals(22, modules.size());
 

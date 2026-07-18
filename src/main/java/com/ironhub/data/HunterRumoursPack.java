@@ -130,6 +130,7 @@ public class HunterRumoursPack
 		public int pieceItemId;    // the rare "piece" turned in
 		public String trap;
 		public int trapItemId;
+		public String trapItemName;
 		public int pity;           // guaranteed-piece threshold, no outfit
 		public int pityWithOutfit; // ... with full guild hunter outfit
 		public int level;

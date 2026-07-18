@@ -88,9 +88,12 @@ def main():
     for m in re.finditer(
             r'^\s*([A-Z_0-9]+)\("([^"]+)", ItemID\.(\w+), (\d+), (\d+)\)',
             trap_src, re.M):
+        constant = m.group(3)
+        pretty = constant.lower().replace("_", " ")
         traps[m.group(1)] = {
             "name": m.group(2),
-            "itemId": resolve(m.group(3), item_ids, "trap " + m.group(1)),
+            "itemId": resolve(constant, item_ids, "trap " + m.group(1)),
+            "itemName": pretty[:1].upper() + pretty[1:],
             "pity": int(m.group(4)),
             "pityWithOutfit": int(m.group(5)),
         }
@@ -154,6 +157,7 @@ def main():
             "pieceItemId": resolve(m.group(4), item_ids, "rumour " + name),
             "trap": trap["name"],
             "trapItemId": trap["itemId"],
+            "trapItemName": trap["itemName"],
             "pity": trap["pity"],
             "pityWithOutfit": trap["pityWithOutfit"],
             "level": creature["level"],

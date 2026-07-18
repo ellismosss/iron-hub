@@ -120,6 +120,15 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "slayerBlockAdvice", name = "Block/skip advice in chat", description = "When you visit a slayer master, note preferred blocks not yet made; when a task on your always-skip list is assigned, say so", section = notificationsSection, position = 11)
 	default boolean slayerBlockAdvice() { return true; }
 
+	@ConfigItem(keyName = "hunterOverlay", name = "Rumour overlay", description = "Floating overlay with the current rumour, catch progress, trap and location hints", section = notificationsSection, position = 12)
+	default boolean hunterOverlay() { return true; }
+
+	@ConfigItem(keyName = "hunterHighlight", name = "Highlight rumour targets", description = "Outline the creatures your current rumour targets", section = notificationsSection, position = 13)
+	default boolean hunterHighlight() { return true; }
+
+	@ConfigItem(keyName = "hunterNavAids", name = "Rumour navigation aids", description = "World-map pins at the rumour's hunting areas, and highlight + scroll to its code in the fairy ring travel log", section = notificationsSection, position = 14)
+	default boolean hunterNavAids() { return true; }
+
 	enum CaTierGoal
 	{
 		AUTO("Auto"),
