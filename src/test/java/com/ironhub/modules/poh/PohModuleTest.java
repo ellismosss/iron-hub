@@ -135,6 +135,59 @@ public class PohModuleTest
 	}
 
 	@Test
+	public void goalTrackingAndProof()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		PohModule module = module(state);
+		module.startUp();
+		PohPack.Tier ornate = pack.spaces.stream()
+			.filter(s -> s.id.equals("jewellery_box")).findFirst().orElseThrow()
+			.tiers.get(2);
+
+		// track it: a poh: goal seed + selection, not yet achieved
+		module.toggleGoal(ornate);
+		assertTrue(module.isGoal(ornate));
+		assertTrue(state.getSelectedGoals().contains("poh:" + ornate.id));
+		com.ironhub.data.GoalsPack.Goal goal = com.ironhub.modules.goals.GoalPlannerModule
+			.toGoal(state.getGoalSeeds().get("poh:" + ornate.id));
+		assertEquals("poh:" + ornate.id, goal.getId());
+		assertFalse(com.ironhub.modules.goals.GoalPlannerModule.isAchieved(goal, state));
+
+		// building it in-game marks the pohtier_ proof → achieved
+		spawnObject(module, ornate.objectIds.get(0));
+		module.onChatMessage(welcome());
+		assertTrue(state.isPohBuilt(ornate.id));
+		assertTrue(state.isUnlocked(com.ironhub.state.GoalSeeds.pohProofKey(ornate.id)));
+		assertTrue(com.ironhub.modules.goals.GoalPlannerModule.isAchieved(goal, state));
+
+		// untracking retires the seed and selection
+		module.toggleGoal(ornate);
+		assertFalse(state.getGoalSeeds().containsKey("poh:" + ornate.id));
+		assertFalse(state.getSelectedGoals().contains("poh:" + ornate.id));
+		module.shutDown();
+	}
+
+	/** A tier already built when the goal is added lands its proof at add time. */
+	@Test
+	public void goalOnAnAlreadyBuiltTierProvesImmediately()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		PohModule module = module(state);
+		module.startUp();
+		PohPack.Tier tier = pack.spaces.get(0).tiers.get(0);
+		module.toggleBuilt(tier); // built before the goal exists
+
+		module.toggleGoal(tier);
+		assertTrue(state.isUnlocked(com.ironhub.state.GoalSeeds.pohProofKey(tier.id)));
+		assertTrue(com.ironhub.modules.goals.GoalPlannerModule.isAchieved(
+			com.ironhub.modules.goals.GoalPlannerModule.toGoal(
+				state.getGoalSeeds().get("poh:" + tier.id)), state));
+		module.shutDown();
+	}
+
+	@Test
 	public void tabRendersHeadless() throws Exception
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
@@ -148,6 +201,7 @@ public class PohModuleTest
 		{
 			module.toggleBuilt(pack.spaces.get(0).tiers.get(0)); // restoration pool built
 			module.toggleBuilt(pack.spaces.get(0).tiers.get(1));
+			module.toggleGoal(pack.spaces.get(0).tiers.get(3)); // track a later tier
 			tab.expand("pool");
 		});
 		javax.swing.SwingUtilities.invokeAndWait(() -> { }); // drain queued rebuilds

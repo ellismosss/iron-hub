@@ -79,6 +79,81 @@ public final class GoalSeeds
 		return seed;
 	}
 
+	/** A useful PoH build: the tier's Construction/gate reqs become steps,
+	 *  then building it — proven by the {@code pohtier_<id>} unlock the PoH
+	 *  module marks when the tier is detected built (built state lives in
+	 *  its own set, invisible to the requirement graph). */
+	public static PersistedState.GoalSeed poh(String tierId, String tierName, int icon, List<String> reqs)
+	{
+		String proof = "unlock:" + pohProofKey(tierId);
+		PersistedState.GoalSeed seed = base("poh", "poh:" + tierId, tierName);
+		seed.iconItemId = icon;
+		for (String raw : reqs)
+		{
+			seed.steps.add(step(Requirements.parse(raw).describe(), raw));
+		}
+		seed.steps.add(step("Build " + tierName, proof));
+		seed.achieved.add(proof);
+		return seed;
+	}
+
+	/** A QoL unlock: its prerequisites become steps (prose reqs render as
+	 *  manual ticks, graph reqs auto-complete), then obtaining it — achieved
+	 *  by OWNING the item (the module's own OWNED signal; variation-aware). */
+	public static PersistedState.GoalSeed qol(String id, String name, List<Integer> itemIds, List<String> reqs)
+	{
+		String ownProof = ownershipProof(itemIds);
+		PersistedState.GoalSeed seed = base("qol", "qol:" + id, name);
+		if (!itemIds.isEmpty())
+		{
+			seed.iconItemId = itemIds.get(0);
+		}
+		for (String raw : reqs)
+		{
+			seed.steps.add(step(Requirements.parse(raw).describe(), raw));
+		}
+		seed.steps.add(step("Obtain " + name, ownProof));
+		seed.achieved.add(ownProof);
+		return seed;
+	}
+
+	/** A one-shot supply goal ("stock N × item"): achieved when bank+carried
+	 *  ≥ N (variation-aware via {@code item:}), re-addable after completion. */
+	public static PersistedState.GoalSeed supply(int itemId, String name, int qty)
+	{
+		String req = "item:" + itemId + ":" + qty + ":" + name;
+		PersistedState.GoalSeed seed = base("supply", "supply:" + itemId, "Stock " + qty + " × " + name);
+		seed.iconItemId = itemId;
+		seed.steps.add(step("Stock " + qty + " × " + name, req));
+		seed.achieved.add(req);
+		return seed;
+	}
+
+	/** The PoH tier's proof-unlock key. The requirement graph's {@code
+	 *  unlock:} parse splits on {@code :}, and tier ids carry one
+	 *  ({@code space:slug}), so the key must sanitize it out — CLAUDE.md's
+	 *  "unlock: keys contain no colons" rule. */
+	public static String pohProofKey(String tierId)
+	{
+		return "pohtier_" + tierId.replace(':', '_');
+	}
+
+	/** Own any of the item ids: a single {@code item:} leaf, or an {@code
+	 *  any:} of alternatives (both variation-aware). */
+	private static String ownershipProof(List<Integer> itemIds)
+	{
+		if (itemIds.size() == 1)
+		{
+			return "item:" + itemIds.get(0);
+		}
+		StringBuilder any = new StringBuilder("any:");
+		for (int i = 0; i < itemIds.size(); i++)
+		{
+			any.append(i == 0 ? "" : "|").append("item:").append(itemIds.get(i));
+		}
+		return any.toString();
+	}
+
 	private static PersistedState.GoalSeed base(String family, String id, String name)
 	{
 		PersistedState.GoalSeed seed = new PersistedState.GoalSeed();

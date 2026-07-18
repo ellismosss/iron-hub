@@ -50,6 +50,8 @@ public class PohModule implements IronHubModule
 	/** Tier ids spotted since the last scene load, awaiting confirmation. */
 	private final Set<String> pendingTiers = new HashSet<>();
 	private boolean inOwnHouse;
+	private final Runnable goalProofListener = this::markPohGoalProofs;
+	private volatile boolean markingProofs;
 
 	@Inject
 	public PohModule(AccountState state, IronHubConfig config, DataPack dataPack,
@@ -81,6 +83,7 @@ public class PohModule implements IronHubModule
 		{
 			eventBus.register(this);
 		}
+		state.addListener(goalProofListener);
 	}
 
 	@Override
@@ -90,6 +93,7 @@ public class PohModule implements IronHubModule
 		{
 			eventBus.unregister(this);
 		}
+		state.removeListener(goalProofListener);
 		pendingTiers.clear();
 		inOwnHouse = false;
 		if (tab != null)
@@ -187,6 +191,69 @@ public class PohModule implements IronHubModule
 	void toggleBuilt(PohPack.Tier tier)
 	{
 		state.setPohBuilt(tier.id, !state.isPohBuilt(tier.id));
+	}
+
+	// ── goal planner integration ──────────────────────────────────────
+
+	/** Add building this tier to the Goal planner ({@code poh:<id>}); a tier
+	 *  already built lands its proof immediately. */
+	void toggleGoal(PohPack.Tier tier)
+	{
+		String goalId = "poh:" + tier.id;
+		if (state.getGoalSeeds().containsKey(goalId))
+		{
+			state.removeGoalSeed(goalId);
+			return;
+		}
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.poh(tier.id, tier.name,
+			tier.icon == null ? 0 : tier.icon, tier.reqs));
+		if (state.isPohBuilt(tier.id))
+		{
+			// already built: prove now
+			state.setUnlocked(com.ironhub.state.GoalSeeds.pohProofKey(tier.id), true);
+		}
+	}
+
+	boolean isGoal(PohPack.Tier tier)
+	{
+		return state.getGoalSeeds().containsKey("poh:" + tier.id);
+	}
+
+	/**
+	 * Prove goal-planner PoH goals: mark the {@code pohtier_<id>} unlock (the
+	 * goal's achieved proof) for every goal-added tier now built — built
+	 * state lives in a dedicated set the requirement graph can't read, so the
+	 * unlock flag is the bridge. Bulk persist; re-entrant notify from
+	 * setUnlockedBulk finds nothing new and stops.
+	 */
+	void markPohGoalProofs()
+	{
+		Set<String> goalTiers = state.goalSeedIds("poh");
+		if (goalTiers.isEmpty() || markingProofs)
+		{
+			return;
+		}
+		List<String> newlyDone = new ArrayList<>();
+		for (String tierId : goalTiers)
+		{
+			String key = com.ironhub.state.GoalSeeds.pohProofKey(tierId);
+			if (state.isPohBuilt(tierId) && !state.isUnlocked(key))
+			{
+				newlyDone.add(key);
+			}
+		}
+		if (!newlyDone.isEmpty())
+		{
+			markingProofs = true;
+			try
+			{
+				state.setUnlockedBulk(newlyDone);
+			}
+			finally
+			{
+				markingProofs = false;
+			}
+		}
 	}
 
 	/** The first unbuilt tier of a space, or null when the ladder is done. */

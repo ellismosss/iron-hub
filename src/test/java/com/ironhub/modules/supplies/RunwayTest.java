@@ -79,11 +79,39 @@ public class RunwayTest
 		assertEquals("-", SuppliesRunwayModule.formatHours(Double.POSITIVE_INFINITY));
 	}
 
+	/** A one-shot "stock N × item" supply goal: achieved when owned ≥ N
+	 *  (bank + carried, variation-aware), re-addable after completion. */
+	@Test
+	public void supplyGoalStocksN()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.itemNames(state, Map.of(SHARK, "Shark"));
+		StateFixture.bank(state, Map.of(SHARK, 50));
+		com.ironhub.data.GoalsPack.Goal goal = com.ironhub.modules.goals.GoalPlannerModule.toGoal(
+			com.ironhub.state.GoalSeeds.supply(SHARK, "Shark", 100));
+
+		assertEquals("supply:" + SHARK, goal.getId());
+		assertEquals("item:" + SHARK + ":100:Shark", goal.getAchieved().get(0));
+		assertTrue("50 < 100 — not stocked yet",
+			!com.ironhub.modules.goals.GoalPlannerModule.isAchieved(goal, state));
+
+		StateFixture.bank(state, Map.of(SHARK, 120));
+		assertTrue("120 ≥ 100 — stocked",
+			com.ironhub.modules.goals.GoalPlannerModule.isAchieved(goal, state));
+
+		// re-addable: the same id overwrites with a higher target
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.supply(SHARK, "Shark", 200));
+		assertTrue(state.getGoalSeeds().containsKey("supply:" + SHARK));
+		assertEquals("item:" + SHARK + ":200:Shark",
+			state.getGoalSeeds().get("supply:" + SHARK).achieved.get(0));
+	}
+
 	@Test
 	public void tabRendersHeadless() throws Exception
 	{
 		AccountState state = stateWithSharkRate();
 		StateFixture.itemNames(state, Map.of(SHARK, "Shark", LOBSTER, "Lobster"));
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.supply(SHARK, "Shark", 200)); // × glyph
 		SuppliesRunwayModule module = new SuppliesRunwayModule(state, null, new IronHubConfig()
 		{
 		});

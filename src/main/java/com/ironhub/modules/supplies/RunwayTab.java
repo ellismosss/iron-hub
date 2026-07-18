@@ -97,34 +97,129 @@ class RunwayTab extends JPanel
 		list.repaint();
 	}
 
-	/** One consumable: name (+ hours left when inside the warning window). */
+	/** One consumable: name (+ hours left when inside the warning window),
+	 *  an editable stock-target field and a "+ Goal" affordance. */
 	private JComponent row(Runway runway)
 	{
 		String name = state.itemName(runway.itemId);
 		String hours = SuppliesRunwayModule.formatHours(runway.hoursLeft());
+		boolean low = runway.hoursLeft() < module.warningHours();
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		OsrsLabel label;
-		if (runway.hoursLeft() < module.warningHours())
+
+		OsrsLabel label = new OsrsLabel(name, low ? UiTokens.STATUS_WARNING : OsrsSkin.VALUE, OsrsSkin.font());
+		String tip = name + " — " + hours + " of stock at your usage rate";
+		label.setToolTipText(tip);
+		row.setToolTipText(tip);
+		row.add(label.leftAligned().squeezable());
+		row.add(Box.createHorizontalGlue());
+		if (low)
 		{
-			label = new OsrsLabel(name, UiTokens.STATUS_WARNING, OsrsSkin.font());
-			row.add(label.leftAligned().squeezable());
-			row.add(Box.createHorizontalGlue());
-			row.add(new OsrsLabel(hours + " left", UiTokens.STATUS_WARNING, OsrsSkin.font()));
+			row.add(new OsrsLabel(hours + " left", UiTokens.STATUS_WARNING, OsrsSkin.smallFont()));
+			row.add(Box.createHorizontalStrut(4));
 		}
-		else
-		{
-			label = new OsrsLabel(name, OsrsSkin.VALUE, OsrsSkin.font());
-			String tip = name + " — " + hours + " of stock at your usage rate";
-			label.setToolTipText(tip);
-			row.setToolTipText(tip);
-			row.add(label.leftAligned().squeezable());
-			row.add(Box.createHorizontalGlue());
-		}
+
+		// stock-target field: a one-shot "stock N × item" goal. No sourced
+		// "suggested stock" exists, so default to ~2 warning-windows of
+		// runway — a comfortable restock, editable.
+		// ponytail: heuristic default; a real restock target lands with planning mode.
+		String goalId = "supply:" + runway.itemId;
+		boolean isGoal = state.getGoalSeeds().containsKey(goalId);
+		int suggested = Math.max(1, (int) Math.ceil(runway.perHour * Math.max(1, module.warningHours()) * 2));
+		com.ironhub.ui.osrs.StoneTextField qty = new com.ironhub.ui.osrs.StoneTextField(theme, null);
+		qty.setText(String.valueOf(isGoal ? trackedQty(goalId, suggested) : suggested));
+		qty.setToolTipText("Stock target");
+		JPanel qtyCap = new JPanel(new java.awt.BorderLayout());
+		qtyCap.setOpaque(false);
+		qtyCap.add(qty);
+		int w = qty.getFontMetrics(qty.getFont()).stringWidth("99999") + 12;
+		Dimension qs = new Dimension(w, qty.getPreferredSize().height);
+		qtyCap.setPreferredSize(qs);
+		qtyCap.setMaximumSize(qs);
+		row.add(qtyCap);
+		row.add(Box.createHorizontalStrut(4));
+		row.add(goalGlyph(isGoal, isGoal ? name + " — tracked; click to untrack"
+			: "Track stocking " + name, () -> toggleGoal(runway.itemId, name, qty)));
 		cap(row);
 		return row;
+	}
+
+	/** The tracked stock target from a supply goal's item requirement
+	 *  ("item:&lt;id&gt;:&lt;qty&gt;:&lt;name&gt;"), or the fallback. */
+	private int trackedQty(String goalId, int fallback)
+	{
+		com.ironhub.state.PersistedState.GoalSeed seed = state.getGoalSeeds().get(goalId);
+		if (seed != null && !seed.achieved.isEmpty())
+		{
+			String[] parts = seed.achieved.get(0).split(":");
+			if (parts.length >= 3)
+			{
+				try
+				{
+					return Integer.parseInt(parts[2]);
+				}
+				catch (NumberFormatException ignored)
+				{
+					// fall through to the default
+				}
+			}
+		}
+		return fallback;
+	}
+
+	/** Toggle a one-shot supply goal; reads the qty field when adding. */
+	private void toggleGoal(int itemId, String name, com.ironhub.ui.osrs.StoneTextField qtyField)
+	{
+		String goalId = "supply:" + itemId;
+		if (state.getGoalSeeds().containsKey(goalId))
+		{
+			state.removeGoalSeed(goalId);
+			return;
+		}
+		int qty;
+		try
+		{
+			qty = Math.max(1, Integer.parseInt(qtyField.getText().trim()));
+		}
+		catch (NumberFormatException e)
+		{
+			return; // ignore a non-numeric field, nothing to track
+		}
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.supply(itemId, name, qty));
+	}
+
+	/** The +/× goal affordance in skin colours (the diaries glyph grammar). */
+	private static javax.swing.JLabel goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
+	{
+		javax.swing.JLabel glyph = new javax.swing.JLabel(isGoal ? "×" : "+");
+		OsrsSkin.crisp(glyph);
+		glyph.setFont(OsrsSkin.font());
+		glyph.setForeground(OsrsSkin.FAINT);
+		glyph.setToolTipText(tooltip);
+		glyph.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		glyph.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(java.awt.event.MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.TITLE);
+			}
+
+			@Override
+			public void mouseExited(java.awt.event.MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.FAINT);
+			}
+
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				onClick.run();
+			}
+		});
+		return glyph;
 	}
 
 	private void cap(JComponent c)

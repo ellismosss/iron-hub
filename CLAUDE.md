@@ -82,7 +82,22 @@ clogGoals/customGoals) migrate in `activateProfile` via the same factories (writ
 once; GoalSeedMigrationTest pins byte-identical output). Achieved proof = a `<prefix>_<id>`
 unlock flag the module marks from live data (and immediately at add time when already
 satisfied). Requirements in the seed become honest planner steps. Never build a module-local
-tracked list — dashboard picks planner goals up for free.
+tracked list — dashboard picks planner goals up for free. **Goals v2 G2 added four more
+providers (all four "+ Goal" affordances on existing tabs, no new modules):** PoH
+(`poh:<tierId>` — proof `unlock:pohtier_<sanitized>`, tier ids carry a colon so the key MUST
+`replace(':','_')` or the graph's colon-split unlock: parse truncates it — `GoalSeeds.pohProofKey`;
+marked by PohModule's `markPohGoalProofs` listener), QoL (`qol:<id>` — achieved by OWNING the
+unlock via `item:`/`any:` ownership proof, NOT "reqs met"; the prose reqs are display steps),
+Bank (no new family — the skill-target `+ Goal` builds the SAME `custom:skill:<skill>:<lvl>`
+id the planner search builds so they dedupe; capped 2..99 since `skill:` gates on real level),
+Supplies (`supply:<itemId>` one-shot "stock N × item", proof `item:<id>:<N>:<name>`, re-addable).
+**Completion archive (G2):** `PersistedState.GoalRecord` (goalId/name/family/addedAt/completedAt/
+estimatedHours/hoursAtCompletion) in a capped-200 `goalRecords`, upserted by goalId; the
+detector lives in `GoalPlannerModule.detectCompletions` (planner thread, in replanNow): a
+SELECTED goal flipping unachieved→achieved records once, dated now() only if seen unachieved
+this session (`seenActiveGoalIds`), else `completedAt=0`="detected"; the first pass never
+re-records an already-archived goal (login replay keeps its date); removal never records.
+`estimatedHours` captured from `previewMerge` at add time (0=unknown, module `+` clicks leave 0).
 
 **Combining or porting other plugins — the playbook** (used for Log Adviser, Time Tracking,
 Time Tracking Reminder, Easy Farming; Loadout Lab was imported whole only on explicit user

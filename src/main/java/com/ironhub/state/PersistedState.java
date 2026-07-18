@@ -142,6 +142,7 @@ public class PersistedState
 		public java.util.List<SeedStep> steps = new ArrayList<>();
 		public java.util.List<String> achieved = new ArrayList<>();
 		public long addedAt;        // epoch ms; 0 = migrated (date unknown)
+		public double estimatedHours; // plan hours the goal added at add time; 0 = unknown
 
 		public GoalSeed copy()
 		{
@@ -159,6 +160,7 @@ public class PersistedState
 			}
 			c.achieved = new ArrayList<>(achieved);
 			c.addedAt = addedAt;
+			c.estimatedHours = estimatedHours;
 			return c;
 		}
 	}
@@ -167,6 +169,40 @@ public class PersistedState
 	{
 		public String label = "";
 		public String requirement = "";
+	}
+
+	java.util.List<GoalRecord> goalRecords = new ArrayList<>(); // completed goals, oldest first, capped
+
+	/**
+	 * One completed goal (Goals v2 G2 archive). Written when a selected goal
+	 * flips unachieved→achieved; one record per goalId (latest wins on a
+	 * re-arm). {@code completedAt == 0} means "detected" — the goal was
+	 * already satisfied when first observed (a pre-plugin feat), never an
+	 * invented date. {@code estimatedHours == 0} means the add flow ran no
+	 * preview (a module + click) — rendered "—", never faked.
+	 */
+	public static class GoalRecord
+	{
+		public String goalId = "";
+		public String name = "";
+		public String family = "";
+		public long addedAt;          // from the seed; 0 = unknown
+		public long completedAt;      // 0 = detected (undated)
+		public double estimatedHours; // plan hours at add time; 0 = unknown
+		public double hoursAtCompletion; // plan known-hours when it completed
+
+		public GoalRecord copy()
+		{
+			GoalRecord c = new GoalRecord();
+			c.goalId = goalId;
+			c.name = name;
+			c.family = family;
+			c.addedAt = addedAt;
+			c.completedAt = completedAt;
+			c.estimatedHours = estimatedHours;
+			c.hoursAtCompletion = hoursAtCompletion;
+			return c;
+		}
 	}
 
 	// ── legacy per-family goal seeds — read once for migration into

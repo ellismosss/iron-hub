@@ -143,6 +143,9 @@ public class AccountState implements StateView
 	private final Set<String> selectedGoals = ConcurrentHashMap.newKeySet();
 	private volatile String activeGoal = "";
 	private final Map<String, PersistedState.GoalSeed> goalSeeds = new ConcurrentHashMap<>();
+	/** Completed-goal archive (G2), oldest first, capped. */
+	public static final int MAX_GOAL_RECORDS = 200;
+	private final java.util.List<PersistedState.GoalRecord> goalRecords = new CopyOnWriteArrayList<>();
 	// collection log (persisted): obtained slots, ranking skips, sync baseline
 	private final Set<Integer> clogObtained = ConcurrentHashMap.newKeySet();
 	private final Set<Integer> clogSkipped = ConcurrentHashMap.newKeySet();
@@ -689,6 +692,36 @@ public class AccountState implements StateView
 			persist();
 			notifyListeners();
 		}
+	}
+
+	// ── completion archive (Goals v2 G2) ──────────────────────────────
+
+	/** Completed-goal records, oldest first; one per goalId (latest wins). */
+	public java.util.List<PersistedState.GoalRecord> getGoalRecords()
+	{
+		java.util.List<PersistedState.GoalRecord> out = new java.util.ArrayList<>();
+		for (PersistedState.GoalRecord r : goalRecords)
+		{
+			out.add(r.copy());
+		}
+		return out;
+	}
+
+	/**
+	 * Upsert a completion record by goalId (latest wins — a re-armed supply
+	 * goal that completes again replaces its earlier record, never
+	 * duplicates on a login replay). Caps at MAX_GOAL_RECORDS.
+	 */
+	public void recordGoalCompletion(PersistedState.GoalRecord record)
+	{
+		goalRecords.removeIf(r -> r.goalId.equals(record.goalId));
+		goalRecords.add(record.copy());
+		while (goalRecords.size() > MAX_GOAL_RECORDS)
+		{
+			goalRecords.remove(0);
+		}
+		persist();
+		notifyListeners();
 	}
 
 	// ── slayer suite ──────────────────────────────────────────────────
@@ -1846,6 +1879,8 @@ public class AccountState implements StateView
 		goalSeeds.clear();
 		goalSeeds.putAll(persisted.goalSeeds);
 		migrateLegacyGoalSeeds(persisted);
+		goalRecords.clear();
+		goalRecords.addAll(persisted.goalRecords);
 		clogObtained.clear();
 		clogObtained.addAll(persisted.clogObtained);
 		clogSkipped.clear();
@@ -1956,6 +1991,10 @@ public class AccountState implements StateView
 		state.stashBuilt = new HashSet<>(stashBuilt);
 		state.stashFilled = new HashSet<>(stashFilled);
 		goalSeeds.forEach((id, seed) -> state.goalSeeds.put(id, seed.copy()));
+		for (PersistedState.GoalRecord r : goalRecords)
+		{
+			state.goalRecords.add(r.copy());
+		}
 		for (PersistedState.SlayerTaskRecord r : slayerRecords)
 		{
 			state.slayerRecords.add(r.copy());

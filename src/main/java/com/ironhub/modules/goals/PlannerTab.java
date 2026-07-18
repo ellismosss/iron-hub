@@ -1185,9 +1185,16 @@ class PlannerTab extends JPanel
 		{
 			if (candidate.getId().startsWith("custom:"))
 			{
-				state.addGoalSeed(com.ironhub.state.GoalSeeds.custom(
-					candidate.getId(), candidate.getName(),
-					candidate.getSteps().get(0).getRequirement()));
+				com.ironhub.state.PersistedState.GoalSeed seed =
+					com.ironhub.state.GoalSeeds.custom(candidate.getId(), candidate.getName(),
+						candidate.getSteps().get(0).getRequirement());
+				// the merge preview already costed the marginal add — record it
+				// as the goal's estimate for the archive's est-vs-took line
+				if (preview != null)
+				{
+					seed.estimatedHours = preview.addedHours;
+				}
+				state.addGoalSeed(seed);
 			}
 			else
 			{

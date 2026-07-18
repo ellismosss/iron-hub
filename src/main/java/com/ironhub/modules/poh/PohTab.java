@@ -18,6 +18,7 @@ import java.util.List;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
@@ -246,6 +247,11 @@ class PohTab extends JPanel
 		top.add(new OsrsLabel("Lv " + tier.level,
 			built ? OsrsSkin.FAINT : OsrsSkin.LABEL, OsrsSkin.smallFont()));
 		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		boolean isGoal = module.isGoal(tier);
+		top.add(goalGlyph(isGoal, isGoal ? tier.name + " — tracked; click to untrack"
+			: "Track building " + tier.name + " in the Goal planner",
+			() -> module.toggleGoal(tier)));
+		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		top.add(wikiGlyph(tier.page));
 		cap(top);
 		row.add(top);
@@ -335,6 +341,41 @@ class PohTab extends JPanel
 			{
 				LinkBrowser.browse("https://oldschool.runescape.wiki/w/"
 					+ page.replace(' ', '_'));
+				e.consume();
+			}
+		});
+		return glyph;
+	}
+
+	/** The +/× goal affordance in skin colours — a dedicated control with
+	 *  its own action, never the row's build-toggle click (the diaries
+	 *  glyph grammar; JLabel so its own listener wins over the row's). */
+	private static JLabel goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
+	{
+		JLabel glyph = new JLabel(isGoal ? "×" : "+");
+		OsrsSkin.crisp(glyph);
+		glyph.setFont(OsrsSkin.font());
+		glyph.setForeground(OsrsSkin.FAINT);
+		glyph.setToolTipText(tooltip);
+		glyph.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		glyph.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(java.awt.event.MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.TITLE);
+			}
+
+			@Override
+			public void mouseExited(java.awt.event.MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.FAINT);
+			}
+
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				onClick.run();
 				e.consume();
 			}
 		});

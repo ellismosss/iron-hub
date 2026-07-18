@@ -430,6 +430,31 @@ public class BankTabTest
 		tab.dispose();
 	}
 
+	/** The Bank "+ Goal" builds the exact custom-skill id/req the planner
+	 *  search builds, so the two dedupe; toggling twice removes it. */
+	@Test
+	public void skillTargetGoalMatchesPlannerId() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 1L);
+		StateFixture.stat(state, net.runelite.api.Skill.PRAYER, 43, 50_339);
+		state.setBankSkillTarget("Prayer", 61);
+		BankTab tab = newTab(state);
+		tab.showSkillView(net.runelite.api.Skill.PRAYER);
+
+		tab.toggleSkillGoal("Prayer", 61);
+		// the id the planner search would build for the same skill+level
+		String plannerId = "custom:skill:"
+			+ net.runelite.api.Skill.PRAYER.getName().toLowerCase(java.util.Locale.ROOT) + ":61";
+		assertTrue("id must match the planner search", state.getGoalSeeds().containsKey(plannerId));
+		assertTrue(state.getSelectedGoals().contains(plannerId));
+		assertEquals("skill:Prayer:61", state.getGoalSeeds().get(plannerId).steps.get(0).requirement);
+
+		tab.toggleSkillGoal("Prayer", 61);
+		assertFalse(state.getGoalSeeds().containsKey(plannerId));
+		tab.dispose();
+	}
+
 	@Test
 	public void relativeTimeBuckets()
 	{

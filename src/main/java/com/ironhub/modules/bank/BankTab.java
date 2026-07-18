@@ -1000,6 +1000,17 @@ class BankTab extends JPanel
 			.leftAligned());
 		row.add(fieldCap);
 		row.add(Box.createHorizontalGlue());
+		// track this target as a level goal (2..99 — skill: gates on the real
+		// level, so a virtual-level goal would never complete); dedupes on the
+		// exact id the planner search builds
+		if (target >= 2 && target <= 99)
+		{
+			String goalId = "custom:skill:" + skillName.toLowerCase(Locale.ROOT) + ":" + target;
+			boolean isGoal = state.getGoalSeeds().containsKey(goalId);
+			row.add(goalGlyph(isGoal, isGoal ? skillName + " " + target + " — tracked; click to untrack"
+				: "Track " + skillName + " " + target + " in the Goal planner",
+				() -> toggleSkillGoal(skillName, target)));
+		}
 		cap(row);
 		card.add(row);
 
@@ -1040,6 +1051,55 @@ class BankTab extends JPanel
 			cap(totalRow);
 			card.add(totalRow);
 		}
+	}
+
+	/** Toggle a skill-level goal in the planner (id + req identical to the
+	 *  planner search's custom skill goal, so the two dedupe). */
+	void toggleSkillGoal(String skillName, int target)
+	{
+		String goalId = "custom:skill:" + skillName.toLowerCase(Locale.ROOT) + ":" + target;
+		if (state.getGoalSeeds().containsKey(goalId))
+		{
+			state.removeGoalSeed(goalId);
+		}
+		else
+		{
+			state.addGoalSeed(com.ironhub.state.GoalSeeds.custom(goalId,
+				skillName + " " + target, "skill:" + skillName + ":" + target));
+		}
+	}
+
+	/** The +/× goal affordance in skin colours — its own action, faint
+	 *  until hovered (the diaries/GoalsTab glyph grammar). */
+	private static JLabel goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
+	{
+		JLabel glyph = new JLabel(isGoal ? "×" : "+");
+		OsrsSkin.crisp(glyph);
+		glyph.setFont(OsrsSkin.font());
+		glyph.setForeground(OsrsSkin.FAINT);
+		glyph.setToolTipText(tooltip);
+		glyph.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		glyph.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.TITLE);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.FAINT);
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				onClick.run();
+			}
+		});
+		return glyph;
 	}
 
 	/** Linear blend a → b by t (the meter's red-to-green progress fill). */

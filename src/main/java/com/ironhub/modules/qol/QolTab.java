@@ -127,9 +127,63 @@ class QolTab extends JPanel
 		row.setToolTipText(tooltip);
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
+		boolean isGoal = state.getGoalSeeds().containsKey("qol:" + unlock.getId());
+		row.add(goalGlyph(isGoal, isGoal ? unlock.getName() + " — tracked; click to untrack"
+			: "Track unlocking " + unlock.getName() + " in the Goal planner",
+			() -> toggleGoal(unlock)));
+		row.add(Box.createHorizontalStrut(4));
 		row.add(wikiGlyph(unlock.getName()));
 		cap(row);
 		return row;
+	}
+
+	/** The '+' action: unlock joins the Goal planner as a "qol:" goal;
+	 *  achieved by owning it (fully graph-detectable, no proof flag). */
+	private void toggleGoal(QolPack.Unlock unlock)
+	{
+		String goalId = "qol:" + unlock.getId();
+		if (state.getGoalSeeds().containsKey(goalId))
+		{
+			state.removeGoalSeed(goalId);
+		}
+		else
+		{
+			state.addGoalSeed(com.ironhub.state.GoalSeeds.qol(unlock.getId(),
+				unlock.getName(), unlock.getItemIds(), unlock.getRequirements()));
+		}
+	}
+
+	/** The +/× goal affordance in skin colours — its own action, faint
+	 *  until hovered (the diaries/GoalsTab glyph grammar). */
+	private static JLabel goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
+	{
+		JLabel glyph = new JLabel(isGoal ? "×" : "+");
+		OsrsSkin.crisp(glyph);
+		glyph.setFont(OsrsSkin.font());
+		glyph.setForeground(OsrsSkin.FAINT);
+		glyph.setToolTipText(tooltip);
+		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		glyph.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.TITLE);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.FAINT);
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				onClick.run();
+			}
+		});
+		return glyph;
 	}
 
 	/** A small "W" wiki affordance — faint until hovered (GoalsTab grammar). */

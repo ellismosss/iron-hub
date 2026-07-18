@@ -57,6 +57,14 @@ public class GoalPlannerModule implements IronHubModule
 	private final Runnable stateListener = this::requestReplan;
 	private volatile boolean engineActive;
 
+	// ── completion archive (G2): remember which selected goals are achieved
+	// and which have ever been worked (seen unachieved-while-selected), so a
+	// transition to achieved records honestly — dated now() only if worked
+	// this session, else "detected" (0). Touched only on the planner thread. ──
+	private final java.util.Set<String> achievedGoalIds = new java.util.HashSet<>();
+	private final java.util.Set<String> seenActiveGoalIds = new java.util.HashSet<>();
+	private volatile boolean firstDetection = true;
+
 	/** Test convenience (headless: no icon/overlay managers). */
 	public GoalPlannerModule(AccountState state, IronHubConfig config, DataPack dataPack,
 		net.runelite.client.game.ItemManager itemManager)
@@ -208,6 +216,7 @@ public class GoalPlannerModule implements IronHubModule
 			currentPlan = plan;
 			sharedPlan = plan;
 			state.recordPlanHours(plan.knownHours);
+			detectCompletions(plan);
 			for (Runnable listener : planListeners)
 			{
 				javax.swing.SwingUtilities.invokeLater(listener);
@@ -217,6 +226,98 @@ public class GoalPlannerModule implements IronHubModule
 		{
 			log.warn("replan failed", e);
 		}
+	}
+
+	/**
+	 * Archive goals that just completed (G2). A SELECTED goal flipping
+	 * unachieved→achieved records one {@link com.ironhub.state.PersistedState.GoalRecord}
+	 * (upserted by id): dated now() if the goal was ever seen unachieved this
+	 * session (genuinely worked), else 0 = "detected" (a pre-plugin feat or
+	 * already-satisfied at add). Goal removal drops out of the selected set
+	 * and never records — the never-flash-Done rule. The first pass never
+	 * re-records a goal that already has an archive entry, so a login replay
+	 * of an already-completed goal keeps its original date. Planner-thread only.
+	 */
+	private void detectCompletions(com.ironhub.engine.Plan plan)
+	{
+		java.util.Set<String> nowAchieved = new java.util.HashSet<>();
+		for (GoalsPack.Goal goal : allGoals(pack, gearPack, state))
+		{
+			if (!state.getSelectedGoals().contains(goal.getId()))
+			{
+				continue;
+			}
+			if (isAchieved(goal, state))
+			{
+				nowAchieved.add(goal.getId());
+			}
+			else
+			{
+				seenActiveGoalIds.add(goal.getId());
+			}
+		}
+		java.util.Set<String> recorded = new java.util.HashSet<>();
+		for (com.ironhub.state.PersistedState.GoalRecord r : state.getGoalRecords())
+		{
+			recorded.add(r.goalId);
+		}
+		for (String goalId : nowAchieved)
+		{
+			if (achievedGoalIds.contains(goalId))
+			{
+				continue; // no transition — already known achieved this session
+			}
+			if (firstDetection && recorded.contains(goalId))
+			{
+				continue; // login replay of an archived goal — keep its record
+			}
+			com.ironhub.state.PersistedState.GoalSeed seed = state.getGoalSeeds().get(goalId);
+			com.ironhub.state.PersistedState.GoalRecord record =
+				new com.ironhub.state.PersistedState.GoalRecord();
+			record.goalId = goalId;
+			record.name = nameOf(goalId, seed);
+			record.family = familyOf(goalId, seed);
+			record.addedAt = seed == null ? 0 : seed.addedAt;
+			record.estimatedHours = seed == null ? 0 : seed.estimatedHours;
+			record.hoursAtCompletion = plan.knownHours;
+			// dated only when genuinely worked this session; else "detected"
+			record.completedAt = !firstDetection && seenActiveGoalIds.contains(goalId)
+				? System.currentTimeMillis() : 0;
+			state.recordGoalCompletion(record);
+		}
+		achievedGoalIds.clear();
+		achievedGoalIds.addAll(nowAchieved);
+		firstDetection = false;
+	}
+
+	/** A completed goal's display name: from the seed, else the matching
+	 *  goal in the live catalog, else the id. */
+	private String nameOf(String goalId, com.ironhub.state.PersistedState.GoalSeed seed)
+	{
+		if (seed != null)
+		{
+			return seed.name;
+		}
+		for (GoalsPack.Goal goal : allGoals(pack, gearPack, state))
+		{
+			if (goal.getId().equals(goalId))
+			{
+				return goal.getName();
+			}
+		}
+		return goalId;
+	}
+
+	/** A goal's archive family: its seed's family, else the id prefix
+	 *  (gear:/pack goals have no seed). */
+	private static String familyOf(String goalId, com.ironhub.state.PersistedState.GoalSeed seed)
+	{
+		if (seed != null)
+		{
+			return seed.family;
+		}
+		int colon = goalId.indexOf(':');
+		return colon > 0 ? goalId.substring(0, colon) : "pack";
 	}
 
 	com.ironhub.data.MethodsPack methodsPack()
