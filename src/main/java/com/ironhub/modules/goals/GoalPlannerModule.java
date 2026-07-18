@@ -48,6 +48,17 @@ public class GoalPlannerModule implements IronHubModule
 		});
 	private java.util.concurrent.ScheduledFuture<?> pendingReplan;
 	private volatile com.ironhub.engine.Plan currentPlan;
+	/** Stepping-stone suggestions (G6), computed off the planner thread so a
+	 *  ~40-candidate sweep never delays a replan; memoized on plan fingerprint. */
+	private final java.util.concurrent.ExecutorService suggestExecutor =
+		java.util.concurrent.Executors.newSingleThreadExecutor(r ->
+		{
+			Thread t = new Thread(r, "iron-hub-suggester");
+			t.setDaemon(true);
+			return t;
+		});
+	private volatile java.util.List<Suggester.Suggestion> suggestions = java.util.List.of();
+	private volatile String suggestionsFingerprint = "";
 	/** Cross-module read seam (WhatNow, Dashboard): the freshest plan. */
 	private static volatile com.ironhub.engine.Plan sharedPlan;
 	/** Plan hours at session start — the "since last session" anchor. */
@@ -222,11 +233,62 @@ public class GoalPlannerModule implements IronHubModule
 			{
 				javax.swing.SwingUtilities.invokeLater(listener);
 			}
+			scheduleSuggestions(plan);
 		}
 		catch (RuntimeException e)
 		{
 			log.warn("replan failed", e);
 		}
+	}
+
+	/**
+	 * Compute stepping-stone suggestions for a settled plan, on a SEPARATE
+	 * executor so the ~40-candidate router sweep never delays the next
+	 * replan. Memoized on plan fingerprint; abandoned if a newer plan lands
+	 * before it runs (the numbers would be stale) (G6).
+	 */
+	private void scheduleSuggestions(com.ironhub.engine.Plan plan)
+	{
+		if (plan.fingerprint.equals(suggestionsFingerprint))
+		{
+			return; // already computed for this exact plan
+		}
+		suggestExecutor.submit(() ->
+		{
+			try
+			{
+				com.ironhub.engine.Plan current = currentPlan;
+				if (!engineActive || current == null
+					|| !current.fingerprint.equals(plan.fingerprint))
+				{
+					return; // a newer replan superseded this one
+				}
+				java.util.List<Suggester.Suggestion> computed = Suggester.compute(
+					unmetGoals(), state, enginePacks, bankedPack,
+					state.plannerConstraints(), plan);
+				if (!engineActive || currentPlan == null
+					|| !currentPlan.fingerprint.equals(plan.fingerprint))
+				{
+					return; // stale by the time we finished — drop it
+				}
+				suggestions = computed;
+				suggestionsFingerprint = plan.fingerprint;
+				for (Runnable listener : planListeners)
+				{
+					javax.swing.SwingUtilities.invokeLater(listener);
+				}
+			}
+			catch (RuntimeException e)
+			{
+				log.warn("suggestion compute failed", e);
+			}
+		});
+	}
+
+	/** The freshest stepping-stone suggestions (empty until first computed). */
+	public java.util.List<Suggester.Suggestion> suggestions()
+	{
+		return suggestions;
 	}
 
 	/**

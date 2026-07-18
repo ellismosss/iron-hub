@@ -111,11 +111,16 @@ public class GoalArchiveTest
 		assertEquals(1, reloaded.getGoalRecords().size());
 		GoalPlannerModule replay = module(reloaded);
 		waitForPlan(replay);
-		Thread.sleep(600);
-		java.util.List<PersistedState.GoalRecord> after = reloaded.getGoalRecords();
-		assertEquals("no duplicate on replay", 1, after.size());
-		assertEquals("the original completion date survives the replay",
-			originalDate, after.get(0).completedAt);
+		// the archived goal must stay untouched through every replan/suggestion
+		// cycle — poll for stability rather than trust one fixed sleep
+		for (int i = 0; i < 15; i++)
+		{
+			java.util.List<PersistedState.GoalRecord> after = reloaded.getGoalRecords();
+			assertEquals("no duplicate on replay", 1, after.size());
+			assertEquals("the original completion date survives the replay",
+				originalDate, after.get(0).completedAt);
+			Thread.sleep(100);
+		}
 		replay.shutDown();
 	}
 
