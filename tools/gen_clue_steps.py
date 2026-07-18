@@ -180,16 +180,33 @@ class ReqParser:
         raise SystemExit(f"unknown requirement factory {fn!r} in {expr[:80]!r}")
 
 
-def groups_to_reqs(groups):
-    """AND-of-OR id groups -> requirement-graph strings (one per group)."""
+NAME_INDEX = os.path.join(HERE, "..", "src", "main", "resources", "data",
+                          "index", "item-names.json")
+
+
+def display_names():
+    """id -> pretty display name from the item-name index (constant form)."""
+    with open(NAME_INDEX, encoding="utf-8") as f:
+        by_constant = json.load(f)
+    names = {}
+    for constant, item_id in by_constant.items():
+        if item_id not in names:
+            lower = constant.lower().replace("_", " ")
+            names[item_id] = lower[:1].upper() + lower[1:]
+    return names
+
+
+def groups_to_reqs(groups, names):
+    """AND-of-OR id groups -> requirement-graph strings (one per group);
+    leaves carry display names so missing() lines read as item names."""
     reqs = []
     for group in groups:
         leaves = []
         for entry in group:
-            if isinstance(entry, tuple):
-                leaves.append(f"item:{entry[0]}:{entry[1]}")
-            else:
-                leaves.append(f"item:{entry}")
+            item_id, qty = entry if isinstance(entry, tuple) else (entry, 1)
+            name = names.get(item_id)
+            leaves.append(f"item:{item_id}:{qty}:{name}" if name
+                          else f"item:{item_id}:{qty}")
         if len(leaves) == 1:
             reqs.append(leaves[0])
         else:
@@ -276,7 +293,7 @@ def slugify(text: str, tier: str) -> str:
     return tier.lower() + "_" + "_".join(words[:7])
 
 
-def parse_clues(item_ids: dict):
+def parse_clues(item_ids: dict, names: dict):
     src = fetch(CORE_BASE + "EmoteClue.java", f"core-EmoteClue-{RL_TAG}.java")
     parser = ReqParser(item_ids, {})
     parse_named_constants(src, parser)
@@ -323,7 +340,7 @@ def parse_clues(item_ids: dict):
             "x": int(wp.group(1)),
             "y": int(wp.group(2)),
             "plane": int(wp.group(3)),
-            "reqs": groups_to_reqs(groups),
+            "reqs": groups_to_reqs(groups, names),
         }
         if nothing:
             clue["nothing"] = True
@@ -376,7 +393,7 @@ def main():
     object_ids.update(constants_of("net.runelite.api.gameval.ObjectID1"))
 
     print("parsing core EmoteClue ...")
-    clues = parse_clues(item_ids)
+    clues = parse_clues(item_ids, display_names())
     print(f"  {len(clues)} emote clue steps")
 
     print("parsing STASH units ...")

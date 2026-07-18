@@ -105,6 +105,11 @@ public class AccountState implements StateView
 	public static final int MAX_FARM_RUN_RECORDS = 100;
 	private final java.util.List<PersistedState.FarmRunRecord> farmRunLog = new CopyOnWriteArrayList<>();
 
+	// STASH units (object ids) + clue-step goal seeds
+	private final Set<Integer> stashBuilt = ConcurrentHashMap.newKeySet();
+	private final Set<Integer> stashFilled = ConcurrentHashMap.newKeySet();
+	private final Map<String, PersistedState.ClueGoal> clueGoals = new ConcurrentHashMap<>();
+
 	/** Slayer task records, oldest first; the last may be active (end == 0). */
 	public static final int MAX_SLAYER_RECORDS = 50;
 	private final java.util.List<PersistedState.SlayerTaskRecord> slayerRecords = new CopyOnWriteArrayList<>();
@@ -512,6 +517,84 @@ public class AccountState implements StateView
 		herbRunsMs.add(durationMs);
 		persist();
 		notifyListeners();
+	}
+
+	// ── clues & STASH ─────────────────────────────────────────────────
+
+	public boolean isStashBuilt(int objectId)
+	{
+		return stashBuilt.contains(objectId);
+	}
+
+	public boolean isStashFilled(int objectId)
+	{
+		return stashFilled.contains(objectId);
+	}
+
+	public void setStashBuilt(int objectId, boolean built)
+	{
+		boolean changed = built ? stashBuilt.add(objectId) : stashBuilt.remove(objectId);
+		if (changed)
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	/** Filling implies built; emptying leaves built alone. */
+	public void setStashFilled(int objectId, boolean filled)
+	{
+		boolean changed = filled ? stashFilled.add(objectId) : stashFilled.remove(objectId);
+		if (filled)
+		{
+			changed |= stashBuilt.add(objectId);
+		}
+		if (changed)
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	public Map<String, PersistedState.ClueGoal> getClueGoals()
+	{
+		return java.util.Collections.unmodifiableMap(clueGoals);
+	}
+
+	/** Add a clue step to the goal planner (id "clue:&lt;id&gt;"). */
+	public void addClueGoal(String id, String text, String tier, java.util.List<String> reqs)
+	{
+		PersistedState.ClueGoal seed = new PersistedState.ClueGoal();
+		seed.text = text;
+		seed.tier = tier;
+		seed.reqs = new java.util.ArrayList<>(reqs);
+		clueGoals.put(id, seed);
+		String goalId = "clue:" + id;
+		if (selectedGoals.contains(goalId))
+		{
+			persist();
+			notifyListeners();
+		}
+		else
+		{
+			selectGoal(goalId, true); // persists + notifies
+		}
+	}
+
+	/** Remove a clue step from the goal planner. */
+	public void removeClueGoal(String id)
+	{
+		clueGoals.remove(id);
+		String goalId = "clue:" + id;
+		if (selectedGoals.contains(goalId))
+		{
+			selectGoal(goalId, false); // persists + notifies
+		}
+		else
+		{
+			persist();
+			notifyListeners();
+		}
 	}
 
 	// ── slayer suite ──────────────────────────────────────────────────
@@ -1808,6 +1891,12 @@ public class AccountState implements StateView
 		consumptionLog.addAll(persisted.consumptionLog);
 		deaths.clear();
 		deaths.addAll(persisted.deaths);
+		stashBuilt.clear();
+		stashBuilt.addAll(persisted.stashBuilt);
+		stashFilled.clear();
+		stashFilled.addAll(persisted.stashFilled);
+		clueGoals.clear();
+		clueGoals.putAll(persisted.clueGoals);
 		slayerRecords.clear();
 		slayerRecords.addAll(persisted.slayerRecords);
 		slayerNotes.clear();
@@ -1901,6 +1990,9 @@ public class AccountState implements StateView
 		state.farmRunLog = new java.util.ArrayList<>(farmRunLog);
 		state.consumptionLog = new java.util.ArrayList<>(consumptionLog);
 		state.deaths = new java.util.ArrayList<>(deaths);
+		state.stashBuilt = new HashSet<>(stashBuilt);
+		state.stashFilled = new HashSet<>(stashFilled);
+		state.clueGoals = new HashMap<>(clueGoals);
 		for (PersistedState.SlayerTaskRecord r : slayerRecords)
 		{
 			state.slayerRecords.add(r.copy());

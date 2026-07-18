@@ -14,8 +14,8 @@
    "y": 2933,
    "plane": 0,
    "reqs": [
-    "any:item:10472|item:10470|item:10474|item:12257|item:12269|item:12201",
-    "any:item:7336|item:7342|item:7348|item:7354|item:7360"
+    "any:item:10472:1:Guthix stole|item:10470:1:Saradomin stole|item:10474:1:Zamorak stole|item:12257:1:Armadyl stole|item:12269:1:Bandos stole|item:12201:1:Ancient stole",
+    "any:item:7336:1:Rune shield h1|item:7342:1:Rune shield h2|item:7348:1:Rune shield h3|item:7354:1:Rune shield h4|item:7360:1:Rune shield h5"
    ],
    "stash": "NORTHEAST_CORNER_OF_THE_KHARAZI_JUNGLE"
   },
@@ -28,9 +28,9 @@
    "y": 3556,
    "plane": 0,
    "reqs": [
-    "item:1119",
-    "item:853",
-    "any:item:4315|item:20217|item:20214|item:20211"
+    "item:1119:1:Steel platebody",
+    "item:853:1:Maple shortbow",
+    "any:item:4315:1:Team1 cape|item:20217:1:Team cape i|item:20214:1:Team cape x|item:20211:1:Team cape zero"
    ],
    "stash": "BARBARIAN_OUTPOST_OBSTACLE_COURSE"
   },
@@ -43,7 +43,7 @@
    "y": 3484,
    "plane": 1,
    "reqs": [
-    "any:item:3840|item:3844|item:3842|item:12610|item:12608|item:12612|item:26496|item:26488|item:26498|item:26492|item:26494|item:26490"
+    "any:item:3840:1:Holy book|item:3844:1:Book of balance|item:3842:1:Unholy book|item:12610:1:Book of law|item:12608:1:Book of war|item:12612:1:Book of darkness|item:26496:1:Holy book or|item:26488:1:Book of balance or|item:26498:1:Unholy book or|item:26492:1:Book of law or|item:26494:1:Book of war or|item:26490:1:Book of darkness or"
    ],
    "stash": "SOUTHEAST_CORNER_OF_THE_MONASTERY"
   },
@@ -56,10 +56,10 @@
    "y": 5071,
    "plane": 0,
    "reqs": [
-    "any:item:10454|item:10452|item:10456|item:12203|item:12271|item:12259",
-    "any:item:9185|item:26486",
-    "any:item:3105|item:23413",
-    "any:item:4657|item:28327|item:28329"
+    "any:item:10454:1:Guthix mitre|item:10452:1:Saradomin mitre|item:10456:1:Zamorak mitre|item:12203:1:Ancient mitre|item:12271:1:Bandos mitre|item:12259:1:Armadyl mitre",
+    "any:item:9185:1:Rune crossbow|item:26486:1:Rune crossbow or",
+    "any:item:3105:1:Climbing boots|item:23413:1:Climbing boots g",
+    "any:item:4657:1:Ring of visibility|item:28327:1:Ring of shadows|item:28329:1:Ring of shadows uncharged"
    ],
    "stash": "ENTRANCE_OF_THE_CAVE_OF_DAMIS"
   },
@@ -72,8 +72,8 @@
    "y": 4697,
    "plane": 3,
    "reqs": [
-    "item:4091",
-    "any:item:7336|item:7342|item:7348|item:7354|item:7360"
+    "item:4091:1:Mystic robe top",
+    "any:item:7336:1:Rune shield h1|item:7342:1:Rune shield h2|item:7348:1:Rune shield h3|item:7354:1:Rune shield h4|item:7360:1:Rune shield h5"
    ],
    "stash": "AGILITY_PYRAMID"
   },
@@ -86,9 +86,9 @@
    "y": 4712,
    "plane": 0,
    "reqs": [
-    "any:item:1409|item:12658",
-    "item:4101",
-    "item:4103"
+    "any:item:1409:1:Ibans staff|item:12658:1:Ibans staff u",
+    "item:4101:1:Mystic robe top dark",
+    "item:4103:1:Mystic robe bottom dark"
    ],
    "stash": "WELL_OF_VOYAGE"
   },
@@ -101,9 +101,9 @@
    "y": 3273,
    "plane": 0,
    "reqs": [
-    "any:item:1704|item:1706|item:1708|item:1710|item:1712|item:11976|item:11978",
-    "item:7462",
-    "item:1149"
+    "any:item:1704:1:Amulet of glory|item:1706:1:Amulet of glory1|item:1708:1:Amulet of glory2|item:1710:1:Amulet of glory3|item:1712:1:Amulet of glory4|item:11976:1:Amulet of glory5|item:11978:1:Amulet of glory6",
+    "item:7462:1:Barrows gloves",
+    "item:1149:1:Dragon med helm"
    ],
    "stash": "SOUTHEAST_CORNER_OF_THE_FISHING_PLATFORM"
   },
@@ -116,9 +116,9 @@
    "y": 4838,
    "plane": 0,
    "reqs": [
-    "item:2572",
-    "item:5547",
-    "item:1052"
+    "item:2572:1:Ring of wealth",
+    "item:5547:1:Death tiara",
+    "item:1052:1:Cape of legends"
    ],
    "stash": "DEATH_ALTAR"
   },
@@ -131,9 +131,9 @@
    "y": 3149,
    "plane": 0,
    "reqs": [
-    "any:item:7112|item:7124|item:7130|item:7136",
-    "item:1664",
-    "item:859"
+    "any:item:7112:1:Pirate bandana|item:7124:1|item:7130:1|item:7136:1",
+    "item:1664:1:Dragon necklace",
+    "item:859:1:Magic longbow"
    ],
    "stash": "OUTSIDE_THE_BAR_BY_THE_FIGHT_ARENA"
   },
@@ -146,7 +146,7 @@
    "y": 9694,
    "plane": 0,
    "reqs": [
-    "any:item:4708|item:4856|item:4857|item:4858|item:4859|item:4860|item:30445|item:30519|item:30525|item:30531|item:30537|item:30543|item:4710|item:4862|item:4863|item:4864|item:4865|item:4866|item:30568|item:30570|item:30571|item:30572|item:30573|item:30574|item:4712|item:4868|item:4869|item:4870|item:4871|item:4872|item:30447|item:30521|item:30527|item:30533|item:30539|item:30545|item:4714|item:4874|item:4875|item:4876|item:4877|item:4878|item:30449|item:30523|item:30529|item:30535|item:30541|item:30547|item:4716|item:4880|item:4881|item:4882|item:4883|item:4884|item:4718|item:4886|item:4887|item:4888|item:4889|item:4890|item:4720|item:4892|item:4893|item:4894|item:4895|item:4896|item:4722|item:4898|item:4899|item:4900|item:4901|item:4902|item:4724|item:4904|item:4905|item:4906|item:4907|item:4908|item:4726|item:4910|item:4911|item:4912|item:4913|item:4914|item:4728|item:4916|item:4917|item:4918|item:4919|item:4920|item:4730|item:4922|item:4923|item:4924|item:4925|item:4926|item:4732|item:4928|item:4929|item:4930|item:4931|item:4932|item:4734|item:4934|item:4935|item:4936|item:4937|item:4938|item:4736|item:4940|item:4941|item:4942|item:4943|item:4944|item:4738|item:4946|item:4947|item:4948|item:4949|item:4950|item:4745|item:4952|item:4953|item:4954|item:4955|item:4956|item:4747|item:4958|item:4959|item:4960|item:4961|item:4962|item:4749|item:4964|item:4965|item:4966|item:4967|item:4968|item:4751|item:4970|item:4971|item:4972|item:4973|item:4974|item:4753|item:4976|item:4977|item:4978|item:4979|item:4980|item:4755|item:4982|item:4983|item:4984|item:4985|item:4986|item:4757|item:4988|item:4989|item:4990|item:4991|item:4992|item:4759|item:4994|item:4995|item:4996|item:4997|item:4998"
+    "any:item:4708:1:Ahrims hood|item:4856:1|item:4857:1|item:4858:1|item:4859:1|item:4860:1|item:30445:1:Echo ahrims hood|item:30519:1|item:30525:1|item:30531:1|item:30537:1|item:30543:1|item:4710:1:Ahrims staff|item:4862:1|item:4863:1|item:4864:1|item:4865:1|item:4866:1|item:30568:1:Echo ahrims staff|item:30570:1|item:30571:1|item:30572:1|item:30573:1|item:30574:1|item:4712:1:Ahrims robetop|item:4868:1|item:4869:1|item:4870:1|item:4871:1|item:4872:1|item:30447:1:Echo ahrims robetop|item:30521:1|item:30527:1|item:30533:1|item:30539:1|item:30545:1|item:4714:1:Ahrims robeskirt|item:4874:1|item:4875:1|item:4876:1|item:4877:1|item:4878:1|item:30449:1:Echo ahrims robeskirt|item:30523:1|item:30529:1|item:30535:1|item:30541:1|item:30547:1|item:4716:1:Dharoks helm|item:4880:1|item:4881:1|item:4882:1|item:4883:1|item:4884:1|item:4718:1:Dharoks greataxe|item:4886:1|item:4887:1|item:4888:1|item:4889:1|item:4890:1|item:4720:1:Dharoks platebody|item:4892:1|item:4893:1|item:4894:1|item:4895:1|item:4896:1|item:4722:1:Dharoks platelegs|item:4898:1|item:4899:1|item:4900:1|item:4901:1|item:4902:1|item:4724:1:Guthans helm|item:4904:1|item:4905:1|item:4906:1|item:4907:1|item:4908:1|item:4726:1:Guthans warspear|item:4910:1|item:4911:1|item:4912:1|item:4913:1|item:4914:1|item:4728:1:Guthans platebody|item:4916:1|item:4917:1|item:4918:1|item:4919:1|item:4920:1|item:4730:1:Guthans chainskirt|item:4922:1|item:4923:1|item:4924:1|item:4925:1|item:4926:1|item:4732:1:Karils coif|item:4928:1|item:4929:1|item:4930:1|item:4931:1|item:4932:1|item:4734:1:Karils crossbow|item:4934:1|item:4935:1|item:4936:1|item:4937:1|item:4938:1|item:4736:1:Karils leathertop|item:4940:1|item:4941:1|item:4942:1|item:4943:1|item:4944:1|item:4738:1:Karils leatherskirt|item:4946:1|item:4947:1|item:4948:1|item:4949:1|item:4950:1|item:4745:1:Torags helm|item:4952:1|item:4953:1|item:4954:1|item:4955:1|item:4956:1|item:4747:1:Torags hammers|item:4958:1|item:4959:1|item:4960:1|item:4961:1|item:4962:1|item:4749:1:Torags platebody|item:4964:1|item:4965:1|item:4966:1|item:4967:1|item:4968:1|item:4751:1:Torags platelegs|item:4970:1|item:4971:1|item:4972:1|item:4973:1|item:4974:1|item:4753:1:Veracs helm|item:4976:1|item:4977:1|item:4978:1|item:4979:1|item:4980:1|item:4755:1:Veracs flail|item:4982:1|item:4983:1|item:4984:1|item:4985:1|item:4986:1|item:4757:1:Veracs brassard|item:4988:1|item:4989:1|item:4990:1|item:4991:1|item:4992:1|item:4759:1:Veracs plateskirt|item:4994:1|item:4995:1|item:4996:1|item:4997:1|item:4998:1"
    ],
    "stash": "BARROWS_CHEST"
   },
@@ -159,9 +159,9 @@
    "y": 3047,
    "plane": 0,
    "reqs": [
-    "any:item:10286|item:10287|item:10288|item:10289|item:10290|item:10291|item:10292|item:10293|item:10294",
-    "item:1247",
-    "item:1079"
+    "any:item:10286:1:Rune helm h1|item:10287:1|item:10288:1:Rune helm h2|item:10289:1|item:10290:1:Rune helm h3|item:10291:1|item:10292:1:Rune helm h4|item:10293:1|item:10294:1:Rune helm h5",
+    "item:1247:1:Rune spear",
+    "item:1079:1:Rune platelegs"
    ],
    "stash": "IN_THE_MIDDLE_OF_JIGGIG"
   },
@@ -207,7 +207,7 @@
    "y": 3478,
    "plane": 0,
    "reqs": [
-    "any:item:11808|item:20374"
+    "any:item:11808:1:Zamorak godsword|item:20374:1:Zamorak godsword or"
    ],
    "stash": "BY_THE_BEAR_CAGE_IN_VARROCK_PALACE_GARDENS"
   },
@@ -220,9 +220,9 @@
    "y": 3254,
    "plane": 0,
    "reqs": [
-    "any:item:4151|item:12773|item:12774|item:26482|item:12006|item:26484",
-    "item:1052",
-    "item:6135"
+    "any:item:4151:1:Abyssal whip|item:12773:1:Volcanic abyssal whip|item:12774:1:Frozen abyssal whip|item:26482:1:Abyssal whip or|item:12006:1:Abyssal tentacle|item:26484:1:Abyssal tentacle or",
+    "item:1052:1:Cape of legends",
+    "item:6135:1:Spined chaps"
    ],
    "stash": "BEHIND_MISS_SCHISM_IN_DRAYNOR_VILLAGE"
   },
@@ -235,8 +235,8 @@
    "y": 3427,
    "plane": 0,
    "reqs": [
-    "any:item:22368|item:22369|item:22370",
-    "item:5541"
+    "any:item:22368:1:Bryophytas staff uncharged|item:22369:1|item:22370:1:Bryophytas staff",
+    "item:5541:1:Nature tiara"
    ],
    "stash": "CRYSTALLINE_MAPLE_TREES"
   },
@@ -249,9 +249,9 @@
    "y": 3425,
    "plane": 0,
    "reqs": [
-    "item:658",
-    "item:6328",
-    "item:1267"
+    "item:658:1:Green hat",
+    "item:6328:1:Snakeskin boots",
+    "item:1267:1:Iron pickaxe"
    ],
    "stash": "DIGSITE"
   },
@@ -264,9 +264,9 @@
    "y": 3073,
    "plane": 0,
    "reqs": [
-    "item:1099",
-    "any:item:2566|item:2564|item:2562|item:2560|item:2558|item:2556|item:2554|item:2552",
-    "item:1143"
+    "item:1099:1:Green dhide chaps",
+    "any:item:2566:1:Ring of dueling1|item:2564:1:Ring of dueling2|item:2562:1:Ring of dueling3|item:2560:1:Ring of dueling4|item:2558:1:Ring of dueling5|item:2556:1:Ring of dueling6|item:2554:1:Ring of dueling7|item:2552:1:Ring of dueling8",
+    "item:1143:1:Mithril med helm"
    ],
    "stash": "SOUTH_OF_THE_SHRINE_IN_TAI_BWO_WANNAI_VILLAGE"
   },
@@ -279,9 +279,9 @@
    "y": 3623,
    "plane": 0,
    "reqs": [
-    "item:1073",
-    "item:1123",
-    "item:1161"
+    "item:1073:1:Adamant platelegs",
+    "item:1123:1:Adamant platebody",
+    "item:1161:1:Adamant full helm"
    ],
    "stash": "WEST_OF_THE_SHAYZIEN_COMBAT_RING"
   },
@@ -294,7 +294,7 @@
    "y": 3252,
    "plane": 0,
    "reqs": [
-    "any:item:25862|item:23983|item:24123|item:25862"
+    "any:item:25862:1:Bow of faerdhinen inactive|item:23983:1:Crystal bow|item:24123:1|item:25862:1:Bow of faerdhinen inactive"
    ],
    "stash": "TENT_IN_LORD_IORWERTHS_ENCAMPMENT"
   },
@@ -307,7 +307,7 @@
    "y": 3252,
    "plane": 0,
    "reqs": [
-    "any:item:25862|item:23983|item:24123|item:25862"
+    "any:item:25862:1:Bow of faerdhinen inactive|item:23983:1:Crystal bow|item:24123:1|item:25862:1:Bow of faerdhinen inactive"
    ],
    "stash": "TENT_IN_LORD_IORWERTHS_ENCAMPMENT"
   },
@@ -320,9 +320,9 @@
    "y": 3349,
    "plane": 0,
    "reqs": [
-    "item:1067",
-    "item:845",
-    "item:1696"
+    "item:1067:1:Iron platelegs",
+    "item:845:1:Oak longbow",
+    "item:1696:1:Emerald amulet"
    ],
    "stash": "OUTSIDE_THE_LEGENDS_GUILD_GATES"
   },
@@ -335,9 +335,9 @@
    "y": 3377,
    "plane": 0,
    "reqs": [
-    "item:1052",
-    "any:item:1377|item:28037",
-    "any:item:1704|item:1706|item:1708|item:1710|item:1712|item:11976|item:11978"
+    "item:1052:1:Cape of legends",
+    "any:item:1377:1:Dragon battleaxe|item:28037:1:Dragon battleaxe cr",
+    "any:item:1704:1:Amulet of glory|item:1706:1:Amulet of glory1|item:1708:1:Amulet of glory2|item:1710:1:Amulet of glory3|item:1712:1:Amulet of glory4|item:11976:1:Amulet of glory5|item:11978:1:Amulet of glory6"
    ],
    "stash": "OUTSIDE_THE_LEGENDS_GUILD_DOOR"
   },
@@ -350,9 +350,9 @@
    "y": 3241,
    "plane": 0,
    "reqs": [
-    "item:1101",
-    "item:1095",
-    "item:1169"
+    "item:1101:1:Iron chainbody",
+    "item:1095:1:Leather chaps",
+    "item:1169:1:Coif"
    ],
    "stash": "EMIRS_ARENA_TICKET_OFFICE"
   },
@@ -365,8 +365,8 @@
    "y": 3641,
    "plane": 2,
    "reqs": [
-    "item:2499",
-    "item:2487"
+    "item:2499:1:Blue dhide body",
+    "item:2487:1:Blue dhide vambraces"
    ],
    "nothing": true,
    "stash": "TOP_FLOOR_OF_THE_LIGHTHOUSE"
@@ -380,7 +380,7 @@
    "y": 3087,
    "plane": 0,
    "reqs": [
-    "any:item:28933|item:28936|item:28939"
+    "any:item:28933:1:Sunfire fanatic helm|item:28936:1:Sunfire fanatic cuirass|item:28939:1:Sunfire fanatic chausses"
    ],
    "stash": "TEMPLE_SOUTHEAST_OF_THE_BAZAAR"
   },
@@ -393,9 +393,9 @@
    "y": 2954,
    "plane": 0,
    "reqs": [
-    "item:4089",
-    "item:5016",
-    "item:1127"
+    "item:4089:1:Mystic hat",
+    "item:5016:1:Bone spear",
+    "item:1127:1:Rune platebody"
    ],
    "stash": "SHILO_VILLAGE_BANK"
   },
@@ -408,9 +408,9 @@
    "y": 3861,
    "plane": 0,
    "reqs": [
-    "item:2497",
-    "any:item:10069|item:10073",
-    "item:7445"
+    "item:2497:1:Black dhide chaps",
+    "any:item:10069:1:Spotted cape|item:10073:1",
+    "item:7445:1:Rolling pin"
    ],
    "stash": "NEAR_A_LADDER_IN_THE_WILDERNESS_LAVA_MAZE"
   },
@@ -423,8 +423,8 @@
    "y": 5333,
    "plane": 2,
    "reqs": [
-    "item:2657",
-    "item:10858"
+    "item:2657:1:Zamorak full helm",
+    "item:10858:1:Shadow sword"
    ],
    "stash": "OUTSIDE_KRIL_TSUTSAROTHS_ROOM"
   },
@@ -437,9 +437,9 @@
    "y": 3478,
    "plane": 0,
    "reqs": [
-    "item:579",
-    "item:1307",
-    "item:4310"
+    "item:579:1:Blue wizard hat",
+    "item:1307:1:Bronze 2h sword",
+    "item:4310:1:Ham boots"
    ],
    "stash": "TAVERLEY_STONE_CIRCLE"
   },
@@ -452,9 +452,9 @@
    "y": 3509,
    "plane": 0,
    "reqs": [
-    "item:1757",
-    "item:1061",
-    "item:1059"
+    "item:1757:1:Brown apron",
+    "item:1061:1:Leather boots",
+    "item:1059:1:Leather gloves"
    ],
    "stash": "NORTH_OF_EVIL_DAVES_HOUSE_IN_EDGEVILLE"
   },
@@ -467,9 +467,9 @@
    "y": 3375,
    "plane": 0,
    "reqs": [
-    "item:1135",
-    "item:1099",
-    "item:1177"
+    "item:1135:1:Green dhide body",
+    "item:1099:1:Green dhide chaps",
+    "item:1177:1:Steel sq shield"
    ],
    "stash": "OGRE_CAGE_IN_KING_LATHAS_TRAINING_CAMP"
   },
@@ -482,9 +482,9 @@
    "y": 3349,
    "plane": 0,
    "reqs": [
-    "item:2491",
-    "item:2497",
-    "item:2503"
+    "item:2491:1:Black dhide vambraces",
+    "item:2497:1:Black dhide chaps",
+    "item:2503:1:Black dhide body"
    ],
    "stash": "ENTRANA_CHAPEL"
   },
@@ -497,9 +497,9 @@
    "y": 3237,
    "plane": 0,
    "reqs": [
-    "item:1169",
-    "item:1083",
-    "item:1656"
+    "item:1169:1:Coif",
+    "item:1083:1:Steel plateskirt",
+    "item:1656:1:Sapphire necklace"
    ],
    "stash": "NEAR_THE_ENTRANA_FERRY_IN_PORT_SARIM"
   },
@@ -512,9 +512,9 @@
    "y": 3339,
    "plane": 0,
    "reqs": [
-    "item:1005",
-    "item:628",
-    "item:1059"
+    "item:1005:1:White apron",
+    "item:628:1:Green boots",
+    "item:1059:1:Leather gloves"
    ],
    "stash": "OUTSIDE_THE_DIGSITE_EXAM_CENTRE"
   },
@@ -527,9 +527,9 @@
    "y": 3196,
    "plane": 0,
    "reqs": [
-    "item:1137",
-    "item:1639",
-    "item:1005"
+    "item:1137:1:Iron med helm",
+    "item:1639:1:Emerald ring",
+    "item:1005:1:White apron"
    ],
    "stash": "ON_THE_BRIDGE_TO_THE_MISTHALIN_WIZARDS_TOWER"
   },
@@ -542,9 +542,9 @@
    "y": 3385,
    "plane": 2,
    "reqs": [
-    "item:640",
-    "item:4300",
-    "item:5525"
+    "item:640:1:Blue robe top",
+    "item:4300:1:Ham robe",
+    "item:5525:1:Tiara"
    ],
    "stash": "UPSTAIRS_IN_THE_ARDOUGNE_WINDMILL"
   },
@@ -557,9 +557,9 @@
    "y": 3469,
    "plane": 0,
    "reqs": [
-    "item:3200",
-    "item:4093",
-    "item:1643"
+    "item:3200:1:Adamant halberd",
+    "item:4093:1:Mystic robe bottom",
+    "item:1643:1:Diamond ring"
    ],
    "stash": "OUTSIDE_THE_SEERS_VILLAGE_COURTHOUSE"
   },
@@ -572,8 +572,8 @@
    "y": 3960,
    "plane": 0,
    "reqs": [
-    "item:10394",
-    "item:1523"
+    "item:10394:1:Flared trousers",
+    "item:1523:1:Lockpick"
    ],
    "nothing": true,
    "stash": "OUTSIDE_THE_WILDERNESS_AXE_HUT"
@@ -587,9 +587,9 @@
    "y": 3839,
    "plane": 0,
    "reqs": [
-    "item:1345",
-    "item:2570",
-    "item:4127"
+    "item:1345:1:Adamant warhammer",
+    "item:2570:1:Ring of life",
+    "item:4127:1:Mithril boots"
    ],
    "stash": "NORTH_OF_MOUNT_KARUULM"
   },
@@ -602,9 +602,9 @@
    "y": 3443,
    "plane": 0,
    "reqs": [
-    "item:630",
-    "item:1131",
-    "item:2961"
+    "item:630:1:Blue boots",
+    "item:1131:1:Hardleather body",
+    "item:2961:1:Silver sickle"
    ],
    "stash": "HICKTONS_ARCHERY_EMPORIUM"
   },
@@ -617,9 +617,9 @@
    "y": 3429,
    "plane": 0,
    "reqs": [
-    "item:1183",
-    "item:8872",
-    "item:1121"
+    "item:1183:1:Adamant sq shield",
+    "item:8872:1:Bone dagger",
+    "item:1121:1:Mithril platebody"
    ],
    "stash": "OUTSIDE_HARRYS_FISHING_SHOP_IN_CATHERBY"
   },
@@ -632,9 +632,9 @@
    "y": 3420,
    "plane": 2,
    "reqs": [
-    "item:1193",
-    "item:2568",
-    "item:1099"
+    "item:1193:1:Steel kiteshield",
+    "item:2568:1:Ring of forging",
+    "item:1099:1:Green dhide chaps"
    ],
    "stash": "GNOME_STRONGHOLD_BALANCING_ROPE"
   },
@@ -647,8 +647,8 @@
    "y": 5149,
    "plane": 0,
    "reqs": [
-    "any:item:6570|item:24223|item:13329|item:24134|item:21295|item:24224|item:21285|item:24133",
-    "item:6522"
+    "any:item:6570:1:Fire cape|item:24223:1:Fire cape l|item:13329:1:Fire max cape|item:24134:1:Fire max cape l|item:21295:1:Infernal cape|item:24224:1:Infernal cape l|item:21285:1|item:24133:1:Infernal max cape l",
+    "item:6522:1:Toktzxilul"
    ],
    "stash": "TZHAAR_GEM_STORE"
   },
@@ -661,9 +661,9 @@
    "y": 3245,
    "plane": 0,
    "reqs": [
-    "item:1287",
-    "item:1694",
-    "item:1091"
+    "item:1287:1:Adamant sword",
+    "item:1694:1:Sapphire amulet",
+    "item:1091:1:Adamant plateskirt"
    ],
    "stash": "OUTSIDE_DRAYNOR_VILLAGE_JAIL"
   },
@@ -676,9 +676,9 @@
    "y": 3294,
    "plane": 0,
    "reqs": [
-    "item:1101",
-    "item:1637",
-    "item:839"
+    "item:1101:1:Iron chainbody",
+    "item:1637:1:Sapphire ring",
+    "item:839:1:Longbow"
    ],
    "stash": "CROSSROADS_NORTH_OF_DRAYNOR_VILLAGE"
   },
@@ -691,9 +691,9 @@
    "y": 3376,
    "plane": 0,
    "reqs": [
-    "item:1157",
-    "item:1119",
-    "item:1081"
+    "item:1157:1:Steel full helm",
+    "item:1119:1:Steel platebody",
+    "item:1081:1:Iron plateskirt"
    ],
    "stash": "OUTSIDE_THE_FALADOR_PARTY_ROOM"
   },
@@ -706,9 +706,9 @@
    "y": 3169,
    "plane": 0,
    "reqs": [
-    "item:1205",
-    "item:1153",
-    "item:1635"
+    "item:1205:1:Bronze dagger",
+    "item:1153:1:Iron full helm",
+    "item:1635:1:Gold ring"
    ],
    "stash": "NEAR_A_SHED_IN_LUMBRIDGE_SWAMP"
   },
@@ -721,9 +721,9 @@
    "y": 9571,
    "plane": 0,
    "reqs": [
-    "item:1381",
-    "item:1155",
-    "item:1731"
+    "item:1381:1:Staff of air",
+    "item:1155:1:Bronze full helm",
+    "item:1731:1:Amulet of power"
    ],
    "stash": "LUMBRIDGE_SWAMP_CAVES"
   },
@@ -736,9 +736,9 @@
    "y": 2781,
    "plane": 0,
    "reqs": [
-    "item:2570",
-    "item:1704",
-    "item:1317"
+    "item:2570:1:Ring of life",
+    "item:1704:1:Amulet of glory",
+    "item:1317:1:Adamant 2h sword"
    ],
    "stash": "OUTSIDE_THE_GREAT_PYRAMID_OF_SOPHANEM"
   },
@@ -751,9 +751,9 @@
    "y": 3488,
    "plane": 0,
    "reqs": [
-    "item:638",
-    "item:1071",
-    "item:1309"
+    "item:638:1:Green robe top",
+    "item:1071:1:Mithril platelegs",
+    "item:1309:1:Iron 2h sword"
    ],
    "stash": "CENTRE_OF_CANIFIS"
   },
@@ -766,9 +766,9 @@
    "y": 4680,
    "plane": 0,
    "reqs": [
-    "item:2503",
-    "item:2491",
-    "item:12524"
+    "item:2503:1:Black dhide body",
+    "item:2491:1:Black dhide vambraces",
+    "item:12524:1:Black dragon mask"
    ],
    "stash": "KING_BLACK_DRAGONS_LAIR"
   },
@@ -781,9 +781,9 @@
    "y": 3467,
    "plane": 0,
    "reqs": [
-    "item:1013",
-    "item:636",
-    "item:5533"
+    "item:1013:1:Pink skirt",
+    "item:636:1:Pink robe top",
+    "item:5533:1:Body tiara"
    ],
    "stash": "SOUTH_OF_THE_GRAND_EXCHANGE"
   },
@@ -796,9 +796,9 @@
    "y": 3505,
    "plane": 0,
    "reqs": [
-    "item:12480",
-    "item:12273",
-    "any:item:11804|item:20370"
+    "item:12480:1:Bandos platebody",
+    "item:12273:1:Bandos cloak",
+    "any:item:11804:1:Bandos godsword|item:20370:1:Bandos godsword or"
    ],
    "stash": "OUTSIDE_MUDKNUCKLES_HUT"
   },
@@ -811,9 +811,9 @@
    "y": 3289,
    "plane": 0,
    "reqs": [
-    "item:1833",
-    "item:1059",
-    "item:1061"
+    "item:1833:1:Desert shirt",
+    "item:1059:1:Leather gloves",
+    "item:1061:1:Leather boots"
    ],
    "stash": "AL_KHARID_SCORPION_MINE"
   },
@@ -826,9 +826,9 @@
    "y": 3340,
    "plane": 0,
    "reqs": [
-    "item:1401",
-    "item:11092",
-    "item:4131"
+    "item:1401:1:Mystic fire staff",
+    "item:11092:1:Diamond bracelet",
+    "item:4131:1:Rune boots"
    ],
    "stash": "INSIDE_THE_DIGSITE_EXAM_CENTRE"
   },
@@ -841,9 +841,9 @@
    "y": 3537,
    "plane": 2,
    "reqs": [
-    "item:6724",
-    "any:item:11118|item:11119|item:11120|item:11121|item:11122|item:11123|item:11124|item:11125|item:11126|item:11974|item:11972",
-    "item:10828"
+    "item:6724:1:Seercull",
+    "any:item:11118:1:Combat bracelet4|item:11119:1|item:11120:1:Combat bracelet3|item:11121:1|item:11122:1:Combat bracelet2|item:11123:1|item:11124:1:Combat bracelet1|item:11125:1|item:11126:1:Combat bracelet|item:11974:1:Combat bracelet5|item:11972:1:Combat bracelet6",
+    "item:10828:1:Helm of neitiznot"
    ],
    "stash": "OUTSIDE_THE_SLAYER_TOWER_GARGOYLE_ROOM"
   },
@@ -856,9 +856,9 @@
    "y": 3391,
    "plane": 0,
    "reqs": [
-    "item:1639",
-    "item:1694",
-    "item:1103"
+    "item:1639:1:Emerald ring",
+    "item:1694:1:Sapphire amulet",
+    "item:1103:1:Bronze chainbody"
    ],
    "stash": "OUTSIDE_THE_FISHING_GUILD"
   },
@@ -871,9 +871,9 @@
    "y": 3124,
    "plane": 0,
    "reqs": [
-    "item:3343",
-    "item:1381",
-    "item:1173"
+    "item:3343:1:Pointed bruise blue snelm",
+    "item:1381:1:Staff of air",
+    "item:1173:1:Bronze sq shield"
    ],
    "stash": "SHANTAY_PASS"
   },
@@ -886,8 +886,8 @@
    "y": 3401,
    "plane": 0,
    "reqs": [
-    "item:5527",
-    "item:1383"
+    "item:5527:1:Air tiara",
+    "item:1383:1:Staff of water"
    ],
    "stash": "AUBURYS_SHOP_IN_VARROCK"
   },
@@ -900,9 +900,9 @@
    "y": 3445,
    "plane": 0,
    "reqs": [
-    "item:1833",
-    "item:648",
-    "item:1353"
+    "item:1833:1:Desert shirt",
+    "item:648:1:Green robe bottoms",
+    "item:1353:1:Steel axe"
    ],
    "stash": "CATHERBY_BEEHIVE_FIELD"
   },
@@ -915,9 +915,9 @@
    "y": 3092,
    "plane": 0,
    "reqs": [
-    "item:1757",
-    "item:1145",
-    "item:6324"
+    "item:1757:1:Brown apron",
+    "item:1145:1:Adamant med helm",
+    "item:6324:1:Snakeskin chaps"
    ],
    "stash": "OUTSIDE_YANILLE_BANK"
   },
@@ -930,9 +930,9 @@
    "y": 5146,
    "plane": 0,
    "reqs": [
-    "item:1295",
-    "item:2499",
-    "item:4095"
+    "item:1295:1:Steel longsword",
+    "item:2499:1:Blue dhide body",
+    "item:4095:1:Mystic gloves"
    ],
    "stash": "TZHAAR_WEAPONS_STORE"
   },
@@ -945,9 +945,9 @@
    "y": 5366,
    "plane": 1,
    "reqs": [
-    "item:3122",
-    "item:3387",
-    "any:item:10286|item:10287|item:10288|item:10289|item:10290|item:10291|item:10292|item:10293|item:10294"
+    "item:3122:1:Granite shield",
+    "item:3387:1:Splitbark body",
+    "any:item:10286:1:Rune helm h1|item:10287:1|item:10288:1:Rune helm h2|item:10289:1|item:10290:1:Rune helm h3|item:10291:1|item:10292:1:Rune helm h4|item:10293:1|item:10294:1:Rune helm h5"
    ],
    "stash": "ENTRANCE_OF_THE_CAVERN_UNDER_THE_WHIRLPOOL"
   },
@@ -960,9 +960,9 @@
    "y": 3850,
    "plane": 0,
    "reqs": [
-    "item:4131",
-    "item:9674",
-    "item:1645"
+    "item:4131:1:Rune boots",
+    "item:9674:1:Proselyte hauberk",
+    "item:1645:1:Dragonstone ring"
    ],
    "stash": "NEAR_A_RUNITE_ROCK_IN_THE_FREMENNIK_ISLES"
   },
@@ -975,9 +975,9 @@
    "y": 3056,
    "plane": 0,
    "reqs": [
-    "item:7158",
-    "any:item:11836|item:21733|item:28945",
-    "item:6568"
+    "item:7158:1:Dragon 2h sword",
+    "any:item:11836:1:Bandos boots|item:21733:1:Guardian boots|item:28945:1:Echo boots",
+    "item:6568:1:Obsidian cape"
    ],
    "stash": "NEAR_THE_PIER_IN_ZULANDRA"
   },
@@ -990,9 +990,9 @@
    "y": 3284,
    "plane": 0,
    "reqs": [
-    "item:851",
-    "item:1698",
-    "item:1069"
+    "item:851:1:Maple longbow",
+    "item:1698:1:Ruby amulet",
+    "item:1069:1:Steel platelegs"
    ],
    "stash": "TWILIGHT_TEMPLE_MINE"
   },
@@ -1005,9 +1005,9 @@
    "y": 9893,
    "plane": 0,
    "reqs": [
-    "item:3389",
-    "any:item:11840|item:22234|item:13239",
-    "item:1303"
+    "item:3389:1:Splitbark legs",
+    "any:item:11840:1:Dragon boots|item:22234:1:Dragon boots g|item:13239:1:Primordial boots",
+    "item:1303:1:Rune longsword"
    ],
    "stash": "FOUNTAIN_OF_HEROES"
   },
@@ -1020,9 +1020,9 @@
    "y": 3681,
    "plane": 0,
    "reqs": [
-    "item:1163",
-    "item:2493",
-    "item:1393"
+    "item:1163:1:Rune full helm",
+    "item:2493:1:Blue dhide chaps",
+    "item:1393:1:Fire battlestaff"
    ],
    "stash": "MOUNTAIN_CAMP_GOAT_ENCLOSURE"
   },
@@ -1035,9 +1035,9 @@
    "y": 3536,
    "plane": 0,
    "reqs": [
-    "item:1167",
-    "item:577",
-    "item:1323"
+    "item:1167:1:Leather cowl",
+    "item:577:1:Blue wizard robe",
+    "item:1323:1:Iron scimitar"
    ],
    "stash": "ROAD_JUNCTION_SOUTH_OF_SINCLAIR_MANSION"
   },
@@ -1050,9 +1050,9 @@
    "y": 3304,
    "plane": 0,
    "reqs": [
-    "any:item:11079|item:11080|item:11081|item:11082|item:11083",
-    "item:1702",
-    "item:2568"
+    "any:item:11079:1:Castle wars bracelet3|item:11080:1|item:11081:1:Castle wars bracelet2|item:11082:1|item:11083:1:Castle wars bracelet1",
+    "item:1702:1:Dragonstone amulet",
+    "item:2568:1:Ring of forging"
    ],
    "stash": "NEAR_THE_GEM_STALL_IN_ARDOUGNE_MARKET"
   },
@@ -1065,8 +1065,8 @@
    "y": 3241,
    "plane": 0,
    "reqs": [
-    "item:579",
-    "item:577"
+    "item:579:1:Blue wizard hat",
+    "item:577:1:Blue wizard robe"
    ],
    "nothing": true,
    "stash": "WHERE_ORTUS_MEETS_PROUDSPIRE"
@@ -1080,9 +1080,9 @@
    "y": 3498,
    "plane": 0,
    "reqs": [
-    "item:1075",
-    "item:1269",
-    "item:1141"
+    "item:1075:1:Bronze platelegs",
+    "item:1269:1:Steel pickaxe",
+    "item:1141:1:Steel med helm"
    ],
    "stash": "LIMESTONE_MINE"
   },
@@ -1095,8 +1095,8 @@
    "y": 3576,
    "plane": 0,
    "reqs": [
-    "item:1085",
-    "item:851"
+    "item:1085:1:Mithril plateskirt",
+    "item:851:1:Maple longbow"
    ],
    "nothing": true,
    "stash": "MAUSOLEUM_OFF_THE_MORYTANIA_COAST"
@@ -1110,8 +1110,8 @@
    "y": 3935,
    "plane": 0,
    "reqs": [
-    "any:item:2645|item:2646|item:2647|item:2648|item:2649|item:12299|item:12300|item:12301|item:12302|item:12303|item:12304|item:12305|item:12306|item:12307",
-    "any:item:12199|item:12263|item:12275|item:10440|item:10441|item:10442|item:10443|item:10444"
+    "any:item:2645:1:Red headband|item:2646:1|item:2647:1:Black headband|item:2648:1|item:2649:1:Brown headband|item:12299:1:White headband|item:12300:1|item:12301:1:Blue headband|item:12302:1|item:12303:1:Gold headband|item:12304:1|item:12305:1:Pink headband|item:12306:1|item:12307:1:Green headband",
+    "any:item:12199:1:Ancient crozier|item:12263:1:Armadyl crozier|item:12275:1:Bandos crozier|item:10440:1:Saradomin crozier|item:10441:1|item:10442:1:Guthix crozier|item:10443:1|item:10444:1:Zamorak crozier"
    ],
    "stash": "VOLCANO_IN_THE_NORTHEASTERN_WILDERNESS"
   },
@@ -1124,9 +1124,9 @@
    "y": 3499,
    "plane": 0,
    "reqs": [
-    "item:1071",
-    "item:2570",
-    "item:1359"
+    "item:1071:1:Mithril platelegs",
+    "item:2570:1:Ring of life",
+    "item:1359:1:Rune axe"
    ],
    "stash": "GNOME_GLIDER_ON_WHITE_WOLF_MOUNTAIN"
   },
@@ -1139,11 +1139,11 @@
    "y": 3831,
    "plane": 0,
    "reqs": [
-    "item:1149",
-    "item:6524",
-    "item:11037",
-    "item:1127",
-    "item:1704"
+    "item:1149:1:Dragon med helm",
+    "item:6524:1:Toktzketxil",
+    "item:11037:1:Brine sabre",
+    "item:1127:1:Rune platebody",
+    "item:1704:1:Amulet of glory"
    ],
    "stash": "SOUTHEAST_CORNER_OF_LAVA_DRAGON_ISLE"
   },
@@ -1156,10 +1156,10 @@
    "y": 3781,
    "plane": 0,
    "reqs": [
-    "item:2487",
-    "item:1249",
-    "item:1093",
-    "item:4084"
+    "item:2487:1:Blue dhide vambraces",
+    "item:1249:1:Dragon spear",
+    "item:1093:1:Rune plateskirt",
+    "item:4084:1"
    ],
    "stash": "HALFWAY_DOWN_TROLLWEISS_MOUNTAIN"
   },
@@ -1172,9 +1172,9 @@
    "y": 3247,
    "plane": 0,
    "reqs": [
-    "item:1303",
-    "item:1127",
-    "item:1093"
+    "item:1303:1:Rune longsword",
+    "item:1127:1:Rune platebody",
+    "item:1093:1:Rune plateskirt"
    ],
    "stash": "OUTSIDE_TWILIGHT_TEMPLE"
   },
@@ -1187,9 +1187,9 @@
    "y": 3543,
    "plane": 0,
    "reqs": [
-    "any:item:1377|item:28037",
-    "any:item:12954|item:19722|item:24143|item:22322|item:24186|item:27550|item:27551|item:27552|item:27553",
-    "item:11864"
+    "any:item:1377:1:Dragon battleaxe|item:28037:1:Dragon battleaxe cr",
+    "any:item:12954:1:Dragon defender|item:19722:1:Dragon defender t|item:24143:1:Dragon defender l|item:22322:1:Avernic defender|item:24186:1:Avernic defender l|item:27550:1|item:27551:1:Ghommals avernic defender 5 l|item:27552:1|item:27553:1:Ghommals avernic defender 6 l",
+    "item:11864:1:Slayer helmet"
    ],
    "stash": "WARRIORS_GUILD_BANK_MASTER"
   },
@@ -1202,9 +1202,9 @@
    "y": 3282,
    "plane": 0,
    "reqs": [
-    "item:1133",
-    "item:1075",
-    "item:1379"
+    "item:1133:1:Studded body",
+    "item:1075:1:Bronze platelegs",
+    "item:1379:1:Staff"
    ],
    "stash": "NEAR_THE_PARROTS_IN_ARDOUGNE_ZOO"
   },
@@ -1217,9 +1217,9 @@
    "y": 3401,
    "plane": 0,
    "reqs": [
-    "item:1169",
-    "item:1115",
-    "item:1059"
+    "item:1169:1:Coif",
+    "item:1115:1:Iron platebody",
+    "item:1059:1:Leather gloves"
    ],
    "stash": "OUTSIDE_KEEP_LE_FAYE"
   },
@@ -1232,9 +1232,9 @@
    "y": 3419,
    "plane": 0,
    "reqs": [
-    "item:2890",
-    "item:2493",
-    "item:1347"
+    "item:2890:1:Elemental shield",
+    "item:2493:1:Blue dhide chaps",
+    "item:1347:1:Rune warhammer"
    ],
    "stash": "FISHING_GUILD_BANK"
   },
@@ -1247,8 +1247,8 @@
    "y": 3168,
    "plane": 0,
    "reqs": [
-    "item:1643",
-    "item:1731"
+    "item:1643:1:Diamond ring",
+    "item:1731:1:Amulet of power"
    ],
    "nothing": true,
    "stash": "WEST_SIDE_OF_THE_KARAMJA_BANANA_PLANTATION"
@@ -1262,7 +1262,7 @@
    "y": 3542,
    "plane": 0,
    "reqs": [
-    "item:10148"
+    "item:10148:1:Black salamander"
    ],
    "nothing": true,
    "stash": "WARRIORS_GUILD_BANK_ELITE"
@@ -1276,9 +1276,9 @@
    "y": 3631,
    "plane": 0,
    "reqs": [
-    "item:3202",
-    "item:1127",
-    "item:1725"
+    "item:3202:1:Rune halberd",
+    "item:1127:1:Rune platebody",
+    "item:1725:1:Amulet of strength"
    ],
    "stash": "HOSIDIUS_MESS"
   },
@@ -1291,10 +1291,10 @@
    "y": 3115,
    "plane": 0,
    "reqs": [
-    "any:item:29019|item:29041",
-    "any:item:29013|item:29037",
-    "any:item:29016|item:29039",
-    "item:28988"
+    "any:item:29019:1:Blue moon helm|item:29041:1",
+    "any:item:29013:1:Blue moon chestplate|item:29037:1",
+    "any:item:29016:1:Blue moon tassets|item:29039:1",
+    "item:28988:1:Blue moon spear"
    ],
    "stash": "CAM_TORUM_ENTRANCE"
   },
@@ -1307,9 +1307,9 @@
    "y": 3238,
    "plane": 0,
    "reqs": [
-    "item:1654",
-    "item:1635",
-    "item:1237"
+    "item:1654:1:Gold necklace",
+    "item:1635:1:Gold ring",
+    "item:1237:1:Bronze spear"
    ],
    "stash": "RIMMINGTON_MINE"
   },
@@ -1322,9 +1322,9 @@
    "y": 3440,
    "plane": 0,
    "reqs": [
-    "item:851",
-    "item:1099",
-    "item:1137"
+    "item:851:1:Maple longbow",
+    "item:1099:1:Green dhide chaps",
+    "item:1137:1:Iron med helm"
    ],
    "stash": "OUTSIDE_CATHERBY_BANK"
   },
@@ -1337,9 +1337,9 @@
    "y": 3672,
    "plane": 0,
    "reqs": [
-    "item:1079",
-    "item:1115",
-    "item:2487"
+    "item:1079:1:Rune platelegs",
+    "item:1115:1:Iron platebody",
+    "item:2487:1:Blue dhide vambraces"
    ],
    "stash": "EAST_OF_THE_LEVEL_19_WILDERNESS_OBELISK"
   },
@@ -1352,9 +1352,9 @@
    "y": 3635,
    "plane": 0,
    "reqs": [
-    "item:4093",
-    "item:1201",
-    "any:item:10316|item:10317|item:10318|item:10319|item:10320|item:10321|item:10322|item:10323|item:10324"
+    "item:4093:1:Mystic robe bottom",
+    "item:1201:1:Rune kiteshield",
+    "any:item:10316:1:Bobs red shirt|item:10317:1|item:10318:1:Bobs blue shirt|item:10319:1|item:10320:1:Bobs green shirt|item:10321:1|item:10322:1:Bobs black shirt|item:10323:1|item:10324:1:Bobs purple shirt"
    ],
    "stash": "SHAYZIEN_WAR_TENT"
   },
@@ -1367,8 +1367,8 @@
    "y": 10045,
    "plane": 0,
    "reqs": [
-    "any:item:19675|item:30305|item:29589",
-    "any:item:12853|item:12851"
+    "any:item:19675:1:Arclight|item:30305:1:Arclight inactive|item:29589:1:Emberlight",
+    "any:item:12853:1:Amulet of the damned|item:12851:1:Amulet of the damned full"
    ],
    "stash": "CENTRE_OF_THE_CATACOMBS_OF_KOUREND"
   },
@@ -1381,9 +1381,9 @@
    "y": 3276,
    "plane": 0,
    "reqs": [
-    "item:658",
-    "item:642",
-    "item:1095"
+    "item:658:1:Green hat",
+    "item:642:1:Cream robe top",
+    "item:1095:1:Leather chaps"
    ],
    "stash": "ROAD_JUNCTION_NORTH_OF_RIMMINGTON"
   },
@@ -1396,9 +1396,9 @@
    "y": 3336,
    "plane": 0,
    "reqs": [
-    "item:1115",
-    "item:1097",
-    "item:1155"
+    "item:1115:1:Iron platebody",
+    "item:1097:1:Studded chaps",
+    "item:1155:1:Bronze full helm"
    ],
    "stash": "DRAYNOR_MANOR_BY_THE_FOUNTAIN"
   },
@@ -1411,9 +1411,9 @@
    "y": 3856,
    "plane": 0,
    "reqs": [
-    "any:item:11920|item:12797|item:13243|item:13244|item:23677|item:25376|item:30351|item:23680|item:23682|item:25063|item:30345|item:25369|item:30346",
-    "item:10828",
-    "item:4131"
+    "any:item:11920:1:Dragon pickaxe|item:12797:1|item:13243:1:Infernal pickaxe|item:13244:1:Infernal pickaxe uncharged|item:23677:1:Dragon pickaxe or|item:25376:1|item:30351:1|item:23680:1:Crystal pickaxe|item:23682:1:Crystal pickaxe inactive|item:25063:1:Infernal pickaxe or|item:30345:1|item:25369:1|item:30346:1",
+    "item:10828:1:Helm of neitiznot",
+    "item:4131:1:Rune boots"
    ],
    "stash": "SOUL_ALTAR"
   },
@@ -1426,9 +1426,9 @@
    "y": 3463,
    "plane": 0,
    "reqs": [
-    "item:1361",
-    "item:1169",
-    "item:1641"
+    "item:1361:1:Black axe",
+    "item:1169:1:Coif",
+    "item:1641:1:Ruby ring"
    ],
    "stash": "OUTSIDE_VARROCK_PALACE_COURTYARD"
   },
@@ -1441,8 +1441,8 @@
    "y": 3290,
    "plane": 0,
    "reqs": [
-    "item:1249",
-    "item:2495"
+    "item:1249:1:Dragon spear",
+    "item:2495:1:Red dhide chaps"
    ],
    "stash": "CHAPEL_IN_WEST_ARDOUGNE"
   },
@@ -1455,9 +1455,9 @@
    "y": 3420,
    "plane": 0,
    "reqs": [
-    "item:2942",
-    "item:1193",
-    "item:1159"
+    "item:2942:1:Purple gloves",
+    "item:1193:1:Steel kiteshield",
+    "item:1159:1:Mithril full helm"
    ],
    "stash": "EAST_OF_THE_BARBARIAN_VILLAGE_BRIDGE"
   },
@@ -1470,7 +1470,7 @@
    "y": 4522,
    "plane": 0,
    "reqs": [
-    "any:item:6739|item:25378|item:28217|item:23673|item:23675|item:28220|item:28223|item:13241|item:13242|item:25066|item:25371|item:30347|item:30348"
+    "any:item:6739:1:Dragon axe|item:25378:1:Dragon axe or|item:28217:1:Dragon felling axe|item:23673:1:Crystal axe|item:23675:1:Crystal axe inactive|item:28220:1:Crystal felling axe|item:28223:1:Crystal felling axe inactive|item:13241:1:Infernal axe|item:13242:1:Infernal axe uncharged|item:25066:1:Infernal axe or|item:25371:1|item:30347:1|item:30348:1"
    ],
    "stash": "NORTHWESTERN_CORNER_OF_THE_ENCHANTED_VALLEY"
   },
@@ -1483,9 +1483,9 @@
    "y": 3298,
    "plane": 0,
    "reqs": [
-    "item:640",
-    "item:654",
-    "item:843"
+    "item:640:1:Blue robe top",
+    "item:654:1:Turquoise robe bottoms",
+    "item:843:1:Oak shortbow"
    ],
    "stash": "WHEAT_FIELD_NEAR_THE_LUMBRIDGE_WINDMILL"
   },
@@ -1498,9 +1498,9 @@
    "y": 3161,
    "plane": 0,
    "reqs": [
-    "item:1109",
-    "item:1099",
-    "item:1698"
+    "item:1109:1:Mithril chainbody",
+    "item:1099:1:Green dhide chaps",
+    "item:1698:1:Ruby amulet"
    ],
    "stash": "OBSERVATORY"
   },
@@ -1513,8 +1513,8 @@
    "y": 3302,
    "plane": 0,
    "reqs": [
-    "item:30073",
-    "item:30082"
+    "item:30073:1:Hueycoatl hide coif",
+    "item:30082:1:Hueycoatl hide vambraces"
    ],
    "stash": "WESTERN_SALVAGER_OVERLOOK"
   },
@@ -1527,9 +1527,9 @@
    "y": 3491,
    "plane": 0,
    "reqs": [
-    "item:1131",
-    "item:1095",
-    "item:1351"
+    "item:1131:1:Hardleather body",
+    "item:1095:1:Leather chaps",
+    "item:1351:1:Bronze axe"
    ],
    "stash": "NEAR_THE_SAWMILL_OPERATORS_BOOTH"
   },
@@ -1542,9 +1542,9 @@
    "y": 3335,
    "plane": 0,
    "reqs": [
-    "item:1273",
-    "item:1125",
-    "item:1191"
+    "item:1273:1:Mithril pickaxe",
+    "item:1125:1:Black platebody",
+    "item:1191:1:Iron kiteshield"
    ],
    "stash": "NEAR_HERQUINS_SHOP_IN_FALADOR"
   },
@@ -1557,9 +1557,9 @@
    "y": 3110,
    "plane": 0,
    "reqs": [
-    "item:1019",
-    "item:1095",
-    "item:1424"
+    "item:1019:1:Black cape",
+    "item:1095:1:Leather chaps",
+    "item:1424:1:Steel mace"
    ],
    "stash": "MUDSKIPPER_POINT"
   },
@@ -1572,9 +1572,9 @@
    "y": 3379,
    "plane": 0,
    "reqs": [
-    "any:item:1187|item:12418",
-    "item:3387",
-    "any:item:7319|item:7321|item:7323|item:7325|item:7327|item:12309|item:12311|item:12313"
+    "any:item:1187:1:Dragon sq shield|item:12418:1:Dragon sq shield g",
+    "item:3387:1:Splitbark body",
+    "any:item:7319:1:Red boater|item:7321:1:Orange boater|item:7323:1:Green boater|item:7325:1:Blue boater|item:7327:1:Black boater|item:12309:1:Pink boater|item:12311:1:Purple boater|item:12313:1:White boater"
    ],
    "stash": "NORTHERN_WALL_OF_CASTLE_DRAKAN"
   },
@@ -1587,8 +1587,8 @@
    "y": 4427,
    "plane": 0,
    "reqs": [
-    "item:9044",
-    "any:item:6392|item:6394|item:6396|item:6397|item:6398|item:6400|item:6402|item:6404|item:6405|item:6406"
+    "item:9044:1:Pharaohs sceptre",
+    "any:item:6392:1:Menaphite purple hat|item:6394:1:Menaphite purple top|item:6396:1:Menaphite purple robe|item:6397:1|item:6398:1:Menaphite purple kilt|item:6400:1:Menaphite red hat|item:6402:1:Menaphite red top|item:6404:1:Menaphite red robe|item:6405:1|item:6406:1:Menaphite red kilt"
    ],
    "stash": "SEVENTH_CHAMBER_OF_JALSAVRAH"
   },
@@ -1601,9 +1601,9 @@
    "y": 3492,
    "plane": 0,
    "reqs": [
-    "item:638",
-    "item:4300",
-    "item:1335"
+    "item:638:1:Green robe top",
+    "item:4300:1:Ham robe",
+    "item:1335:1:Iron warhammer"
    ],
    "stash": "VARROCK_PALACE_LIBRARY"
   },
@@ -1616,9 +1616,9 @@
    "y": 3253,
    "plane": 0,
    "reqs": [
-    "item:1097",
-    "item:1191",
-    "item:1295"
+    "item:1097:1:Studded chaps",
+    "item:1191:1:Iron kiteshield",
+    "item:1295:1:Steel longsword"
    ],
    "stash": "DRAYNOR_VILLAGE_MARKET"
   },
@@ -1631,9 +1631,9 @@
    "y": 3092,
    "plane": 0,
    "reqs": [
-    "item:1698",
-    "item:1329",
-    "any:item:4315|item:20217|item:20214|item:20211"
+    "item:1698:1:Ruby amulet",
+    "item:1329:1:Mithril scimitar",
+    "any:item:4315:1:Team1 cape|item:20217:1:Team cape i|item:20214:1:Team cape x|item:20211:1:Team cape zero"
    ],
    "stash": "CASTLE_WARS_BANK"
   },
@@ -1646,9 +1646,9 @@
    "y": 3701,
    "plane": 0,
    "reqs": [
-    "item:1183",
-    "item:2487",
-    "item:1275"
+    "item:1183:1:Adamant sq shield",
+    "item:2487:1:Blue dhide vambraces",
+    "item:1275:1:Rune pickaxe"
    ],
    "stash": "NOTERAZZOS_SHOP_IN_THE_WILDERNESS"
   },
@@ -1661,9 +1661,9 @@
    "y": 3676,
    "plane": 0,
    "reqs": [
-    "any:item:3053|item:21198",
-    "item:2491",
-    "item:9731"
+    "any:item:3053:1:Lava battlestaff|item:21198:1",
+    "item:2491:1:Black dhide vambraces",
+    "item:9731:1:Mind shield"
    ],
    "stash": "ON_TOP_OF_TROLLHEIM_MOUNTAIN"
   },
@@ -1676,9 +1676,9 @@
    "y": 3807,
    "plane": 0,
    "reqs": [
-    "item:2487",
-    "item:4129",
-    "item:1211"
+    "item:2487:1:Blue dhide vambraces",
+    "item:4129:1:Adamant boots",
+    "item:1211:1:Adamant dagger"
    ],
    "stash": "ENTRANCE_OF_THE_ARCEUUS_LIBRARY"
   },
@@ -1691,9 +1691,9 @@
    "y": 3163,
    "plane": 0,
    "reqs": [
-    "item:1658",
-    "item:1011",
-    "item:644"
+    "item:1658:1:Emerald necklace",
+    "item:1011:1:Blue skirt",
+    "item:644:1:Turquoise robe top"
    ],
    "stash": "FORTIS_GRAND_MUSEUM"
   },
@@ -1706,10 +1706,10 @@
    "y": 4717,
    "plane": 2,
    "reqs": [
-    "any:item:4585|item:12416",
-    "any:item:3105|item:23413",
-    "any:item:3140|item:12414",
-    "item:716"
+    "any:item:4585:1:Dragon plateskirt|item:12416:1:Dragon plateskirt g",
+    "any:item:3105:1:Climbing boots|item:23413:1:Climbing boots g",
+    "any:item:3140:1|item:12414:1:Dragon chainbody g",
+    "item:716:1:Bullroarer"
    ],
    "stash": "TOP_FLOOR_OF_THE_YANILLE_WATCHTOWER"
   },
@@ -1722,8 +1722,8 @@
    "y": 3424,
    "plane": 0,
    "reqs": [
-    "item:1635",
-    "item:1654"
+    "item:1635:1:Gold ring",
+    "item:1654:1:Gold necklace"
    ],
    "stash": "GYPSY_TENT_ENTRANCE"
   },
@@ -1746,8 +1746,8 @@
    "y": 3416,
    "plane": 0,
    "reqs": [
-    "item:1949",
-    "item:1007"
+    "item:1949:1:Chefs hat",
+    "item:1007:1:Red cape"
    ],
    "stash": "FINE_CLOTHES_ENTRANCE"
   },
@@ -1760,8 +1760,8 @@
    "y": 3203,
    "plane": 0,
    "reqs": [
-    "item:1351",
-    "item:1061"
+    "item:1351:1:Bronze axe",
+    "item:1061:1:Leather boots"
    ],
    "stash": "BOB_AXES_ENTRANCE"
   },
@@ -1794,9 +1794,9 @@
    "y": 3467,
    "plane": 0,
    "reqs": [
-    "any:item:13646|item:13647",
-    "item:13381",
-    "item:20706"
+    "any:item:13646:1:Farmers strawhat|item:13647:1",
+    "item:13381:1",
+    "item:20706:1:Pyromancer robe"
    ],
    "stash": "CHARCOAL_BURNERS"
   },
@@ -1809,8 +1809,8 @@
    "y": 2966,
    "plane": 0,
    "reqs": [
-    "item:1025",
-    "item:1321"
+    "item:1025:1:Right eye patch",
+    "item:1321:1:Bronze scimitar"
    ],
    "stash": "PANDEMONIUM_BAR"
   },
@@ -1823,8 +1823,8 @@
    "y": 2608,
    "plane": 0,
    "reqs": [
-    "item:7539",
-    "item:7537"
+    "item:7539:1:Crab helmet",
+    "item:7537:1:Crab claw"
    ],
    "stash": "WINTUMBER_ISLAND"
   },
@@ -1837,8 +1837,8 @@
    "y": 4074,
    "plane": 0,
    "reqs": [
-    "item:32386",
-    "item:31583"
+    "item:32386:1:Medallion of the deep",
+    "item:31583:1:Rosewood blowpipe"
    ],
    "stash": "BRITTLE_ISLE"
   }

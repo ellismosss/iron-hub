@@ -92,6 +92,20 @@ public class PersistedState
 		}
 	}
 
+	java.util.Set<Integer> stashBuilt = new java.util.HashSet<>();  // built STASH object ids
+	java.util.Set<Integer> stashFilled = new java.util.HashSet<>(); // filled STASH object ids
+
+	Map<String, ClueGoal> clueGoals = new HashMap<>(); // clue id -> planner seed
+
+	/** A clue step added to the goal planner: display seed so it renders
+	 *  offline; reqs become honest planner steps. */
+	public static class ClueGoal
+	{
+		public String text = "";
+		public String tier = "";
+		public java.util.List<String> reqs = new ArrayList<>();
+	}
+
 	Map<String, String> slayerNotes = new HashMap<>();          // task -> player note
 	Map<String, String> slayerLocationPrefs = new HashMap<>();  // task -> preferred location name
 	Map<String, java.util.List<String>> slayerBlockPrefs = new HashMap<>(); // master -> preferred block list

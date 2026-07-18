@@ -361,6 +361,10 @@ public class GoalPlannerModule implements IronHubModule
 		{
 			state.removeClogGoal(Integer.parseInt(goalId.substring("clog:".length())));
 		}
+		else if (goalId.startsWith("clue:"))
+		{
+			state.removeClueGoal(goalId.substring("clue:".length()));
+		}
 		else if (goalId.startsWith("custom:"))
 		{
 			state.removeCustomGoal(goalId);
@@ -475,6 +479,31 @@ public class GoalPlannerModule implements IronHubModule
 		return goal;
 	}
 
+	/**
+	 * A clue step added from the Clues & STASH tab: the step's item
+	 * requirements become planner steps, achieved once the clues module
+	 * marks the {@code cluestep_<id>} unlock (it does so the moment the
+	 * requirements are all met — including immediately at add time).
+	 */
+	public static GoalsPack.Goal toClueGoal(String id, com.ironhub.state.PersistedState.ClueGoal seed)
+	{
+		String proof = "unlock:cluestep_" + id;
+		GoalsPack.Goal goal = new GoalsPack.Goal();
+		goal.setId("clue:" + id);
+		goal.setName(seed.tier + " clue step: " + seed.text);
+		List<GoalsPack.Step> steps = new ArrayList<>();
+		for (String raw : seed.reqs)
+		{
+			GoalsPack.Step step = new GoalsPack.Step();
+			step.setLabel(Requirements.parse(raw).describe());
+			step.setRequirement(raw);
+			steps.add(step);
+		}
+		goal.setSteps(steps);
+		goal.setAchieved(List.of(proof));
+		return goal;
+	}
+
 	/** A user-typed goal ("Agility 70"): one detectable step, achieved
 	 * when its requirement holds. */
 	public static GoalsPack.Goal toCustomGoal(String goalId, com.ironhub.state.PersistedState.CustomGoal seed)
@@ -521,6 +550,13 @@ public class GoalPlannerModule implements IronHubModule
 			if (state.getSelectedGoals().contains("diary:" + slug))
 			{
 				all.add(toDiaryGoal(slug, seed));
+			}
+		});
+		state.getClueGoals().forEach((id, seed) ->
+		{
+			if (state.getSelectedGoals().contains("clue:" + id))
+			{
+				all.add(toClueGoal(id, seed));
 			}
 		});
 		state.getClogGoals().forEach((itemId, seed) ->

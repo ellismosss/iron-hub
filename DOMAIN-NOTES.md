@@ -451,6 +451,32 @@ the same claim varbit and the stop culls itself.
 **NMZ herb boxes are ironman-blocked by the game** — core literally checks
 `IRONMAN == 0` — so they are not in the pack at all.
 
+## STASH units & emote clue steps (module: clues, pack: clue-steps.json)
+
+**A built STASH's game object only renders for the player who built it** —
+the `ObjectID.HH_*` object spawning in the scene is proof the LOCAL player
+built that unit (the STASH Tracker plugin's core trick, ported). The
+gameval `ObjectID` class is **split across `ObjectID` and `ObjectID1`**
+for class-file size — resolve constants against both.
+
+**Filled state has no varbit**: it comes from deposit/withdraw chat
+messages (GAMEMESSAGE/SPAM/MESBOX containing "stash", keyword-loose),
+attributed to the STASH the player clicked within 5s, else the nearest
+unit within 5 tiles. A STASH **filled before the plugin existed is
+undetectable** — the manual filled toggle in the tab is the escape hatch,
+not a luxury. Filling implies built; emptying leaves built alone.
+
+**Emote clue items**: core's EmoteClue table is the canonical source —
+its requirement DSL (`item`/`any`/`all`/`range`/`xOfItem`/`emptySlot` +
+named constants) maps onto the requirement graph directly, and its
+`ItemVariationMapping.getVariations` streams collapse to single `item:`
+leaves because the graph already counts variants. `emptySlot` steps
+("nothing equipped", "no jewelry") can COEXIST with item requirements.
+Core's STASHUnit constant names drift from mirrors in four places (the
+two Warriors' Guild banks disambiguate by object id, not name). POH
+costume-room contents are not readable — "owned" means bank + carried,
+and the UI must say so.
+
 ## Slayer detection & block lists (module: slayer, pack: slayer-tasks.json)
 
 **Current task** lives in varps the core Slayer plugin reads: `SLAYER_COUNT`
