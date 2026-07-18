@@ -17,6 +17,52 @@ public class MethodsPack
 	public String generated;
 	public List<SkillLadder> skills;
 
+	/** Meta-freshness after which the pack renders a staleness note; the
+	 *  quarterly-ish regeneration cadence agreed for Goals v2. */
+	public static final int STALE_AFTER_MONTHS = 4;
+
+	/** "meta: Jul 2026" from the pack's generated date, or "" when unparseable. */
+	public String metaLabel()
+	{
+		java.time.LocalDate date = generatedDate();
+		if (date == null)
+		{
+			return "";
+		}
+		return "meta: " + date.getMonth().getDisplayName(
+			java.time.format.TextStyle.SHORT, Locale.ENGLISH) + " " + date.getYear();
+	}
+
+	/** Whether the pack is older than the staleness horizon at the given
+	 *  instant (display-only; the caller supplies now for testability). */
+	public boolean isStale(long nowMs)
+	{
+		java.time.LocalDate date = generatedDate();
+		if (date == null)
+		{
+			return false;
+		}
+		java.time.LocalDate now = java.time.Instant.ofEpochMilli(nowMs)
+			.atZone(java.time.ZoneOffset.UTC).toLocalDate();
+		return date.plusMonths(STALE_AFTER_MONTHS).isBefore(now);
+	}
+
+	private java.time.LocalDate generatedDate()
+	{
+		if (generated == null || generated.isEmpty())
+		{
+			return null;
+		}
+		try
+		{
+			return java.time.LocalDate.parse(generated);
+		}
+		catch (java.time.format.DateTimeParseException e)
+		{
+			return null;
+		}
+	}
+
 	public SkillLadder ladder(net.runelite.api.Skill skill)
 	{
 		String wanted = skill.getName().toLowerCase(Locale.ROOT);

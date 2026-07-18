@@ -1,6 +1,6 @@
 {
- "source": "curated ironman method seed per ENGINE-DESIGN.md Appendix A (OSRS wiki Ironman_Guide pages, July 2026); practical rates, not WOM max-efficiency EHP",
- "generated": "2026-07-15",
+ "source": "curated ironman method seed per ENGINE-DESIGN.md Appendix A (OSRS wiki Ironman_Guide pages); PRACTICAL rates, not WOM max-efficiency EHP (Luke, Goals v2 G4). Cross-validated against WOM ironman EHP envelope (commit 1afcf8c).",
+ "generated": "2026-07-18",
  "skills": [
   {
    "skill": "Attack",

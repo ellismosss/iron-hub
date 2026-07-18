@@ -188,6 +188,11 @@ class PlannerTab extends JPanel
 		Plan plan = latestPlan; // Today always follows the freshest plan
 
 		todayView.add(horizonRow(plan));
+		JComponent meta = metaRow();
+		if (meta != null)
+		{
+			todayView.add(meta);
+		}
 		todayView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		todayView.add(budgetChips);
 		todayView.add(Box.createVerticalStrut(UiTokens.PAD));
@@ -236,6 +241,33 @@ class PlannerTab extends JPanel
 		todayView.add(Box.createVerticalGlue());
 		todayView.revalidate();
 		todayView.repaint();
+	}
+
+	/** Meta-freshness line under the horizon: "meta: Jul 2026", with a
+	 *  staleness note when the methods pack is older than the regeneration
+	 *  cadence — honest provenance, not a fabricated currency (G4). */
+	private JComponent metaRow()
+	{
+		com.ironhub.data.MethodsPack methods = moduleMethods();
+		if (methods == null)
+		{
+			return null;
+		}
+		String label = methods.metaLabel();
+		if (label.isEmpty())
+		{
+			return null;
+		}
+		boolean stale = methods.isStale(System.currentTimeMillis());
+		JPanel row = row();
+		OsrsLabel meta = new OsrsLabel(stale ? label + " · rates may be out of date" : label,
+			stale ? OsrsSkin.MUTED : OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned().squeezable();
+		meta.setToolTipText("When the training-rate pack was last regenerated"
+			+ (stale ? " — a refresh is due" : ""));
+		row.add(meta);
+		row.add(Box.createHorizontalGlue());
+		cap(row);
+		return row;
 	}
 
 	private JComponent horizonRow(Plan plan)

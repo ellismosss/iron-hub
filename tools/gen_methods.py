@@ -2,24 +2,49 @@
 """Generate data/methods.json — the training-method ladders for the goal
 engine (WOM-shape {startXp, rate} tiers + requirement overlay).
 
-v1 is a curated seed: the SEED table below encodes the practical ironman
-method ladder researched in ENGINE-DESIGN.md Appendix A (OSRS wiki
-Ironman_Guide pages, July 2026), with per-entry provenance. Rates are the
-wiki's practical numbers, deliberately NOT Wise Old Man's max-efficiency
-EHP rates (2-alt tick-perfect assumptions) — WOM's open-source configs
-serve as the calibration envelope in tests instead. Levels are written as
-levels here and compiled to exact xp thresholds by this script.
+The SEED table below encodes the practical ironman method ladder researched
+in ENGINE-DESIGN.md Appendix A (OSRS wiki Ironman_Guide pages, July 2026),
+with per-entry provenance. Rates are the wiki's PRACTICAL numbers,
+deliberately NOT Wise Old Man's max-efficiency EHP rates (2-alt tick-perfect
+assumptions) — plan hours stay honest for a typical ironman, not a
+tick-perfect one (Luke's call, Goals v2 G4, 2026-07-18). Levels are written
+as levels here and compiled to exact xp thresholds by this script.
+
+The MACHINERY (G4): this script fetches WOM's open-source ironman EHP
+configs at a PINNED commit and cross-validates every curated rate against
+that max-efficiency ENVELOPE — a practical rate must never exceed WOM's
+tick-perfect ceiling (with slack), so a future rate typo (an extra zero)
+fails the regeneration loudly. WOM is the envelope, never the plan rate.
 
 Styles: active | semi | afk | daily. `daily` methods are background-lane
 content — the cost model never spends active hours on them.
 
 Usage: python3 tools/gen_methods.py
+
+Needs network (the WOM cross-validation). Cached under tools/.cache-methods/.
 """
 import datetime
 import json
+import os
+import re
+import urllib.request
 
 OUT = "src/main/resources/data/methods.json"
 WIKI = "oldschool.runescape.wiki/w/"
+
+# WOM's open-source ironman EHP config = the max-efficiency envelope. Pinned.
+WOM_COMMIT = "1afcf8cb1f2905832149634fec65e318d2521150"
+WOM_URL = ("https://raw.githubusercontent.com/wise-old-man/wise-old-man/"
+           f"{WOM_COMMIT}/server/src/api/modules/efficiency/configs/ehp/ironman.ehp.ts")
+UA = "iron-hub-pack-generator (github.com/ellismosss/iron-hub; info@ellismoss.co.uk)"
+HERE = os.path.dirname(os.path.abspath(__file__))
+CACHE = os.path.join(HERE, ".cache-methods")
+# a practical rate may sit at most this far above WOM's max-efficiency peak
+# before it reads as a data error rather than a modelling difference
+ENVELOPE_SLACK = 1.5
+# WOM enum name → our skill name where they differ
+WOM_SKILL = {"HITPOINTS": "Hitpoints", "RUNECRAFTING": "Runecraft",
+             "WOODCUTTING": "Woodcutting", "FIREMAKING": "Firemaking"}
 
 
 def xp_for_level(level):
@@ -218,7 +243,54 @@ BONUSES = {
 }
 
 
+def wom_envelope():
+    """WOM ironman max-efficiency peak rate per skill (the ceiling)."""
+    os.makedirs(CACHE, exist_ok=True)
+    cached = os.path.join(CACHE, f"ironman.ehp.{WOM_COMMIT}.ts")
+    if os.path.exists(cached):
+        with open(cached, encoding="utf-8") as f:
+            ts = f.read()
+    else:
+        req = urllib.request.Request(WOM_URL, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            ts = resp.read().decode("utf-8")
+        with open(cached, "w", encoding="utf-8") as f:
+            f.write(ts)
+    peaks = {}
+    for block in re.split(r"skill:\s*Skill\.", ts)[1:]:
+        enum = block.split(",", 1)[0].strip()
+        rates = [int(r.replace("_", "")) for r in
+                 re.findall(r"rate:\s*([\d_]+)", block)]
+        if rates:
+            peaks[WOM_SKILL.get(enum, enum.capitalize())] = max(rates)
+    if len(peaks) < 20:
+        raise SystemExit(f"WOM envelope parse yielded only {len(peaks)} skills")
+    return peaks
+
+
+def validate_envelope(skills, peaks):
+    """Every curated rate must sit under WOM's max-efficiency ceiling
+    (× slack). A violation is a data error (a rate typo), not a choice."""
+    violations = []
+    for ladder in skills:
+        ceiling = peaks.get(ladder["skill"])
+        if ceiling is None:
+            continue  # WOM doesn't cover this skill (Sailing) — nothing to check
+        for method in ladder["methods"]:
+            if method["rate"] > ceiling * ENVELOPE_SLACK:
+                violations.append(
+                    f"{ladder['skill']}/{method['id']}: {method['rate']} > "
+                    f"WOM peak {ceiling} × {ENVELOPE_SLACK}")
+    if violations:
+        raise SystemExit("rates exceed the WOM envelope (likely a typo):\n  "
+                         + "\n  ".join(violations))
+    checked = sum(1 for l in skills if l["skill"] in peaks)
+    print(f"envelope OK: {checked} skills cross-validated vs WOM ironman "
+          f"(commit {WOM_COMMIT[:7]}); Sailing has no WOM config, skipped")
+
+
 def main():
+    peaks = wom_envelope()
     skills = []
     for skill, rows in SEED.items():
         methods = []
@@ -246,10 +318,13 @@ def main():
             ladder["bonuses"] = BONUSES[skill]
         skills.append(ladder)
 
+    validate_envelope(skills, peaks)
+
     pack = {
         "source": "curated ironman method seed per ENGINE-DESIGN.md Appendix A "
-                  "(OSRS wiki Ironman_Guide pages, July 2026); practical rates, "
-                  "not WOM max-efficiency EHP",
+                  "(OSRS wiki Ironman_Guide pages); PRACTICAL rates, not WOM "
+                  "max-efficiency EHP (Luke, Goals v2 G4). Cross-validated "
+                  f"against WOM ironman EHP envelope (commit {WOM_COMMIT[:7]}).",
         "generated": datetime.date.today().isoformat(),
         "skills": skills,
     }
