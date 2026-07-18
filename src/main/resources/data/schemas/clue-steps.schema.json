@@ -1,0 +1,51 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Emote clue steps + STASH units (core cluescrolls + STASH Tracker, BSD-2)",
+	"type": "object",
+	"required": ["version", "sources", "clues", "stash"],
+	"additionalProperties": false,
+	"properties": {
+		"version": {"type": "integer", "minimum": 1},
+		"sources": {"type": "object"},
+		"clues": {
+			"type": "array",
+			"minItems": 110,
+			"items": {
+				"type": "object",
+				"required": ["id", "tier", "text", "area", "x", "y", "plane", "reqs"],
+				"additionalProperties": false,
+				"properties": {
+					"id": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+					"tier": {"enum": ["Beginner", "Easy", "Medium", "Hard", "Elite", "Master"]},
+					"text": {"type": "string", "minLength": 10},
+					"area": {"type": "string"},
+					"x": {"type": "integer"},
+					"y": {"type": "integer"},
+					"plane": {"type": "integer", "minimum": 0, "maximum": 3},
+					"reqs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+					"nothing": {"type": "boolean"},
+					"stash": {"type": "string", "pattern": "^[A-Z0-9_]+$"}
+				}
+			}
+		},
+		"stash": {
+			"type": "array",
+			"minItems": 110,
+			"items": {
+				"type": "object",
+				"required": ["key", "tier", "objectId", "name", "x", "y", "plane"],
+				"additionalProperties": false,
+				"properties": {
+					"key": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+					"tier": {"enum": ["Beginner", "Easy", "Medium", "Hard", "Elite", "Master"]},
+					"objectId": {"type": "integer", "minimum": 1},
+					"name": {"type": "string", "minLength": 1},
+					"x": {"type": "integer"},
+					"y": {"type": "integer"},
+					"plane": {"type": "integer", "minimum": 0, "maximum": 3},
+					"clueId": {"type": "string", "pattern": "^[a-z0-9_]+$"}
+				}
+			}
+		}
+	}
+}

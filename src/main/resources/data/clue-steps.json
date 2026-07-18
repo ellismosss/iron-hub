@@ -1,0 +1,3038 @@
+{
+ "version": 1,
+ "sources": {
+  "runelite": "runelite-parent-1.12.33",
+  "stashTracker": "a8caedca03159416dd5cd1948af6ecaf3fe24b9d"
+ },
+ "clues": [
+  {
+   "id": "hard_beckon_on_the_east_coast_of_the",
+   "tier": "Hard",
+   "text": "Beckon on the east coast of the Kharazi Jungle. Beware of double agents! Equip any vestment stole and a heraldic rune shield.",
+   "area": "Kharazi Jungle",
+   "x": 2954,
+   "y": 2933,
+   "plane": 0,
+   "reqs": [
+    "any:item:10472|item:10470|item:10474|item:12257|item:12269|item:12201",
+    "any:item:7336|item:7342|item:7348|item:7354|item:7360"
+   ],
+   "stash": "NORTHEAST_CORNER_OF_THE_KHARAZI_JUNGLE"
+  },
+  {
+   "id": "medium_cheer_in_the_barbarian_agility_arena_headbang",
+   "tier": "Medium",
+   "text": "Cheer in the Barbarian Agility Arena. Headbang before you talk to me. Equip a steel platebody, maple shortbow and a Wilderness cape.",
+   "area": "Barbarian Outpost",
+   "x": 2552,
+   "y": 3556,
+   "plane": 0,
+   "reqs": [
+    "item:1119",
+    "item:853",
+    "any:item:4315|item:20217|item:20214|item:20211"
+   ],
+   "stash": "BARBARIAN_OUTPOST_OBSTACLE_COURSE"
+  },
+  {
+   "id": "elite_bow_upstairs_in_the_edgeville_monastery_equip",
+   "tier": "Elite",
+   "text": "Bow upstairs in the Edgeville Monastery. Equip a completed prayer book.",
+   "area": "Edgeville Monastery",
+   "x": 3056,
+   "y": 3484,
+   "plane": 1,
+   "reqs": [
+    "any:item:3840|item:3844|item:3842|item:12610|item:12608|item:12612|item:26496|item:26488|item:26498|item:26492|item:26494|item:26490"
+   ],
+   "stash": "SOUTHEAST_CORNER_OF_THE_MONASTERY"
+  },
+  {
+   "id": "elite_cheer_in_the_shadow_dungeon_equip_a",
+   "tier": "Elite",
+   "text": "Cheer in the Shadow dungeon. Equip a rune crossbow, climbing boots and any mitre.",
+   "area": "Shadow dungeon",
+   "x": 2629,
+   "y": 5071,
+   "plane": 0,
+   "reqs": [
+    "any:item:10454|item:10452|item:10456|item:12203|item:12271|item:12259",
+    "any:item:9185|item:26486",
+    "any:item:3105|item:23413",
+    "any:item:4657|item:28327|item:28329"
+   ],
+   "stash": "ENTRANCE_OF_THE_CAVE_OF_DAMIS"
+  },
+  {
+   "id": "hard_cheer_at_the_top_of_the_agility",
+   "tier": "Hard",
+   "text": "Cheer at the top of the agility pyramid. Beware of double agents! Equip a blue mystic robe top and any rune heraldic shield.",
+   "area": "Agility Pyramid",
+   "x": 3043,
+   "y": 4697,
+   "plane": 3,
+   "reqs": [
+    "item:4091",
+    "any:item:7336|item:7342|item:7348|item:7354|item:7360"
+   ],
+   "stash": "AGILITY_PYRAMID"
+  },
+  {
+   "id": "master_dance_in_ibans_temple_beware_of_double",
+   "tier": "Master",
+   "text": "Dance in Iban's temple. Beware of double agents! Equip Iban's staff, a black mystic top and a black mystic bottom.",
+   "area": "Iban's temple",
+   "x": 2011,
+   "y": 4712,
+   "plane": 0,
+   "reqs": [
+    "any:item:1409|item:12658",
+    "item:4101",
+    "item:4103"
+   ],
+   "stash": "WELL_OF_VOYAGE"
+  },
+  {
+   "id": "elite_dance_on_the_fishing_platform_equip_barrows",
+   "tier": "Elite",
+   "text": "Dance on the Fishing Platform. Equip barrows gloves, an amulet of glory and a dragon med helm.",
+   "area": "Fishing Platform",
+   "x": 2782,
+   "y": 3273,
+   "plane": 0,
+   "reqs": [
+    "any:item:1704|item:1706|item:1708|item:1710|item:1712|item:11976|item:11978",
+    "item:7462",
+    "item:1149"
+   ],
+   "stash": "SOUTHEAST_CORNER_OF_THE_FISHING_PLATFORM"
+  },
+  {
+   "id": "master_flap_at_the_death_altar_beware_of",
+   "tier": "Master",
+   "text": "Flap at the death altar. Beware of double agents! Equip a death tiara, a legend's cape and any ring of wealth.",
+   "area": "Death altar",
+   "x": 2205,
+   "y": 4838,
+   "plane": 0,
+   "reqs": [
+    "item:2572",
+    "item:5547",
+    "item:1052"
+   ],
+   "stash": "DEATH_ALTAR"
+  },
+  {
+   "id": "elite_headbang_in_the_fight_arena_pub_equip",
+   "tier": "Elite",
+   "text": "Headbang in the Fight Arena pub. Equip a pirate bandana, a dragonstone necklace and and a magic longbow.",
+   "area": "Fight Arena pub",
+   "x": 2568,
+   "y": 3149,
+   "plane": 0,
+   "reqs": [
+    "any:item:7112|item:7124|item:7130|item:7136",
+    "item:1664",
+    "item:859"
+   ],
+   "stash": "OUTSIDE_THE_BAR_BY_THE_FIGHT_ARENA"
+  },
+  {
+   "id": "master_do_a_jig_at_the_barrows_chest",
+   "tier": "Master",
+   "text": "Do a jig at the barrows chest. Beware of double agents! Equip any full barrows set.",
+   "area": "Barrows chest",
+   "x": 3551,
+   "y": 9694,
+   "plane": 0,
+   "reqs": [
+    "any:item:4708|item:4856|item:4857|item:4858|item:4859|item:4860|item:30445|item:30519|item:30525|item:30531|item:30537|item:30543|item:4710|item:4862|item:4863|item:4864|item:4865|item:4866|item:30568|item:30570|item:30571|item:30572|item:30573|item:30574|item:4712|item:4868|item:4869|item:4870|item:4871|item:4872|item:30447|item:30521|item:30527|item:30533|item:30539|item:30545|item:4714|item:4874|item:4875|item:4876|item:4877|item:4878|item:30449|item:30523|item:30529|item:30535|item:30541|item:30547|item:4716|item:4880|item:4881|item:4882|item:4883|item:4884|item:4718|item:4886|item:4887|item:4888|item:4889|item:4890|item:4720|item:4892|item:4893|item:4894|item:4895|item:4896|item:4722|item:4898|item:4899|item:4900|item:4901|item:4902|item:4724|item:4904|item:4905|item:4906|item:4907|item:4908|item:4726|item:4910|item:4911|item:4912|item:4913|item:4914|item:4728|item:4916|item:4917|item:4918|item:4919|item:4920|item:4730|item:4922|item:4923|item:4924|item:4925|item:4926|item:4732|item:4928|item:4929|item:4930|item:4931|item:4932|item:4734|item:4934|item:4935|item:4936|item:4937|item:4938|item:4736|item:4940|item:4941|item:4942|item:4943|item:4944|item:4738|item:4946|item:4947|item:4948|item:4949|item:4950|item:4745|item:4952|item:4953|item:4954|item:4955|item:4956|item:4747|item:4958|item:4959|item:4960|item:4961|item:4962|item:4749|item:4964|item:4965|item:4966|item:4967|item:4968|item:4751|item:4970|item:4971|item:4972|item:4973|item:4974|item:4753|item:4976|item:4977|item:4978|item:4979|item:4980|item:4755|item:4982|item:4983|item:4984|item:4985|item:4986|item:4757|item:4988|item:4989|item:4990|item:4991|item:4992|item:4759|item:4994|item:4995|item:4996|item:4997|item:4998"
+   ],
+   "stash": "BARROWS_CHEST"
+  },
+  {
+   "id": "hard_jig_at_jiggig_beware_of_double_agents",
+   "tier": "Hard",
+   "text": "Jig at Jiggig. Beware of double agents! Equip a Rune spear, rune platelegs and any rune heraldic helm.",
+   "area": "Jiggig",
+   "x": 2477,
+   "y": 3047,
+   "plane": 0,
+   "reqs": [
+    "any:item:10286|item:10287|item:10288|item:10289|item:10290|item:10291|item:10292|item:10293|item:10294",
+    "item:1247",
+    "item:1079"
+   ],
+   "stash": "IN_THE_MIDDLE_OF_JIGGIG"
+  },
+  {
+   "id": "easy_cheer_at_the_games_room_have_nothing",
+   "tier": "Easy",
+   "text": "Cheer at the games room. Have nothing equipped at all when you do.",
+   "area": "Burthorpe Games Room",
+   "x": 2207,
+   "y": 4952,
+   "plane": 0,
+   "reqs": [],
+   "nothing": true
+  },
+  {
+   "id": "easy_panic_on_the_pier_where_you_catch",
+   "tier": "Easy",
+   "text": "Panic on the pier where you catch the Fishing trawler. Have nothing equipped at all when you do.",
+   "area": "Fishing trawler",
+   "x": 2676,
+   "y": 3169,
+   "plane": 0,
+   "reqs": [],
+   "nothing": true
+  },
+  {
+   "id": "hard_panic_in_the_heart_of_the_haunted",
+   "tier": "Hard",
+   "text": "Panic in the heart of the Haunted Woods. Beware of double agents! Have no items equipped when you do.",
+   "area": "Haunted Woods (ALQ)",
+   "x": 3611,
+   "y": 3492,
+   "plane": 0,
+   "reqs": [],
+   "nothing": true
+  },
+  {
+   "id": "master_show_your_anger_towards_the_statue_of",
+   "tier": "Master",
+   "text": "Show your anger towards the Statue of Saradomin in Ellamaria's garden. Beware of double agents! Equip a zamorak godsword.",
+   "area": "Varrock Castle",
+   "x": 3230,
+   "y": 3478,
+   "plane": 0,
+   "reqs": [
+    "any:item:11808|item:20374"
+   ],
+   "stash": "BY_THE_BEAR_CAGE_IN_VARROCK_PALACE_GARDENS"
+  },
+  {
+   "id": "master_show_your_anger_at_the_wise_old",
+   "tier": "Master",
+   "text": "Show your anger at the Wise old man. Beware of double agents! Equip an abyssal whip, a legend's cape and some spined chaps.",
+   "area": "Draynor Village",
+   "x": 3088,
+   "y": 3254,
+   "plane": 0,
+   "reqs": [
+    "any:item:4151|item:12773|item:12774|item:26482|item:12006|item:26484",
+    "item:1052",
+    "item:6135"
+   ],
+   "stash": "BEHIND_MISS_SCHISM_IN_DRAYNOR_VILLAGE"
+  },
+  {
+   "id": "master_beckon_by_a_collection_of_crystalline_maple",
+   "tier": "Master",
+   "text": "Beckon by a collection of crystalline maple trees. Beware of double agents! Equip Bryophyta's staff and a nature tiara.",
+   "area": "North of Prifddinas",
+   "x": 2211,
+   "y": 3427,
+   "plane": 0,
+   "reqs": [
+    "any:item:22368|item:22369|item:22370",
+    "item:5541"
+   ],
+   "stash": "CRYSTALLINE_MAPLE_TREES"
+  },
+  {
+   "id": "medium_beckon_in_the_digsite_near_the_eastern",
+   "tier": "Medium",
+   "text": "Beckon in the Digsite, near the eastern winch. Bow before you talk to me. Equip a green gnome hat, snakeskin boots and an iron pickaxe.",
+   "area": "Digsite",
+   "x": 3370,
+   "y": 3425,
+   "plane": 0,
+   "reqs": [
+    "item:658",
+    "item:6328",
+    "item:1267"
+   ],
+   "stash": "DIGSITE"
+  },
+  {
+   "id": "medium_beckon_in_tai_bwo_wannai_clap_before",
+   "tier": "Medium",
+   "text": "Beckon in Tai Bwo Wannai. Clap before you talk to me. Equip green dragonhide chaps, a ring of dueling and a mithril medium helmet.",
+   "area": "Tai Bwo Wannai",
+   "x": 2803,
+   "y": 3073,
+   "plane": 0,
+   "reqs": [
+    "item:1099",
+    "any:item:2566|item:2564|item:2562|item:2560|item:2558|item:2556|item:2554|item:2552",
+    "item:1143"
+   ],
+   "stash": "SOUTH_OF_THE_SHRINE_IN_TAI_BWO_WANNAI_VILLAGE"
+  },
+  {
+   "id": "medium_beckon_in_the_shayzien_combat_ring_show",
+   "tier": "Medium",
+   "text": "Beckon in the Shayzien Combat Ring. Show your anger before you talk to me. Equip an adamant platebody, adamant full helm and adamant platelegs.",
+   "area": "Shayzien Combat Ring",
+   "x": 1543,
+   "y": 3623,
+   "plane": 0,
+   "reqs": [
+    "item:1073",
+    "item:1123",
+    "item:1161"
+   ],
+   "stash": "WEST_OF_THE_SHAYZIEN_COMBAT_RING"
+  },
+  {
+   "id": "master_bow_near_lord_iorwerth_beware_of_double",
+   "tier": "Master",
+   "text": "Bow near Lord Iorwerth. Beware of double agents! Equip a charged crystal bow.",
+   "area": "Lord Iorwerth's camp",
+   "x": 2205,
+   "y": 3252,
+   "plane": 0,
+   "reqs": [
+    "any:item:25862|item:23983|item:24123|item:25862"
+   ],
+   "stash": "TENT_IN_LORD_IORWERTHS_ENCAMPMENT"
+  },
+  {
+   "id": "master_bow_in_the_iorwerth_camp_beware_of",
+   "tier": "Master",
+   "text": "Bow in the Iorwerth Camp. Beware of double agents! Equip a charged crystal bow.",
+   "area": "Lord Iorwerth's camp",
+   "x": 2205,
+   "y": 3252,
+   "plane": 0,
+   "reqs": [
+    "any:item:25862|item:23983|item:24123|item:25862"
+   ],
+   "stash": "TENT_IN_LORD_IORWERTHS_ENCAMPMENT"
+  },
+  {
+   "id": "easy_bow_outside_the_entrance_to_the_legends",
+   "tier": "Easy",
+   "text": "Bow outside the entrance to the Legends' Guild. Equip iron platelegs, an emerald amulet and an oak longbow.",
+   "area": "Legend's Guild",
+   "x": 2729,
+   "y": 3349,
+   "plane": 0,
+   "reqs": [
+    "item:1067",
+    "item:845",
+    "item:1696"
+   ],
+   "stash": "OUTSIDE_THE_LEGENDS_GUILD_GATES"
+  },
+  {
+   "id": "elite_bow_on_the_ground_floor_of_the",
+   "tier": "Elite",
+   "text": "Bow on the ground floor of the Legends' Guild. Equip a Cape of Legends, a dragon battleaxe and an amulet of glory.",
+   "area": "Legend's Guild",
+   "x": 2728,
+   "y": 3377,
+   "plane": 0,
+   "reqs": [
+    "item:1052",
+    "any:item:1377|item:28037",
+    "any:item:1704|item:1706|item:1708|item:1710|item:1712|item:11976|item:11978"
+   ],
+   "stash": "OUTSIDE_THE_LEGENDS_GUILD_DOOR"
+  },
+  {
+   "id": "easy_bow_in_the_office_of_the_emirs",
+   "tier": "Easy",
+   "text": "Bow in the office of the Emir's Arena. Equip an iron chain body, leather chaps and coif.",
+   "area": "Emir's Arena",
+   "x": 3314,
+   "y": 3241,
+   "plane": 0,
+   "reqs": [
+    "item:1101",
+    "item:1095",
+    "item:1169"
+   ],
+   "stash": "EMIRS_ARENA_TICKET_OFFICE"
+  },
+  {
+   "id": "hard_bow_at_the_top_of_the_lighthouse",
+   "tier": "Hard",
+   "text": "Bow at the top of the lighthouse. Beware of double agents! Equip a blue dragonhide body, blue dragonhide vambraces and no jewelry.",
+   "area": "Lighthouse",
+   "x": 2511,
+   "y": 3641,
+   "plane": 2,
+   "reqs": [
+    "item:2499",
+    "item:2487"
+   ],
+   "nothing": true,
+   "stash": "TOP_FLOOR_OF_THE_LIGHTHOUSE"
+  },
+  {
+   "id": "elite_bow_within_the_temple_in_civitas_illa",
+   "tier": "Elite",
+   "text": "Bow within the temple in Civitas illa Fortis. Equip any piece of sunfire fanatic armour.",
+   "area": "Civitas illa Fortis",
+   "x": 1699,
+   "y": 3087,
+   "plane": 0,
+   "reqs": [
+    "any:item:28933|item:28936|item:28939"
+   ],
+   "stash": "TEMPLE_SOUTHEAST_OF_THE_BAZAAR"
+  },
+  {
+   "id": "hard_blow_a_kiss_between_the_tables_in",
+   "tier": "Hard",
+   "text": "Blow a kiss between the tables in Shilo Village bank. Beware of double agents! Equip a blue mystic hat, bone spear and rune platebody.",
+   "area": "Shilo Village",
+   "x": 2851,
+   "y": 2954,
+   "plane": 0,
+   "reqs": [
+    "item:4089",
+    "item:5016",
+    "item:1127"
+   ],
+   "stash": "SHILO_VILLAGE_BANK"
+  },
+  {
+   "id": "elite_blow_a_kiss_in_the_heart_of",
+   "tier": "Elite",
+   "text": "Blow a kiss in the heart of the lava maze. Equip black dragonhide chaps, a spotted cape and a rolling pin.",
+   "area": "Lava maze",
+   "x": 3069,
+   "y": 3861,
+   "plane": 0,
+   "reqs": [
+    "item:2497",
+    "any:item:10069|item:10073",
+    "item:7445"
+   ],
+   "stash": "NEAR_A_LADDER_IN_THE_WILDERNESS_LAVA_MAZE"
+  },
+  {
+   "id": "master_blow_a_kiss_outside_kril_tsutsaroths_chamber",
+   "tier": "Master",
+   "text": "Blow a kiss outside K'ril Tsutsaroth's chamber. Beware of double agents! Equip a zamorak full helm and the shadow sword.",
+   "area": "K'ril's chamber",
+   "x": 2925,
+   "y": 5333,
+   "plane": 2,
+   "reqs": [
+    "item:2657",
+    "item:10858"
+   ],
+   "stash": "OUTSIDE_KRIL_TSUTSAROTHS_ROOM"
+  },
+  {
+   "id": "easy_cheer_at_the_druids_circle_equip_a",
+   "tier": "Easy",
+   "text": "Cheer at the Druids' Circle. Equip a blue wizard hat, a bronze two-handed sword and HAM boots.",
+   "area": "Taverley stone circle",
+   "x": 2924,
+   "y": 3478,
+   "plane": 0,
+   "reqs": [
+    "item:579",
+    "item:1307",
+    "item:4310"
+   ],
+   "stash": "TAVERLEY_STONE_CIRCLE"
+  },
+  {
+   "id": "medium_cheer_in_the_edgeville_general_store_dance",
+   "tier": "Medium",
+   "text": "Cheer in the Edgeville general store. Dance before you talk to me. Equip a brown apron, leather boots and leather gloves.",
+   "area": "Edgeville",
+   "x": 3080,
+   "y": 3509,
+   "plane": 0,
+   "reqs": [
+    "item:1757",
+    "item:1061",
+    "item:1059"
+   ],
+   "stash": "NORTH_OF_EVIL_DAVES_HOUSE_IN_EDGEVILLE"
+  },
+  {
+   "id": "medium_cheer_in_the_ogre_pen_in_the",
+   "tier": "Medium",
+   "text": "Cheer in the Ogre Pen in the Training Camp. Show you are angry before you talk to me. Equip a green dragonhide body and chaps and a steel square shield.",
+   "area": "King Lathas' camp",
+   "x": 2527,
+   "y": 3375,
+   "plane": 0,
+   "reqs": [
+    "item:1135",
+    "item:1099",
+    "item:1177"
+   ],
+   "stash": "OGRE_CAGE_IN_KING_LATHAS_TRAINING_CAMP"
+  },
+  {
+   "id": "master_cheer_in_the_entrana_church_beware_of",
+   "tier": "Master",
+   "text": "Cheer in the Entrana church. Beware of double agents! Equip a full set of black dragonhide armour.",
+   "area": "Entrana church",
+   "x": 2852,
+   "y": 3349,
+   "plane": 0,
+   "reqs": [
+    "item:2491",
+    "item:2497",
+    "item:2503"
+   ],
+   "stash": "ENTRANA_CHAPEL"
+  },
+  {
+   "id": "easy_cheer_for_the_monks_at_port_sarim",
+   "tier": "Easy",
+   "text": "Cheer for the monks at Port Sarim. Equip a coif, steel plateskirt and a sapphire necklace.",
+   "area": "Port Sarim",
+   "x": 3047,
+   "y": 3237,
+   "plane": 0,
+   "reqs": [
+    "item:1169",
+    "item:1083",
+    "item:1656"
+   ],
+   "stash": "NEAR_THE_ENTRANA_FERRY_IN_PORT_SARIM"
+  },
+  {
+   "id": "easy_clap_in_the_main_exam_room_in",
+   "tier": "Easy",
+   "text": "Clap in the main exam room in the Exam Centre. Equip a white apron, green gnome boots and leather gloves.",
+   "area": "Exam Centre",
+   "x": 3361,
+   "y": 3339,
+   "plane": 0,
+   "reqs": [
+    "item:1005",
+    "item:628",
+    "item:1059"
+   ],
+   "stash": "OUTSIDE_THE_DIGSITE_EXAM_CENTRE"
+  },
+  {
+   "id": "easy_clap_on_the_causeway_to_the_wizards",
+   "tier": "Easy",
+   "text": "Clap on the causeway to the Wizards' Tower. Equip an iron medium helmet, emerald ring and a white apron.",
+   "area": "Wizards' Tower",
+   "x": 3113,
+   "y": 3196,
+   "plane": 0,
+   "reqs": [
+    "item:1137",
+    "item:1639",
+    "item:1005"
+   ],
+   "stash": "ON_THE_BRIDGE_TO_THE_MISTHALIN_WIZARDS_TOWER"
+  },
+  {
+   "id": "easy_clap_on_the_top_level_of_the",
+   "tier": "Easy",
+   "text": "Clap on the top level of the mill, north of East Ardougne. Equip a blue gnome robe top, HAM robe bottom and an unenchanted tiara.",
+   "area": "East Ardougne",
+   "x": 2635,
+   "y": 3385,
+   "plane": 2,
+   "reqs": [
+    "item:640",
+    "item:4300",
+    "item:5525"
+   ],
+   "stash": "UPSTAIRS_IN_THE_ARDOUGNE_WINDMILL"
+  },
+  {
+   "id": "medium_clap_in_seers_court_house_spin_before",
+   "tier": "Medium",
+   "text": "Clap in Seers court house. Spin before you talk to me. Equip an adamant halberd, blue mystic robe bottom and a diamond ring.",
+   "area": "Seers Village",
+   "x": 2735,
+   "y": 3469,
+   "plane": 0,
+   "reqs": [
+    "item:3200",
+    "item:4093",
+    "item:1643"
+   ],
+   "stash": "OUTSIDE_THE_SEERS_VILLAGE_COURTHOUSE"
+  },
+  {
+   "id": "master_clap_in_the_magic_axe_hut_beware",
+   "tier": "Master",
+   "text": "Clap in the magic axe hut. Beware of double agents! Equip only some flared trousers.",
+   "area": "Magic axe hut",
+   "x": 3191,
+   "y": 3960,
+   "plane": 0,
+   "reqs": [
+    "item:10394",
+    "item:1523"
+   ],
+   "nothing": true,
+   "stash": "OUTSIDE_THE_WILDERNESS_AXE_HUT"
+  },
+  {
+   "id": "medium_clap_your_hands_north_of_mount_karuulm",
+   "tier": "Medium",
+   "text": "Clap your hands north of Mount Karuulm Spin before you talk to me. Equip an adamant warhammer, a ring of life and a pair of mithril boots.",
+   "area": "Mount Karuulm",
+   "x": 1306,
+   "y": 3839,
+   "plane": 0,
+   "reqs": [
+    "item:1345",
+    "item:2570",
+    "item:4127"
+   ],
+   "stash": "NORTH_OF_MOUNT_KARUULM"
+  },
+  {
+   "id": "medium_cry_in_the_catherby_ranging_shop_bow",
+   "tier": "Medium",
+   "text": "Cry in the Catherby Ranging shop. Bow before you talk to me. Equip blue gnome boots, a hard leather body and an unblessed silver sickle.",
+   "area": "Catherby",
+   "x": 2823,
+   "y": 3443,
+   "plane": 0,
+   "reqs": [
+    "item:630",
+    "item:1131",
+    "item:2961"
+   ],
+   "stash": "HICKTONS_ARCHERY_EMPORIUM"
+  },
+  {
+   "id": "medium_cry_on_the_shore_of_catherby_beach",
+   "tier": "Medium",
+   "text": "Cry on the shore of Catherby beach. Laugh before you talk to me, equip an adamant sq shield, a bone dagger and mithril platebody.",
+   "area": "Catherby",
+   "x": 2852,
+   "y": 3429,
+   "plane": 0,
+   "reqs": [
+    "item:1183",
+    "item:8872",
+    "item:1121"
+   ],
+   "stash": "OUTSIDE_HARRYS_FISHING_SHOP_IN_CATHERBY"
+  },
+  {
+   "id": "medium_cry_on_top_of_the_western_tree",
+   "tier": "Medium",
+   "text": "Cry on top of the western tree in the Gnome Agility Arena. Indicate 'no' before you talk to me. Equip a steel kiteshield, ring of forging and green dragonhide chaps.",
+   "area": "Gnome Stronghold",
+   "x": 2473,
+   "y": 3420,
+   "plane": 2,
+   "reqs": [
+    "item:1193",
+    "item:2568",
+    "item:1099"
+   ],
+   "stash": "GNOME_STRONGHOLD_BALANCING_ROPE"
+  },
+  {
+   "id": "master_cry_in_the_tzhaar_gem_store_beware",
+   "tier": "Master",
+   "text": "Cry in the TzHaar gem store. Beware of double agents! Equip a fire cape and TokTz-Xil-Ul.",
+   "area": "Tzhaar gem store",
+   "x": 2463,
+   "y": 5149,
+   "plane": 0,
+   "reqs": [
+    "any:item:6570|item:24223|item:13329|item:24134|item:21295|item:24224|item:21285|item:24133",
+    "item:6522"
+   ],
+   "stash": "TZHAAR_GEM_STORE"
+  },
+  {
+   "id": "medium_cry_in_the_draynor_village_jail_jump",
+   "tier": "Medium",
+   "text": "Cry in the Draynor Village jail. Jump for joy before you talk to me. Equip an adamant sword, a sapphire amulet and an adamant plateskirt.",
+   "area": "Draynor Village jail",
+   "x": 3128,
+   "y": 3245,
+   "plane": 0,
+   "reqs": [
+    "item:1287",
+    "item:1694",
+    "item:1091"
+   ],
+   "stash": "OUTSIDE_DRAYNOR_VILLAGE_JAIL"
+  },
+  {
+   "id": "easy_dance_at_the_crossroads_north_of_draynor",
+   "tier": "Easy",
+   "text": "Dance at the crossroads north of Draynor. Equip an iron chain body, a sapphire ring and a longbow.",
+   "area": "Draynor Village",
+   "x": 3109,
+   "y": 3294,
+   "plane": 0,
+   "reqs": [
+    "item:1101",
+    "item:1637",
+    "item:839"
+   ],
+   "stash": "CROSSROADS_NORTH_OF_DRAYNOR_VILLAGE"
+  },
+  {
+   "id": "easy_dance_in_the_party_room_equip_a",
+   "tier": "Easy",
+   "text": "Dance in the Party Room. Equip a steel full helmet, steel platebody and an iron plateskirt.",
+   "area": "Falador Party Room",
+   "x": 3045,
+   "y": 3376,
+   "plane": 0,
+   "reqs": [
+    "item:1157",
+    "item:1119",
+    "item:1081"
+   ],
+   "stash": "OUTSIDE_THE_FALADOR_PARTY_ROOM"
+  },
+  {
+   "id": "easy_dance_in_the_shack_in_lumbridge_swamp",
+   "tier": "Easy",
+   "text": "Dance in the shack in Lumbridge Swamp. Equip a bronze dagger, iron full helmet and a gold ring.",
+   "area": "Lumbridge swamp",
+   "x": 3203,
+   "y": 3169,
+   "plane": 0,
+   "reqs": [
+    "item:1205",
+    "item:1153",
+    "item:1635"
+   ],
+   "stash": "NEAR_A_SHED_IN_LUMBRIDGE_SWAMP"
+  },
+  {
+   "id": "medium_dance_in_the_dark_caves_beneath_lumbridge",
+   "tier": "Medium",
+   "text": "Dance in the dark caves beneath Lumbridge Swamp. Blow a kiss before you talk to me. Equip an air staff, Bronze full helm and an amulet of power.",
+   "area": "Lumbridge swamp caves",
+   "x": 3168,
+   "y": 9571,
+   "plane": 0,
+   "reqs": [
+    "item:1381",
+    "item:1155",
+    "item:1731"
+   ],
+   "stash": "LUMBRIDGE_SWAMP_CAVES"
+  },
+  {
+   "id": "hard_dance_at_the_catdoored_pyramid_in_sophanem",
+   "tier": "Hard",
+   "text": "Dance at the cat-doored pyramid in Sophanem. Beware of double agents! Equip a ring of life, an uncharged amulet of glory and an adamant two-handed sword.",
+   "area": "Pyramid Of Sophanem",
+   "x": 3294,
+   "y": 2781,
+   "plane": 0,
+   "reqs": [
+    "item:2570",
+    "item:1704",
+    "item:1317"
+   ],
+   "stash": "OUTSIDE_THE_GREAT_PYRAMID_OF_SOPHANEM"
+  },
+  {
+   "id": "medium_dance_in_the_centre_of_canifis_bow",
+   "tier": "Medium",
+   "text": "Dance in the centre of Canifis. Bow before you talk to me. Equip a green gnome robe top, mithril plate legs and an iron two-handed sword.",
+   "area": "Canifis",
+   "x": 3492,
+   "y": 3488,
+   "plane": 0,
+   "reqs": [
+    "item:638",
+    "item:1071",
+    "item:1309"
+   ],
+   "stash": "CENTRE_OF_CANIFIS"
+  },
+  {
+   "id": "master_dance_in_the_king_black_dragons_lair",
+   "tier": "Master",
+   "text": "Dance in the King Black Dragon's lair. Beware of double agents! Equip a black dragonhide body, black dragonhide vambraces and a black dragon mask.",
+   "area": "King black dragon's lair",
+   "x": 2271,
+   "y": 4680,
+   "plane": 0,
+   "reqs": [
+    "item:2503",
+    "item:2491",
+    "item:12524"
+   ],
+   "stash": "KING_BLACK_DRAGONS_LAIR"
+  },
+  {
+   "id": "easy_dance_at_the_entrance_to_the_grand",
+   "tier": "Easy",
+   "text": "Dance at the entrance to the Grand Exchange. Equip a pink skirt, pink robe top and a body tiara.",
+   "area": "Grand Exchange",
+   "x": 3165,
+   "y": 3467,
+   "plane": 0,
+   "reqs": [
+    "item:1013",
+    "item:636",
+    "item:5533"
+   ],
+   "stash": "SOUTH_OF_THE_GRAND_EXCHANGE"
+  },
+  {
+   "id": "master_goblin_salute_in_the_goblin_village_beware",
+   "tier": "Master",
+   "text": "Goblin Salute in the Goblin Village. Beware of double agents! Equip a bandos godsword, a bandos cloak and a bandos platebody.",
+   "area": "Goblin Village",
+   "x": 2956,
+   "y": 3505,
+   "plane": 0,
+   "reqs": [
+    "item:12480",
+    "item:12273",
+    "any:item:11804|item:20370"
+   ],
+   "stash": "OUTSIDE_MUDKNUCKLES_HUT"
+  },
+  {
+   "id": "easy_headbang_in_the_mine_north_of_al",
+   "tier": "Easy",
+   "text": "Headbang in the mine north of Al Kharid. Equip a desert shirt, leather gloves and leather boots.",
+   "area": "Al Kharid mine",
+   "x": 3299,
+   "y": 3289,
+   "plane": 0,
+   "reqs": [
+    "item:1833",
+    "item:1059",
+    "item:1061"
+   ],
+   "stash": "AL_KHARID_SCORPION_MINE"
+  },
+  {
+   "id": "hard_headbang_at_the_exam_centre_beware_of",
+   "tier": "Hard",
+   "text": "Headbang at the exam centre. Beware of double agents! Equip a mystic fire staff, a diamond bracelet and rune boots.",
+   "area": "Exam Centre",
+   "x": 3362,
+   "y": 3340,
+   "plane": 0,
+   "reqs": [
+    "item:1401",
+    "item:11092",
+    "item:4131"
+   ],
+   "stash": "INSIDE_THE_DIGSITE_EXAM_CENTRE"
+  },
+  {
+   "id": "elite_headbang_at_the_top_of_slayer_tower",
+   "tier": "Elite",
+   "text": "Headbang at the top of Slayer Tower. Equip a seercull, a combat bracelet and helm of Neitiznot.",
+   "area": "Slayer Tower",
+   "x": 3421,
+   "y": 3537,
+   "plane": 2,
+   "reqs": [
+    "item:6724",
+    "any:item:11118|item:11119|item:11120|item:11121|item:11122|item:11123|item:11124|item:11125|item:11126|item:11974|item:11972",
+    "item:10828"
+   ],
+   "stash": "OUTSIDE_THE_SLAYER_TOWER_GARGOYLE_ROOM"
+  },
+  {
+   "id": "easy_dance_a_jig_by_the_entrance_to",
+   "tier": "Easy",
+   "text": "Dance a jig by the entrance to the Fishing Guild. Equip an emerald ring, a sapphire amulet, and a bronze chain body.",
+   "area": "Fishing Guild",
+   "x": 2610,
+   "y": 3391,
+   "plane": 0,
+   "reqs": [
+    "item:1639",
+    "item:1694",
+    "item:1103"
+   ],
+   "stash": "OUTSIDE_THE_FISHING_GUILD"
+  },
+  {
+   "id": "medium_dance_a_jig_under_shantays_awning_bow",
+   "tier": "Medium",
+   "text": "Dance a jig under Shantay's Awning. Bow before you talk to me. Equip a pointed blue snail helmet, an air staff and a bronze square shield.",
+   "area": "Shantay Pass",
+   "x": 3304,
+   "y": 3124,
+   "plane": 0,
+   "reqs": [
+    "item:3343",
+    "item:1381",
+    "item:1173"
+   ],
+   "stash": "SHANTAY_PASS"
+  },
+  {
+   "id": "easy_do_a_jig_in_varrocks_rune_store",
+   "tier": "Easy",
+   "text": "Do a jig in Varrock's rune store. Equip an air tiara and a staff of water.",
+   "area": "Varrock rune store",
+   "x": 3253,
+   "y": 3401,
+   "plane": 0,
+   "reqs": [
+    "item:5527",
+    "item:1383"
+   ],
+   "stash": "AUBURYS_SHOP_IN_VARROCK"
+  },
+  {
+   "id": "easy_jump_for_joy_at_the_beehives_equip",
+   "tier": "Easy",
+   "text": "Jump for joy at the beehives. Equip a desert shirt, green gnome robe bottoms and a steel axe.",
+   "area": "Catherby",
+   "x": 2759,
+   "y": 3445,
+   "plane": 0,
+   "reqs": [
+    "item:1833",
+    "item:648",
+    "item:1353"
+   ],
+   "stash": "CATHERBY_BEEHIVE_FIELD"
+  },
+  {
+   "id": "medium_jump_for_joy_in_yanille_bank_dance",
+   "tier": "Medium",
+   "text": "Jump for joy in Yanille bank. Dance a jig before you talk to me. Equip a brown apron, adamantite medium helmet and snakeskin chaps.",
+   "area": "Yanille",
+   "x": 2610,
+   "y": 3092,
+   "plane": 0,
+   "reqs": [
+    "item:1757",
+    "item:1145",
+    "item:6324"
+   ],
+   "stash": "OUTSIDE_YANILLE_BANK"
+  },
+  {
+   "id": "medium_jump_for_joy_in_the_tzhaar_sword",
+   "tier": "Medium",
+   "text": "Jump for joy in the TzHaar sword shop. Shrug before you talk to me. Equip a Steel longsword, Blue D'hide body and blue mystic gloves.",
+   "area": "Tzhaar weapon store",
+   "x": 2477,
+   "y": 5146,
+   "plane": 0,
+   "reqs": [
+    "item:1295",
+    "item:2499",
+    "item:4095"
+   ],
+   "stash": "TZHAAR_WEAPONS_STORE"
+  },
+  {
+   "id": "elite_jump_for_joy_in_the_ancient_cavern",
+   "tier": "Elite",
+   "text": "Jump for joy in the Ancient Cavern. Equip a granite shield, splitbark body and any rune heraldic helm.",
+   "area": "Ancient cavern",
+   "x": 1768,
+   "y": 5366,
+   "plane": 1,
+   "reqs": [
+    "item:3122",
+    "item:3387",
+    "any:item:10286|item:10287|item:10288|item:10289|item:10290|item:10291|item:10292|item:10293|item:10294"
+   ],
+   "stash": "ENTRANCE_OF_THE_CAVERN_UNDER_THE_WHIRLPOOL"
+  },
+  {
+   "id": "elite_jump_for_joy_at_the_neitiznot_rune",
+   "tier": "Elite",
+   "text": "Jump for joy at the Neitiznot rune rock. Equip Rune boots, a proselyte hauberk and a dragonstone ring.",
+   "area": "Fremennik Isles",
+   "x": 2375,
+   "y": 3850,
+   "plane": 0,
+   "reqs": [
+    "item:4131",
+    "item:9674",
+    "item:1645"
+   ],
+   "stash": "NEAR_A_RUNITE_ROCK_IN_THE_FREMENNIK_ISLES"
+  },
+  {
+   "id": "master_jump_for_joy_in_the_centre_of",
+   "tier": "Master",
+   "text": "Jump for joy in the centre of Zul-Andra. Beware of double agents! Equip a dragon 2h sword, bandos boots and an obsidian cape.",
+   "area": "Zul-Andra",
+   "x": 2199,
+   "y": 3056,
+   "plane": 0,
+   "reqs": [
+    "item:7158",
+    "any:item:11836|item:21733|item:28945",
+    "item:6568"
+   ],
+   "stash": "NEAR_THE_PIER_IN_ZULANDRA"
+  },
+  {
+   "id": "medium_jump_for_joy_in_the_mine_near",
+   "tier": "Medium",
+   "text": "Jump for Joy in the mine near the Twilight Temple. Bow before you talk to me. Equip a maple longbow, a ruby amulet and some steel platelegs.",
+   "area": "Twilight Temple",
+   "x": 1672,
+   "y": 3284,
+   "plane": 0,
+   "reqs": [
+    "item:851",
+    "item:1698",
+    "item:1069"
+   ],
+   "stash": "TWILIGHT_TEMPLE_MINE"
+  },
+  {
+   "id": "elite_laugh_by_the_fountain_of_heroes_equip",
+   "tier": "Elite",
+   "text": "Laugh by the fountain of heroes. Equip splitbark legs, dragon boots and a Rune longsword.",
+   "area": "Fountain of heroes",
+   "x": 2920,
+   "y": 9893,
+   "plane": 0,
+   "reqs": [
+    "item:3389",
+    "any:item:11840|item:22234|item:13239",
+    "item:1303"
+   ],
+   "stash": "FOUNTAIN_OF_HEROES"
+  },
+  {
+   "id": "hard_laugh_in_jokuls_tent_in_the_mountain",
+   "tier": "Hard",
+   "text": "Laugh in Jokul's tent in the Mountain Camp. Beware of double agents! Equip a rune full helmet, blue dragonhide chaps and a fire battlestaff.",
+   "area": "Mountain Camp",
+   "x": 2812,
+   "y": 3681,
+   "plane": 0,
+   "reqs": [
+    "item:1163",
+    "item:2493",
+    "item:1393"
+   ],
+   "stash": "MOUNTAIN_CAMP_GOAT_ENCLOSURE"
+  },
+  {
+   "id": "easy_laugh_at_the_crossroads_south_of_the",
+   "tier": "Easy",
+   "text": "Laugh at the crossroads south of the Sinclair Mansion. Equip a cowl, a blue wizard robe top and an iron scimitar.",
+   "area": "Sinclair Mansion",
+   "x": 2741,
+   "y": 3536,
+   "plane": 0,
+   "reqs": [
+    "item:1167",
+    "item:577",
+    "item:1323"
+   ],
+   "stash": "ROAD_JUNCTION_SOUTH_OF_SINCLAIR_MANSION"
+  },
+  {
+   "id": "elite_laugh_in_front_of_the_gem_store",
+   "tier": "Elite",
+   "text": "Laugh in front of the gem store in Ardougne market. Equip a Castlewars bracelet, a dragonstone amulet and a ring of forging.",
+   "area": "Ardougne",
+   "x": 2666,
+   "y": 3304,
+   "plane": 0,
+   "reqs": [
+    "any:item:11079|item:11080|item:11081|item:11082|item:11083",
+    "item:1702",
+    "item:2568"
+   ],
+   "stash": "NEAR_THE_GEM_STALL_IN_ARDOUGNE_MARKET"
+  },
+  {
+   "id": "medium_nod_your_head_where_the_river_ortus",
+   "tier": "Medium",
+   "text": "Nod your head where the River Ortus meets the Proudspire. Indicate 'no' before you talk to me. Equip a blue wizard hat, a blue wizard robe and wear nothing on your legs.",
+   "area": "East of The Proudspire",
+   "x": 1626,
+   "y": 3241,
+   "plane": 0,
+   "reqs": [
+    "item:579",
+    "item:577"
+   ],
+   "nothing": true,
+   "stash": "WHERE_ORTUS_MEETS_PROUDSPIRE"
+  },
+  {
+   "id": "easy_panic_in_the_limestone_mine_equip_bronze",
+   "tier": "Easy",
+   "text": "Panic in the Limestone Mine. Equip bronze platelegs, a steel pickaxe and a steel medium helmet.",
+   "area": "Limestone Mine",
+   "x": 3372,
+   "y": 3498,
+   "plane": 0,
+   "reqs": [
+    "item:1075",
+    "item:1269",
+    "item:1141"
+   ],
+   "stash": "LIMESTONE_MINE"
+  },
+  {
+   "id": "medium_panic_by_the_mausoleum_in_morytania_wave",
+   "tier": "Medium",
+   "text": "Panic by the mausoleum in Morytania. Wave before you speak to me. Equip a mithril plate skirt, a maple longbow and no boots.",
+   "area": "Morytania mausoleum, access via the experiments cave",
+   "x": 3504,
+   "y": 3576,
+   "plane": 0,
+   "reqs": [
+    "item:1085",
+    "item:851"
+   ],
+   "nothing": true,
+   "stash": "MAUSOLEUM_OFF_THE_MORYTANIA_COAST"
+  },
+  {
+   "id": "hard_panic_on_the_wilderness_volcano_bridge_beware",
+   "tier": "Hard",
+   "text": "Panic on the Wilderness volcano bridge. Beware of double agents! Equip any headband and crozier.",
+   "area": "Wilderness volcano",
+   "x": 3368,
+   "y": 3935,
+   "plane": 0,
+   "reqs": [
+    "any:item:2645|item:2646|item:2647|item:2648|item:2649|item:12299|item:12300|item:12301|item:12302|item:12303|item:12304|item:12305|item:12306|item:12307",
+    "any:item:12199|item:12263|item:12275|item:10440|item:10441|item:10442|item:10443|item:10444"
+   ],
+   "stash": "VOLCANO_IN_THE_NORTHEASTERN_WILDERNESS"
+  },
+  {
+   "id": "hard_panic_by_the_pilot_on_white_wolf",
+   "tier": "Hard",
+   "text": "Panic by the pilot on White Wolf Mountain. Beware of double agents! Equip mithril platelegs, a ring of life and a rune axe.",
+   "area": "White Wolf Mountain",
+   "x": 2847,
+   "y": 3499,
+   "plane": 0,
+   "reqs": [
+    "item:1071",
+    "item:2570",
+    "item:1359"
+   ],
+   "stash": "GNOME_GLIDER_ON_WHITE_WOLF_MOUNTAIN"
+  },
+  {
+   "id": "master_panic_by_the_big_egg_where_no",
+   "tier": "Master",
+   "text": "Panic by the big egg where no one dare goes and the ground is burnt. Beware of double agents! Equip a dragon med helm, a TokTz-Ket-Xil, a brine sabre, rune platebody and an uncharged amulet of glory.",
+   "area": "Lava dragon isle",
+   "x": 3227,
+   "y": 3831,
+   "plane": 0,
+   "reqs": [
+    "item:1149",
+    "item:6524",
+    "item:11037",
+    "item:1127",
+    "item:1704"
+   ],
+   "stash": "SOUTHEAST_CORNER_OF_LAVA_DRAGON_ISLE"
+  },
+  {
+   "id": "elite_panic_at_the_area_flowers_meet_snow",
+   "tier": "Elite",
+   "text": "Panic at the area flowers meet snow. Equip Blue D'hide vambraces, a dragon spear and a rune plateskirt.",
+   "area": "Trollweiss mountain",
+   "x": 2776,
+   "y": 3781,
+   "plane": 0,
+   "reqs": [
+    "item:2487",
+    "item:1249",
+    "item:1093",
+    "item:4084"
+   ],
+   "stash": "HALFWAY_DOWN_TROLLWEISS_MOUNTAIN"
+  },
+  {
+   "id": "hard_panic_outside_the_twilight_temple_beware_of",
+   "tier": "Hard",
+   "text": "Panic outside the Twilight Temple. Beware of double agents! Equip a rune longsword, rune platebody and a rune plateskirt.",
+   "area": "Twilight Temple",
+   "x": 1694,
+   "y": 3247,
+   "plane": 0,
+   "reqs": [
+    "item:1303",
+    "item:1127",
+    "item:1093"
+   ],
+   "stash": "OUTSIDE_TWILIGHT_TEMPLE"
+  },
+  {
+   "id": "master_blow_a_raspberry_in_the_bank_of",
+   "tier": "Master",
+   "text": "Blow a raspberry in the bank of the Warriors' Guild. Beware of double agents! Equip a dragon battleaxe, a slayer helm of any kind and a dragon defender or avernic defender.",
+   "area": "Warriors' guild",
+   "x": 2843,
+   "y": 3543,
+   "plane": 0,
+   "reqs": [
+    "any:item:1377|item:28037",
+    "any:item:12954|item:19722|item:24143|item:22322|item:24186|item:27550|item:27551|item:27552|item:27553",
+    "item:11864"
+   ],
+   "stash": "WARRIORS_GUILD_BANK_MASTER"
+  },
+  {
+   "id": "easy_blow_a_raspberry_at_the_monkey_cage",
+   "tier": "Easy",
+   "text": "Blow a raspberry at the monkey cage in Ardougne Zoo. Equip a studded leather body, bronze platelegs and a normal staff with no orb.",
+   "area": "Ardougne Zoo",
+   "x": 2607,
+   "y": 3282,
+   "plane": 0,
+   "reqs": [
+    "item:1133",
+    "item:1075",
+    "item:1379"
+   ],
+   "stash": "NEAR_THE_PARROTS_IN_ARDOUGNE_ZOO"
+  },
+  {
+   "id": "easy_blow_raspberries_outside_the_entrance_to_keep",
+   "tier": "Easy",
+   "text": "Blow raspberries outside the entrance to Keep Le Faye. Equip a coif, an iron platebody and leather gloves.",
+   "area": "Keep Le Faye",
+   "x": 2757,
+   "y": 3401,
+   "plane": 0,
+   "reqs": [
+    "item:1169",
+    "item:1115",
+    "item:1059"
+   ],
+   "stash": "OUTSIDE_KEEP_LE_FAYE"
+  },
+  {
+   "id": "hard_blow_a_raspberry_in_the_fishing_guild",
+   "tier": "Hard",
+   "text": "Blow a raspberry in the Fishing Guild bank. Beware of double agents! Equip an elemental shield, blue dragonhide chaps and a rune warhammer.",
+   "area": "Fishing Guild",
+   "x": 2588,
+   "y": 3419,
+   "plane": 0,
+   "reqs": [
+    "item:2890",
+    "item:2493",
+    "item:1347"
+   ],
+   "stash": "FISHING_GUILD_BANK"
+  },
+  {
+   "id": "hard_salute_in_the_banana_plantation_beware_of",
+   "tier": "Hard",
+   "text": "Salute in the banana plantation. Beware of double agents! Equip a diamond ring, amulet of power, and nothing on your chest and legs.",
+   "area": "Karamja",
+   "x": 2914,
+   "y": 3168,
+   "plane": 0,
+   "reqs": [
+    "item:1643",
+    "item:1731"
+   ],
+   "nothing": true,
+   "stash": "WEST_SIDE_OF_THE_KARAMJA_BANANA_PLANTATION"
+  },
+  {
+   "id": "elite_salute_in_the_warriors_guild_bank_equip",
+   "tier": "Elite",
+   "text": "Salute in the Warriors' Guild bank. Equip only a black salamander.",
+   "area": "Warriors' guild",
+   "x": 2844,
+   "y": 3542,
+   "plane": 0,
+   "reqs": [
+    "item:10148"
+   ],
+   "nothing": true,
+   "stash": "WARRIORS_GUILD_BANK_ELITE"
+  },
+  {
+   "id": "hard_salute_in_the_centre_of_the_mess",
+   "tier": "Hard",
+   "text": "Salute in the centre of the mess hall. Beware of double agents! Equip a rune halberd rune platebody and an amulet of strength.",
+   "area": "Hosidius mess hall",
+   "x": 1646,
+   "y": 3631,
+   "plane": 0,
+   "reqs": [
+    "item:3202",
+    "item:1127",
+    "item:1725"
+   ],
+   "stash": "HOSIDIUS_MESS"
+  },
+  {
+   "id": "master_salute_outside_the_gates_of_cam_torum",
+   "tier": "Master",
+   "text": "Salute outside the gates of Cam Torum. Beware of double agents! Equip a full set of blue moon equipment.",
+   "area": "Cam Torum",
+   "x": 1436,
+   "y": 3115,
+   "plane": 0,
+   "reqs": [
+    "any:item:29019|item:29041",
+    "any:item:29013|item:29037",
+    "any:item:29016|item:29039",
+    "item:28988"
+   ],
+   "stash": "CAM_TORUM_ENTRANCE"
+  },
+  {
+   "id": "easy_shrug_in_the_mine_near_rimmington_equip",
+   "tier": "Easy",
+   "text": "Shrug in the mine near Rimmington. Equip a gold necklace, a gold ring and a bronze spear.",
+   "area": "Rimmington mine",
+   "x": 2976,
+   "y": 3238,
+   "plane": 0,
+   "reqs": [
+    "item:1654",
+    "item:1635",
+    "item:1237"
+   ],
+   "stash": "RIMMINGTON_MINE"
+  },
+  {
+   "id": "medium_shrug_in_catherby_bank_yawn_before_you",
+   "tier": "Medium",
+   "text": "Shrug in Catherby bank. Yawn before you talk to me. Equip a maple longbow, green d'hide chaps and an iron med helm.",
+   "area": "Catherby",
+   "x": 2808,
+   "y": 3440,
+   "plane": 0,
+   "reqs": [
+    "item:851",
+    "item:1099",
+    "item:1137"
+   ],
+   "stash": "OUTSIDE_CATHERBY_BANK"
+  },
+  {
+   "id": "hard_shrug_in_the_woods_east_of_the",
+   "tier": "Hard",
+   "text": "Shrug in the woods east of the Level 19 Wilderness Obelisk. Beware of double agents! Equip rune platelegs, an iron platebody and blue dragonhide vambraces.",
+   "area": "East of the Level 19 Wilderness Obelisk",
+   "x": 3241,
+   "y": 3672,
+   "plane": 0,
+   "reqs": [
+    "item:1079",
+    "item:1115",
+    "item:2487"
+   ],
+   "stash": "EAST_OF_THE_LEVEL_19_WILDERNESS_OBELISK"
+  },
+  {
+   "id": "elite_shrug_in_the_shayzien_war_tent_equip",
+   "tier": "Elite",
+   "text": "Shrug in the Shayzien war tent. Equip a blue mystic robe bottom, a rune kiteshield and any bob shirt.",
+   "area": "Shayzien war tent",
+   "x": 1487,
+   "y": 3635,
+   "plane": 0,
+   "reqs": [
+    "item:4093",
+    "item:1201",
+    "any:item:10316|item:10317|item:10318|item:10319|item:10320|item:10321|item:10322|item:10323|item:10324"
+   ],
+   "stash": "SHAYZIEN_WAR_TENT"
+  },
+  {
+   "id": "master_slap_your_head_in_the_centre_of",
+   "tier": "Master",
+   "text": "Slap your head in the centre of the Kourend catacombs. Beware of double agents! Equip arclight or emberlight along with the amulet of the damned.",
+   "area": "Kourend catacombs",
+   "x": 1663,
+   "y": 10045,
+   "plane": 0,
+   "reqs": [
+    "any:item:19675|item:30305|item:29589",
+    "any:item:12853|item:12851"
+   ],
+   "stash": "CENTRE_OF_THE_CATACOMBS_OF_KOUREND"
+  },
+  {
+   "id": "easy_spin_at_the_crossroads_north_of_rimmington",
+   "tier": "Easy",
+   "text": "Spin at the crossroads north of Rimmington. Equip a green gnome hat, cream gnome top and leather chaps.",
+   "area": "Rimmington",
+   "x": 2981,
+   "y": 3276,
+   "plane": 0,
+   "reqs": [
+    "item:658",
+    "item:642",
+    "item:1095"
+   ],
+   "stash": "ROAD_JUNCTION_NORTH_OF_RIMMINGTON"
+  },
+  {
+   "id": "easy_spin_in_draynor_manor_by_the_fountain",
+   "tier": "Easy",
+   "text": "Spin in Draynor Manor by the fountain. Equip an iron platebody, studded leather chaps and a bronze full helmet.",
+   "area": "Draynor Manor",
+   "x": 3088,
+   "y": 3336,
+   "plane": 0,
+   "reqs": [
+    "item:1115",
+    "item:1097",
+    "item:1155"
+   ],
+   "stash": "DRAYNOR_MANOR_BY_THE_FOUNTAIN"
+  },
+  {
+   "id": "master_spin_in_front_of_the_soul_altar",
+   "tier": "Master",
+   "text": "Spin in front of the Soul altar. Beware of double agents! Equip a dragon pickaxe, helm of neitiznot and a pair of rune boots.",
+   "area": "Soul altar",
+   "x": 1815,
+   "y": 3856,
+   "plane": 0,
+   "reqs": [
+    "any:item:11920|item:12797|item:13243|item:13244|item:23677|item:25376|item:30351|item:23680|item:23682|item:25063|item:30345|item:25369|item:30346",
+    "item:10828",
+    "item:4131"
+   ],
+   "stash": "SOUL_ALTAR"
+  },
+  {
+   "id": "easy_spin_in_the_varrock_castle_courtyard_equip",
+   "tier": "Easy",
+   "text": "Spin in the Varrock Castle courtyard. Equip a black axe, a coif and a ruby ring.",
+   "area": "Varrock Castle",
+   "x": 3213,
+   "y": 3463,
+   "plane": 0,
+   "reqs": [
+    "item:1361",
+    "item:1169",
+    "item:1641"
+   ],
+   "stash": "OUTSIDE_VARROCK_PALACE_COURTYARD"
+  },
+  {
+   "id": "elite_spin_in_west_ardougne_church_equip_a",
+   "tier": "Elite",
+   "text": "Spin in West Ardougne Church. Equip a dragon spear and red dragonhide chaps.",
+   "area": "West Ardougne Church",
+   "x": 2530,
+   "y": 3290,
+   "plane": 0,
+   "reqs": [
+    "item:1249",
+    "item:2495"
+   ],
+   "stash": "CHAPEL_IN_WEST_ARDOUGNE"
+  },
+  {
+   "id": "medium_spin_on_the_bridge_by_the_barbarian",
+   "tier": "Medium",
+   "text": "Spin on the bridge by the Barbarian Village. Salute before you talk to me. Equip purple gloves, a steel kiteshield and a mithril full helmet.",
+   "area": "Barbarian Village",
+   "x": 3105,
+   "y": 3420,
+   "plane": 0,
+   "reqs": [
+    "item:2942",
+    "item:1193",
+    "item:1159"
+   ],
+   "stash": "EAST_OF_THE_BARBARIAN_VILLAGE_BRIDGE"
+  },
+  {
+   "id": "master_stamp_in_the_enchanted_valley_west_of",
+   "tier": "Master",
+   "text": "Stamp in the Enchanted valley west of the waterfall. Beware of double agents! Equip a dragon axe.",
+   "area": "Enchanted Valley (BKQ)",
+   "x": 3030,
+   "y": 4522,
+   "plane": 0,
+   "reqs": [
+    "any:item:6739|item:25378|item:28217|item:23673|item:23675|item:28220|item:28223|item:13241|item:13242|item:25066|item:25371|item:30347|item:30348"
+   ],
+   "stash": "NORTHWESTERN_CORNER_OF_THE_ENCHANTED_VALLEY"
+  },
+  {
+   "id": "easy_think_in_middle_of_the_wheat_field",
+   "tier": "Easy",
+   "text": "Think in middle of the wheat field by the Lumbridge mill. Equip a blue gnome robetop, a turquoise gnome robe bottom and an oak shortbow.",
+   "area": "Lumbridge mill",
+   "x": 3159,
+   "y": 3298,
+   "plane": 0,
+   "reqs": [
+    "item:640",
+    "item:654",
+    "item:843"
+   ],
+   "stash": "WHEAT_FIELD_NEAR_THE_LUMBRIDGE_WINDMILL"
+  },
+  {
+   "id": "medium_think_in_the_centre_of_the_observatory",
+   "tier": "Medium",
+   "text": "Think in the centre of the Observatory. Spin before you talk to me. Equip a mithril chain body, green dragonhide chaps and a ruby amulet.",
+   "area": "Observatory",
+   "x": 2439,
+   "y": 3161,
+   "plane": 0,
+   "reqs": [
+    "item:1109",
+    "item:1099",
+    "item:1698"
+   ],
+   "stash": "OBSERVATORY"
+  },
+  {
+   "id": "master_think_on_the_western_coast_of_salvager",
+   "tier": "Master",
+   "text": "Think on the western coast of Salvager Overlook. Beware of double agents! Equip a Hueycoatl hide coif and some Hueycoatl hide vambraces.",
+   "area": "Salvager Overlook",
+   "x": 1610,
+   "y": 3302,
+   "plane": 0,
+   "reqs": [
+    "item:30073",
+    "item:30082"
+   ],
+   "stash": "WESTERN_SALVAGER_OVERLOOK"
+  },
+  {
+   "id": "easy_wave_along_the_south_fence_of_the",
+   "tier": "Easy",
+   "text": "Wave along the south fence of the Lumber Yard. Equip a hard leather body, leather chaps and a bronze axe.",
+   "area": "Lumber Yard",
+   "x": 3307,
+   "y": 3491,
+   "plane": 0,
+   "reqs": [
+    "item:1131",
+    "item:1095",
+    "item:1351"
+   ],
+   "stash": "NEAR_THE_SAWMILL_OPERATORS_BOOTH"
+  },
+  {
+   "id": "easy_wave_in_the_falador_gem_store_equip",
+   "tier": "Easy",
+   "text": "Wave in the Falador gem store. Equip a Mithril pickaxe, Black platebody and an Iron Kiteshield.",
+   "area": "Falador",
+   "x": 2945,
+   "y": 3335,
+   "plane": 0,
+   "reqs": [
+    "item:1273",
+    "item:1125",
+    "item:1191"
+   ],
+   "stash": "NEAR_HERQUINS_SHOP_IN_FALADOR"
+  },
+  {
+   "id": "easy_wave_on_mudskipper_point_equip_a_black",
+   "tier": "Easy",
+   "text": "Wave on Mudskipper Point. Equip a black cape, leather chaps and a steel mace.",
+   "area": "Mudskipper Point (AIQ)",
+   "x": 2989,
+   "y": 3110,
+   "plane": 0,
+   "reqs": [
+    "item:1019",
+    "item:1095",
+    "item:1424"
+   ],
+   "stash": "MUDSKIPPER_POINT"
+  },
+  {
+   "id": "master_wave_on_the_northern_wall_of_castle",
+   "tier": "Master",
+   "text": "Wave on the northern wall of Castle Drakan. Beware of double agents! Wear a dragon sq shield, splitbark body and any boater.",
+   "area": "Castle Drakan",
+   "x": 3562,
+   "y": 3379,
+   "plane": 0,
+   "reqs": [
+    "any:item:1187|item:12418",
+    "item:3387",
+    "any:item:7319|item:7321|item:7323|item:7325|item:7327|item:12309|item:12311|item:12313"
+   ],
+   "stash": "NORTHERN_WALL_OF_CASTLE_DRAKAN"
+  },
+  {
+   "id": "master_yawn_in_the_7th_room_of_pyramid",
+   "tier": "Master",
+   "text": "Yawn in the 7th room of Pyramid Plunder. Beware of double agents! Equip a pharaoh sceptre and a full set of menaphite robes.",
+   "area": "Pyramid Plunder",
+   "x": 1944,
+   "y": 4427,
+   "plane": 0,
+   "reqs": [
+    "item:9044",
+    "any:item:6392|item:6394|item:6396|item:6397|item:6398|item:6400|item:6402|item:6404|item:6405|item:6406"
+   ],
+   "stash": "SEVENTH_CHAMBER_OF_JALSAVRAH"
+  },
+  {
+   "id": "easy_yawn_in_the_varrock_library_equip_a",
+   "tier": "Easy",
+   "text": "Yawn in the Varrock library. Equip a green gnome robe top, HAM robe bottom and an iron warhammer.",
+   "area": "Varrock Castle",
+   "x": 3209,
+   "y": 3492,
+   "plane": 0,
+   "reqs": [
+    "item:638",
+    "item:4300",
+    "item:1335"
+   ],
+   "stash": "VARROCK_PALACE_LIBRARY"
+  },
+  {
+   "id": "easy_yawn_in_draynor_marketplace_equip_studded_leather",
+   "tier": "Easy",
+   "text": "Yawn in Draynor marketplace. Equip studded leather chaps, an iron kiteshield and a steel longsword.",
+   "area": "Draynor",
+   "x": 3083,
+   "y": 3253,
+   "plane": 0,
+   "reqs": [
+    "item:1097",
+    "item:1191",
+    "item:1295"
+   ],
+   "stash": "DRAYNOR_VILLAGE_MARKET"
+  },
+  {
+   "id": "medium_yawn_in_the_castle_wars_lobby_shrug",
+   "tier": "Medium",
+   "text": "Yawn in the Castle Wars lobby. Shrug before you talk to me. Equip a ruby amulet, a mithril scimitar and a Wilderness cape.",
+   "area": "Castle Wars",
+   "x": 2440,
+   "y": 3092,
+   "plane": 0,
+   "reqs": [
+    "item:1698",
+    "item:1329",
+    "any:item:4315|item:20217|item:20214|item:20211"
+   ],
+   "stash": "CASTLE_WARS_BANK"
+  },
+  {
+   "id": "hard_yawn_in_the_rogues_general_store_beware",
+   "tier": "Hard",
+   "text": "Yawn in the rogues' general store. Beware of double agents! Equip an adamant square shield, blue dragon vambraces and a rune pickaxe.",
+   "area": "Rogues general store",
+   "x": 3026,
+   "y": 3701,
+   "plane": 0,
+   "reqs": [
+    "item:1183",
+    "item:2487",
+    "item:1275"
+   ],
+   "stash": "NOTERAZZOS_SHOP_IN_THE_WILDERNESS"
+  },
+  {
+   "id": "elite_yawn_at_the_top_of_trollheim_equip",
+   "tier": "Elite",
+   "text": "Yawn at the top of Trollheim. Equip a lava battlestaff, black dragonhide vambraces and a mind shield.",
+   "area": "Trollheim Mountain",
+   "x": 2887,
+   "y": 3676,
+   "plane": 0,
+   "reqs": [
+    "any:item:3053|item:21198",
+    "item:2491",
+    "item:9731"
+   ],
+   "stash": "ON_TOP_OF_TROLLHEIM_MOUNTAIN"
+  },
+  {
+   "id": "medium_yawn_in_the_centre_of_the_arceuus",
+   "tier": "Medium",
+   "text": "Yawn in the centre of the Arceuus Library. Nod your head before you talk to me. Equip blue dragonhide vambraces, adamant boots and an adamant dagger.",
+   "area": "Arceuus library",
+   "x": 1632,
+   "y": 3807,
+   "plane": 0,
+   "reqs": [
+    "item:2487",
+    "item:4129",
+    "item:1211"
+   ],
+   "stash": "ENTRANCE_OF_THE_ARCEUUS_LIBRARY"
+  },
+  {
+   "id": "easy_yawn_in_the_fortis_grand_museum_equip",
+   "tier": "Easy",
+   "text": "Yawn in the Fortis Grand Museum. Equip an emerald necklace, blue skirt, and turqoise gnome robe top.",
+   "area": "Fortis Grand Museum",
+   "x": 1712,
+   "y": 3163,
+   "plane": 0,
+   "reqs": [
+    "item:1658",
+    "item:1011",
+    "item:644"
+   ],
+   "stash": "FORTIS_GRAND_MUSEUM"
+  },
+  {
+   "id": "master_swing_a_bullroarer_at_the_top_of",
+   "tier": "Master",
+   "text": "Swing a bullroarer at the top of the Watchtower. Beware of double agents! Equip a dragon plateskirt, climbing boots and a dragon chainbody.",
+   "area": "Yanille Watchtower",
+   "x": 2930,
+   "y": 4717,
+   "plane": 2,
+   "reqs": [
+    "any:item:4585|item:12416",
+    "any:item:3105|item:23413",
+    "any:item:3140|item:12414",
+    "item:716"
+   ],
+   "stash": "TOP_FLOOR_OF_THE_YANILLE_WATCHTOWER"
+  },
+  {
+   "id": "beginner_blow_a_raspberry_at_aris_in_her",
+   "tier": "Beginner",
+   "text": "Blow a raspberry at Aris in her tent. Equip a gold ring and a gold necklace.",
+   "area": "Varrock",
+   "x": 3203,
+   "y": 3424,
+   "plane": 0,
+   "reqs": [
+    "item:1635",
+    "item:1654"
+   ],
+   "stash": "GYPSY_TENT_ENTRANCE"
+  },
+  {
+   "id": "beginner_bow_to_brugsen_bursen_at_the_grand",
+   "tier": "Beginner",
+   "text": "Bow to Brugsen Bursen at the Grand Exchange.",
+   "area": "Grand Exchange",
+   "x": 3164,
+   "y": 3477,
+   "plane": 0,
+   "reqs": []
+  },
+  {
+   "id": "beginner_cheer_at_iffie_nitter_equip_a_chef",
+   "tier": "Beginner",
+   "text": "Cheer at Iffie Nitter. Equip a chef hat and a red cape.",
+   "area": "Varrock",
+   "x": 3205,
+   "y": 3416,
+   "plane": 0,
+   "reqs": [
+    "item:1949",
+    "item:1007"
+   ],
+   "stash": "FINE_CLOTHES_ENTRANCE"
+  },
+  {
+   "id": "beginner_clap_at_bobs_brilliant_axes_equip_a",
+   "tier": "Beginner",
+   "text": "Clap at Bob's Brilliant Axes. Equip a bronze axe and leather boots.",
+   "area": "Lumbridge",
+   "x": 3231,
+   "y": 3203,
+   "plane": 0,
+   "reqs": [
+    "item:1351",
+    "item:1061"
+   ],
+   "stash": "BOB_AXES_ENTRANCE"
+  },
+  {
+   "id": "beginner_panic_at_al_kharid_mine",
+   "tier": "Beginner",
+   "text": "Panic at Al Kharid mine.",
+   "area": "Al Kharid mine",
+   "x": 3303,
+   "y": 3271,
+   "plane": 0,
+   "reqs": []
+  },
+  {
+   "id": "beginner_spin_at_flynns_mace_shop",
+   "tier": "Beginner",
+   "text": "Spin at Flynn's Mace Shop.",
+   "area": "Falador",
+   "x": 2950,
+   "y": 3387,
+   "plane": 0,
+   "reqs": []
+  },
+  {
+   "id": "elite_salute_by_the_charcoal_burners_equip_a",
+   "tier": "Elite",
+   "text": "Salute by the Charcoal Burners. Equip a Farmer's strawhat, Shayzien platebody (5) and Pyromancer robes.",
+   "area": "Charcoal Burners",
+   "x": 1714,
+   "y": 3467,
+   "plane": 0,
+   "reqs": [
+    "any:item:13646|item:13647",
+    "item:13381",
+    "item:20706"
+   ],
+   "stash": "CHARCOAL_BURNERS"
+  },
+  {
+   "id": "easy_dance_a_jig_behind_the_bar_on",
+   "tier": "Easy",
+   "text": "Dance a jig behind the bar on the Pandemonium. Equip a right eye patch and a bronze scimitar.",
+   "area": "Pandemonium",
+   "x": 3049,
+   "y": 2966,
+   "plane": 0,
+   "reqs": [
+    "item:1025",
+    "item:1321"
+   ],
+   "stash": "PANDEMONIUM_BAR"
+  },
+  {
+   "id": "elite_do_the_crab_dance_by_the_monument",
+   "tier": "Elite",
+   "text": "Do the crab dance by the monument on Wintumber Island. Equip a crab helmet and a crab claw.",
+   "area": "Wintumber Island",
+   "x": 2069,
+   "y": 2608,
+   "plane": 0,
+   "reqs": [
+    "item:7539",
+    "item:7537"
+   ],
+   "stash": "WINTUMBER_ISLAND"
+  },
+  {
+   "id": "master_bow_in_front_of_the_cave_on",
+   "tier": "Master",
+   "text": "Bow in front of the cave on Brittle Isle. Beware of double agents! Equip a Medallion of the Deep and a rosewood blowpipe.",
+   "area": "Brittle Isle",
+   "x": 1946,
+   "y": 4074,
+   "plane": 0,
+   "reqs": [
+    "item:32386",
+    "item:31583"
+   ],
+   "stash": "BRITTLE_ISLE"
+  }
+ ],
+ "stash": [
+  {
+   "key": "GYPSY_TENT_ENTRANCE",
+   "tier": "Beginner",
+   "objectId": 34736,
+   "name": "Gypsy tent entrance, Varrock",
+   "x": 3206,
+   "y": 3422,
+   "plane": 0,
+   "clueId": "beginner_blow_a_raspberry_at_aris_in_her"
+  },
+  {
+   "key": "FINE_CLOTHES_ENTRANCE",
+   "tier": "Beginner",
+   "objectId": 34737,
+   "name": "Thessaly's / Fine Clothes entrance, Varrock",
+   "x": 3209,
+   "y": 3416,
+   "plane": 0,
+   "clueId": "beginner_cheer_at_iffie_nitter_equip_a_chef"
+  },
+  {
+   "key": "BOB_AXES_ENTRANCE",
+   "tier": "Beginner",
+   "objectId": 34738,
+   "name": "Bob's Brilliant Axes entrance, Lumbridge",
+   "x": 3233,
+   "y": 3200,
+   "plane": 0,
+   "clueId": "beginner_clap_at_bobs_brilliant_axes_equip_a"
+  },
+  {
+   "key": "NEAR_A_SHED_IN_LUMBRIDGE_SWAMP",
+   "tier": "Easy",
+   "objectId": 28958,
+   "name": "Near a shed in Lumbridge Swamp",
+   "x": 3201,
+   "y": 3171,
+   "plane": 0,
+   "clueId": "easy_dance_in_the_shack_in_lumbridge_swamp"
+  },
+  {
+   "key": "ON_THE_BRIDGE_TO_THE_MISTHALIN_WIZARDS_TOWER",
+   "tier": "Easy",
+   "objectId": 28959,
+   "name": "On the bridge to the Misthalin Wizards' Tower",
+   "x": 3115,
+   "y": 3194,
+   "plane": 0,
+   "clueId": "easy_clap_on_the_causeway_to_the_wizards"
+  },
+  {
+   "key": "DRAYNOR_VILLAGE_MARKET",
+   "tier": "Easy",
+   "objectId": 28960,
+   "name": "Draynor Village market",
+   "x": 3083,
+   "y": 3254,
+   "plane": 0,
+   "clueId": "easy_yawn_in_draynor_marketplace_equip_studded_leather"
+  },
+  {
+   "key": "LIMESTONE_MINE",
+   "tier": "Easy",
+   "objectId": 28961,
+   "name": "Limestone mine north-east of Varrock",
+   "x": 3373,
+   "y": 3498,
+   "plane": 0,
+   "clueId": "easy_panic_in_the_limestone_mine_equip_bronze"
+  },
+  {
+   "key": "OUTSIDE_THE_LEGENDS_GUILD_GATES",
+   "tier": "Easy",
+   "objectId": 28962,
+   "name": "Outside the Legends' Guild gates",
+   "x": 2735,
+   "y": 3350,
+   "plane": 0,
+   "clueId": "easy_bow_outside_the_entrance_to_the_legends"
+  },
+  {
+   "key": "MUDSKIPPER_POINT",
+   "tier": "Easy",
+   "objectId": 28963,
+   "name": "Mudskipper Point",
+   "x": 2988,
+   "y": 3111,
+   "plane": 0,
+   "clueId": "easy_wave_on_mudskipper_point_equip_a_black"
+  },
+  {
+   "key": "NEAR_THE_ENTRANA_FERRY_IN_PORT_SARIM",
+   "tier": "Easy",
+   "objectId": 28964,
+   "name": "Near the Entrana ferry in Port Sarim",
+   "x": 3050,
+   "y": 3237,
+   "plane": 0,
+   "clueId": "easy_cheer_for_the_monks_at_port_sarim"
+  },
+  {
+   "key": "AL_KHARID_SCORPION_MINE",
+   "tier": "Easy",
+   "objectId": 28965,
+   "name": "Al Kharid scorpion mine",
+   "x": 3303,
+   "y": 3289,
+   "plane": 0,
+   "clueId": "easy_headbang_in_the_mine_north_of_al"
+  },
+  {
+   "key": "DRAYNOR_MANOR_BY_THE_FOUNTAIN",
+   "tier": "Easy",
+   "objectId": 28966,
+   "name": "Draynor Manor, by the fountain",
+   "x": 3089,
+   "y": 3331,
+   "plane": 0,
+   "clueId": "easy_spin_in_draynor_manor_by_the_fountain"
+  },
+  {
+   "key": "WHEAT_FIELD_NEAR_THE_LUMBRIDGE_WINDMILL",
+   "tier": "Easy",
+   "objectId": 28967,
+   "name": "Wheat field near the Lumbridge windmill",
+   "x": 3163,
+   "y": 3297,
+   "plane": 0,
+   "clueId": "easy_think_in_middle_of_the_wheat_field"
+  },
+  {
+   "key": "CROSSROADS_NORTH_OF_DRAYNOR_VILLAGE",
+   "tier": "Easy",
+   "objectId": 28968,
+   "name": "Crossroads north of Draynor Village",
+   "x": 3111,
+   "y": 3289,
+   "plane": 0,
+   "clueId": "easy_dance_at_the_crossroads_north_of_draynor"
+  },
+  {
+   "key": "RIMMINGTON_MINE",
+   "tier": "Easy",
+   "objectId": 28969,
+   "name": "Rimmington mine",
+   "x": 2976,
+   "y": 3239,
+   "plane": 0,
+   "clueId": "easy_shrug_in_the_mine_near_rimmington_equip"
+  },
+  {
+   "key": "VARROCK_PALACE_LIBRARY",
+   "tier": "Easy",
+   "objectId": 28970,
+   "name": "Varrock Palace library",
+   "x": 3214,
+   "y": 3490,
+   "plane": 0,
+   "clueId": "easy_yawn_in_the_varrock_library_equip_a"
+  },
+  {
+   "key": "UPSTAIRS_IN_THE_ARDOUGNE_WINDMILL",
+   "tier": "Easy",
+   "objectId": 28971,
+   "name": "Upstairs in the Ardougne windmill",
+   "x": 2635,
+   "y": 3386,
+   "plane": 2,
+   "clueId": "easy_clap_on_the_top_level_of_the"
+  },
+  {
+   "key": "OUTSIDE_THE_FALADOR_PARTY_ROOM",
+   "tier": "Easy",
+   "objectId": 28972,
+   "name": "Outside the Falador Party Room",
+   "x": 3043,
+   "y": 3371,
+   "plane": 0,
+   "clueId": "easy_dance_in_the_party_room_equip_a"
+  },
+  {
+   "key": "TAVERLEY_STONE_CIRCLE",
+   "tier": "Easy",
+   "objectId": 28973,
+   "name": "Taverley stone circle",
+   "x": 2924,
+   "y": 3477,
+   "plane": 0,
+   "clueId": "easy_cheer_at_the_druids_circle_equip_a"
+  },
+  {
+   "key": "CATHERBY_BEEHIVE_FIELD",
+   "tier": "Easy",
+   "objectId": 28974,
+   "name": "Catherby beehive field",
+   "x": 2764,
+   "y": 3438,
+   "plane": 0,
+   "clueId": "easy_jump_for_joy_at_the_beehives_equip"
+  },
+  {
+   "key": "NEAR_THE_PARROTS_IN_ARDOUGNE_ZOO",
+   "tier": "Easy",
+   "objectId": 28975,
+   "name": "Near the parrots in Ardougne Zoo",
+   "x": 2608,
+   "y": 3284,
+   "plane": 0,
+   "clueId": "easy_blow_a_raspberry_at_the_monkey_cage"
+  },
+  {
+   "key": "ROAD_JUNCTION_NORTH_OF_RIMMINGTON",
+   "tier": "Easy",
+   "objectId": 28976,
+   "name": "Road junction north of Rimmington",
+   "x": 2981,
+   "y": 3278,
+   "plane": 0,
+   "clueId": "easy_spin_at_the_crossroads_north_of_rimmington"
+  },
+  {
+   "key": "OUTSIDE_THE_FISHING_GUILD",
+   "tier": "Easy",
+   "objectId": 28977,
+   "name": "Outside the Fishing Guild",
+   "x": 2608,
+   "y": 3393,
+   "plane": 0,
+   "clueId": "easy_dance_a_jig_by_the_entrance_to"
+  },
+  {
+   "key": "OUTSIDE_KEEP_LE_FAYE",
+   "tier": "Easy",
+   "objectId": 28978,
+   "name": "Outside Keep Le Faye",
+   "x": 2756,
+   "y": 3399,
+   "plane": 0,
+   "clueId": "easy_blow_raspberries_outside_the_entrance_to_keep"
+  },
+  {
+   "key": "ROAD_JUNCTION_SOUTH_OF_SINCLAIR_MANSION",
+   "tier": "Easy",
+   "objectId": 28979,
+   "name": "Road junction south of Sinclair Mansion",
+   "x": 2735,
+   "y": 3534,
+   "plane": 0,
+   "clueId": "easy_laugh_at_the_crossroads_south_of_the"
+  },
+  {
+   "key": "OUTSIDE_THE_DIGSITE_EXAM_CENTRE",
+   "tier": "Easy",
+   "objectId": 28980,
+   "name": "Outside the Digsite Exam Centre",
+   "x": 3353,
+   "y": 3343,
+   "plane": 0,
+   "clueId": "easy_clap_in_the_main_exam_room_in"
+  },
+  {
+   "key": "NEAR_THE_SAWMILL_OPERATORS_BOOTH",
+   "tier": "Easy",
+   "objectId": 28981,
+   "name": "Near the sawmill operator's booth",
+   "x": 3298,
+   "y": 3490,
+   "plane": 0,
+   "clueId": "easy_wave_along_the_south_fence_of_the"
+  },
+  {
+   "key": "EMIRS_ARENA_TICKET_OFFICE",
+   "tier": "Easy",
+   "objectId": 28982,
+   "name": "Emir's Arena ticket office",
+   "x": 3316,
+   "y": 3242,
+   "plane": 0,
+   "clueId": "easy_bow_in_the_office_of_the_emirs"
+  },
+  {
+   "key": "OUTSIDE_VARROCK_PALACE_COURTYARD",
+   "tier": "Easy",
+   "objectId": 28983,
+   "name": "Outside Varrock Palace courtyard",
+   "x": 3211,
+   "y": 3456,
+   "plane": 0,
+   "clueId": "easy_spin_in_the_varrock_castle_courtyard_equip"
+  },
+  {
+   "key": "NEAR_HERQUINS_SHOP_IN_FALADOR",
+   "tier": "Easy",
+   "objectId": 28984,
+   "name": "Near Herquin's shop in Falador",
+   "x": 2941,
+   "y": 3339,
+   "plane": 0,
+   "clueId": "easy_wave_in_the_falador_gem_store_equip"
+  },
+  {
+   "key": "SOUTH_OF_THE_GRAND_EXCHANGE",
+   "tier": "Easy",
+   "objectId": 28985,
+   "name": "South of the Grand Exchange",
+   "x": 3159,
+   "y": 3464,
+   "plane": 0,
+   "clueId": "easy_dance_at_the_entrance_to_the_grand"
+  },
+  {
+   "key": "AUBURYS_SHOP_IN_VARROCK",
+   "tier": "Easy",
+   "objectId": 28986,
+   "name": "Aubury's shop in Varrock",
+   "x": 3252,
+   "y": 3404,
+   "plane": 0,
+   "clueId": "easy_do_a_jig_in_varrocks_rune_store"
+  },
+  {
+   "key": "FORTIS_GRAND_MUSEUM",
+   "tier": "Easy",
+   "objectId": 50738,
+   "name": "Fortis Grand Museum",
+   "x": 1723,
+   "y": 3153,
+   "plane": 0,
+   "clueId": "easy_yawn_in_the_fortis_grand_museum_equip"
+  },
+  {
+   "key": "PANDEMONIUM_BAR",
+   "tier": "Easy",
+   "objectId": 58130,
+   "name": "Pandemonium Bar",
+   "x": 3045,
+   "y": 2963,
+   "plane": 0,
+   "clueId": "easy_dance_a_jig_behind_the_bar_on"
+  },
+  {
+   "key": "CENTRE_OF_CANIFIS",
+   "tier": "Medium",
+   "objectId": 28987,
+   "name": "Centre of Canifis",
+   "x": 3491,
+   "y": 3489,
+   "plane": 0,
+   "clueId": "medium_dance_in_the_centre_of_canifis_bow"
+  },
+  {
+   "key": "MAUSOLEUM_OFF_THE_MORYTANIA_COAST",
+   "tier": "Medium",
+   "objectId": 28988,
+   "name": "Mausoleum off the Morytania coast",
+   "x": 3500,
+   "y": 3575,
+   "plane": 0,
+   "clueId": "medium_panic_by_the_mausoleum_in_morytania_wave"
+  },
+  {
+   "key": "EAST_OF_THE_BARBARIAN_VILLAGE_BRIDGE",
+   "tier": "Medium",
+   "objectId": 28989,
+   "name": "East of the Barbarian Village bridge",
+   "x": 3110,
+   "y": 3422,
+   "plane": 0,
+   "clueId": "medium_spin_on_the_bridge_by_the_barbarian"
+  },
+  {
+   "key": "SOUTH_OF_THE_SHRINE_IN_TAI_BWO_WANNAI_VILLAGE",
+   "tier": "Medium",
+   "objectId": 28990,
+   "name": "South of the shrine in Tai Bwo Wannai Village",
+   "x": 2802,
+   "y": 3081,
+   "plane": 0,
+   "clueId": "medium_beckon_in_tai_bwo_wannai_clap_before"
+  },
+  {
+   "key": "CASTLE_WARS_BANK",
+   "tier": "Medium",
+   "objectId": 28991,
+   "name": "Castle Wars bank",
+   "x": 2444,
+   "y": 3093,
+   "plane": 0,
+   "clueId": "medium_yawn_in_the_castle_wars_lobby_shrug"
+  },
+  {
+   "key": "BARBARIAN_OUTPOST_OBSTACLE_COURSE",
+   "tier": "Medium",
+   "objectId": 28992,
+   "name": "Barbarian Outpost obstacle course",
+   "x": 2541,
+   "y": 3550,
+   "plane": 0,
+   "clueId": "medium_cheer_in_the_barbarian_agility_arena_headbang"
+  },
+  {
+   "key": "GNOME_STRONGHOLD_BALANCING_ROPE",
+   "tier": "Medium",
+   "objectId": 28993,
+   "name": "Gnome Stronghold balancing rope",
+   "x": 2473,
+   "y": 3418,
+   "plane": 2,
+   "clueId": "medium_cry_on_top_of_the_western_tree"
+  },
+  {
+   "key": "OUTSIDE_YANILLE_BANK",
+   "tier": "Medium",
+   "objectId": 28994,
+   "name": "Outside Yanille bank",
+   "x": 2603,
+   "y": 3091,
+   "plane": 0,
+   "clueId": "medium_jump_for_joy_in_yanille_bank_dance"
+  },
+  {
+   "key": "OBSERVATORY",
+   "tier": "Medium",
+   "objectId": 28995,
+   "name": "Observatory",
+   "x": 2439,
+   "y": 3166,
+   "plane": 0,
+   "clueId": "medium_think_in_the_centre_of_the_observatory"
+  },
+  {
+   "key": "OGRE_CAGE_IN_KING_LATHAS_TRAINING_CAMP",
+   "tier": "Medium",
+   "objectId": 28996,
+   "name": "Ogre cage in King Lathas' Training Camp",
+   "x": 2533,
+   "y": 3377,
+   "plane": 0,
+   "clueId": "medium_cheer_in_the_ogre_pen_in_the"
+  },
+  {
+   "key": "DIGSITE",
+   "tier": "Medium",
+   "objectId": 28997,
+   "name": "Digsite",
+   "x": 3370,
+   "y": 3420,
+   "plane": 0,
+   "clueId": "medium_beckon_in_the_digsite_near_the_eastern"
+  },
+  {
+   "key": "HICKTONS_ARCHERY_EMPORIUM",
+   "tier": "Medium",
+   "objectId": 28998,
+   "name": "Hickton's Archery Emporium",
+   "x": 2825,
+   "y": 3441,
+   "plane": 0,
+   "clueId": "medium_cry_in_the_catherby_ranging_shop_bow"
+  },
+  {
+   "key": "SHANTAY_PASS",
+   "tier": "Medium",
+   "objectId": 28999,
+   "name": "Shantay Pass",
+   "x": 3308,
+   "y": 3125,
+   "plane": 0,
+   "clueId": "medium_dance_a_jig_under_shantays_awning_bow"
+  },
+  {
+   "key": "LUMBRIDGE_SWAMP_CAVES",
+   "tier": "Medium",
+   "objectId": 29000,
+   "name": "Lumbridge Swamp Caves",
+   "x": 3222,
+   "y": 9584,
+   "plane": 0,
+   "clueId": "medium_dance_in_the_dark_caves_beneath_lumbridge"
+  },
+  {
+   "key": "OUTSIDE_CATHERBY_BANK",
+   "tier": "Medium",
+   "objectId": 29001,
+   "name": "Outside Catherby bank",
+   "x": 2807,
+   "y": 3437,
+   "plane": 0,
+   "clueId": "medium_shrug_in_catherby_bank_yawn_before_you"
+  },
+  {
+   "key": "OUTSIDE_THE_SEERS_VILLAGE_COURTHOUSE",
+   "tier": "Medium",
+   "objectId": 29002,
+   "name": "Outside the Seers' Village courthouse",
+   "x": 2731,
+   "y": 3475,
+   "plane": 0,
+   "clueId": "medium_clap_in_seers_court_house_spin_before"
+  },
+  {
+   "key": "OUTSIDE_HARRYS_FISHING_SHOP_IN_CATHERBY",
+   "tier": "Medium",
+   "objectId": 29003,
+   "name": "Outside Harry's Fishing Shop in Catherby",
+   "x": 2837,
+   "y": 3436,
+   "plane": 0,
+   "clueId": "medium_cry_on_the_shore_of_catherby_beach"
+  },
+  {
+   "key": "TZHAAR_WEAPONS_STORE",
+   "tier": "Medium",
+   "objectId": 29004,
+   "name": "TzHaar weapons store",
+   "x": 2479,
+   "y": 5146,
+   "plane": 0,
+   "clueId": "medium_jump_for_joy_in_the_tzhaar_sword"
+  },
+  {
+   "key": "NORTH_OF_EVIL_DAVES_HOUSE_IN_EDGEVILLE",
+   "tier": "Medium",
+   "objectId": 29005,
+   "name": "North of Evil Dave's house in Edgeville",
+   "x": 3077,
+   "y": 3503,
+   "plane": 0,
+   "clueId": "medium_cheer_in_the_edgeville_general_store_dance"
+  },
+  {
+   "key": "WEST_OF_THE_SHAYZIEN_COMBAT_RING",
+   "tier": "Medium",
+   "objectId": 29006,
+   "name": "West of the Shayzien combat ring",
+   "x": 1541,
+   "y": 3631,
+   "plane": 0,
+   "clueId": "medium_beckon_in_the_shayzien_combat_ring_show"
+  },
+  {
+   "key": "ENTRANCE_OF_THE_ARCEUUS_LIBRARY",
+   "tier": "Medium",
+   "objectId": 29007,
+   "name": "Entrance of the Arceuus library",
+   "x": 1642,
+   "y": 3809,
+   "plane": 0,
+   "clueId": "medium_yawn_in_the_centre_of_the_arceuus"
+  },
+  {
+   "key": "OUTSIDE_DRAYNOR_VILLAGE_JAIL",
+   "tier": "Medium",
+   "objectId": 29008,
+   "name": "Outside Draynor Village jail",
+   "x": 3130,
+   "y": 3250,
+   "plane": 0,
+   "clueId": "medium_cry_in_the_draynor_village_jail_jump"
+  },
+  {
+   "key": "NORTH_OF_MOUNT_KARUULM",
+   "tier": "Medium",
+   "objectId": 34647,
+   "name": "North of Mount Karuulm",
+   "x": 1308,
+   "y": 3840,
+   "plane": 0,
+   "clueId": "medium_clap_your_hands_north_of_mount_karuulm"
+  },
+  {
+   "key": "TWILIGHT_TEMPLE_MINE",
+   "tier": "Medium",
+   "objectId": 55403,
+   "name": "Twilight Temple mine",
+   "x": 1668,
+   "y": 3287,
+   "plane": 0,
+   "clueId": "medium_jump_for_joy_in_the_mine_near"
+  },
+  {
+   "key": "WHERE_ORTUS_MEETS_PROUDSPIRE",
+   "tier": "Medium",
+   "objectId": 55404,
+   "name": "Where Ortus meets Proudspire",
+   "x": 1629,
+   "y": 3239,
+   "plane": 0,
+   "clueId": "medium_nod_your_head_where_the_river_ortus"
+  },
+  {
+   "key": "EAST_OF_THE_LEVEL_19_WILDERNESS_OBELISK",
+   "tier": "Hard",
+   "objectId": 29009,
+   "name": "East of the level 19 Wilderness obelisk",
+   "x": 3243,
+   "y": 3662,
+   "plane": 0,
+   "clueId": "hard_shrug_in_the_woods_east_of_the"
+  },
+  {
+   "key": "FISHING_GUILD_BANK",
+   "tier": "Hard",
+   "objectId": 29010,
+   "name": "Fishing Guild bank",
+   "x": 2593,
+   "y": 3409,
+   "plane": 0,
+   "clueId": "hard_blow_a_raspberry_in_the_fishing_guild"
+  },
+  {
+   "key": "TOP_FLOOR_OF_THE_LIGHTHOUSE",
+   "tier": "Hard",
+   "objectId": 29011,
+   "name": "Top floor of the Lighthouse",
+   "x": 2512,
+   "y": 3640,
+   "plane": 2,
+   "clueId": "hard_bow_at_the_top_of_the_lighthouse"
+  },
+  {
+   "key": "OUTSIDE_THE_GREAT_PYRAMID_OF_SOPHANEM",
+   "tier": "Hard",
+   "objectId": 29012,
+   "name": "Outside the great pyramid of Sophanem",
+   "x": 3291,
+   "y": 2780,
+   "plane": 0,
+   "clueId": "hard_dance_at_the_catdoored_pyramid_in_sophanem"
+  },
+  {
+   "key": "NOTERAZZOS_SHOP_IN_THE_WILDERNESS",
+   "tier": "Hard",
+   "objectId": 29013,
+   "name": "Noterazzo's shop in the Wilderness",
+   "x": 3027,
+   "y": 3699,
+   "plane": 0,
+   "clueId": "hard_yawn_in_the_rogues_general_store_beware"
+  },
+  {
+   "key": "WEST_SIDE_OF_THE_KARAMJA_BANANA_PLANTATION",
+   "tier": "Hard",
+   "objectId": 29014,
+   "name": "West side of the Karamja banana plantation",
+   "x": 2909,
+   "y": 3169,
+   "plane": 0,
+   "clueId": "hard_salute_in_the_banana_plantation_beware_of"
+  },
+  {
+   "key": "MOUNTAIN_CAMP_GOAT_ENCLOSURE",
+   "tier": "Hard",
+   "objectId": 29015,
+   "name": "Mountain Camp goat enclosure",
+   "x": 2810,
+   "y": 3677,
+   "plane": 0,
+   "clueId": "hard_laugh_in_jokuls_tent_in_the_mountain"
+  },
+  {
+   "key": "GNOME_GLIDER_ON_WHITE_WOLF_MOUNTAIN",
+   "tier": "Hard",
+   "objectId": 29016,
+   "name": "Gnome glider on White Wolf Mountain",
+   "x": 2849,
+   "y": 3496,
+   "plane": 0,
+   "clueId": "hard_panic_by_the_pilot_on_white_wolf"
+  },
+  {
+   "key": "SHILO_VILLAGE_BANK",
+   "tier": "Hard",
+   "objectId": 29017,
+   "name": "Shilo Village bank",
+   "x": 2853,
+   "y": 2952,
+   "plane": 0,
+   "clueId": "hard_blow_a_kiss_between_the_tables_in"
+  },
+  {
+   "key": "INSIDE_THE_DIGSITE_EXAM_CENTRE",
+   "tier": "Hard",
+   "objectId": 29018,
+   "name": "Inside the Digsite Exam Centre",
+   "x": 3356,
+   "y": 3333,
+   "plane": 0,
+   "clueId": "hard_headbang_at_the_exam_centre_beware_of"
+  },
+  {
+   "key": "NORTHEAST_CORNER_OF_THE_KHARAZI_JUNGLE",
+   "tier": "Hard",
+   "objectId": 29019,
+   "name": "North-east corner of the Kharazi Jungle",
+   "x": 2952,
+   "y": 2932,
+   "plane": 0,
+   "clueId": "hard_beckon_on_the_east_coast_of_the"
+  },
+  {
+   "key": "VOLCANO_IN_THE_NORTHEASTERN_WILDERNESS",
+   "tier": "Hard",
+   "objectId": 29020,
+   "name": "Volcano in the north-eastern Wilderness",
+   "x": 3368,
+   "y": 3930,
+   "plane": 0,
+   "clueId": "hard_panic_on_the_wilderness_volcano_bridge_beware"
+  },
+  {
+   "key": "IN_THE_MIDDLE_OF_JIGGIG",
+   "tier": "Hard",
+   "objectId": 29021,
+   "name": "In the middle of Jiggig",
+   "x": 2478,
+   "y": 3048,
+   "plane": 0,
+   "clueId": "hard_jig_at_jiggig_beware_of_double_agents"
+  },
+  {
+   "key": "AGILITY_PYRAMID",
+   "tier": "Hard",
+   "objectId": 29022,
+   "name": "Agility Pyramid",
+   "x": 3357,
+   "y": 2830,
+   "plane": 0,
+   "clueId": "hard_cheer_at_the_top_of_the_agility"
+  },
+  {
+   "key": "HOSIDIUS_MESS",
+   "tier": "Hard",
+   "objectId": 29023,
+   "name": "Hosidius mess",
+   "x": 1646,
+   "y": 3632,
+   "plane": 0,
+   "clueId": "hard_salute_in_the_centre_of_the_mess"
+  },
+  {
+   "key": "OUTSIDE_TWILIGHT_TEMPLE",
+   "tier": "Hard",
+   "objectId": 55405,
+   "name": "Outside Twilight Temple",
+   "x": 1693,
+   "y": 3243,
+   "plane": 0,
+   "clueId": "hard_panic_outside_the_twilight_temple_beware_of"
+  },
+  {
+   "key": "CHAPEL_IN_WEST_ARDOUGNE",
+   "tier": "Elite",
+   "objectId": 29024,
+   "name": "Chapel in West Ardougne",
+   "x": 2527,
+   "y": 3294,
+   "plane": 0,
+   "clueId": "elite_spin_in_west_ardougne_church_equip_a"
+  },
+  {
+   "key": "NEAR_A_RUNITE_ROCK_IN_THE_FREMENNIK_ISLES",
+   "tier": "Elite",
+   "objectId": 29025,
+   "name": "Near a runite rock in the Fremennik Isles",
+   "x": 2374,
+   "y": 3847,
+   "plane": 0,
+   "clueId": "elite_jump_for_joy_at_the_neitiznot_rune"
+  },
+  {
+   "key": "NEAR_A_LADDER_IN_THE_WILDERNESS_LAVA_MAZE",
+   "tier": "Elite",
+   "objectId": 29026,
+   "name": "Near a ladder in the Wilderness Lava Maze",
+   "x": 3069,
+   "y": 3862,
+   "plane": 0,
+   "clueId": "elite_blow_a_kiss_in_the_heart_of"
+  },
+  {
+   "key": "ENTRANCE_OF_THE_CAVE_OF_DAMIS",
+   "tier": "Elite",
+   "objectId": 29027,
+   "name": "Entrance of the Cave of Damis",
+   "x": 2629,
+   "y": 5070,
+   "plane": 0,
+   "clueId": "elite_cheer_in_the_shadow_dungeon_equip_a"
+  },
+  {
+   "key": "WARRIORS_GUILD_BANK_ELITE",
+   "tier": "Elite",
+   "objectId": 29028,
+   "name": "Warriors' Guild bank",
+   "x": 2844,
+   "y": 3537,
+   "plane": 0,
+   "clueId": "elite_salute_in_the_warriors_guild_bank_equip"
+  },
+  {
+   "key": "SOUTHEAST_CORNER_OF_THE_MONASTERY",
+   "tier": "Elite",
+   "objectId": 29029,
+   "name": "South-east corner of the Monastery",
+   "x": 3056,
+   "y": 3482,
+   "plane": 0,
+   "clueId": "elite_bow_upstairs_in_the_edgeville_monastery_equip"
+  },
+  {
+   "key": "SOUTHEAST_CORNER_OF_THE_FISHING_PLATFORM",
+   "tier": "Elite",
+   "objectId": 29030,
+   "name": "South-east corner of the Fishing Platform",
+   "x": 2787,
+   "y": 3277,
+   "plane": 0,
+   "clueId": "elite_dance_on_the_fishing_platform_equip_barrows"
+  },
+  {
+   "key": "OUTSIDE_THE_SLAYER_TOWER_GARGOYLE_ROOM",
+   "tier": "Elite",
+   "objectId": 29031,
+   "name": "Outside the Slayer Tower gargoyle room",
+   "x": 3423,
+   "y": 3534,
+   "plane": 2,
+   "clueId": "elite_headbang_at_the_top_of_slayer_tower"
+  },
+  {
+   "key": "ON_TOP_OF_TROLLHEIM_MOUNTAIN",
+   "tier": "Elite",
+   "objectId": 29032,
+   "name": "On top of Trollheim mountain",
+   "x": 2886,
+   "y": 3676,
+   "plane": 0,
+   "clueId": "elite_yawn_at_the_top_of_trollheim_equip"
+  },
+  {
+   "key": "FOUNTAIN_OF_HEROES",
+   "tier": "Elite",
+   "objectId": 29033,
+   "name": "Fountain of Heroes",
+   "x": 2916,
+   "y": 9891,
+   "plane": 0,
+   "clueId": "elite_laugh_by_the_fountain_of_heroes_equip"
+  },
+  {
+   "key": "ENTRANCE_OF_THE_CAVERN_UNDER_THE_WHIRLPOOL",
+   "tier": "Elite",
+   "objectId": 29034,
+   "name": "Entrance of the cavern under the whirlpool",
+   "x": 1764,
+   "y": 5367,
+   "plane": 1,
+   "clueId": "elite_jump_for_joy_in_the_ancient_cavern"
+  },
+  {
+   "key": "HALFWAY_DOWN_TROLLWEISS_MOUNTAIN",
+   "tier": "Elite",
+   "objectId": 29035,
+   "name": "Halfway down Trollweiss Mountain",
+   "x": 2782,
+   "y": 3787,
+   "plane": 0,
+   "clueId": "elite_panic_at_the_area_flowers_meet_snow"
+  },
+  {
+   "key": "SHAYZIEN_WAR_TENT",
+   "tier": "Elite",
+   "objectId": 29036,
+   "name": "Shayzien war tent",
+   "x": 1488,
+   "y": 3637,
+   "plane": 0,
+   "clueId": "elite_shrug_in_the_shayzien_war_tent_equip"
+  },
+  {
+   "key": "OUTSIDE_THE_LEGENDS_GUILD_DOOR",
+   "tier": "Elite",
+   "objectId": 29037,
+   "name": "Outside the Legends' Guild door",
+   "x": 2727,
+   "y": 3371,
+   "plane": 0,
+   "clueId": "elite_bow_on_the_ground_floor_of_the"
+  },
+  {
+   "key": "NEAR_THE_GEM_STALL_IN_ARDOUGNE_MARKET",
+   "tier": "Elite",
+   "objectId": 29038,
+   "name": "Near the gem stall in Ardougne market",
+   "x": 2672,
+   "y": 3302,
+   "plane": 0,
+   "clueId": "elite_laugh_in_front_of_the_gem_store"
+  },
+  {
+   "key": "OUTSIDE_THE_BAR_BY_THE_FIGHT_ARENA",
+   "tier": "Elite",
+   "objectId": 29039,
+   "name": "Outside the bar by the Fight Arena",
+   "x": 2571,
+   "y": 3150,
+   "plane": 0,
+   "clueId": "elite_headbang_in_the_fight_arena_pub_equip"
+  },
+  {
+   "key": "CHARCOAL_BURNERS",
+   "tier": "Elite",
+   "objectId": 41758,
+   "name": "Charcoal burners",
+   "x": 1712,
+   "y": 3470,
+   "plane": 0,
+   "clueId": "elite_salute_by_the_charcoal_burners_equip_a"
+  },
+  {
+   "key": "TEMPLE_SOUTHEAST_OF_THE_BAZAAR",
+   "tier": "Elite",
+   "objectId": 50739,
+   "name": "Temple south-east of the Bazaar",
+   "x": 1702,
+   "y": 3079,
+   "plane": 0,
+   "clueId": "elite_bow_within_the_temple_in_civitas_illa"
+  },
+  {
+   "key": "WINTUMBER_ISLAND",
+   "tier": "Elite",
+   "objectId": 58131,
+   "name": "Wintumber Island",
+   "x": 2072,
+   "y": 2608,
+   "plane": 0,
+   "clueId": "elite_do_the_crab_dance_by_the_monument"
+  },
+  {
+   "key": "SOUTHEAST_CORNER_OF_LAVA_DRAGON_ISLE",
+   "tier": "Master",
+   "objectId": 29040,
+   "name": "South-east corner of Lava Dragon Isle",
+   "x": 3228,
+   "y": 3830,
+   "plane": 0,
+   "clueId": "master_panic_by_the_big_egg_where_no"
+  },
+  {
+   "key": "NEAR_THE_PIER_IN_ZULANDRA",
+   "tier": "Master",
+   "objectId": 29041,
+   "name": "Near the pier in Zul-Andra",
+   "x": 2203,
+   "y": 3059,
+   "plane": 0,
+   "clueId": "master_jump_for_joy_in_the_centre_of"
+  },
+  {
+   "key": "BARROWS_CHEST",
+   "tier": "Master",
+   "objectId": 29042,
+   "name": "Barrows chest",
+   "x": 3547,
+   "y": 9690,
+   "plane": 0,
+   "clueId": "master_do_a_jig_at_the_barrows_chest"
+  },
+  {
+   "key": "WELL_OF_VOYAGE",
+   "tier": "Master",
+   "objectId": 29043,
+   "name": "Well of Voyage",
+   "x": 2006,
+   "y": 4709,
+   "plane": 1,
+   "clueId": "master_dance_in_ibans_temple_beware_of_double"
+  },
+  {
+   "key": "NORTHERN_WALL_OF_CASTLE_DRAKAN",
+   "tier": "Master",
+   "objectId": 29044,
+   "name": "Northern wall of Castle Drakan",
+   "x": 3563,
+   "y": 3379,
+   "plane": 0,
+   "clueId": "master_wave_on_the_northern_wall_of_castle"
+  },
+  {
+   "key": "SEVENTH_CHAMBER_OF_JALSAVRAH",
+   "tier": "Master",
+   "objectId": 29045,
+   "name": "7th chamber of Jalsavrah (Pyramid Plunder)",
+   "x": 1951,
+   "y": 4431,
+   "plane": 0,
+   "clueId": "master_yawn_in_the_7th_room_of_pyramid"
+  },
+  {
+   "key": "SOUL_ALTAR",
+   "tier": "Master",
+   "objectId": 29046,
+   "name": "Soul Altar",
+   "x": 1810,
+   "y": 3855,
+   "plane": 0,
+   "clueId": "master_spin_in_front_of_the_soul_altar"
+  },
+  {
+   "key": "WARRIORS_GUILD_BANK_MASTER",
+   "tier": "Master",
+   "objectId": 29047,
+   "name": "Warriors' Guild bank",
+   "x": 2845,
+   "y": 3545,
+   "plane": 0,
+   "clueId": "master_blow_a_raspberry_in_the_bank_of"
+  },
+  {
+   "key": "ENTRANA_CHAPEL",
+   "tier": "Master",
+   "objectId": 29048,
+   "name": "Entrana chapel",
+   "x": 2851,
+   "y": 3355,
+   "plane": 0,
+   "clueId": "master_cheer_in_the_entrana_church_beware_of"
+  },
+  {
+   "key": "TZHAAR_GEM_STORE",
+   "tier": "Master",
+   "objectId": 29049,
+   "name": "TzHaar gem store",
+   "x": 2466,
+   "y": 5150,
+   "plane": 0,
+   "clueId": "master_cry_in_the_tzhaar_gem_store_beware"
+  },
+  {
+   "key": "TENT_IN_LORD_IORWERTHS_ENCAMPMENT",
+   "tier": "Master",
+   "objectId": 29050,
+   "name": "Tent in Lord Iorwerth's Encampment",
+   "x": 2198,
+   "y": 3257,
+   "plane": 0,
+   "clueId": "master_bow_near_lord_iorwerth_beware_of_double"
+  },
+  {
+   "key": "OUTSIDE_MUDKNUCKLES_HUT",
+   "tier": "Master",
+   "objectId": 29051,
+   "name": "Outside Mudknuckle's hut",
+   "x": 2959,
+   "y": 3502,
+   "plane": 0,
+   "clueId": "master_goblin_salute_in_the_goblin_village_beware"
+  },
+  {
+   "key": "CENTRE_OF_THE_CATACOMBS_OF_KOUREND",
+   "tier": "Master",
+   "objectId": 29052,
+   "name": "Centre of the Catacombs of Kourend",
+   "x": 1661,
+   "y": 10045,
+   "plane": 0,
+   "clueId": "master_slap_your_head_in_the_centre_of"
+  },
+  {
+   "key": "KING_BLACK_DRAGONS_LAIR",
+   "tier": "Master",
+   "objectId": 29053,
+   "name": "King Black Dragon's lair",
+   "x": 2286,
+   "y": 4680,
+   "plane": 0,
+   "clueId": "master_dance_in_the_king_black_dragons_lair"
+  },
+  {
+   "key": "OUTSIDE_KRIL_TSUTSAROTHS_ROOM",
+   "tier": "Master",
+   "objectId": 29054,
+   "name": "Outside K'ril Tsutsaroth's room",
+   "x": 2931,
+   "y": 5337,
+   "plane": 2,
+   "clueId": "master_blow_a_kiss_outside_kril_tsutsaroths_chamber"
+  },
+  {
+   "key": "BY_THE_BEAR_CAGE_IN_VARROCK_PALACE_GARDENS",
+   "tier": "Master",
+   "objectId": 29055,
+   "name": "By the bear cage in Varrock Palace gardens",
+   "x": 3232,
+   "y": 3494,
+   "plane": 0,
+   "clueId": "master_show_your_anger_towards_the_statue_of"
+  },
+  {
+   "key": "OUTSIDE_THE_WILDERNESS_AXE_HUT",
+   "tier": "Master",
+   "objectId": 29056,
+   "name": "Outside the Wilderness Axe Hut",
+   "x": 3186,
+   "y": 3958,
+   "plane": 0,
+   "clueId": "master_clap_in_the_magic_axe_hut_beware"
+  },
+  {
+   "key": "TOP_FLOOR_OF_THE_YANILLE_WATCHTOWER",
+   "tier": "Master",
+   "objectId": 29057,
+   "name": "Top floor of the Yanille Watchtower",
+   "x": 2930,
+   "y": 4718,
+   "plane": 2,
+   "clueId": "master_swing_a_bullroarer_at_the_top_of"
+  },
+  {
+   "key": "DEATH_ALTAR",
+   "tier": "Master",
+   "objectId": 29058,
+   "name": "Death Altar",
+   "x": 2210,
+   "y": 4842,
+   "plane": 0,
+   "clueId": "master_flap_at_the_death_altar_beware_of"
+  },
+  {
+   "key": "BEHIND_MISS_SCHISM_IN_DRAYNOR_VILLAGE",
+   "tier": "Master",
+   "objectId": 29059,
+   "name": "Behind Miss Schism in Draynor Village",
+   "x": 3095,
+   "y": 3254,
+   "plane": 0,
+   "clueId": "master_show_your_anger_at_the_wise_old"
+  },
+  {
+   "key": "NORTHWESTERN_CORNER_OF_THE_ENCHANTED_VALLEY",
+   "tier": "Master",
+   "objectId": 29060,
+   "name": "North-western corner of the Enchanted Valley",
+   "x": 3022,
+   "y": 4517,
+   "plane": 0,
+   "clueId": "master_stamp_in_the_enchanted_valley_west_of"
+  },
+  {
+   "key": "CRYSTALLINE_MAPLE_TREES",
+   "tier": "Master",
+   "objectId": 34953,
+   "name": "Crystalline maple trees",
+   "x": 2213,
+   "y": 3427,
+   "plane": 0,
+   "clueId": "master_beckon_by_a_collection_of_crystalline_maple"
+  },
+  {
+   "key": "CAM_TORUM_ENTRANCE",
+   "tier": "Master",
+   "objectId": 50740,
+   "name": "Cam Torum entrance",
+   "x": 1428,
+   "y": 3118,
+   "plane": 0,
+   "clueId": "master_salute_outside_the_gates_of_cam_torum"
+  },
+  {
+   "key": "WESTERN_SALVAGER_OVERLOOK",
+   "tier": "Master",
+   "objectId": 54275,
+   "name": "Western Salvager Overlook",
+   "x": 1614,
+   "y": 3296,
+   "plane": 0,
+   "clueId": "master_think_on_the_western_coast_of_salvager"
+  },
+  {
+   "key": "BRITTLE_ISLE",
+   "tier": "Master",
+   "objectId": 58132,
+   "name": "Brittle Isle",
+   "x": 1952,
+   "y": 4074,
+   "plane": 0,
+   "clueId": "master_bow_in_front_of_the_cave_on"
+  }
+ ]
+}
