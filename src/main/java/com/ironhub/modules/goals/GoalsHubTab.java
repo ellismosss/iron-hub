@@ -853,8 +853,8 @@ class GoalsHubTab extends JPanel
 		return menu;
 	}
 
-	/** The best wiki page for a Goal: its quest, or its item/name. */
-	private String goalWiki(GoalsPack.Goal route)
+	/** The best wiki page for a Goal: its quest, its stocked item, or its name. */
+	String goalWiki(GoalsPack.Goal route)
 	{
 		String id = route.getId();
 		String page = null;
@@ -862,12 +862,35 @@ class GoalsHubTab extends JPanel
 		{
 			page = route.getName();
 		}
-		else if (route.icon() != null || id.startsWith("gear:") || id.startsWith("clog:")
-			|| id.startsWith("supply:"))
+		else if (id.startsWith("supply:"))
+		{
+			// the stocked ITEM's page, not the "Stock N × …" goal name
+			page = supplyItemName(route);
+		}
+		else if (route.icon() != null || id.startsWith("gear:") || id.startsWith("clog:"))
 		{
 			page = route.getName();
 		}
 		return page == null ? null : "https://oldschool.runescape.wiki/w/" + page.replace(' ', '_');
+	}
+
+	/** The item a supply Route stocks, from its {@code item:<id>:<qty>:<name>}
+	 *  step (falls back to stripping the "Stock N × " goal-name prefix). */
+	private String supplyItemName(GoalsPack.Goal route)
+	{
+		for (GoalsPack.Step s : route.getSteps())
+		{
+			String req = s.getRequirement();
+			if (req != null && req.startsWith("item:"))
+			{
+				String[] p = req.split(":", 4);
+				if (p.length >= 4)
+				{
+					return p[3];
+				}
+			}
+		}
+		return route.getName().replaceFirst("^Stock \\d+ × ", "");
 	}
 
 	// ── add goal ───────────────────────────────────────────────────────

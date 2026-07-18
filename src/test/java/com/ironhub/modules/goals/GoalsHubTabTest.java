@@ -128,6 +128,33 @@ public class GoalsHubTabTest
 		}
 	}
 
+	/** A supply Route's "Open wiki" links to the stocked ITEM, never the
+	 *  "Stock N × …" goal name (Luke's report). */
+	@Test
+	public void supplyGoalWikiLinksToTheStockedItem() throws Exception
+	{
+		AccountState state = seeded(3L);
+		GoalPlannerModule module = module(state);
+		waitForPlan(module);
+		GoalsHubTab[] holder = new GoalsHubTab[1];
+		javax.swing.SwingUtilities.invokeAndWait(() ->
+			holder[0] = new GoalsHubTab(module, state, packOf(module), gearOf(module),
+				null, new SkillIconManager(), OsrsTheme.STONE));
+		com.ironhub.data.GoalsPack.Goal supply = null;
+		for (com.ironhub.data.GoalsPack.Goal g
+			: GoalPlannerModule.allGoals(packOf(module), gearOf(module), state))
+		{
+			if ("supply:2434".equals(g.getId()))
+			{
+				supply = g;
+			}
+		}
+		assertTrue("supply goal present", supply != null);
+		String wiki = holder[0].goalWiki(supply);
+		assertEquals("https://oldschool.runescape.wiki/w/Prayer_potion(4)", wiki);
+		module.shutDown();
+	}
+
 	/** The single-pass client-mount label-height pin (skinned-surface rule). */
 	@Test
 	public void everyLabelKeepsItsHeightUnderTheClientMount() throws Exception
