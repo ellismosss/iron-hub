@@ -124,7 +124,13 @@ public class PlannerTabTest
 		state.selectGoal("barrows_gloves", true);
 
 		GoalPlannerModule module = module(state);
-		JComponent tab = module.buildTab();
+		// GoalsHubTab is the module's mounted tab now (G7); this legacy render
+		// exercises PlannerTab directly until it is removed in the G7 swap
+		DataPack data = new DataPack(new Gson());
+		PlannerTab tab = new PlannerTab(module, state,
+			data.load("goals", com.ironhub.data.GoalsPack.class),
+			data.load("gear-progression", com.ironhub.data.GearProgressionPack.class),
+			null, null, com.ironhub.ui.osrs.OsrsTheme.STONE);
 		assertNotNull(tab);
 
 		// wait for the debounced replan to land, then push it into the tab
@@ -135,7 +141,7 @@ public class PlannerTabTest
 		final com.ironhub.engine.Plan plan = module.currentPlan();
 		assertNotNull("no plan computed", plan);
 		assertTrue(plan.steps.size() > 10);
-		PlannerTab plannerTab = (PlannerTab) tab;
+		PlannerTab plannerTab = tab;
 		javax.swing.SwingUtilities.invokeAndWait(() -> plannerTab.onPlanUpdated(plan));
 
 		File reports = new File("build/reports");
@@ -150,7 +156,7 @@ public class PlannerTabTest
 				try
 				{
 					javax.swing.SwingUtilities.invokeAndWait(
-						() -> ((PlannerTab) tab).expandForTest(st.action.id));
+						() -> tab.expandForTest(st.action.id));
 				}
 				catch (Exception ignored)
 				{

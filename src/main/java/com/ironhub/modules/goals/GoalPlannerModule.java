@@ -36,7 +36,7 @@ public class GoalPlannerModule implements IronHubModule
 	private com.ironhub.data.BankedXpPack bankedPack;
 	private com.ironhub.data.XpActionsPack xpActionsPack;
 	private com.ironhub.engine.EnginePacks enginePacks;
-	private PlannerTab tab;
+	private GoalsHubTab tab;
 
 	// ── engine wiring: one worker, debounced replans, published plans ──
 	private final java.util.concurrent.ScheduledExecutorService plannerExecutor =
@@ -180,7 +180,7 @@ public class GoalPlannerModule implements IronHubModule
 			{
 				startUp();
 			}
-			tab = new PlannerTab(this, state, pack, gearPack, itemManager, skillIconManager,
+			tab = new GoalsHubTab(this, state, pack, gearPack, itemManager, skillIconManager,
 				config.osrsTheme());
 			if (currentPlan != null)
 			{
@@ -386,6 +386,11 @@ public class GoalPlannerModule implements IronHubModule
 	com.ironhub.data.MethodsPack methodsPack()
 	{
 		return enginePacks == null ? null : enginePacks.methods;
+	}
+
+	com.ironhub.data.EffectsPack effectsPack()
+	{
+		return enginePacks == null ? null : enginePacks.effects;
 	}
 
 	com.ironhub.data.XpActionsPack xpActions()
