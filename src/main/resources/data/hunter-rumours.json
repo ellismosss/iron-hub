@@ -1,0 +1,1216 @@
+{
+ "version": 1,
+ "sources": {
+  "hunterRumours": "4fcf4e895b2b6bb0eea8e9c18d2a737af2396180"
+ },
+ "hunters": [
+  {
+   "id": "master_wolf",
+   "npcId": 13126,
+   "name": "Wolf",
+   "npcName": "Guild Hunter Wolf",
+   "tier": "master"
+  },
+  {
+   "id": "expert_teco",
+   "npcId": 13125,
+   "name": "Teco",
+   "npcName": "Guild Hunter Teco",
+   "tier": "expert"
+  },
+  {
+   "id": "expert_aco",
+   "npcId": 13124,
+   "name": "Aco",
+   "npcName": "Guild Hunter Aco",
+   "tier": "expert"
+  },
+  {
+   "id": "adept_cervus",
+   "npcId": 13123,
+   "name": "Cervus",
+   "npcName": "Guild Hunter Cervus",
+   "tier": "adept"
+  },
+  {
+   "id": "adept_ornus",
+   "npcId": 13122,
+   "name": "Ornus",
+   "npcName": "Guild Hunter Ornus",
+   "tier": "adept"
+  },
+  {
+   "id": "novice_gilman",
+   "npcId": 13121,
+   "name": "Gilman",
+   "npcName": "Guild Hunter Gilman",
+   "tier": "novice"
+  }
+ ],
+ "rumours": [
+  {
+   "id": "tropical_wagtail",
+   "name": "Tropical Wagtail",
+   "creature": "TROPICAL_WAGTAIL",
+   "npcId": 5548,
+   "icon": 9969,
+   "pieceItemId": 29222,
+   "trap": "Bird snare",
+   "trapItemId": 10006,
+   "pity": 40,
+   "pityWithOutfit": 38,
+   "level": 19,
+   "reqs": [
+    "skillb:Hunter:19"
+   ],
+   "tiers": [
+    "novice"
+   ],
+   "xpDrops": [
+    95,
+    96
+   ]
+  },
+  {
+   "id": "wild_kebbit",
+   "name": "Wild Kebbit",
+   "creature": "WILD_KEBBIT",
+   "npcId": 1349,
+   "icon": 9962,
+   "pieceItemId": 29223,
+   "trap": "Deadfall",
+   "trapItemId": 1511,
+   "pity": 30,
+   "pityWithOutfit": 28,
+   "level": 23,
+   "reqs": [
+    "skillb:Hunter:23"
+   ],
+   "tiers": [
+    "novice"
+   ],
+   "xpDrops": [
+    128
+   ]
+  },
+  {
+   "id": "sapphire_glacialis",
+   "name": "Sapphire Glacialis",
+   "creature": "SAPPHIRE_GLACIALIS",
+   "npcId": 5555,
+   "icon": 9971,
+   "pieceItemId": 29224,
+   "trap": "Butterfly Net",
+   "trapItemId": 10010,
+   "pity": 150,
+   "pityWithOutfit": 142,
+   "level": 25,
+   "reqs": [
+    "skillb:Hunter:25"
+   ],
+   "tiers": [
+    "novice"
+   ],
+   "xpDrops": [
+    34
+   ]
+  },
+  {
+   "id": "swamp_lizard",
+   "name": "Swamp Lizard",
+   "creature": "SWAMP_LIZARD",
+   "npcId": 2906,
+   "icon": 10149,
+   "pieceItemId": 29225,
+   "trap": "Net trap",
+   "trapItemId": 303,
+   "pity": 50,
+   "pityWithOutfit": 46,
+   "level": 29,
+   "reqs": [
+    "skillb:Hunter:29"
+   ],
+   "tiers": [
+    "novice",
+    "adept"
+   ],
+   "xpDrops": [
+    152
+   ]
+  },
+  {
+   "id": "spined_larupia",
+   "name": "Spined Larupia",
+   "creature": "SPINED_LARUPIA",
+   "npcId": 2908,
+   "icon": 10045,
+   "pieceItemId": 29226,
+   "trap": "Pit Trap",
+   "trapItemId": 10029,
+   "pity": 30,
+   "pityWithOutfit": 28,
+   "level": 31,
+   "reqs": [
+    "skillb:Hunter:31"
+   ],
+   "tiers": [
+    "novice",
+    "adept"
+   ],
+   "xpDrops": [
+    180
+   ]
+  },
+  {
+   "id": "barb_tailed_kebbit",
+   "name": "Barb-tailed Kebbit",
+   "creature": "BARB_TAILED_KEBBIT",
+   "npcId": 1348,
+   "icon": 9958,
+   "pieceItemId": 29223,
+   "trap": "Deadfall",
+   "trapItemId": 1511,
+   "pity": 30,
+   "pityWithOutfit": 28,
+   "level": 33,
+   "reqs": [
+    "skillb:Hunter:33"
+   ],
+   "tiers": [
+    "novice",
+    "adept"
+   ],
+   "xpDrops": [
+    168
+   ]
+  },
+  {
+   "id": "snowy_knight",
+   "name": "Snowy Knight",
+   "creature": "SNOWY_KNIGHT",
+   "npcId": 5554,
+   "icon": 9972,
+   "pieceItemId": 29227,
+   "trap": "Butterfly Net",
+   "trapItemId": 10010,
+   "pity": 150,
+   "pityWithOutfit": 142,
+   "level": 35,
+   "reqs": [
+    "skillb:Hunter:35"
+   ],
+   "tiers": [
+    "novice",
+    "adept"
+   ],
+   "xpDrops": [
+    44
+   ]
+  },
+  {
+   "id": "prickly_kebbit",
+   "name": "Prickly Kebbit",
+   "creature": "PRICKLY_KEBBIT",
+   "npcId": 1346,
+   "icon": 9957,
+   "pieceItemId": 29223,
+   "trap": "Deadfall",
+   "trapItemId": 1511,
+   "pity": 30,
+   "pityWithOutfit": 28,
+   "level": 37,
+   "reqs": [
+    "skillb:Hunter:37"
+   ],
+   "tiers": [
+    "novice",
+    "adept"
+   ],
+   "xpDrops": [
+    204
+   ]
+  },
+  {
+   "id": "embertailed_jerboa",
+   "name": "Embertailed Jerboa",
+   "creature": "EMBERTAILED_JERBOA",
+   "npcId": 13139,
+   "icon": 28866,
+   "pieceItemId": 29228,
+   "trap": "Box Trap",
+   "trapItemId": 10008,
+   "pity": 100,
+   "pityWithOutfit": 94,
+   "level": 39,
+   "reqs": [
+    "skillb:Hunter:39"
+   ],
+   "tiers": [
+    "novice",
+    "adept"
+   ],
+   "xpDrops": [
+    137
+   ]
+  },
+  {
+   "id": "horned_graahk",
+   "name": "Horned Graahk",
+   "creature": "HORNED_GRAAHK",
+   "npcId": 2909,
+   "icon": 10051,
+   "pieceItemId": 29229,
+   "trap": "Pit Trap",
+   "trapItemId": 10029,
+   "pity": 30,
+   "pityWithOutfit": 28,
+   "level": 41,
+   "reqs": [
+    "skillb:Hunter:41"
+   ],
+   "tiers": [
+    "novice",
+    "adept"
+   ],
+   "xpDrops": [
+    240
+   ]
+  },
+  {
+   "id": "spotted_kebbit",
+   "name": "Spotted Kebbit",
+   "creature": "SPOTTED_KEBBIT",
+   "npcId": 5531,
+   "icon": 9960,
+   "pieceItemId": 29223,
+   "trap": "Falconry",
+   "trapItemId": 10023,
+   "pity": 20,
+   "pityWithOutfit": 18,
+   "level": 43,
+   "reqs": [
+    "skillb:Hunter:43"
+   ],
+   "tiers": [
+    "novice",
+    "adept"
+   ],
+   "xpDrops": [
+    104
+   ]
+  },
+  {
+   "id": "black_warlock",
+   "name": "Black Warlock",
+   "creature": "BLACK_WARLOCK",
+   "npcId": 5553,
+   "icon": 9973,
+   "pieceItemId": 29230,
+   "trap": "Butterfly Net",
+   "trapItemId": 10010,
+   "pity": 150,
+   "pityWithOutfit": 142,
+   "level": 45,
+   "reqs": [
+    "skillb:Hunter:45"
+   ],
+   "tiers": [
+    "novice",
+    "adept"
+   ],
+   "xpDrops": [
+    54
+   ]
+  },
+  {
+   "id": "orange_salamander",
+   "name": "Orange Salamander",
+   "creature": "ORANGE_SALAMANDER",
+   "npcId": 2903,
+   "icon": 10146,
+   "pieceItemId": 29231,
+   "trap": "Net trap",
+   "trapItemId": 303,
+   "pity": 50,
+   "pityWithOutfit": 46,
+   "level": 47,
+   "reqs": [
+    "skillb:Hunter:47"
+   ],
+   "tiers": [
+    "novice",
+    "adept",
+    "expert"
+   ],
+   "xpDrops": [
+    224
+   ]
+  },
+  {
+   "id": "razor_backed_kebbit",
+   "name": "Razor-backed Kebbit",
+   "creature": "RAZOR_BACKED_KEBBIT",
+   "npcId": 0,
+   "icon": 9961,
+   "pieceItemId": 29223,
+   "trap": "Tracking",
+   "trapItemId": 10150,
+   "pity": 30,
+   "pityWithOutfit": 28,
+   "level": 49,
+   "reqs": [
+    "skillb:Hunter:49"
+   ],
+   "tiers": [
+    "novice",
+    "adept",
+    "expert"
+   ],
+   "xpDrops": [
+    348
+   ]
+  },
+  {
+   "id": "sabre_toothed_kebbit",
+   "name": "Sabre-toothed Kebbit",
+   "creature": "SABRE_TOOTHED_KEBBIT",
+   "npcId": 1347,
+   "icon": 9959,
+   "pieceItemId": 29223,
+   "trap": "Deadfall",
+   "trapItemId": 1511,
+   "pity": 30,
+   "pityWithOutfit": 28,
+   "level": 51,
+   "reqs": [
+    "skillb:Hunter:51"
+   ],
+   "tiers": [
+    "novice",
+    "adept",
+    "expert"
+   ],
+   "xpDrops": [
+    200
+   ]
+  },
+  {
+   "id": "grey_chinchompa",
+   "name": "Grey Chinchompa",
+   "creature": "GREY_CHINCHOMPA",
+   "npcId": 2910,
+   "icon": 9976,
+   "pieceItemId": 29221,
+   "trap": "Box Trap",
+   "trapItemId": 10008,
+   "pity": 100,
+   "pityWithOutfit": 94,
+   "level": 53,
+   "reqs": [
+    "skillb:Hunter:53"
+   ],
+   "tiers": [
+    "novice",
+    "adept",
+    "expert"
+   ],
+   "xpDrops": [
+    198,
+    199
+   ]
+  },
+  {
+   "id": "sabre_toothed_kyatt",
+   "name": "Sabre-toothed Kyatt",
+   "creature": "SABRE_TOOTHED_KYATT",
+   "npcId": 2907,
+   "icon": 10039,
+   "pieceItemId": 29232,
+   "trap": "Pit Trap",
+   "trapItemId": 10029,
+   "pity": 30,
+   "pityWithOutfit": 28,
+   "level": 53,
+   "reqs": [
+    "skillb:Hunter:53"
+   ],
+   "tiers": [
+    "novice",
+    "adept",
+    "expert"
+   ],
+   "xpDrops": [
+    300
+   ]
+  },
+  {
+   "id": "dark_kebbit",
+   "name": "Dark Kebbit",
+   "creature": "DARK_KEBBIT",
+   "npcId": 5532,
+   "icon": 9963,
+   "pieceItemId": 29223,
+   "trap": "Falconry",
+   "trapItemId": 10023,
+   "pity": 20,
+   "pityWithOutfit": 18,
+   "level": 57,
+   "reqs": [
+    "skillb:Hunter:57"
+   ],
+   "tiers": [
+    "novice",
+    "adept",
+    "expert"
+   ],
+   "xpDrops": [
+    132
+   ]
+  },
+  {
+   "id": "pyre_fox",
+   "name": "Pyre Fox",
+   "creature": "PYRE_FOX",
+   "npcId": 13138,
+   "icon": 28865,
+   "pieceItemId": 29233,
+   "trap": "Deadfall",
+   "trapItemId": 1511,
+   "pity": 30,
+   "pityWithOutfit": 28,
+   "level": 57,
+   "reqs": [
+    "skillb:Hunter:57"
+   ],
+   "tiers": [
+    "novice",
+    "adept",
+    "expert",
+    "master"
+   ],
+   "xpDrops": [
+    222
+   ]
+  },
+  {
+   "id": "red_salamander",
+   "name": "Red Salamander",
+   "creature": "RED_SALAMANDER",
+   "npcId": 2904,
+   "icon": 10147,
+   "pieceItemId": 29234,
+   "trap": "Net trap",
+   "trapItemId": 303,
+   "pity": 50,
+   "pityWithOutfit": 46,
+   "level": 59,
+   "reqs": [
+    "skillb:Hunter:59"
+   ],
+   "tiers": [
+    "novice",
+    "expert",
+    "master"
+   ],
+   "xpDrops": [
+    272
+   ]
+  },
+  {
+   "id": "red_chinchompa",
+   "name": "Carnivorous Chinchompa",
+   "creature": "RED_CHINCHOMPA",
+   "npcId": 2911,
+   "icon": 9977,
+   "pieceItemId": 29235,
+   "trap": "Box Trap",
+   "trapItemId": 10008,
+   "pity": 100,
+   "pityWithOutfit": 94,
+   "level": 63,
+   "reqs": [
+    "skillb:Hunter:63"
+   ],
+   "tiers": [
+    "novice",
+    "expert",
+    "master"
+   ],
+   "xpDrops": [
+    265
+   ]
+  },
+  {
+   "id": "red_chinchompa_2",
+   "name": "Red Chinchompa",
+   "creature": "RED_CHINCHOMPA",
+   "npcId": 2911,
+   "icon": 9977,
+   "pieceItemId": 29235,
+   "trap": "Box Trap",
+   "trapItemId": 10008,
+   "pity": 100,
+   "pityWithOutfit": 94,
+   "level": 63,
+   "reqs": [
+    "skillb:Hunter:63"
+   ],
+   "tiers": [
+    "novice",
+    "expert",
+    "master"
+   ],
+   "xpDrops": [
+    265
+   ]
+  },
+  {
+   "id": "sunlight_moth",
+   "name": "Sunlight Moth",
+   "creature": "SUNLIGHT_MOTH",
+   "npcId": 12770,
+   "icon": 28863,
+   "pieceItemId": 29237,
+   "trap": "Butterfly Net",
+   "trapItemId": 10010,
+   "pity": 150,
+   "pityWithOutfit": 142,
+   "level": 65,
+   "reqs": [
+    "skillb:Hunter:65"
+   ],
+   "tiers": [
+    "novice",
+    "master"
+   ],
+   "xpDrops": [
+    74
+   ]
+  },
+  {
+   "id": "dashing_kebbit",
+   "name": "Dashing Kebbit",
+   "creature": "DASHING_KEBBIT",
+   "npcId": 5533,
+   "icon": 9964,
+   "pieceItemId": 29223,
+   "trap": "Falconry",
+   "trapItemId": 10023,
+   "pity": 20,
+   "pityWithOutfit": 18,
+   "level": 69,
+   "reqs": [
+    "skillb:Hunter:69"
+   ],
+   "tiers": [
+    "novice",
+    "expert",
+    "master"
+   ],
+   "xpDrops": [
+    156
+   ]
+  },
+  {
+   "id": "sunlight_antelope",
+   "name": "Sunlight Antelope",
+   "creature": "SUNLIGHT_ANTELOPE",
+   "npcId": 13133,
+   "icon": 28867,
+   "pieceItemId": 29236,
+   "trap": "Pit Trap",
+   "trapItemId": 10029,
+   "pity": 30,
+   "pityWithOutfit": 28,
+   "level": 72,
+   "reqs": [
+    "skillb:Hunter:72"
+   ],
+   "tiers": [
+    "novice",
+    "expert",
+    "master"
+   ],
+   "xpDrops": [
+    380
+   ]
+  },
+  {
+   "id": "moonlight_moth",
+   "name": "Moonlight Moth",
+   "creature": "MOONLIGHT_MOTH",
+   "npcId": 12771,
+   "icon": 28864,
+   "pieceItemId": 29240,
+   "trap": "Butterfly Net",
+   "trapItemId": 10010,
+   "pity": 150,
+   "pityWithOutfit": 142,
+   "level": 75,
+   "reqs": [
+    "skillb:Hunter:75"
+   ],
+   "tiers": [
+    "novice",
+    "master"
+   ],
+   "xpDrops": [
+    84
+   ]
+  },
+  {
+   "id": "tecu_salamander",
+   "name": "Tecu Salamander",
+   "creature": "TECU_SALAMANDER",
+   "npcId": 12769,
+   "icon": 28834,
+   "pieceItemId": 29238,
+   "trap": "Net trap",
+   "trapItemId": 303,
+   "pity": 50,
+   "pityWithOutfit": 46,
+   "level": 79,
+   "reqs": [
+    "skillb:Hunter:79"
+   ],
+   "tiers": [
+    "novice",
+    "master"
+   ],
+   "xpDrops": [
+    344
+   ]
+  },
+  {
+   "id": "herbiboar",
+   "name": "Herbiboar",
+   "creature": "HERBIBOAR",
+   "npcId": 7785,
+   "icon": 21511,
+   "pieceItemId": 29239,
+   "trap": "Tracking",
+   "trapItemId": 10150,
+   "pity": 14,
+   "pityWithOutfit": 12,
+   "level": 80,
+   "reqs": [
+    "skillb:Hunter:80"
+   ],
+   "tiers": [
+    "novice",
+    "master"
+   ],
+   "xpRange": [
+    1950,
+    2461
+   ]
+  },
+  {
+   "id": "moonlight_antelope",
+   "name": "Moonlight Antelope",
+   "creature": "MOONLIGHT_ANTELOPE",
+   "npcId": 13132,
+   "icon": 28868,
+   "pieceItemId": 29241,
+   "trap": "Pit Trap",
+   "trapItemId": 10029,
+   "pity": 30,
+   "pityWithOutfit": 28,
+   "level": 91,
+   "reqs": [
+    "skillb:Hunter:91"
+   ],
+   "tiers": [
+    "novice",
+    "master"
+   ],
+   "xpDrops": [
+    450
+   ]
+  }
+ ],
+ "locations": [
+  {
+   "creature": "TROPICAL_WAGTAIL",
+   "name": "Feldip Hunter area",
+   "x": 2526,
+   "y": 2939,
+   "plane": 0,
+   "fairyRing": "AKS",
+   "spots": 4
+  },
+  {
+   "creature": "TROPICAL_WAGTAIL",
+   "name": "The Great Conch (w/ Troubled Tortugans)",
+   "x": 3138,
+   "y": 2491,
+   "plane": 0,
+   "fairyRing": "CJQ",
+   "spots": 9
+  },
+  {
+   "creature": "WILD_KEBBIT",
+   "name": "Piscatoris Hunter area",
+   "x": 2362,
+   "y": 3578,
+   "plane": 0,
+   "fairyRing": "AKQ",
+   "spots": 20
+  },
+  {
+   "creature": "WILD_KEBBIT",
+   "name": "Auburnvale",
+   "x": 1378,
+   "y": 3385,
+   "plane": 0,
+   "spots": 12
+  },
+  {
+   "creature": "SAPPHIRE_GLACIALIS",
+   "name": "Rellekka Hunter area",
+   "x": 2703,
+   "y": 3822,
+   "plane": 0,
+   "fairyRing": "DKS",
+   "spots": 6
+  },
+  {
+   "creature": "SAPPHIRE_GLACIALIS",
+   "name": "Farming Guild",
+   "x": 1237,
+   "y": 3746,
+   "plane": 0,
+   "fairyRing": "CIR",
+   "spots": 2
+  },
+  {
+   "creature": "SAPPHIRE_GLACIALIS",
+   "name": "Mons Gratia",
+   "x": 1437,
+   "y": 3235,
+   "plane": 0,
+   "spots": 7
+  },
+  {
+   "creature": "SWAMP_LIZARD",
+   "name": "Canifis Hunter Area",
+   "x": 3532,
+   "y": 3446,
+   "plane": 0,
+   "fairyRing": "ALQ",
+   "spots": 1
+  },
+  {
+   "creature": "SWAMP_LIZARD",
+   "name": "North-west of Slepe",
+   "x": 3684,
+   "y": 3403,
+   "plane": 0,
+   "spots": 1
+  },
+  {
+   "creature": "SPINED_LARUPIA",
+   "name": "Feldip Hunter area",
+   "x": 2544,
+   "y": 2910,
+   "plane": 0,
+   "fairyRing": "AKS",
+   "spots": 5
+  },
+  {
+   "creature": "BARB_TAILED_KEBBIT",
+   "name": "Feldip Hunter area",
+   "x": 2572,
+   "y": 2931,
+   "plane": 0,
+   "fairyRing": "AKS",
+   "spots": 15
+  },
+  {
+   "creature": "SNOWY_KNIGHT",
+   "name": "Weiss",
+   "x": 2864,
+   "y": 3957,
+   "plane": 0,
+   "spots": 4
+  },
+  {
+   "creature": "SNOWY_KNIGHT",
+   "name": "Rellekka Hunter area, Upper level",
+   "x": 2725,
+   "y": 3833,
+   "plane": 0,
+   "fairyRing": "DKS",
+   "spots": 3
+  },
+  {
+   "creature": "SNOWY_KNIGHT",
+   "name": "Rellekka Hunter area",
+   "x": 2701,
+   "y": 3804,
+   "plane": 0,
+   "fairyRing": "DKS",
+   "spots": 6
+  },
+  {
+   "creature": "SNOWY_KNIGHT",
+   "name": "Farming Guild",
+   "x": 1238,
+   "y": 3740,
+   "plane": 0,
+   "fairyRing": "CIR",
+   "spots": 2
+  },
+  {
+   "creature": "SNOWY_KNIGHT",
+   "name": "Mons Gratia",
+   "x": 1449,
+   "y": 3249,
+   "plane": 0,
+   "spots": 6
+  },
+  {
+   "creature": "SNOWY_KNIGHT",
+   "name": "Brittle Isle",
+   "x": 1951,
+   "y": 4074,
+   "plane": 0,
+   "spots": 5
+  },
+  {
+   "creature": "PRICKLY_KEBBIT",
+   "name": "Piscatoris Hunter area",
+   "x": 2321,
+   "y": 3644,
+   "plane": 0,
+   "fairyRing": "AKQ",
+   "spots": 20
+  },
+  {
+   "creature": "EMBERTAILED_JERBOA",
+   "name": "West of Hunter Guild",
+   "x": 1510,
+   "y": 3046,
+   "plane": 0,
+   "spots": 11
+  },
+  {
+   "creature": "EMBERTAILED_JERBOA",
+   "name": "North-west of the Locus Oasis",
+   "x": 1664,
+   "y": 2998,
+   "plane": 0,
+   "fairyRing": "AJP",
+   "spots": 8
+  },
+  {
+   "creature": "HORNED_GRAAHK",
+   "name": "Karamja Hunter area",
+   "x": 2766,
+   "y": 3008,
+   "plane": 0,
+   "fairyRing": "CKR",
+   "spots": 4
+  },
+  {
+   "creature": "SPOTTED_KEBBIT",
+   "name": "Piscatoris falconry area",
+   "x": 2391,
+   "y": 3592,
+   "plane": 0,
+   "fairyRing": "AKQ",
+   "spots": 7
+  },
+  {
+   "creature": "BLACK_WARLOCK",
+   "name": "Feldip Hunter area",
+   "x": 2563,
+   "y": 2920,
+   "plane": 0,
+   "fairyRing": "AKS",
+   "spots": 7
+  },
+  {
+   "creature": "BLACK_WARLOCK",
+   "name": "In and around the Farming Guild",
+   "x": 1224,
+   "y": 3764,
+   "plane": 0,
+   "fairyRing": "CIR",
+   "spots": 5
+  },
+  {
+   "creature": "BLACK_WARLOCK",
+   "name": "The Great Conch (w/ Troubled Tortugans)",
+   "x": 3232,
+   "y": 2470,
+   "plane": 0,
+   "fairyRing": "CJQ",
+   "spots": 1
+  },
+  {
+   "creature": "ORANGE_SALAMANDER",
+   "name": "Necropolis (w/ Beneath Cursed Sands)",
+   "x": 3285,
+   "y": 2741,
+   "plane": 0,
+   "fairyRing": "AKP",
+   "spots": 5
+  },
+  {
+   "creature": "ORANGE_SALAMANDER",
+   "name": "Uzer Hunter area",
+   "x": 3405,
+   "y": 3133,
+   "plane": 0,
+   "fairyRing": "DLQ",
+   "spots": 3
+  },
+  {
+   "creature": "ORANGE_SALAMANDER",
+   "name": "The Great Conch (w/ Troubled Tortugans)",
+   "x": 3119,
+   "y": 2526,
+   "plane": 0,
+   "fairyRing": "CJQ",
+   "spots": 8
+  },
+  {
+   "creature": "RAZOR_BACKED_KEBBIT",
+   "name": "Piscatoris Hunter area",
+   "x": 2353,
+   "y": 3595,
+   "plane": 0,
+   "fairyRing": "AKQ",
+   "spots": 3
+  },
+  {
+   "creature": "SABRE_TOOTHED_KEBBIT",
+   "name": "Rellekka Hunter area",
+   "x": 2705,
+   "y": 3780,
+   "plane": 0,
+   "fairyRing": "DKS",
+   "spots": 12
+  },
+  {
+   "creature": "GREY_CHINCHOMPA",
+   "name": "Piscatoris Hunter area",
+   "x": 2332,
+   "y": 3626,
+   "plane": 0,
+   "fairyRing": "AKQ",
+   "spots": 7
+  },
+  {
+   "creature": "GREY_CHINCHOMPA",
+   "name": "Kourend Woodland",
+   "x": 1480,
+   "y": 3503,
+   "plane": 0,
+   "spots": 1
+  },
+  {
+   "creature": "GREY_CHINCHOMPA",
+   "name": "Isle of Souls",
+   "x": 2126,
+   "y": 2949,
+   "plane": 0,
+   "fairyRing": "BJP",
+   "spots": 1
+  },
+  {
+   "creature": "SABRE_TOOTHED_KYATT",
+   "name": "Rellekka Hunter area",
+   "x": 2708,
+   "y": 3796,
+   "plane": 0,
+   "fairyRing": "DKS",
+   "spots": 6
+  },
+  {
+   "creature": "DARK_KEBBIT",
+   "name": "Piscatoris falconry area",
+   "x": 2389,
+   "y": 3598,
+   "plane": 0,
+   "fairyRing": "AKQ",
+   "spots": 7
+  },
+  {
+   "creature": "PYRE_FOX",
+   "name": "Avium Savannah",
+   "x": 1613,
+   "y": 2995,
+   "plane": 0,
+   "fairyRing": "AJP",
+   "spots": 5
+  },
+  {
+   "creature": "RED_SALAMANDER",
+   "name": "Ourania Hunter area",
+   "x": 2464,
+   "y": 3251,
+   "plane": 0,
+   "spots": 9
+  },
+  {
+   "creature": "RED_CHINCHOMPA",
+   "name": "Gwenith Hunter area",
+   "x": 2266,
+   "y": 3411,
+   "plane": 0,
+   "spots": 9
+  },
+  {
+   "creature": "RED_CHINCHOMPA",
+   "name": "Feldip Hunter area",
+   "x": 2557,
+   "y": 2936,
+   "plane": 0,
+   "fairyRing": "AKS",
+   "spots": 9
+  },
+  {
+   "creature": "RED_CHINCHOMPA",
+   "name": "Feldip Hunter Area",
+   "x": 2507,
+   "y": 2885,
+   "plane": 0,
+   "fairyRing": "AKS",
+   "spots": 2
+  },
+  {
+   "creature": "RED_CHINCHOMPA_2",
+   "name": "The Great Conch (w/ Troubled Tortugans)",
+   "x": 3255,
+   "y": 2378,
+   "plane": 0,
+   "fairyRing": "CJQ",
+   "spots": 16
+  },
+  {
+   "creature": "RED_CHINCHOMPA_2",
+   "name": "Gwenith Hunter area",
+   "x": 2266,
+   "y": 3411,
+   "plane": 0,
+   "spots": 9
+  },
+  {
+   "creature": "RED_CHINCHOMPA_2",
+   "name": "Feldip Hunter area",
+   "x": 2557,
+   "y": 2936,
+   "plane": 0,
+   "fairyRing": "AKS",
+   "spots": 9
+  },
+  {
+   "creature": "RED_CHINCHOMPA_2",
+   "name": "Feldip Hunter Area",
+   "x": 2507,
+   "y": 2885,
+   "plane": 0,
+   "fairyRing": "AKS",
+   "spots": 2
+  },
+  {
+   "creature": "RED_CHINCHOMPA_2",
+   "name": "Tlati Rainforest (NE of Tal Teklan quetzal)",
+   "x": 1316,
+   "y": 3168,
+   "plane": 0,
+   "spots": 6
+  },
+  {
+   "creature": "RED_CHINCHOMPA_2",
+   "name": "Chinchompa Island",
+   "x": 1887,
+   "y": 3431,
+   "plane": 0,
+   "spots": 5
+  },
+  {
+   "creature": "MOONLIGHT_ANTELOPE",
+   "name": "Hunters' Guild",
+   "x": 1555,
+   "y": 9416,
+   "plane": 0,
+   "spots": 4
+  },
+  {
+   "creature": "HERBIBOAR",
+   "name": "Mushroom Forest on Fossil Island",
+   "x": 3710,
+   "y": 3883,
+   "plane": 0,
+   "spots": 9
+  },
+  {
+   "creature": "TECU_SALAMANDER",
+   "name": "Ralos' Rise",
+   "x": 1471,
+   "y": 3087,
+   "plane": 0,
+   "spots": 5
+  },
+  {
+   "creature": "MOONLIGHT_MOTH",
+   "name": "Hunters' Guild",
+   "x": 1562,
+   "y": 9441,
+   "plane": 0,
+   "spots": 8
+  },
+  {
+   "creature": "MOONLIGHT_MOTH",
+   "name": "Neypotzli",
+   "x": 1554,
+   "y": 9433,
+   "plane": 0,
+   "spots": 4
+  },
+  {
+   "creature": "SUNLIGHT_ANTELOPE",
+   "name": "Avium Savannah",
+   "x": 1735,
+   "y": 3008,
+   "plane": 0,
+   "fairyRing": "AJP",
+   "spots": 8
+  },
+  {
+   "creature": "DASHING_KEBBIT",
+   "name": "Piscatoris falconry area",
+   "x": 2390,
+   "y": 3588,
+   "plane": 0,
+   "fairyRing": "AKQ",
+   "spots": 3
+  },
+  {
+   "creature": "SUNLIGHT_MOTH",
+   "name": "Avium Savannah",
+   "x": 1550,
+   "y": 3016,
+   "plane": 0,
+   "fairyRing": "AJP",
+   "spots": 67
+  },
+  {
+   "creature": "SUNLIGHT_MOTH",
+   "name": "Neypotzli",
+   "x": 1434,
+   "y": 9632,
+   "plane": 0,
+   "spots": 4
+  }
+ ],
+ "outfit": [
+  29263,
+  29265,
+  29267,
+  29269
+ ]
+}

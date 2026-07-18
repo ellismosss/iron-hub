@@ -59,6 +59,9 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "pohProgression", name = "PoH progression", description = "Useful house builds: built, buildable and locked tiers per space", section = modulesSection, position = 13)
 	default boolean pohProgression() { return true; }
 
+	@ConfigItem(keyName = "hunterRumours", name = "Hunters' Rumours", description = "Current rumour target, catch progress, hunting locations and history", section = modulesSection, position = 13)
+	default boolean hunterRumours() { return true; }
+
 	@ConfigItem(keyName = "slayerOptimizer", name = "Slayer optimizer", description = "Point planning, block/skip advisor and per-task readiness", section = modulesSection, position = 15)
 	default boolean slayerOptimizer() { return true; }
 

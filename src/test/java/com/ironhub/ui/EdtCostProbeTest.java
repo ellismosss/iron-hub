@@ -200,6 +200,8 @@ public class EdtCostProbeTest
 					null, null, null, null, null, null, null, null, null, null, null),
 				config),
 			new com.ironhub.modules.poh.PohModule(state, config, new DataPack(new Gson()),
-				new net.runelite.client.eventbus.EventBus(), null));
+				new net.runelite.client.eventbus.EventBus(), null),
+			new com.ironhub.modules.hunter.HunterRumoursModule(state, config, new DataPack(new Gson()),
+				null, null, new net.runelite.client.eventbus.EventBus(), null, null));
 	}
 }

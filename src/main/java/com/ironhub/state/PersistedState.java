@@ -94,6 +94,34 @@ public class PersistedState
 
 	java.util.Set<String> pohBuilt = new java.util.HashSet<>();     // built POH tier ids (pack keys)
 
+	Map<String, String> rumourPrefLocations = new HashMap<>(); // creature -> preferred location name
+	java.util.List<RumourRecord> rumourRecords = new ArrayList<>(); // oldest first, capped; last may be active
+
+	/** One assigned rumour's outcome. Opens on assignment, closes on the
+	 *  next assignment or a hand-in — {@code caught} is the observed catch
+	 *  count and {@code pieceFound} marks the rare-piece message. */
+	public static class RumourRecord
+	{
+		public String rumourId = "";
+		public String hunterId = "";
+		public int caught;
+		public boolean pieceFound;
+		public long start;
+		public long end;      // 0 while active
+
+		public RumourRecord copy()
+		{
+			RumourRecord c = new RumourRecord();
+			c.rumourId = rumourId;
+			c.hunterId = hunterId;
+			c.caught = caught;
+			c.pieceFound = pieceFound;
+			c.start = start;
+			c.end = end;
+			return c;
+		}
+	}
+
 	java.util.Set<Integer> stashBuilt = new java.util.HashSet<>();  // built STASH object ids
 	java.util.Set<Integer> stashFilled = new java.util.HashSet<>(); // filled STASH object ids
 

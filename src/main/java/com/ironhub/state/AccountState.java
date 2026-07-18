@@ -108,6 +108,11 @@ public class AccountState implements StateView
 	// built POH tiers (pack tier ids)
 	private final Set<String> pohBuilt = ConcurrentHashMap.newKeySet();
 
+	// hunters' rumours: preferred locations + capped records
+	public static final int MAX_RUMOUR_RECORDS = 50;
+	private final Map<String, String> rumourPrefLocations = new ConcurrentHashMap<>();
+	private final java.util.List<PersistedState.RumourRecord> rumourRecords = new CopyOnWriteArrayList<>();
+
 	// STASH units (object ids) + clue-step goal seeds
 	private final Set<Integer> stashBuilt = ConcurrentHashMap.newKeySet();
 	private final Set<Integer> stashFilled = ConcurrentHashMap.newKeySet();
@@ -518,6 +523,52 @@ public class AccountState implements StateView
 	public void recordHerbRun(long durationMs)
 	{
 		herbRunsMs.add(durationMs);
+		persist();
+		notifyListeners();
+	}
+
+	// ── hunters' rumours ──────────────────────────────────────────────
+
+	public String getRumourPrefLocation(String creature)
+	{
+		return rumourPrefLocations.get(creature);
+	}
+
+	public void setRumourPrefLocation(String creature, String location)
+	{
+		if (location == null)
+		{
+			rumourPrefLocations.remove(creature);
+		}
+		else
+		{
+			rumourPrefLocations.put(creature, location);
+		}
+		persist();
+		notifyListeners();
+	}
+
+	/** Rumour records, oldest first (copies). */
+	public java.util.List<PersistedState.RumourRecord> getRumourRecords()
+	{
+		java.util.List<PersistedState.RumourRecord> out = new java.util.ArrayList<>();
+		for (PersistedState.RumourRecord r : rumourRecords)
+		{
+			out.add(r.copy());
+		}
+		return out;
+	}
+
+	public void setRumourRecords(java.util.List<PersistedState.RumourRecord> records)
+	{
+		java.util.List<PersistedState.RumourRecord> copies = new java.util.ArrayList<>();
+		int from = Math.max(0, records.size() - MAX_RUMOUR_RECORDS);
+		for (PersistedState.RumourRecord r : records.subList(from, records.size()))
+		{
+			copies.add(r.copy());
+		}
+		rumourRecords.clear();
+		rumourRecords.addAll(copies);
 		persist();
 		notifyListeners();
 	}
@@ -1923,6 +1974,10 @@ public class AccountState implements StateView
 		deaths.addAll(persisted.deaths);
 		pohBuilt.clear();
 		pohBuilt.addAll(persisted.pohBuilt);
+		rumourPrefLocations.clear();
+		rumourPrefLocations.putAll(persisted.rumourPrefLocations);
+		rumourRecords.clear();
+		rumourRecords.addAll(persisted.rumourRecords);
 		stashBuilt.clear();
 		stashBuilt.addAll(persisted.stashBuilt);
 		stashFilled.clear();
@@ -2023,6 +2078,11 @@ public class AccountState implements StateView
 		state.consumptionLog = new java.util.ArrayList<>(consumptionLog);
 		state.deaths = new java.util.ArrayList<>(deaths);
 		state.pohBuilt = new HashSet<>(pohBuilt);
+		state.rumourPrefLocations = new HashMap<>(rumourPrefLocations);
+		for (PersistedState.RumourRecord r : rumourRecords)
+		{
+			state.rumourRecords.add(r.copy());
+		}
 		state.stashBuilt = new HashSet<>(stashBuilt);
 		state.stashFilled = new HashSet<>(stashFilled);
 		state.clueGoals = new HashMap<>(clueGoals);

@@ -1,0 +1,79 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Hunters' Rumours (ported from the Hunter Rumours plugin, BSD-2)",
+	"type": "object",
+	"required": ["version", "sources", "hunters", "rumours", "locations", "outfit"],
+	"additionalProperties": false,
+	"properties": {
+		"version": {"type": "integer", "minimum": 1},
+		"sources": {"type": "object"},
+		"outfit": {
+			"type": "array",
+			"minItems": 4,
+			"maxItems": 4,
+			"items": {"type": "integer", "minimum": 1}
+		},
+		"hunters": {
+			"type": "array",
+			"minItems": 6,
+			"maxItems": 6,
+			"items": {
+				"type": "object",
+				"required": ["id", "npcId", "name", "npcName", "tier"],
+				"additionalProperties": false,
+				"properties": {
+					"id": {"type": "string", "pattern": "^[a-z_]+$"},
+					"npcId": {"type": "integer", "minimum": 1},
+					"name": {"type": "string", "minLength": 1},
+					"npcName": {"type": "string", "minLength": 1},
+					"tier": {"enum": ["novice", "adept", "expert", "master"]}
+				}
+			}
+		},
+		"rumours": {
+			"type": "array",
+			"minItems": 28,
+			"items": {
+				"type": "object",
+				"required": ["id", "name", "creature", "npcId", "icon", "pieceItemId",
+					"trap", "trapItemId", "pity", "pityWithOutfit", "level", "reqs", "tiers"],
+				"additionalProperties": false,
+				"properties": {
+					"id": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+					"name": {"type": "string", "minLength": 1},
+					"creature": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+					"npcId": {"type": "integer", "minimum": 0},
+					"icon": {"type": "integer", "minimum": 1},
+					"pieceItemId": {"type": "integer", "minimum": 1},
+					"trap": {"type": "string", "minLength": 1},
+					"trapItemId": {"type": "integer", "minimum": 1},
+					"pity": {"type": "integer", "minimum": 1},
+					"pityWithOutfit": {"type": "integer", "minimum": 1},
+					"level": {"type": "integer", "minimum": 1, "maximum": 99},
+					"reqs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+					"tiers": {"type": "array", "minItems": 1, "items": {"enum": ["novice", "adept", "expert", "master"]}},
+					"xpDrops": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+					"xpRange": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "integer", "minimum": 1}}
+				}
+			}
+		},
+		"locations": {
+			"type": "array",
+			"minItems": 40,
+			"items": {
+				"type": "object",
+				"required": ["creature", "name", "x", "y", "plane", "spots"],
+				"additionalProperties": false,
+				"properties": {
+					"creature": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+					"name": {"type": "string", "minLength": 1},
+					"x": {"type": "integer"},
+					"y": {"type": "integer"},
+					"plane": {"type": "integer", "minimum": 0, "maximum": 3},
+					"fairyRing": {"type": "string", "pattern": "^[A-Z]{3}$"},
+					"spots": {"type": "integer", "minimum": 1}
+				}
+			}
+		}
+	}
+}
