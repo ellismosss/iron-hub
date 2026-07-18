@@ -660,11 +660,11 @@ class CollectionLogTab extends JPanel
 	{
 		if (isGoal(itemId))
 		{
-			state.removeClogGoal(itemId);
+			state.removeGoalSeed("clog:" + itemId);
 		}
 		else
 		{
-			state.addClogGoal(itemId, slotName, activity.name, activity.reqs);
+			state.addGoalSeed(com.ironhub.state.GoalSeeds.clog(itemId, slotName, activity.name, activity.reqs));
 			if (state.getClogObtained().contains(itemId))
 			{
 				// already in the log: prove the goal immediately

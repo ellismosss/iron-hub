@@ -155,7 +155,8 @@ public class PlannerOverlayTest
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 24L);
-		state.addCustomGoal("custom:skill:agility:5", "Agility 5", "skill:Agility:5");
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.custom(
+			"custom:skill:agility:5", "Agility 5", "skill:Agility:5"));
 		GoalPlannerModule module = module(state);
 		waitForSteps(module);
 
@@ -177,7 +178,8 @@ public class PlannerOverlayTest
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 25L);
-		state.addCustomGoal("custom:skill:agility:5", "Agility 5", "skill:Agility:5");
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.custom(
+			"custom:skill:agility:5", "Agility 5", "skill:Agility:5"));
 		GoalPlannerModule module = module(state);
 		waitForSteps(module);
 

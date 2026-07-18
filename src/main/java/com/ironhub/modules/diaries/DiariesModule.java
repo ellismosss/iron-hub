@@ -284,7 +284,7 @@ public class DiariesModule implements IronHubModule
 	 */
 	void markDiaryGoalProofs()
 	{
-		var goalSlugs = state.getDiaryGoals().keySet();
+		var goalSlugs = state.goalSeedIds("diary");
 		if (goalSlugs.isEmpty() || markingProofs || pack == null)
 		{
 			return;

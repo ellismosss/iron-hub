@@ -343,31 +343,15 @@ public class GoalPlannerModule implements IronHubModule
 	}
 
 	/**
-	 * Remove a goal wherever it lives: CA/diary goals drop their module
+	 * Remove a goal wherever it lives: seeded goals drop their persisted
 	 * seed (which also deselects); everything else — pack goals, gear
-	 * targets, custom skill goals — simply deselects.
+	 * targets — simply deselects.
 	 */
 	public static void removeGoal(AccountState state, String goalId)
 	{
-		if (goalId.startsWith("ca:"))
+		if (state.getGoalSeeds().containsKey(goalId))
 		{
-			state.removeCaGoal(Integer.parseInt(goalId.substring(3)));
-		}
-		else if (goalId.startsWith("diary:"))
-		{
-			state.removeDiaryGoal(goalId.substring("diary:".length()));
-		}
-		else if (goalId.startsWith("clog:"))
-		{
-			state.removeClogGoal(Integer.parseInt(goalId.substring("clog:".length())));
-		}
-		else if (goalId.startsWith("clue:"))
-		{
-			state.removeClueGoal(goalId.substring("clue:".length()));
-		}
-		else if (goalId.startsWith("custom:"))
-		{
-			state.removeCustomGoal(goalId);
+			state.removeGoalSeed(goalId);
 		}
 		else
 		{
@@ -408,119 +392,38 @@ public class GoalPlannerModule implements IronHubModule
 		return goal;
 	}
 
-	// ── combat-achievement tasks as synthetic goals ───────────────────
+	// ── persisted goal seeds as goals (every synthetic family) ────────
 
 	/**
-	 * A Combat Achievement task added from the CA tab: one step — the task
-	 * itself — proven by the {@code catask_<id>} unlock flag the CA module
-	 * marks once the live catalog shows the task completed.
+	 * A persisted {@link com.ironhub.state.PersistedState.GoalSeed} as a
+	 * planner goal — mechanical: the seed already carries the finished
+	 * labels, steps and proofs (built by
+	 * {@link com.ironhub.state.GoalSeeds} at add/migration time).
 	 */
-	public static GoalsPack.Goal toCaGoal(String taskId, com.ironhub.state.PersistedState.CaGoal seed)
+	public static GoalsPack.Goal toGoal(com.ironhub.state.PersistedState.GoalSeed seed)
 	{
-		String proof = "unlock:catask_" + taskId;
 		GoalsPack.Goal goal = new GoalsPack.Goal();
-		goal.setId("ca:" + taskId);
+		goal.setId(seed.id);
 		goal.setName(seed.name);
-		GoalsPack.Step step = new GoalsPack.Step();
-		step.setLabel(seed.description + " (" + seed.tier + " combat task)");
-		step.setRequirement(proof);
-		goal.setSteps(List.of(step));
-		goal.setAchieved(List.of(proof));
-		return goal;
-	}
-
-	/**
-	 * An achievement diary task added from the diaries tab: one step — the
-	 * task itself — proven by the {@code diarytask_<slug>} unlock flag the
-	 * diaries module marks once the completion flag (or the tier's own
-	 * completion) shows the task done.
-	 */
-	public static GoalsPack.Goal toDiaryGoal(String slug, com.ironhub.state.PersistedState.DiaryGoal seed)
-	{
-		String proof = "unlock:diarytask_" + slug;
-		GoalsPack.Goal goal = new GoalsPack.Goal();
-		goal.setId("diary:" + slug);
-		goal.setName(seed.task);
-		GoalsPack.Step step = new GoalsPack.Step();
-		step.setLabel(seed.task + " (" + seed.region + " " + seed.tier + " diary)");
-		step.setRequirement(proof);
-		goal.setSteps(List.of(step));
-		goal.setAchieved(List.of(proof));
-		return goal;
-	}
-
-	/**
-	 * A collection-log slot added from the collection log tab: the source
-	 * activity's requirements become steps, then obtaining the slot itself —
-	 * proven by the {@code clogitem_<id>} unlock the collection-log module
-	 * marks when the slot is seen obtained (chat drop or Log Sync).
-	 */
-	public static GoalsPack.Goal toClogGoal(String itemId, com.ironhub.state.PersistedState.ClogGoal seed)
-	{
-		String proof = "unlock:clogitem_" + itemId;
-		GoalsPack.Goal goal = new GoalsPack.Goal();
-		goal.setId("clog:" + itemId);
-		goal.setName(seed.name);
-		goal.setIconItemId(Integer.parseInt(itemId));
-		List<GoalsPack.Step> steps = new ArrayList<>();
-		for (String raw : seed.reqs)
+		if (seed.iconItemId > 0)
 		{
-			GoalsPack.Step step = new GoalsPack.Step();
-			step.setLabel(Requirements.parse(raw).describe());
-			step.setRequirement(raw);
-			steps.add(step);
+			goal.setIconItemId(seed.iconItemId);
 		}
-		GoalsPack.Step obtain = new GoalsPack.Step();
-		obtain.setLabel("Obtain " + seed.name + " (" + seed.activity + ")");
-		obtain.setRequirement(proof);
-		steps.add(obtain);
-		goal.setSteps(steps);
-		goal.setAchieved(List.of(proof));
-		return goal;
-	}
-
-	/**
-	 * A clue step added from the Clues & STASH tab: the step's item
-	 * requirements become planner steps, achieved once the clues module
-	 * marks the {@code cluestep_<id>} unlock (it does so the moment the
-	 * requirements are all met — including immediately at add time).
-	 */
-	public static GoalsPack.Goal toClueGoal(String id, com.ironhub.state.PersistedState.ClueGoal seed)
-	{
-		String proof = "unlock:cluestep_" + id;
-		GoalsPack.Goal goal = new GoalsPack.Goal();
-		goal.setId("clue:" + id);
-		goal.setName(seed.tier + " clue step: " + seed.text);
 		List<GoalsPack.Step> steps = new ArrayList<>();
-		for (String raw : seed.reqs)
+		for (com.ironhub.state.PersistedState.SeedStep raw : seed.steps)
 		{
 			GoalsPack.Step step = new GoalsPack.Step();
-			step.setLabel(Requirements.parse(raw).describe());
-			step.setRequirement(raw);
+			step.setLabel(raw.label);
+			step.setRequirement(raw.requirement);
 			steps.add(step);
 		}
 		goal.setSteps(steps);
-		goal.setAchieved(List.of(proof));
-		return goal;
-	}
-
-	/** A user-typed goal ("Agility 70"): one detectable step, achieved
-	 * when its requirement holds. */
-	public static GoalsPack.Goal toCustomGoal(String goalId, com.ironhub.state.PersistedState.CustomGoal seed)
-	{
-		GoalsPack.Goal goal = new GoalsPack.Goal();
-		goal.setId(goalId);
-		goal.setName(seed.name);
-		GoalsPack.Step step = new GoalsPack.Step();
-		step.setLabel(seed.name);
-		step.setRequirement(seed.req);
-		goal.setSteps(List.of(step));
-		goal.setAchieved(List.of(seed.req));
+		goal.setAchieved(new ArrayList<>(seed.achieved));
 		return goal;
 	}
 
 	/** Pack goals plus a synthetic goal per targeted gear-chart item and
-	 * per combat/diary task added from its module tab. */
+	 * per persisted goal seed (CA/diary/clue/clog/custom families). */
 	public static List<GoalsPack.Goal> allGoals(GoalsPack goals,
 		com.ironhub.data.GearProgressionPack gear, AccountState state)
 	{
@@ -538,39 +441,11 @@ public class GoalPlannerModule implements IronHubModule
 				}
 			}
 		}
-		state.getCaGoals().forEach((taskId, seed) ->
-		{
-			if (state.getSelectedGoals().contains("ca:" + taskId))
-			{
-				all.add(toCaGoal(taskId, seed));
-			}
-		});
-		state.getDiaryGoals().forEach((slug, seed) ->
-		{
-			if (state.getSelectedGoals().contains("diary:" + slug))
-			{
-				all.add(toDiaryGoal(slug, seed));
-			}
-		});
-		state.getClueGoals().forEach((id, seed) ->
-		{
-			if (state.getSelectedGoals().contains("clue:" + id))
-			{
-				all.add(toClueGoal(id, seed));
-			}
-		});
-		state.getClogGoals().forEach((itemId, seed) ->
-		{
-			if (state.getSelectedGoals().contains("clog:" + itemId))
-			{
-				all.add(toClogGoal(itemId, seed));
-			}
-		});
-		state.getCustomGoals().forEach((goalId, seed) ->
+		state.getGoalSeeds().forEach((goalId, seed) ->
 		{
 			if (state.getSelectedGoals().contains(goalId))
 			{
-				all.add(toCustomGoal(goalId, seed));
+				all.add(toGoal(seed));
 			}
 		});
 		return all;

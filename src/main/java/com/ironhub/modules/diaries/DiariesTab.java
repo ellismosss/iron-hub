@@ -366,7 +366,7 @@ class DiariesTab extends JPanel
 		}
 		entry.add(column, BorderLayout.CENTER);
 
-		boolean isGoal = state.getDiaryGoals().containsKey(DiariesModule.slug(task));
+		boolean isGoal = state.getGoalSeeds().containsKey("diary:" + DiariesModule.slug(task));
 		JPanel buttonAnchor = new JPanel(new BorderLayout());
 		buttonAnchor.setOpaque(false);
 		buttonAnchor.add(goalGlyph(isGoal,
@@ -412,13 +412,13 @@ class DiariesTab extends JPanel
 	private void toggleGoal(DiariesPack.Region region, int tierIndex, DiariesPack.Task task)
 	{
 		String slug = DiariesModule.slug(task);
-		if (state.getDiaryGoals().containsKey(slug))
+		if (state.getGoalSeeds().containsKey("diary:" + slug))
 		{
-			state.removeDiaryGoal(slug);
+			state.removeGoalSeed("diary:" + slug);
 			return;
 		}
-		state.addDiaryGoal(slug, task.task, region.name,
-			region.tiers.get(tierIndex).tier);
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.diary(slug, task.task, region.name,
+			region.tiers.get(tierIndex).tier));
 		if (module.taskComplete(region, tierIndex, task))
 		{
 			// already done in-game: prove the goal immediately

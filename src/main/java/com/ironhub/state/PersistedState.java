@@ -125,10 +125,55 @@ public class PersistedState
 	java.util.Set<Integer> stashBuilt = new java.util.HashSet<>();  // built STASH object ids
 	java.util.Set<Integer> stashFilled = new java.util.HashSet<>(); // filled STASH object ids
 
-	Map<String, ClueGoal> clueGoals = new HashMap<>(); // clue id -> planner seed
+	/**
+	 * The unified goal seed (Goals v2 G1): every synthetic goal family —
+	 * ca / diary / clue / clog / custom, and families to come — persists
+	 * this one finished shape, built at add time by {@link GoalSeeds} so
+	 * it renders offline. Keyed by the FULL goal id ("ca:340").
+	 */
+	Map<String, GoalSeed> goalSeeds = new HashMap<>();
 
-	/** A clue step added to the goal planner: display seed so it renders
-	 *  offline; reqs become honest planner steps. */
+	public static class GoalSeed
+	{
+		public String id = "";      // full goal id, family + ":" + local id
+		public String family = "";  // "ca" | "diary" | "clue" | "clog" | "custom" | ...
+		public String name = "";
+		public int iconItemId;      // 0 = no item sprite
+		public java.util.List<SeedStep> steps = new ArrayList<>();
+		public java.util.List<String> achieved = new ArrayList<>();
+		public long addedAt;        // epoch ms; 0 = migrated (date unknown)
+
+		public GoalSeed copy()
+		{
+			GoalSeed c = new GoalSeed();
+			c.id = id;
+			c.family = family;
+			c.name = name;
+			c.iconItemId = iconItemId;
+			for (SeedStep step : steps)
+			{
+				SeedStep s = new SeedStep();
+				s.label = step.label;
+				s.requirement = step.requirement;
+				c.steps.add(s);
+			}
+			c.achieved = new ArrayList<>(achieved);
+			c.addedAt = addedAt;
+			return c;
+		}
+	}
+
+	public static class SeedStep
+	{
+		public String label = "";
+		public String requirement = "";
+	}
+
+	// ── legacy per-family goal seeds — read once for migration into
+	// goalSeeds (AccountState.activateProfile), never written again ──
+
+	Map<String, ClueGoal> clueGoals = new HashMap<>(); // legacy: clue id -> seed
+
 	public static class ClueGoal
 	{
 		public String text = "";
@@ -167,14 +212,8 @@ public class PersistedState
 	Set<Integer> clogSkipped = new HashSet<>();  // activity indices hidden from the TTNS ranking
 	int clogBaseline = -1;   // player's COLLECTION_COUNT at the last full sync (-1 = never synced)
 	long clogSyncedMs;       // when the last full sync completed
-	Map<String, ClogGoal> clogGoals = new HashMap<>(); // slot item id -> goal-planner seed
+	Map<String, ClogGoal> clogGoals = new HashMap<>(); // legacy: slot item id -> seed
 
-	/**
-	 * A collection-log slot added to the goal planner. Display data and the
-	 * source activity's requirement strings are snapshotted at add time;
-	 * completion is proven by the {@code clogitem_<id>} unlock flag the
-	 * collection-log module marks when the slot is seen obtained.
-	 */
 	public static class ClogGoal
 	{
 		public String name;
@@ -183,14 +222,8 @@ public class PersistedState
 	}
 	Set<String> selectedGoals = new HashSet<>();
 	String activeGoal = "";
-	Map<String, CaGoal> caGoals = new HashMap<>(); // CA task id -> goal-planner seed
+	Map<String, CaGoal> caGoals = new HashMap<>(); // legacy: CA task id -> seed
 
-	/**
-	 * A Combat Achievement task added to the goal planner. The catalog only
-	 * exists while logged in, so the goal's display data is snapshotted at
-	 * add time; completion is proven by the {@code catask_<id>} unlock flag
-	 * the CA module marks when the live catalog shows the task done.
-	 */
 	public static class CaGoal
 	{
 		public String name;
@@ -198,17 +231,15 @@ public class PersistedState
 		public String tier;
 	}
 
-	Map<String, DiaryGoal> diaryGoals = new HashMap<>(); // task slug -> goal-planner seed
+	Map<String, DiaryGoal> diaryGoals = new HashMap<>(); // legacy: task slug -> seed
 	Set<String> plannerPins = new HashSet<>();      // action ids pinned to the front
 	Set<String> plannerSnoozes = new HashSet<>();   // action ids sunk to the end
 	Set<String> plannerBans = new HashSet<>();      // methods.json ids never suggested
 	Map<String, String> plannerPreferred = new HashMap<>(); // skill -> preferred method id
 	double lastPlanHours;                            // known hours at last replan (session diffs)
 	boolean plannerRouteChapters;                    // Route view: chapter headers (default flat order)
-	Map<String, CustomGoal> customGoals = new HashMap<>(); // goal id -> seed (add-goal skill targets)
+	Map<String, CustomGoal> customGoals = new HashMap<>(); // legacy: goal id -> seed
 
-	/** A user-typed goal from the add-goal search ("Agility 70"): one
-	 * requirement string, achieved when it holds. */
 	public static class CustomGoal
 	{
 		public String name;

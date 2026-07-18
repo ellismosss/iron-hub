@@ -209,18 +209,18 @@ public class DiariesModuleTest
 		String slug = DiariesModule.slug(essMine);
 		assertEquals("1196_0", slug);
 
-		before.addDiaryGoal(slug, essMine.task, ardougne.name, "Easy");
-		before.addDiaryGoal("vb9999", "Removed", "Karamja", "Easy");
-		before.removeDiaryGoal("vb9999");
+		before.addGoalSeed(com.ironhub.state.GoalSeeds.diary(slug, essMine.task, ardougne.name, "Easy"));
+		before.addGoalSeed(com.ironhub.state.GoalSeeds.diary("vb9999", "Removed", "Karamja", "Easy"));
+		before.removeGoalSeed("diary:vb9999");
 
 		AccountState after = StateFixture.state(temp.getRoot());
 		StateFixture.profile(after, 7L);
 		assertEquals(java.util.Set.of("diary:" + slug), after.getSelectedGoals());
-		assertEquals(java.util.Set.of(slug), after.getDiaryGoals().keySet());
+		assertEquals(java.util.Set.of(slug), after.goalSeedIds("diary"));
 
 		// the seed compiles into a planner goal: one step, unlock-flag proof
 		com.ironhub.data.GoalsPack.Goal goal = com.ironhub.modules.goals.GoalPlannerModule
-			.toDiaryGoal(slug, after.getDiaryGoals().get(slug));
+			.toGoal(after.getGoalSeeds().get("diary:" + slug));
 		assertEquals("diary:" + slug, goal.getId());
 		assertEquals(essMine.task, goal.getName());
 		assertEquals(1, goal.getSteps().size());

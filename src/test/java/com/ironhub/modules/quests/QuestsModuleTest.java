@@ -68,11 +68,11 @@ public class QuestsModuleTest
 		module.addGoal("Dragon Slayer I");
 		assertTrue(module.isGoal("Dragon Slayer I"));
 		assertTrue(state.getSelectedGoals().contains("custom:quest:dragon-slayer-i"));
-		// the custom-goal seed carries the quest: requirement the engine expands
-		com.ironhub.state.PersistedState.CustomGoal seed =
-			state.getCustomGoals().get("custom:quest:dragon-slayer-i");
+		// the goal seed carries the quest: requirement the engine expands
+		com.ironhub.state.PersistedState.GoalSeed seed =
+			state.getGoalSeeds().get("custom:quest:dragon-slayer-i");
 		assertNotNull(seed);
-		assertEquals("quest:Dragon Slayer I", seed.req);
+		assertEquals("quest:Dragon Slayer I", seed.steps.get(0).requirement);
 
 		module.removeGoal("Dragon Slayer I");
 		assertFalse(module.isGoal("Dragon Slayer I"));

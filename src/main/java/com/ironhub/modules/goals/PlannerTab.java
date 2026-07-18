@@ -1185,8 +1185,9 @@ class PlannerTab extends JPanel
 		{
 			if (candidate.getId().startsWith("custom:"))
 			{
-				state.addCustomGoal(candidate.getId(), candidate.getName(),
-					candidate.getSteps().get(0).getRequirement());
+				state.addGoalSeed(com.ironhub.state.GoalSeeds.custom(
+					candidate.getId(), candidate.getName(),
+					candidate.getSteps().get(0).getRequirement()));
 			}
 			else
 			{

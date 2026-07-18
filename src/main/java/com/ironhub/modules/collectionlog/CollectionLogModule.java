@@ -331,7 +331,7 @@ public class CollectionLogModule implements IronHubModule
 		List<String> newlyDone = new ArrayList<>();
 		for (int id : canonicalIds)
 		{
-			if (state.getClogGoals().containsKey(String.valueOf(id))
+			if (state.getGoalSeeds().containsKey("clog:" + id)
 				&& !state.isUnlocked("clogitem_" + id))
 			{
 				newlyDone.add("clogitem_" + id);

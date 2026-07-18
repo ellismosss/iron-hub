@@ -217,7 +217,7 @@ public class CombatAchievementsModule implements IronHubModule
 	 */
 	private void markCompletedGoalTasks(List<CaTask> loaded)
 	{
-		var goalIds = state.getCaGoals().keySet();
+		var goalIds = state.goalSeedIds("ca");
 		List<String> newlyDone = new java.util.ArrayList<>();
 		for (CaTask task : loaded)
 		{

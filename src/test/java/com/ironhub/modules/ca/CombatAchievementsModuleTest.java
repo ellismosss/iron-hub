@@ -112,18 +112,18 @@ public class CombatAchievementsModuleTest
 	{
 		AccountState before = StateFixture.state(temp.getRoot());
 		StateFixture.profile(before, 7L);
-		before.addCaGoal(340, "Noxious Foe", "Kill an Aberrant Spectre.", "Easy");
-		before.addCaGoal(12, "Removed", "x", "Easy");
-		before.removeCaGoal(12);
+		before.addGoalSeed(com.ironhub.state.GoalSeeds.ca(340, "Noxious Foe", "Kill an Aberrant Spectre.", "Easy"));
+		before.addGoalSeed(com.ironhub.state.GoalSeeds.ca(12, "Removed", "x", "Easy"));
+		before.removeGoalSeed("ca:12");
 
 		AccountState after = StateFixture.state(temp.getRoot());
 		StateFixture.profile(after, 7L);
 		assertEquals(java.util.Set.of("ca:340"), after.getSelectedGoals());
-		assertEquals(java.util.Set.of("340"), after.getCaGoals().keySet());
+		assertEquals(java.util.Set.of("340"), after.goalSeedIds("ca"));
 
 		// the seed compiles into a planner goal: one step, unlock-flag proof
 		com.ironhub.data.GoalsPack.Goal goal = com.ironhub.modules.goals.GoalPlannerModule
-			.toCaGoal("340", after.getCaGoals().get("340"));
+			.toGoal(after.getGoalSeeds().get("ca:340"));
 		assertEquals("ca:340", goal.getId());
 		assertEquals("Noxious Foe", goal.getName());
 		assertEquals(1, goal.getSteps().size());

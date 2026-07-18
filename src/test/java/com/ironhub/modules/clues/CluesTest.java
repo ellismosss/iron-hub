@@ -124,8 +124,8 @@ public class CluesTest
 
 		// the goal appears in the planner's goal set with the reqs as steps
 		com.ironhub.data.GoalsPack.Goal goal =
-			com.ironhub.modules.goals.GoalPlannerModule.toClueGoal(clue.id,
-				state.getClueGoals().get(clue.id));
+			com.ironhub.modules.goals.GoalPlannerModule.toGoal(
+				state.getGoalSeeds().get("clue:" + clue.id));
 		assertEquals("clue:" + clue.id, goal.getId());
 		assertEquals(clue.reqs.size(), goal.getSteps().size());
 

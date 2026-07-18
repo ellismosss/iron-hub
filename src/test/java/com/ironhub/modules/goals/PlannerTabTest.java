@@ -88,7 +88,8 @@ public class PlannerTabTest
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 12L);
 		GoalPlannerModule module = module(state);
-		state.addCustomGoal("custom:skill:agility:70", "Agility 70", "skill:Agility:70");
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.custom(
+			"custom:skill:agility:70", "Agility 70", "skill:Agility:70"));
 
 		// the seed reaches the planner (the ghost-goal bug: selected but unplanned)
 		assertTrue(module.unmetGoals().stream()
@@ -98,13 +99,13 @@ public class PlannerTabTest
 		AccountState after = StateFixture.state(temp.getRoot());
 		StateFixture.profile(after, 12L);
 		assertTrue(after.getSelectedGoals().contains("custom:skill:agility:70"));
-		assertEquals("Agility 70", after.getCustomGoals()
+		assertEquals("Agility 70", after.getGoalSeeds()
 			.get("custom:skill:agility:70").name);
 
-		// prefix-aware removal drops seed + selection
+		// seed-aware removal drops seed + selection
 		GoalPlannerModule.removeGoal(after, "custom:skill:agility:70");
 		assertFalse(after.getSelectedGoals().contains("custom:skill:agility:70"));
-		assertTrue(after.getCustomGoals().isEmpty());
+		assertTrue(after.getGoalSeeds().isEmpty());
 		module.shutDown();
 	}
 

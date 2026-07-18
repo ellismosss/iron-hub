@@ -69,14 +69,20 @@ boostable action gate, `item:` counts all ItemVariationMapping variants, `itemx:
 alternative obtainment paths. DOMAIN-NOTES.md explains when each applies.
 
 **"Track this" always means a synthetic Goal-planner goal** (standing user directive, applied
-to gear, CA, diaries, collection log). Any track/target/+ affordance creates a
-`<module>:<id>` goal: a display seed snapshotted into a `PersistedState` map (so it renders
-offline) via an `AccountState` add/remove pair that calls `selectGoal` internally; a
-`GoalPlannerModule.to<X>Goal` builder + a loop in `allGoals` + a branch in `removeGoal`;
-achieved proof = a `<prefix>_<id>` unlock flag the module marks from live data (and
-immediately at add time when already satisfied). Requirements in the seed become honest
-planner steps. Never build a module-local tracked list — dashboard and WhatNow pick planner
-goals up for free.
+to gear, CA, diaries, collection log, clues, quests). Any track/target/+ affordance creates a
+`<module>:<id>` goal through the UNIFIED seed system (Goals v2 G1, 2026-07-18): add a factory
+method to `com.ironhub.state.GoalSeeds` (the family transform — finished name/step
+labels/proofs built ONCE at add time so the goal renders offline) and call
+`state.addGoalSeed(GoalSeeds.<family>(...))` / `state.removeGoalSeed(goalId)` — one persisted
+`goalSeeds` map (`PersistedState.GoalSeed`: id/family/name/icon/steps/achieved/addedAt,
+addedAt=0 means migrated-date-unknown), one `toGoal(seed)` in GoalPlannerModule, one loop in
+`allGoals`, one generic branch in `removeGoal`; proof-marking modules scan
+`state.goalSeedIds(family)`. The five legacy per-family maps (caGoals/diaryGoals/clueGoals/
+clogGoals/customGoals) migrate in `activateProfile` via the same factories (write-through
+once; GoalSeedMigrationTest pins byte-identical output). Achieved proof = a `<prefix>_<id>`
+unlock flag the module marks from live data (and immediately at add time when already
+satisfied). Requirements in the seed become honest planner steps. Never build a module-local
+tracked list — dashboard picks planner goals up for free.
 
 **Combining or porting other plugins — the playbook** (used for Log Adviser, Time Tracking,
 Time Tracking Reminder, Easy Farming; Loadout Lab was imported whole only on explicit user
@@ -143,7 +149,7 @@ reference plugins from their actual source, not from memory.
 
 ## Implementation order (historical — M0–M8 are complete)
 
-**DEVELOPMENT-PLAN.md was the authoritative sequencing** — milestones M0–M8 with exit criteria, all shipped (v1.0 reached, then several post-M8 rebuild arcs; see "Current code state"). What remains: the skills module stub (unblocked — methods.json exists), the boat module (parked until Sailing content stabilises), and whatever the user directs next — typically via `/goal`, usually one module or rebuild per arc. New arcs follow "The Iron Hub way" above, sliced into green commits. **NEXT ARC (agreed 2026-07-18): Goals v2** — design/GOALS-V2.md is the agreed outline (slices G0–G8; G0 mockup at round 2, awaiting Luke's verdict). Key decisions locked: **Goals/Tasks/Routes vocabulary** (Route = a Goal + its ordered Tasks; module `+` creates a Route; a Task can be another Route's Goal) and **benefits-first presentation — time is one stat, never every row's headline** (Luke: players act for stats/QoL/interesting unlocks, not pure time-efficiency); supply goals = one-shot "stock N × item"; iron-first (account-type varbit + UIM banked-xp honesty in scope, normal accounts later, opt-in); priority = tiers + Route pins + per-Route manual task order (arrows+pin, feasible positions only); ONE cohesive surface under the Goals nav block, four sections (hero / CURRENT TASK / GOALS as category-grouped Routes / SUGGESTIONS incl. merge offers; completed archive behind Done-this-month, depth 2) — **PlannerTab's Today | Route | Goals views are to be REMOVED** (G7); meta regenerations gated on prior proposal to Luke.
+**DEVELOPMENT-PLAN.md was the authoritative sequencing** — milestones M0–M8 with exit criteria, all shipped (v1.0 reached, then several post-M8 rebuild arcs; see "Current code state"). What remains: the skills module stub (unblocked — methods.json exists), the boat module (parked until Sailing content stabilises), and whatever the user directs next — typically via `/goal`, usually one module or rebuild per arc. New arcs follow "The Iron Hub way" above, sliced into green commits. **NEXT ARC (in flight since 2026-07-18): Goals v2** — design/GOALS-V2.md is the agreed outline (slices G0–G8; G0 mockup approved at round 2 — "this is the right shape"; G1 GoalSeed unification LANDED — see "track this" above). Key decisions locked: **Goals/Tasks/Routes vocabulary** (Route = a Goal + its ordered Tasks; module `+` creates a Route; a Task can be another Route's Goal) and **benefits-first presentation — time is one stat, never every row's headline** (Luke: players act for stats/QoL/interesting unlocks, not pure time-efficiency); supply goals = one-shot "stock N × item"; iron-first (account-type varbit + UIM banked-xp honesty in scope, normal accounts later, opt-in); priority = tiers + Route pins + per-Route manual task order (arrows+pin, feasible positions only); ONE cohesive surface under the Goals nav block, four sections (hero / CURRENT TASK / GOALS as category-grouped Routes / SUGGESTIONS incl. merge offers; completed archive behind Done-this-month, depth 2) — **PlannerTab's Today | Route | Goals views are to be REMOVED** (G7); meta regenerations gated on prior proposal to Luke.
 
 ## Hard constraints (violating any of these = rework)
 

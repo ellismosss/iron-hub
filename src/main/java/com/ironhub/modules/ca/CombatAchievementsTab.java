@@ -700,11 +700,11 @@ class CombatAchievementsTab extends JPanel
 	{
 		if (isGoal(task))
 		{
-			state.removeCaGoal(task.id);
+			state.removeGoalSeed("ca:" + task.id);
 		}
 		else
 		{
-			state.addCaGoal(task.id, task.name, task.description, task.tier.display);
+			state.addGoalSeed(com.ironhub.state.GoalSeeds.ca(task.id, task.name, task.description, task.tier.display));
 			if (task.completed)
 			{
 				// already done in-game: prove the goal immediately

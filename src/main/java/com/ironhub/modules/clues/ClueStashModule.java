@@ -168,18 +168,18 @@ public class ClueStashModule implements IronHubModule
 	 *  doable lands achieved immediately. */
 	void addGoal(ClueStepsPack.Clue clue)
 	{
-		state.addClueGoal(clue.id, clue.text, clue.tier, clue.reqs);
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.clue(clue.id, clue.text, clue.tier, clue.reqs));
 		markProofs();
 	}
 
 	void removeGoal(ClueStepsPack.Clue clue)
 	{
-		state.removeClueGoal(clue.id);
+		state.removeGoalSeed("clue:" + clue.id);
 	}
 
 	boolean isGoal(ClueStepsPack.Clue clue)
 	{
-		return state.getClueGoals().containsKey(clue.id);
+		return state.getGoalSeeds().containsKey("clue:" + clue.id);
 	}
 
 	/** Mark cluestep_<id> unlocks for goal'd steps whose reqs are now met —
@@ -191,7 +191,7 @@ public class ClueStashModule implements IronHubModule
 			return;
 		}
 		List<String> newlyDone = null;
-		for (String id : state.getClueGoals().keySet())
+		for (String id : state.goalSeedIds("clue"))
 		{
 			ClueStepsPack.Clue clue = pack.clue(id);
 			if (clue != null && !state.isUnlocked("cluestep_" + id)

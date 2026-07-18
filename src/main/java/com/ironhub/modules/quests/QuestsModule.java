@@ -113,7 +113,8 @@ public class QuestsModule implements IronHubModule
 	 *  the quest: requirement into its full prerequisite chain. */
 	void addGoal(String questName)
 	{
-		state.addCustomGoal(goalId(questName), questName, "quest:" + questName);
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.custom(
+			goalId(questName), questName, "quest:" + questName));
 	}
 
 	void removeGoal(String questName)

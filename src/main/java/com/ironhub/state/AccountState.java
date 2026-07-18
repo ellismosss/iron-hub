@@ -113,10 +113,9 @@ public class AccountState implements StateView
 	private final Map<String, String> rumourPrefLocations = new ConcurrentHashMap<>();
 	private final java.util.List<PersistedState.RumourRecord> rumourRecords = new CopyOnWriteArrayList<>();
 
-	// STASH units (object ids) + clue-step goal seeds
+	// STASH units (object ids)
 	private final Set<Integer> stashBuilt = ConcurrentHashMap.newKeySet();
 	private final Set<Integer> stashFilled = ConcurrentHashMap.newKeySet();
-	private final Map<String, PersistedState.ClueGoal> clueGoals = new ConcurrentHashMap<>();
 
 	/** Slayer task records, oldest first; the last may be active (end == 0). */
 	public static final int MAX_SLAYER_RECORDS = 50;
@@ -140,24 +139,21 @@ public class AccountState implements StateView
 	private volatile int collectionLogTotal;
 	private volatile long collectionLogSeenMs;
 
-	// goal planner selections (persisted)
+	// goal planner selections + unified goal seeds (persisted)
 	private final Set<String> selectedGoals = ConcurrentHashMap.newKeySet();
 	private volatile String activeGoal = "";
-	private final Map<String, PersistedState.CaGoal> caGoals = new ConcurrentHashMap<>();
-	private final Map<String, PersistedState.DiaryGoal> diaryGoals = new ConcurrentHashMap<>();
+	private final Map<String, PersistedState.GoalSeed> goalSeeds = new ConcurrentHashMap<>();
 	// collection log (persisted): obtained slots, ranking skips, sync baseline
 	private final Set<Integer> clogObtained = ConcurrentHashMap.newKeySet();
 	private final Set<Integer> clogSkipped = ConcurrentHashMap.newKeySet();
 	private volatile int clogBaseline = -1;
 	private volatile long clogSyncedMs;
-	private final Map<String, PersistedState.ClogGoal> clogGoals = new ConcurrentHashMap<>();
 	private final Set<String> plannerPins = ConcurrentHashMap.newKeySet();
 	private final Set<String> plannerSnoozes = ConcurrentHashMap.newKeySet();
 	private final Set<String> plannerBans = ConcurrentHashMap.newKeySet();
 	private final Map<String, String> plannerPreferred = new ConcurrentHashMap<>();
 	private volatile double lastPlanHours;
 	private volatile boolean plannerRouteChapters;
-	private final Map<String, PersistedState.CustomGoal> customGoals = new ConcurrentHashMap<>();
 
 	/** Recent deaths, oldest first, capped. */
 	public static final int MAX_DEATHS = 10;
@@ -637,36 +633,53 @@ public class AccountState implements StateView
 		}
 	}
 
-	public Map<String, PersistedState.ClueGoal> getClueGoals()
+	// ── unified goal seeds (Goals v2 G1): every synthetic goal family ──
+
+	/** Every persisted goal seed, keyed by full goal id ("ca:340"). */
+	public Map<String, PersistedState.GoalSeed> getGoalSeeds()
 	{
-		return java.util.Collections.unmodifiableMap(clueGoals);
+		return java.util.Collections.unmodifiableMap(goalSeeds);
 	}
 
-	/** Add a clue step to the goal planner (id "clue:&lt;id&gt;"). */
-	public void addClueGoal(String id, String text, String tier, java.util.List<String> reqs)
+	/** Family-local ids of every seed in a family ("ca" → task ids) —
+	 *  the proof-marking modules' scan set. */
+	public Set<String> goalSeedIds(String family)
 	{
-		PersistedState.ClueGoal seed = new PersistedState.ClueGoal();
-		seed.text = text;
-		seed.tier = tier;
-		seed.reqs = new java.util.ArrayList<>(reqs);
-		clueGoals.put(id, seed);
-		String goalId = "clue:" + id;
-		if (selectedGoals.contains(goalId))
+		Set<String> ids = new HashSet<>();
+		String prefix = family + ":";
+		for (PersistedState.GoalSeed seed : goalSeeds.values())
+		{
+			if (family.equals(seed.family) && seed.id.startsWith(prefix))
+			{
+				ids.add(seed.id.substring(prefix.length()));
+			}
+		}
+		return ids;
+	}
+
+	/** Add a goal seed (built by {@link GoalSeeds}) and select it. */
+	public void addGoalSeed(PersistedState.GoalSeed seed)
+	{
+		if (seed.addedAt == 0)
+		{
+			seed.addedAt = System.currentTimeMillis();
+		}
+		goalSeeds.put(seed.id, seed);
+		if (selectedGoals.contains(seed.id))
 		{
 			persist();
 			notifyListeners();
 		}
 		else
 		{
-			selectGoal(goalId, true); // persists + notifies
+			selectGoal(seed.id, true); // persists + notifies
 		}
 	}
 
-	/** Remove a clue step from the goal planner. */
-	public void removeClueGoal(String id)
+	/** Remove a goal seed and deselect its goal. */
+	public void removeGoalSeed(String goalId)
 	{
-		clueGoals.remove(id);
-		String goalId = "clue:" + id;
+		goalSeeds.remove(goalId);
 		if (selectedGoals.contains(goalId))
 		{
 			selectGoal(goalId, false); // persists + notifies
@@ -1150,90 +1163,6 @@ public class AccountState implements StateView
 		}
 	}
 
-	/** CA-task goal seeds (task id → snapshot) for the goal planner. */
-	public Map<String, PersistedState.CaGoal> getCaGoals()
-	{
-		return java.util.Collections.unmodifiableMap(caGoals);
-	}
-
-	/** Add a Combat Achievement task to the goal planner (id "ca:&lt;task&gt;"). */
-	public void addCaGoal(int taskId, String name, String description, String tier)
-	{
-		PersistedState.CaGoal seed = new PersistedState.CaGoal();
-		seed.name = name;
-		seed.description = description;
-		seed.tier = tier;
-		caGoals.put(String.valueOf(taskId), seed);
-		String goalId = "ca:" + taskId;
-		if (selectedGoals.contains(goalId))
-		{
-			persist();
-			notifyListeners();
-		}
-		else
-		{
-			selectGoal(goalId, true); // persists + notifies
-		}
-	}
-
-	/** Remove a CA task from the goal planner. */
-	public void removeCaGoal(int taskId)
-	{
-		caGoals.remove(String.valueOf(taskId));
-		String goalId = "ca:" + taskId;
-		if (selectedGoals.contains(goalId))
-		{
-			selectGoal(goalId, false); // persists + notifies
-		}
-		else
-		{
-			persist();
-			notifyListeners();
-		}
-	}
-
-	/** Diary-task goal seeds (task slug → snapshot) for the goal planner. */
-	public Map<String, PersistedState.DiaryGoal> getDiaryGoals()
-	{
-		return java.util.Collections.unmodifiableMap(diaryGoals);
-	}
-
-	/** Add an achievement diary task to the goal planner (id "diary:&lt;slug&gt;"). */
-	public void addDiaryGoal(String slug, String task, String region, String tier)
-	{
-		PersistedState.DiaryGoal seed = new PersistedState.DiaryGoal();
-		seed.task = task;
-		seed.region = region;
-		seed.tier = tier;
-		diaryGoals.put(slug, seed);
-		String goalId = "diary:" + slug;
-		if (selectedGoals.contains(goalId))
-		{
-			persist();
-			notifyListeners();
-		}
-		else
-		{
-			selectGoal(goalId, true); // persists + notifies
-		}
-	}
-
-	/** Remove a diary task from the goal planner. */
-	public void removeDiaryGoal(String slug)
-	{
-		diaryGoals.remove(slug);
-		String goalId = "diary:" + slug;
-		if (selectedGoals.contains(goalId))
-		{
-			selectGoal(goalId, false); // persists + notifies
-		}
-		else
-		{
-			persist();
-			notifyListeners();
-		}
-	}
-
 	// ── collection log (obtained slots, ranking skips, sync baseline) ─
 
 	/** Canonical item ids of every log slot seen obtained (chat drops +
@@ -1298,48 +1227,6 @@ public class AccountState implements StateView
 		{
 			clogBaseline++;
 			persist();
-		}
-	}
-
-	/** Collection-log goal seeds (slot item id → snapshot). */
-	public Map<String, PersistedState.ClogGoal> getClogGoals()
-	{
-		return java.util.Collections.unmodifiableMap(clogGoals);
-	}
-
-	/** Add a log slot to the goal planner (id "clog:&lt;itemId&gt;"). */
-	public void addClogGoal(int itemId, String name, String activity, java.util.List<String> reqs)
-	{
-		PersistedState.ClogGoal seed = new PersistedState.ClogGoal();
-		seed.name = name;
-		seed.activity = activity;
-		seed.reqs = new java.util.ArrayList<>(reqs);
-		clogGoals.put(String.valueOf(itemId), seed);
-		String goalId = "clog:" + itemId;
-		if (selectedGoals.contains(goalId))
-		{
-			persist();
-			notifyListeners();
-		}
-		else
-		{
-			selectGoal(goalId, true); // persists + notifies
-		}
-	}
-
-	/** Remove a log slot from the goal planner. */
-	public void removeClogGoal(int itemId)
-	{
-		clogGoals.remove(String.valueOf(itemId));
-		String goalId = "clog:" + itemId;
-		if (selectedGoals.contains(goalId))
-		{
-			selectGoal(goalId, false); // persists + notifies
-		}
-		else
-		{
-			persist();
-			notifyListeners();
 		}
 	}
 
@@ -1410,44 +1297,6 @@ public class AccountState implements StateView
 		}
 		persist();
 		notifyListeners();
-	}
-
-	/** Custom (user-typed) goal seeds for the goal planner. */
-	public Map<String, PersistedState.CustomGoal> getCustomGoals()
-	{
-		return java.util.Collections.unmodifiableMap(customGoals);
-	}
-
-	/** Add a user-typed goal (id "custom:...") to the planner. */
-	public void addCustomGoal(String goalId, String name, String req)
-	{
-		PersistedState.CustomGoal seed = new PersistedState.CustomGoal();
-		seed.name = name;
-		seed.req = req;
-		customGoals.put(goalId, seed);
-		if (selectedGoals.contains(goalId))
-		{
-			persist();
-			notifyListeners();
-		}
-		else
-		{
-			selectGoal(goalId, true); // persists + notifies
-		}
-	}
-
-	public void removeCustomGoal(String goalId)
-	{
-		customGoals.remove(goalId);
-		if (selectedGoals.contains(goalId))
-		{
-			selectGoal(goalId, false); // persists + notifies
-		}
-		else
-		{
-			persist();
-			notifyListeners();
-		}
 	}
 
 	/** Route view layout: chapter headers on, or pure execution order. */
@@ -1982,8 +1831,6 @@ public class AccountState implements StateView
 		stashBuilt.addAll(persisted.stashBuilt);
 		stashFilled.clear();
 		stashFilled.addAll(persisted.stashFilled);
-		clueGoals.clear();
-		clueGoals.putAll(persisted.clueGoals);
 		slayerRecords.clear();
 		slayerRecords.addAll(persisted.slayerRecords);
 		slayerNotes.clear();
@@ -1996,18 +1843,15 @@ public class AccountState implements StateView
 		slayerSkipPrefs.putAll(persisted.slayerSkipPrefs);
 		selectedGoals.clear();
 		selectedGoals.addAll(persisted.selectedGoals);
-		caGoals.clear();
-		caGoals.putAll(persisted.caGoals);
-		diaryGoals.clear();
-		diaryGoals.putAll(persisted.diaryGoals);
+		goalSeeds.clear();
+		goalSeeds.putAll(persisted.goalSeeds);
+		migrateLegacyGoalSeeds(persisted);
 		clogObtained.clear();
 		clogObtained.addAll(persisted.clogObtained);
 		clogSkipped.clear();
 		clogSkipped.addAll(persisted.clogSkipped);
 		clogBaseline = persisted.clogBaseline;
 		clogSyncedMs = persisted.clogSyncedMs;
-		clogGoals.clear();
-		clogGoals.putAll(persisted.clogGoals);
 		plannerPins.clear();
 		plannerPins.addAll(persisted.plannerPins);
 		plannerSnoozes.clear();
@@ -2018,8 +1862,6 @@ public class AccountState implements StateView
 		plannerPreferred.putAll(persisted.plannerPreferred);
 		lastPlanHours = persisted.lastPlanHours;
 		plannerRouteChapters = persisted.plannerRouteChapters;
-		customGoals.clear();
-		customGoals.putAll(persisted.customGoals);
 		scoreSnapshots.clear();
 		scoreSnapshots.addAll(persisted.scoreSnapshots);
 		collectionLogSlots = persisted.collectionLogSlots;
@@ -2027,6 +1869,34 @@ public class AccountState implements StateView
 		collectionLogSeenMs = persisted.collectionLogSeenMs;
 		activeGoal = persisted.activeGoal == null ? "" : persisted.activeGoal;
 		log.debug("activated profile {} ({} banked item stacks)", hash, bank.size());
+	}
+
+	/**
+	 * One-time migration (Goals v2 G1): profiles written before the unified
+	 * seed map carry five per-family maps — rebuild each entry through the
+	 * same {@link GoalSeeds} transforms the modules now use at add time.
+	 * addedAt stays 0 ("date unknown" — never invented). Idempotent: an
+	 * already-migrated profile has empty legacy maps, and an existing
+	 * unified seed is never overwritten.
+	 */
+	private void migrateLegacyGoalSeeds(PersistedState persisted)
+	{
+		persisted.caGoals.forEach((taskId, s) -> goalSeeds.putIfAbsent("ca:" + taskId,
+			GoalSeeds.ca(Integer.parseInt(taskId), s.name, s.description, s.tier)));
+		persisted.diaryGoals.forEach((slug, s) -> goalSeeds.putIfAbsent("diary:" + slug,
+			GoalSeeds.diary(slug, s.task, s.region, s.tier)));
+		persisted.clueGoals.forEach((id, s) -> goalSeeds.putIfAbsent("clue:" + id,
+			GoalSeeds.clue(id, s.text, s.tier, s.reqs)));
+		persisted.clogGoals.forEach((itemId, s) -> goalSeeds.putIfAbsent("clog:" + itemId,
+			GoalSeeds.clog(Integer.parseInt(itemId), s.name, s.activity, s.reqs)));
+		persisted.customGoals.forEach((goalId, s) -> goalSeeds.putIfAbsent(goalId,
+			GoalSeeds.custom(goalId, s.name, s.req)));
+		if (!persisted.caGoals.isEmpty() || !persisted.diaryGoals.isEmpty()
+			|| !persisted.clueGoals.isEmpty() || !persisted.clogGoals.isEmpty()
+			|| !persisted.customGoals.isEmpty())
+		{
+			persist(); // write the unified form; the legacy keys stop being written
+		}
 	}
 
 	public void persist()
@@ -2085,7 +1955,7 @@ public class AccountState implements StateView
 		}
 		state.stashBuilt = new HashSet<>(stashBuilt);
 		state.stashFilled = new HashSet<>(stashFilled);
-		state.clueGoals = new HashMap<>(clueGoals);
+		goalSeeds.forEach((id, seed) -> state.goalSeeds.put(id, seed.copy()));
 		for (PersistedState.SlayerTaskRecord r : slayerRecords)
 		{
 			state.slayerRecords.add(r.copy());
@@ -2096,20 +1966,16 @@ public class AccountState implements StateView
 		slayerSkipPrefs.forEach((m, list) -> state.slayerSkipPrefs.put(m, new java.util.ArrayList<>(list)));
 		state.selectedGoals = new HashSet<>(selectedGoals);
 		state.activeGoal = activeGoal;
-		state.caGoals = new HashMap<>(caGoals);
-		state.diaryGoals = new HashMap<>(diaryGoals);
 		state.clogObtained = new HashSet<>(clogObtained);
 		state.clogSkipped = new HashSet<>(clogSkipped);
 		state.clogBaseline = clogBaseline;
 		state.clogSyncedMs = clogSyncedMs;
-		state.clogGoals = new HashMap<>(clogGoals);
 		state.plannerPins = new HashSet<>(plannerPins);
 		state.plannerSnoozes = new HashSet<>(plannerSnoozes);
 		state.plannerBans = new HashSet<>(plannerBans);
 		state.plannerPreferred = new HashMap<>(plannerPreferred);
 		state.lastPlanHours = lastPlanHours;
 		state.plannerRouteChapters = plannerRouteChapters;
-		state.customGoals = new HashMap<>(customGoals);
 		state.scoreSnapshots = new java.util.ArrayList<>(scoreSnapshots);
 		state.collectionLogSlots = collectionLogSlots;
 		state.collectionLogTotal = collectionLogTotal;

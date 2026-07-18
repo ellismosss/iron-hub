@@ -75,8 +75,8 @@ public class CollectionLogTest
 		CollectionLogModule module = module(state, null);
 
 		// the goal exists before the drop; the chat message must prove it
-		state.addClogGoal(ABYSSAL_ORPHAN, "Abyssal orphan", "Killing abyssal sire (on task)",
-			List.of("skill:Slayer:85"));
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.clog(ABYSSAL_ORPHAN, "Abyssal orphan",
+			"Killing abyssal sire (on task)", List.of("skill:Slayer:85")));
 		module.onChatMessage(chat("New item added to your collection log: Abyssal orphan"));
 
 		assertTrue(state.getClogObtained().contains(ABYSSAL_ORPHAN));
@@ -172,7 +172,7 @@ public class CollectionLogTest
 		before.markClogObtained(List.of(ABYSSAL_ORPHAN));
 		before.setClogSkipped(17, true);
 		before.recordClogFullSync(246);
-		before.addClogGoal(2577, "Ranger boots", "Medium clues", List.of());
+		before.addGoalSeed(com.ironhub.state.GoalSeeds.clog(2577, "Ranger boots", "Medium clues", List.of()));
 
 		AccountState after = StateFixture.state(temp.getRoot());
 		StateFixture.profile(after, 21L);
@@ -182,7 +182,7 @@ public class CollectionLogTest
 		assertTrue(after.getClogSkipped().contains(17));
 		assertEquals(246, after.getClogBaseline());
 		assertTrue(after.getSelectedGoals().contains("clog:2577"));
-		assertEquals("Ranger boots", after.getClogGoals().get("2577").name);
+		assertEquals("Ranger boots", after.getGoalSeeds().get("clog:2577").name);
 	}
 
 	@Test
@@ -190,11 +190,11 @@ public class CollectionLogTest
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 21L);
-		state.addClogGoal(ABYSSAL_ORPHAN, "Abyssal orphan", "Killing abyssal sire (on task)",
-			List.of("skill:Slayer:85"));
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.clog(ABYSSAL_ORPHAN, "Abyssal orphan",
+			"Killing abyssal sire (on task)", List.of("skill:Slayer:85")));
 
-		PersistedState.ClogGoal seed = state.getClogGoals().get(String.valueOf(ABYSSAL_ORPHAN));
-		GoalsPack.Goal goal = GoalPlannerModule.toClogGoal(String.valueOf(ABYSSAL_ORPHAN), seed);
+		PersistedState.GoalSeed seed = state.getGoalSeeds().get("clog:" + ABYSSAL_ORPHAN);
+		GoalsPack.Goal goal = GoalPlannerModule.toGoal(seed);
 		assertEquals("clog:" + ABYSSAL_ORPHAN, goal.getId());
 		assertEquals("Abyssal orphan", goal.getName());
 		assertEquals((Integer) ABYSSAL_ORPHAN, goal.icon());
@@ -213,7 +213,7 @@ public class CollectionLogTest
 		assertTrue(GoalPlannerModule.allGoals(empty, gear, state).stream()
 			.anyMatch(g -> g.getId().equals("clog:" + ABYSSAL_ORPHAN)));
 		GoalPlannerModule.removeGoal(state, "clog:" + ABYSSAL_ORPHAN);
-		assertTrue(state.getClogGoals().isEmpty());
+		assertTrue(state.getGoalSeeds().isEmpty());
 		assertFalse(state.getSelectedGoals().contains("clog:" + ABYSSAL_ORPHAN));
 	}
 
@@ -232,8 +232,8 @@ public class CollectionLogTest
 			pack.activities.get(0).items.get(0).itemId,
 			pack.activities.get(1).items.get(0).itemId));
 		state.setClogSkipped(pack.activities.get(5).index, true);
-		state.addClogGoal(ABYSSAL_ORPHAN, "Abyssal orphan", "Killing abyssal sire (on task)",
-			List.of("skill:Slayer:85"));
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.clog(ABYSSAL_ORPHAN, "Abyssal orphan",
+			"Killing abyssal sire (on task)", List.of("skill:Slayer:85")));
 
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
