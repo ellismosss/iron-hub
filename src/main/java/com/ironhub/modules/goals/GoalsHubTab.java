@@ -620,6 +620,11 @@ class GoalsHubTab extends JPanel
 	 *  estimated time and recommended method — added into the category slab. */
 	private void addTasks(GoalsPack.Goal route, javax.swing.JComponent target)
 	{
+		// a Supplies Route shows the component materials it decomposes to (Luke)
+		if ("Supplies".equals(categoryOf(route.getId())) && addSupplyMaterials(route, target))
+		{
+			return;
+		}
 		List<Plan.Step> slice = routeSlice(route);
 		if (slice.isEmpty())
 		{
@@ -728,22 +733,11 @@ class GoalsHubTab extends JPanel
 		return pin;
 	}
 
-	/** The faint sub-line for a Task: the required stock (Supplies Routes),
-	 *  the recommended method + xp/hr (TRAIN), the drop odds + source
-	 *  (OBTAIN/KILL), the unlucky spread, or nothing. */
+	/** The faint sub-line for a Task: the recommended method + xp/hr (TRAIN),
+	 *  the drop odds + source (OBTAIN/KILL), the unlucky spread, or nothing.
+	 *  (Supplies Routes render their materials separately, not here.) */
 	private String taskSubLine(Plan.Step step, GoalsPack.Goal route)
 	{
-		// Supplies Routes note the resource required: how many to stock, and
-		// how many are already owned (Luke)
-		if (route != null && "Supplies".equals(categoryOf(route.getId()))
-			&& step.action.kind == com.ironhub.engine.Action.Kind.OBTAIN)
-		{
-			String supply = supplyNote(route);
-			if (supply != null)
-			{
-				return supply;
-			}
-		}
 		// the TRAIN task name IS the method (11), so the sub-line is just the
 		// rate — never "via <method>" again
 		if (step.action.kind == com.ironhub.engine.Action.Kind.TRAIN)
@@ -768,9 +762,9 @@ class GoalsHubTab extends JPanel
 		return null;
 	}
 
-	/** "Stock N · M owned" for a supply Route — the resource it requires, read
-	 *  from its {@code item:<id>:<qty>} step and the live owned count. */
-	private String supplyNote(GoalsPack.Goal route)
+	/** {itemId, qty} a supply Route stocks, from its {@code item:<id>:<qty>}
+	 *  step, or null. */
+	private int[] supplySpec(GoalsPack.Goal route)
 	{
 		for (GoalsPack.Step s : route.getSteps())
 		{
@@ -784,9 +778,7 @@ class GoalsHubTab extends JPanel
 			{
 				try
 				{
-					int itemId = Integer.parseInt(p[1]);
-					int qty = Integer.parseInt(p[2]);
-					return "Stock " + qty + " · " + state.canonicalStock(itemId) + " owned";
+					return new int[]{Integer.parseInt(p[1]), Integer.parseInt(p[2])};
 				}
 				catch (NumberFormatException ignored)
 				{
@@ -795,6 +787,62 @@ class GoalsHubTab extends JPanel
 			}
 		}
 		return null;
+	}
+
+	/** Render a supply Route's component materials — its stocked item fully
+	 *  decomposed to raw materials (Luke). Returns false to fall through to the
+	 *  normal plan slice (no spec / no recipes pack). */
+	private boolean addSupplyMaterials(GoalsPack.Goal route, javax.swing.JComponent target)
+	{
+		int[] spec = supplySpec(route);
+		com.ironhub.data.RecipesPack recipes = module.recipesPack();
+		if (spec == null || recipes == null)
+		{
+			return false;
+		}
+		int itemId = spec[0];
+		int qty = spec[1];
+		Map<Integer, Integer> mats = recipes.decompose(itemId, qty);
+		// a raw item (no recipe) decomposes to just itself — show the owned note
+		if (mats.size() == 1 && mats.containsKey(itemId))
+		{
+			target.add(materialRow(0, "Stock " + qty + " · " + state.canonicalStock(itemId) + " owned"));
+			return true;
+		}
+		target.add(materialRow(0, "Gather:"));
+		int shown = 0;
+		for (Map.Entry<Integer, Integer> e : mats.entrySet())
+		{
+			String name = recipes.name(e.getKey());
+			if (name == null)
+			{
+				name = state.itemName(e.getKey());
+			}
+			target.add(materialRow(e.getKey(), e.getValue() + " × " + name));
+			if (++shown >= 12 && mats.size() > shown)
+			{
+				target.add(moreLine("+ " + (mats.size() - shown) + " more"));
+				break;
+			}
+		}
+		return true;
+	}
+
+	/** One indented material row: an item sprite (itemId > 0) + faint text. */
+	private JComponent materialRow(int itemId, String text)
+	{
+		JPanel row = row();
+		row.setBorder(new EmptyBorder(1, UiTokens.ROW_GAP + 6, 1, UiTokens.ROW_GAP));
+		if (itemId > 0 && itemManager != null)
+		{
+			row.add(new JLabel(sized(itemManager.getImage(itemId))));
+			row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		}
+		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.smallFont())
+			.leftAligned().squeezable().tooltipWhenClipped());
+		row.add(Box.createHorizontalGlue());
+		cap(row);
+		return row;
 	}
 
 	/** A remaining manual checklist step when there's no plan slice. */

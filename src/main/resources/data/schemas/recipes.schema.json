@@ -1,0 +1,67 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Item production recipes (OSRS wiki Template:Recipe)",
+	"type": "object",
+	"required": ["source", "generated", "version", "recipes"],
+	"additionalProperties": false,
+	"properties": {
+		"$schema": {
+			"type": "string"
+		},
+		"source": {
+			"type": "string"
+		},
+		"generated": {
+			"type": "string",
+			"pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+		},
+		"version": {
+			"type": "integer"
+		},
+		"recipes": {
+			"type": "object",
+			"minProperties": 1000,
+			"propertyNames": {
+				"pattern": "^[0-9]+$"
+			},
+			"additionalProperties": {
+				"type": "object",
+				"required": ["name", "outputQty", "materials"],
+				"additionalProperties": false,
+				"properties": {
+					"name": {
+						"type": "string",
+						"minLength": 1
+					},
+					"outputQty": {
+						"type": "integer",
+						"minimum": 1
+					},
+					"materials": {
+						"type": "array",
+						"minItems": 1,
+						"items": {
+							"type": "object",
+							"required": ["itemId", "qty", "name"],
+							"additionalProperties": false,
+							"properties": {
+								"itemId": {
+									"type": "integer",
+									"minimum": 1
+								},
+								"qty": {
+									"type": "integer",
+									"minimum": 1
+								},
+								"name": {
+									"type": "string",
+									"minLength": 1
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

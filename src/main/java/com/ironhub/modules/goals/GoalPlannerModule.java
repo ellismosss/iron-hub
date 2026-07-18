@@ -35,6 +35,7 @@ public class GoalPlannerModule implements IronHubModule
 	private com.ironhub.data.GearProgressionPack gearPack;
 	private com.ironhub.data.BankedXpPack bankedPack;
 	private com.ironhub.data.XpActionsPack xpActionsPack;
+	private com.ironhub.data.RecipesPack recipesPack;
 	private com.ironhub.engine.EnginePacks enginePacks;
 	private GoalsHubTab tab;
 
@@ -116,6 +117,7 @@ public class GoalPlannerModule implements IronHubModule
 		gearPack = dataPack.load("gear-progression", com.ironhub.data.GearProgressionPack.class);
 		bankedPack = dataPack.load("banked-xp", com.ironhub.data.BankedXpPack.class);
 		xpActionsPack = dataPack.load("xp-actions", com.ironhub.data.XpActionsPack.class);
+		recipesPack = dataPack.load("recipes", com.ironhub.data.RecipesPack.class);
 		enginePacks = new com.ironhub.engine.EnginePacks(
 			dataPack.load("quests", com.ironhub.data.QuestsPack.class),
 			dataPack.load("methods", com.ironhub.data.MethodsPack.class),
@@ -402,6 +404,12 @@ public class GoalPlannerModule implements IronHubModule
 	com.ironhub.engine.RateSource ratesSource()
 	{
 		return enginePacks == null ? null : enginePacks.rates;
+	}
+
+	/** Item recipes, for supply-goal component-material breakdown. */
+	com.ironhub.data.RecipesPack recipesPack()
+	{
+		return recipesPack;
 	}
 
 	com.ironhub.data.XpActionsPack xpActions()
