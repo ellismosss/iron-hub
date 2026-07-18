@@ -118,6 +118,27 @@ public class RateSource
 		return clog != null && activityByItem.containsKey(clog.canonical(itemId));
 	}
 
+	/**
+	 * A short "1/N · Source" display label for an item's best drop, or null
+	 * when unsourced. {@code attempts} is the mean completions to the drop
+	 * (1/p), so it reads back as the "1 in N" odds players know.
+	 */
+	public String dropLabel(int itemId)
+	{
+		if (clog == null)
+		{
+			return null;
+		}
+		int id = clog.canonical(itemId);
+		ClogPack.Activity activity = activityByItem.get(id);
+		ClogPack.Item item = dropByItem.get(id);
+		if (activity == null || item == null)
+		{
+			return null;
+		}
+		return "1/" + Math.round(item.attempts) + " · " + activity.name;
+	}
+
 	private static String normalize(String name)
 	{
 		return name.trim().toLowerCase(Locale.ROOT);

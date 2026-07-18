@@ -60,6 +60,21 @@ class GoalsHubTab extends JPanel
 {
 	private static final Color BANNER_AMBER = new Color(0xE0A23C);
 
+	/** Priority left-edge colours (Luke, G7 round 2): slightly-darker
+	 *  red/orange/green for High/Medium/Low; normal (unset) shows no edge. */
+	private static final Color EDGE_HIGH = new Color(0x9E2B2B);
+	private static final Color EDGE_MEDIUM = new Color(0xB5701C);
+	private static final Color EDGE_LOW = new Color(0x3E7A34);
+
+	/** Goal/task row icon height — matched to the native item-sprite height so
+	 *  the system badges (quest/skill/CA/diary/clue) read the same size (1). */
+	private static final int BADGE_H = 32;
+
+	/** Clue-scroll sprite per tier, for a clue Route's icon (16). */
+	private static final Map<String, Integer> CLUE_TIER_ITEM = Map.of(
+		"beginner", 23182, "easy", 2677, "medium", 2801,
+		"hard", 2722, "elite", 12073, "master", 19835);
+
 	private final GoalPlannerModule module;
 	private final AccountState state;
 	private final GoalsPack pack;
@@ -178,7 +193,15 @@ class GoalsHubTab extends JPanel
 		Plan.Step head = plan == null ? null : plan.head();
 		content.add(pad(head == null ? emptyTask() : currentTask(head)));
 
-		// 3 · goals, grouped by category
+		// 3 · add goal — above the GOALS header (15)
+		content.add(strut(4));
+		content.add(pad(addGoalField()));
+		for (Map.Entry<String, String> e : searchResults.entrySet())
+		{
+			content.add(pad(searchResultRow(e.getKey(), e.getValue())));
+		}
+
+		// 4 · goals, grouped by category, each category on its own stone slab (10)
 		content.add(section("GOALS"));
 		JComponent banner = updateBanner();
 		if (banner != null)
@@ -188,37 +211,18 @@ class GoalsHubTab extends JPanel
 		}
 		if (routes.isEmpty())
 		{
-			content.add(pad(mutedLine("No routes yet — add a goal below.")));
+			content.add(pad(mutedLine("No routes yet — add a goal above.")));
 		}
 		else
 		{
-			Map<String, List<GoalsPack.Goal>> byCategory = groupByCategory(routes);
-			for (Map.Entry<String, List<GoalsPack.Goal>> e : byCategory.entrySet())
+			for (Map.Entry<String, List<GoalsPack.Goal>> e : groupByCategory(routes).entrySet())
 			{
-				content.add(category(e.getKey(), e.getValue().size()));
-				if (collapsedCategories.contains(e.getKey()))
-				{
-					continue; // collapsed — its routes stay hidden
-				}
-				for (GoalsPack.Goal route : e.getValue())
-				{
-					content.add(pad(routeRow(route)));
-					if (route.getId().equals(expandedRoute))
-					{
-						addTasks(route);
-					}
-					content.add(strut(2));
-				}
+				content.add(pad(categorySlab(e.getKey(), e.getValue())));
+				content.add(strut(3));
 			}
 		}
-		content.add(strut(2));
-		content.add(pad(addGoalField()));
-		for (Map.Entry<String, String> e : searchResults.entrySet())
-		{
-			content.add(pad(searchResultRow(e.getKey(), e.getValue())));
-		}
 
-		// 4 · suggestions
+		// 5 · suggestions
 		List<Suggester.Suggestion> suggestions = module.suggestions();
 		if (!suggestions.isEmpty())
 		{
@@ -418,9 +422,6 @@ class GoalsHubTab extends JPanel
 			w.setMaximumSize(w.getPreferredSize());
 			foot.add(w);
 		}
-		// a red-X box to drop the goal this task belongs to
-		foot.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		foot.add(removeGoalBox(step));
 		card.add(foot);
 
 		// right-click: push this task down the plan, or open its wiki
@@ -445,43 +446,6 @@ class GoalsHubTab extends JPanel
 		return card;
 	}
 
-	/** A small red-X box: removes the goal(s) this task is the current step
-	 *  of (the player rejecting the task means dropping the goal). */
-	private JComponent removeGoalBox(Plan.Step step)
-	{
-		JLabel x = new JLabel("×");
-		OsrsSkin.crisp(x);
-		x.setFont(OsrsSkin.font());
-		x.setForeground(UiTokens.STATUS_WARNING);
-		x.setBorder(new javax.swing.border.CompoundBorder(
-			new javax.swing.border.LineBorder(OsrsSkin.FAINT, 1),
-			new EmptyBorder(0, 3, 0, 3)));
-		List<String> goals = new ArrayList<>();
-		for (String g : step.action.neededBy)
-		{
-			if (state.getSelectedGoals().contains(g))
-			{
-				goals.add(g);
-			}
-		}
-		x.setToolTipText(goals.size() > 1
-			? "Remove the " + goals.size() + " goals that need this"
-			: "Remove this goal");
-		x.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		x.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				for (String g : goals)
-				{
-					GoalPlannerModule.removeGoal(state, g);
-				}
-			}
-		});
-		return x;
-	}
-
 	private JComponent emptyTask()
 	{
 		StonePanel card = new StonePanel(theme);
@@ -501,7 +465,7 @@ class GoalsHubTab extends JPanel
 		String id = route.getId();
 		boolean pinned = state.isGoalPinned(id);
 		String tier = state.getGoalPriority(id);
-		boolean someday = "someday".equals(tier);
+		boolean low = "low".equals(tier) || "someday".equals(tier); // dimmed + sunk
 		boolean expanded = id.equals(expandedRoute);
 		List<Plan.Step> slice = routeSlice(route);
 		boolean single = slice.size() <= 1; // a one-task goal needs no meter/count
@@ -510,12 +474,13 @@ class GoalsHubTab extends JPanel
 		{
 			card.setBackground(theme.selectFill);
 		}
-		// a coloured left edge marks the priority tier (17)
-		Color edge = "high".equals(tier) ? OsrsSkin.TITLE : someday ? OsrsSkin.FAINT : null;
+		// a 1px darker left edge INSIDE the tile marks the priority tier (17/19)
+		Color edge = "high".equals(tier) ? EDGE_HIGH
+			: "medium".equals(tier) ? EDGE_MEDIUM : low ? EDGE_LOW : null;
 		if (edge != null)
 		{
-			card.setBorder(new javax.swing.border.CompoundBorder(
-				new javax.swing.border.MatteBorder(0, 3, 0, 0, edge), card.getBorder()));
+			card.setBorder(new javax.swing.border.CompoundBorder(card.getBorder(),
+				new javax.swing.border.MatteBorder(0, 1, 0, 0, edge)));
 		}
 		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 		card.setAlignmentX(LEFT_ALIGNMENT);
@@ -524,7 +489,7 @@ class GoalsHubTab extends JPanel
 		JPanel top = row();
 		JLabel triangle = new JLabel(new PaintedIcon(
 			expanded ? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
-		triangle.setForeground(someday ? OsrsSkin.FAINT : OsrsSkin.MUTED);
+		triangle.setForeground(low ? OsrsSkin.FAINT : OsrsSkin.MUTED);
 		top.add(triangle);
 		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		Icon icon = goalIcon(route);
@@ -533,21 +498,22 @@ class GoalsHubTab extends JPanel
 			top.add(new JLabel(icon));
 			top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		}
-		Color nameColor = someday ? OsrsSkin.FAINT : pinned ? OsrsSkin.TITLE : OsrsSkin.LABEL;
-		top.add(new OsrsLabel(route.getName(), nameColor,
-			pinned ? OsrsSkin.boldFont() : OsrsSkin.font()).leftAligned().squeezable());
+		Color nameColor = low ? OsrsSkin.FAINT : pinned ? OsrsSkin.TITLE : OsrsSkin.LABEL;
+		// skill-level Goals read as the level alone — the icon names the skill (12)
+		top.add(new OsrsLabel(routeName(route), nameColor,
+			pinned ? OsrsSkin.boldFont() : OsrsSkin.font()).leftAligned().squeezable().tooltipWhenClipped());
 		top.add(Box.createHorizontalGlue());
-		if (!single && !someday)
+		if (!single && !low)
 		{
-			long left = slice.size();
-			top.add(new OsrsLabel(left + (left == 1 ? " task" : " tasks"),
-				OsrsSkin.FAINT, OsrsSkin.smallFont()));
+			top.add(new OsrsLabel(String.valueOf(slice.size()), OsrsSkin.FAINT, OsrsSkin.smallFont()));
 			top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		}
-		// a dedicated pin affordance on every tile (13)
+		// pin (5) + remove-goal × (9) affordances on every tile
 		top.add(pinGlyph(id, pinned));
+		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		top.add(removeGoalGlyph(id));
 		card.add(top);
-		if (!single && !someday)
+		if (!single && !low)
 		{
 			card.add(Box.createVerticalStrut(3));
 			card.add(new StoneMeter(theme, OsrsSkin.PROGRESS_BLUE, GoalPlannerModule.progress(route, state)));
@@ -576,10 +542,11 @@ class GoalsHubTab extends JPanel
 		return card;
 	}
 
-	/** A clickable pin icon (title when pinned, faint when not). */
+	/** A clickable pin icon (title when pinned, faint when not). Only one goal
+	 *  OR task is pinned at a time — the state enforces it. */
 	private JLabel pinGlyph(String goalId, boolean pinned)
 	{
-		JLabel pin = new JLabel(new PaintedIcon(PaintedIcon.Shape.FLAG, 10));
+		JLabel pin = new JLabel(new PaintedIcon(PaintedIcon.Shape.PIN, 12));
 		pin.setForeground(pinned ? OsrsSkin.TITLE : OsrsSkin.FAINT);
 		pin.setToolTipText(pinned ? "Pinned as active — click to unpin" : "Pin as active");
 		pin.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -593,6 +560,38 @@ class GoalsHubTab extends JPanel
 			}
 		});
 		return pin;
+	}
+
+	/** A clean red-× to remove a Goal — a painted glyph, brighter on hover
+	 *  (no ugly boxed border; every Goal tile carries one, tasks do not). */
+	private JLabel removeGoalGlyph(String goalId)
+	{
+		JLabel x = new JLabel(new PaintedIcon(PaintedIcon.Shape.CROSS, 11));
+		x.setForeground(UiTokens.STATUS_WARNING.darker());
+		x.setToolTipText("Remove this goal");
+		x.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		x.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				x.setForeground(UiTokens.STATUS_WARNING);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				x.setForeground(UiTokens.STATUS_WARNING.darker());
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				GoalPlannerModule.removeGoal(state, goalId);
+				e.consume();
+			}
+		});
+		return x;
 	}
 
 	/** This route's slice of the merged plan (the real, costed Tasks with
@@ -616,8 +615,8 @@ class GoalsHubTab extends JPanel
 	}
 
 	/** The expanded Route's Tasks — its plan slice, next-first, each with the
-	 *  estimated time and recommended method (7/9/11/12). */
-	private void addTasks(GoalsPack.Goal route)
+	 *  estimated time and recommended method — added into the category slab. */
+	private void addTasks(GoalsPack.Goal route, javax.swing.JComponent target)
 	{
 		List<Plan.Step> slice = routeSlice(route);
 		if (slice.isEmpty())
@@ -627,7 +626,7 @@ class GoalsHubTab extends JPanel
 			{
 				if (!step.met)
 				{
-					content.add(pad(manualTaskRow(step)));
+					target.add(manualTaskRow(step));
 				}
 			}
 			return;
@@ -636,19 +635,20 @@ class GoalsHubTab extends JPanel
 		boolean current = true;
 		for (Plan.Step step : slice)
 		{
-			content.add(pad(taskRow(step, current)));
+			target.add(taskRow(step, current, route));
 			current = false;
 			if (++shown >= 8 && slice.size() > shown)
 			{
-				content.add(pad(moreLine("+ " + (slice.size() - shown) + " more tasks")));
+				target.add(moreLine("+ " + (slice.size() - shown) + " more"));
 				break;
 			}
 		}
 	}
 
 	/** One Task from the plan slice: name + time, with the recommended
-	 *  method (or drop/spread) on a faint sub-line. */
-	private JComponent taskRow(Plan.Step step, boolean current)
+	 *  method (or drop rate) on a faint sub-line. A task can be pinned as the
+	 *  single active thing (2), and its wiki opens on right-click. */
+	private JComponent taskRow(Plan.Step step, boolean current, GoalsPack.Goal route)
 	{
 		JPanel block = new JPanel();
 		block.setLayout(new BoxLayout(block, BoxLayout.Y_AXIS));
@@ -663,16 +663,13 @@ class GoalsHubTab extends JPanel
 			line.add(new JLabel(icon));
 			line.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		}
-		OsrsLabel name = new OsrsLabel(taskName(step), current ? OsrsSkin.TITLE : OsrsSkin.MUTED,
-			OsrsSkin.font()).leftAligned().squeezable();
-		String url = wikiUrl(step);
-		if (url != null)
-		{
-			name.setToolTipText("Right-click for the wiki");
-		}
+		OsrsLabel name = new OsrsLabel(taskName(step, route), current ? OsrsSkin.TITLE : OsrsSkin.MUTED,
+			OsrsSkin.font()).leftAligned().squeezable().tooltipWhenClipped();
 		line.add(name);
 		line.add(Box.createHorizontalGlue());
 		line.add(new OsrsLabel(timeText(step), OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		line.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		line.add(taskPinGlyph(step.action.id));
 		block.add(line);
 
 		String sub = taskSubLine(step);
@@ -685,6 +682,7 @@ class GoalsHubTab extends JPanel
 			block.add(s);
 		}
 		// right-click any task → open its wiki page
+		String url = wikiUrl(step);
 		if (url != null)
 		{
 			block.addMouseListener(new MouseAdapter()
@@ -705,14 +703,47 @@ class GoalsHubTab extends JPanel
 		return block;
 	}
 
-	/** The faint sub-line for a Task: the recommended method (TRAIN), the
-	 *  drop odds/spread (OBTAIN), or nothing. */
+	/** A task's pin affordance — pins the plan step as the single active thing
+	 *  (clears any goal/other-task pin via the state). */
+	private JLabel taskPinGlyph(String actionId)
+	{
+		boolean pinned = state.isTaskPinned(actionId);
+		JLabel pin = new JLabel(new PaintedIcon(PaintedIcon.Shape.PIN, 11));
+		pin.setForeground(pinned ? OsrsSkin.TITLE : OsrsSkin.FAINT);
+		pin.setToolTipText(pinned ? "Pinned as active — click to unpin" : "Pin this task as active");
+		pin.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		pin.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				state.setTaskPinned(actionId, !pinned);
+				e.consume();
+			}
+		});
+		return pin;
+	}
+
+	/** The faint sub-line for a Task: the recommended method + xp/hr (TRAIN),
+	 *  the drop odds + source (OBTAIN/KILL), the unlucky spread, or nothing. */
 	private String taskSubLine(Plan.Step step)
 	{
-		if (step.action.kind == com.ironhub.engine.Action.Kind.TRAIN && step.methodName != null)
+		// the TRAIN task name IS the method (11), so the sub-line is just the
+		// rate — never "via <method>" again
+		if (step.action.kind == com.ironhub.engine.Action.Kind.TRAIN)
 		{
-			return "via " + step.methodName
-				+ (step.methodRate > 0 ? " · " + compactXp(step.methodRate) + " xp/hr" : "");
+			return step.methodRate > 0 ? compactXp(step.methodRate) + " xp/hr" : null;
+		}
+		// drop rate + source for obtained items (6) — 1/N · Source
+		if (step.action.kind == com.ironhub.engine.Action.Kind.OBTAIN
+			&& step.action.itemId > 0 && module.ratesSource() != null)
+		{
+			String drop = module.ratesSource().dropLabel(step.action.itemId);
+			if (drop != null)
+			{
+				return drop + (!Double.isNaN(step.spreadHours) && step.spreadHours > step.hours + 0.05
+					? " · up to ~" + compactHours(step.spreadHours) + " unlucky" : "");
+			}
 		}
 		if (!Double.isNaN(step.spreadHours) && step.spreadHours > step.hours + 0.05)
 		{
@@ -757,13 +788,14 @@ class GoalsHubTab extends JPanel
 		boolean pinned = state.isGoalPinned(id);
 		menu.add(item(pinned ? "Unpin" : "Pin as active", () -> state.setGoalPinned(id, !pinned)));
 		menu.addSeparator();
-		for (String tier : List.of("high", "normal", "someday"))
+		for (String tier : List.of("high", "medium", "low"))
 		{
-			// a native checkbox item marks the current tier — no font glyph
+			// a native checkbox item marks the current tier — no font glyph;
+			// re-picking the current tier resets to normal (18)
+			boolean isCurrent = state.getGoalPriority(id).equals(tier);
 			javax.swing.JCheckBoxMenuItem mi = new javax.swing.JCheckBoxMenuItem(
-				"Priority: " + tier.substring(0, 1).toUpperCase(Locale.ROOT) + tier.substring(1),
-				state.getGoalPriority(id).equals(tier));
-			mi.addActionListener(e -> state.setGoalPriority(id, tier));
+				"Priority: " + tier.substring(0, 1).toUpperCase(Locale.ROOT) + tier.substring(1), isCurrent);
+			mi.addActionListener(e -> state.setGoalPriority(id, isCurrent ? "normal" : tier));
 			menu.add(mi);
 		}
 		menu.addSeparator();
@@ -1095,13 +1127,86 @@ class GoalsHubTab extends JPanel
 
 	// ── step display helpers (mirrors PlannerTab) ──────────────────────
 
+	/** The current-task headline: for TRAIN, the method (the skill icon names
+	 *  the skill — no skill word, 12); otherwise the action name. */
 	private String taskName(Plan.Step step)
 	{
-		if (step.action.kind == com.ironhub.engine.Action.Kind.TRAIN && step.action.trainSkill != null)
+		if (step.action.kind == com.ironhub.engine.Action.Kind.TRAIN)
 		{
-			return step.action.trainSkill.getName() + " to " + step.action.trainToLevel;
+			return step.methodName != null ? step.methodName : "Train to " + step.action.trainToLevel;
 		}
 		return step.action.name;
+	}
+
+	/** A Task's name inside a Route: TRAIN reads as the method only (11/12);
+	 *  the Route's OWN quest reads "Complete the quest" (4); a prerequisite
+	 *  quest keeps its name. */
+	private String taskName(Plan.Step step, GoalsPack.Goal route)
+	{
+		if (step.action.kind == com.ironhub.engine.Action.Kind.TRAIN)
+		{
+			return step.methodName != null ? step.methodName : "to " + step.action.trainToLevel;
+		}
+		if (step.action.kind == com.ironhub.engine.Action.Kind.QUEST && route != null
+			&& step.action.questName != null && step.action.questName.equalsIgnoreCase(route.getName()))
+		{
+			return "Complete the quest";
+		}
+		return step.action.name;
+	}
+
+	/** The Route-row label: a skill-level Goal reads as its level alone (the
+	 *  icon names the skill, 12); everything else its full name. */
+	private String routeName(GoalsPack.Goal route)
+	{
+		int level = goalLevel(route.getId());
+		return level > 0 ? String.valueOf(level) : route.getName();
+	}
+
+	private static boolean isLevelGoal(String id)
+	{
+		return id.startsWith("custom:skill:") || id.startsWith("skill:");
+	}
+
+	/** The Skill a skill-level Goal targets (custom:skill:agility:70 /
+	 *  skill:Agility:70), or null. */
+	private static Skill goalSkill(String id)
+	{
+		if (!isLevelGoal(id))
+		{
+			return null;
+		}
+		String[] parts = id.split(":");
+		if (parts.length < 3)
+		{
+			return null;
+		}
+		for (Skill skill : Skill.values())
+		{
+			if (skill.getName().equalsIgnoreCase(parts[2]))
+			{
+				return skill;
+			}
+		}
+		return null;
+	}
+
+	/** The target level of a skill-level Goal (its trailing number), or 0. */
+	private static int goalLevel(String id)
+	{
+		if (!isLevelGoal(id))
+		{
+			return 0;
+		}
+		String[] parts = id.split(":");
+		try
+		{
+			return Integer.parseInt(parts[parts.length - 1]);
+		}
+		catch (NumberFormatException e)
+		{
+			return 0;
+		}
 	}
 
 	private String timeText(Plan.Step step)
@@ -1141,55 +1246,105 @@ class GoalsHubTab extends JPanel
 		if (skillIcons != null && step.action.kind == com.ironhub.engine.Action.Kind.TRAIN
 			&& step.action.trainSkill != null)
 		{
-			return new ImageIcon(skillIcons.getSkillImage(step.action.trainSkill, true));
+			return sized(skillIcons.getSkillImage(step.action.trainSkill, false));
 		}
 		if (step.action.kind == com.ironhub.engine.Action.Kind.QUEST)
 		{
-			return OsrsIcons.stat(theme, "quests");
+			return sized(OsrsIcons.image(theme, "quests"));
+		}
+		if (step.action.kind == com.ironhub.engine.Action.Kind.OBTAIN && itemManager != null
+			&& step.action.itemId > 0)
+		{
+			return new ImageIcon(itemManager.getImage(step.action.itemId));
 		}
 		return null;
 	}
 
-	private static final Icon CA_ICON = bundledIcon("/data/icons/combat_achievements.png");
-	private static final Icon DIARY_ICON = bundledIcon("/data/icons/achievement_diaries.png");
+	private static final java.awt.image.BufferedImage CA_IMG = bundledImage("/data/icons/combat_achievements.png");
+	private static final java.awt.image.BufferedImage DIARY_IMG = bundledImage("/data/icons/achievement_diaries.png");
 
-	private static Icon bundledIcon(String resource)
+	private static java.awt.image.BufferedImage bundledImage(String resource)
 	{
 		java.net.URL url = GoalsHubTab.class.getResource(resource);
 		if (url == null)
 		{
 			return null;
 		}
-		ImageIcon icon = new ImageIcon(url);
-		return new ImageIcon(icon.getImage().getScaledInstance(-1, 15, java.awt.Image.SCALE_SMOOTH));
+		try
+		{
+			return javax.imageio.ImageIO.read(url);
+		}
+		catch (java.io.IOException e)
+		{
+			return null;
+		}
 	}
 
-	/** A route's icon by kind: quest / CA / diary / clue goals wear their
-	 *  system's badge; everything else the item sprite. */
+	/** Scale an image to the shared goal-row icon height (1), or null. */
+	private static Icon sized(java.awt.Image img)
+	{
+		return img == null ? null
+			: new ImageIcon(img.getScaledInstance(-1, BADGE_H, java.awt.Image.SCALE_SMOOTH));
+	}
+
+	/** A route's icon by kind — every badge scaled to the item-sprite height
+	 *  (1): skill-level → skill icon (7), quest / CA / diary badges, clue →
+	 *  its tier's scroll (16); everything else the item sprite. */
 	private Icon goalIcon(GoalsPack.Goal goal)
 	{
 		String id = goal.getId();
-		if (id.startsWith("ca:") && CA_ICON != null)
+		if (isLevelGoal(id) && skillIcons != null)
 		{
-			return CA_ICON;
+			Skill skill = goalSkill(id);
+			if (skill != null)
+			{
+				return sized(skillIcons.getSkillImage(skill, false));
+			}
 		}
-		if (id.startsWith("diary:") && DIARY_ICON != null)
+		if (id.startsWith("ca:"))
 		{
-			return DIARY_ICON;
+			return sized(CA_IMG);
+		}
+		if (id.startsWith("diary:"))
+		{
+			return sized(DIARY_IMG);
 		}
 		if (id.startsWith("quest:") || id.startsWith("custom:quest:"))
 		{
-			return OsrsIcons.stat(theme, "quests");
+			return sized(OsrsIcons.image(theme, "quests"));
 		}
-		if (id.startsWith("clue:"))
+		if (id.startsWith("clue:") && itemManager != null)
 		{
-			return OsrsIcons.stat(theme, "collections_logged"); // trails feed the log
+			int scroll = clueTierItem(goal.getName());
+			if (scroll > 0)
+			{
+				return new ImageIcon(itemManager.getImage(scroll));
+			}
 		}
 		if (itemManager != null && goal.icon() != null)
 		{
 			return new ImageIcon(itemManager.getImage(goal.icon()));
 		}
 		return null;
+	}
+
+	/** The clue-scroll sprite id for a clue Route, read from its tier-prefixed
+	 *  name ("Hard clue step: …"), or 0 when the tier isn't recognised. */
+	private static int clueTierItem(String name)
+	{
+		if (name == null)
+		{
+			return 0;
+		}
+		String lower = name.toLowerCase(Locale.ROOT);
+		for (Map.Entry<String, Integer> e : CLUE_TIER_ITEM.entrySet())
+		{
+			if (lower.startsWith(e.getKey()))
+			{
+				return e.getValue();
+			}
+		}
+		return 0;
 	}
 
 	private static String monthDay(long epochMs)
@@ -1252,20 +1407,44 @@ class GoalsHubTab extends JPanel
 		return row;
 	}
 
-	/** A collapsible Goal-category header (6): a triangle + name; the click
-	 *  hides/shows the category's routes. */
-	private JComponent category(String text, int count)
+	/** A whole Goal-category on one stone slab (10): the collapsible header,
+	 *  then the category's Route rows (each expandable to its Tasks). */
+	private JComponent categorySlab(String name, List<GoalsPack.Goal> routesInCat)
+	{
+		StonePanel slab = new StonePanel(theme);
+		slab.setLayout(new BoxLayout(slab, BoxLayout.Y_AXIS));
+		slab.setAlignmentX(LEFT_ALIGNMENT);
+		slab.add(categoryHeader(name, routesInCat.size()));
+		if (!collapsedCategories.contains(name))
+		{
+			for (GoalsPack.Goal route : routesInCat)
+			{
+				slab.add(strut(3));
+				slab.add(routeRow(route));
+				if (route.getId().equals(expandedRoute))
+				{
+					addTasks(route, slab);
+				}
+			}
+		}
+		cap(slab);
+		return slab;
+	}
+
+	/** The collapsible category header — medium (16px) text (8), a triangle,
+	 *  and the click that hides/shows the category's routes (6). */
+	private JComponent categoryHeader(String text, int count)
 	{
 		boolean collapsed = collapsedCategories.contains(text);
 		JPanel row = row();
-		row.setBorder(new EmptyBorder(3, 8, 2, 8));
+		row.setBorder(new EmptyBorder(1, 1, 3, 1));
 		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		JLabel triangle = new JLabel(new PaintedIcon(
-			collapsed ? PaintedIcon.Shape.TRIANGLE_RIGHT : PaintedIcon.Shape.TRIANGLE_DOWN, 8));
-		triangle.setForeground(OsrsSkin.FAINT);
+			collapsed ? PaintedIcon.Shape.TRIANGLE_RIGHT : PaintedIcon.Shape.TRIANGLE_DOWN, 9));
+		triangle.setForeground(OsrsSkin.MUTED);
 		row.add(triangle);
 		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		row.add(new OsrsLabel(text.toUpperCase(Locale.ROOT), OsrsSkin.FAINT, OsrsSkin.smallFont()));
+		row.add(new OsrsLabel(text.toUpperCase(Locale.ROOT), OsrsSkin.MUTED, OsrsSkin.font()));
 		row.add(Box.createHorizontalGlue());
 		if (collapsed)
 		{
@@ -1293,7 +1472,7 @@ class GoalsHubTab extends JPanel
 			sub.addMouseListener(click);
 		}
 		cap(row);
-		return pad(row);
+		return row;
 	}
 
 	private JComponent moreLine(String text)

@@ -398,6 +398,12 @@ public class GoalPlannerModule implements IronHubModule
 		return enginePacks == null ? null : enginePacks.quests;
 	}
 
+	/** The drop/kill rate source (G3), for OBTAIN drop-rate display labels. */
+	com.ironhub.engine.RateSource ratesSource()
+	{
+		return enginePacks == null ? null : enginePacks.rates;
+	}
+
 	com.ironhub.data.XpActionsPack xpActions()
 	{
 		return xpActionsPack;

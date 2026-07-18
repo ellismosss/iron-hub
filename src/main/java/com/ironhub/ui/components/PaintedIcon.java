@@ -20,6 +20,8 @@ public class PaintedIcon implements Icon
 	public enum Shape
 	{
 		FLAG,
+		PIN,
+		CROSS,
 		GRID,
 		LIST,
 		CHEVRON_LEFT,
@@ -58,6 +60,30 @@ public class PaintedIcon implements Icon
 				pennant.lineTo(3, 4.5);
 				pennant.closePath();
 				g2.fill(pennant);
+				break;
+			case PIN: // a pushpin seen head-on: round head, tapering needle
+			{
+				float s = size;
+				float cx = s * 0.5f;
+				float headR = s * 0.26f;
+				float headCy = s * 0.34f;
+				// needle
+				g2.setStroke(new BasicStroke(Math.max(1f, s * 0.09f)));
+				g2.draw(new java.awt.geom.Line2D.Float(cx, headCy + headR * 0.6f, cx, s - 0.5f));
+				// head
+				g2.fill(new java.awt.geom.Ellipse2D.Float(cx - headR, headCy - headR, headR * 2, headR * 2));
+				// a small highlight nick so the head reads as round, not a dot
+				g2.setColor(new java.awt.Color(0, 0, 0, 90));
+				g2.fill(new java.awt.geom.Ellipse2D.Float(cx - headR * 0.2f, headCy - headR * 0.5f,
+					headR * 0.7f, headR * 0.7f));
+				break;
+			}
+			case CROSS: // an × drawn as two strokes
+				g2.setStroke(new BasicStroke(Math.max(1.4f, size * 0.16f),
+					BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+				float in = size * 0.2f;
+				g2.draw(new java.awt.geom.Line2D.Float(in, in, size - in, size - in));
+				g2.draw(new java.awt.geom.Line2D.Float(size - in, in, in, size - in));
 				break;
 			case GRID: // 2×2 cells
 				int cell = (size - 2) / 2;

@@ -79,32 +79,39 @@ public class AccountStateTest
 		AccountState before = StateFixture.state(temp.getRoot());
 		StateFixture.profile(before, 7L);
 		before.setGoalPriority("bowfa", "high");
-		before.setGoalPriority("ca:340", "someday");
-		before.setGoalPinned("bowfa", true);
-		before.setGoalPinned("quest_cape", true); // pin order: bowfa, then quest_cape
+		before.setGoalPriority("ca:340", "medium");
+		before.setGoalPinned("quest_cape", true); // one active pin at a time
 		before.setRouteTaskOrder("bowfa", java.util.List.of("train:Agility:70", "quest:Song of the Elves"));
 
 		AccountState after = StateFixture.state(temp.getRoot());
 		StateFixture.profile(after, 7L);
 		assertEquals("high", after.getGoalPriority("bowfa"));
-		assertEquals("someday", after.getGoalPriority("ca:340"));
+		assertEquals("medium", after.getGoalPriority("ca:340"));
 		assertEquals("normal", after.getGoalPriority("unset")); // default, never stored
-		assertEquals(java.util.List.of("bowfa", "quest_cape"), after.getPinnedGoals());
-		assertTrue(after.isGoalPinned("bowfa"));
+		assertEquals(java.util.List.of("quest_cape"), after.getPinnedGoals());
+		assertTrue(after.isGoalPinned("quest_cape"));
 		assertEquals(java.util.List.of("train:Agility:70", "quest:Song of the Elves"),
 			after.getRouteTaskOrder("bowfa"));
 
 		// the constraints the router reads carry all three
 		com.ironhub.engine.PlanConstraints c = after.plannerConstraints();
 		assertEquals("high", c.goalPriority.get("bowfa"));
-		assertEquals(java.util.List.of("bowfa", "quest_cape"), c.pinnedGoals);
+		assertEquals(java.util.List.of("quest_cape"), c.pinnedGoals);
 		assertEquals(2, c.routeTaskOrder.get("bowfa").size());
 
+		// exactly one active pin: pinning a goal replaces the prior goal pin…
+		after.setGoalPinned("bowfa", true);
+		assertEquals(java.util.List.of("bowfa"), after.getPinnedGoals());
+		// …and pinning a TASK clears the goal pin (goal OR task, never both)
+		after.setTaskPinned("train:Agility:70", true);
+		assertTrue(after.isTaskPinned("train:Agility:70"));
+		assertTrue(after.getPinnedGoals().isEmpty());
+
 		// unpin + reset to normal clears cleanly
-		after.setGoalPinned("bowfa", false);
+		after.setTaskPinned("train:Agility:70", false);
 		after.setGoalPriority("bowfa", "normal");
-		assertFalse(after.isGoalPinned("bowfa"));
-		assertEquals(java.util.List.of("quest_cape"), after.getPinnedGoals());
+		assertFalse(after.isTaskPinned("train:Agility:70"));
+		assertEquals("normal", after.getGoalPriority("bowfa"));
 	}
 
 	@Test

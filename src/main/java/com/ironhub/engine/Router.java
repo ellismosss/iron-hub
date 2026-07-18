@@ -198,7 +198,12 @@ public class Router
 		for (String goalId : node.neededBy)
 		{
 			String tier = constraints.goalPriority.getOrDefault(goalId, "normal");
-			double m = "high".equals(tier) ? 2.0 : "someday".equals(tier) ? 0.05 : 1.0;
+			// high/medium/low (Luke's G7 colours); "someday" is the pre-rename
+			// low alias, kept so old profiles + tests read the same 0.05 sink
+			double m = "high".equals(tier) ? 2.0
+				: "medium".equals(tier) ? 1.3
+				: ("low".equals(tier) || "someday".equals(tier)) ? 0.05
+				: 1.0;
 			mult = Math.max(mult, m);
 		}
 		return mult < 0 ? 1.0 : mult; // no served goals (shouldn't happen) → neutral

@@ -1315,11 +1315,58 @@ public class AccountState implements StateView
 		return pinnedGoals.contains(goalId);
 	}
 
-	/** Pin (append to the end of the order) or unpin a goal. */
+	/**
+	 * Pin or unpin a goal as the single ACTIVE thing. Exactly one goal OR one
+	 * task is pinned at a time (Luke, G7 round 2): pinning a goal clears any
+	 * other goal pin and any task pin.
+	 */
 	public void setGoalPinned(String goalId, boolean pinned)
 	{
-		boolean changed = pinned ? (!pinnedGoals.contains(goalId) && pinnedGoals.add(goalId))
-			: pinnedGoals.remove(goalId);
+		boolean changed;
+		if (pinned)
+		{
+			changed = !(pinnedGoals.size() == 1 && pinnedGoals.contains(goalId) && plannerPins.isEmpty());
+			pinnedGoals.clear();
+			plannerPins.clear();
+			pinnedGoals.add(goalId);
+		}
+		else
+		{
+			changed = pinnedGoals.remove(goalId);
+		}
+		if (changed)
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	/** Whether this task (plan action) is the single active pin. */
+	public boolean isTaskPinned(String actionId)
+	{
+		return plannerPins.contains(actionId);
+	}
+
+	/**
+	 * Pin or unpin a TASK as the single active thing — the task-level twin of
+	 * {@link #setGoalPinned}: pinning clears any goal pin and any other task
+	 * pin (one active pin, goal or task).
+	 */
+	public void setTaskPinned(String actionId, boolean pinned)
+	{
+		boolean changed;
+		if (pinned)
+		{
+			changed = !(plannerPins.size() == 1 && plannerPins.contains(actionId) && pinnedGoals.isEmpty());
+			pinnedGoals.clear();
+			plannerPins.clear();
+			plannerPins.add(actionId);
+			plannerSnoozes.remove(actionId);
+		}
+		else
+		{
+			changed = plannerPins.remove(actionId);
+		}
 		if (changed)
 		{
 			persist();

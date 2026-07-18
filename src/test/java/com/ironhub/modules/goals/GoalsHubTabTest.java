@@ -59,6 +59,9 @@ public class GoalsHubTabTest
 		state.addGoalSeed(com.ironhub.state.GoalSeeds.custom(
 			"custom:skill:agility:70", "Agility 70", "skill:Agility:70"));
 		state.setGoalPinned("custom:skill:agility:70", true);
+		// a clog Route whose obtain step carries a real drop rate (1/400 Tempoross)
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.clog(25580, "Tackle box",
+			"Fishing from the reward pool (tempoross)", java.util.List.of("skill:Fishing:35")));
 		state.setGoalPriority("bowfa", "someday"); // dimmed + grey edge (if selected)
 		// one archived (dated) + one detected, so the hero + archive fill
 		PersistedState.GoalRecord dated = new PersistedState.GoalRecord();
@@ -100,6 +103,16 @@ public class GoalsHubTabTest
 			assertTrue("the hub should be tall", main.getHeight() > 300);
 			write(main, "goals-hub-tab-" + theme.name().toLowerCase());
 
+			// a clog Route expanded: its obtain Task shows the 1/400 drop rate
+			javax.swing.SwingUtilities.invokeAndWait(() -> holder[0].expandRoute("clog:25580"));
+			javax.swing.SwingUtilities.invokeAndWait(() -> { });
+			write(SwingRender.render(holder[0]), "goals-hub-drops-" + theme.name().toLowerCase());
+
+			// a quest Route expanded: the target quest's own Task reads "Complete the quest"
+			javax.swing.SwingUtilities.invokeAndWait(() -> holder[0].expandRoute("custom:quest:dragon-slayer-i"));
+			javax.swing.SwingUtilities.invokeAndWait(() -> { });
+			write(SwingRender.render(holder[0]), "goals-hub-quest-" + theme.name().toLowerCase());
+
 			// the completed archive (depth 2)
 			javax.swing.SwingUtilities.invokeAndWait(holder[0]::openArchive);
 			javax.swing.SwingUtilities.invokeAndWait(() -> { });
@@ -119,6 +132,9 @@ public class GoalsHubTabTest
 		javax.swing.SwingUtilities.invokeAndWait(() ->
 			holder[0] = new GoalsHubTab(module, state, packOf(module), gearOf(module),
 				null, new SkillIconManager(), OsrsTheme.MYSTIC));
+		// force a direct rebuild against the settled plan (the ctor may have run
+		// before the background replan finished; RebuildGate defers while hidden)
+		javax.swing.SwingUtilities.invokeAndWait(() -> holder[0].expandRoute("custom:skill:agility:70"));
 		javax.swing.SwingUtilities.invokeAndWait(() -> { });
 
 		com.ironhub.ui.components.HubScrollPane pane = new com.ironhub.ui.components.HubScrollPane(holder[0]);
