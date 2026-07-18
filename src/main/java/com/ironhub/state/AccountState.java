@@ -155,6 +155,10 @@ public class AccountState implements StateView
 	private final Set<String> plannerSnoozes = ConcurrentHashMap.newKeySet();
 	private final Set<String> plannerBans = ConcurrentHashMap.newKeySet();
 	private final Map<String, String> plannerPreferred = new ConcurrentHashMap<>();
+	// goal-level priority + pins + per-route task order (G5)
+	private final Map<String, String> goalPriority = new ConcurrentHashMap<>();
+	private final java.util.List<String> pinnedGoals = new CopyOnWriteArrayList<>();
+	private final Map<String, java.util.List<String>> routeTaskOrder = new ConcurrentHashMap<>();
 	private volatile double lastPlanHours;
 	private volatile boolean plannerRouteChapters;
 
@@ -1271,7 +1275,76 @@ public class AccountState implements StateView
 		constraints.snoozed.addAll(plannerSnoozes);
 		constraints.bannedMethods.addAll(plannerBans);
 		constraints.preferredMethods.putAll(plannerPreferred);
+		constraints.goalPriority.putAll(goalPriority);
+		constraints.pinnedGoals.addAll(pinnedGoals);
+		routeTaskOrder.forEach((goalId, order) ->
+			constraints.routeTaskOrder.put(goalId, new java.util.ArrayList<>(order)));
 		return constraints;
+	}
+
+	// ── goal-level priority + pins + per-route task order (G5) ─────────
+
+	/** A goal's priority tier: "high" | "normal" | "someday" (default normal). */
+	public String getGoalPriority(String goalId)
+	{
+		return goalPriority.getOrDefault(goalId, "normal");
+	}
+
+	public void setGoalPriority(String goalId, String tier)
+	{
+		if ("normal".equals(tier))
+		{
+			goalPriority.remove(goalId); // normal is the default — never stored
+		}
+		else
+		{
+			goalPriority.put(goalId, tier);
+		}
+		persist();
+		notifyListeners();
+	}
+
+	/** Pinned goal ids in priority order (first = highest). */
+	public java.util.List<String> getPinnedGoals()
+	{
+		return java.util.List.copyOf(pinnedGoals);
+	}
+
+	public boolean isGoalPinned(String goalId)
+	{
+		return pinnedGoals.contains(goalId);
+	}
+
+	/** Pin (append to the end of the order) or unpin a goal. */
+	public void setGoalPinned(String goalId, boolean pinned)
+	{
+		boolean changed = pinned ? (!pinnedGoals.contains(goalId) && pinnedGoals.add(goalId))
+			: pinnedGoals.remove(goalId);
+		if (changed)
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	/** The player's manual task order for a route, or empty. */
+	public java.util.List<String> getRouteTaskOrder(String goalId)
+	{
+		return java.util.List.copyOf(routeTaskOrder.getOrDefault(goalId, java.util.List.of()));
+	}
+
+	public void setRouteTaskOrder(String goalId, java.util.List<String> order)
+	{
+		if (order == null || order.isEmpty())
+		{
+			routeTaskOrder.remove(goalId);
+		}
+		else
+		{
+			routeTaskOrder.put(goalId, new java.util.ArrayList<>(order));
+		}
+		persist();
+		notifyListeners();
 	}
 
 	public boolean isPlannerPinned(String actionId)
@@ -1895,6 +1968,12 @@ public class AccountState implements StateView
 		plannerBans.addAll(persisted.plannerBans);
 		plannerPreferred.clear();
 		plannerPreferred.putAll(persisted.plannerPreferred);
+		goalPriority.clear();
+		goalPriority.putAll(persisted.goalPriority);
+		pinnedGoals.clear();
+		pinnedGoals.addAll(persisted.pinnedGoals);
+		routeTaskOrder.clear();
+		persisted.routeTaskOrder.forEach((k, v) -> routeTaskOrder.put(k, new java.util.ArrayList<>(v)));
 		lastPlanHours = persisted.lastPlanHours;
 		plannerRouteChapters = persisted.plannerRouteChapters;
 		scoreSnapshots.clear();
@@ -2013,6 +2092,9 @@ public class AccountState implements StateView
 		state.plannerSnoozes = new HashSet<>(plannerSnoozes);
 		state.plannerBans = new HashSet<>(plannerBans);
 		state.plannerPreferred = new HashMap<>(plannerPreferred);
+		state.goalPriority = new HashMap<>(goalPriority);
+		state.pinnedGoals = new java.util.ArrayList<>(pinnedGoals);
+		routeTaskOrder.forEach((k, v) -> state.routeTaskOrder.put(k, new java.util.ArrayList<>(v)));
 		state.lastPlanHours = lastPlanHours;
 		state.plannerRouteChapters = plannerRouteChapters;
 		state.scoreSnapshots = new java.util.ArrayList<>(scoreSnapshots);

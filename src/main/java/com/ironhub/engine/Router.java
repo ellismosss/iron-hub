@@ -160,6 +160,9 @@ public class Router
 		double value = 0.5
 			+ 0.2 * (node.neededBy.size() - 1)
 			+ discountHours(node, projection);
+		// priority tiers (G5): weight by the MAX tier among served goals, so
+		// a someday goal's UNIQUE steps sink but shared steps keep full value
+		value *= tierMultiplier(node);
 		if (node.kind == Action.Kind.TRAIN)
 		{
 			// forfeit: pending quest rewards would have paid part of this grind
@@ -173,15 +176,68 @@ public class Router
 			}
 		}
 		double score = value / surrogate;
+		// the player's manual task order nudges among near-equal feasible
+		// picks, never overrides value/pins (honoured "where the order allows")
+		score += 0.3 * routeOrderBonus(node);
 		if (pinnedClosure.contains(node.id))
 		{
-			score += 1_000;
+			// pinned goals/steps outrank tiers; among pinned goals, pin order
+			score += 1_000 + goalPinBonus(node);
 		}
 		if (constraints.snoozed.contains(node.id))
 		{
 			score *= 0.001;
 		}
 		return score;
+	}
+
+	/** Value multiplier from the highest-priority goal a step serves. */
+	private double tierMultiplier(Action node)
+	{
+		double mult = -1;
+		for (String goalId : node.neededBy)
+		{
+			String tier = constraints.goalPriority.getOrDefault(goalId, "normal");
+			double m = "high".equals(tier) ? 2.0 : "someday".equals(tier) ? 0.05 : 1.0;
+			mult = Math.max(mult, m);
+		}
+		return mult < 0 ? 1.0 : mult; // no served goals (shouldn't happen) → neutral
+	}
+
+	/** A pinned goal's steps rank by pin order: earlier-pinned goals win. */
+	private double goalPinBonus(Action node)
+	{
+		int best = Integer.MAX_VALUE;
+		for (String goalId : node.neededBy)
+		{
+			int rank = constraints.pinnedGoals.indexOf(goalId);
+			if (rank >= 0)
+			{
+				best = Math.min(best, rank);
+			}
+		}
+		return best == Integer.MAX_VALUE ? 0 : constraints.pinnedGoals.size() - best;
+	}
+
+	/** How early this node sits in any of its routes' manual task orders
+	 *  (0 when unordered) — a small forward pull, deterministic. */
+	private double routeOrderBonus(Action node)
+	{
+		double bonus = 0;
+		for (String goalId : node.neededBy)
+		{
+			List<String> order = constraints.routeTaskOrder.get(goalId);
+			if (order == null)
+			{
+				continue;
+			}
+			int idx = order.indexOf(node.id);
+			if (idx >= 0 && order.size() > 1)
+			{
+				bonus = Math.max(bonus, (order.size() - 1 - idx) / (double) (order.size() - 1));
+			}
+		}
+		return bonus;
 	}
 
 	/** Hours this action's effects shave off the rest of the plan. */
@@ -248,6 +304,18 @@ public class Router
 		for (String id : constraints.pinned)
 		{
 			addClosure(dag, id, closure);
+		}
+		// goal pins (G5): every node a pinned goal needs, plus its
+		// prerequisites, jumps the queue like a step pin
+		if (!constraints.pinnedGoals.isEmpty())
+		{
+			for (Action node : dag.nodes())
+			{
+				if (node.neededBy.stream().anyMatch(constraints.pinnedGoals::contains))
+				{
+					addClosure(dag, node.id, closure);
+				}
+			}
 		}
 		return closure;
 	}

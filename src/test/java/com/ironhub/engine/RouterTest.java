@@ -242,6 +242,79 @@ public class RouterTest
 		assertEquals(0, plan.unknownCount);
 	}
 
+	/** Priority tiers (G5): a High goal's steps front-load, a Someday goal's
+	 *  UNIQUE steps sink to the back. */
+	@Test
+	public void priorityTiersWeightTheOrder()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		PlanConstraints c = PlanConstraints.none();
+		c.goalPriority.put("hi", "high");
+		c.goalPriority.put("lo", "someday");
+		Plan plan = plan(state, c,
+			goal("hi", "skill:Agility:10"), goal("lo", "skill:Woodcutting:10"));
+		assertTrue("the someday goal's step must sink behind the high goal's",
+			indexOf(plan, "train:Agility:10") < indexOf(plan, "train:Woodcutting:10"));
+	}
+
+	/** A step shared with a Someday goal keeps FULL value (max tier wins), so
+	 *  the dedupe keeps the someday goal in the graph — its ×N badge stands. */
+	@Test
+	public void somedayGoalsStayInTheMergedGraph()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		PlanConstraints c = PlanConstraints.none();
+		c.goalPriority.put("b", "someday");
+		Plan plan = plan(state, c,
+			goal("a", "skill:Agility:20"), goal("b", "skill:Agility:20"));
+		Plan.Step shared = plan.steps.get(indexOf(plan, "train:Agility:20"));
+		assertTrue("the shared step must still serve both goals",
+			shared.action.neededBy.containsAll(java.util.List.of("a", "b")));
+	}
+
+	/** Goal pins (G5): a pinned goal's steps jump the queue; among pinned
+	 *  goals, pin order decides. */
+	@Test
+	public void pinnedGoalsRouteFirstInPinOrder()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		// pin p1 (Woodcutting) before p2 (Agility): Woodcutting must lead even
+		// though "Agility" sorts first without pins
+		PlanConstraints c = PlanConstraints.none();
+		c.pinnedGoals.add("p1");
+		c.pinnedGoals.add("p2");
+		Plan plan = plan(state, c,
+			goal("p1", "skill:Woodcutting:10"), goal("p2", "skill:Agility:10"),
+			goal("free", "skill:Thieving:10"));
+		assertTrue("pinned goals lead", indexOf(plan, "train:Woodcutting:10")
+			< indexOf(plan, "train:Thieving:10"));
+		assertTrue("earlier-pinned goal wins the tie",
+			indexOf(plan, "train:Woodcutting:10") < indexOf(plan, "train:Agility:10"));
+
+		// reverse the pin order → Agility now leads
+		PlanConstraints r = PlanConstraints.none();
+		r.pinnedGoals.add("p2");
+		r.pinnedGoals.add("p1");
+		Plan flipped = plan(state, r,
+			goal("p1", "skill:Woodcutting:10"), goal("p2", "skill:Agility:10"));
+		assertTrue("pin order flips the lead",
+			indexOf(flipped, "train:Agility:10") < indexOf(flipped, "train:Woodcutting:10"));
+	}
+
+	/** Tiers + pins stay deterministic — same inputs, byte-identical plan. */
+	@Test
+	public void priorityPlansAreDeterministic()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		PlanConstraints c = PlanConstraints.none();
+		c.goalPriority.put("a", "high");
+		c.goalPriority.put("b", "someday");
+		c.pinnedGoals.add("a");
+		GoalsPack.Goal a = goal("a", "skill:Agility:20");
+		GoalsPack.Goal b = goal("b", "skill:Thieving:20");
+		assertEquals(plan(state, c, a, b).fingerprint, plan(state, c, a, b).fingerprint);
+	}
+
 	@Test
 	public void trainStepsCarryMethodAndAlternatives()
 	{

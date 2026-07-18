@@ -71,6 +71,42 @@ public class AccountStateTest
 		assertEquals(bankedAt, after.getBankTimestamp());
 	}
 
+	/** Goal-level priority, pins (ordered) and per-route task order (G5)
+	 *  persist profile-scoped and reach the router's constraints. */
+	@Test
+	public void goalPriorityPinsAndOrderSurviveRestart()
+	{
+		AccountState before = StateFixture.state(temp.getRoot());
+		StateFixture.profile(before, 7L);
+		before.setGoalPriority("bowfa", "high");
+		before.setGoalPriority("ca:340", "someday");
+		before.setGoalPinned("bowfa", true);
+		before.setGoalPinned("quest_cape", true); // pin order: bowfa, then quest_cape
+		before.setRouteTaskOrder("bowfa", java.util.List.of("train:Agility:70", "quest:Song of the Elves"));
+
+		AccountState after = StateFixture.state(temp.getRoot());
+		StateFixture.profile(after, 7L);
+		assertEquals("high", after.getGoalPriority("bowfa"));
+		assertEquals("someday", after.getGoalPriority("ca:340"));
+		assertEquals("normal", after.getGoalPriority("unset")); // default, never stored
+		assertEquals(java.util.List.of("bowfa", "quest_cape"), after.getPinnedGoals());
+		assertTrue(after.isGoalPinned("bowfa"));
+		assertEquals(java.util.List.of("train:Agility:70", "quest:Song of the Elves"),
+			after.getRouteTaskOrder("bowfa"));
+
+		// the constraints the router reads carry all three
+		com.ironhub.engine.PlanConstraints c = after.plannerConstraints();
+		assertEquals("high", c.goalPriority.get("bowfa"));
+		assertEquals(java.util.List.of("bowfa", "quest_cape"), c.pinnedGoals);
+		assertEquals(2, c.routeTaskOrder.get("bowfa").size());
+
+		// unpin + reset to normal clears cleanly
+		after.setGoalPinned("bowfa", false);
+		after.setGoalPriority("bowfa", "normal");
+		assertFalse(after.isGoalPinned("bowfa"));
+		assertEquals(java.util.List.of("quest_cape"), after.getPinnedGoals());
+	}
+
 	@Test
 	public void profilesDoNotCollide()
 	{

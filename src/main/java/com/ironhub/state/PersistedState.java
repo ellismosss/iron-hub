@@ -272,6 +272,12 @@ public class PersistedState
 	Set<String> plannerSnoozes = new HashSet<>();   // action ids sunk to the end
 	Set<String> plannerBans = new HashSet<>();      // methods.json ids never suggested
 	Map<String, String> plannerPreferred = new HashMap<>(); // skill -> preferred method id
+	// Goals v2 G5: goal-level priority + pins + per-route task order. Keyed
+	// by goal id (not the seed — pack/gear goals have no seed but can still
+	// be prioritised/pinned).
+	Map<String, String> goalPriority = new HashMap<>();      // goal id -> high|normal|someday (absent = normal)
+	java.util.List<String> pinnedGoals = new ArrayList<>();  // pinned goal ids, priority order
+	Map<String, java.util.List<String>> routeTaskOrder = new HashMap<>(); // goal id -> manual action-id order
 	double lastPlanHours;                            // known hours at last replan (session diffs)
 	boolean plannerRouteChapters;                    // Route view: chapter headers (default flat order)
 	Map<String, CustomGoal> customGoals = new HashMap<>(); // legacy: goal id -> seed
