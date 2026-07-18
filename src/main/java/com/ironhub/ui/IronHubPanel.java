@@ -219,28 +219,37 @@ public class IronHubPanel extends PluginPanel
 	private JComponent moduleHeader(String hubName, String name, Map<String, JLabel> triangles)
 	{
 		com.ironhub.ui.osrs.OsrsTheme theme = config.osrsTheme();
+		// a hub with one module never collapses — it's the whole section
+		// (Luke: the Goal planner is the only Goals module)
+		boolean collapsible = BLOCKS.get(hubName).size() > 1;
 		com.ironhub.ui.osrs.StonePanel plate = new com.ironhub.ui.osrs.StonePanel(theme);
 		plate.setLayout(new BoxLayout(plate, BoxLayout.X_AXIS));
-		JLabel triangle = new JLabel(new com.ironhub.ui.components.PaintedIcon(
-			com.ironhub.ui.components.PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
-		triangle.setForeground(com.ironhub.ui.osrs.OsrsSkin.MUTED);
-		triangles.put(name, triangle);
-		plate.add(triangle);
+		if (collapsible)
+		{
+			JLabel triangle = new JLabel(new com.ironhub.ui.components.PaintedIcon(
+				com.ironhub.ui.components.PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+			triangle.setForeground(com.ironhub.ui.osrs.OsrsSkin.MUTED);
+			triangles.put(name, triangle);
+			plate.add(triangle);
+		}
 		plate.add(Box.createHorizontalGlue());
 		plate.add(new com.ironhub.ui.osrs.OsrsLabel(name,
 			com.ironhub.ui.osrs.OsrsSkin.TITLE, com.ironhub.ui.osrs.OsrsSkin.boldFont()));
 		plate.add(Box.createHorizontalGlue());
-		// mirror the triangle's width so the title stays optically centred
-		plate.add(Box.createHorizontalStrut(10));
-		plate.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		plate.addMouseListener(new java.awt.event.MouseAdapter()
+		if (collapsible)
 		{
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
+			// mirror the triangle's width so the title stays optically centred
+			plate.add(Box.createHorizontalStrut(10));
+			plate.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+			plate.addMouseListener(new java.awt.event.MouseAdapter()
 			{
-				toggleModule(hubName, name);
-			}
-		});
+				@Override
+				public void mousePressed(java.awt.event.MouseEvent e)
+				{
+					toggleModule(hubName, name);
+				}
+			});
+		}
 
 		JPanel pad = new JPanel(new BorderLayout());
 		pad.setOpaque(false);

@@ -393,6 +393,11 @@ public class GoalPlannerModule implements IronHubModule
 		return enginePacks == null ? null : enginePacks.effects;
 	}
 
+	com.ironhub.data.QuestsPack questsPack()
+	{
+		return enginePacks == null ? null : enginePacks.quests;
+	}
+
 	com.ironhub.data.XpActionsPack xpActions()
 	{
 		return xpActionsPack;

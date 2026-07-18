@@ -53,11 +53,13 @@ public class GoalsHubTabTest
 		StateFixture.stat(state, Skill.THIEVING, 40, net.runelite.api.Experience.getXpForLevel(40));
 		// a few routes across categories
 		state.selectGoal("barrows_gloves", true);
+		state.setGoalPriority("barrows_gloves", "high"); // a coloured left edge
 		state.addGoalSeed(com.ironhub.state.GoalSeeds.custom(
 			"custom:quest:dragon-slayer-i", "Dragon Slayer I", "quest:Dragon Slayer I"));
 		state.addGoalSeed(com.ironhub.state.GoalSeeds.custom(
 			"custom:skill:agility:70", "Agility 70", "skill:Agility:70"));
 		state.setGoalPinned("custom:skill:agility:70", true);
+		state.setGoalPriority("bowfa", "someday"); // dimmed + grey edge (if selected)
 		// one archived (dated) + one detected, so the hero + archive fill
 		PersistedState.GoalRecord dated = new PersistedState.GoalRecord();
 		dated.goalId = "fire_cape";
