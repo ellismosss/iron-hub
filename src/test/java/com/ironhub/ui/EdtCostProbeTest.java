@@ -165,7 +165,7 @@ public class EdtCostProbeTest
 	{
 		return Set.of(
 			new GearProgressionModule(state, config, new DataPack(new Gson()), null, null),
-			new QuestsModule(state, config),
+			new QuestsModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null),
 			new DiariesModule(state, config, new DataPack(new Gson())),
 			new CombatAchievementsModule(state, config, null,
 				new net.runelite.client.eventbus.EventBus(), new DataPack(new Gson()), null),

@@ -66,6 +66,19 @@
 							"type": "integer",
 							"minimum": 0
 						}
+					},
+					"difficulty": {
+						"enum": [
+							"Novice",
+							"Intermediate",
+							"Experienced",
+							"Master",
+							"Grandmaster",
+							"Special"
+						]
+					},
+					"miniquest": {
+						"type": "boolean"
 					}
 				}
 			}

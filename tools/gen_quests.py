@@ -113,11 +113,17 @@ def parse_oqg(wikitext):
 
 
 def parse_infobox(content):
-    """length minutes, direct prereq quests, started-quests, skill req strings."""
-    result = {"minutes": 0, "questReqs": [], "startedReqs": [], "skillReqs": []}
+    """length minutes, difficulty, miniquest flag, prereqs, skill reqs."""
+    result = {"minutes": 0, "questReqs": [], "startedReqs": [], "skillReqs": [],
+              "difficulty": None, "miniquest": False}
     lm = re.search(r"\|\s*length\s*=\s*([A-Za-z ]+)", content)
     if lm:
         result["minutes"] = LENGTH_MINUTES.get(lm.group(1).strip().lower(), 0)
+    dm = re.search(r"\|\s*difficulty\s*=\s*([A-Za-z]+)", content)
+    if dm:
+        result["difficulty"] = dm.group(1).strip().capitalize()
+    if re.search(r"\{\{Infobox [Mm]iniquest", content):
+        result["miniquest"] = True
     rm = re.search(r"\|\s*requirements\s*=(.*?)(?=\n\|[a-z]+\s*=|\Z)", content, re.DOTALL)
     if not rm:
         return result
@@ -195,7 +201,8 @@ def main():
     order_index = {n: i for i, n in enumerate(order)}
     quests = []
     for name in names:
-        info = infoboxes.get(pages[name], {"minutes": 0, "questReqs": [], "startedReqs": [], "skillReqs": []})
+        info = infoboxes.get(pages[name], {"minutes": 0, "questReqs": [], "startedReqs": [],
+                                           "skillReqs": [], "difficulty": None, "miniquest": False})
         reqs = list(info["skillReqs"])
         for q in info["questReqs"]:
             reqs.append("quest:" + ENUM_FIXES.get(q, q))
@@ -204,7 +211,7 @@ def main():
         enum = to_enum(name)
         if enum is None and info["minutes"] == 0:
             continue # non-quest route row (diary step, museum, balloon...)
-        quests.append({
+        entry = {
             "name": ENUM_FIXES.get(name, name),
             "enumName": enum,
             "minutes": info["minutes"],
@@ -212,7 +219,56 @@ def main():
             "order": order_index.get(name, -1),
             "reqs": reqs,
             "xp": rewards.get(name, {}),
-        })
+        }
+        if info["difficulty"]:
+            entry["difficulty"] = info["difficulty"]
+        if info["miniquest"]:
+            entry["miniquest"] = True
+        quests.append(entry)
+
+    # miniquests absent from the OQG route, from the wiki's Miniquests list —
+    # only ones the client can detect (Quest enum) are worth carrying
+    mq = fetch({"action": "query", "list": "categorymembers",
+                "cmtitle": "Category:Miniquests", "cmlimit": "200"},
+               cache, "miniquests-category")
+    have = {q["name"].lower() for q in quests}
+    extra_names = []
+    for member in mq["query"]["categorymembers"]:
+        name = re.sub(r"\s*\(miniquest\)$", "", member["title"]).strip()
+        if name.startswith(("Category:", "File:")):
+            continue
+        if name.lower() not in have and to_enum(name) and name not in extra_names:
+            extra_names.append(name)
+    for i in range(0, len(extra_names), 50):
+        batch = extra_names[i:i + 50]
+        data = fetch({"action": "query", "prop": "revisions", "rvprop": "content",
+                      "rvslots": "main", "redirects": "1", "titles": "|".join(batch)},
+                     cache, f"miniquests-batch-{i}")
+        normalized = {}
+        for n in data["query"].get("normalized", []) + data["query"].get("redirects", []):
+            normalized[n["from"]] = n["to"]
+        by_title = {p["title"]: p for p in data["query"]["pages"]}
+        for t in batch:
+            page = by_title.get(normalized.get(t, t))
+            if not page or "revisions" not in page:
+                continue
+            info = parse_infobox(page["revisions"][0]["slots"]["main"]["content"])
+            reqs = list(info["skillReqs"])
+            for q in info["questReqs"]:
+                reqs.append("quest:" + ENUM_FIXES.get(q, q))
+            for q in info["startedReqs"]:
+                reqs.append("queststarted:" + ENUM_FIXES.get(q, q))
+            quests.append({
+                "name": t,
+                "enumName": to_enum(t),
+                "minutes": info["minutes"],
+                "qp": 0,
+                "order": -1,
+                "reqs": reqs,
+                "xp": {},
+                "miniquest": True,
+            })
+    print(f"  off-route miniquests added: {len(extra_names)}")
 
     resolved_count = sum(1 for q in quests if q["enumName"])
     with_reqs = sum(1 for q in quests if q["reqs"])

@@ -1,6 +1,6 @@
 {
  "source": "oldschool.runescape.wiki Optimal_quest_guide/Ironman + per-quest infoboxes; length->minutes calibration curated (VS10/S25/M45/L90/VL180)",
- "generated": "2026-07-15",
+ "generated": "2026-07-18",
  "quests": [
   {
    "name": "Learning the Ropes",
@@ -11,7 +11,8 @@
    "reqs": [],
    "xp": {
     "Hitpoints": 1154
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Cook's Assistant",
@@ -22,7 +23,8 @@
    "reqs": [],
    "xp": {
     "Cooking": 300
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Sheep Shearer",
@@ -33,7 +35,8 @@
    "reqs": [],
    "xp": {
     "Crafting": 200
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Misthalin Mystery",
@@ -44,7 +47,8 @@
    "reqs": [],
    "xp": {
     "Crafting": 600
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "The Restless Ghost",
@@ -55,7 +59,8 @@
    "reqs": [],
    "xp": {
     "Prayer": 1125
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "X Marks the Spot",
@@ -66,7 +71,8 @@
    "reqs": [],
    "xp": {
     "Agility": 300
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Witch's Potion",
@@ -77,7 +83,8 @@
    "reqs": [],
    "xp": {
     "Magic": 325
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Client of Kourend",
@@ -90,7 +97,8 @@
    ],
    "xp": {
     "Agility": 1000
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Pandemonium",
@@ -101,7 +109,8 @@
    "reqs": [],
    "xp": {
     "Sailing": 400
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Children of the Sun",
@@ -110,7 +119,8 @@
    "qp": 1,
    "order": 10,
    "reqs": [],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Novice"
   },
   {
    "name": "Romeo & Juliet",
@@ -119,7 +129,8 @@
    "qp": 5,
    "order": 11,
    "reqs": [],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Novice"
   },
   {
    "name": "Gertrude's Cat",
@@ -130,7 +141,8 @@
    "reqs": [],
    "xp": {
     "Cooking": 1525
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Daddy's Home",
@@ -141,7 +153,9 @@
    "reqs": [],
    "xp": {
     "Construction": 944
-   }
+   },
+   "difficulty": "Novice",
+   "miniquest": true
   },
   {
    "name": "Rune Mysteries",
@@ -150,7 +164,8 @@
    "qp": 1,
    "order": 15,
    "reqs": [],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Novice"
   },
   {
    "name": "Tree Gnome Village",
@@ -161,7 +176,8 @@
    "reqs": [],
    "xp": {
     "Attack": 11450
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Hazeel Cult",
@@ -172,7 +188,8 @@
    "reqs": [],
    "xp": {
     "Thieving": 1500
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Clock Tower",
@@ -181,7 +198,8 @@
    "qp": 1,
    "order": 18,
    "reqs": [],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Novice"
   },
   {
    "name": "Monk's Friend",
@@ -192,7 +210,8 @@
    "reqs": [],
    "xp": {
     "Woodcutting": 2000
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Plague City",
@@ -203,7 +222,8 @@
    "reqs": [],
    "xp": {
     "Mining": 2425
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Biohazard",
@@ -216,7 +236,8 @@
    ],
    "xp": {
     "Thieving": 1250
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Demon Slayer",
@@ -225,7 +246,8 @@
    "qp": 3,
    "order": 22,
    "reqs": [],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Novice"
   },
   {
    "name": "Enter the Abyss",
@@ -238,7 +260,8 @@
    ],
    "xp": {
     "Runecraft": 1000
-   }
+   },
+   "miniquest": true
   },
   {
    "name": "Fight Arena",
@@ -250,7 +273,8 @@
    "xp": {
     "Attack": 12175,
     "Thieving": 2175
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Sheep Herder",
@@ -259,7 +283,8 @@
    "qp": 4,
    "order": 26,
    "reqs": [],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Novice"
   },
   {
    "name": "Waterfall Quest",
@@ -271,7 +296,8 @@
    "xp": {
     "Attack": 13750,
     "Strength": 13750
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Murder Mystery",
@@ -282,7 +308,8 @@
    "reqs": [],
    "xp": {
     "Crafting": 1406
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Merlin's Crystal",
@@ -291,7 +318,8 @@
    "qp": 6,
    "order": 30,
    "reqs": [],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Intermediate"
   },
   {
    "name": "Holy Grail",
@@ -306,7 +334,8 @@
    "xp": {
     "Defence": 15300,
     "Prayer": 11000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Doric's Quest",
@@ -317,7 +346,8 @@
    "reqs": [],
    "xp": {
     "Mining": 1300
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Druidic Ritual",
@@ -328,7 +358,8 @@
    "reqs": [],
    "xp": {
     "Herblore": 250
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Witch's House",
@@ -339,7 +370,8 @@
    "reqs": [],
    "xp": {
     "Hitpoints": 6325
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Dwarf Cannon",
@@ -350,7 +382,8 @@
    "reqs": [],
    "xp": {
     "Crafting": 750
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Below Ice Mountain",
@@ -361,7 +394,8 @@
    "reqs": [
     "qp:16"
    ],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Novice"
   },
   {
    "name": "Black Knights' Fortress",
@@ -372,7 +406,8 @@
    "reqs": [
     "qp:12"
    ],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Intermediate"
   },
   {
    "name": "Pirate's Treasure",
@@ -381,7 +416,8 @@
    "qp": 2,
    "order": 38,
    "reqs": [],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Novice"
   },
   {
    "name": "The Ides of Milk",
@@ -392,7 +428,8 @@
    "reqs": [],
    "xp": {
     "Prayer": 1000
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Observatory Quest",
@@ -403,7 +440,8 @@
    "reqs": [],
    "xp": {
     "Crafting": 2000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Priest in Peril",
@@ -414,7 +452,8 @@
    "reqs": [],
    "xp": {
     "Prayer": 3906
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Nature Spirit",
@@ -430,7 +469,8 @@
     "Crafting": 3000,
     "Defence": 2000,
     "Hitpoints": 2000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Recruitment Drive",
@@ -446,7 +486,8 @@
     "Agility": 1000,
     "Herblore": 1000,
     "Prayer": 1000
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Alfred Grimhand's Barcrawl",
@@ -455,7 +496,8 @@
    "qp": 0,
    "order": 44,
    "reqs": [],
-   "xp": {}
+   "xp": {},
+   "miniquest": true
   },
   {
    "name": "Scorpion Catcher",
@@ -469,7 +511,8 @@
    ],
    "xp": {
     "Strength": 6625
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Jungle Potion",
@@ -483,7 +526,8 @@
    ],
    "xp": {
     "Herblore": 775
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Vampyre Slayer",
@@ -494,7 +538,8 @@
    "reqs": [],
    "xp": {
     "Attack": 4825
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "A Porcine of Interest",
@@ -503,7 +548,8 @@
    "qp": 1,
    "order": 49,
    "reqs": [],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Novice"
   },
   {
    "name": "Rag and Bone Man I",
@@ -515,7 +561,8 @@
    "xp": {
     "Prayer": 500,
     "Cooking": 500
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Death Plateau",
@@ -526,7 +573,8 @@
    "reqs": [],
    "xp": {
     "Attack": 3000
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "The Queen of Thieves",
@@ -540,7 +588,8 @@
    ],
    "xp": {
     "Thieving": 2000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "The Depths of Despair",
@@ -554,7 +603,8 @@
    ],
    "xp": {
     "Agility": 1500
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "The Forsaken Tower",
@@ -568,7 +618,8 @@
    "xp": {
     "Mining": 500,
     "Smithing": 500
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Tale of the Righteous",
@@ -581,7 +632,8 @@
     "skill:Mining:10",
     "quest:Client of Kourend"
    ],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Intermediate"
   },
   {
    "name": "Mountain Daughter",
@@ -595,7 +647,8 @@
    "xp": {
     "Attack": 1000,
     "Prayer": 2000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "The Grand Tree",
@@ -610,7 +663,8 @@
     "Attack": 18400,
     "Agility": 7900,
     "Magic": 2150
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Tribal Totem",
@@ -623,7 +677,8 @@
    ],
    "xp": {
     "Thieving": 1775
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "The Dig Site",
@@ -639,7 +694,8 @@
    "xp": {
     "Herblore": 2000,
     "Mining": 15300
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "The Golem",
@@ -654,7 +710,8 @@
    "xp": {
     "Crafting": 1000,
     "Thieving": 1000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Recipe for Disaster - Another Cook's Quest",
@@ -666,7 +723,8 @@
     "skillb:Cooking:10",
     "quest:Cook's Assistant"
    ],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Special"
   },
   {
    "name": "The Knight's Sword",
@@ -679,7 +737,8 @@
    ],
    "xp": {
     "Smithing": 12725
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Elemental Workshop I",
@@ -695,7 +754,8 @@
    "xp": {
     "Crafting": 5000,
     "Smithing": 5000
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Prince Ali Rescue",
@@ -704,7 +764,8 @@
    "qp": 3,
    "order": 64,
    "reqs": [],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Novice"
   },
   {
    "name": "Shadow of the Storm",
@@ -719,7 +780,8 @@
    ],
    "xp": {
     "Ranged": 10000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Prying Times",
@@ -736,7 +798,8 @@
    "xp": {
     "Sailing": 800,
     "Smithing": 1000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Imp Catcher",
@@ -747,7 +810,8 @@
    "reqs": [],
    "xp": {
     "Magic": 875
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Elemental Workshop II",
@@ -763,7 +827,8 @@
    "xp": {
     "Crafting": 7500,
     "Smithing": 7500
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "The Ribbiting Tale of a Lily Pad Labour Dispute",
@@ -777,7 +842,8 @@
    ],
    "xp": {
     "Woodcutting": 2000
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Lost City",
@@ -789,7 +855,8 @@
     "skillb:Crafting:31",
     "skillb:Woodcutting:36"
    ],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Intermediate"
   },
   {
    "name": "Fairytale I - Growing Pains",
@@ -805,7 +872,8 @@
     "Attack": 2000,
     "Farming": 3500,
     "Magic": 1000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Goblin Diplomacy",
@@ -816,7 +884,8 @@
    "reqs": [],
    "xp": {
     "Crafting": 200
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Recipe for Disaster - Wartface & Bentnoze",
@@ -832,7 +901,8 @@
     "Cooking": 1000,
     "Crafting": 1000,
     "Farming": 1000
-   }
+   },
+   "difficulty": "Special"
   },
   {
    "name": "Sleeping Giants",
@@ -845,7 +915,8 @@
    ],
    "xp": {
     "Smithing": 6000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Shield of Arrav",
@@ -854,7 +925,8 @@
    "qp": 1,
    "order": 75,
    "reqs": [],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Novice"
   },
   {
    "name": "Creature of Fenkenstrain",
@@ -869,7 +941,8 @@
    ],
    "xp": {
     "Thieving": 1000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "A Soul's Bane",
@@ -881,7 +954,8 @@
    "xp": {
     "Defence": 500,
     "Hitpoints": 500
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "The Lost Tribe",
@@ -898,7 +972,8 @@
    ],
    "xp": {
     "Mining": 3000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Death to the Dorgeshuun",
@@ -914,7 +989,8 @@
    "xp": {
     "Ranged": 2000,
     "Thieving": 2000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "The Giant Dwarf",
@@ -935,7 +1011,8 @@
     "Smithing": 2500,
     "Thieving": 1500,
     "Magic": 1500
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Another Slice of H.A.M.",
@@ -953,7 +1030,8 @@
    "xp": {
     "Mining": 3000,
     "Prayer": 3000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Making History",
@@ -968,7 +1046,8 @@
    "xp": {
     "Crafting": 1000,
     "Prayer": 1000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "In Search of the Myreque",
@@ -986,7 +1065,8 @@
     "Defence": 600,
     "Hitpoints": 600,
     "Strength": 600
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Shades of Mort'ton",
@@ -1003,7 +1083,8 @@
    "xp": {
     "Crafting": 2000,
     "Herblore": 2000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "In Aid of the Myreque",
@@ -1023,7 +1104,8 @@
     "Crafting": 2000,
     "Defence": 2000,
     "Strength": 2000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Bone Voyage",
@@ -1034,7 +1116,8 @@
    "reqs": [
     "quest:The Dig Site"
    ],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Intermediate"
   },
   {
    "name": "Wanted!",
@@ -1051,7 +1134,8 @@
    ],
    "xp": {
     "Slayer": 5000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "The Feud",
@@ -1064,7 +1148,8 @@
    ],
    "xp": {
     "Thieving": 15000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Troll Stronghold",
@@ -1075,7 +1160,8 @@
    "reqs": [
     "skillb:Agility:15"
    ],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Intermediate"
   },
   {
    "name": "Troll Romance",
@@ -1090,7 +1176,8 @@
    "xp": {
     "Agility": 8000,
     "Strength": 4000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Dragon Slayer I",
@@ -1104,7 +1191,8 @@
    "xp": {
     "Defence": 18650,
     "Strength": 18650
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Horror from the Deep",
@@ -1119,7 +1207,8 @@
     "Magic": 4662,
     "Ranged": 4662,
     "Strength": 4662
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Ernest the Chicken",
@@ -1128,7 +1217,8 @@
    "qp": 4,
    "order": 94,
    "reqs": [],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Novice"
   },
   {
    "name": "Animal Magnetism",
@@ -1150,7 +1240,8 @@
     "Fletching": 1000,
     "Slayer": 1000,
     "Woodcutting": 2500
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Shilo Village",
@@ -1165,7 +1256,8 @@
    ],
    "xp": {
     "Crafting": 3875
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Spirits of the Elid",
@@ -1183,7 +1275,8 @@
     "Magic": 1000,
     "Prayer": 8000,
     "Thieving": 1000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Icthlarin's Little Helper",
@@ -1196,7 +1289,8 @@
     "Agility": 4000,
     "Thieving": 4500,
     "Woodcutting": 4000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Ethically Acquired Antiquities",
@@ -1211,7 +1305,8 @@
    ],
    "xp": {
     "Thieving": 6000
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Twilight's Promise",
@@ -1224,7 +1319,8 @@
    ],
    "xp": {
     "Thieving": 3000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Death on the Isle",
@@ -1241,7 +1337,8 @@
     "Agility": 7500,
     "Thieving": 10000,
     "Crafting": 5000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Ratcatchers",
@@ -1254,7 +1351,8 @@
    ],
    "xp": {
     "Thieving": 4500
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "The Garden of Death",
@@ -1267,7 +1365,8 @@
    ],
    "xp": {
     "Farming": 10000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Enlightened Journey",
@@ -1286,7 +1385,8 @@
     "Farming": 3000,
     "Firemaking": 4000,
     "Woodcutting": 1500
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Sea Slug",
@@ -1299,7 +1399,8 @@
    ],
    "xp": {
     "Fishing": 7175
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Current Affairs",
@@ -1315,7 +1416,8 @@
    "xp": {
     "Sailing": 1400,
     "Fishing": 1000
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Fishing Contest",
@@ -1328,7 +1430,8 @@
    ],
    "xp": {
     "Fishing": 2437
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Recipe for Disaster - Mountain Dwarf",
@@ -1343,7 +1446,8 @@
    "xp": {
     "Cooking": 1000,
     "Slayer": 1000
-   }
+   },
+   "difficulty": "Special"
   },
   {
    "name": "Ghosts Ahoy",
@@ -1357,7 +1461,8 @@
    ],
    "xp": {
     "Prayer": 2400
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Forgettable Tale...",
@@ -1374,7 +1479,8 @@
    "xp": {
     "Cooking": 5000,
     "Farming": 5000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Garden of Tranquillity",
@@ -1388,7 +1494,8 @@
    ],
    "xp": {
     "Farming": 5000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Recipe for Disaster - Evil Dave",
@@ -1403,7 +1510,8 @@
    ],
    "xp": {
     "Cooking": 7000
-   }
+   },
+   "difficulty": "Special"
   },
   {
    "name": "Big Chompy Bird Hunting",
@@ -1420,7 +1528,8 @@
     "Cooking": 1470,
     "Fletching": 262,
     "Ranged": 735
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Zogre Flesh Eaters",
@@ -1439,7 +1548,8 @@
     "Fletching": 2000,
     "Herblore": 2000,
     "Ranged": 2000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Darkness of Hallowvale",
@@ -1462,7 +1572,8 @@
     "Construction": 2000,
     "Thieving": 6000,
     "Herblore": 6000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Tower of Life",
@@ -1477,7 +1588,8 @@
     "Construction": 1000,
     "Crafting": 500,
     "Thieving": 500
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Recipe for Disaster - Pirate Pete",
@@ -1494,7 +1606,8 @@
     "Crafting": 1000,
     "Fishing": 1000,
     "Smithing": 1000
-   }
+   },
+   "difficulty": "Special"
   },
   {
    "name": "Tai Bwo Wannai Trio",
@@ -1512,7 +1625,8 @@
     "Fishing": 5000,
     "Attack": 2500,
     "Strength": 2500
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "The Tourist Trap",
@@ -1526,7 +1640,8 @@
    ],
    "xp": {
     "Smithing": 9300
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Eadgar's Ruse",
@@ -1541,7 +1656,8 @@
    ],
    "xp": {
     "Herblore": 11000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "My Arm's Big Adventure",
@@ -1559,7 +1675,8 @@
    "xp": {
     "Farming": 5315,
     "Herblore": 10000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "The Fremennik Trials",
@@ -1579,7 +1696,8 @@
     "Strength": 2812,
     "Thieving": 2812,
     "Woodcutting": 2812
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "The Fremennik Isles",
@@ -1596,7 +1714,8 @@
     "Crafting": 5000,
     "Woodcutting": 10000,
     "Strength": 20000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Getting Ahead",
@@ -1611,7 +1730,8 @@
    "xp": {
     "Construction": 3200,
     "Crafting": 4000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Recipe for Disaster - Lumbridge Guide",
@@ -1631,7 +1751,8 @@
    ],
    "xp": {
     "Magic": 2500
-   }
+   },
+   "difficulty": "Special"
   },
   {
    "name": "Recipe for Disaster - Skrach Uglogwee",
@@ -1649,7 +1770,8 @@
     "Crafting": 1500,
     "Ranged": 1500,
     "Woodcutting": 1500
-   }
+   },
+   "difficulty": "Special"
   },
   {
    "name": "Haunted Mine",
@@ -1663,7 +1785,8 @@
    ],
    "xp": {
     "Strength": 22000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Watchtower",
@@ -1680,7 +1803,8 @@
    ],
    "xp": {
     "Magic": 15250
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Contact!",
@@ -1695,7 +1819,8 @@
    "xp": {
     "Magic": 14000,
     "Thieving": 7000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "The Eyes of Glouphrie",
@@ -1712,7 +1837,8 @@
     "Magic": 12000,
     "Runecraft": 6000,
     "Woodcutting": 2500
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Temple of the Eye",
@@ -1726,7 +1852,8 @@
    ],
    "xp": {
     "Runecraft": 9210
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Olaf's Quest",
@@ -1741,7 +1868,8 @@
    ],
    "xp": {
     "Defence": 12000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Tears of Guthix",
@@ -1757,7 +1885,8 @@
    ],
    "xp": {
     "Crafting": 1000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Temple of Ikov",
@@ -1772,7 +1901,8 @@
    "xp": {
     "Fletching": 8000,
     "Ranged": 10500
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "One Small Favour",
@@ -1790,7 +1920,8 @@
    ],
    "xp": {
     "Herblore": 20000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "A Tail of Two Cats",
@@ -1803,7 +1934,8 @@
    ],
    "xp": {
     "Herblore": 5000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "The Slug Menace",
@@ -1823,7 +1955,8 @@
     "Crafting": 3500,
     "Runecraft": 3500,
     "Thieving": 3500
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Between a Rock...",
@@ -1842,7 +1975,8 @@
     "Defence": 5000,
     "Mining": 5000,
     "Smithing": 5000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Monkey Madness I",
@@ -1859,7 +1993,8 @@
     "Defence": 35000,
     "Hitpoints": 20000,
     "Strength": 20000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "Cold War",
@@ -1878,7 +2013,8 @@
     "Agility": 5000,
     "Construction": 1500,
     "Crafting": 2000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "The Ascent of Arceuus",
@@ -1893,7 +2029,8 @@
    "xp": {
     "Runecraft": 500,
     "Hunter": 1500
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Eagles' Peak",
@@ -1906,7 +2043,8 @@
    ],
    "xp": {
     "Hunter": 2500
-   }
+   },
+   "difficulty": "Novice"
   },
   {
    "name": "Underground Pass",
@@ -1921,7 +2059,8 @@
    "xp": {
     "Agility": 3000,
     "Attack": 3000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Skippy and the Mogres",
@@ -1932,7 +2071,9 @@
    "reqs": [
     "skillb:Cooking:20"
    ],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Novice",
+   "miniquest": true
   },
   {
    "name": "Rag and Bone Man II",
@@ -1946,7 +2087,8 @@
    ],
    "xp": {
     "Prayer": 5000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Lair of Tarn Razorlor",
@@ -1959,7 +2101,9 @@
    ],
    "xp": {
     "Slayer": 5000
-   }
+   },
+   "difficulty": "Experienced",
+   "miniquest": true
   },
   {
    "name": "Rum Deal",
@@ -1980,7 +2124,8 @@
     "Farming": 7000,
     "Fishing": 7000,
     "Prayer": 7000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Cabin Fever",
@@ -2000,7 +2145,8 @@
     "Agility": 7000,
     "Crafting": 7000,
     "Smithing": 7000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "His Faithful Servants",
@@ -2013,7 +2159,9 @@
    ],
    "xp": {
     "Prayer": 20000
-   }
+   },
+   "difficulty": "Experienced",
+   "miniquest": true
   },
   {
    "name": "The Great Brain Robbery",
@@ -2034,7 +2182,8 @@
     "Crafting": 3000,
     "Prayer": 6000,
     "Herblore": 5000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Scrambled!",
@@ -2052,7 +2201,8 @@
     "Smithing": 5000,
     "Cooking": 5000,
     "Construction": 5000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "The Hand in the Sand",
@@ -2066,7 +2216,8 @@
    ],
    "xp": {
     "Thieving": 1000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Enakhra's Lament",
@@ -2085,7 +2236,8 @@
     "Firemaking": 7000,
     "Mining": 7000,
     "Magic": 7000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Meat and Greet",
@@ -2098,7 +2250,8 @@
    ],
    "xp": {
     "Cooking": 8000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Heroes' Quest",
@@ -2130,7 +2283,8 @@
     "Smithing": 2257,
     "Strength": 3075,
     "Woodcutting": 1575
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Throne of Miscellania",
@@ -2142,7 +2296,8 @@
     "quest:Heroes' Quest",
     "quest:The Fremennik Trials"
    ],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Experienced"
   },
   {
    "name": "Royal Trouble",
@@ -2159,7 +2314,8 @@
     "Agility": 5000,
     "Hitpoints": 5000,
     "Slayer": 5000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Desert Treasure I",
@@ -2181,7 +2337,8 @@
    ],
    "xp": {
     "Magic": 20000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "A Taste of Hope",
@@ -2199,7 +2356,8 @@
    ],
    "xp": {
     "Herblore": 7500
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Family Crest",
@@ -2213,7 +2371,8 @@
     "skillb:Magic:59",
     "skillb:Crafting:40"
    ],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Experienced"
   },
   {
    "name": "Legends' Quest",
@@ -2241,7 +2400,8 @@
    ],
    "xp": {
     "Herblore": 120000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "Recipe for Disaster - Sir Amik Varze",
@@ -2261,7 +2421,8 @@
    "xp": {
     "Cooking": 4000,
     "Hitpoints": 4000
-   }
+   },
+   "difficulty": "Special"
   },
   {
    "name": "Curse of the Empty Lord",
@@ -2276,7 +2437,9 @@
    ],
    "xp": {
     "Herblore": 10000
-   }
+   },
+   "difficulty": "Experienced",
+   "miniquest": true
   },
   {
    "name": "The General's Shadow",
@@ -2289,7 +2452,9 @@
    ],
    "xp": {
     "Slayer": 2000
-   }
+   },
+   "difficulty": "Experienced",
+   "miniquest": true
   },
   {
    "name": "Land of the Goblins",
@@ -2310,7 +2475,8 @@
     "Thieving": 8000,
     "Fishing": 8000,
     "Agility": 8000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Fairytale II - Cure a Queen",
@@ -2327,7 +2493,8 @@
    "xp": {
     "Herblore": 3500,
     "Thieving": 2500
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "A Kingdom Divided",
@@ -2351,7 +2518,8 @@
    ],
    "xp": {
     "Herblore": 20000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "The Heart of Darkness",
@@ -2371,7 +2539,8 @@
     "Thieving": 8000,
     "Slayer": 8000,
     "Agility": 8000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Perilous Moons",
@@ -2392,7 +2561,8 @@
     "Runecraft": 5000,
     "Hunter": 5000,
     "Fishing": 5000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "Recipe for Disaster - King Awowogei",
@@ -2409,7 +2579,8 @@
    "xp": {
     "Agility": 10000,
     "Cooking": 10000
-   }
+   },
+   "difficulty": "Special"
   },
   {
    "name": "Regicide",
@@ -2424,7 +2595,8 @@
    ],
    "xp": {
     "Agility": 13750
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Roving Elves",
@@ -2439,7 +2611,8 @@
    ],
    "xp": {
     "Strength": 10000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Mourning's End Part I",
@@ -2457,7 +2630,8 @@
    "xp": {
     "Hitpoints": 25000,
     "Thieving": 40000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "Mourning's End Part II",
@@ -2470,7 +2644,8 @@
    ],
    "xp": {
     "Agility": 60000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "Lunar Diplomacy",
@@ -2494,7 +2669,8 @@
    "xp": {
     "Magic": 5000,
     "Runecraft": 5000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "What Lies Below",
@@ -2514,7 +2690,8 @@
     "Prayer": 4000,
     "Slayer": 4000,
     "Smithing": 4000
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "King's Ransom",
@@ -2534,7 +2711,8 @@
     "Defence": 33000,
     "Magic": 5000,
     "Herblore": 5000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Swan Song",
@@ -2557,7 +2735,8 @@
     "Fishing": 50000,
     "Magic": 15000,
     "Prayer": 10000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "Recipe for Disaster - Culinaromancer",
@@ -2580,7 +2759,8 @@
    ],
    "xp": {
     "Herblore": 20000
-   }
+   },
+   "difficulty": "Special"
   },
   {
    "name": "Grim Tales",
@@ -2603,7 +2783,8 @@
     "Farming": 10000,
     "Thieving": 25000,
     "Woodcutting": 60000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "Dream Mentor",
@@ -2618,7 +2799,8 @@
    "xp": {
     "Magic": 10000,
     "Hitpoints": 15000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "At First Light",
@@ -2637,7 +2819,8 @@
     "Hunter": 4500,
     "Construction": 800,
     "Herblore": 500
-   }
+   },
+   "difficulty": "Intermediate"
   },
   {
    "name": "Defender of Varrock",
@@ -2661,7 +2844,8 @@
     "Smithing": 15000,
     "Hunter": 15000,
     "Herblore": 5000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Devious Minds",
@@ -2681,7 +2865,8 @@
     "Fletching": 5000,
     "Runecraft": 5000,
     "Smithing": 6500
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "The Final Dawn",
@@ -2700,7 +2885,8 @@
     "Runecraft": 25000,
     "Thieving": 55000,
     "Fletching": 25000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "Shadows of Custodia",
@@ -2720,7 +2906,8 @@
     "Hunter": 4000,
     "Fishing": 3000,
     "Construction": 3000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "The Path of Glouphrie",
@@ -2743,7 +2930,8 @@
     "Slayer": 20000,
     "Thieving": 5000,
     "Magic": 5000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "The Fremennik Exiles",
@@ -2767,7 +2955,8 @@
     "Slayer": 50000,
     "Crafting": 50000,
     "Runecraft": 30000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "Sins of the Father",
@@ -2788,7 +2977,8 @@
    ],
    "xp": {
     "Herblore": 90000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "Beneath Cursed Sands",
@@ -2804,7 +2994,8 @@
    ],
    "xp": {
     "Agility": 20000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "The Curse of Arrav",
@@ -2826,7 +3017,8 @@
     "Mining": 40000,
     "Thieving": 40000,
     "Agility": 40000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "Making Friends with My Arm",
@@ -2849,7 +3041,8 @@
     "Firemaking": 40000,
     "Mining": 50000,
     "Agility": 50000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "Troubled Tortugans",
@@ -2869,7 +3062,8 @@
    "xp": {
     "Slayer": 8000,
     "Sailing": 10000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "The Red Reef",
@@ -2885,7 +3079,8 @@
    "xp": {
     "Smithing": 5000,
     "Sailing": 15000
-   }
+   },
+   "difficulty": "Experienced"
   },
   {
    "name": "Monkey Madness II",
@@ -2911,7 +3106,8 @@
     "Slayer": 80000,
     "Thieving": 50000,
     "Magic": 100000
-   }
+   },
+   "difficulty": "Grandmaster"
   },
   {
    "name": "A Night at the Theatre",
@@ -2924,7 +3120,8 @@
    ],
    "xp": {
     "Magic": 80000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "Dragon Slayer II",
@@ -2956,7 +3153,8 @@
     "Agility": 50000,
     "Thieving": 50000,
     "Strength": 100000
-   }
+   },
+   "difficulty": "Grandmaster"
   },
   {
    "name": "Secrets of the North",
@@ -2977,7 +3175,8 @@
     "Agility": 60000,
     "Thieving": 50000,
     "Hunter": 40000
-   }
+   },
+   "difficulty": "Master"
   },
   {
    "name": "While Guthix Sleeps",
@@ -3010,7 +3209,8 @@
     "Farming": 75000,
     "Herblore": 75000,
     "Hunter": 50000
-   }
+   },
+   "difficulty": "Grandmaster"
   },
   {
    "name": "Song of the Elves",
@@ -3040,7 +3240,8 @@
     "Mining": 40000,
     "Smithing": 40000,
     "Woodcutting": 40000
-   }
+   },
+   "difficulty": "Grandmaster"
   },
   {
    "name": "Desert Treasure II - The Fallen Empire",
@@ -3065,7 +3266,8 @@
    ],
    "xp": {
     "Prayer": 300000
-   }
+   },
+   "difficulty": "Grandmaster"
   },
   {
    "name": "The Blood Moon Rises",
@@ -3089,7 +3291,8 @@
    ],
    "xp": {
     "Slayer": 180000
-   }
+   },
+   "difficulty": "Grandmaster"
   },
   {
    "name": "The Corsair Curse",
@@ -3098,7 +3301,147 @@
    "qp": 2,
    "order": 221,
    "reqs": [],
-   "xp": {}
+   "xp": {},
+   "difficulty": "Intermediate"
+  },
+  {
+   "name": "Barbarian Training",
+   "enumName": "Barbarian Training",
+   "minutes": 45,
+   "qp": 0,
+   "order": -1,
+   "reqs": [
+    "skillb:Fishing:55",
+    "skill:Firemaking:35",
+    "skill:Strength:35",
+    "skill:Agility:15",
+    "skill:Farming:15",
+    "skill:Crafting:11",
+    "skill:Smithing:5",
+    "skill:Herblore:4",
+    "quest:Tai Bwo Wannai Trio"
+   ],
+   "xp": {},
+   "miniquest": true
+  },
+  {
+   "name": "Bear Your Soul",
+   "enumName": "Bear Your Soul",
+   "minutes": 25,
+   "qp": 0,
+   "order": -1,
+   "reqs": [],
+   "xp": {},
+   "miniquest": true
+  },
+  {
+   "name": "Family Pest",
+   "enumName": "Family Pest",
+   "minutes": 25,
+   "qp": 0,
+   "order": -1,
+   "reqs": [],
+   "xp": {},
+   "miniquest": true
+  },
+  {
+   "name": "The Frozen Door",
+   "enumName": "The Frozen Door",
+   "minutes": 25,
+   "qp": 0,
+   "order": -1,
+   "reqs": [
+    "skill:Agility:70",
+    "skillb:Hitpoints:70",
+    "skill:Ranged:70",
+    "skill:Strength:70",
+    "quest:Desert Treasure I"
+   ],
+   "xp": {},
+   "miniquest": true
+  },
+  {
+   "name": "Hopespear's Will",
+   "enumName": "Hopespear's Will",
+   "minutes": 25,
+   "qp": 0,
+   "order": -1,
+   "reqs": [
+    "skill:Prayer:50",
+    "quest:Desert Treasure I",
+    "quest:Fairytale II - Cure a Queen",
+    "quest:Land of the Goblins",
+    "queststarted:The Restless Ghost"
+   ],
+   "xp": {},
+   "miniquest": true
+  },
+  {
+   "name": "In Search of Knowledge",
+   "enumName": "In Search of Knowledge",
+   "minutes": 45,
+   "qp": 0,
+   "order": -1,
+   "reqs": [],
+   "xp": {},
+   "miniquest": true
+  },
+  {
+   "name": "Into the Tombs",
+   "enumName": "Into the Tombs",
+   "minutes": 45,
+   "qp": 0,
+   "order": -1,
+   "reqs": [
+    "quest:Beneath Cursed Sands"
+   ],
+   "xp": {},
+   "miniquest": true
+  },
+  {
+   "name": "Mage Arena I",
+   "enumName": "Mage Arena I",
+   "minutes": 25,
+   "qp": 0,
+   "order": -1,
+   "reqs": [
+    "skillb:Magic:60"
+   ],
+   "xp": {},
+   "miniquest": true
+  },
+  {
+   "name": "Mage Arena II",
+   "enumName": "Mage Arena II",
+   "minutes": 45,
+   "qp": 0,
+   "order": -1,
+   "reqs": [
+    "skill:Magic:75",
+    "quest:Mage Arena I"
+   ],
+   "xp": {},
+   "miniquest": true
+  },
+  {
+   "name": "The Enchanted Key",
+   "enumName": "The Enchanted Key",
+   "minutes": 45,
+   "qp": 0,
+   "order": -1,
+   "reqs": [],
+   "xp": {},
+   "miniquest": true
+  },
+  {
+   "name": "Vale Totems",
+   "enumName": "Vale Totems",
+   "minutes": 0,
+   "qp": 0,
+   "order": -1,
+   "reqs": [],
+   "xp": {},
+   "miniquest": true
   }
  ]
 }

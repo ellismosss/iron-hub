@@ -31,6 +31,11 @@ public class QuestsPack
 		/** Position on the Optimal Quest Guide/Ironman route, -1 if absent. */
 		public int order;
 		public List<String> reqs;
+		/** Official difficulty (Novice..Grandmaster, Special for RFD parts);
+		 *  null for miniquests and unrated entries. */
+		public String difficulty;
+		/** True for miniquests (no QP, no difficulty, no cape requirement). */
+		public Boolean miniquest;
 		/** Xp rewards by skill display name. */
 		public Map<String, Integer> xp;
 	}
