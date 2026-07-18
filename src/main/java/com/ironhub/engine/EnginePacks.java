@@ -17,6 +17,9 @@ public class EnginePacks
 	public final GearProgressionPack gear;
 	public final com.ironhub.data.BoostsPack boosts;
 	public final com.ironhub.data.DiariesPack diaries;
+	public final com.ironhub.data.ClogPack clog;
+	/** Drop/kill rates for KILL and clog OBTAIN costing (G3); null when no clog pack. */
+	public final RateSource rates;
 
 	private final Map<String, QuestsPack.QuestEntry> questByName = new HashMap<>();
 	private final Map<Integer, GearProgressionPack.Item> gearByCanonicalId = new HashMap<>();
@@ -39,12 +42,21 @@ public class EnginePacks
 		GearProgressionPack gear, com.ironhub.data.BoostsPack boosts,
 		com.ironhub.data.DiariesPack diaries)
 	{
+		this(quests, methods, effects, gear, boosts, diaries, null);
+	}
+
+	public EnginePacks(QuestsPack quests, MethodsPack methods, EffectsPack effects,
+		GearProgressionPack gear, com.ironhub.data.BoostsPack boosts,
+		com.ironhub.data.DiariesPack diaries, com.ironhub.data.ClogPack clog)
+	{
 		this.quests = quests;
 		this.methods = methods;
 		this.effects = effects;
 		this.gear = gear;
 		this.boosts = boosts;
 		this.diaries = diaries;
+		this.clog = clog;
+		this.rates = new RateSource(clog);
 		if (quests != null)
 		{
 			quests.quests.forEach(q -> questByName.put(normalize(q.name), q));

@@ -181,16 +181,23 @@ final class ClogRanker
 			}
 		}
 
+		// hours = expected completions / completions-per-hour + first-run
+		// overhead — the shared geometric core (CostModel) the engine's drop
+		// coster also uses, so the two never drift (G3)
 		double cph = activity.perHour;
 		double timeNeither = sumInverseNeither > 0.0
-			? (1.0 / sumInverseNeither) / cph + activity.extraTimeFirst
+			? com.ironhub.engine.CostModel.completionsToHours(
+				1.0 / sumInverseNeither, cph, activity.extraTimeFirst)
 			: Double.POSITIVE_INFINITY;
 		double timeInd = Double.isFinite(minInd)
-			? minInd / cph + activity.extraTimeFirst : Double.POSITIVE_INFINITY;
+			? com.ironhub.engine.CostModel.completionsToHours(minInd, cph, activity.extraTimeFirst)
+			: Double.POSITIVE_INFINITY;
 		double timeExact = Double.isFinite(minExact)
-			? minExact / cph + activity.extraTimeFirst : Double.POSITIVE_INFINITY;
+			? com.ironhub.engine.CostModel.completionsToHours(minExact, cph, activity.extraTimeFirst)
+			: Double.POSITIVE_INFINITY;
 		double timeEi = Double.isFinite(minEi)
-			? minEi / cph + activity.extraTimeFirst : Double.POSITIVE_INFINITY;
+			? com.ironhub.engine.CostModel.completionsToHours(minEi, cph, activity.extraTimeFirst)
+			: Double.POSITIVE_INFINITY;
 
 		double best = Math.min(Math.min(timeNeither, timeInd), Math.min(timeExact, timeEi));
 		if (!Double.isFinite(best))

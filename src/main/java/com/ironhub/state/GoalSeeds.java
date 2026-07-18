@@ -64,7 +64,11 @@ public final class GoalSeeds
 		{
 			seed.steps.add(step(Requirements.parse(raw).describe(), raw));
 		}
-		seed.steps.add(step("Obtain " + name + " (" + activity + ")", proof));
+		// the obtain step routes through item: so the engine builds a costable
+		// OBTAIN node (drop rate from clog.json) instead of a NaN manual tick;
+		// completion is still proven by the clogitem_ unlock (a logged slot
+		// isn't always a currently-owned item)
+		seed.steps.add(step("Obtain " + name + " (" + activity + ")", "item:" + itemId));
 		seed.achieved.add(proof);
 		return seed;
 	}

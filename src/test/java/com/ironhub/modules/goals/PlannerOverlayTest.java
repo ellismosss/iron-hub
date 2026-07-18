@@ -218,7 +218,7 @@ public class PlannerOverlayTest
 		train.trainSkill = Skill.AGILITY;
 		train.trainToLevel = 70;
 		com.ironhub.engine.Plan.Step step = new com.ironhub.engine.Plan.Step(
-			train, 4.0, "", "", "Rooftops", "m", "active", 50_000, 56, 100_000,
+			train, 4.0, Double.NaN, "", "", "Rooftops", "m", "active", 50_000, 56, 100_000,
 			java.util.List.of(), java.util.List.of(), false, false);
 
 		// measured pace wins while xp flows; falls back to the pack rate;
@@ -228,7 +228,7 @@ public class PlannerOverlayTest
 
 		// no rate at all → the routed hours pass through, NaN stays honest
 		com.ironhub.engine.Plan.Step unknown = new com.ironhub.engine.Plan.Step(
-			train, Double.NaN, "", "", null, null, null, 0, 56, 100_000,
+			train, Double.NaN, Double.NaN, "", "", null, null, null, 0, 56, 100_000,
 			java.util.List.of(), java.util.List.of(), false, false);
 		assertTrue(Double.isNaN(PlannerOverlay.ttlHours(unknown, 100_000, Double.NaN)));
 

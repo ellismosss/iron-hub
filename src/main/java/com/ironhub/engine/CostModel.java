@@ -236,4 +236,35 @@ public final class CostModel
 		}
 		return Math.ceil(Math.log(0.1) / Math.log(1.0 - dropRate));
 	}
+
+	// ── collection-log rates (G3): the shared geometric core ClogRanker
+	// and the drop coster both call, keyed on MEAN completions (clog.json's
+	// Item.attempts = 1/p), not probability — one convention, no reciprocal
+	// double-count. ──
+
+	/** Hours to accrue N completions at a completions-per-hour pace, plus a
+	 *  fixed first-run overhead. NaN when either input is non-positive. */
+	public static double completionsToHours(double completions, double perHour, double extraFirst)
+	{
+		return perHour <= 0 || completions <= 0 ? Double.NaN
+			: completions / perHour + Math.max(0, extraFirst);
+	}
+
+	/** Expected hours for a drop of mean {@code attempts} completions. */
+	public static double dropHours(double attempts, double perHour, double extraFirst)
+	{
+		return completionsToHours(attempts, perHour, extraFirst);
+	}
+
+	/** P90 ("unlucky") hours for a drop of mean {@code attempts} completions:
+	 *  the geometric 90th-percentile completion count over the pace. A
+	 *  guaranteed drop (attempts ≤ 1) has no spread — same as expected. */
+	public static double dropSpreadHours(double attempts, double perHour, double extraFirst)
+	{
+		if (attempts <= 1)
+		{
+			return completionsToHours(attempts, perHour, extraFirst);
+		}
+		return completionsToHours(unluckyKillsForDrop(1.0 / attempts), perHour, extraFirst);
+	}
 }

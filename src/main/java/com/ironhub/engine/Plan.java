@@ -58,6 +58,9 @@ public class Plan
 		public final Action action;
 		/** Expected hours; NaN = honestly unknown. */
 		public final double hours;
+		/** P90 "unlucky" hours for a stochastic (drop-gated) step; NaN when
+		 *  deterministic or unknown. Never enters the plan fingerprint. */
+		public final double spreadHours;
 		public final String why;
 		public final String chapter;
 		/** Method used for TRAIN steps (null otherwise). */
@@ -77,7 +80,7 @@ public class Plan
 		public final boolean pinned;
 		public final boolean snoozed;
 
-		public Step(Action action, double hours, String why, String chapter,
+		public Step(Action action, double hours, double spreadHours, String why, String chapter,
 			String methodName, String methodId, String methodStyle,
 			int methodRate, int trainFromLevel, long trainXpRemaining,
 			List<Resource> resources,
@@ -85,6 +88,7 @@ public class Plan
 		{
 			this.action = action;
 			this.hours = hours;
+			this.spreadHours = spreadHours;
 			this.why = why;
 			this.chapter = chapter;
 			this.methodName = methodName;

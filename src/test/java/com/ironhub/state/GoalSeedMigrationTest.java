@@ -73,7 +73,10 @@ public class GoalSeedMigrationTest
 		assertEquals(13262, clog.iconItemId);
 		assertEquals("skill:Slayer:85", clog.steps.get(0).requirement);
 		assertEquals("Obtain Abyssal orphan (Killing abyssal sire)", clog.steps.get(1).label);
-		assertEquals("unlock:clogitem_13262", clog.steps.get(1).requirement);
+		// the obtain step routes through item: for engine costing (G3); the
+		// clogitem_ unlock stays the achieved proof
+		assertEquals("item:13262", clog.steps.get(1).requirement);
+		assertEquals("unlock:clogitem_13262", clog.achieved.get(0));
 
 		PersistedState.GoalSeed custom = state.getGoalSeeds().get("custom:skill:agility:70");
 		assertEquals("custom", custom.family);

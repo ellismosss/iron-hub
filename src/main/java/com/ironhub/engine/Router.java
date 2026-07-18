@@ -311,9 +311,25 @@ public class Router
 		}
 		String why = why(node, projection, hours);
 		applyEffects(node, projection, bankRemaining);
-		return new Plan.Step(node, hours, why, chapter(node), methodName, methodId, methodStyle,
+		return new Plan.Step(node, hours, spread(node), why, chapter(node), methodName, methodId, methodStyle,
 			methodRate, trainFromLevel, trainXpRemaining, resources,
 			alternatives, constraints.pinned.contains(node.id), constraints.snoozed.contains(node.id));
+	}
+
+	/** The P90 "unlucky" spread for a drop-gated step (KILL / clog OBTAIN),
+	 *  NaN for deterministic or unsourced steps. */
+	private double spread(Action node)
+	{
+		if (packs.rates == null)
+		{
+			return Double.NaN;
+		}
+		if (node.kind == Action.Kind.OBTAIN
+			&& (node.obtainHours == null || node.obtainHours <= 0))
+		{
+			return packs.rates.obtainSpreadHours(node.itemId);
+		}
+		return Double.NaN;
 	}
 
 	double duration(Action node, ProjectedState projection,
@@ -335,11 +351,17 @@ public class Router
 				double full = CostModel.questHours(entry.minutes, factor);
 				return node.startOnly ? Math.max(5 / 60.0, full * 0.25) : full;
 			case KILL:
-				// kills-per-hour has no honest source yet — unknown, never invented
-				return Double.NaN;
+				// a clog activity matching the source gives kills/hr; else unknown
+				return packs.rates == null ? Double.NaN
+					: packs.rates.killHours(node.kcSource, node.kcTarget);
 			case OBTAIN:
-				return node.obtainHours != null && node.obtainHours > 0
-					? node.obtainHours : Double.NaN;
+				// curated gear hours win where they exist; clog drop rates fill
+				// the gap (clog slots, bare item: leaves) — else unknown
+				if (node.obtainHours != null && node.obtainHours > 0)
+				{
+					return node.obtainHours;
+				}
+				return packs.rates == null ? Double.NaN : packs.rates.obtainHours(node.itemId);
 			case MANUAL:
 			default:
 				return Double.NaN;

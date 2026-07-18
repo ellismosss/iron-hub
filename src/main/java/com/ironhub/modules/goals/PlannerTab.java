@@ -680,6 +680,12 @@ class PlannerTab extends JPanel
 		card.add(title);
 
 		card.add(wrapped(step.why, OsrsSkin.MUTED));
+		// RNG communicated, never hidden: a drop-gated step shows its P90 tail
+		if (!Double.isNaN(step.spreadHours) && step.spreadHours > step.hours + 0.05)
+		{
+			card.add(new OsrsLabel("up to ~" + compactHours(step.spreadHours) + " if unlucky",
+				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+		}
 		if (step.methodName != null)
 		{
 			card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));

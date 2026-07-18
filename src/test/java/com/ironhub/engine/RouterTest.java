@@ -43,6 +43,18 @@ public class RouterTest
 			DATA.load("diaries", com.ironhub.data.DiariesPack.class));
 	}
 
+	private static EnginePacks packsWith(com.ironhub.data.ClogPack clog)
+	{
+		return new EnginePacks(
+			DATA.load("quests", QuestsPack.class),
+			DATA.load("methods", MethodsPack.class),
+			DATA.load("effects", EffectsPack.class),
+			DATA.load("gear-progression", GearProgressionPack.class),
+			DATA.load("boosts", com.ironhub.data.BoostsPack.class),
+			DATA.load("diaries", com.ironhub.data.DiariesPack.class),
+			clog);
+	}
+
 	private static GoalsPack.Goal goal(String id, String... reqs)
 	{
 		GoalsPack.Goal goal = new GoalsPack.Goal();
@@ -166,12 +178,68 @@ public class RouterTest
 	@Test
 	public void unknownDurationsStayUnknownInTheTotals()
 	{
+		// no clog pack → no rate source → a kc: step is honestly unknown
 		AccountState state = StateFixture.state(temp.getRoot());
 		Plan plan = plan(state, PlanConstraints.none(), goal("g", "kc:Zulrah:50"));
 		assertEquals(1, plan.steps.size());
 		assertTrue(Double.isNaN(plan.steps.get(0).hours));
 		assertEquals(1, plan.unknownCount);
 		assertEquals(0.0, plan.knownHours, 1e-9);
+	}
+
+	/** With a clog pack loaded, a drop-gated OBTAIN step gets real expected
+	 *  hours + a P90 spread from the bundled rates instead of "?" (G3). */
+	@Test
+	public void clogRatesCostDropStepsWithSpread()
+	{
+		com.ironhub.data.ClogPack.Item drop = new com.ironhub.data.ClogPack.Item();
+		drop.itemId = 90_000_001; // not in the gear pack → clog rate fills it
+		drop.name = "Test drop";
+		drop.attempts = 50;
+		com.ironhub.data.ClogPack.Activity activity = new com.ironhub.data.ClogPack.Activity();
+		activity.name = "Test boss";
+		activity.perHour = 10;
+		activity.reqs = List.of();
+		activity.items = new ArrayList<>(List.of(drop));
+		com.ironhub.data.ClogPack clog = new com.ironhub.data.ClogPack();
+		clog.activities = new ArrayList<>(List.of(activity));
+		clog.aliases = List.of();
+		clog.slots = List.of();
+		clog.chatNames = List.of();
+
+		AccountState state = StateFixture.state(temp.getRoot());
+		Plan plan = PlannerService.plan(state, packsWith(clog),
+			DATA.load("banked-xp", BankedXpPack.class),
+			List.of(goal("g", "item:90000001")), PlanConstraints.none());
+
+		Plan.Step obtain = plan.steps.get(0);
+		assertEquals(5.0, obtain.hours, 1e-6);          // 50 / 10
+		assertEquals(11.4, obtain.spreadHours, 1e-6);   // P90 114 / 10
+		assertEquals(0, plan.unknownCount);
+		assertTrue(plan.knownHours > 0);
+	}
+
+	/** A kc: step matched to a clog activity by name gets kills/hr hours. */
+	@Test
+	public void clogRatesCostKillSteps()
+	{
+		com.ironhub.data.ClogPack.Activity zulrah = new com.ironhub.data.ClogPack.Activity();
+		zulrah.name = "Zulrah";
+		zulrah.perHour = 25;
+		zulrah.reqs = List.of();
+		zulrah.items = new ArrayList<>();
+		com.ironhub.data.ClogPack clog = new com.ironhub.data.ClogPack();
+		clog.activities = new ArrayList<>(List.of(zulrah));
+		clog.aliases = List.of();
+		clog.slots = List.of();
+		clog.chatNames = List.of();
+
+		AccountState state = StateFixture.state(temp.getRoot());
+		Plan plan = PlannerService.plan(state, packsWith(clog),
+			DATA.load("banked-xp", BankedXpPack.class),
+			List.of(goal("g", "kc:Zulrah:50")), PlanConstraints.none());
+		assertEquals(2.0, plan.steps.get(0).hours, 1e-6); // 50 / 25
+		assertEquals(0, plan.unknownCount);
 	}
 
 	@Test
