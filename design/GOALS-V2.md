@@ -1,11 +1,39 @@
 # Goals v2 — The Central Goals System
 
-Status: **agreed outline** (Luke, 2026-07-18 — decisions in §5.2) —
+Status: **agreed outline** (Luke, 2026-07-18 — decisions in §5.2; interface
+revised same day after his round-2 mockup feedback, §0.1 + §6) —
 implementation follows the Design lab interface round.
 Companion docs: ENGINE-DESIGN.md (the engine this builds ON, not replaces),
 design/PLANNER-UX.md (the Today/Route/Goals VIEW SPLIT there is
-**superseded** — Luke: one cohesive interface, no view switcher; the
-view specs survive as section grammar inside the single surface, §6).
+**superseded** — Luke: one cohesive interface, no view switcher).
+
+## 0.1 The vocabulary (Luke, round 2) — Goals, Tasks, Routes
+
+Two distinct things, named in the client:
+
+- **Goal** — the final destination of a route (Bow of Faerdhinen).
+- **Task** — any stepping stone toward it (Complete Song of the Elves).
+- **Route** — a Goal plus its ordered Tasks. The `+` affordance in every
+  module **creates a Route** with that step as the Goal.
+
+A Task can itself be a Goal if the player sets it as a destination —
+the same node is a Goal in one Route and a Task in another. Multiple
+Routes coexist, each with its own Task list; shared Tasks appear in
+every Route that needs them (marked shared — the dedupe made visible).
+
+Engine mapping (no new machinery): a Route = one selected goal's slice
+of the merged DAG — the per-goal route slice the engine already
+computes. The merged plan stays the internal truth; the UI presents it
+per-Route, never as one global ordered list.
+
+**And the presentation philosophy, per Luke: not everything is time.**
+Players act to raise stats, make their lives easier, and unlock
+interesting things — time-saved is ONE benefit among several, not the
+frame. Rows lead with the name and the benefit ("unlocks fairy rings",
+"frees 2 inventory slots", "gates Song of the Elves"); hours appear as
+one quiet stat where honest, never as every row's headline. The cost
+model keeps using time internally (ordering needs a currency) — the
+*copy* stops leading with it.
 
 The brief (Luke, 2026-07-18), restated as nine capabilities:
 
@@ -246,19 +274,30 @@ hasn't selected:
 - gear-chart items that change kill rates for planned KILL/OBTAIN steps
 - quests with large xp effects against planned TRAIN nodes
 
-For each candidate: `plan(goals + candidate)` on the projected state;
-report `netHours = candidateCost − Σ savings realized against THIS
-plan`. Suggest only when `netHours < 0` **in known hours** — a
-suggestion backed by NaN is not a suggestion (honesty rule). Output is
-a ranked "Worth a detour" list:
+For each candidate: `plan(goals + candidate)` on the projected state.
+The output is the **SUGGESTIONS** section (round-2 naming), and each
+suggestion is phrased by its benefit KIND — time is one kind, not the
+frame:
 
-> **Ardougne cloak 2** — costs ~1.5h, saves ~3.2h across your plan
-> (teleports shorten 9 steps) · [+ Goal] [why ›]
+- **Multi-route**: the candidate's effects satisfy unmet requirements
+  in ≥2 Routes ("Fairytale II — advances 3 of your routes"). Gate:
+  counted against the actual DAG, never implied.
+- **Long-run time**: `netHours < 0` **in known hours** — a suggestion
+  backed by NaN is not a suggestion ("Ardougne cloak 2 — saves ~3.2h
+  across your routes").
+- **Life-easier**: curated QoL benefit copy carried by the pack
+  (qol.json's sourceNote grammar — "Rune pouch: frees 2 inventory
+  slots every trip"), offered when its reqs are near-met. No invented
+  benefit copy — pack-sourced only.
+- **Merge offers**: two Routes sharing ≥K Tasks (K≈5) get a combine
+  suggestion ("Bowfa & Quest cape share 9 tasks"); accepting makes one
+  two-Goal Route — engine-trivial, the merged DAG already is one.
 
 Budget: ~40 candidates × <100 ms ≈ 4 s worst-case, run on the existing
 planner executor after replans settle (never per-keystroke), memoized
-on the plan fingerprint. Accepting one creates a normal goal through
-the provider system — a stepping stone IS a goal, no new species.
+on the plan fingerprint. Accepting a suggestion creates a normal Route
+through the provider system — a stepping stone IS a goal, no new
+species.
 
 ### 3.2 Goal-level priority (brief #8)
 
@@ -273,13 +312,18 @@ at the goal level:
   steps sink; their shared steps still count — the honest way to "park"
   a goal without lying about overlap).
 - **Goal pin** (Luke's addition, §5.2 Q3 — absorbs `activeGoal`): a
-  player who doesn't want the suggested path pins one or more goals as
-  ACTIVE — a pinned goal's steps outrank everything (the step-pin
-  mechanism at goal granularity: its unique steps get the pin weight,
-  ordered feasibly among themselves), so the plan head serves the
-  pinned goal(s) first and the rest of the plan queues behind. Pins
-  outrank tiers; among pinned goals, pin order. Consequences shown in
-  hours (the constraint-not-drag grammar, unchanged).
+  player who doesn't want the suggested path pins one or more Routes as
+  ACTIVE — a pinned Route's tasks outrank everything (the step-pin
+  mechanism at goal granularity), so the Current task serves the pinned
+  Route(s) first. Pins outrank tiers; among pinned Routes, pin order.
+- **Per-Route task order** (round 2): within a Route the player can
+  manually re-order Tasks and pin Tasks to the top. On 225px this is
+  the farm-picker arrows pattern (stacked up/down + a pin affordance),
+  not drag. Hard dependencies still gate — arrows move a Task among its
+  FEASIBLE positions only (SotE can't precede its prereqs), and the
+  router honours the player's order within feasibility. Persisted
+  per-Route (`routeTaskOrder` map on the seed), same spirit as
+  `farmRunOrder`.
 
 Custom pathway remains **reorder-by-constraint, never drag**
 (PLANNER-UX principle 1 — 225 px Swing drag is misery, and constraints
@@ -387,40 +431,49 @@ proves too long in practice). §6 is redesigned accordingly.
 
 ---
 
-## 6. The interface (brief #9) — ONE cohesive surface
+## 6. The interface (brief #9) — ONE cohesive surface, FOUR sections
 
-Per Luke: no view switcher. The Goals nav block mounts a single
-scrolling surface that reads top-to-bottom as *stats → do this now →
-the whole route → your goals → ideas → history* — the three old views
-become SECTIONS with the hub pages' collapse grammar where depth
-demands it. Section order is the frequency order (PLANNER-UX's
-jobs-to-be-done survives even though its view split doesn't):
+Revised to Luke's round-2 feedback (2026-07-18): the first mockup was
+too cluttered and too time-centred. Cut: the NOW section and its
+budget chips, the standalone ROUTE section (redundant once Routes live
+in GOALS), the COMPLETED section (reached through the Done-this-month
+block instead), the Active/Someday/Done filter chips. What remains:
 
-1. **Hero strip** — the stats centre: plan horizon (`All goals · ~212h`
-   + `meta: Jul 2026` faint), StatBox pair (goals active / done this
-   month), the estimate-vs-actual running line.
-2. **Now** — the accent plan-head card (step, one time figure, why
-   line, serves ×N) + 2–3 "up next" dense rows + the budget chips
-   (`30m · 1h · 2h+ · AFK`) that re-fit the head to the session.
-3. **Route** — the update banner (when pending) + the full ordered plan
-   as **collapsible chapter plates** (aggregate hours per chapter;
-   one chapter expanded at a time — the hub-exclusive-expansion
-   grammar keeps the surface short); step rows keep the explain-card
-   expand, pin/snooze/ban, shared-×N badges, SNOOZED sink.
-4. **Goals** — filter chips (`All · Active · Someday · Done`), goal
-   cards: sprite + name + pin/tier marker + remaining hours + thin
-   meter; card expand = the goal's route slice. Pinned goals wear the
-   select-fill card treatment.
-5. **Worth a detour** — ranked stepping-stone cards (net hours +
-   `+ Goal`).
-6. **Completed** — archive rows with dates ("detected" when undated)
-   and the estimate-vs-actual line; "this month: 3 ✓" header.
+1. **Hero** — Routes active / Done this month as the two stat boxes
+   (**Done this month is the click-through to the completed archive**,
+   a depth-2 view with back arrow — dates + est-vs-took live there,
+   not on the main surface), plus one quiet footer line
+   (`meta: Jul 2026 · ~212h total` — the only total-hours figure on
+   the surface).
+2. **CURRENT TASK** — the single next step (plan head, pinned Routes
+   first): task name, a real progress bar with level/percent labels,
+   the stats that describe *progress* (xp left, actions left, time at
+   your pace — number-left first, time last), a **benefit line**
+   ("Why: gates Song of the Elves · faster travel for 3 routes"), and
+   which Routes it serves.
+3. **GOALS** — every Route as an expandable row, **grouped by category**
+   (Quests · Gear · Level unlocks · Unlocks · Supplies — derived from
+   the seed family). Route row = icon + Goal name + thin progress meter
+   + task count; expand (one at a time, hub grammar) = that Route's
+   Tasks sorted next-first, each with a status glyph, shared-mark, and
+   the up/down + pin affordances for manual ordering (§3.2). Pinned
+   Routes wear the select fill. Someday Routes sit dimmed within their
+   category. Capped rows with "+ N more" per the house rule. The
+   add-a-goal search field closes the section.
+4. **SUGGESTIONS** (renamed from Worth a detour) — steps the player
+   hasn't selected, each phrased by its benefit kind, never
+   hours-first: **multi-route** ("advances 3 of your routes"),
+   **long-run time** ("saves ~3.2h across your routes"), **life-easier**
+   ("frees 2 inventory slots every trip"), and **merge offers** when
+   Routes share many Tasks ("Bowfa & Quest cape share 9 tasks —
+   combine?"). Accepting adds a Route (or combines two into one
+   two-Goal Route — engine-trivial, the merged DAG already is one).
 
-Both themes, render-tested, mocked in the **Design lab first** with
-sample data (a `Goals hub` view beside the atom gallery) so the whole
-surface is judged before any wiring. PlannerOverlay (the canvas
-companion) is unaffected — it follows the plan head regardless of how
-the sidebar arranges itself.
+The plan-update banner survives (inside GOALS, above the Route rows)
+— no-silent-reshuffle is a trust rule, not clutter. Both themes,
+render-tested, judged in the Design lab before any wiring.
+PlannerOverlay (the canvas companion) is unaffected — it follows the
+plan head regardless of how the sidebar arranges itself.
 
 ## 7. Slices (post-agreement, each green + committed)
 
