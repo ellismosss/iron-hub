@@ -63,6 +63,15 @@ public class MoneyMakingTabTest
 			javax.swing.SwingUtilities.invokeAndWait(() -> holder[0].filter(2, 1)); // Combat · Can do
 			javax.swing.SwingUtilities.invokeAndWait(() -> { });
 			write(SwingRender.render(holder[0]), "money-making-available-" + theme.name().toLowerCase());
+
+			// an expanded method: reqs/inputs + the gp-goal + unlock-goal controls
+			javax.swing.SwingUtilities.invokeAndWait(() ->
+			{
+				holder[0].filter(0, 0);
+				holder[0].expand("killing-the-doom-of-mokhaiotl-delve-1-16"); // rank 1, always visible
+			});
+			javax.swing.SwingUtilities.invokeAndWait(() -> { });
+			write(SwingRender.render(holder[0]), "money-making-detail-" + theme.name().toLowerCase());
 			holder[0].dispose();
 		}
 	}
@@ -79,6 +88,24 @@ public class MoneyMakingTabTest
 		assertTrue("has a finite distance", MoneyMakingModule.distance(state, nats) > 0);
 		assertTrue("the quest is the missing req",
 			MoneyMakingModule.missing(state, nats).stream().anyMatch(s -> s.contains("Enter the Abyss")));
+	}
+
+	@Test
+	public void goalSeedsAreValid()
+	{
+		// feature 7: an informational gp reminder with a manual proof
+		com.ironhub.state.PersistedState.GoalSeed gp =
+			com.ironhub.state.GoalSeeds.money("killing-green-dragons", "Killing green dragons", 10_000_000);
+		assertEquals("custom:money:killing-green-dragons", gp.id);
+		assertTrue(gp.name.contains("10") && gp.name.contains("Killing green dragons"));
+		assertTrue(gp.achieved.contains("unlock:moneygoal_killing-green-dragons"));
+
+		// the "unlock this method" goal: the reqs become planner steps
+		com.ironhub.state.PersistedState.GoalSeed unlock = com.ironhub.state.GoalSeeds.moneyUnlock(
+			"x", "X", java.util.List.of("skill:Runecraft:44", "quest:Enter the Abyss"));
+		assertEquals(2, unlock.steps.size());
+		assertTrue(unlock.achieved.contains("skill:Runecraft:44"));
+		assertTrue(unlock.achieved.contains("quest:Enter the Abyss"));
 	}
 
 	private MoneyMakingPack.Method byId(MoneyMakingModule module, String id)

@@ -133,6 +133,47 @@ public final class GoalSeeds
 		return seed;
 	}
 
+	/** An informational money-making goal ("Earn N gp · method"): a manual
+	 *  reminder in the Goals list (gp-per-method can't be auto-detected), ticked
+	 *  by the player. */
+	public static PersistedState.GoalSeed money(String methodId, String methodName, long gp)
+	{
+		String proof = "unlock:moneygoal_" + methodId;
+		PersistedState.GoalSeed seed = base("custom", "custom:money:" + methodId,
+			"Earn " + gpText(gp) + " · " + methodName);
+		seed.steps.add(step("Earn " + gpText(gp) + " gp doing " + methodName, proof));
+		seed.achieved.add(proof);
+		return seed;
+	}
+
+	/** An "unlock this method" goal: the method's hard requirements become
+	 *  planner steps, so the engine routes you to being ABLE to do it; achieved
+	 *  when they're all met. */
+	public static PersistedState.GoalSeed moneyUnlock(String methodId, String methodName, List<String> reqs)
+	{
+		PersistedState.GoalSeed seed = base("custom", "custom:money-unlock:" + methodId,
+			"Unlock: " + methodName);
+		for (String raw : reqs)
+		{
+			seed.steps.add(step(Requirements.parse(raw).describe(), raw));
+			seed.achieved.add(raw);
+		}
+		return seed;
+	}
+
+	private static String gpText(long gp)
+	{
+		if (Math.abs(gp) >= 1_000_000)
+		{
+			return Math.round(gp / 100_000.0) / 10.0 + "M";
+		}
+		if (Math.abs(gp) >= 1000)
+		{
+			return Math.round(gp / 1000.0) + "K";
+		}
+		return String.valueOf(gp);
+	}
+
 	/** The PoH tier's proof-unlock key. The requirement graph's {@code
 	 *  unlock:} parse splits on {@code :}, and tier ids carry one
 	 *  ({@code space:slug}), so the key must sanitize it out — CLAUDE.md's

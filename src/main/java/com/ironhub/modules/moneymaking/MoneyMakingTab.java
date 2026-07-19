@@ -89,11 +89,17 @@ class MoneyMakingTab extends JPanel
 		state.removeListener(listener);
 	}
 
-	/** Test seam. */
+	/** Test seams. */
 	void filter(int categoryIndex, int availabilityIndex)
 	{
 		this.category = categoryIndex;
 		this.availability = availabilityIndex;
+		rebuild();
+	}
+
+	void expand(String methodId)
+	{
+		this.expandedId = methodId;
 		rebuild();
 	}
 
@@ -331,6 +337,59 @@ class MoneyMakingTab extends JPanel
 			block.add(line("inputs: " + m.inputs.stream().limit(8)
 				.map(i -> i.qty + "× " + i.name).collect(Collectors.joining(", ")), OsrsSkin.FAINT));
 		}
+
+		// feature 7: a gp target + method as an (informational) Goal
+		JPanel goalRow = row();
+		com.ironhub.ui.osrs.StoneTextField gp = new com.ironhub.ui.osrs.StoneTextField(theme, "gp target, e.g. 10M");
+		gp.setMaximumSize(new Dimension(120, gp.getPreferredSize().height));
+		goalRow.add(gp);
+		goalRow.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		boolean hasGoal = state.getGoalSeeds().containsKey("custom:money:" + m.id);
+		com.ironhub.ui.osrs.StoneButton addGoal = new com.ironhub.ui.osrs.StoneButton(theme, theme.boxFill,
+			hasGoal ? "Tracked" : "+ Goal", () ->
+			{
+				if (state.getGoalSeeds().containsKey("custom:money:" + m.id))
+				{
+					state.removeGoalSeed("custom:money:" + m.id);
+					return;
+				}
+				long amount = parseGp(gp.getText());
+				if (amount > 0)
+				{
+					state.addGoalSeed(com.ironhub.state.GoalSeeds.money(m.id, m.name, amount));
+				}
+			});
+		addGoal.setMaximumSize(addGoal.getPreferredSize());
+		goalRow.add(addGoal);
+		goalRow.add(Box.createHorizontalGlue());
+		cap(goalRow);
+		block.add(goalRow);
+
+		// the extra Luke asked for: add "unlock this method" as a goal (routes
+		// the requirements) — only useful while it isn't available yet
+		if (!MoneyMakingModule.available(state, m) && !m.reqs.isEmpty())
+		{
+			boolean tracking = state.getGoalSeeds().containsKey("custom:money-unlock:" + m.id);
+			JPanel unlockRow = row();
+			com.ironhub.ui.osrs.StoneButton unlock = new com.ironhub.ui.osrs.StoneButton(theme, theme.boxFill,
+				tracking ? "Unlock tracked" : "+ Unlock as goal", () ->
+				{
+					if (tracking)
+					{
+						state.removeGoalSeed("custom:money-unlock:" + m.id);
+					}
+					else
+					{
+						state.addGoalSeed(com.ironhub.state.GoalSeeds.moneyUnlock(m.id, m.name, m.reqs));
+					}
+				});
+			unlock.setMaximumSize(unlock.getPreferredSize());
+			unlockRow.add(unlock);
+			unlockRow.add(Box.createHorizontalGlue());
+			cap(unlockRow);
+			block.add(unlockRow);
+		}
+
 		JPanel foot = row();
 		foot.add(Box.createHorizontalGlue());
 		JLabel wiki = new JLabel("wiki");
@@ -388,6 +447,35 @@ class MoneyMakingTab extends JPanel
 	private static long orZero(Integer i)
 	{
 		return i == null ? 0 : i;
+	}
+
+	/** Parse a gp target: "10M", "500k", "1,000,000" → gp, or -1 if unparseable. */
+	private static long parseGp(String s)
+	{
+		if (s == null)
+		{
+			return -1;
+		}
+		s = s.trim().toLowerCase(java.util.Locale.ROOT).replace(",", "").replace("gp", "").trim();
+		double mult = 1;
+		if (s.endsWith("m"))
+		{
+			mult = 1_000_000;
+			s = s.substring(0, s.length() - 1);
+		}
+		else if (s.endsWith("k"))
+		{
+			mult = 1000;
+			s = s.substring(0, s.length() - 1);
+		}
+		try
+		{
+			return (long) (Double.parseDouble(s.trim()) * mult);
+		}
+		catch (NumberFormatException e)
+		{
+			return -1;
+		}
 	}
 
 	private static int intensityRank(String intensity)
