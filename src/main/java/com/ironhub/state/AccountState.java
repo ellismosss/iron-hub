@@ -59,6 +59,7 @@ public class AccountState implements StateView
 	private final Map<Skill, Integer> xp = new ConcurrentHashMap<>();
 	private final Map<Quest, QuestState> questStates = new ConcurrentHashMap<>();
 	private final Set<String> unlocks = ConcurrentHashMap.newKeySet();
+	private final Set<String> moneyFavourites = ConcurrentHashMap.newKeySet();
 	private final Map<String, Integer> killCounts = new ConcurrentHashMap<>();
 
 	// display names for items seen in the bank — persisted so bank search
@@ -515,6 +516,27 @@ public class AccountState implements StateView
 	{
 		killCounts.put(source, count);
 		persist();
+	}
+
+	// ── money-making favourites (Money making module) ─────────────────────
+
+	public java.util.Set<String> getMoneyFavourites()
+	{
+		return java.util.Set.copyOf(moneyFavourites);
+	}
+
+	public boolean isMoneyFavourite(String methodId)
+	{
+		return moneyFavourites.contains(methodId);
+	}
+
+	public void setMoneyFavourite(String methodId, boolean favourite)
+	{
+		if (favourite ? moneyFavourites.add(methodId) : moneyFavourites.remove(methodId))
+		{
+			persist();
+			notifyListeners();
+		}
 	}
 
 	/** One kill observed (loot event); feeds kc: requirements live. */
@@ -1977,6 +1999,8 @@ public class AccountState implements StateView
 		itemNames.putAll(persisted.itemNames);
 		unlocks.clear();
 		unlocks.addAll(persisted.unlocks);
+		moneyFavourites.clear();
+		moneyFavourites.addAll(persisted.moneyFavourites);
 		killCounts.clear();
 		killCounts.putAll(persisted.killCounts);
 		dailiesDoneAt.clear();
@@ -2137,6 +2161,7 @@ public class AccountState implements StateView
 		state.accountType = accountType;
 		state.itemNames = new HashMap<>(itemNames);
 		state.unlocks = new HashSet<>(unlocks);
+		state.moneyFavourites = new HashSet<>(moneyFavourites);
 		state.killCounts = new HashMap<>(killCounts);
 		state.dailiesDoneAt = new HashMap<>(dailiesDoneAt);
 		state.alchExcluded = new HashSet<>(alchExcludedAtQty.keySet()); // legacy readers

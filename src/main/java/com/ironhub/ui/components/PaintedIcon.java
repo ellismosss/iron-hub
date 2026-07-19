@@ -22,6 +22,8 @@ public class PaintedIcon implements Icon
 		FLAG,
 		PIN,
 		CROSS,
+		HEART,
+		HEART_OUTLINE,
 		GRID,
 		LIST,
 		CHEVRON_LEFT,
@@ -85,6 +87,21 @@ public class PaintedIcon implements Icon
 				g2.draw(new java.awt.geom.Line2D.Float(in, in, size - in, size - in));
 				g2.draw(new java.awt.geom.Line2D.Float(size - in, in, in, size - in));
 				break;
+			case HEART:
+			case HEART_OUTLINE:
+			{
+				Path2D heart = heartPath(size);
+				if (shape == Shape.HEART)
+				{
+					g2.fill(heart);
+				}
+				else
+				{
+					g2.setStroke(new BasicStroke(1.1f));
+					g2.draw(heart);
+				}
+				break;
+			}
 			case GRID: // 2×2 cells
 				int cell = (size - 2) / 2;
 				g2.fillRect(0, 0, cell, cell);
@@ -137,6 +154,21 @@ public class PaintedIcon implements Icon
 		path.lineTo(size * tipX, size * 0.5f);
 		path.lineTo(size * fromX, size * 0.82f);
 		return path;
+	}
+
+	private static Path2D heartPath(int size)
+	{
+		float s = size;
+		Path2D h = new Path2D.Float();
+		h.moveTo(s * 0.5, s * 0.30);
+		// left lobe
+		h.curveTo(s * 0.40, s * 0.08, s * 0.02, s * 0.14, s * 0.14, s * 0.46);
+		h.curveTo(s * 0.22, s * 0.66, s * 0.42, s * 0.80, s * 0.5, s * 0.92);
+		// right lobe
+		h.curveTo(s * 0.58, s * 0.80, s * 0.78, s * 0.66, s * 0.86, s * 0.46);
+		h.curveTo(s * 0.98, s * 0.14, s * 0.60, s * 0.08, s * 0.5, s * 0.30);
+		h.closePath();
+		return h;
 	}
 
 	private static Path2D triangle(int size, float x1, float y1, float x2, float y2, float x3, float y3)

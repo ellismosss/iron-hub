@@ -193,6 +193,9 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "dailiesNew", name = "Dailies (New)", description = "The Dailies tab in the OSRS skin, beside the classic one for comparison (migration preview)", section = modulesSection, position = 27)
 	default boolean dailiesNew() { return true; }
 
+	@ConfigItem(keyName = "moneyMaking", name = "Money making", description = "The OSRS wiki Money making guide, filtered to what your account can do", section = modulesSection, position = 29)
+	default boolean moneyMaking() { return true; }
+
 	@ConfigItem(keyName = "freezeWatchdog", name = "Freeze detector", description = "Log a stack dump when the client UI stalls, so freezes can be diagnosed (development aid, negligible cost)", section = modulesSection, position = 28)
 	default boolean freezeWatchdog() { return true; }
 
