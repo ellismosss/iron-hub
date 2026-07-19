@@ -79,7 +79,7 @@
     {
      "name": "Superior Demonbane",
      "itemId": 0,
-     "qty": "41 <!--ex. !6 larvae per shield phase (once per level), and ~3 random larve per level. Magic is only required for level 4+. 1/3 of larve will be magic. -->",
+     "qty": "41",
      "perHour": false
     },
     {
@@ -97,7 +97,7 @@
     {
      "name": "Mokhaiotl waystone",
      "itemId": 31099,
-     "qty": "1\n{{#vardefine:unique2|1/2500}}\n{{#vardefine:unique3|1/1000}}\n{{#vardefine:unique4|1/450}}\n{{#vardefine:unique5|1/270}}\n{{#vardefine:unique6|1/255}}\n{{#vardefine:unique7|1/240}}\n{{#vardefine:unique8|1/210}}\n{{#vardefine:unique9|1/180}}\n{{#vardefine:common2|{{#expr:1-{{#var:unique2}}}}}}\n{{#vardefine:common3|{{#expr:1-{{#var:unique3}}}}}}\n{{#vardefine:common4|{{#expr:1-{{#var:unique4}}}}}}\n{{#vardefine:common5|{{#expr:1-{{#var:unique5}}}}}}\n{{#vardefine:common6|{{#expr:1-{{#var:unique6}}}}}}\n{{#vardefine:common7|{{#expr:1-{{#var:unique7}}}}}}\n{{#vardefine:common8|{{#expr:1-{{#var:unique8}}}}}}\n{{#vardefine:common9|{{#expr:1-{{#var:unique9}}}}}}\n{{#vardefine:deepdelves|8}} <!--Define how many deep delves, 9, 10, etc, are completed -->",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -291,7 +291,7 @@
     {
      "name": "Superior Demonbane",
      "itemId": 0,
-     "qty": "17 <!--ex. !6 larvae per shield phase (once per level), and ~3 random larve per level. spells only required for level 4+. 1/3 of larve will be magic. -->",
+     "qty": "17",
      "perHour": false
     },
     {
@@ -307,8 +307,8 @@
      "perHour": false
     },
     {
-     "name": "Mokhaiotl waystone\n\n\n\n\n\n\n\n\n}}}}\n}}}}\n}}}}\n}}}}\n}}}}\n}}}}\n}}}}\n}}}}",
-     "itemId": 0,
+     "name": "Mokhaiotl waystone",
+     "itemId": 31099,
      "qty": "1",
      "perHour": false
     }
@@ -938,7 +938,7 @@
     {
      "name": "Antidote++(4)",
      "itemId": 5952,
-     "qty": "0.25\n{{#vardefine:regchance|{{#expr:(1-(62000/867580))}}}} <!--Chance of regular loot (no unique)-->",
+     "qty": "0.25",
      "perHour": false
     }
    ],
@@ -1027,7 +1027,7 @@
     {
      "name": "Ruby dragon bolts (e)",
      "itemId": 21944,
-     "qty": "2 <!-- with upgraded quiver, .2 * number of ZCB specs per raid (estimated 10) -->",
+     "qty": "2",
      "perHour": false
     }
    ],
@@ -1243,7 +1243,7 @@
     {
      "name": "Blood rune",
      "itemId": 565,
-     "qty": "270\n{{#vardefine:regchance|{{#expr:(1-(33000/8675/100))}}}} <!--Chance of regular loot (no unique)-->",
+     "qty": "270",
      "perHour": false
     }
    ],
@@ -2416,7 +2416,7 @@
     {
      "name": "Super restore(4)",
      "itemId": 3024,
-     "qty": "8/15\n<!-- Assumes you will use 5 casts of blood barrage heal to full on each kill ... -->",
+     "qty": "8/15",
      "perHour": false
     },
     {
@@ -3339,7 +3339,7 @@
     {
      "name": "Pure essence",
      "itemId": 7936,
-     "qty": "{{#switch:{{min|{{#var:essence}}|{{#var:bloodrune}}}}<!--\n-->|{{#var:essence}}=66<!--\n-->|{{#var:bloodrune}}=67<!--\n-->}}",
+     "qty": "1",
      "perHour": false
     },
     {
@@ -3351,7 +3351,7 @@
     {
      "name": "Blood essence",
      "itemId": 26390,
-     "qty": "<!--\n-->{{#switch:{{min|{{#var:essence}}|{{#var:bloodrune}}}}<!--\n-->|{{#var:essence}}=(66 * .5) / 1000<!--\n-->|{{#var:bloodrune}}=0<!--\n-->}}",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -3553,7 +3553,7 @@
     {
      "name": "Bracelet of slaughter",
      "itemId": 21183,
-     "qty": "{{#expr:(1/4)*(1/30)}}",
+     "qty": "1",
      "perHour": false
     },
     {
@@ -3596,7 +3596,7 @@
     {
      "name": "Dodgy necklace",
      "itemId": 21143,
-     "qty": "1/10 * .25 * (1 - .15) * (1 - .6055) <!-- Charges * Proc rate * Veil fail rate * Fail rate @ 99 w cape -->",
+     "qty": "1/10 * .25 * (1 - .15) * (1 - .6055)",
      "perHour": false
     },
     {
@@ -3699,7 +3699,7 @@
     {
      "name": "Pure essence",
      "itemId": 7936,
-     "qty": "{{#switch:{{min|{{#var:essence}}|{{#var:bloodrune}}}}<!--\n-->|{{#var:essence}}=66<!--\n-->|{{#var:bloodrune}}=67<!--\n-->}}",
+     "qty": "1",
      "perHour": false
     },
     {
@@ -3723,7 +3723,7 @@
     {
      "name": "Blood essence",
      "itemId": 26390,
-     "qty": "<!--\n-->{{#switch:{{min|{{#var:essence}}|{{#var:bloodrune}}}}<!--\n-->|{{#var:essence}}=(66 * .5) / 1000<!--\n-->|{{#var:bloodrune}}=0<!--\n-->}}",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -3758,12 +3758,6 @@
      "name": "Astral rune",
      "itemId": 9075,
      "qty": "2",
-     "perHour": false
-    },
-    {
-     "name": "-}}}} - }}}}  -  }}}}-}}}}|||}}|=Green| =Blue|  =Red|=Black}}}} dragonhide",
-     "itemId": 0,
-     "qty": "5",
      "perHour": false
     }
    ],
@@ -4522,7 +4516,7 @@
     {
      "name": "Coins",
      "itemId": 0,
-     "qty": "{{#expr:150000 / 83}}",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -5200,7 +5194,7 @@
     {
      "name": "Stamina potion(4)",
      "itemId": 12625,
-     "qty": "9<!-- you use slightly more doses than is required to sustain the buff for the run energy-->",
+     "qty": "9",
      "perHour": true
     }
    ],
@@ -5245,7 +5239,7 @@
     {
      "name": "Vampyre dust",
      "itemId": 3325,
-     "qty": "1\n\n<!--{{#vardefine:f2coffins|1}}\n{{#vardefine:f3coffins|2}}-->\n{{#vardefine:f4coffins|2}}\n{{#vardefine:f5coffins|3}}\n{{#vardefine:nummedcoffins|{{#expr:({{#var:f4coffins}})*.6 + ({{#var:f5coffins}})*.2}}}}\n<!-- Extra two added bc the grand chest has 2 high rolls, but with no lockpick chance -->\n{{#vardefine:numhighcoffins|{{#expr:({{#var:f4coffins}})*.4 + ({{#var:f5coffins}})*.8 + 2}}}}\n{{#vardefine:solratef4|{{#expr:1/60}}}}\n{{#vardefine:solratef5|{{#expr:1/40}}}}\n\n<!-- Calculations for the average Coffin loot -->\n{{#vardefine:HCLow|{{Average drop value|mob=Coffin (Hallowed Sepulchre)#Low|killname=loot|raw=y}}}}\n{{#vardefine:HCMid|{{Average drop value|mob=Coffin (Hallowed Sepulchre)#Mid|killname=loot|raw=y}}}}\n{{#vardefine:HCHigh|{{Average drop value|mob=Coffin (Hallowed Sepulchre)#High|killname=loot|raw=y}}}}\n{{#vardefine:f2AveChest|{{GEP|Strange old lockpick (full)|1/120}}+119/120*(0.3 *{{#var:HCLow}}+0.6 *{{#var:HCMid}}+0.1 *{{#var:HCHigh}}) round 0}}\n{{#vardefine:f3AveChest|{{GEP|Strange old lockpick (full)|1/90}} +  89/90*(0.15*{{#var:HCLow}}+0.65*{{#var:HCMid}}+0.2 *{{#var:HCHigh}}) round 0}}\n{{#vardefine:f4AveChest|{{GEP|Strange old lockpick (full)|1/60}} +  59/60*(0.6 *{{#var:HCMid}}+0.4 *{{#var:HCHigh}}) round 0}}\n{{#vardefine:f5AveChest|{{GEP|Strange old lockpick (full)|1/40}} +  39/40*(0.2 *{{#var:HCMid}}+0.8 *{{#var:HCHigh}}) round 0}}\n\n<!-- Calculations for the average earnings from looting all chests from floors 2-5 -->\n{{#vardefine:fullRun|{{#expr:({{#var:f2AveChest}})+({{#var:f2AveChest}})*2 + ({{#var:f4AveChest}})*2+({{#var:f5AveChest}})*5+({{GEP|Ring of endurance (uncharged)}})/200}} round 0}} \n{{#vardefine:finalOnlyRun|{{#expr:({{#var:f4AveChest}})*2+({{#var:f5AveChest}})*5+({{GEP|Ring of endurance (uncharged)}})/200}} round 0}}\n\n<!-- As of an update on 23/09/20 100 marks can be exchanged for a Hallowed sack -->",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -7398,13 +7392,7 @@
     {
      "name": "Bucket of sand",
      "itemId": 1783,
-     "qty": "{{#if:{{#vardefineecho:UseGiantSeaweed|{{#ifexpr:{{GEP|Molten glass|26.1}}-{{GEP|Giant seaweed|3}}-{{GEP|Bucket of sand|18}}>{{GEP|Molten glass|16.9}}-{{GEP|Seaweed|13}}-{{GEP|Bucket of sand|13}}|Yes|}}}}|18|13}}",
-     "perHour": false
-    },
-    {
-     "name": "|Giant seaweed|Seaweed}}",
-     "itemId": 0,
-     "qty": "{{#if:{{#var:UseGiantSeaweed}}|3|13}}",
+     "qty": "1",
      "perHour": false
     },
     {
@@ -7511,13 +7499,13 @@
     {
      "name": "Magic Imbue",
      "itemId": 0,
-     "qty": "2/5<!--3 elemental points per combination rune, or roughly 40% elemental runs and 60% catalytic runs for an even poitns plit-->",
+     "qty": "2/5",
      "perHour": false
     },
     {
      "name": "Binding necklace",
      "itemId": 5521,
-     "qty": "(2/80)<!--1/16 of a necklace use every magic imbue-->",
+     "qty": "(2/80)",
      "perHour": false
     }
    ],
@@ -7726,7 +7714,7 @@
     {
      "name": "Blood essence",
      "itemId": 26390,
-     "qty": "<!--\n-->{{#switch:{{min|{{#var:essence}}|{{#var:bloodrune}}}}<!--\n-->|{{#var:essence}}=49*4/2000<!--\n-->|{{#var:bloodrune}}=0<!--\n-->}}",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -8014,7 +8002,7 @@
     {
      "name": "Blood essence",
      "itemId": 26390,
-     "qty": "<!--\n-->{{#switch:{{min|{{#var:essence}}|{{#var:bloodrune}}}}<!--\n-->|{{#var:essence}}=49*4/2000<!--\n-->|{{#var:bloodrune}}=0<!--\n-->}}",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -8228,7 +8216,7 @@
     {
      "name": "Dharok's armour set",
      "itemId": 12877,
-     "qty": "{{#expr:floor(166650/15)}}",
+     "qty": "1",
      "perHour": true
     }
    ],
@@ -8377,7 +8365,7 @@
     {
      "name": "Cosmic rune",
      "itemId": 564,
-     "qty": "1\n\n<!--{{#vardefine:f2coffins|1}}-->\n{{#vardefine:f3coffins|2}}\n{{#vardefine:f4coffins|2}}\n{{#vardefine:f5coffins|0}}\n{{#vardefine:numlowcoffins|{{#expr:({{#var:f3coffins}})*.15}}}}\n{{#vardefine:nummedcoffins|{{#expr:({{#var:f3coffins}})*.65 + ({{#var:f4coffins}})*.6 + ({{#var:f5coffins}})*.2}}}}\n{{#vardefine:numhighcoffins|{{#expr:({{#var:f3coffins}})*0.2 + ({{#var:f4coffins}})*.4 + ({{#var:f5coffins}})*.8}}}}\n{{#vardefine:solratef3|{{#expr:1/90}}}}\n{{#vardefine:solratef4|{{#expr:1/60}}}}\n{{#vardefine:solratef5|{{#expr:1/40}}}}\n\n<!-- Calculations for the average Coffin loot -->\n{{#vardefine:HCLow|{{Average drop value|mob=Coffin (Hallowed Sepulchre)#Low|killname=loot|raw=y}}}}\n{{#vardefine:HCMid|{{Average drop value|mob=Coffin (Hallowed Sepulchre)#Mid|killname=loot|raw=y}}}}\n{{#vardefine:HCHigh|{{Average drop value|mob=Coffin (Hallowed Sepulchre)#High|killname=loot|raw=y}}}}\n{{#vardefine:f2AveChest|{{GEP|Strange old lockpick (full)|1/120}}+119/120*(0.3 *{{#var:HCLow}}+0.6 *{{#var:HCMid}}+0.1 *{{#var:HCHigh}}) round 0}}\n{{#vardefine:f3AveChest|{{GEP|Strange old lockpick (full)|1/90}} +  89/90*(0.15*{{#var:HCLow}}+0.65*{{#var:HCMid}}+0.2 *{{#var:HCHigh}}) round 0}}\n{{#vardefine:f4AveChest|{{GEP|Strange old lockpick (full)|1/60}} +  59/60*(0.6 *{{#var:HCMid}}+0.4 *{{#var:HCHigh}}) round 0}}\n{{#vardefine:f5AveChest|{{GEP|Strange old lockpick (full)|1/40}} +  39/40*(0.2 *{{#var:HCMid}}+0.8 *{{#var:HCHigh}}) round 0}}\n\n<!-- Calculations for the average earnings from looting all chests from floors 2-4 -->\n{{#vardefine:fullRun|{{#expr:({{#var:f2AveChest}})+({{#var:f2AveChest}})*2 + ({{#var:f4AveChest}})*2}} round 0}} \n{{#vardefine:finalOnlyRun|{{#expr:({{#var:f4AveChest}})*2}} round 0}}\n\n<!-- As of an update on 23/09/20 100 marks can be exchanged for a Hallowed sack -->",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -8998,7 +8986,7 @@
     {
      "name": "Burning amulet(5)",
      "itemId": 21166,
-     "qty": "2/125 <!-- do we assume 25 kills/trip? sure why not -->",
+     "qty": "2/125",
      "perHour": false
     },
     {
@@ -9597,7 +9585,7 @@
     {
      "name": "Coins",
      "itemId": 0,
-     "qty": "{{#var:bestpayment}}",
+     "qty": "1",
      "perHour": false
     },
     {
@@ -9610,12 +9598,6 @@
      "name": "Astral rune",
      "itemId": 9075,
      "qty": "2",
-     "perHour": false
-    },
-    {
-     "name": "< }} | Sawmill voucher | }}",
-     "itemId": 0,
-     "qty": "{{#ifexpr: {{GEP|Sawmill voucher}} < {{GEP|{{#var:bestplank}}}} | 1 | }}",
      "perHour": false
     }
    ],
@@ -9830,7 +9812,7 @@
     {
      "name": "Blood essence",
      "itemId": 26390,
-     "qty": "<!--\n-->{{#switch:{{min|{{#var:essence}}|{{#var:bloodrune}}}}<!--\n-->|{{#var:essence}}=49*4/2000<!--\n-->|{{#var:bloodrune}}=0<!--\n-->}}",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -9902,7 +9884,7 @@
     {
      "name": "Horn of plenty",
      "itemId": 0,
-     "qty": ".1273 <!-- ((1/25) + (1/10)) / 1.1 -->",
+     "qty": ".1273",
      "perHour": false
     }
    ],
@@ -10014,7 +9996,7 @@
     {
      "name": "Cosmic rune",
      "itemId": 564,
-     "qty": "0.5\n\n<!--{{#vardefine:f2coffins|1}}-->\n{{#vardefine:f3coffins|2}}\n{{#vardefine:f4coffins|0}}\n{{#vardefine:f5coffins|0}}\n{{#vardefine:numlowcoffins|{{#expr:({{#var:f3coffins}})*.15}}}}\n{{#vardefine:nummedcoffins|{{#expr:({{#var:f3coffins}})*.65 + ({{#var:f4coffins}})*.6 + ({{#var:f5coffins}})*.2}}}}\n{{#vardefine:numhighcoffins|{{#expr:({{#var:f3coffins}})*0.2 + ({{#var:f4coffins}})*.4 + ({{#var:f5coffins}})*.8}}}}\n{{#vardefine:solratef3|{{#expr:1/90}}}}\n{{#vardefine:solratef4|{{#expr:1/60}}}}\n{{#vardefine:solratef5|{{#expr:1/40}}}}\n\n<!-- Calculations for the average Coffin loot -->\n{{#vardefine:HCLow|{{Average drop value|mob=Coffin (Hallowed Sepulchre)#Low|killname=loot|raw=y}}}}\n{{#vardefine:HCMid|{{Average drop value|mob=Coffin (Hallowed Sepulchre)#Mid|killname=loot|raw=y}}}}\n{{#vardefine:HCHigh|{{Average drop value|mob=Coffin (Hallowed Sepulchre)#High|killname=loot|raw=y}}}}\n{{#vardefine:f2AveChest|{{GEP|Strange old lockpick (full)|1/120}}+119/120*(0.3 *{{#var:HCLow}}+0.6 *{{#var:HCMid}}+0.1 *{{#var:HCHigh}}) round 0}}\n{{#vardefine:f3AveChest|{{GEP|Strange old lockpick (full)|1/90}} +  89/90*(0.15*{{#var:HCLow}}+0.65*{{#var:HCMid}}+0.2 *{{#var:HCHigh}}) round 0}}\n{{#vardefine:f4AveChest|{{GEP|Strange old lockpick (full)|1/60}} +  59/60*(0.6 *{{#var:HCMid}}+0.4 *{{#var:HCHigh}}) round 0}}\n{{#vardefine:f5AveChest|{{GEP|Strange old lockpick (full)|1/40}} +  39/40*(0.2 *{{#var:HCMid}}+0.8 *{{#var:HCHigh}}) round 0}}\n\n<!-- As of an update on 23/09/20 100 marks can be exchanged for a Hallowed sack -->",
+     "qty": "0.5",
      "perHour": false
     }
    ],
@@ -10318,13 +10300,13 @@
     {
      "name": "Law rune",
      "itemId": 563,
-     "qty": "<!--\n-->{{#vardefineecho:law_rune_input|<!--\n-->{{#vardefine:moonclan_profit|{{#expr:{{GEP|Moonclan teleport (tablet)}}- 1*{{GEP|Law rune}} - 2*{{GEP|Astral rune}}}}}}<!--\n-->{{#vardefine:ourania_profit|{{#expr:{{GEP|Ourania teleport (tablet)}}- 1*{{GEP|Law rune}} - 2*{{GEP|Astral rune}}}}}}<!--\n-->{{#vardefine:waterbirth_profit|{{#expr:{{GEP|Waterbirth teleport (tablet)}}- 1*{{GEP|Law rune}} - 2*{{GEP|Astral rune}}}}}}<!--\n-->{{#vardefine:barbarian_profit|{{#expr:{{GEP|Barbarian teleport (tablet)}}- 2*{{GEP|Law rune}} - 2*{{GEP|Astral rune}}}}}}<!--\n-->{{#vardefine:khazard_profit|{{#expr:{{GEP|Khazard teleport (tablet)}}- 2*{{GEP|Law rune}} - 2*{{GEP|Astral rune}}}}}}<!--\n-->{{#vardefine:fishing_guild_profit|{{#expr:{{GEP|Fishing guild teleport (tablet)}}- 3*{{GEP|Law rune}} - 3*{{GEP|Astral rune}}}}}}<!--\n-->{{#vardefine:catherby_profit|{{#expr:{{GEP|Catherby teleport (tablet)}}- 3*{{GEP|Law rune}} - 3*{{GEP|Astral rune}}}}}}<!--\n-->{{#vardefine:ice_plateau_profit|{{#expr:{{GEP|Ice plateau teleport (tablet)}}- 3*{{GEP|Law rune}} - 3*{{GEP|Astral rune}}}}}}<!--\n-->{{#switch:{{max|{{#var:moonclan_profit}}|{{#var:ourania_profit}}|{{#var:waterbirth_profit}}|{{#var:barbarian_profit}}|{{#var:khazard_profit}}|{{#var:fishing_guild_profit}}|{{#var:catherby_profit}}|{{#var:ice_plateau_profit}}}}<!--\n-->|{{#var:moonclan_profit}}=1<!--\n-->|{{#var:ourania_profit}}=1<!--\n-->|{{#var:waterbirth_profit}}=1<!--\n-->|{{#var:barbarian_profit}}=2<!--\n-->|{{#var:khazard_profit}}=2<!--\n-->|{{#var:fishing_guild_profit}}=3<!--\n-->|{{#var:catherby_profit}}=3<!--\n-->|{{#var:ice_plateau_profit}}=3}}}}",
+     "qty": "1",
      "perHour": false
     },
     {
      "name": "Astral rune",
      "itemId": 9075,
-     "qty": "<!--\n-->{{#vardefineecho:astral_rune_input|<!--\n-->{{#switch:{{max|{{#var:moonclan_profit}}|{{#var:ourania_profit}}|{{#var:waterbirth_profit}}|{{#var:barbarian_profit}}|{{#var:khazard_profit}}|{{#var:fishing_guild_profit}}|{{#var:catherby_profit}}|{{#var:ice_plateau_profit}}}}<!--\n-->|{{#var:moonclan_profit}}=2<!--\n-->|{{#var:ourania_profit}}=2<!--\n-->|{{#var:waterbirth_profit}}=2<!--\n-->|{{#var:barbarian_profit}}=2<!--\n-->|{{#var:khazard_profit}}=2<!--\n-->|{{#var:fishing_guild_profit}}=3<!--\n-->|{{#var:catherby_profit}}=3<!--\n-->|{{#var:ice_plateau_profit}}=3}}}}",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -11034,108 +11016,6 @@
      "name": "Nature rune",
      "itemId": 561,
      "qty": "1",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input1}}|||{{#var:input1limit}}}} / {{#var:natureRunes}}",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input2}}|||{{#var:input2limit}}}} / {{#var:natureRunes}}",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input3}}|||{{#var:input3limit}}}} / {{#var:natureRunes}}",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input4}}|||{{#var:input4limit}}}} / {{#var:natureRunes}}",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input5}}|||{{#var:input5limit}}}} / {{#var:natureRunes}}",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input6}}|||{{#var:input6limit}}}} / {{#var:natureRunes}}",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input7}}|||{{#var:input7limit}}}} / {{#var:natureRunes}}",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input8}}|||{{#var:input8limit}}}} / {{#var:natureRunes}}",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input9}}|||{{#var:input9limit}}}} / {{#var:natureRunes}}",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input10}}|||{{#var:input10limit}}}} / {{#var:natureRunes}}",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input11}}|||{{#var:input11limit}}}} / {{#var:natureRunes}}",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input12}}|||{{#var:input12limit}}}} / {{#var:natureRunes}}",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input13}}|||{{#var:input13limit}}}} / {{#var:natureRunes}}",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input14}}|||{{#var:input14limit}}}} / {{#var:natureRunes}}",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input15}}|||{{#var:input15limit}}}} / {{#var:natureRunes}}",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input16}}|||{{#var:input16limit}}}} / {{#var:natureRunes}}",
-     "perHour": false
-    },
-    {
-     "name": "|||}}",
-     "itemId": 0,
-     "qty": "{{#ifeq:{{#var:input17}}|||{{#var:input17limit}}}} / {{#var:natureRunes}}",
      "perHour": false
     }
    ],
@@ -12204,14 +12084,7 @@
    "icon": 0,
    "reqs": [],
    "recommends": [],
-   "inputs": [
-    {
-     "name": "}}}}|}}|=Mithril seeds|=Adamant seeds}}}}",
-     "itemId": 0,
-     "qty": "1",
-     "perHour": false
-    }
-   ],
+   "inputs": [],
    "skillsText": "None",
    "itemsText": "+ recommended",
    "otherText": ""
@@ -12937,7 +12810,7 @@
     {
      "name": "High Level Alchemy",
      "itemId": 0,
-     "qty": "{{#var:alch}}",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -13700,13 +13573,13 @@
     {
      "name": "Nature rune",
      "itemId": 561,
-     "qty": "{{#expr:1/3}}",
+     "qty": "1",
      "perHour": false
     },
     {
      "name": "Fire rune",
      "itemId": 554,
-     "qty": "{{#expr:5/3}}",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -14284,7 +14157,7 @@
     {
      "name": "High Level Alchemy",
      "itemId": 0,
-     "qty": "{{#var:alch}}",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -14315,7 +14188,7 @@
     {
      "name": "High Level Alchemy",
      "itemId": 0,
-     "qty": "{{#var:alch}}",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -14546,7 +14419,7 @@
     {
      "name": "Energy potion(4)",
      "itemId": 3008,
-     "qty": "7/8/26<!--not a date-->",
+     "qty": "7/8/26",
      "perHour": false
     }
    ],
@@ -14719,7 +14592,7 @@
     {
      "name": "High Level Alchemy",
      "itemId": 0,
-     "qty": "{{#var:alch}} <!--Add alchable qtys as nature runes-->",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -15325,7 +15198,7 @@
     {
      "name": "High Level Alchemy",
      "itemId": 0,
-     "qty": "{{#var:alch}} <!--Add alchable qtys as nature runes-->",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -15662,20 +15535,7 @@
     "quest:Sleeping Giants"
    ],
    "recommends": [],
-   "inputs": [
-    {
-     "name": "}}}}\n}}}}\n}}}}\n}}}}\n/2}}}}\n/2}}}}\n/2}}}}\n/2}}}}\n/2}}}}\n/2}}}}\n/2}}}}\n/4}}}}\n|||||||||||}}\n| = Iron scimitar\n| = Iron longsword\n| = Iron full helm\n| = Iron sq shield\n| = Iron warhammer\n| = Iron battleaxe\n| = Iron chainbody\n| = Iron kiteshield\n| = Iron 2h sword\n| = Iron platelegs\n| = Iron plateskirt\n| = Iron platebody\n|#default = Logs}}",
-     "itemId": 0,
-     "qty": "{{#vardefine:i1|{{#expr:{{GEP|Iron scimitar}}}}}}\n{{#vardefine:i2|{{#expr:{{GEP|Iron longsword}}}}}}\n{{#vardefine:i3|{{#expr:{{GEP|Iron full helm}}}}}}\n{{#vardefine:i4|{{#expr:{{GEP|Iron sq shield}}}}}}\n{{#vardefine:i5|{{#expr:{{GEP|Iron warhammer}}/2}}}}\n{{#vardefine:i6|{{#expr:{{GEP|Iron battleaxe}}/2}}}}\n{{#vardefine:i7|{{#expr:{{GEP|Iron chainbody}}/2}}}}\n{{#vardefine:i8|{{#expr:{{GEP|Iron kiteshield}}/2}}}}\n{{#vardefine:i9|{{#expr:{{GEP|Iron 2h sword}}/2}}}}\n{{#vardefine:i10|{{#expr:{{GEP|Iron platelegs}}/2}}}}\n{{#vardefine:i11|{{#expr:{{GEP|Iron plateskirt}}/2}}}}\n{{#vardefine:i12|{{#expr:{{GEP|Iron platebody}}/4}}}}\n{{#switch:{{min|{{#var:i1}}|{{#var:i2}}|{{#var:i3}}|{{#var:i4}}|{{#var:i5}}|{{#var:i6}}|{{#var:i7}}|{{#var:i8}}|{{#var:i9}}|{{#var:i10}}|{{#var:i11}}|{{#var:i12}}}}\n|{{#var:i1}}\n|{{#var:i2}}\n|{{#var:i3}}\n|{{#var:i4}} = 14\n|{{#var:i12}} = 3.5\n|#default = 7}}",
-     "perHour": false
-    },
-    {
-     "name": "}}}}\n}}}}\n}}}}\n}}}}\n/2}}}}\n/2}}}}\n/2}}}}\n/2}}}}\n/2}}}}\n/2}}}}\n/2}}}}\n/4}}}}\n|||||||||||}}\n| = Steel scimitar\n| = Steel longsword\n| = Steel full helm\n| = Steel sq shield\n| = Steel warhammer\n| = Steel battleaxe\n| = Steel chainbody\n| = Steel kiteshield\n| = Steel 2h sword\n| = Steel platelegs\n| = Steel plateskirt\n| = Steel platebody\n|#default = Logs}}",
-     "itemId": 0,
-     "qty": "{{#vardefine:s1|{{#expr:{{GEP|Steel scimitar}}}}}}\n{{#vardefine:s2|{{#expr:{{GEP|Steel longsword}}}}}}\n{{#vardefine:s3|{{#expr:{{GEP|Steel full helm}}}}}}\n{{#vardefine:s4|{{#expr:{{GEP|Steel sq shield}}}}}}\n{{#vardefine:s5|{{#expr:{{GEP|Steel warhammer}}/2}}}}\n{{#vardefine:s6|{{#expr:{{GEP|Steel battleaxe}}/2}}}}\n{{#vardefine:s7|{{#expr:{{GEP|Steel chainbody}}/2}}}}\n{{#vardefine:s8|{{#expr:{{GEP|Steel kiteshield}}/2}}}}\n{{#vardefine:s9|{{#expr:{{GEP|Steel 2h sword}}/2}}}}\n{{#vardefine:s10|{{#expr:{{GEP|Steel platelegs}}/2}}}}\n{{#vardefine:s11|{{#expr:{{GEP|Steel plateskirt}}/2}}}}\n{{#vardefine:s12|{{#expr:{{GEP|Steel platebody}}/4}}}}\n{{#switch:{{min|{{#var:s1}}|{{#var:s2}}|{{#var:s3}}|{{#var:s4}}|{{#var:s5}}|{{#var:s6}}|{{#var:s7}}|{{#var:s8}}|{{#var:s9}}|{{#var:s10}}|{{#var:s11}}|{{#var:s12}}}}\n|{{#var:i1}}\n|{{#var:i2}}\n|{{#var:i3}}\n|{{#var:i4}} = 14\n|{{#var:i12}} = 3.5\n|#default = 7}}",
-     "perHour": false
-    }
-   ],
+   "inputs": [],
    "skillsText": "Smithing 30",
    "itemsText": "",
    "otherText": "Purchasable moulds recommended to increase profits past listed rate"
@@ -15975,7 +15835,7 @@
     {
      "name": "Coins",
      "itemId": 0,
-     "qty": "{{#ifexpr: ({{#expr:{{GEP|Hard leather}}-{{GEP|Cowhide}}-3}}) > ({{#expr:{{GEP|Leather}}-{{GEP|Cowhide}}-1}}) | 3 | 1 }}",
+     "qty": "1",
      "perHour": false
     },
     {
@@ -17933,7 +17793,7 @@
     {
      "name": "Coins",
      "itemId": 0,
-     "qty": "{{#ifexpr:({{GEP|Hard leather}}-3) > ({{GEP|Leather}}-1)|3|1}}",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -18191,7 +18051,7 @@
     {
      "name": "Coins",
      "itemId": 0,
-     "qty": "{{#var:coins}}",
+     "qty": "1",
      "perHour": false
     }
    ],
@@ -18250,7 +18110,7 @@
     {
      "name": "Energy potion(4)",
      "itemId": 3008,
-     "qty": "2.5 / 26<!-- need roughly 100% energy per trip if teleporting-->",
+     "qty": "2.5 / 26",
      "perHour": false
     }
    ],
@@ -18510,7 +18370,7 @@
     {
      "name": "Swordfish",
      "itemId": 373,
-     "qty": "30 <!-- about 4 moss giants per swordfish (so 25 swordfish per key, and 5 swordfish per bryo kill) -->",
+     "qty": "30",
      "perHour": false
     },
     {

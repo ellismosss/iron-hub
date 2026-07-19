@@ -128,7 +128,8 @@ def fetch_wikitext(titles):
         d = json.loads(http(url, f"wt_{i:05d}.json"))
         for pg in d.get("query", {}).get("pages", {}).values():
             if "revisions" in pg:
-                out[pg["title"]] = pg["revisions"][0]["slots"]["main"]["*"]
+                text = pg["revisions"][0]["slots"]["main"]["*"]
+                out[pg["title"]] = re.sub(r"<!--.*?-->", "", text, flags=re.S)  # drop comments
         time.sleep(0.05)
     return out
 
@@ -185,7 +186,8 @@ def wiki_names(s):
 
 
 def clean_item(raw):
-    s = re.sub(r"\{\{[^}]*\}\}", "", raw)
+    s = raw.split("{{#")[0]  # drop trailing #vardefine/#expr metadata absorbed into the last param
+    s = re.sub(r"\{\{[^}]*\}\}", "", s)
     s = re.sub(r"\[\[([^\]|]*\|)?([^\]]*)\]\]", r"\2", s)
     s = re.sub(r"<[^>]+>", "", s)
     return s.strip()
@@ -256,7 +258,7 @@ def build(method_id, title, summary, wt, mapping, quests):
         name = clean_item(p[key])
         if not name:
             continue
-        num = p.get(f"{key}num", "1")
+        num = p.get(f"{key}num", "1").split("{{#")[0].strip() or "1"
         inputs.append({
             "name": name,
             "itemId": mapping.get(name, 0),

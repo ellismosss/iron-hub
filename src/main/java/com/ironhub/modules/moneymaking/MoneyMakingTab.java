@@ -2,19 +2,23 @@ package com.ironhub.modules.moneymaking;
 
 import com.ironhub.data.MoneyMakingPack;
 import com.ironhub.data.MoneyMakingPack.Method;
+import com.ironhub.requirements.Requirements;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.components.RebuildGate;
+import com.ironhub.ui.osrs.OsrsIcons;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
+import com.ironhub.ui.osrs.StoneButton;
 import com.ironhub.ui.osrs.StoneChipRow;
-import com.ironhub.ui.osrs.StoneComboBoxUI;
 import com.ironhub.ui.osrs.StonePanel;
+import com.ironhub.ui.osrs.StoneTextField;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Comparator;
@@ -24,24 +28,25 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-import javax.swing.border.EmptyBorder;
+import net.runelite.api.Skill;
 import net.runelite.client.util.LinkBrowser;
 
 /**
  * Money making tab (Bank section): the OSRS wiki Money making guide, filtered
- * to what the account can do. Category dropdown + Availability/Sort chips over
- * a favourites-first list; each method expands to its requirements, inputs and
- * wiki link. Frameless — the host provides the stone frame + header plate.
+ * to what the account can do. Six category tiles + Available/Favourites filter
+ * + profit/intensity sort over a favourites-first list; each method expands to
+ * its requirements, inputs and wiki. Frameless — the host provides the frame.
  */
 class MoneyMakingTab extends JPanel
 {
-	private static final String[] CATEGORIES =
-		{"All", "Collecting", "Combat", "Processing", "Skilling", "Recurring", "Free-to-play"};
+	private static final String[] CATS =
+		{"Collecting", "Combat", "Processing", "Skilling", "Recurring", "Free-to-play"};
+	private static final String[] CAT_LABELS =
+		{"Collecting", "Combat", "Processing", "Skilling", "Recurring", "F2P"};
+	private static final Color HEART_RED = new Color(0xC0392B);
 	private static final int ROW_CAP = 50;
 
 	private final MoneyMakingModule module;
@@ -54,8 +59,9 @@ class MoneyMakingTab extends JPanel
 	private final JPanel content = new JPanel();
 	private final Runnable listener = RebuildGate.install(this, this::rebuild);
 
-	private int category;                 // index into CATEGORIES
-	private int availability;             // 0 All · 1 Available · 2 Unavailable · 3 Favourites
+	private String selectedCategory;         // null = All
+	private boolean availableOnly = true;    // default: only what you can do (7)
+	private boolean favouritesOnly;
 	private boolean sortByIntensity;
 	private String expandedId;
 
@@ -72,7 +78,7 @@ class MoneyMakingTab extends JPanel
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
-		setBorder(new EmptyBorder(4, 4, 4, 4));
+		setBorder(new javax.swing.border.EmptyBorder(4, 4, 4, 4));
 
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 		content.setOpaque(false);
@@ -90,10 +96,16 @@ class MoneyMakingTab extends JPanel
 	}
 
 	/** Test seams. */
-	void filter(int categoryIndex, int availabilityIndex)
+	void selectCategory(String category)
 	{
-		this.category = categoryIndex;
-		this.availability = availabilityIndex;
+		this.selectedCategory = category;
+		rebuild();
+	}
+
+	void setFilters(boolean availableOnly, boolean favouritesOnly)
+	{
+		this.availableOnly = availableOnly;
+		this.favouritesOnly = favouritesOnly;
 		rebuild();
 	}
 
@@ -107,39 +119,32 @@ class MoneyMakingTab extends JPanel
 	{
 		content.removeAll();
 
-		// header — count + freshness (the profit is a GE-price snapshot)
 		content.add(pad(new OsrsLabel(pack.methods.size() + " methods · profit as of "
 			+ (pack.gePricesAsOf == null ? pack.generated : pack.gePricesAsOf),
 			OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned()));
 		content.add(strut(3));
 
-		// category dropdown (7 options don't fit as chips at 225px)
-		JComboBox<String> cat = StoneComboBoxUI.skin(new JComboBox<>(CATEGORIES), theme);
-		cat.setSelectedIndex(category);
-		cat.setAlignmentX(LEFT_ALIGNMENT);
-		cat.addActionListener(e ->
-		{
-			if (cat.getSelectedIndex() != category)
-			{
-				category = cat.getSelectedIndex();
-				rebuild();
-			}
-		});
-		content.add(pad(cat));
+		// six category tiles — click the selected one again to clear to All (1/2)
+		content.add(pad(categoryTiles()));
 		content.add(strut(3));
 
-		// availability filter
-		StoneChipRow avail = new StoneChipRow(theme, true, "All", "Can do", "Can't", "Favs");
-		avail.setSelected(availability);
+		// Available toggle + a red-heart favourites toggle (3/4/5)
+		JPanel filters = row();
+		StoneChipRow avail = new StoneChipRow(theme, false, "All", "Available");
+		avail.setSelected(availableOnly ? 1 : 0);
 		avail.onChange(i ->
 		{
-			availability = i;
+			availableOnly = i == 1;
+			favouritesOnly = false;
 			rebuild();
 		});
-		content.add(pad(avail));
+		filters.add(avail);
+		filters.add(Box.createHorizontalGlue());
+		filters.add(favouriteToggle());
+		cap(filters);
+		content.add(pad(filters));
 		content.add(strut(2));
 
-		// sort
 		StoneChipRow sort = new StoneChipRow(theme, true, "Sort: profit", "Sort: intensity");
 		sort.setSelected(sortByIntensity ? 1 : 0);
 		sort.onChange(i ->
@@ -150,14 +155,7 @@ class MoneyMakingTab extends JPanel
 		content.add(pad(sort));
 		content.add(strut(4));
 
-		// the list
 		List<Method> visible = visible();
-		if (availability == 2)
-		{
-			content.add(pad(new OsrsLabel("Closest to unlocking first", OsrsSkin.FAINT,
-				OsrsSkin.smallFont()).leftAligned()));
-			content.add(strut(2));
-		}
 		if (visible.isEmpty())
 		{
 			content.add(pad(new OsrsLabel("No methods match.", OsrsSkin.FAINT, OsrsSkin.font()).leftAligned()));
@@ -183,49 +181,78 @@ class MoneyMakingTab extends JPanel
 		repaint();
 	}
 
-	/** The filtered + sorted method list, favourites floated to the top. */
+	private JComponent categoryTiles()
+	{
+		JPanel grid = new JPanel(new GridLayout(2, 3, 3, 3));
+		grid.setOpaque(false);
+		grid.setAlignmentX(LEFT_ALIGNMENT);
+		for (int i = 0; i < CATS.length; i++)
+		{
+			String cat = CATS[i];
+			boolean on = cat.equals(selectedCategory);
+			StoneButton tile = new StoneButton(theme, on ? theme.selectFill : theme.boxFill,
+				CAT_LABELS[i], () -> selectCategory(on ? null : cat)); // re-click clears to All (2)
+			grid.add(tile);
+		}
+		cap(grid);
+		return grid;
+	}
+
+	/** The favourites filter as a red heart (5) — filled red when active. */
+	private JLabel favouriteToggle()
+	{
+		JLabel h = new JLabel(new PaintedIcon(
+			favouritesOnly ? PaintedIcon.Shape.HEART : PaintedIcon.Shape.HEART_OUTLINE, 14));
+		h.setForeground(favouritesOnly ? HEART_RED : OsrsSkin.MUTED);
+		h.setToolTipText("Show favourites only");
+		h.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		h.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				favouritesOnly = !favouritesOnly;
+				rebuild();
+			}
+		});
+		return h;
+	}
+
+	/** The filtered + sorted list, favourites floated to the top. */
 	private List<Method> visible()
 	{
-		Comparator<Method> order = availability == 2
-			? Comparator.comparingDouble(m -> MoneyMakingModule.distance(state, m)) // closest first
-			: sortByIntensity
-				? Comparator.comparingInt((Method m) -> intensityRank(m.intensity))
-					.thenComparing(m -> -orZero(m.profit))
-				: Comparator.comparingLong(m -> -orZero(m.profit));
+		Comparator<Method> order = sortByIntensity
+			? Comparator.comparingInt((Method m) -> intensityRank(m.intensity))
+				.thenComparing(m -> -orZero(m.profit))
+			: Comparator.comparingLong(m -> -orZero(m.profit));
 		return pack.methods.stream()
 			.filter(this::matchesCategory)
 			.filter(this::matchesAvailability)
-			.sorted(order.thenComparing(m -> !state.isMoneyFavourite(m.id))) // ties: favs up
+			.sorted(order)
 			.sorted(Comparator.comparing(m -> !state.isMoneyFavourite(m.id))) // stable: favs to top
 			.collect(Collectors.toList());
 	}
 
 	private boolean matchesCategory(Method m)
 	{
-		if (category == 0)
+		if (selectedCategory == null)
 		{
 			return true;
 		}
-		if ("Free-to-play".equals(CATEGORIES[category]))
+		if ("Free-to-play".equals(selectedCategory))
 		{
 			return !m.members;
 		}
-		return CATEGORIES[category].equals(m.category);
+		return selectedCategory.equals(m.category);
 	}
 
 	private boolean matchesAvailability(Method m)
 	{
-		switch (availability)
+		if (favouritesOnly)
 		{
-			case 1:
-				return MoneyMakingModule.available(state, m);
-			case 2:
-				return !MoneyMakingModule.available(state, m);
-			case 3:
-				return state.isMoneyFavourite(m.id);
-			default:
-				return true;
+			return state.isMoneyFavourite(m.id);
 		}
+		return !availableOnly || MoneyMakingModule.available(state, m);
 	}
 
 	// ── rows ─────────────────────────────────────────────────────────────
@@ -243,14 +270,8 @@ class MoneyMakingTab extends JPanel
 		JPanel top = row();
 		top.add(heart(m, fav));
 		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		Icon icon = icon(m);
-		if (icon != null)
-		{
-			top.add(new JLabel(icon));
-			top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		}
-		// green = can do now, faint = can't (yet)
-		top.add(new OsrsLabel(m.name, can ? OsrsSkin.VALUE : OsrsSkin.MUTED, OsrsSkin.font())
+		// regular text when available (8), greyed when not (6/9) — no method icon
+		top.add(new OsrsLabel(m.name, can ? OsrsSkin.LABEL : OsrsSkin.FAINT, OsrsSkin.font())
 			.leftAligned().squeezable());
 		top.add(Box.createHorizontalGlue());
 		top.add(new OsrsLabel(profitText(m), OsrsSkin.TITLE, OsrsSkin.smallFont()));
@@ -267,9 +288,10 @@ class MoneyMakingTab extends JPanel
 			List<String> miss = MoneyMakingModule.missing(state, m);
 			if (!miss.isEmpty())
 			{
+				// missing requirements in red (10)
 				sub.add(new OsrsLabel("needs " + miss.get(0)
 					+ (miss.size() > 1 ? " +" + (miss.size() - 1) : ""),
-					OsrsSkin.FAINT, OsrsSkin.smallFont()));
+					UiTokens.STATUS_WARNING, OsrsSkin.smallFont()));
 			}
 		}
 		card.add(sub);
@@ -292,12 +314,12 @@ class MoneyMakingTab extends JPanel
 		return card;
 	}
 
-	/** A clickable favourite heart — filled title-colour when favourited. */
+	/** A clickable favourite heart — filled RED when favourited (14). */
 	private JLabel heart(Method m, boolean fav)
 	{
 		JLabel h = new JLabel(new PaintedIcon(
 			fav ? PaintedIcon.Shape.HEART : PaintedIcon.Shape.HEART_OUTLINE, 12));
-		h.setForeground(fav ? OsrsSkin.TITLE : OsrsSkin.FAINT);
+		h.setForeground(fav ? HEART_RED : OsrsSkin.FAINT);
 		h.setToolTipText(fav ? "Favourited — click to unfavourite" : "Favourite (keeps it at the top)");
 		h.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		h.addMouseListener(new MouseAdapter()
@@ -318,108 +340,196 @@ class MoneyMakingTab extends JPanel
 		block.setLayout(new BoxLayout(block, BoxLayout.Y_AXIS));
 		block.setOpaque(false);
 		block.setAlignmentX(LEFT_ALIGNMENT);
-		block.setBorder(new EmptyBorder(1, UiTokens.ROW_GAP + 6, 3, UiTokens.ROW_GAP));
+		block.setBorder(new javax.swing.border.EmptyBorder(1, UiTokens.ROW_GAP + 6, 3, UiTokens.ROW_GAP));
 
+		// hard requirements — one per row, met green / unmet red (10/13)
 		for (String req : m.reqs)
 		{
-			boolean met = com.ironhub.requirements.Requirements.parse(req).isMet(state);
-			block.add(line("· " + com.ironhub.requirements.Requirements.parse(req).describe(),
-				met ? OsrsSkin.VALUE : OsrsSkin.MUTED));
+			boolean met = Requirements.parse(req).isMet(state);
+			block.add(reqRow(req, met ? OsrsSkin.VALUE : UiTokens.STATUS_WARNING));
 		}
+		// recommendations + inputs each wrap to their own icon rows (13)
 		if (!m.recommends.isEmpty())
 		{
-			block.add(line("recommended: " + m.recommends.stream()
-				.map(r -> com.ironhub.requirements.Requirements.parse(r).describe())
-				.collect(Collectors.joining(", ")), OsrsSkin.FAINT));
+			block.add(sectionLabel("Recommended"));
+			for (String rec : m.recommends)
+			{
+				block.add(reqRow(rec, OsrsSkin.FAINT));
+			}
 		}
 		if (m.inputs != null && !m.inputs.isEmpty())
 		{
-			block.add(line("inputs: " + m.inputs.stream().limit(8)
-				.map(i -> i.qty + "× " + i.name).collect(Collectors.joining(", ")), OsrsSkin.FAINT));
+			block.add(sectionLabel("Inputs (per hour)"));
+			for (MoneyMakingPack.Input in : m.inputs)
+			{
+				block.add(inputRow(in));
+			}
 		}
 
-		// feature 7: a gp target + method as an (informational) Goal
+		// feature 7: gp target + method as a Goal
 		JPanel goalRow = row();
-		com.ironhub.ui.osrs.StoneTextField gp = new com.ironhub.ui.osrs.StoneTextField(theme, "gp target, e.g. 10M");
-		gp.setMaximumSize(new Dimension(120, gp.getPreferredSize().height));
+		StoneTextField gp = new StoneTextField(theme, "gp target, e.g. 10M");
+		gp.setMaximumSize(new Dimension(115, gp.getPreferredSize().height));
 		goalRow.add(gp);
 		goalRow.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		boolean hasGoal = state.getGoalSeeds().containsKey("custom:money:" + m.id);
-		com.ironhub.ui.osrs.StoneButton addGoal = new com.ironhub.ui.osrs.StoneButton(theme, theme.boxFill,
-			hasGoal ? "Tracked" : "+ Goal", () ->
+		StoneButton addGoal = new StoneButton(theme, theme.boxFill, hasGoal ? "Tracked" : "+ Goal", () ->
+		{
+			if (state.getGoalSeeds().containsKey("custom:money:" + m.id))
 			{
-				if (state.getGoalSeeds().containsKey("custom:money:" + m.id))
-				{
-					state.removeGoalSeed("custom:money:" + m.id);
-					return;
-				}
-				long amount = parseGp(gp.getText());
-				if (amount > 0)
-				{
-					state.addGoalSeed(com.ironhub.state.GoalSeeds.money(m.id, m.name, amount));
-				}
-			});
+				state.removeGoalSeed("custom:money:" + m.id);
+				return;
+			}
+			long amount = parseGp(gp.getText());
+			if (amount > 0)
+			{
+				state.addGoalSeed(com.ironhub.state.GoalSeeds.money(m.id, m.name, amount));
+			}
+		});
 		addGoal.setMaximumSize(addGoal.getPreferredSize());
 		goalRow.add(addGoal);
 		goalRow.add(Box.createHorizontalGlue());
 		cap(goalRow);
+		block.add(strut(2));
 		block.add(goalRow);
 
-		// the extra Luke asked for: add "unlock this method" as a goal (routes
-		// the requirements) — only useful while it isn't available yet
+		// "unlock this method" as a goal — routes the requirements (11)
 		if (!MoneyMakingModule.available(state, m) && !m.reqs.isEmpty())
 		{
 			boolean tracking = state.getGoalSeeds().containsKey("custom:money-unlock:" + m.id);
 			JPanel unlockRow = row();
-			com.ironhub.ui.osrs.StoneButton unlock = new com.ironhub.ui.osrs.StoneButton(theme, theme.boxFill,
-				tracking ? "Unlock tracked" : "+ Unlock as goal", () ->
+			StoneButton unlock = new StoneButton(theme, theme.boxFill,
+				tracking ? "Unlock tracked" : "+ Set goal to unlock method", () ->
+			{
+				if (tracking)
 				{
-					if (tracking)
-					{
-						state.removeGoalSeed("custom:money-unlock:" + m.id);
-					}
-					else
-					{
-						state.addGoalSeed(com.ironhub.state.GoalSeeds.moneyUnlock(m.id, m.name, m.reqs));
-					}
-				});
+					state.removeGoalSeed("custom:money-unlock:" + m.id);
+				}
+				else
+				{
+					state.addGoalSeed(com.ironhub.state.GoalSeeds.moneyUnlock(m.id, m.name, m.reqs));
+				}
+			});
 			unlock.setMaximumSize(unlock.getPreferredSize());
 			unlockRow.add(unlock);
 			unlockRow.add(Box.createHorizontalGlue());
 			cap(unlockRow);
+			block.add(strut(2));
 			block.add(unlockRow);
 		}
 
+		// a Wiki button on every method (12)
 		JPanel foot = row();
-		foot.add(Box.createHorizontalGlue());
-		JLabel wiki = new JLabel("wiki");
-		OsrsSkin.crisp(wiki);
-		wiki.setFont(OsrsSkin.smallFont());
-		wiki.setForeground(OsrsSkin.TITLE);
-		wiki.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		wiki.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				LinkBrowser.browse("https://oldschool.runescape.wiki/w/" + m.wiki);
-			}
-		});
+		StoneButton wiki = new StoneButton(theme, theme.boxFill, "Wiki",
+			() -> LinkBrowser.browse("https://oldschool.runescape.wiki/w/" + m.wiki));
+		wiki.setMaximumSize(wiki.getPreferredSize());
 		foot.add(wiki);
+		foot.add(Box.createHorizontalGlue());
+		cap(foot);
+		block.add(strut(2));
 		block.add(foot);
 		cap(block);
 		return block;
 	}
 
-	// ── helpers ──────────────────────────────────────────────────────────
+	// ── detail rows (icons + wrapped, 13) ────────────────────────────────
 
-	private Icon icon(Method m)
+	/** A requirement/recommendation row: skill icon + "72 Herblore", or a
+	 *  quest badge + the quest, wrapped so nothing runs off screen. */
+	private JComponent reqRow(String leaf, Color color)
 	{
-		if (itemManager != null && m.icon > 0)
+		JPanel r = row();
+		r.setBorder(new javax.swing.border.EmptyBorder(1, 0, 1, 0));
+		Icon icon = leafIcon(leaf);
+		if (icon != null)
 		{
-			return new ImageIcon(itemManager.getImage(m.icon).getScaledInstance(-1, 18, java.awt.Image.SCALE_SMOOTH));
+			r.add(new JLabel(icon));
+			r.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		}
+		r.add(OsrsLabel.wrapped(leafText(leaf), 190, color, OsrsSkin.smallFont()).leftAligned());
+		r.add(Box.createHorizontalGlue());
+		cap(r);
+		return r;
+	}
+
+	private JComponent inputRow(MoneyMakingPack.Input in)
+	{
+		JPanel r = row();
+		r.setBorder(new javax.swing.border.EmptyBorder(1, 0, 1, 0));
+		if (itemManager != null && in.itemId > 0)
+		{
+			r.add(new JLabel(sized(itemManager.getImage(in.itemId))));
+			r.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		}
+		r.add(OsrsLabel.wrapped(in.qty + "× " + in.name, 190, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+		r.add(Box.createHorizontalGlue());
+		cap(r);
+		return r;
+	}
+
+	private JComponent sectionLabel(String text)
+	{
+		JPanel r = row();
+		r.setBorder(new javax.swing.border.EmptyBorder(3, 0, 1, 0));
+		r.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+		r.add(Box.createHorizontalGlue());
+		cap(r);
+		return r;
+	}
+
+	private Icon leafIcon(String leaf)
+	{
+		if (leaf.startsWith("skill:") && skillIcons != null)
+		{
+			Skill s = skillOf(leaf);
+			if (s != null)
+			{
+				return sized(skillIcons.getSkillImage(s, false));
+			}
+		}
+		if (leaf.startsWith("quest:") || leaf.startsWith("qp:"))
+		{
+			return sized(OsrsIcons.image(theme, "quests"));
 		}
 		return null;
+	}
+
+	private String leafText(String leaf)
+	{
+		if (leaf.startsWith("skill:"))
+		{
+			String[] p = leaf.split(":");
+			return p.length >= 3 ? p[2] + " " + p[1] : leaf; // "72 Herblore"
+		}
+		if (leaf.startsWith("combat:"))
+		{
+			return leaf.substring("combat:".length()) + " Combat";
+		}
+		return Requirements.parse(leaf).describe();
+	}
+
+	private static Skill skillOf(String leaf)
+	{
+		String[] p = leaf.split(":");
+		if (p.length < 2)
+		{
+			return null;
+		}
+		for (Skill s : Skill.values())
+		{
+			if (s.getName().equalsIgnoreCase(p[1]))
+			{
+				return s;
+			}
+		}
+		return null;
+	}
+
+	// ── helpers ──────────────────────────────────────────────────────────
+
+	private static Icon sized(java.awt.Image img)
+	{
+		return img == null ? null : new ImageIcon(img.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH));
 	}
 
 	private String profitText(Method m)
@@ -449,6 +559,21 @@ class MoneyMakingTab extends JPanel
 		return i == null ? 0 : i;
 	}
 
+	private static int intensityRank(String intensity)
+	{
+		switch (intensity)
+		{
+			case "Low":
+				return 0;
+			case "Moderate":
+				return 1;
+			case "High":
+				return 2;
+			default:
+				return 3;
+		}
+	}
+
 	/** Parse a gp target: "10M", "500k", "1,000,000" → gp, or -1 if unparseable. */
 	private static long parseGp(String s)
 	{
@@ -476,30 +601,6 @@ class MoneyMakingTab extends JPanel
 		{
 			return -1;
 		}
-	}
-
-	private static int intensityRank(String intensity)
-	{
-		switch (intensity)
-		{
-			case "Low":
-				return 0;
-			case "Moderate":
-				return 1;
-			case "High":
-				return 2;
-			default:
-				return 3;
-		}
-	}
-
-	private JComponent line(String text, Color color)
-	{
-		JPanel r = row();
-		r.add(new OsrsLabel(text, color, OsrsSkin.smallFont()).leftAligned().squeezable());
-		r.add(Box.createHorizontalGlue());
-		cap(r);
-		return r;
 	}
 
 	private JPanel row()

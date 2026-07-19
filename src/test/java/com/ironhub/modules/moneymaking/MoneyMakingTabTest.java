@@ -59,15 +59,16 @@ public class MoneyMakingTabTest
 			assertTrue("tall", all.getHeight() > 300);
 			write(all, "money-making-all-" + theme.name().toLowerCase());
 
-			// the "Can do" filter + the "Can't" (closest-first) view
-			javax.swing.SwingUtilities.invokeAndWait(() -> holder[0].filter(2, 1)); // Combat · Can do
+			// a category selected (Combat), still Available-only by default
+			javax.swing.SwingUtilities.invokeAndWait(() -> holder[0].selectCategory("Combat"));
 			javax.swing.SwingUtilities.invokeAndWait(() -> { });
 			write(SwingRender.render(holder[0]), "money-making-available-" + theme.name().toLowerCase());
 
 			// an expanded method: reqs/inputs + the gp-goal + unlock-goal controls
 			javax.swing.SwingUtilities.invokeAndWait(() ->
 			{
-				holder[0].filter(0, 0);
+				holder[0].selectCategory(null);
+				holder[0].setFilters(false, false); // All, so the top method shows
 				holder[0].expand("killing-the-doom-of-mokhaiotl-delve-1-16"); // rank 1, always visible
 			});
 			javax.swing.SwingUtilities.invokeAndWait(() -> { });
