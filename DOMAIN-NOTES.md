@@ -565,3 +565,36 @@ the life of the tab, scaled once, repaint when it lands). ItemManager's own
 javadoc says the same thing for the simple case: *"If this is used for a UI
 label/button, it should be added using AsyncBufferedImage::addTo"* — `addTo` is
 safe because it adds a listener only while unloaded and does nothing after.
+
+## Account type detection (module: goals, Goals v2 G8)
+
+The game exposes the account type in **one varbit**: `Varbits.ACCOUNT_TYPE = 1777`
+(the same id as `VarbitID.IRONMAN` in the gameval names) — verified against the
+`net.runelite:client` jar at the pinned tag (1.12.32), not memory.
+
+**Its value is the ordinal into `net.runelite.api.vars.AccountType`, and the
+order is a memory trap.** Read off the enum's `$VALUES` array in the api jar
+(`javap -p -c net.runelite.api.vars.AccountType`), the declared order is:
+
+| value | AccountType |
+|-------|-------------|
+| 0 | `NORMAL` |
+| 1 | `IRONMAN` |
+| 2 | `ULTIMATE_IRONMAN` |
+| 3 | `HARDCORE_IRONMAN` |
+| 4 | `GROUP_IRONMAN` |
+| 5 | `HARDCORE_GROUP_IRONMAN` |
+
+Common knowledge (and older wiki notes) says HCIM is 2 and UIM is 3 — **wrong for
+this client**: UIM is **2**, HCIM is **3**. `AccountState.accountTypeEnum()` does
+`AccountType.values()[value]` with a bounds guard, so a newer variant the enum
+doesn't carry (unranked GIM would be 6, absent from 1.12.32's enum) returns
+`null` rather than throwing. `isIronman()` = `enum.isIronman()` (NORMAL false,
+every other value true); `isUltimateIronman()` = value 2.
+
+The varbit is `watchVarbits`-registered and mirrored to a **persisted** int
+(`PersistedState.accountType`, -1 = never seen) via `syncAccountType()`, so UIM
+honesty holds on the very first plan after a profile load, before the login
+varbit read lands. Iron Hub uses it for one thing so far: a UIM has no bank, so
+`PlannerService` passes an EMPTY banked-xp map (banked materials can't discount a
+plan you can't store), and the Bank tab's Banked-XP view says so.

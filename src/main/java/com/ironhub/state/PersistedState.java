@@ -15,6 +15,10 @@ public class PersistedState
 {
 	Map<Integer, Integer> bank = new HashMap<>();
 	long bankTimestamp;
+	/** Last-seen ACCOUNT_TYPE varbit value (ordinal into api.vars.AccountType);
+	 *  -1 = never seen. Persisted so UIM honesty holds before the first login
+	 *  varbit read. */
+	int accountType = -1;
 	Map<Integer, String> itemNames = new HashMap<>();
 	Set<String> unlocks = new HashSet<>();
 	Map<String, Integer> killCounts = new HashMap<>();

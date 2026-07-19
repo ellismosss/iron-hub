@@ -196,6 +196,9 @@ public class AccountState implements StateView
 	@Getter
 	private volatile long bankTimestamp;
 
+	/** Last-seen ACCOUNT_TYPE varbit value; -1 = never seen (see accountType). */
+	private volatile int accountType = -1;
+
 	private volatile long profile = -1;
 
 	// client thread only
@@ -238,6 +241,8 @@ public class AccountState implements StateView
 		// loadouts); track it as core account state, not per-module.
 		watchVarbits(POUCH_RUNE_VARBITS);
 		watchVarbits(POUCH_AMOUNT_VARBITS);
+		// account type gates iron-first honesty (UIM = no bank, G8)
+		watchVarbits(net.runelite.api.Varbits.ACCOUNT_TYPE);
 	}
 
 	/** Rune pouch contents (rune item id -> quantity); empty when the pouch
@@ -415,6 +420,39 @@ public class AccountState implements StateView
 	public int getVarbit(int varbitId)
 	{
 		return varbitValues.getOrDefault(varbitId, 0);
+	}
+
+	// ── account type (G8, iron-first honesty) ─────────────────────────────
+
+	/** The raw ACCOUNT_TYPE varbit value (-1 = never seen). */
+	public int accountType()
+	{
+		return accountType;
+	}
+
+	/**
+	 * The account type as RuneLite's own enum, or null when unknown / out of
+	 * the enum's range (a newer variant like unranked GIM). The varbit value
+	 * is the ordinal into {@link net.runelite.api.vars.AccountType} — verified
+	 * against the client at the pinned tag, NOT memory (UIM is 2, not 3).
+	 */
+	public net.runelite.api.vars.AccountType accountTypeEnum()
+	{
+		net.runelite.api.vars.AccountType[] values = net.runelite.api.vars.AccountType.values();
+		return accountType >= 0 && accountType < values.length ? values[accountType] : null;
+	}
+
+	/** Any ironman variant (standard/HC/UIM/GIM/HCGIM). Unknown → false. */
+	public boolean isIronman()
+	{
+		net.runelite.api.vars.AccountType type = accountTypeEnum();
+		return type != null && type.isIronman();
+	}
+
+	/** Ultimate ironman — no bank, so banked-xp progress is fiction (G8). */
+	public boolean isUltimateIronman()
+	{
+		return accountTypeEnum() == net.runelite.api.vars.AccountType.ULTIMATE_IRONMAN;
 	}
 
 	/**
@@ -1767,6 +1805,10 @@ public class AccountState implements StateView
 				{
 					rebuildRunePouch();
 				}
+				if (event.getVarbitId() == net.runelite.api.Varbits.ACCOUNT_TYPE)
+				{
+					syncAccountType();
+				}
 				notifyListeners();
 			}
 		}
@@ -1859,6 +1901,10 @@ public class AccountState implements StateView
 	void ingestVarbit(int varbitId, int value)
 	{
 		varbitValues.put(varbitId, value);
+		if (varbitId == net.runelite.api.Varbits.ACCOUNT_TYPE)
+		{
+			syncAccountType(); // mirror to the persisted field, as onVarbitChanged does
+		}
 	}
 
 	void ingestVarp(int varpId, int value)
@@ -1926,6 +1972,7 @@ public class AccountState implements StateView
 		PersistedState persisted = store.load(hash);
 		bank = Map.copyOf(persisted.bank);
 		bankTimestamp = persisted.bankTimestamp;
+		accountType = persisted.accountType;
 		itemNames.clear();
 		itemNames.putAll(persisted.itemNames);
 		unlocks.clear();
@@ -2087,6 +2134,7 @@ public class AccountState implements StateView
 		PersistedState state = new PersistedState();
 		state.bank = new HashMap<>(bank);
 		state.bankTimestamp = bankTimestamp;
+		state.accountType = accountType;
 		state.itemNames = new HashMap<>(itemNames);
 		state.unlocks = new HashSet<>(unlocks);
 		state.killCounts = new HashMap<>(killCounts);
@@ -2211,9 +2259,21 @@ public class AccountState implements StateView
 			changed |= previous == null || previous != value;
 		}
 		rebuildRunePouch();
+		syncAccountType();
 		if (changed)
 		{
 			notifyListeners();
+		}
+	}
+
+	/** Mirror the live ACCOUNT_TYPE varbit into the persisted field (G8). */
+	private void syncAccountType()
+	{
+		Integer value = varbitValues.get(net.runelite.api.Varbits.ACCOUNT_TYPE);
+		if (value != null && value != accountType)
+		{
+			accountType = value;
+			persist();
 		}
 	}
 

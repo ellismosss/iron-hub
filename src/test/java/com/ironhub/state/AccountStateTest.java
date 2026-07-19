@@ -114,6 +114,37 @@ public class AccountStateTest
 		assertEquals("normal", after.getGoalPriority("bowfa"));
 	}
 
+	/** G8: the ACCOUNT_TYPE varbit maps to the VERIFIED enum ordinal (UIM is 2,
+	 *  not 3 — memory is wrong) and persists so UIM honesty holds before the
+	 *  first login varbit read. */
+	@Test
+	public void accountTypePersistsAndMapsToTheVerifiedEnum()
+	{
+		AccountState before = StateFixture.state(temp.getRoot());
+		StateFixture.profile(before, 42L);
+		StateFixture.varbit(before, net.runelite.api.Varbits.ACCOUNT_TYPE, 2);
+		assertTrue(before.isUltimateIronman());
+		assertTrue(before.isIronman());
+		assertEquals(net.runelite.api.vars.AccountType.ULTIMATE_IRONMAN, before.accountTypeEnum());
+
+		// reload the profile: UIM survives before any varbit fires
+		AccountState after = StateFixture.state(temp.getRoot());
+		StateFixture.profile(after, 42L);
+		assertEquals(2, after.accountType());
+		assertTrue(after.isUltimateIronman());
+
+		// value 3 is HARDCORE ironman — NOT ultimate (the memory trap)
+		StateFixture.varbit(after, net.runelite.api.Varbits.ACCOUNT_TYPE, 3);
+		assertEquals(net.runelite.api.vars.AccountType.HARDCORE_IRONMAN, after.accountTypeEnum());
+		assertFalse(after.isUltimateIronman());
+		assertTrue(after.isIronman());
+
+		// value 0 is a normal account — not an ironman at all
+		StateFixture.varbit(after, net.runelite.api.Varbits.ACCOUNT_TYPE, 0);
+		assertFalse(after.isIronman());
+		assertFalse(after.isUltimateIronman());
+	}
+
 	@Test
 	public void profilesDoNotCollide()
 	{

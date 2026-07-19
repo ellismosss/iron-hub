@@ -24,7 +24,9 @@ public final class PlannerService
 		List<GoalsPack.Goal> unmetGoals, PlanConstraints constraints)
 	{
 		Map<Skill, Long> banked = new HashMap<>();
-		if (bankedPack != null)
+		// UIM has no bank, so "banked xp" is fiction — never discount its plan
+		// with materials it can't store (G8, iron-first honesty)
+		if (bankedPack != null && !state.isUltimateIronman())
 		{
 			BankedXp.compute(state, bankedPack)
 				.forEach((skill, result) -> banked.put(skill, (long) result.xp));

@@ -257,6 +257,28 @@ public class RouterTest
 			indexOf(plan, "train:Agility:10") < indexOf(plan, "train:Woodcutting:10"));
 	}
 
+	/** G8 iron-first honesty: a UIM has no bank, so banked materials must not
+	 *  discount its plan — the same Prayer goal costs MORE for a UIM than for a
+	 *  normal iron holding the same banked bones. */
+	@Test
+	public void ultimateIronmanGetsNoBankedXpDiscount()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.stat(state, Skill.PRAYER, 40, Experience.getXpForLevel(40));
+		StateFixture.bank(state, java.util.Map.of(526, 8000)); // 8k bones = 36k banked Prayer xp
+
+		double normalHours = plan(state, PlanConstraints.none(),
+			goal("pray", "skill:Prayer:50")).knownHours;
+
+		StateFixture.varbit(state, net.runelite.api.Varbits.ACCOUNT_TYPE, 2); // ULTIMATE_IRONMAN
+		assertTrue("detected as UIM", state.isUltimateIronman());
+		double uimHours = plan(state, PlanConstraints.none(),
+			goal("pray", "skill:Prayer:50")).knownHours;
+
+		assertTrue("banked bones must not discount a UIM plan (" + uimHours + " vs " + normalHours + ")",
+			uimHours > normalHours);
+	}
+
 	/** A step shared with a Someday goal keeps FULL value (max tier wins), so
 	 *  the dedupe keeps the someday goal in the graph — its ×N badge stands. */
 	@Test

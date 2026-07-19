@@ -256,6 +256,21 @@ class BankTab extends JPanel
 		xpHeader.add(Box.createHorizontalGlue());
 		cap(xpHeader);
 		add(xpHeader);
+		// UIM honesty: no bank, so banked XP can't be spent (G8)
+		if (state.isUltimateIronman())
+		{
+			JPanel note = new JPanel();
+			note.setLayout(new BoxLayout(note, BoxLayout.X_AXIS));
+			note.setOpaque(false);
+			note.setAlignmentX(LEFT_ALIGNMENT);
+			note.setBorder(new EmptyBorder(0, 4, 2, 4));
+			note.add(OsrsLabel.wrapped("Ultimate Ironman — you have no bank, so this is what you'd "
+				+ "carry, not stored progress.", UiTokens.PANEL_WIDTH - 24,
+				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+			note.add(Box.createHorizontalGlue());
+			cap(note);
+			add(note);
+		}
 		add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 
 		xpSection.setLayout(new BoxLayout(xpSection, BoxLayout.Y_AXIS));
