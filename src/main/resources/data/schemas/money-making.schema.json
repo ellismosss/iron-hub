@@ -1,0 +1,116 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Money making guide methods (OSRS wiki)",
+	"type": "object",
+	"required": ["source", "generated", "version", "methods"],
+	"additionalProperties": false,
+	"properties": {
+		"$schema": {
+			"type": "string"
+		},
+		"source": {
+			"type": "string"
+		},
+		"generated": {
+			"type": "string",
+			"pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+		},
+		"gePricesAsOf": {
+			"type": "string",
+			"pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+		},
+		"version": {
+			"type": "integer"
+		},
+		"methods": {
+			"type": "array",
+			"minItems": 400,
+			"items": {
+				"type": "object",
+				"required": ["id", "name", "category", "members", "recurring",
+					"wiki", "reqs", "recommends", "inputs"],
+				"additionalProperties": false,
+				"properties": {
+					"id": {
+						"type": "string",
+						"pattern": "^[a-z0-9-]+$"
+					},
+					"name": {
+						"type": "string",
+						"minLength": 1
+					},
+					"category": {
+						"enum": ["Collecting", "Combat", "Processing", "Skilling", "Recurring", "Other"]
+					},
+					"intensity": {
+						"type": "string"
+					},
+					"members": {
+						"type": "boolean"
+					},
+					"recurring": {
+						"type": "boolean"
+					},
+					"profit": {
+						"type": ["integer", "null"]
+					},
+					"time": {
+						"type": "string"
+					},
+					"wiki": {
+						"type": "string",
+						"minLength": 1
+					},
+					"icon": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"reqs": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"recommends": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"inputs": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"required": ["name", "itemId", "qty", "perHour"],
+							"additionalProperties": false,
+							"properties": {
+								"name": {
+									"type": "string"
+								},
+								"itemId": {
+									"type": "integer",
+									"minimum": 0
+								},
+								"qty": {
+									"type": "string"
+								},
+								"perHour": {
+									"type": "boolean"
+								}
+							}
+						}
+					},
+					"skillsText": {
+						"type": "string"
+					},
+					"itemsText": {
+						"type": "string"
+					},
+					"otherText": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}
