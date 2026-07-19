@@ -116,7 +116,7 @@ class PlannerOverlay extends OverlayPanel
 				break;
 			default:
 				line(head.action.name, Color.WHITE,
-					PlannerTab.timeText(head.hours), UiTokens.OVERLAY_VALUE);
+					timeText(head.hours), UiTokens.OVERLAY_VALUE);
 				if (head.why != null && !head.why.isEmpty())
 				{
 					line(head.why, UiTokens.CANVAS_LOCKED, null, null);
@@ -134,7 +134,7 @@ class PlannerOverlay extends OverlayPanel
 			if (resource.missing > 0 && shown++ < 2)
 			{
 				line(resource.name, UiTokens.CANVAS_WARNING,
-					PlannerTab.formatCount(resource.missing) + " more", UiTokens.CANVAS_WARNING);
+					formatCount(resource.missing) + " more", UiTokens.CANVAS_WARNING);
 			}
 		}
 
@@ -163,20 +163,20 @@ class PlannerOverlay extends OverlayPanel
 
 		double measured = gauge.xpPerHour();
 		line(head.action.name, Color.WHITE,
-			PlannerTab.timeText(ttlHours(head, xpLeft, measured)), UiTokens.OVERLAY_VALUE);
+			timeText(ttlHours(head, xpLeft, measured)), UiTokens.OVERLAY_VALUE);
 
 		long anchor = anchorFor(head.action.id, liveXp);
 		bar(head.action.id, stepFraction(anchor, liveXp, targetXp));
 
 		line("Lv " + state.getRealLevel(skill) + " of " + head.action.trainToLevel,
 			UiTokens.CANVAS_LOCKED,
-			PlannerTab.compactXp(xpLeft) + " xp left", UiTokens.OVERLAY_VALUE);
+			compactXp(xpLeft) + " xp left", UiTokens.OVERLAY_VALUE);
 
 		if (gauge.gained() > 0)
 		{
-			line("+" + PlannerTab.formatCount(gauge.gained()) + " xp", UiTokens.CANVAS_OWNED,
+			line("+" + formatCount(gauge.gained()) + " xp", UiTokens.CANVAS_OWNED,
 				Double.isNaN(measured) ? null
-					: PlannerTab.compactXp(Math.round(measured)) + "/hr", UiTokens.OVERLAY_VALUE);
+					: compactXp(Math.round(measured)) + "/hr", UiTokens.OVERLAY_VALUE);
 		}
 
 		methodLine(head, skill, xpLeft, measured);
@@ -186,7 +186,7 @@ class PlannerOverlay extends OverlayPanel
 	{
 		int kc = state.getKillCount(head.action.kcSource);
 		line(head.action.name, Color.WHITE,
-			PlannerTab.timeText(head.hours), UiTokens.OVERLAY_VALUE);
+			timeText(head.hours), UiTokens.OVERLAY_VALUE);
 		bar(head.action.id, head.action.kcTarget > 0 ? kc / (double) head.action.kcTarget : 0);
 		line("KC", UiTokens.CANVAS_LOCKED,
 			kc + " of " + head.action.kcTarget, UiTokens.OVERLAY_VALUE);
@@ -231,8 +231,8 @@ class PlannerOverlay extends OverlayPanel
 
 		long actions = gauge.actionsRemaining(xpLeft);
 		String right = actions > 0
-			? "~" + PlannerTab.formatCount(actions) + " actions"
-			: head.methodRate > 0 ? PlannerTab.compactXp(head.methodRate) + "/hr" : null;
+			? "~" + formatCount(actions) + " actions"
+			: head.methodRate > 0 ? compactXp(head.methodRate) + "/hr" : null;
 		line(label, UiTokens.CANVAS_LOCKED, right, UiTokens.CANVAS_LOCKED);
 	}
 
@@ -712,5 +712,39 @@ class PlannerOverlay extends OverlayPanel
 				this.width = dimension.width;
 			}
 		}
+	}
+
+	// ── compact formatters (were shared with the deleted PlannerTab) ──────
+
+	static String timeText(double hours)
+	{
+		return Double.isNaN(hours) ? "?" : "~" + compactHours(hours);
+	}
+
+	static String formatCount(long count)
+	{
+		return String.format(Locale.ROOT, "%,d", count);
+	}
+
+	static String compactXp(long xp)
+	{
+		if (xp >= 1_000_000)
+		{
+			return String.format(Locale.ROOT, "%.1fm", xp / 1_000_000.0);
+		}
+		if (xp >= 1_000)
+		{
+			return Math.round(xp / 1000.0) + "k";
+		}
+		return String.valueOf(xp);
+	}
+
+	static String compactHours(double hours)
+	{
+		if (hours < 0.95)
+		{
+			return Math.max(5, Math.round(hours * 60 / 5) * 5) + "m";
+		}
+		return String.format(Locale.ROOT, "%.1fh", hours);
 	}
 }

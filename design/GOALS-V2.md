@@ -1,8 +1,9 @@
 # Goals v2 — The Central Goals System
 
-Status: **agreed outline** (Luke, 2026-07-18 — decisions in §5.2; interface
-revised same day after his round-2 mockup feedback, §0.1 + §6) —
-implementation follows the Design lab interface round.
+Status: **IMPLEMENTED** (Luke, 2026-07-18/19 — G1–G8 landed, GoalsHubTab is
+the sole Goals surface, the old PlannerTab/GoalsTab/mockup deleted in G7
+part 2). Original agreed outline in §5.2; interface revised after his
+round-2 mockup feedback (§0.1 + §6). Per-slice history: design/GOALS-V2-PLAN.md.
 Companion docs: ENGINE-DESIGN.md (the engine this builds ON, not replaces),
 design/PLANNER-UX.md (the Today/Route/Goals VIEW SPLIT there is
 **superseded** — Luke: one cohesive interface, no view switcher).

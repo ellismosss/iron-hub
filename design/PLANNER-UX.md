@@ -1,6 +1,11 @@
 # Goal Planner UX — Design Exploration
 
-Status: **proposal** — the UX layer over ENGINE-DESIGN.md's plan output.
+Status: **SUPERSEDED by design/GOALS-V2.md** (2026-07-19). The Today/Route/
+Goals view split described here shipped as `PlannerTab` and was DELETED in
+Goals v2 G7 part 2 — one cohesive `GoalsHubTab` replaced it. Kept for the
+history of the engine-facing UX exploration only.
+
+Status (historical): **proposal** — the UX layer over ENGINE-DESIGN.md's plan output.
 Companion mockups: `design/goal-planner-mockups.html` (frames 4a–4f, same
 conventions as iron-hub-mockups.html; all type maps to the ≥14px UiTokens
 scale in-client). Supersedes frames 2d/1d where they conflict; the shared

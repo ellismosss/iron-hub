@@ -24,7 +24,6 @@ public class DesignLabModule implements IronHubModule
 	private final IronHubConfig config;
 	private final EventBus eventBus;
 	private JPanel holder;
-	private int view; // 0 = atom gallery, 1 = Goals hub mockup (GOALS-V2 §6)
 
 	@Inject
 	public DesignLabModule(IronHubConfig config, EventBus eventBus)
@@ -89,31 +88,13 @@ public class DesignLabModule implements IronHubModule
 	private void rebuild()
 	{
 		com.ironhub.ui.osrs.OsrsTheme theme = config.osrsTheme();
-		JPanel column = new JPanel();
-		column.setLayout(new javax.swing.BoxLayout(column, javax.swing.BoxLayout.Y_AXIS));
-		column.setOpaque(false);
-
-		com.ironhub.ui.osrs.StoneChipRow views =
-			new com.ironhub.ui.osrs.StoneChipRow(theme, true, "Atoms", "Goals hub");
-		views.setSelected(view);
-		views.onChange(index ->
-		{
-			view = index;
-			SwingUtilities.invokeLater(this::rebuild);
-		});
-		JPanel chips = new JPanel(new BorderLayout());
-		chips.setOpaque(false);
-		chips.setBorder(new javax.swing.border.EmptyBorder(4, 4, 2, 4));
-		chips.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-		chips.add(views);
-		column.add(chips);
-
-		JComponent content = view == 0 ? new DesignLabTab(theme) : new GoalsHubMockup(theme);
+		// the Goals-hub mockup was the Goals v2 proposal surface; it shipped as
+		// the real GoalsHubTab, so the lab is just the atom gallery now
+		JComponent content = new DesignLabTab(theme);
 		content.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-		column.add(content);
 
 		holder.removeAll();
-		holder.add(column, BorderLayout.NORTH);
+		holder.add(content, BorderLayout.NORTH);
 		holder.revalidate();
 		holder.repaint();
 	}
