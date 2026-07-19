@@ -249,24 +249,11 @@ def build(method_id, title, summary, wt, mapping, quests):
         for q in wiki_names(line):
             if q in quests:
                 (recommends if optional else reqs).append(f"quest:{q}")
-    # ── inputs (supplies / materials consumed) ─────────────────────────
-    inputs = []
-    for n in range(1, 40):
-        key = f"Input{n}"
-        if key not in p or not p[key].strip():
-            continue
-        name = clean_item(p[key])
-        if not name:
-            continue
-        num = p.get(f"{key}num", "1").split("{{#")[0].strip() or "1"
-        inputs.append({
-            "name": name,
-            "itemId": mapping.get(name, 0),
-            "qty": num,
-            "perHour": p.get(f"{key}isph", "").lower().startswith("y"),
-        })
-    # a representative icon: first resolvable input, else the profit item
-    icon = next((i["itemId"] for i in inputs if i["itemId"]), 0)
+    # ── inputs (consumed) + outputs (produced, incl. drops) ────────────
+    inputs = parse_items(p, "Input", mapping)
+    outputs = parse_items(p, "Output", mapping)
+    # a representative icon: first resolvable output, else input
+    icon = next((i["itemId"] for i in outputs + inputs if i["itemId"]), 0)
 
     method = {
         "id": method_id,
@@ -281,6 +268,7 @@ def build(method_id, title, summary, wt, mapping, quests):
         "reqs": dedupe(reqs),
         "recommends": dedupe(recommends),
         "inputs": inputs,
+        "outputs": outputs,
         "skillsText": strip_wiki(p.get("Skill", "")),
         "itemsText": strip_wiki(p.get("Item", "")),
         "otherText": strip_wiki(p.get("Other", "")),
@@ -288,6 +276,26 @@ def build(method_id, title, summary, wt, mapping, quests):
     if summary["recurring"]:
         method["time"] = summary.get("time", "")
     return method
+
+
+def parse_items(p, prefix, mapping):
+    """Input1..N / Output1..N → [{name, itemId, qty, perHour}]."""
+    out = []
+    for n in range(1, 40):
+        key = f"{prefix}{n}"
+        if key not in p or not p[key].strip():
+            continue
+        name = clean_item(p[key])
+        if not name:
+            continue
+        num = p.get(f"{key}num", "1").split("{{#")[0].strip() or "1"
+        out.append({
+            "name": name,
+            "itemId": mapping.get(name, 0),
+            "qty": num,
+            "perHour": p.get(f"{key}isph", "").lower().startswith("y"),
+        })
+    return out
 
 
 def dedupe(seq):

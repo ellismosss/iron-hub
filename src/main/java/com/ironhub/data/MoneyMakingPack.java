@@ -35,6 +35,7 @@ public class MoneyMakingPack
 		public List<String> reqs;        // hard requirement graph strings
 		public List<String> recommends;  // soft recommendation graph strings
 		public List<Input> inputs;       // supplies/materials consumed
+		public List<Input> outputs;      // items produced (incl. combat drops)
 		public String skillsText;
 		public String itemsText;
 		public String otherText;

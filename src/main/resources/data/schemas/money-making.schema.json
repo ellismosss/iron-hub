@@ -4,6 +4,31 @@
 	"type": "object",
 	"required": ["source", "generated", "version", "methods"],
 	"additionalProperties": false,
+	"definitions": {
+		"itemList": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": ["name", "itemId", "qty", "perHour"],
+				"additionalProperties": false,
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"itemId": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"qty": {
+						"type": "string"
+					},
+					"perHour": {
+						"type": "boolean"
+					}
+				}
+			}
+		}
+	},
 	"properties": {
 		"$schema": {
 			"type": "string"
@@ -28,7 +53,7 @@
 			"items": {
 				"type": "object",
 				"required": ["id", "name", "category", "members", "recurring",
-					"wiki", "reqs", "recommends", "inputs"],
+					"wiki", "reqs", "recommends", "inputs", "outputs"],
 				"additionalProperties": false,
 				"properties": {
 					"id": {
@@ -78,27 +103,10 @@
 						}
 					},
 					"inputs": {
-						"type": "array",
-						"items": {
-							"type": "object",
-							"required": ["name", "itemId", "qty", "perHour"],
-							"additionalProperties": false,
-							"properties": {
-								"name": {
-									"type": "string"
-								},
-								"itemId": {
-									"type": "integer",
-									"minimum": 0
-								},
-								"qty": {
-									"type": "string"
-								},
-								"perHour": {
-									"type": "boolean"
-								}
-							}
-						}
+						"$ref": "#/definitions/itemList"
+					},
+					"outputs": {
+						"$ref": "#/definitions/itemList"
 					},
 					"skillsText": {
 						"type": "string"

@@ -46,6 +46,8 @@ class MoneyMakingTab extends JPanel
 		{"Collecting", "Combat", "Processing", "Skilling", "Recurring", "Free-to-play"};
 	private static final String[] CAT_LABELS =
 		{"Collecting", "Combat", "Processing", "Skilling", "Recurring", "F2P"};
+	private static final String[] CAT_KEYS =
+		{"collecting", "combat", "processing", "skilling", "recurring", "f2p"};
 	private static final Color HEART_RED = new Color(0xC0392B);
 	private static final int ROW_CAP = 50;
 
@@ -128,19 +130,24 @@ class MoneyMakingTab extends JPanel
 		content.add(pad(categoryTiles()));
 		content.add(strut(3));
 
-		// Available toggle + a red-heart favourites toggle (3/4/5)
-		JPanel filters = row();
-		StoneChipRow avail = new StoneChipRow(theme, false, "All", "Available");
-		avail.setSelected(availableOnly ? 1 : 0);
-		avail.onChange(i ->
+		// three equal tiles: All · Available · Favourites (heart) — Available
+		// sits centred between the same-width All and Favourites tiles (2/3/4/5)
+		JPanel filters = new JPanel(new GridLayout(1, 3, 3, 0));
+		filters.setOpaque(false);
+		filters.setAlignmentX(LEFT_ALIGNMENT);
+		filters.add(selectTile(null, "All", !availableOnly && !favouritesOnly, () ->
 		{
-			availableOnly = i == 1;
+			availableOnly = false;
 			favouritesOnly = false;
 			rebuild();
-		});
-		filters.add(avail);
-		filters.add(Box.createHorizontalGlue());
-		filters.add(favouriteToggle());
+		}));
+		filters.add(selectTile(null, "Available", availableOnly && !favouritesOnly, () ->
+		{
+			availableOnly = true;
+			favouritesOnly = false;
+			rebuild();
+		}));
+		filters.add(favouriteTile());
 		cap(filters);
 		content.add(pad(filters));
 		content.add(strut(2));
@@ -190,23 +197,60 @@ class MoneyMakingTab extends JPanel
 		{
 			String cat = CATS[i];
 			boolean on = cat.equals(selectedCategory);
-			StoneButton tile = new StoneButton(theme, on ? theme.selectFill : theme.boxFill,
-				CAT_LABELS[i], () -> selectCategory(on ? null : cat)); // re-click clears to All (2)
-			grid.add(tile);
+			grid.add(selectTile(sized(OsrsIcons.image(theme, "moneymaking/" + CAT_KEYS[i])),
+				CAT_LABELS[i], on, () -> selectCategory(on ? null : cat))); // re-click → All (2)
 		}
 		cap(grid);
 		return grid;
 	}
 
-	/** The favourites filter as a red heart (5) — filled red when active. */
-	private JLabel favouriteToggle()
+	/** A filter tile: highlighted (selectFill) with orange text when selected,
+	 *  just like All/Available (4). Icon optional. */
+	private JComponent selectTile(Icon icon, String label, boolean selected, Runnable onClick)
 	{
-		JLabel h = new JLabel(new PaintedIcon(
-			favouritesOnly ? PaintedIcon.Shape.HEART : PaintedIcon.Shape.HEART_OUTLINE, 14));
-		h.setForeground(favouritesOnly ? HEART_RED : OsrsSkin.MUTED);
-		h.setToolTipText("Show favourites only");
-		h.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		h.addMouseListener(new MouseAdapter()
+		StonePanel tile = new StonePanel(theme);
+		tile.setBackground(selected ? theme.selectFill : theme.boxFill);
+		tile.setLayout(new BoxLayout(tile, BoxLayout.X_AXIS));
+		tile.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		tile.add(Box.createHorizontalGlue());
+		if (icon != null)
+		{
+			tile.add(new JLabel(icon));
+			if (label != null)
+			{
+				tile.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+			}
+		}
+		if (label != null)
+		{
+			tile.add(new OsrsLabel(label, selected ? OsrsSkin.TITLE : OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		}
+		tile.add(Box.createHorizontalGlue());
+		tile.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				onClick.run();
+			}
+		});
+		return tile;
+	}
+
+	/** The favourites tile: a red heart that highlights when active (3/5). */
+	private JComponent favouriteTile()
+	{
+		StonePanel tile = new StonePanel(theme);
+		tile.setBackground(favouritesOnly ? theme.selectFill : theme.boxFill);
+		tile.setLayout(new BoxLayout(tile, BoxLayout.X_AXIS));
+		tile.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		tile.setToolTipText("Show favourites only");
+		JLabel heart = new JLabel(new PaintedIcon(PaintedIcon.Shape.HEART, 13));
+		heart.setForeground(HEART_RED);
+		tile.add(Box.createHorizontalGlue());
+		tile.add(heart);
+		tile.add(Box.createHorizontalGlue());
+		tile.addMouseListener(new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent e)
@@ -215,7 +259,7 @@ class MoneyMakingTab extends JPanel
 				rebuild();
 			}
 		});
-		return h;
+		return tile;
 	}
 
 	/** The filtered + sorted list, favourites floated to the top. */
@@ -270,8 +314,9 @@ class MoneyMakingTab extends JPanel
 		JPanel top = row();
 		top.add(heart(m, fav));
 		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		// regular text when available (8), greyed when not (6/9) — no method icon
-		top.add(new OsrsLabel(m.name, can ? OsrsSkin.LABEL : OsrsSkin.FAINT, OsrsSkin.font())
+		// light-grey text when available (1/8), greyed when not (9) — the profit
+		// stays orange; no method icon (6)
+		top.add(new OsrsLabel(m.name, can ? OsrsSkin.MUTED : OsrsSkin.FAINT, OsrsSkin.font())
 			.leftAligned().squeezable());
 		top.add(Box.createHorizontalGlue());
 		top.add(new OsrsLabel(profitText(m), OsrsSkin.TITLE, OsrsSkin.smallFont()));
@@ -342,13 +387,23 @@ class MoneyMakingTab extends JPanel
 		block.setAlignmentX(LEFT_ALIGNMENT);
 		block.setBorder(new javax.swing.border.EmptyBorder(1, UiTokens.ROW_GAP + 6, 3, UiTokens.ROW_GAP));
 
+		// a Wiki button in the upper-right corner (7/12)
+		JPanel wikiTop = row();
+		wikiTop.add(Box.createHorizontalGlue());
+		StoneButton wiki = new StoneButton(theme, theme.boxFill, "Wiki",
+			() -> LinkBrowser.browse("https://oldschool.runescape.wiki/w/" + m.wiki));
+		wiki.setMaximumSize(wiki.getPreferredSize());
+		wikiTop.add(wiki);
+		cap(wikiTop);
+		block.add(wikiTop);
+
 		// hard requirements — one per row, met green / unmet red (10/13)
 		for (String req : m.reqs)
 		{
 			boolean met = Requirements.parse(req).isMet(state);
 			block.add(reqRow(req, met ? OsrsSkin.VALUE : UiTokens.STATUS_WARNING));
 		}
-		// recommendations + inputs each wrap to their own icon rows (13)
+		// recommendations + inputs + outputs each wrap to their own icon rows (13)
 		if (!m.recommends.isEmpty())
 		{
 			block.add(sectionLabel("Recommended"));
@@ -357,14 +412,8 @@ class MoneyMakingTab extends JPanel
 				block.add(reqRow(rec, OsrsSkin.FAINT));
 			}
 		}
-		if (m.inputs != null && !m.inputs.isEmpty())
-		{
-			block.add(sectionLabel("Inputs (per hour)"));
-			for (MoneyMakingPack.Input in : m.inputs)
-			{
-				block.add(inputRow(in));
-			}
-		}
+		itemSection(block, "Inputs (per hour)", m.inputs);
+		itemSection(block, "Outputs (per hour)", m.outputs); // (8)
 
 		// feature 7: gp target + method as a Goal
 		JPanel goalRow = row();
@@ -417,22 +466,31 @@ class MoneyMakingTab extends JPanel
 			block.add(strut(2));
 			block.add(unlockRow);
 		}
-
-		// a Wiki button on every method (12)
-		JPanel foot = row();
-		StoneButton wiki = new StoneButton(theme, theme.boxFill, "Wiki",
-			() -> LinkBrowser.browse("https://oldschool.runescape.wiki/w/" + m.wiki));
-		wiki.setMaximumSize(wiki.getPreferredSize());
-		foot.add(wiki);
-		foot.add(Box.createHorizontalGlue());
-		cap(foot);
-		block.add(strut(2));
-		block.add(foot);
 		cap(block);
 		return block;
 	}
 
 	// ── detail rows (icons + wrapped, 13) ────────────────────────────────
+
+	/** An Inputs/Outputs section — a header then one item row each (capped). */
+	private void itemSection(JPanel block, String title, List<MoneyMakingPack.Input> items)
+	{
+		if (items == null || items.isEmpty())
+		{
+			return;
+		}
+		block.add(sectionLabel(title));
+		int shown = 0;
+		for (MoneyMakingPack.Input in : items)
+		{
+			block.add(inputRow(in));
+			if (++shown >= 10 && items.size() > shown)
+			{
+				block.add(sectionLabel("+ " + (items.size() - shown) + " more"));
+				break;
+			}
+		}
+	}
 
 	/** A requirement/recommendation row: skill icon + "72 Herblore", or a
 	 *  quest badge + the quest, wrapped so nothing runs off screen. */
@@ -461,7 +519,11 @@ class MoneyMakingTab extends JPanel
 			r.add(new JLabel(sized(itemManager.getImage(in.itemId))));
 			r.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		}
-		r.add(OsrsLabel.wrapped(in.qty + "× " + in.name, 190, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+		// a plain quantity reads as "3× Anglerfish"; a drop-rate expression
+		// (outputs like "15*(5/128)") is noise, so show just the item then
+		boolean messy = in.qty.contains("*") || in.qty.contains("(");
+		String text = messy ? in.name : in.qty + "× " + in.name;
+		r.add(OsrsLabel.wrapped(text, 190, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
 		r.add(Box.createHorizontalGlue());
 		cap(r);
 		return r;
@@ -527,9 +589,24 @@ class MoneyMakingTab extends JPanel
 
 	// ── helpers ──────────────────────────────────────────────────────────
 
+	/** Scale to fit a 16×16 box (max dimension = 16) — source sprites vary in
+	 *  size, so height-only scaling left some icons (Thieving) oversized (6). */
 	private static Icon sized(java.awt.Image img)
 	{
-		return img == null ? null : new ImageIcon(img.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH));
+		if (img == null)
+		{
+			return null;
+		}
+		int w = img.getWidth(null);
+		int h = img.getHeight(null);
+		if (w <= 0 || h <= 0)
+		{
+			return new ImageIcon(img.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH));
+		}
+		double s = 16.0 / Math.max(w, h);
+		return new ImageIcon(img.getScaledInstance(
+			Math.max(1, (int) Math.round(w * s)), Math.max(1, (int) Math.round(h * s)),
+			java.awt.Image.SCALE_SMOOTH));
 	}
 
 	private String profitText(Method m)
