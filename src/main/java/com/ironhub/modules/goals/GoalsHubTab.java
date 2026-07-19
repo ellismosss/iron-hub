@@ -69,6 +69,8 @@ class GoalsHubTab extends JPanel
 	/** Goal/task row icon height — a small, consistent size for every icon
 	 *  (system badges AND item sprites), the tidy small variation Luke prefers. */
 	private static final int BADGE_H = 18;
+	/** The larger icon in the CURRENT TASK hero tile (Luke). */
+	private static final int CURRENT_ICON_H = 34;
 
 	/** Clue-scroll sprite per tier, for a clue Route's icon (16). */
 	private static final Map<String, Integer> CLUE_TIER_ITEM = Map.of(
@@ -92,6 +94,11 @@ class GoalsHubTab extends JPanel
 	private boolean showArchive;
 	/** Live add-goal candidates (id → name), rendered under the search field. */
 	private final Map<String, String> searchResults = new LinkedHashMap<>();
+	/** The search field + results panel are LONG-LIVED (created once, re-added
+	 *  on rebuild): typing updates only the results panel, so a keystroke never
+	 *  destroys the focused field (Luke's de-focus bug). */
+	private StoneTextField searchField;
+	private final JPanel searchResultsPanel = new JPanel();
 	/** Collapsed Goal categories (Quests, Gear, …). */
 	private final java.util.Set<String> collapsedCategories = new java.util.HashSet<>();
 	/** Route follows the freshest plan; the update banner guards reorders. */
@@ -193,13 +200,12 @@ class GoalsHubTab extends JPanel
 		Plan.Step head = plan == null ? null : plan.head();
 		content.add(pad(head == null ? emptyTask() : currentTask(head)));
 
-		// 3 · add goal — above the GOALS header (15)
+		// 3 · add goal — above the GOALS header (15). The field + results panel
+		// are long-lived so typing doesn't rebuild (and de-focus) the field.
 		content.add(strut(4));
 		content.add(pad(addGoalField()));
-		for (Map.Entry<String, String> e : searchResults.entrySet())
-		{
-			content.add(pad(searchResultRow(e.getKey(), e.getValue())));
-		}
+		content.add(searchResultsPanel);
+		renderSearchResults();
 
 		// 4 · goals, grouped by category, each category on its own stone slab (10)
 		content.add(section("GOALS"));
@@ -257,7 +263,7 @@ class GoalsHubTab extends JPanel
 	private Map<String, List<GoalsPack.Goal>> groupByCategory(List<GoalsPack.Goal> routes)
 	{
 		Map<String, List<GoalsPack.Goal>> out = new LinkedHashMap<>();
-		for (String category : List.of("Quests", "Gear", "Level unlocks", "Unlocks", "Supplies", "Other"))
+		for (String category : List.of("Quests", "Gear", "Skills", "Unlocks", "Supplies", "Other"))
 		{
 			for (GoalsPack.Goal route : routes)
 			{
@@ -278,7 +284,7 @@ class GoalsHubTab extends JPanel
 		}
 		if (goalId.startsWith("custom:skill:") || goalId.startsWith("skill:"))
 		{
-			return "Level unlocks";
+			return "Skills";
 		}
 		int colon = goalId.indexOf(':');
 		String family = colon > 0 ? goalId.substring(0, colon) : "pack";
@@ -303,7 +309,7 @@ class GoalsHubTab extends JPanel
 
 	private StatBox doneThisMonth()
 	{
-		StatBox box = new StatBox(theme, "Done this\nmonth:",
+		StatBox box = new StatBox(theme, "Completed\nthis month:",
 			OsrsIcons.stat(theme, "achievements"), String.valueOf(doneThisMonthCount()));
 		box.setToolTipText("View completed goals");
 		box.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -368,7 +374,14 @@ class GoalsHubTab extends JPanel
 		card.setAlignmentX(LEFT_ALIGNMENT);
 
 		JPanel title = row();
-		Icon icon = stepIcon(step);
+		// a »» marker points at the current task (Luke, green_right_double)
+		Icon chevron = doubleChevron(true);
+		if (chevron != null)
+		{
+			title.add(new JLabel(chevron));
+			title.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		}
+		Icon icon = stepIcon(step, CURRENT_ICON_H); // large in the hero tile (Luke)
 		if (icon != null)
 		{
 			title.add(new JLabel(icon));
@@ -503,7 +516,7 @@ class GoalsHubTab extends JPanel
 		Color nameColor = low ? OsrsSkin.FAINT : pinned ? OsrsSkin.TITLE : OsrsSkin.LABEL;
 		// skill-level Goals read as the level alone — the icon names the skill (12)
 		top.add(new OsrsLabel(routeName(route), nameColor,
-			pinned ? OsrsSkin.boldFont() : OsrsSkin.font()).leftAligned().squeezable().tooltipWhenClipped());
+			pinned ? OsrsSkin.boldFont() : OsrsSkin.font()).leftAligned().squeezable());
 		top.add(Box.createHorizontalGlue());
 		if (!single && !low)
 		{
@@ -518,7 +531,9 @@ class GoalsHubTab extends JPanel
 		if (!single && !low)
 		{
 			card.add(Box.createVerticalStrut(3));
-			card.add(new StoneMeter(theme, OsrsSkin.PROGRESS_BLUE, GoalPlannerModule.progress(route, state)));
+			// notches divide the bar by the number of unique tasks (Luke)
+			card.add(new StoneMeter(theme, OsrsSkin.PROGRESS_BLUE,
+				GoalPlannerModule.progress(route, state)).segments(slice.size()));
 		}
 
 		MouseAdapter click = new MouseAdapter()
@@ -548,8 +563,7 @@ class GoalsHubTab extends JPanel
 	 *  OR task is pinned at a time — the state enforces it. */
 	private JLabel pinGlyph(String goalId, boolean pinned)
 	{
-		JLabel pin = new JLabel(new PaintedIcon(PaintedIcon.Shape.PIN, 12));
-		pin.setForeground(pinned ? OsrsSkin.TITLE : OsrsSkin.FAINT);
+		JLabel pin = new JLabel(doubleChevron(pinned));
 		pin.setToolTipText(pinned ? "Pinned as active — click to unpin" : "Pin as active");
 		pin.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		pin.addMouseListener(new MouseAdapter()
@@ -673,7 +687,7 @@ class GoalsHubTab extends JPanel
 		// Task-tile text is the small font (Goal tiles + CURRENT TASK keep the
 		// regular font) — Luke, to fit more in the row
 		OsrsLabel name = new OsrsLabel(taskName(step, route), current ? OsrsSkin.TITLE : OsrsSkin.MUTED,
-			OsrsSkin.smallFont()).leftAligned().squeezable().tooltipWhenClipped();
+			OsrsSkin.smallFont()).leftAligned().squeezable();
 		line.add(name);
 		line.add(Box.createHorizontalGlue());
 		line.add(new OsrsLabel(timeText(step), OsrsSkin.MUTED, OsrsSkin.smallFont()));
@@ -717,8 +731,7 @@ class GoalsHubTab extends JPanel
 	private JLabel taskPinGlyph(String actionId)
 	{
 		boolean pinned = state.isTaskPinned(actionId);
-		JLabel pin = new JLabel(new PaintedIcon(PaintedIcon.Shape.PIN, 11));
-		pin.setForeground(pinned ? OsrsSkin.TITLE : OsrsSkin.FAINT);
+		JLabel pin = new JLabel(doubleChevron(pinned));
 		pin.setToolTipText(pinned ? "Pinned as active — click to unpin" : "Pin this task as active");
 		pin.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		pin.addMouseListener(new MouseAdapter()
@@ -789,9 +802,10 @@ class GoalsHubTab extends JPanel
 		return null;
 	}
 
-	/** Render a supply Route's component materials — its stocked item fully
-	 *  decomposed to raw materials (Luke). Returns false to fall through to the
-	 *  normal plan slice (no spec / no recipes pack). */
+	/** Render a supply Route's component materials — the stocked item
+	 *  decomposed to raw materials, but BANK-AWARE (Luke): materials you
+	 *  already own stop the walk, so only what you actually need to gather
+	 *  shows. Returns false to fall through to the normal plan slice. */
 	private boolean addSupplyMaterials(GoalsPack.Goal route, javax.swing.JComponent target)
 	{
 		int[] spec = supplySpec(route);
@@ -802,11 +816,11 @@ class GoalsHubTab extends JPanel
 		}
 		int itemId = spec[0];
 		int qty = spec[1];
-		Map<Integer, Integer> mats = recipes.decompose(itemId, qty);
-		// a raw item (no recipe) decomposes to just itself — show the owned note
-		if (mats.size() == 1 && mats.containsKey(itemId))
+		// spend what's in the bank/inventory first, down the recipe tree
+		Map<Integer, Integer> mats = recipes.gather(itemId, qty, state::canonicalStock);
+		if (mats.isEmpty())
 		{
-			target.add(materialRow(0, "Stock " + qty + " · " + state.canonicalStock(itemId) + " owned"));
+			target.add(materialRow(0, "You own everything to stock " + qty + "."));
 			return true;
 		}
 		target.add(materialRow(0, "Gather:"));
@@ -839,7 +853,7 @@ class GoalsHubTab extends JPanel
 			row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		}
 		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.smallFont())
-			.leftAligned().squeezable().tooltipWhenClipped());
+			.leftAligned().squeezable());
 		row.add(Box.createHorizontalGlue());
 		cap(row);
 		return row;
@@ -945,27 +959,46 @@ class GoalsHubTab extends JPanel
 
 	private JComponent addGoalField()
 	{
-		StoneTextField field = new StoneTextField(theme, "Add a goal — search…");
-		field.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+		if (searchField == null)
 		{
-			@Override
-			public void insertUpdate(javax.swing.event.DocumentEvent e)
+			searchField = new StoneTextField(theme, "Add a goal — search…");
+			searchResultsPanel.setLayout(new BoxLayout(searchResultsPanel, BoxLayout.Y_AXIS));
+			searchResultsPanel.setOpaque(false);
+			searchResultsPanel.setAlignmentX(LEFT_ALIGNMENT);
+			searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
 			{
-				refreshSearch(field.getText());
-			}
+				@Override
+				public void insertUpdate(javax.swing.event.DocumentEvent e)
+				{
+					refreshSearch(searchField.getText());
+				}
 
-			@Override
-			public void removeUpdate(javax.swing.event.DocumentEvent e)
-			{
-				refreshSearch(field.getText());
-			}
+				@Override
+				public void removeUpdate(javax.swing.event.DocumentEvent e)
+				{
+					refreshSearch(searchField.getText());
+				}
 
-			@Override
-			public void changedUpdate(javax.swing.event.DocumentEvent e)
-			{
-			}
-		});
-		return field;
+				@Override
+				public void changedUpdate(javax.swing.event.DocumentEvent e)
+				{
+				}
+			});
+		}
+		return searchField;
+	}
+
+	/** Repaint the results panel only — never a full rebuild, so the field
+	 *  keeps focus while typing. */
+	private void renderSearchResults()
+	{
+		searchResultsPanel.removeAll();
+		for (Map.Entry<String, String> e : searchResults.entrySet())
+		{
+			searchResultsPanel.add(pad(searchResultRow(e.getKey(), e.getValue())));
+		}
+		searchResultsPanel.revalidate();
+		searchResultsPanel.repaint();
 	}
 
 	/** Live add-goal candidates: a "skill N" parse, then pack/gear matches. */
@@ -1031,7 +1064,7 @@ class GoalsHubTab extends JPanel
 				}
 			}
 		}
-		rebuild();
+		renderSearchResults(); // panel-only update — keeps the field focused
 	}
 
 	/** A live add-goal candidate row: name + a "+ Add" affordance. */
@@ -1070,6 +1103,10 @@ class GoalsHubTab extends JPanel
 			state.selectGoal(goalId, true); // gear/pack goals: just select
 		}
 		searchResults.clear();
+		if (searchField != null)
+		{
+			searchField.setText(""); // clears the field + its results after adding
+		}
 	}
 
 	// ── suggestions ────────────────────────────────────────────────────
@@ -1359,21 +1396,48 @@ class GoalsHubTab extends JPanel
 
 	private Icon stepIcon(Plan.Step step)
 	{
+		return stepIcon(step, BADGE_H);
+	}
+
+	private Icon stepIcon(Plan.Step step, int height)
+	{
 		if (skillIcons != null && step.action.kind == com.ironhub.engine.Action.Kind.TRAIN
 			&& step.action.trainSkill != null)
 		{
-			return sized(skillIcons.getSkillImage(step.action.trainSkill, false));
+			return sized(skillIcons.getSkillImage(step.action.trainSkill, false), height);
 		}
 		if (step.action.kind == com.ironhub.engine.Action.Kind.QUEST)
 		{
-			return sized(OsrsIcons.image(theme, "quests"));
+			return sized(OsrsIcons.image(theme, "quests"), height);
 		}
 		if (step.action.kind == com.ironhub.engine.Action.Kind.OBTAIN && itemManager != null
 			&& step.action.itemId > 0)
 		{
-			return sized(itemManager.getImage(step.action.itemId));
+			return sized(itemManager.getImage(step.action.itemId), height);
 		}
 		return null;
+	}
+
+	/** The green »» double-chevron sprite (marks the current/active thing),
+	 *  themed; dimmed to a "ghost" affordance for the un-pinned state. */
+	private Icon doubleChevron(boolean bright)
+	{
+		java.awt.image.BufferedImage img = OsrsIcons.image(theme, "green_right_double");
+		if (img == null)
+		{
+			return null;
+		}
+		if (bright)
+		{
+			return new ImageIcon(img);
+		}
+		java.awt.image.BufferedImage dim = new java.awt.image.BufferedImage(
+			img.getWidth(), img.getHeight(), java.awt.image.BufferedImage.TYPE_INT_ARGB);
+		java.awt.Graphics2D g = dim.createGraphics();
+		g.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.30f));
+		g.drawImage(img, 0, 0, null);
+		g.dispose();
+		return new ImageIcon(dim);
 	}
 
 	private static final java.awt.image.BufferedImage CA_IMG = bundledImage("/data/icons/combat_achievements.png");
@@ -1399,8 +1463,13 @@ class GoalsHubTab extends JPanel
 	/** Scale an image to the shared goal-row icon height (1), or null. */
 	private static Icon sized(java.awt.Image img)
 	{
+		return sized(img, BADGE_H);
+	}
+
+	private static Icon sized(java.awt.Image img, int height)
+	{
 		return img == null ? null
-			: new ImageIcon(img.getScaledInstance(-1, BADGE_H, java.awt.Image.SCALE_SMOOTH));
+			: new ImageIcon(img.getScaledInstance(-1, height, java.awt.Image.SCALE_SMOOTH));
 	}
 
 	/** A route's icon by kind — every badge scaled to the item-sprite height
@@ -1563,7 +1632,7 @@ class GoalsHubTab extends JPanel
 		triangle.setForeground(OsrsSkin.MUTED);
 		row.add(triangle);
 		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		row.add(new OsrsLabel(text.toUpperCase(Locale.ROOT), OsrsSkin.MUTED, OsrsSkin.font()));
+		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font())); // sentence case (Luke)
 		row.add(Box.createHorizontalGlue());
 		if (collapsed)
 		{

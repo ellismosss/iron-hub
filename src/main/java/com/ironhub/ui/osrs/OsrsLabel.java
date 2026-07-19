@@ -41,7 +41,6 @@ public class OsrsLabel extends JComponent
 	private final String[] lines;
 	private Color color;
 	private boolean leftAligned;
-	private boolean tipWhenClipped;
 
 	public static OsrsLabel title(String text)
 	{
@@ -153,14 +152,6 @@ public class OsrsLabel extends JComponent
 		return this;
 	}
 
-	/** Show the full text as a tooltip whenever a line ellipsizes at paint —
-	 *  i.e. exactly when the text is wider than its tile (Luke, G7 round 2). */
-	public OsrsLabel tooltipWhenClipped()
-	{
-		this.tipWhenClipped = true;
-		return this;
-	}
-
 	@Override
 	protected void paintComponent(Graphics g)
 	{
@@ -172,7 +163,6 @@ public class OsrsLabel extends JComponent
 		// center the text block in whatever height layout assigned, so an
 		// allocation quirk shifts the text instead of clipping it mid-glyph
 		int top = (getHeight() - (LINE_PITCH * lines.length + DESCENT)) / 2;
-		boolean clipped = false;
 		for (int i = 0; i < lines.length; i++)
 		{
 			// a line wider than the assigned width ellipsizes at paint time —
@@ -182,7 +172,6 @@ public class OsrsLabel extends JComponent
 			if (fm.stringWidth(line) + 1 > getWidth())
 			{
 				line = ellipsize(line, fm, getWidth() - 1);
-				clipped = true;
 			}
 			int x = leftAligned ? 0 : Math.max(0, (getWidth() - fm.stringWidth(line)) / 2);
 			int y = top + BASELINE + LINE_PITCH * i;
@@ -190,14 +179,6 @@ public class OsrsLabel extends JComponent
 			g2.drawString(line, x + 1, y + 1);
 			g2.setColor(color);
 			g2.drawString(line, x, y);
-		}
-		if (tipWhenClipped)
-		{
-			String want = clipped ? text() : null;
-			if (!java.util.Objects.equals(getToolTipText(), want))
-			{
-				setToolTipText(want);
-			}
 		}
 	}
 

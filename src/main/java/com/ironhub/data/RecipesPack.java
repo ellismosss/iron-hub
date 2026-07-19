@@ -73,6 +73,54 @@ public class RecipesPack
 		path.remove(itemId);
 	}
 
+	/**
+	 * What you actually need to GATHER for {@code qty} of an item, given what
+	 * you already own (Luke): walk the recipe backwards, and at every node
+	 * spend the owned stock first — a node fully covered by the bank stops
+	 * there (its own materials are never gathered), and only the shortfall
+	 * decomposes further. So 100 games necklaces when you hold the gold bars,
+	 * sapphires and cosmics needs nothing gathered, not their raw ores.
+	 *
+	 * @param ownedCount item id → how many are on hand (bank + carried)
+	 */
+	public Map<Integer, Integer> gather(int itemId, int qty, java.util.function.IntUnaryOperator ownedCount)
+	{
+		Map<Integer, Integer> out = new LinkedHashMap<>();
+		gather(itemId, qty, ownedCount, new java.util.HashMap<>(), out, new java.util.HashSet<>());
+		return out;
+	}
+
+	private void gather(int itemId, long qty, java.util.function.IntUnaryOperator ownedCount,
+		Map<Integer, Integer> spent, Map<Integer, Integer> out, java.util.Set<Integer> path)
+	{
+		// spend what we own of THIS item first (tracked so a bank stack isn't
+		// double-counted across sibling branches)
+		long have = Math.max(0, (long) ownedCount.applyAsInt(itemId) - spent.getOrDefault(itemId, 0));
+		long use = Math.min(qty, have);
+		if (use > 0)
+		{
+			spent.merge(itemId, (int) use, Integer::sum);
+		}
+		long remaining = qty - use;
+		if (remaining <= 0)
+		{
+			return; // the bank covers it — nothing to gather down this branch
+		}
+		Recipe r = recipe(itemId);
+		if (r == null || r.materials == null || r.materials.isEmpty() || !path.add(itemId))
+		{
+			out.merge(itemId, (int) Math.min(Integer.MAX_VALUE, remaining), Integer::sum);
+			return;
+		}
+		int per = Math.max(1, r.outputQty);
+		long makes = (remaining + per - 1) / per; // ceil
+		for (Material m : r.materials)
+		{
+			gather(m.itemId, makes * Math.max(1, m.qty), ownedCount, spent, out, path);
+		}
+		path.remove(itemId);
+	}
+
 	/** A display name for an item that appears anywhere in the pack (as an
 	 *  output or a material), or null. Built lazily. */
 	public String name(int itemId)

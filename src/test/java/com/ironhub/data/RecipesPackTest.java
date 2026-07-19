@@ -51,6 +51,37 @@ public class RecipesPackTest
 		assertEquals(Integer.valueOf(7), leaves.get(442));
 	}
 
+	/** Bank-aware gather (Luke's games-necklace report): owned intermediates
+	 *  stop the walk, so only the truly-missing branch decomposes. */
+	@Test
+	public void gatherStopsAtOwnedIntermediates()
+	{
+		// 100 games necklaces = sapphire necklace (sapphire + gold bar) + cosmic
+		// + water rune. Own plenty of gold bars, sapphires, cosmics.
+		Map<Integer, Integer> bank = new java.util.HashMap<>();
+		bank.put(2357, 200); // Gold bar
+		bank.put(1607, 200); // Sapphire
+		bank.put(564, 200);  // Cosmic rune
+		Map<Integer, Integer> g = pack.gather(3853, 100, id -> bank.getOrDefault(id, 0));
+
+		// the owned branches never decompose to raw…
+		assertTrue("gold bars owned → no gold ore", !g.containsKey(444));
+		assertTrue("sapphires owned → no uncut sapphire", !g.containsKey(1623));
+		assertTrue("cosmics owned → no pure essence", !g.containsKey(7936));
+		// …only the missing water-rune branch remains (full-raw → rune essence)
+		assertEquals(Integer.valueOf(100), g.get(1436)); // Rune essence
+
+		// own the water runes too → nothing to gather
+		bank.put(555, 200);
+		assertTrue("owning everything gathers nothing",
+			pack.gather(3853, 100, id -> bank.getOrDefault(id, 0)).isEmpty());
+
+		// own nothing → the full raw set
+		Map<Integer, Integer> raw = pack.gather(3853, 100, id -> 0);
+		assertEquals(Integer.valueOf(100), raw.get(444));  // Gold ore
+		assertEquals(Integer.valueOf(100), raw.get(1623)); // Uncut sapphire
+	}
+
 	@Test
 	public void decompositionAlwaysTerminates()
 	{
