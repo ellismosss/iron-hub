@@ -412,9 +412,13 @@ class GoalsHubTab extends JPanel
 		stats.add(new OsrsLabel(left, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned().squeezable());
 		stats.add(Box.createHorizontalGlue());
 		OsrsLabel pace = new OsrsLabel(timeText(step), OsrsSkin.FAINT, OsrsSkin.smallFont());
+		boolean farmRuns = timeText(step).endsWith(" runs");
 		boolean personal = step.action.kind == com.ironhub.engine.Action.Kind.TRAIN
 			&& state.measuredRate(step.action.trainSkill) > 0;
-		pace.setToolTipText((personal
+		pace.setToolTipText((farmRuns
+			? "At your measured " + compactXp(Math.round(avgFarmingXpPerRun()))
+				+ " xp/run — calendar time, minutes of attention per run"
+			: personal
 			? "At your measured pace (" + compactXp(Math.round(state.measuredRate(step.action.trainSkill))) + "/hr observed)"
 			: "At book pace — your own rate measures in as you train")
 			+ (Double.isNaN(step.spreadHours) ? "" : " · up to ~" + compactHours(step.spreadHours) + " if unlucky"));
@@ -1368,7 +1372,43 @@ class GoalsHubTab extends JPanel
 
 	private String timeText(Plan.Step step)
 	{
+		// Farming is calendar work, not grind hours: with measured run
+		// records the honest figure is YOUR runs, not the misleading
+		// "135h at Tithe Farm" the active-methods ladder produces
+		// (2026-07-20 intelligence arc — attention-typed time)
+		if (step.action.kind == com.ironhub.engine.Action.Kind.TRAIN
+			&& step.action.trainSkill == Skill.FARMING
+			&& step.trainXpRemaining > 0)
+		{
+			double perRun = avgFarmingXpPerRun();
+			if (perRun > 0)
+			{
+				return "~" + (long) Math.ceil(step.trainXpRemaining / perRun) + " runs";
+			}
+		}
 		return Double.isNaN(step.hours) ? "?" : "~" + compactHours(step.hours);
+	}
+
+	/**
+	 * Mean Farming xp per completed run over the recent record log
+	 * (last 20; zero-xp records skipped), or 0 with no history — the
+	 * figure the runs-to-level line on the farming tab already earns.
+	 */
+	double avgFarmingXpPerRun()
+	{
+		List<com.ironhub.state.PersistedState.FarmRunRecord> log = state.getFarmRunLog();
+		double total = 0;
+		int counted = 0;
+		for (int i = Math.max(0, log.size() - 20); i < log.size(); i++)
+		{
+			long xp = log.get(i).xpByBucket.values().stream().mapToLong(Integer::longValue).sum();
+			if (xp > 0)
+			{
+				total += xp;
+				counted++;
+			}
+		}
+		return counted == 0 ? 0 : total / counted;
 	}
 
 	private String servingLine(Plan.Step step)

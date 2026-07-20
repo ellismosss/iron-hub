@@ -131,6 +131,31 @@ public class GoalsHubTabTest
 	/** A supply Route's "Open wiki" links to the stocked ITEM, never the
 	 *  "Stock N × …" goal name (Luke's report). */
 	@Test
+	public void farmingStepsCountMeasuredRuns() throws Exception
+	{
+		AccountState state = seeded(7L);
+		// three completed runs averaging 12k Farming xp — the record log the
+		// farming tab already earns its runs-to-level line from
+		for (int xp : new int[]{10_000, 12_000, 14_000})
+		{
+			com.ironhub.state.PersistedState.FarmRunRecord record =
+				new com.ironhub.state.PersistedState.FarmRunRecord();
+			record.endMs = 1_000;
+			record.name = "Herb run";
+			record.xpByBucket.put("herb", xp);
+			state.recordFarmRun(record);
+		}
+		GoalPlannerModule module = module(state);
+		waitForPlan(module);
+		GoalsHubTab[] holder = new GoalsHubTab[1];
+		javax.swing.SwingUtilities.invokeAndWait(() ->
+			holder[0] = new GoalsHubTab(module, state, packOf(module), gearOf(module),
+				null, new SkillIconManager(), OsrsTheme.STONE));
+		assertEquals(12_000, holder[0].avgFarmingXpPerRun(), 1e-9);
+		module.shutDown();
+	}
+
+	@Test
 	public void supplyGoalWikiLinksToTheStockedItem() throws Exception
 	{
 		AccountState state = seeded(3L);
