@@ -37,13 +37,24 @@ public class QuestsModule implements IronHubModule
 
 	@Inject
 	public QuestsModule(AccountState state, IronHubConfig config, DataPack dataPack,
-		PluginManager pluginManager, ClientThread clientThread)
+		PluginManager pluginManager, ClientThread clientThread,
+		com.ironhub.data.UnlockIndex unlockIndex)
 	{
 		this.state = state;
 		this.config = config;
 		this.pack = dataPack == null ? null : dataPack.load("quests", QuestsPack.class);
 		this.pluginManager = pluginManager;
 		this.clientThread = clientThread;
+		this.unlockIndex = unlockIndex;
+	}
+
+	private final com.ironhub.data.UnlockIndex unlockIndex; // null in unit tests
+
+	/** The reverse unlock index, or empty refs when absent (headless). */
+	java.util.List<com.ironhub.data.UnlockIndex.Ref> questUnlocks(String questName)
+	{
+		return unlockIndex == null ? java.util.List.of()
+			: unlockIndex.questUnlocks(questName);
 	}
 
 	@Override

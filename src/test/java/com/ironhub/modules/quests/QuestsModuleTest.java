@@ -32,7 +32,7 @@ public class QuestsModuleTest
 
 	private QuestsModule module(AccountState state)
 	{
-		return new QuestsModule(state, config, new DataPack(new Gson()), null, null);
+		return new QuestsModule(state, config, new DataPack(new Gson()), null, null, null);
 	}
 
 	@Test

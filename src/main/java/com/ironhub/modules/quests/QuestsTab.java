@@ -244,6 +244,51 @@ class QuestsTab extends JPanel
 		return module.pack() == null ? null : module.pack().byName(quest.getName());
 	}
 
+	/** Hover answer: what finishing this quest actually opens, from the
+	 *  reverse unlock index (deduped; first few named, the rest counted). */
+	String questTooltip(Quest quest)
+	{
+		StringBuilder tip = new StringBuilder("<html><b>").append(quest.getName())
+			.append("</b><br>Click to open in Quest Helper");
+		List<com.ironhub.data.UnlockIndex.Ref> refs = module.questUnlocks(quest.getName());
+		if (!refs.isEmpty())
+		{
+			java.util.Map<String, Integer> counts = new java.util.LinkedHashMap<>();
+			java.util.LinkedHashSet<String> names = new java.util.LinkedHashSet<>();
+			for (com.ironhub.data.UnlockIndex.Ref ref : refs)
+			{
+				if (names.add(ref.source + "|" + ref.name))
+				{
+					counts.merge(ref.source, 1, Integer::sum);
+				}
+			}
+			StringBuilder summary = new StringBuilder();
+			for (java.util.Map.Entry<String, Integer> entry : counts.entrySet())
+			{
+				if (summary.length() > 0)
+				{
+					summary.append(" · ");
+				}
+				summary.append(entry.getValue()).append(" ").append(entry.getKey())
+					.append(entry.getValue() == 1 ? "" : "s");
+			}
+			tip.append("<br>Gates: ").append(summary);
+			int shown = 0;
+			for (String key : names)
+			{
+				if (shown++ >= 5)
+				{
+					tip.append("<br>… + ").append(names.size() - 5).append(" more");
+					break;
+				}
+				String display = key.substring(key.indexOf('|') + 1);
+				tip.append("<br>· ").append(display.length() > 60
+					? display.substring(0, 57) + "…" : display);
+			}
+		}
+		return tip.toString();
+	}
+
 	String difficulty(Quest quest)
 	{
 		QuestsPack.QuestEntry entry = packEntry(quest);
@@ -305,11 +350,18 @@ class QuestsTab extends JPanel
 		row.setAlignmentX(LEFT_ALIGNMENT);
 		row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP));
 
+		// tooltip computed on hover: the unlock join is lazy-built off-thread
+		// and the answer ("what does finishing this open?") is the reverse
+		// unlock index's whole point (2026-07-20 intelligence arc)
 		OsrsLabel name = new OsrsLabel(quest.getName(), color, OsrsSkin.font())
-			.leftAligned().squeezable();
-		String tooltip = quest.getName() + " — click to open in Quest Helper";
-		name.setToolTipText(tooltip);
-		row.setToolTipText(tooltip);
+		{
+			@Override
+			public String getToolTipText()
+			{
+				return questTooltip(quest);
+			}
+		}.leftAligned().squeezable();
+		name.setToolTipText("");
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
 
