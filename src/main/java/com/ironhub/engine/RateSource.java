@@ -123,6 +123,19 @@ public class RateSource
 	 * when unsourced. {@code attempts} is the mean completions to the drop
 	 * (1/p), so it reads back as the "1 in N" odds players know.
 	 */
+	/** The activity a drop comes from ("Cerberus"), or null — the plan-facts
+	 *  join uses it to answer "does the plan want kills here" (2026-07-20
+	 *  intelligence arc). */
+	public String activityName(int itemId)
+	{
+		if (clog == null)
+		{
+			return null;
+		}
+		ClogPack.Activity activity = activityByItem.get(clog.canonical(itemId));
+		return activity == null ? null : activity.name;
+	}
+
 	public String dropLabel(int itemId)
 	{
 		if (clog == null)

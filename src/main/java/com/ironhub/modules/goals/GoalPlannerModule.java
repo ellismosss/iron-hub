@@ -9,9 +9,11 @@ import com.ironhub.requirements.Requirements;
 import com.ironhub.state.AccountState;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.JComponent;
+import net.runelite.api.Skill;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -53,8 +55,6 @@ public class GoalPlannerModule implements IronHubModule
 	private volatile java.util.List<Suggester.Suggestion> suggestions = java.util.List.of();
 	private volatile String suggestionsFingerprint = "";
 	private volatile String lastNotifiedFingerprint; // planner thread only
-	/** Cross-module read seam (WhatNow, Dashboard): the freshest plan. */
-	private static volatile com.ironhub.engine.Plan sharedPlan;
 	/** Plan hours at session start — the "since last session" anchor. */
 	private volatile double sessionStartPlanHours = -1;
 	private final java.util.List<Runnable> planListeners =
@@ -162,7 +162,7 @@ public class GoalPlannerModule implements IronHubModule
 	{
 		engineActive = false;
 		state.removeListener(stateListener);
-		sharedPlan = null; // never leak a stale plan across profiles/lifecycles
+		planFacts = PlanFacts.EMPTY; // never leak stale facts across profiles/lifecycles
 		if (overlay != null)
 		{
 			overlayManager.remove(overlay);
@@ -260,7 +260,7 @@ public class GoalPlannerModule implements IronHubModule
 			// GoalArchiveTest under load)
 			detectCompletions(plan);
 			currentPlan = plan;
-			sharedPlan = plan;
+			planFacts = buildFacts(plan);
 			state.recordPlanHours(plan.knownHours);
 			// the engine is deterministic: a state change that doesn't touch
 			// the plan reproduces it byte-for-byte, and notifying anyway
@@ -491,10 +491,112 @@ public class GoalPlannerModule implements IronHubModule
 		return currentPlan;
 	}
 
-	/** The freshest plan for cross-module consumers; null pre-first-replan. */
-	public static com.ironhub.engine.Plan sharedPlan()
+	/**
+	 * What the current plan is working toward, as cheap set-membership
+	 * queries — the cross-module seam (2026-07-20 intelligence arc; replaces
+	 * the write-only static sharedPlan). Advisors consult these so their
+	 * advice never contradicts the plan: the slayer block advisor keeps
+	 * tasks the plan wants kills at, the gear chart badges planned items,
+	 * the bank pre-fills planned target levels. Empty facts while the
+	 * engine is inactive — advisors fall back to their own ranking.
+	 */
+	public static final class PlanFacts
 	{
-		return sharedPlan;
+		static final PlanFacts EMPTY = new PlanFacts(java.util.Map.of(),
+			java.util.Set.of(), java.util.Set.of());
+
+		/** Skill → the highest level any unsnoozed TRAIN step targets. */
+		final java.util.Map<Skill, Integer> trainTargets;
+		/** Lowercased kill-source names: KILL steps' kc sources + the clog
+		 *  activities behind drop-costed OBTAIN steps. */
+		final Set<String> killTargets;
+		/** Item ids the plan obtains (canonical where the pack knows them). */
+		final Set<Integer> obtainItems;
+
+		PlanFacts(java.util.Map<Skill, Integer> trainTargets, Set<String> killTargets,
+			Set<Integer> obtainItems)
+		{
+			this.trainTargets = trainTargets;
+			this.killTargets = killTargets;
+			this.obtainItems = obtainItems;
+		}
+	}
+
+	private volatile PlanFacts planFacts = PlanFacts.EMPTY;
+
+	/** Facts snapshot for one plan; planner thread. */
+	private PlanFacts buildFacts(com.ironhub.engine.Plan plan)
+	{
+		java.util.Map<Skill, Integer> train = new java.util.EnumMap<>(Skill.class);
+		Set<String> kills = new java.util.HashSet<>();
+		Set<Integer> items = new java.util.HashSet<>();
+		com.ironhub.engine.RateSource rates =
+			enginePacks == null ? null : enginePacks.rates;
+		for (com.ironhub.engine.Plan.Step step : plan.steps)
+		{
+			if (step.snoozed)
+			{
+				continue; // snoozed = "not now" — advice must not push it
+			}
+			com.ironhub.engine.Action action = step.action;
+			switch (action.kind)
+			{
+				case TRAIN:
+					train.merge(action.trainSkill, action.trainToLevel, Math::max);
+					break;
+				case KILL:
+					if (action.kcSource != null)
+					{
+						kills.add(action.kcSource.toLowerCase(java.util.Locale.ROOT));
+					}
+					break;
+				case OBTAIN:
+					if (action.itemId > 0)
+					{
+						items.add(action.itemId);
+						String activity = rates == null ? null : rates.activityName(action.itemId);
+						if (activity != null)
+						{
+							kills.add(activity.toLowerCase(java.util.Locale.ROOT));
+						}
+					}
+					break;
+				default:
+					break;
+			}
+		}
+		return new PlanFacts(train, kills, items);
+	}
+
+	/** The level the plan trains this skill to, or 0 when it doesn't. */
+	public int plannedTargetLevel(Skill skill)
+	{
+		return planFacts.trainTargets.getOrDefault(skill, 0);
+	}
+
+	/** True when the plan wants kills at a source whose name contains (or is
+	 *  contained by) this one — the loose matching every kill surface uses. */
+	public boolean planWantsKillsAt(String name)
+	{
+		if (name == null || name.isEmpty())
+		{
+			return false;
+		}
+		String needle = name.toLowerCase(java.util.Locale.ROOT);
+		for (String target : planFacts.killTargets)
+		{
+			if (target.contains(needle) || needle.contains(target))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** True when the plan has an OBTAIN step for this item. */
+	public boolean planWantsItem(int itemId)
+	{
+		return planFacts.obtainItems.contains(itemId);
 	}
 
 	/** Known plan hours at session start; negative = no earlier session. */

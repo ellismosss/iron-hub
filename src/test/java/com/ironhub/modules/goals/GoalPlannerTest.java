@@ -178,6 +178,38 @@ public class GoalPlannerTest
 	}
 
 	@Test
+	public void planFactsAnswerCrossModuleQueries() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		// a skill-level goal -> a TRAIN step; a gear goal with a drop -> an
+		// OBTAIN step whose clog activity becomes a kill target
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.custom(
+			"custom:skill:fletching:70", "Fletching 70", "skill:Fletching:70"));
+		state.selectGoal("bowfa", true); // Bow of faerdhinen — The Gauntlet drop
+		StateFixture.stat(state, Skill.FLETCHING, 50, 101_333);
+
+		GoalPlannerModule module = new GoalPlannerModule(state, new IronHubConfig()
+		{
+		}, new DataPack(new Gson()), null);
+		module.startUp();
+		for (int i = 0; i < 50 && module.currentPlan() == null; i++)
+		{
+			Thread.sleep(100);
+		}
+		assertNotNull(module.currentPlan());
+
+		assertEquals(70, module.plannedTargetLevel(Skill.FLETCHING));
+		assertEquals(0, module.plannedTargetLevel(Skill.SLAYER));
+		assertFalse(module.planWantsKillsAt("Dust devils"));
+		assertFalse(module.planWantsItem(4151)); // whip: not a selected goal
+
+		module.shutDown();
+		// facts never leak past the lifecycle
+		assertEquals(0, module.plannedTargetLevel(Skill.FLETCHING));
+	}
+
+	@Test
 	public void tabRendersHeadless() throws Exception
 	{
 		AccountState state = StateFixture.state(temp.getRoot());

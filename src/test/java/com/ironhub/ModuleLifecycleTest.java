@@ -47,7 +47,7 @@ public class ModuleLifecycleTest
 		};
 
 		Set<IronHubModule> modules = new IronHubPlugin().provideModules(
-			new GearProgressionModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null),
+			new GearProgressionModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null),
 			new QuestsModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null),
 			new DiariesModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new CombatAchievementsModule(state, config, null,
@@ -56,7 +56,7 @@ public class ModuleLifecycleTest
 			new QolModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new LootModule(state, null, config),
 			new BankTrackerModule(state, null, null, null, null, null, null, null, null, null, config,
-				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
+				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null),
 			new FarmingRunModule(state, null, new net.runelite.client.eventbus.EventBus(), null, null, null, config, null, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null, null, null, null, null),
 			new DailiesModule(state, null, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null, null, null, null, null, null, null, null, null),
 			new GoalPlannerModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
@@ -64,7 +64,7 @@ public class ModuleLifecycleTest
 				new net.runelite.client.eventbus.EventBus(), null),
 			new SlayerOptimizerModule(state, null, null, config, null, null,
 				new net.runelite.client.eventbus.EventBus(), null, null, null,
-				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null, null, null, null),
+				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null, null, null, null, null),
 			new SuppliesRunwayModule(state, null, config),
 			new CollectionLogModule(state, null, null, new net.runelite.client.eventbus.EventBus(), config,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),

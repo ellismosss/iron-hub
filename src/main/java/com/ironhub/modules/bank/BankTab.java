@@ -170,13 +170,17 @@ class BankTab extends JPanel
 	 *  budget instead of one long stall. */
 	private static final int SCAN_CHUNK = 128;
 
+	/** Skill name -> the plan's TRAIN target level (0 = none/no planner). */
+	private final java.util.function.ToIntFunction<String> plannedTarget;
+
 	BankTab(AccountState state, ItemManager itemManager,
 		net.runelite.client.callback.ClientThread clientThread,
 		net.runelite.client.game.SkillIconManager skillIcons, Set<Integer> selection,
 		java.util.function.BiConsumer<List<Integer>, String> onBankDisplay,
 		BankedXpPack bankedXpPack, com.ironhub.data.XpActionsPack xpActionsPack,
-		OsrsTheme theme)
+		OsrsTheme theme, java.util.function.ToIntFunction<String> plannedTarget)
 	{
+		this.plannedTarget = plannedTarget;
 		this.state = state;
 		this.itemManager = itemManager;
 		this.clientThread = clientThread;
@@ -981,7 +985,12 @@ class BankTab extends JPanel
 		double bankedTotal, double selectionXp)
 	{
 		int persisted = state.getBankSkillTarget(skillName);
-		int autoTarget = Math.min(126, bankedLevel(xpNow, bankedTotal) + 1);
+		// the goal plan's TRAIN target beats first-unbanked-level as the
+		// auto value — the field pre-answers "how far am I training this"
+		// (2026-07-20 intelligence arc); user edits still always win
+		int planTarget = plannedTarget == null ? 0 : plannedTarget.applyAsInt(skillName);
+		int autoTarget = Math.min(126,
+			Math.max(planTarget, bankedLevel(xpNow, bankedTotal) + 1));
 		int target = persisted >= 2 ? persisted : autoTarget;
 		// no persisted target: the field mirrors the auto value (a user edit
 		// in range persists and stops this; only edits persist, never auto).

@@ -133,7 +133,7 @@ public class GearModuleTest
 		StateFixture.stat(state, Skill.ATTACK, 40, 0);
 		GearProgressionModule module = new GearProgressionModule(state, new IronHubConfig()
 		{
-		}, new DataPack(new Gson()), null, null);
+		}, new DataPack(new Gson()), null, null, null);
 		module.startUp();
 		JPanel tab = (JPanel) module.buildTab();
 		java.awt.image.BufferedImage image = SwingRender.render(tab);
@@ -154,7 +154,7 @@ public class GearModuleTest
 		GearTab stone = new GearTab(state,
 			progression,
 			new DataPack(new Gson()).load("boosts", com.ironhub.data.BoostsPack.class),
-			null, false, hide -> { }, com.ironhub.ui.osrs.OsrsTheme.STONE);
+			null, false, hide -> { }, com.ironhub.ui.osrs.OsrsTheme.STONE, null);
 		java.awt.image.BufferedImage stoneImage = SwingRender.render(stone);
 		assertTrue(stoneImage.getHeight() > 100);
 		javax.imageio.ImageIO.write(stoneImage, "png",

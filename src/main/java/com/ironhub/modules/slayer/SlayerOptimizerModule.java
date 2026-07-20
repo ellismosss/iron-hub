@@ -145,6 +145,7 @@ public class SlayerOptimizerModule implements IronHubModule
 	// blocked task id -> name, resolved lazily on the client thread
 	private final Map<Integer, String> taskNamesById = new ConcurrentHashMap<>();
 
+	private final Provider<com.ironhub.modules.goals.GoalPlannerModule> planner; // null in unit tests
 	private final com.ironhub.integrations.ShortestPathBridge pathBridge; // null in unit tests
 	private final net.runelite.client.ui.overlay.OverlayManager overlayManager; // null in unit tests
 	private final net.runelite.client.chat.ChatMessageManager chatMessageManager; // null in unit tests
@@ -165,8 +166,10 @@ public class SlayerOptimizerModule implements IronHubModule
 		net.runelite.client.chat.ChatMessageManager chatMessageManager,
 		net.runelite.client.plugins.banktags.BankTagsService bankTagsService,
 		net.runelite.client.plugins.banktags.TagManager tagManager,
-		net.runelite.client.plugins.banktags.tabs.LayoutManager layoutManager)
+		net.runelite.client.plugins.banktags.tabs.LayoutManager layoutManager,
+		Provider<com.ironhub.modules.goals.GoalPlannerModule> planner)
 	{
+		this.planner = planner;
 		this.pathBridge = pathBridge;
 		this.overlayManager = overlayManager;
 		this.chatMessageManager = chatMessageManager;
@@ -539,7 +542,9 @@ public class SlayerOptimizerModule implements IronHubModule
 			}
 			if (!name.isEmpty() && onSkipList() && config.slayerBlockAdvice())
 			{
-				chat("You always skip " + name + " — 30 pts at the rewards board");
+				chat(planWantsTask(name)
+					? "You usually skip " + name + " — but your goal plan wants drops here"
+					: "You always skip " + name + " — 30 pts at the rewards board");
 			}
 			if (tab != null)
 			{
@@ -831,6 +836,25 @@ public class SlayerOptimizerModule implements IronHubModule
 	 * blocks not yet made at this master, or null. Stays silent while any
 	 * live slot's task id is still unresolved — never advise on a guess.
 	 */
+	/** True when the goal plan wants kills at this task's targets — the
+	 *  planner's cross-module seam (2026-07-20 intelligence arc). False
+	 *  headless or with the planner module off. */
+	boolean planWantsTask(String task)
+	{
+		if (planner == null || task == null || task.isEmpty())
+		{
+			return false;
+		}
+		try
+		{
+			return planner.get().planWantsKillsAt(task);
+		}
+		catch (RuntimeException e)
+		{
+			return false; // provider unbound (planner module absent)
+		}
+	}
+
 	String blockAdvice(SlayerTasksPack.Master master)
 	{
 		List<String> prefs = state.getSlayerBlockPref(master.name);
@@ -850,19 +874,44 @@ public class SlayerOptimizerModule implements IronHubModule
 			liveLower.add(name.toLowerCase());
 		}
 		List<String> toBlock = new ArrayList<>();
+		List<String> planWanted = new ArrayList<>();
 		for (String pref : prefs)
 		{
-			if (!liveLower.contains(pref.toLowerCase()))
+			if (liveLower.contains(pref.toLowerCase()))
+			{
+				continue;
+			}
+			// never advise blocking a task the goal plan wants kills at —
+			// the advisors must not contradict the plan (2026-07-20 arc)
+			if (planWantsTask(pref))
+			{
+				planWanted.add(pref);
+			}
+			else
 			{
 				toBlock.add(pref);
 			}
 		}
-		if (toBlock.isEmpty())
+		if (toBlock.isEmpty() && planWanted.isEmpty())
 		{
 			return null;
 		}
-		return "Block " + String.join(", ", toBlock) + " here — 100 pts each (you have "
-			+ points() + ")";
+		StringBuilder advice = new StringBuilder();
+		if (!toBlock.isEmpty())
+		{
+			advice.append("Block ").append(String.join(", ", toBlock))
+				.append(" here — 100 pts each (you have ").append(points()).append(")");
+		}
+		if (!planWanted.isEmpty())
+		{
+			if (advice.length() > 0)
+			{
+				advice.append(". ");
+			}
+			advice.append("Holding off on ").append(String.join(", ", planWanted))
+				.append(" — your goal plan wants drops there");
+		}
+		return advice.toString();
 	}
 
 	private void chat(String message)

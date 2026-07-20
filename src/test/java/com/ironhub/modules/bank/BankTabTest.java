@@ -33,7 +33,7 @@ public class BankTabTest
 		return new BankTab(state, null, null, null, selection, null,
 			dataPack.load("banked-xp", com.ironhub.data.BankedXpPack.class),
 			dataPack.load("xp-actions", com.ironhub.data.XpActionsPack.class),
-			com.ironhub.ui.osrs.OsrsTheme.STONE);
+			com.ironhub.ui.osrs.OsrsTheme.STONE, null);
 	}
 
 	@Test
@@ -475,7 +475,7 @@ public class BankTabTest
 		BankTrackerModule module = new BankTrackerModule(state, null, null,
 			new net.runelite.client.game.SkillIconManager(), null, null, null, null, null, null, new IronHubConfig()
 		{
-		}, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null);
+		}, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null);
 		module.startUp();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);

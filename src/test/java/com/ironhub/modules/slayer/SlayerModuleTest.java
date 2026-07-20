@@ -38,7 +38,7 @@ public class SlayerModuleTest
 	{
 		return new SlayerOptimizerModule(state, null, null, config, null, null,
 			new EventBus(), null, null, null, new DataPack(new Gson()), null,
-			null, null, null, null, null);
+			null, null, null, null, null, null);
 	}
 
 	@Test

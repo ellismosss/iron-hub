@@ -164,14 +164,14 @@ public class EdtCostProbeTest
 	private static Set<IronHubModule> buildModules(AccountState state, IronHubConfig config)
 	{
 		return Set.of(
-			new GearProgressionModule(state, config, new DataPack(new Gson()), null, null),
+			new GearProgressionModule(state, config, new DataPack(new Gson()), null, null, null),
 			new QuestsModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null),
 			new DiariesModule(state, config, new DataPack(new Gson())),
 			new CombatAchievementsModule(state, config, null,
 				new net.runelite.client.eventbus.EventBus(), new DataPack(new Gson()), null),
 			new QolModule(state, config, new DataPack(new Gson())),
 			new LootModule(state, null, config),
-			new BankTrackerModule(state, null, null, null, null, null, null, null, null, null, config, new DataPack(new Gson()), null),
+			new BankTrackerModule(state, null, null, null, null, null, null, null, null, null, config, new DataPack(new Gson()), null, null),
 			new FarmingRunModule(state, null, new net.runelite.client.eventbus.EventBus(),
 				null, null, null, config, null, new DataPack(new Gson()),
 				null, null, null, null, null, null, null),
@@ -182,7 +182,7 @@ public class EdtCostProbeTest
 				new net.runelite.client.eventbus.EventBus(), null),
 			new SlayerOptimizerModule(state, null, null, config, null, null,
 				new net.runelite.client.eventbus.EventBus(), null, null, null,
-				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null, null, null, null),
+				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null, null, null, null, null),
 			new SuppliesRunwayModule(state, null, config),
 			new CollectionLogModule(state, null, null,
 				new net.runelite.client.eventbus.EventBus(), config, new DataPack(new Gson()), null),

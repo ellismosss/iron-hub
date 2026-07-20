@@ -59,11 +59,15 @@ class GearTab extends JPanel
 	private String filter; // lower-case category, null = all
 	private boolean hideComplete;
 
+	/** itemId -> the current goal plan obtains it (null = no planner). */
+	private final java.util.function.IntPredicate plannedItem;
+
 	GearTab(AccountState state, GearProgressionPack pack, com.ironhub.data.BoostsPack boostsPack,
 		ItemManager itemManager,
 		boolean hideComplete, java.util.function.Consumer<Boolean> onHideCompleteChange,
-		OsrsTheme theme)
+		OsrsTheme theme, java.util.function.IntPredicate plannedItem)
 	{
+		this.plannedItem = plannedItem == null ? id -> false : plannedItem;
 		this.state = state;
 		this.pack = pack;
 		this.boostsPack = boostsPack;
@@ -288,6 +292,11 @@ class GearTab extends JPanel
 	{
 		StringBuilder html = new StringBuilder("<html><b>")
 			.append(item.getName()).append("</b>");
+		// itemId is null for manual entries (POH furniture) — no plan line
+		if (!obtained && item.getItemId() != null && plannedItem.test(item.getItemId()))
+		{
+			html.append("<br>In your current plan");
+		}
 		if (obtained)
 		{
 			html.append("<br>Obtained");

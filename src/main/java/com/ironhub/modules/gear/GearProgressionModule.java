@@ -29,13 +29,16 @@ public class GearProgressionModule implements IronHubModule
 	private final DataPack dataPack;
 	private final net.runelite.client.game.ItemManager itemManager; // null in headless tests
 	private final net.runelite.client.config.ConfigManager configManager; // null in headless tests
+	private final javax.inject.Provider<com.ironhub.modules.goals.GoalPlannerModule> planner; // null in tests
 	private GearTab tab;
 
 	@Inject
 	public GearProgressionModule(AccountState state, IronHubConfig config, DataPack dataPack,
 		net.runelite.client.game.ItemManager itemManager,
-		net.runelite.client.config.ConfigManager configManager)
+		net.runelite.client.config.ConfigManager configManager,
+		javax.inject.Provider<com.ironhub.modules.goals.GoalPlannerModule> planner)
 	{
+		this.planner = planner;
 		this.state = state;
 		this.config = config;
 		this.dataPack = dataPack;
@@ -84,9 +87,26 @@ public class GearProgressionModule implements IronHubModule
 					{
 						configManager.setConfiguration(com.ironhub.IronHubConfig.GROUP, "gearHideComplete", hide);
 					}
-				}, config.osrsTheme());
+				}, config.osrsTheme(), this::planWantsItem);
 		}
 		return tab;
+	}
+
+	/** Plan seam (2026-07-20 intelligence arc); false headless/planner-off. */
+	private boolean planWantsItem(int itemId)
+	{
+		if (planner == null)
+		{
+			return false;
+		}
+		try
+		{
+			return planner.get().planWantsItem(itemId);
+		}
+		catch (RuntimeException e)
+		{
+			return false;
+		}
 	}
 
 	/** A theme flip drops the tab; the host rebuilds it in the new clothes. */

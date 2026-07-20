@@ -37,6 +37,7 @@ public class BankTrackerModule implements IronHubModule
 	// ponytail: unused since the Grid/List chips went (2026-07-17); kept so
 	// the injected ctor arity stays pinned by the lifecycle tests
 	private final ConfigManager configManager;
+	private final javax.inject.Provider<com.ironhub.modules.goals.GoalPlannerModule> planner; // null in tests
 	private BankTab tab;
 
 	/** Items the player picked in the sidebar list — these get the green
@@ -67,8 +68,10 @@ public class BankTrackerModule implements IronHubModule
 		net.runelite.client.plugins.banktags.BankTagsService bankTagsService,
 		net.runelite.client.plugins.banktags.TagManager tagManager,
 		net.runelite.client.plugins.banktags.tabs.LayoutManager layoutManager,
-		IronHubConfig config, DataPack dataPack, ConfigManager configManager)
+		IronHubConfig config, DataPack dataPack, ConfigManager configManager,
+		javax.inject.Provider<com.ironhub.modules.goals.GoalPlannerModule> planner)
 	{
+		this.planner = planner;
 		this.state = state;
 		this.itemManager = itemManager;
 		this.clientThread = clientThread;
@@ -139,6 +142,31 @@ public class BankTrackerModule implements IronHubModule
 	Set<Integer> selection()
 	{
 		return selection;
+	}
+
+	/** The goal plan's TRAIN target for a skill display name, 0 = none —
+	 *  the plan seam (2026-07-20 intelligence arc). */
+	private int plannedTargetFor(String skillName)
+	{
+		if (planner == null)
+		{
+			return 0;
+		}
+		try
+		{
+			for (net.runelite.api.Skill skill : net.runelite.api.Skill.values())
+			{
+				if (skill.getName().equalsIgnoreCase(skillName))
+				{
+					return planner.get().plannedTargetLevel(skill);
+				}
+			}
+		}
+		catch (RuntimeException e)
+		{
+			// provider unbound (planner module absent) — no plan, no target
+		}
+		return 0;
 	}
 
 	/**
@@ -225,7 +253,7 @@ public class BankTrackerModule implements IronHubModule
 				this::setBankDisplay,
 				dataPack.load("banked-xp", BankedXpPack.class),
 				dataPack.load("xp-actions", com.ironhub.data.XpActionsPack.class),
-				config.osrsTheme());
+				config.osrsTheme(), this::plannedTargetFor);
 		}
 		return tab;
 	}
