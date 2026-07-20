@@ -54,6 +54,7 @@ public class AccountState implements StateView
 	private final Client client;
 	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
 	private final ProfileStore store;
+	private final net.runelite.client.callback.ClientThread clientThread; // null in unit tests
 
 	private final Map<Skill, Integer> realLevels = new ConcurrentHashMap<>();
 	private final Map<Skill, Integer> xp = new ConcurrentHashMap<>();
@@ -191,6 +192,7 @@ public class AccountState implements StateView
 	private volatile int[] inventorySlots = new int[0]; // container order, -1 = empty
 	private volatile int[] equipmentSlots = new int[0]; // EquipmentInventorySlot index order
 	private volatile boolean inventoryDirty;
+	private volatile boolean bankDirty;
 	/** Rune pouch contents (rune item id -> quantity), rebuilt from the pouch
 	 *  varbits on the client thread; empty until seen / when unavailable. */
 	private volatile Map<Integer, Integer> runePouch = Map.of();
@@ -246,11 +248,13 @@ public class AccountState implements StateView
 	};
 
 	@Inject
-	public AccountState(Client client, net.runelite.client.game.ItemManager itemManager, ProfileStore store)
+	public AccountState(Client client, net.runelite.client.game.ItemManager itemManager,
+		ProfileStore store, net.runelite.client.callback.ClientThread clientThread)
 	{
 		this.client = client;
 		this.itemManager = itemManager;
 		this.store = store;
+		this.clientThread = clientThread;
 		// the rune pouch backs teleport-rune requirements everywhere (farm runs,
 		// loadouts); track it as core account state, not per-module.
 		watchVarbits(POUCH_RUNE_VARBITS);
@@ -517,6 +521,16 @@ public class AccountState implements StateView
 
 	private void notifyListeners()
 	{
+		// honour the addListener contract: module listeners assume the client
+		// thread, but EDT tab writes and the planner's recordGoalCompletion
+		// used to fan out on the caller's thread, racing client-thread
+		// notifies of the same listeners — the GoalArchiveTest race family
+		// (2026-07-20 audit). Headless stays synchronous for tests.
+		if (client != null && clientThread != null && !client.isClientThread())
+		{
+			clientThread.invoke(this::notifyListeners);
+			return;
+		}
 		// isolate listeners: one throwing module must not skip the rest or
 		// propagate into the client-thread event handler (2026-07-20 audit)
 		for (Runnable listener : listeners)
@@ -1962,7 +1976,13 @@ public class AccountState implements StateView
 			{
 				if (isPouchVarbit(event.getVarbitId()))
 				{
+					// pouch contents are inventory-like: every cast in
+					// pouch-rune combat moves an amount varbit, and a full
+					// listener fan-out per cast was sustained mid-combat
+					// churn (2026-07-20 audit) — ride the inventory throttle
 					rebuildRunePouch();
+					inventoryDirty = true;
+					return;
 				}
 				if (event.getVarbitId() == net.runelite.api.Varbits.ACCOUNT_TYPE)
 				{
@@ -2028,6 +2048,11 @@ public class AccountState implements StateView
 			refreshContainers();
 			notifyListeners();
 		}
+		if (bankDirty) // at most one fan-out per tick, not one per slot event
+		{
+			bankDirty = false;
+			notifyListeners();
+		}
 		if (inventoryDirty && tick % 10 == 0) // ~6s: keeps panel rebuilds sane
 		{
 			inventoryDirty = false;
@@ -2085,7 +2110,14 @@ public class AccountState implements StateView
 				itemNames.computeIfAbsent(id, i -> itemManager.getItemComposition(i).getName());
 			}
 		}
-		notifyListeners();
+		if (client == null)
+		{
+			notifyListeners(); // headless: no ticks, keep the synchronous contract
+		}
+		else
+		{
+			bankDirty = true; // a deposit storm fires many container events per tick
+		}
 	}
 
 	void ingestItemNames(Map<Integer, String> names)

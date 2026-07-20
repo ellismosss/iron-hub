@@ -198,6 +198,11 @@ public class FarmingRunModule implements IronHubModule
 	/** Cross-module read seam (WhatNow, Dashboard): patches ready now. */
 	private static volatile int sharedReadyPatches;
 
+	/** runReady answers, valid for one tracker refresh; ConcurrentHashMap
+	 *  because the EDT (picker rows) and client thread (re-tick) both read. */
+	private final java.util.concurrent.ConcurrentHashMap<String, Boolean> runReadyCache =
+		new java.util.concurrent.ConcurrentHashMap<>();
+
 	// notification bookkeeping (client thread): category -> already notified
 	private final Set<String> notifiedReady = ConcurrentHashMap.newKeySet();
 	private boolean firstRefresh = true;
@@ -432,8 +437,10 @@ public class FarmingRunModule implements IronHubModule
 			lastRefreshTick = refreshTick;
 			refreshTracking();
 		}
-		// the patch may have finished growing/been planted since last check
-		checkAdvance();
+		// no per-tick checkAdvance: the planted signal only moves when the
+		// tracker refreshes (above, 2-tick floor when dirty) and the compost
+		// signal calls checkAdvance itself — the unconditional call was a
+		// full nextStop+patch scan every 600ms for nothing (2026-07-20 audit)
 	}
 
 	/**
@@ -488,6 +495,7 @@ public class FarmingRunModule implements IronHubModule
 			return;
 		}
 		tracking.refresh();
+		runReadyCache.clear(); // fresh tracker data — recompute readiness lazily
 		sharedReadyPatches = tracking.readyPatchCount();
 		reTickReadyRuns();
 		notifyTransitions();
@@ -2000,6 +2008,23 @@ public class FarmingRunModule implements IronHubModule
 	 * ready-first lift, the auto-retick and the green row.
 	 */
 	boolean runReady(String name)
+	{
+		// memoized per tracker refresh: pickerOrder()'s sort key, the picker
+		// rows and reTickReadyRuns all ask per run, and one uncached answer
+		// is a full walk of the run's locations with requirement re-parses
+		// and patch predictions (2026-07-20 audit — the sort alone re-ran
+		// this ~25-60x per call). Cache cleared in refreshTracking().
+		Boolean cached = runReadyCache.get(name);
+		if (cached != null)
+		{
+			return cached;
+		}
+		boolean ready = computeRunReady(name);
+		runReadyCache.put(name, ready);
+		return ready;
+	}
+
+	private boolean computeRunReady(String name)
 	{
 		if (tracking == null)
 		{

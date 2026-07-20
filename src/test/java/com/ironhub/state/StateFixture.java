@@ -20,7 +20,7 @@ public final class StateFixture
 	public static AccountState state(File storageDir)
 	{
 		// Runnable::run = synchronous writes, so tests see files immediately
-		return new AccountState(null, null, new ProfileStore(new Gson(), Runnable::run, storageDir));
+		return new AccountState(null, null, new ProfileStore(new Gson(), Runnable::run, storageDir), null);
 	}
 
 	public static ProfileStore store(File storageDir)

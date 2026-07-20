@@ -136,7 +136,16 @@ public final class PortTaskPlanner
 	public static double marginalDistance(PortTasksPack pack, int fromPort,
 		List<Job> active, Job candidate)
 	{
-		double without = tourDistance(pack, fromPort, active);
+		return marginalDistance(pack, fromPort, active,
+			tourDistance(pack, fromPort, active), candidate);
+	}
+
+	/** As above with the base tour precomputed — rankOffers scores every
+	 *  offer against the same active set, so the identical "without" tour
+	 *  is Held-Karp'd once, not once per offer (2026-07-20 audit). */
+	public static double marginalDistance(PortTasksPack pack, int fromPort,
+		List<Job> active, double without, Job candidate)
+	{
 		List<Job> with = new ArrayList<>(active);
 		with.add(candidate);
 		double total = tourDistance(pack, fromPort, with);

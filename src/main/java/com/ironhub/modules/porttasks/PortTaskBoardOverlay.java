@@ -23,6 +23,11 @@ class PortTaskBoardOverlay extends Overlay
 	private final IronHubConfig config;
 	private final PanelComponent panel = new PanelComponent();
 
+	/** rankOffers is an exact Held-Karp tour per courier offer — recompute
+	 *  only when its inputs change, never per frame (2026-07-20 audit). */
+	private List<PortTasksModule.Advice> ranked = List.of();
+	private Object rankedKey;
+
 	PortTaskBoardOverlay(PortTasksModule module, IronHubConfig config)
 	{
 		this.module = module;
@@ -39,7 +44,12 @@ class PortTaskBoardOverlay extends Overlay
 		}
 		panel.getChildren().clear();
 		panel.getChildren().add(TitleComponent.builder().text("Best picks").build());
-		List<PortTasksModule.Advice> ranked = module.rankOffers();
+		Object key = module.adviceKey();
+		if (!key.equals(rankedKey))
+		{
+			rankedKey = key;
+			ranked = module.rankOffers();
+		}
 		if (ranked.isEmpty())
 		{
 			panel.getChildren().add(LineComponent.builder()

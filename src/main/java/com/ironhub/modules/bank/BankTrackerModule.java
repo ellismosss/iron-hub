@@ -50,6 +50,13 @@ public class BankTrackerModule implements IronHubModule
 	private volatile String bankTitle = "";
 	private com.ironhub.ui.components.BankCollectView collectView;
 
+	/** Debounces the live bank re-collect: each apply is a full tag rewrite
+	 *  (~50 config writes) + bank relayout on the client thread, and a
+	 *  sidebar search changes the display list per keystroke (2026-07-20
+	 *  audit) — apply once the sidebar settles. */
+	private final javax.swing.Timer bankDisplayTimer =
+		new javax.swing.Timer(300, e -> applyBankDisplay());
+
 	@Inject
 	public BankTrackerModule(AccountState state, ItemManager itemManager,
 		net.runelite.client.callback.ClientThread clientThread,
@@ -74,6 +81,7 @@ public class BankTrackerModule implements IronHubModule
 		this.config = config;
 		this.dataPack = dataPack;
 		this.configManager = configManager;
+		bankDisplayTimer.setRepeats(false);
 	}
 
 	@Override
@@ -115,6 +123,7 @@ public class BankTrackerModule implements IronHubModule
 			selectionOverlay = null;
 		}
 		selection.clear();
+		bankDisplayTimer.stop(); // a pending debounced apply must not fire post-shutdown
 		bankDisplay = java.util.List.of();
 		if (clientThread != null)
 		{
@@ -147,18 +156,27 @@ public class BankTrackerModule implements IronHubModule
 		bankTitle = title;
 		if (clientThread != null)
 		{
-			clientThread.invoke(() ->
-			{
-				if (bankDisplay.isEmpty())
-				{
-					collectView.clear();
-				}
-				else
-				{
-					collectView.apply(bankDisplay);
-				}
-			});
+			bankDisplayTimer.restart();
 		}
+	}
+
+	private void applyBankDisplay()
+	{
+		if (clientThread == null)
+		{
+			return;
+		}
+		clientThread.invoke(() ->
+		{
+			if (bankDisplay.isEmpty())
+			{
+				collectView.clear();
+			}
+			else
+			{
+				collectView.apply(bankDisplay);
+			}
+		});
 	}
 
 	/** Re-assert the collected view when the bank opens — AFTER the init

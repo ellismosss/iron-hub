@@ -133,10 +133,27 @@ public class PortTasksModule implements IronHubModule
 	private PortTasksTab tab;
 	private PortTaskBoardOverlay overlay;
 
-	private final Map<Integer, CourierInfo> courierById = new HashMap<>();
-	private final Map<Integer, CourierInfo> courierByDbrow = new HashMap<>();
-	private final Map<Integer, BountyInfo> bountyById = new HashMap<>();
-	private final Map<Integer, BountyInfo> bountyByDbrow = new HashMap<>();
+	/** Immutable catalog snapshot, published atomically — the client thread
+	 *  rebuilds it while the EDT tab iterates (2026-07-20 audit: clear+put
+	 *  on shared HashMaps raced the readers). */
+	private volatile Catalog catalog = new Catalog(Map.of(), Map.of(), Map.of(), Map.of());
+
+	private static final class Catalog
+	{
+		final Map<Integer, CourierInfo> courierById;
+		final Map<Integer, CourierInfo> courierByDbrow;
+		final Map<Integer, BountyInfo> bountyById;
+		final Map<Integer, BountyInfo> bountyByDbrow;
+
+		Catalog(Map<Integer, CourierInfo> courierById, Map<Integer, CourierInfo> courierByDbrow,
+			Map<Integer, BountyInfo> bountyById, Map<Integer, BountyInfo> bountyByDbrow)
+		{
+			this.courierById = courierById;
+			this.courierByDbrow = courierByDbrow;
+			this.bountyById = bountyById;
+			this.bountyByDbrow = bountyByDbrow;
+		}
+	}
 	private volatile boolean catalogLoaded;
 
 	private volatile boolean boardOpen;
@@ -361,10 +378,10 @@ public class PortTasksModule implements IronHubModule
 	/** Test seam / catalog commit. */
 	void setCatalog(List<CourierInfo> couriers, List<BountyInfo> bounties)
 	{
-		courierById.clear();
-		courierByDbrow.clear();
-		bountyById.clear();
-		bountyByDbrow.clear();
+		Map<Integer, CourierInfo> courierById = new HashMap<>();
+		Map<Integer, CourierInfo> courierByDbrow = new HashMap<>();
+		Map<Integer, BountyInfo> bountyById = new HashMap<>();
+		Map<Integer, BountyInfo> bountyByDbrow = new HashMap<>();
 		for (CourierInfo c : couriers)
 		{
 			courierById.put(c.id, c);
@@ -375,6 +392,7 @@ public class PortTasksModule implements IronHubModule
 			bountyById.put(b.id, b);
 			bountyByDbrow.put(b.dbrow, b);
 		}
+		catalog = new Catalog(courierById, courierByDbrow, bountyById, bountyByDbrow);
 		catalogLoaded = !courierById.isEmpty() || !bountyById.isEmpty();
 		refreshTab();
 	}
@@ -413,8 +431,9 @@ public class PortTasksModule implements IronHubModule
 			ActiveTask task = new ActiveTask();
 			task.slot = slot;
 			task.taskId = id;
-			task.courier = courierById.get(id);
-			task.bounty = task.courier == null ? bountyById.get(id) : null;
+			Catalog cat = catalog;
+			task.courier = cat.courierById.get(id);
+			task.bounty = task.courier == null ? cat.bountyById.get(id) : null;
 			task.taken = state.getVarbit(SLOT_TAKEN[slot]);
 			task.delivered = state.getVarbit(SLOT_DELIVERED[slot]);
 			if (task.bounty != null)
@@ -551,17 +570,20 @@ public class PortTasksModule implements IronHubModule
 		int sailing = state.getRealLevel(Skill.SAILING);
 		int from = boardPortOf(lastOffers);
 		List<PortTaskPlanner.Job> active = activeJobs();
+		double baseTour = from == 0 ? Double.NaN
+			: PortTaskPlanner.tourDistance(pack, from, active);
 		java.util.Set<Integer> heldIds = new java.util.HashSet<>();
 		for (ActiveTask task : activeTasks())
 		{
 			heldIds.add(task.taskId);
 		}
+		Catalog cat = catalog;
 		List<Advice> couriers = new ArrayList<>();
 		List<Advice> bounties = new ArrayList<>();
 		for (int dbrow : lastOffers)
 		{
-			CourierInfo c = courierByDbrow.get(dbrow);
-			BountyInfo b = c == null ? bountyByDbrow.get(dbrow) : null;
+			CourierInfo c = cat.courierByDbrow.get(dbrow);
+			BountyInfo b = c == null ? cat.bountyByDbrow.get(dbrow) : null;
 			PortTasksPack.Reward reward = pack.reward(dbrow);
 			Advice advice = new Advice();
 			advice.dbrow = dbrow;
@@ -574,7 +596,7 @@ public class PortTasksModule implements IronHubModule
 				advice.levelGated = sailing < c.level;
 				advice.alreadyTaken = heldIds.contains(c.id);
 				advice.marginalTiles = from == 0 ? Double.NaN
-					: PortTaskPlanner.marginalDistance(pack, from, active,
+					: PortTaskPlanner.marginalDistance(pack, from, active, baseTour,
 						new PortTaskPlanner.Job(c.cargoPort, c.deliverPort));
 				advice.score = advice.xp > 0 && advice.marginalTiles > 0
 					? advice.xp / advice.marginalTiles
@@ -611,17 +633,39 @@ public class PortTasksModule implements IronHubModule
 		return out;
 	}
 
+	/**
+	 * Cheap identity of everything rankOffers reads — board offers, slot
+	 * varbits, Sailing level. The board overlay recomputes the Held-Karp
+	 * ranking only when this changes (2026-07-20 audit: it ran the full
+	 * exact-tour ranking per rendered frame while the board was open).
+	 */
+	Object adviceKey()
+	{
+		List<Object> key = new ArrayList<>();
+		key.add(lastOffers);
+		key.add(state.getRealLevel(Skill.SAILING));
+		for (int slot = 0; slot < SLOT_ID.length; slot++)
+		{
+			key.add(state.getVarbit(SLOT_ID[slot]));
+			key.add(state.getVarbit(SLOT_TAKEN[slot]));
+			key.add(state.getVarbit(SLOT_DELIVERED[slot]));
+			key.add(state.getVarbit(SLOT_COUNT[slot]));
+		}
+		return key;
+	}
+
 	/** The port a set of offers is posted at (their shared board port). */
 	private int boardPortOf(List<Integer> offerDbrows)
 	{
+		Catalog cat = catalog;
 		for (int dbrow : offerDbrows)
 		{
-			CourierInfo c = courierByDbrow.get(dbrow);
+			CourierInfo c = cat.courierByDbrow.get(dbrow);
 			if (c != null)
 			{
 				return c.boardPort;
 			}
-			BountyInfo b = bountyByDbrow.get(dbrow);
+			BountyInfo b = cat.bountyByDbrow.get(dbrow);
 			if (b != null)
 			{
 				return b.port;
@@ -667,7 +711,7 @@ public class PortTasksModule implements IronHubModule
 			s.port = port;
 			s.unlocked = port.level == null || sailing >= port.level;
 			s.preferred = preferred.contains(port.dbrow);
-			for (CourierInfo c : courierByDbrow.values())
+			for (CourierInfo c : catalog.courierByDbrow.values())
 			{
 				if (c.boardPort != port.dbrow || sailing < c.level || c.xp <= 0)
 				{

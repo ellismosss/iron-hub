@@ -1043,7 +1043,14 @@ class FarmingTab extends JPanel
 	/** One run stop: name coloured by progress, Skip on what is still to do. */
 	private JComponent stopRow(FarmingRunModule.Stop stop, boolean isNext)
 	{
-		JPanel row = new JPanel();
+		JPanel row = new JPanel()
+		{
+			@Override
+			public String getToolTipText()
+			{
+				return stopTooltip(stop);
+			}
+		};
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setOpaque(isNext);
 		if (isNext)
@@ -1053,10 +1060,21 @@ class FarmingTab extends JPanel
 		row.setAlignmentX(LEFT_ALIGNMENT);
 		boolean visited = module.isVisited(stop.location.id);
 		Color color = visited ? OsrsSkin.VALUE : isNext ? OsrsSkin.TITLE : OsrsSkin.MUTED;
-		OsrsLabel name = new OsrsLabel(module.stopLabel(stop), color, OsrsSkin.font()).leftAligned();
-		String tooltip = stopTooltip(stop);
-		name.setToolTipText(tooltip);
-		row.setToolTipText(tooltip);
+		// tooltip computed on hover only: eager stopTooltip was a full patch
+		// scan + missing-items expansion per stop per rebuild, during the
+		// busiest event window the module has, for hover text (2026-07-20
+		// audit). setToolTipText("") registers with ToolTipManager; the
+		// override supplies the text.
+		OsrsLabel name = new OsrsLabel(module.stopLabel(stop), color, OsrsSkin.font())
+		{
+			@Override
+			public String getToolTipText()
+			{
+				return stopTooltip(stop);
+			}
+		}.leftAligned();
+		name.setToolTipText("");
+		row.setToolTipText(""); // the override below serves the row too
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
 		if (!visited)
