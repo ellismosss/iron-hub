@@ -660,29 +660,46 @@ public class AccountState implements StateView
 		notifyListeners();
 	}
 
-	/** Rumour records, oldest first (copies). */
-	public java.util.List<PersistedState.RumourRecord> getRumourRecords()
+	/** Element-copied view of a record list (oldest first). */
+	private static <T> java.util.List<T> copyOut(java.util.List<T> records,
+		java.util.function.UnaryOperator<T> copy)
 	{
-		java.util.List<PersistedState.RumourRecord> out = new java.util.ArrayList<>();
-		for (PersistedState.RumourRecord r : rumourRecords)
+		java.util.List<T> out = new java.util.ArrayList<>(records.size());
+		for (T r : records)
 		{
-			out.add(r.copy());
+			out.add(copy.apply(r));
 		}
 		return out;
 	}
 
-	public void setRumourRecords(java.util.List<PersistedState.RumourRecord> records)
+	/** Replace a record list with capped element copies, persist + notify —
+	 *  the shape every record family shares (2026-07-20 audit: previously
+	 *  triplicated verbatim). */
+	private <T> void replaceCapped(java.util.List<T> target, java.util.List<T> records,
+		int cap, java.util.function.UnaryOperator<T> copy)
 	{
-		java.util.List<PersistedState.RumourRecord> copies = new java.util.ArrayList<>();
-		int from = Math.max(0, records.size() - MAX_RUMOUR_RECORDS);
-		for (PersistedState.RumourRecord r : records.subList(from, records.size()))
+		java.util.List<T> copies = new java.util.ArrayList<>();
+		int from = Math.max(0, records.size() - cap);
+		for (T r : records.subList(from, records.size()))
 		{
-			copies.add(r.copy());
+			copies.add(copy.apply(r));
 		}
-		rumourRecords.clear();
-		rumourRecords.addAll(copies);
+		target.clear();
+		target.addAll(copies);
 		persist();
 		notifyListeners();
+	}
+
+	/** Rumour records, oldest first (copies). */
+	public java.util.List<PersistedState.RumourRecord> getRumourRecords()
+	{
+		return copyOut(rumourRecords, PersistedState.RumourRecord::copy);
+	}
+
+	public void setRumourRecords(java.util.List<PersistedState.RumourRecord> records)
+	{
+		replaceCapped(rumourRecords, records, MAX_RUMOUR_RECORDS,
+			PersistedState.RumourRecord::copy);
 	}
 
 	// ── POH progression ───────────────────────────────────────────────
@@ -928,12 +945,7 @@ public class AccountState implements StateView
 	/** Completed-goal records, oldest first; one per goalId (latest wins). */
 	public java.util.List<PersistedState.GoalRecord> getGoalRecords()
 	{
-		java.util.List<PersistedState.GoalRecord> out = new java.util.ArrayList<>();
-		for (PersistedState.GoalRecord r : goalRecords)
-		{
-			out.add(r.copy());
-		}
-		return out;
+		return copyOut(goalRecords, PersistedState.GoalRecord::copy);
 	}
 
 	/**
@@ -958,27 +970,14 @@ public class AccountState implements StateView
 	/** Slayer task records, oldest first (copies — mutate via setSlayerRecords). */
 	public java.util.List<PersistedState.SlayerTaskRecord> getSlayerRecords()
 	{
-		java.util.List<PersistedState.SlayerTaskRecord> out = new java.util.ArrayList<>();
-		for (PersistedState.SlayerTaskRecord r : slayerRecords)
-		{
-			out.add(r.copy());
-		}
-		return out;
+		return copyOut(slayerRecords, PersistedState.SlayerTaskRecord::copy);
 	}
 
 	/** Replace the record list (module owns the working copy); caps and copies. */
 	public void setSlayerRecords(java.util.List<PersistedState.SlayerTaskRecord> records)
 	{
-		java.util.List<PersistedState.SlayerTaskRecord> copies = new java.util.ArrayList<>();
-		int from = Math.max(0, records.size() - MAX_SLAYER_RECORDS);
-		for (PersistedState.SlayerTaskRecord r : records.subList(from, records.size()))
-		{
-			copies.add(r.copy());
-		}
-		slayerRecords.clear();
-		slayerRecords.addAll(copies);
-		persist();
-		notifyListeners();
+		replaceCapped(slayerRecords, records, MAX_SLAYER_RECORDS,
+			PersistedState.SlayerTaskRecord::copy);
 	}
 
 	public String getSlayerNote(String task)

@@ -1567,28 +1567,12 @@ class GoalsHubTab extends JPanel
 
 	private static String compactHours(double hours)
 	{
-		if (Double.isNaN(hours))
-		{
-			return "?";
-		}
-		if (hours < 1)
-		{
-			return Math.max(1, Math.round(hours * 60)) + "m";
-		}
-		return Math.round(hours * 10) / 10.0 + "h";
+		return PlannerOverlay.compactHours(hours); // one format — see PlannerOverlay
 	}
 
 	private static String compactXp(long xp)
 	{
-		if (xp >= 1_000_000)
-		{
-			return Math.round(xp / 100_000.0) / 10.0 + "M";
-		}
-		if (xp >= 1000)
-		{
-			return Math.round(xp / 1000.0) + "k";
-		}
-		return String.valueOf(xp);
+		return PlannerOverlay.compactXp(xp);
 	}
 
 	// ── layout atoms (the mockup grammar) ──────────────────────────────

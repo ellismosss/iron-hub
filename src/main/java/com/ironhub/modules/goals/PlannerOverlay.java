@@ -734,11 +734,14 @@ class PlannerOverlay extends OverlayPanel
 		return String.format(Locale.ROOT, "%,d", count);
 	}
 
+	// ONE formatter set for the goals package — GoalsHubTab carried silently
+	// divergent copies ("1.2m" vs "1.2M", different minute rounding) until
+	// the 2026-07-20 audit; the tab's rules (Luke's polish rounds) won.
 	static String compactXp(long xp)
 	{
 		if (xp >= 1_000_000)
 		{
-			return String.format(Locale.ROOT, "%.1fm", xp / 1_000_000.0);
+			return Math.round(xp / 100_000.0) / 10.0 + "M";
 		}
 		if (xp >= 1_000)
 		{
@@ -749,10 +752,14 @@ class PlannerOverlay extends OverlayPanel
 
 	static String compactHours(double hours)
 	{
-		if (hours < 0.95)
+		if (Double.isNaN(hours))
 		{
-			return Math.max(5, Math.round(hours * 60 / 5) * 5) + "m";
+			return "?";
 		}
-		return String.format(Locale.ROOT, "%.1fh", hours);
+		if (hours < 1)
+		{
+			return Math.max(1, Math.round(hours * 60)) + "m";
+		}
+		return Math.round(hours * 10) / 10.0 + "h";
 	}
 }

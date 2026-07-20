@@ -414,15 +414,22 @@ public class SlayerOptimizerModule implements IronHubModule
 		return out;
 	}
 
+	/** DBTable lookups already queued — one invoke + one rebuild per id,
+	 *  not one per tab rebuild per id (2026-07-20 audit: opening Blocks
+	 *  with several unresolved ids queued O(n^2) duplicate lookups). */
+	private final Set<Integer> taskNameLookups = ConcurrentHashMap.newKeySet();
+
 	/** Task name for a blocked task id, or null until resolved (client thread). */
 	String taskNameById(int taskId)
 	{
 		String cached = taskNamesById.get(taskId);
-		if (cached == null && client != null && clientThread != null)
+		if (cached == null && client != null && clientThread != null
+			&& taskNameLookups.add(taskId))
 		{
 			clientThread.invoke(() ->
 			{
 				String resolved = lookupTaskName(taskId);
+				taskNameLookups.remove(taskId); // unresolved may retry later
 				if (resolved != null)
 				{
 					taskNamesById.put(taskId, resolved);
