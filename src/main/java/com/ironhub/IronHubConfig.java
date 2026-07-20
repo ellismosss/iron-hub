@@ -47,7 +47,7 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "dailies", name = "Dailies", description = "Daily and weekly activity reminders", section = modulesSection, position = 10)
 	default boolean dailies() { return true; }
 
-	@ConfigItem(keyName = "boatUpgrades", name = "Boat upgrades", description = "Sailing boat upgrade tracking", section = modulesSection, position = 11)
+	@ConfigItem(keyName = "boatUpgrades", name = "Sailing upgrades", description = "Per-boat available upgrades, materials owned and next locked tiers", section = modulesSection, position = 11)
 	default boolean boatUpgrades() { return true; }
 
 	@ConfigItem(keyName = "goalPlanner", name = "Goal planner", description = "Dependency-tree plans for any target (item, quest, capstone)", section = modulesSection, position = 12)

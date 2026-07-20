@@ -161,6 +161,36 @@ public final class GoalSeeds
 		return seed;
 	}
 
+	/** A Sailing boat upgrade: level/schematic gates become steps, each
+	 *  material a gatherable {@code item:} step, then building it — proven
+	 *  by the {@code boatbuilt_<id>} unlock the Sailing-upgrades module
+	 *  marks when it detects the part on the boarded boat. */
+	public static PersistedState.GoalSeed boatUpgrade(String rowId, String name,
+		String boatLabel, int icon, List<String> reqs, List<String> materialReqs)
+	{
+		String proof = "unlock:" + boatProofKey(rowId);
+		PersistedState.GoalSeed seed = base("boat", "boat:" + rowId,
+			name + " (" + boatLabel + ")");
+		seed.iconItemId = icon;
+		for (String raw : reqs)
+		{
+			seed.steps.add(step(Requirements.parse(raw).describe(), raw));
+		}
+		for (String raw : materialReqs)
+		{
+			seed.steps.add(step("Gather " + Requirements.parse(raw).describe(), raw));
+		}
+		seed.steps.add(step("Build " + name + " at the shipyard", proof));
+		seed.achieved.add(proof);
+		return seed;
+	}
+
+	/** The boat upgrade's proof-unlock key (row ids carry no colons). */
+	public static String boatProofKey(String rowId)
+	{
+		return "boatbuilt_" + rowId.replace(':', '_');
+	}
+
 	private static String gpText(long gp)
 	{
 		if (Math.abs(gp) >= 1_000_000)

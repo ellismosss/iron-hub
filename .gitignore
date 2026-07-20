@@ -7,3 +7,4 @@ out/
 .DS_Store
 tools/.cache-*/
 tools/.cache-methods/
+tools/__pycache__/

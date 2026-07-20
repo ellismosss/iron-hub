@@ -53,7 +53,8 @@ public class IronHubPanel extends PluginPanel
 		"Combat", List.of("Loadout", "Slayer", "Loot & supplies"),
 		"Dailies", List.of("Dailies", "Farm runs", "Hunters' Rumours"),
 		"Progression", List.of("Collection log", "Combat achievements", "Gear progression",
-			"PoH", "Achievement diaries", "Quests", "Clues & STASH", "QoL checklist"),
+			"PoH", "Sailing upgrades", "Achievement diaries", "Quests", "Clues & STASH",
+			"QoL checklist"),
 		"Bank", List.of("Bank & banked XP", "Money making", "Supplies runway", "Death recovery"),
 		"Settings", List.of("Design lab"));
 

@@ -131,6 +131,26 @@ public class PersistedState
 	java.util.Set<Integer> stashBuilt = new java.util.HashSet<>();  // built STASH object ids
 	java.util.Set<Integer> stashFilled = new java.util.HashSet<>(); // filled STASH object ids
 
+	/** Sailing boats as last seen boarded, keyed by boat type ("0" raft /
+	 *  "1" skiff / "2" sloop) — the sidepanel varbits and the facility scan
+	 *  only resolve while ON the boat, so this is the offline snapshot. */
+	Map<String, BoatSnapshot> sailingBoats = new HashMap<>();
+
+	public static class BoatSnapshot
+	{
+		/** Part key (boat-upgrades pack) -> highest tier seen built. */
+		public Map<String, Integer> partTiers = new HashMap<>();
+		public long lastSeen;   // epoch ms of the last sync
+
+		public BoatSnapshot copy()
+		{
+			BoatSnapshot c = new BoatSnapshot();
+			c.partTiers = new HashMap<>(partTiers);
+			c.lastSeen = lastSeen;
+			return c;
+		}
+	}
+
 	/**
 	 * The unified goal seed (Goals v2 G1): every synthetic goal family —
 	 * ca / diary / clue / clog / custom, and families to come — persists

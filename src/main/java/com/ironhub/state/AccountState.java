@@ -108,6 +108,7 @@ public class AccountState implements StateView
 
 	// built POH tiers (pack tier ids)
 	private final Set<String> pohBuilt = ConcurrentHashMap.newKeySet();
+	private final Map<String, PersistedState.BoatSnapshot> sailingBoats = new ConcurrentHashMap<>();
 
 	// hunters' rumours: preferred locations + capped records
 	public static final int MAX_RUMOUR_RECORDS = 50;
@@ -657,6 +658,42 @@ public class AccountState implements StateView
 	public void setPohBuiltBulk(java.util.Collection<String> tierIds)
 	{
 		if (pohBuilt.addAll(tierIds))
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	// ── sailing boats ─────────────────────────────────────────────────
+
+	/** Boat-type key ("0" raft / "1" skiff / "2" sloop) -> last-boarding
+	 *  snapshot. Read-only copy. */
+	public Map<String, PersistedState.BoatSnapshot> getSailingBoats()
+	{
+		Map<String, PersistedState.BoatSnapshot> out = new HashMap<>();
+		sailingBoats.forEach((k, v) -> out.put(k, v.copy()));
+		return out;
+	}
+
+	/** Commit a boat sync: part tiers as detected on the boarded boat.
+	 *  Tiers only ever rise (a scan that missed a facility must not
+	 *  downgrade a previously seen one). */
+	public void putSailingBoat(int boatType, Map<String, Integer> partTiers, long now)
+	{
+		PersistedState.BoatSnapshot snap = sailingBoats.computeIfAbsent(
+			String.valueOf(boatType), k -> new PersistedState.BoatSnapshot());
+		boolean changed = snap.lastSeen == 0;
+		for (Map.Entry<String, Integer> e : partTiers.entrySet())
+		{
+			Integer cur = snap.partTiers.get(e.getKey());
+			if (e.getValue() >= 0 && (cur == null || e.getValue() > cur))
+			{
+				snap.partTiers.put(e.getKey(), e.getValue());
+				changed = true;
+			}
+		}
+		snap.lastSeen = now;
+		if (changed)
 		{
 			persist();
 			notifyListeners();
@@ -2047,6 +2084,8 @@ public class AccountState implements StateView
 		deaths.addAll(persisted.deaths);
 		pohBuilt.clear();
 		pohBuilt.addAll(persisted.pohBuilt);
+		sailingBoats.clear();
+		persisted.sailingBoats.forEach((k, v) -> sailingBoats.put(k, v.copy()));
 		rumourPrefLocations.clear();
 		rumourPrefLocations.putAll(persisted.rumourPrefLocations);
 		rumourRecords.clear();
@@ -2182,6 +2221,7 @@ public class AccountState implements StateView
 		state.consumptionLog = new java.util.ArrayList<>(consumptionLog);
 		state.deaths = new java.util.ArrayList<>(deaths);
 		state.pohBuilt = new HashSet<>(pohBuilt);
+		sailingBoats.forEach((k, v) -> state.sailingBoats.put(k, v.copy()));
 		state.rumourPrefLocations = new HashMap<>(rumourPrefLocations);
 		for (PersistedState.RumourRecord r : rumourRecords)
 		{

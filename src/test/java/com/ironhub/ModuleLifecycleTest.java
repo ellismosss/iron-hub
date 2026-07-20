@@ -87,9 +87,12 @@ public class ModuleLifecycleTest
 				null, null, new net.runelite.client.eventbus.EventBus(), null, null,
 				null, null, null, null, null, null),
 			new com.ironhub.modules.moneymaking.MoneyMakingModule(state, config,
-				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null));
+				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null),
+			new com.ironhub.modules.sailing.SailingUpgradesModule(state, config,
+				new com.ironhub.data.DataPack(new com.google.gson.Gson()),
+				new net.runelite.client.eventbus.EventBus(), null, null));
 
-		assertEquals(23, modules.size());
+		assertEquals(24, modules.size());
 
 		// the nav blocks route by exact module name — a mismatch is a hub
 		// slot forever showing "Enable the <name> module" for a module that

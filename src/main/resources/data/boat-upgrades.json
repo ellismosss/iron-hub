@@ -1,0 +1,4512 @@
+{
+ "version": 1,
+ "source": "IEarnSolo/boat-upgrades @ 0c0978b (BSD-2)",
+ "parts": [
+  {
+   "key": "Base",
+   "name": "Base",
+   "kind": "core",
+   "benefit": "Hitpoints, defences and speed of the raft.",
+   "raftExcluded": false
+  },
+  {
+   "key": "Hull",
+   "name": "Hull",
+   "kind": "core",
+   "benefit": "Hitpoints, defences and speed of the boat.",
+   "raftExcluded": false
+  },
+  {
+   "key": "Helm",
+   "name": "Helm",
+   "kind": "core",
+   "benefit": "Navigation; higher tiers resist stronger rapids.",
+   "raftExcluded": false
+  },
+  {
+   "key": "Sails",
+   "name": "Mast & sails",
+   "kind": "core",
+   "benefit": "Speed; trim every 30 seconds for a boost and Sailing xp.",
+   "raftExcluded": false
+  },
+  {
+   "key": "Keel",
+   "name": "Keel",
+   "kind": "core",
+   "benefit": "Armour and hitpoints; adamant+ opens crystal-flecked waters.",
+   "raftExcluded": false
+  },
+  {
+   "key": "Cargo Hold",
+   "name": "Cargo hold",
+   "kind": "facility",
+   "benefit": "Stores cargo and salvage while sailing.",
+   "raftExcluded": false
+  },
+  {
+   "key": "Salvaging Hook",
+   "name": "Salvaging hook",
+   "kind": "facility",
+   "benefit": "Salvage shipwrecks while sailing for xp and salvage.",
+   "raftExcluded": false
+  },
+  {
+   "key": "Cannon",
+   "name": "Cannon",
+   "kind": "facility",
+   "benefit": "Boat combat; fires cannonballs up to its own tier.",
+   "raftExcluded": false
+  },
+  {
+   "key": "Teleport Focus",
+   "name": "Teleport focus",
+   "kind": "facility",
+   "benefit": "Lets Summon Boat teleport the boat to your dock or mooring.",
+   "raftExcluded": false
+  },
+  {
+   "key": "Wind Device",
+   "name": "Wind catcher",
+   "kind": "facility",
+   "benefit": "Stores wind motes; release for a speed boost at sea.",
+   "raftExcluded": false
+  },
+  {
+   "key": "Trawling Net",
+   "name": "Trawling net",
+   "kind": "facility",
+   "benefit": "Used for deep-sea trawling.",
+   "raftExcluded": true
+  },
+  {
+   "key": "Chum Station",
+   "name": "Chum station",
+   "kind": "facility",
+   "benefit": "Baits shoals while deep-sea trawling.",
+   "raftExcluded": true
+  },
+  {
+   "key": "Fathom Device",
+   "name": "Fathom stone",
+   "kind": "facility",
+   "benefit": "Locates shoals while deep-sea trawling.",
+   "raftExcluded": true
+  },
+  {
+   "key": "Range",
+   "name": "Range",
+   "kind": "facility",
+   "benefit": "Cook food at sea.",
+   "raftExcluded": false
+  },
+  {
+   "key": "Keg",
+   "name": "Keg",
+   "kind": "facility",
+   "benefit": "Stores ales rewarded from sea charting.",
+   "raftExcluded": false
+  },
+  {
+   "key": "Anchor",
+   "name": "Anchor",
+   "kind": "facility",
+   "benefit": "Holds the boat in place at sea.",
+   "raftExcluded": true
+  },
+  {
+   "key": "Inoculation Station",
+   "name": "Inoculation station",
+   "kind": "facility",
+   "benefit": "Safely traverse the Shrouded Ocean's fetid waters.",
+   "raftExcluded": true
+  },
+  {
+   "key": "Salvaging Station",
+   "name": "Salvaging station",
+   "kind": "facility",
+   "benefit": "Sort salvage on board.",
+   "raftExcluded": true
+  },
+  {
+   "key": "Crystal Extractor",
+   "name": "Crystal extractor",
+   "kind": "facility",
+   "benefit": "Generates wind motes for the wind/gale catcher.",
+   "raftExcluded": true
+  },
+  {
+   "key": "Eternal Brazier",
+   "name": "Eternal brazier",
+   "kind": "facility",
+   "benefit": "Safely traverse the icy Northern Ocean.",
+   "raftExcluded": false
+  }
+ ],
+ "upgrades": [
+  {
+   "id": "base_b0_t0",
+   "part": "Base",
+   "boatType": 0,
+   "tier": 0,
+   "name": "Wooden base",
+   "page": "Wooden base",
+   "sailing": 1,
+   "construction": 1,
+   "reqs": [],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Logs",
+     "itemId": 1511,
+     "qty": 10
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 6
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 10
+    }
+   ]
+  },
+  {
+   "id": "hull_b1_t0",
+   "part": "Hull",
+   "boatType": 1,
+   "tier": 0,
+   "name": "Wooden hull",
+   "page": "Wooden hull",
+   "sailing": 1,
+   "construction": 1,
+   "reqs": [],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Wooden hull parts",
+     "itemId": 32041,
+     "qty": 10
+    },
+    {
+     "name": "Bronze nails",
+     "itemId": 4819,
+     "qty": 300
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 20
+    }
+   ]
+  },
+  {
+   "id": "hull_b2_t0",
+   "part": "Hull",
+   "boatType": 2,
+   "tier": 0,
+   "name": "Wooden hull",
+   "page": "Wooden hull",
+   "sailing": 1,
+   "construction": 1,
+   "reqs": [],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Large wooden hull parts",
+     "itemId": 32062,
+     "qty": 16
+    },
+    {
+     "name": "Bronze nails",
+     "itemId": 4819,
+     "qty": 600
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 25
+    }
+   ]
+  },
+  {
+   "id": "helm_b0_t0",
+   "part": "Helm",
+   "boatType": 0,
+   "tier": 0,
+   "name": "Bronze helm",
+   "page": "Bronze helm",
+   "sailing": 1,
+   "construction": 1,
+   "reqs": [],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Plank",
+     "itemId": 960,
+     "qty": 2
+    },
+    {
+     "name": "Bronze bar",
+     "itemId": 2349,
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "id": "helm_b1_t0",
+   "part": "Helm",
+   "boatType": 1,
+   "tier": 0,
+   "name": "Bronze helm",
+   "page": "Bronze helm",
+   "sailing": 1,
+   "construction": 1,
+   "reqs": [],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Plank",
+     "itemId": 960,
+     "qty": 3
+    },
+    {
+     "name": "Bronze bar",
+     "itemId": 2349,
+     "qty": 6
+    }
+   ]
+  },
+  {
+   "id": "helm_b2_t0",
+   "part": "Helm",
+   "boatType": 2,
+   "tier": 0,
+   "name": "Bronze helm",
+   "page": "Bronze helm",
+   "sailing": 1,
+   "construction": 1,
+   "reqs": [],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Plank",
+     "itemId": 960,
+     "qty": 4
+    },
+    {
+     "name": "Bronze bar",
+     "itemId": 2349,
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "id": "sails_b0_t0",
+   "part": "Sails",
+   "boatType": 0,
+   "tier": 0,
+   "name": "Wooden mast & linen sails",
+   "page": "Wooden mast and linen sails",
+   "sailing": 1,
+   "construction": 1,
+   "reqs": [],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Logs",
+     "itemId": 1511,
+     "qty": 5
+    },
+    {
+     "name": "Bronze nails",
+     "itemId": 4819,
+     "qty": 20
+    },
+    {
+     "name": "Bolt of linen",
+     "itemId": 31472,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b1_t0",
+   "part": "Sails",
+   "boatType": 1,
+   "tier": 0,
+   "name": "Wooden mast & linen sails",
+   "page": "Wooden mast and linen sails",
+   "sailing": 1,
+   "construction": 1,
+   "reqs": [],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Logs",
+     "itemId": 1511,
+     "qty": 10
+    },
+    {
+     "name": "Bronze nails",
+     "itemId": 4819,
+     "qty": 40
+    },
+    {
+     "name": "Bolt of linen",
+     "itemId": 31472,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b2_t0",
+   "part": "Sails",
+   "boatType": 2,
+   "tier": 0,
+   "name": "Wooden mast & linen sails",
+   "page": "Wooden mast and linen sails",
+   "sailing": 1,
+   "construction": 1,
+   "reqs": [],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Logs",
+     "itemId": 1511,
+     "qty": 15
+    },
+    {
+     "name": "Bronze nails",
+     "itemId": 4819,
+     "qty": 60
+    },
+    {
+     "name": "Bolt of linen",
+     "itemId": 31472,
+     "qty": 10
+    }
+   ]
+  },
+  {
+   "id": "keel_b1_t0",
+   "part": "Keel",
+   "boatType": 1,
+   "tier": 0,
+   "name": "Bronze keel",
+   "page": "Bronze keel",
+   "sailing": 1,
+   "construction": 1,
+   "reqs": [],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Bronze keel parts",
+     "itemId": 31999,
+     "qty": 10
+    }
+   ]
+  },
+  {
+   "id": "keel_b2_t0",
+   "part": "Keel",
+   "boatType": 2,
+   "tier": 0,
+   "name": "Bronze keel",
+   "page": "Bronze keel",
+   "sailing": 1,
+   "construction": 1,
+   "reqs": [],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Large bronze keel parts",
+     "itemId": 32020,
+     "qty": 16
+    }
+   ]
+  },
+  {
+   "id": "helm_b0_t1",
+   "part": "Helm",
+   "boatType": 0,
+   "tier": 1,
+   "name": "Iron helm",
+   "page": "Iron helm",
+   "sailing": 17,
+   "construction": 14,
+   "reqs": [
+    "skillb:Sailing:17",
+    "skillb:Construction:14"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Oak plank",
+     "itemId": 8778,
+     "qty": 2
+    },
+    {
+     "name": "Iron bar",
+     "itemId": 2351,
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "id": "helm_b1_t1",
+   "part": "Helm",
+   "boatType": 1,
+   "tier": 1,
+   "name": "Iron helm",
+   "page": "Iron helm",
+   "sailing": 17,
+   "construction": 14,
+   "reqs": [
+    "skillb:Sailing:17",
+    "skillb:Construction:14"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Oak plank",
+     "itemId": 8778,
+     "qty": 3
+    },
+    {
+     "name": "Iron bar",
+     "itemId": 2351,
+     "qty": 6
+    }
+   ]
+  },
+  {
+   "id": "helm_b2_t1",
+   "part": "Helm",
+   "boatType": 2,
+   "tier": 1,
+   "name": "Iron helm",
+   "page": "Iron helm",
+   "sailing": 17,
+   "construction": 14,
+   "reqs": [
+    "skillb:Sailing:17",
+    "skillb:Construction:14"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Oak plank",
+     "itemId": 8778,
+     "qty": 4
+    },
+    {
+     "name": "Iron bar",
+     "itemId": 2351,
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "id": "base_b0_t1",
+   "part": "Base",
+   "boatType": 0,
+   "tier": 1,
+   "name": "Oak base",
+   "page": "Oak base",
+   "sailing": 20,
+   "construction": 8,
+   "reqs": [
+    "skillb:Sailing:20",
+    "skillb:Construction:8"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Oak logs",
+     "itemId": 1521,
+     "qty": 10
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 6
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 10
+    }
+   ]
+  },
+  {
+   "id": "hull_b1_t1",
+   "part": "Hull",
+   "boatType": 1,
+   "tier": 1,
+   "name": "Oak hull",
+   "page": "Oak hull",
+   "sailing": 20,
+   "construction": 8,
+   "reqs": [
+    "skillb:Sailing:20",
+    "skillb:Construction:8"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Oak hull parts",
+     "itemId": 32044,
+     "qty": 10
+    },
+    {
+     "name": "Iron nails",
+     "itemId": 4820,
+     "qty": 300
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 20
+    }
+   ]
+  },
+  {
+   "id": "hull_b2_t1",
+   "part": "Hull",
+   "boatType": 2,
+   "tier": 1,
+   "name": "Oak hull",
+   "page": "Oak hull",
+   "sailing": 20,
+   "construction": 8,
+   "reqs": [
+    "skillb:Sailing:20",
+    "skillb:Construction:8"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Large oak hull parts",
+     "itemId": 32065,
+     "qty": 16
+    },
+    {
+     "name": "Iron nails",
+     "itemId": 4820,
+     "qty": 600
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 25
+    }
+   ]
+  },
+  {
+   "id": "keel_b1_t1",
+   "part": "Keel",
+   "boatType": 1,
+   "tier": 1,
+   "name": "Iron keel",
+   "page": "Iron keel",
+   "sailing": 22,
+   "construction": 17,
+   "reqs": [
+    "skillb:Sailing:22",
+    "skillb:Construction:17"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Iron keel parts",
+     "itemId": 32002,
+     "qty": 10
+    }
+   ]
+  },
+  {
+   "id": "keel_b2_t1",
+   "part": "Keel",
+   "boatType": 2,
+   "tier": 1,
+   "name": "Iron keel",
+   "page": "Iron keel",
+   "sailing": 22,
+   "construction": 17,
+   "reqs": [
+    "skillb:Sailing:22",
+    "skillb:Construction:17"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Large iron keel parts",
+     "itemId": 32023,
+     "qty": 16
+    }
+   ]
+  },
+  {
+   "id": "sails_b0_t1",
+   "part": "Sails",
+   "boatType": 0,
+   "tier": 1,
+   "name": "Oak mast & linen sails",
+   "page": "Oak mast and linen sails",
+   "sailing": 24,
+   "construction": 11,
+   "reqs": [
+    "skillb:Sailing:24",
+    "skillb:Construction:11"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Oak logs",
+     "itemId": 1521,
+     "qty": 5
+    },
+    {
+     "name": "Iron nails",
+     "itemId": 4820,
+     "qty": 20
+    },
+    {
+     "name": "Bolt of linen",
+     "itemId": 31472,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b1_t1",
+   "part": "Sails",
+   "boatType": 1,
+   "tier": 1,
+   "name": "Oak mast & linen sails",
+   "page": "Oak mast and linen sails",
+   "sailing": 24,
+   "construction": 11,
+   "reqs": [
+    "skillb:Sailing:24",
+    "skillb:Construction:11"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Oak logs",
+     "itemId": 1521,
+     "qty": 10
+    },
+    {
+     "name": "Iron nails",
+     "itemId": 4820,
+     "qty": 40
+    },
+    {
+     "name": "Bolt of linen",
+     "itemId": 31472,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b2_t1",
+   "part": "Sails",
+   "boatType": 2,
+   "tier": 1,
+   "name": "Oak mast & linen sails",
+   "page": "Oak mast and linen sails",
+   "sailing": 24,
+   "construction": 11,
+   "reqs": [
+    "skillb:Sailing:24",
+    "skillb:Construction:11"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Oak logs",
+     "itemId": 1521,
+     "qty": 15
+    },
+    {
+     "name": "Iron nails",
+     "itemId": 4820,
+     "qty": 60
+    },
+    {
+     "name": "Bolt of linen",
+     "itemId": 31472,
+     "qty": 10
+    }
+   ]
+  },
+  {
+   "id": "base_b0_t2",
+   "part": "Base",
+   "boatType": 0,
+   "tier": 2,
+   "name": "Teak base",
+   "page": "Teak base",
+   "sailing": 31,
+   "construction": 23,
+   "reqs": [
+    "skillb:Sailing:31",
+    "skillb:Construction:23"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Teak logs",
+     "itemId": 6333,
+     "qty": 10
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 6
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 10
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "hull_b1_t2",
+   "part": "Hull",
+   "boatType": 1,
+   "tier": 2,
+   "name": "Teak hull",
+   "page": "Teak hull",
+   "sailing": 31,
+   "construction": 23,
+   "reqs": [
+    "skillb:Sailing:31",
+    "skillb:Construction:23"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Teak hull parts",
+     "itemId": 32047,
+     "qty": 10
+    },
+    {
+     "name": "Steel nails",
+     "itemId": 1539,
+     "qty": 300
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 20
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "hull_b2_t2",
+   "part": "Hull",
+   "boatType": 2,
+   "tier": 2,
+   "name": "Teak hull",
+   "page": "Teak hull",
+   "sailing": 31,
+   "construction": 23,
+   "reqs": [
+    "skillb:Sailing:31",
+    "skillb:Construction:23"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Large teak hull parts",
+     "itemId": 32068,
+     "qty": 16
+    },
+    {
+     "name": "Steel nails",
+     "itemId": 1539,
+     "qty": 600
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 25
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b0_t2",
+   "part": "Sails",
+   "boatType": 0,
+   "tier": 2,
+   "name": "Teak mast & canvas sails",
+   "page": "Teak mast and canvas sails",
+   "sailing": 36,
+   "construction": 26,
+   "reqs": [
+    "skillb:Sailing:36",
+    "skillb:Construction:26"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Teak logs",
+     "itemId": 6333,
+     "qty": 5
+    },
+    {
+     "name": "Steel nails",
+     "itemId": 1539,
+     "qty": 20
+    },
+    {
+     "name": "Bolt of canvas",
+     "itemId": 31475,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b1_t2",
+   "part": "Sails",
+   "boatType": 1,
+   "tier": 2,
+   "name": "Teak mast & canvas sails",
+   "page": "Teak mast and canvas sails",
+   "sailing": 36,
+   "construction": 26,
+   "reqs": [
+    "skillb:Sailing:36",
+    "skillb:Construction:26"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Teak logs",
+     "itemId": 6333,
+     "qty": 10
+    },
+    {
+     "name": "Steel nails",
+     "itemId": 1539,
+     "qty": 40
+    },
+    {
+     "name": "Bolt of canvas",
+     "itemId": 31475,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b2_t2",
+   "part": "Sails",
+   "boatType": 2,
+   "tier": 2,
+   "name": "Teak mast & canvas sails",
+   "page": "Teak mast and canvas sails",
+   "sailing": 36,
+   "construction": 26,
+   "reqs": [
+    "skillb:Sailing:36",
+    "skillb:Construction:26"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Teak logs",
+     "itemId": 6333,
+     "qty": 15
+    },
+    {
+     "name": "Steel nails",
+     "itemId": 1539,
+     "qty": 60
+    },
+    {
+     "name": "Bolt of canvas",
+     "itemId": 31475,
+     "qty": 10
+    }
+   ]
+  },
+  {
+   "id": "helm_b0_t2",
+   "part": "Helm",
+   "boatType": 0,
+   "tier": 2,
+   "name": "Steel helm",
+   "page": "Steel helm",
+   "sailing": 38,
+   "construction": 30,
+   "reqs": [
+    "skillb:Sailing:38",
+    "skillb:Construction:30"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Teak plank",
+     "itemId": 8780,
+     "qty": 2
+    },
+    {
+     "name": "Steel bar",
+     "itemId": 2353,
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "id": "helm_b1_t2",
+   "part": "Helm",
+   "boatType": 1,
+   "tier": 2,
+   "name": "Steel helm",
+   "page": "Steel helm",
+   "sailing": 38,
+   "construction": 30,
+   "reqs": [
+    "skillb:Sailing:38",
+    "skillb:Construction:30"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Teak plank",
+     "itemId": 8780,
+     "qty": 3
+    },
+    {
+     "name": "Steel bar",
+     "itemId": 2353,
+     "qty": 6
+    }
+   ]
+  },
+  {
+   "id": "helm_b2_t2",
+   "part": "Helm",
+   "boatType": 2,
+   "tier": 2,
+   "name": "Steel helm",
+   "page": "Steel helm",
+   "sailing": 38,
+   "construction": 30,
+   "reqs": [
+    "skillb:Sailing:38",
+    "skillb:Construction:30"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Teak plank",
+     "itemId": 8780,
+     "qty": 4
+    },
+    {
+     "name": "Steel bar",
+     "itemId": 2353,
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "id": "keel_b1_t2",
+   "part": "Keel",
+   "boatType": 1,
+   "tier": 2,
+   "name": "Steel keel",
+   "page": "Steel keel",
+   "sailing": 39,
+   "construction": 32,
+   "reqs": [
+    "skillb:Sailing:39",
+    "skillb:Construction:32"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Steel keel parts",
+     "itemId": 32005,
+     "qty": 10
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "keel_b2_t2",
+   "part": "Keel",
+   "boatType": 2,
+   "tier": 2,
+   "name": "Steel keel",
+   "page": "Steel keel",
+   "sailing": 39,
+   "construction": 32,
+   "reqs": [
+    "skillb:Sailing:39",
+    "skillb:Construction:32"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Large steel keel parts",
+     "itemId": 32026,
+     "qty": 16
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "base_b0_t3",
+   "part": "Base",
+   "boatType": 0,
+   "tier": 3,
+   "name": "Mahogany base",
+   "page": "Mahogany base",
+   "sailing": 48,
+   "construction": 41,
+   "reqs": [
+    "skillb:Sailing:48",
+    "skillb:Construction:41"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Mahogany logs",
+     "itemId": 6332,
+     "qty": 10
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 6
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 10
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "hull_b1_t3",
+   "part": "Hull",
+   "boatType": 1,
+   "tier": 3,
+   "name": "Mahogany hull",
+   "page": "Mahogany hull",
+   "sailing": 48,
+   "construction": 41,
+   "reqs": [
+    "skillb:Sailing:48",
+    "skillb:Construction:41"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Mahogany hull parts",
+     "itemId": 32050,
+     "qty": 10
+    },
+    {
+     "name": "Mithril nails",
+     "itemId": 4822,
+     "qty": 300
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 20
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "hull_b2_t3",
+   "part": "Hull",
+   "boatType": 2,
+   "tier": 3,
+   "name": "Mahogany hull",
+   "page": "Mahogany hull",
+   "sailing": 48,
+   "construction": 41,
+   "reqs": [
+    "skillb:Sailing:48",
+    "skillb:Construction:41"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Large mahogany hull parts",
+     "itemId": 32071,
+     "qty": 16
+    },
+    {
+     "name": "Mithril nails",
+     "itemId": 4822,
+     "qty": 600
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 25
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b0_t3",
+   "part": "Sails",
+   "boatType": 0,
+   "tier": 3,
+   "name": "Mahogany mast & canvas sails",
+   "page": "Mahogany mast and canvas sails",
+   "sailing": 52,
+   "construction": 45,
+   "reqs": [
+    "skillb:Sailing:52",
+    "skillb:Construction:45"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Mahogany logs",
+     "itemId": 6332,
+     "qty": 5
+    },
+    {
+     "name": "Mithril nails",
+     "itemId": 4822,
+     "qty": 20
+    },
+    {
+     "name": "Bolt of canvas",
+     "itemId": 31475,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b1_t3",
+   "part": "Sails",
+   "boatType": 1,
+   "tier": 3,
+   "name": "Mahogany mast & canvas sails",
+   "page": "Mahogany mast and canvas sails",
+   "sailing": 52,
+   "construction": 45,
+   "reqs": [
+    "skillb:Sailing:52",
+    "skillb:Construction:45"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Mahogany logs",
+     "itemId": 6332,
+     "qty": 10
+    },
+    {
+     "name": "Mithril nails",
+     "itemId": 4822,
+     "qty": 40
+    },
+    {
+     "name": "Bolt of canvas",
+     "itemId": 31475,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b2_t3",
+   "part": "Sails",
+   "boatType": 2,
+   "tier": 3,
+   "name": "Mahogany mast & canvas sails",
+   "page": "Mahogany mast and canvas sails",
+   "sailing": 52,
+   "construction": 45,
+   "reqs": [
+    "skillb:Sailing:52",
+    "skillb:Construction:45"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Mahogany logs",
+     "itemId": 6332,
+     "qty": 15
+    },
+    {
+     "name": "Mithril nails",
+     "itemId": 4822,
+     "qty": 60
+    },
+    {
+     "name": "Bolt of canvas",
+     "itemId": 31475,
+     "qty": 10
+    }
+   ]
+  },
+  {
+   "id": "keel_b1_t3",
+   "part": "Keel",
+   "boatType": 1,
+   "tier": 3,
+   "name": "Mithril keel",
+   "page": "Mithril keel",
+   "sailing": 54,
+   "construction": 50,
+   "reqs": [
+    "skillb:Sailing:54",
+    "skillb:Construction:50"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Mithril keel parts",
+     "itemId": 32008,
+     "qty": 10
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "keel_b2_t3",
+   "part": "Keel",
+   "boatType": 2,
+   "tier": 3,
+   "name": "Mithril keel",
+   "page": "Mithril keel",
+   "sailing": 54,
+   "construction": 50,
+   "reqs": [
+    "skillb:Sailing:54",
+    "skillb:Construction:50"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Large mithril keel parts",
+     "itemId": 32029,
+     "qty": 16
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "helm_b0_t3",
+   "part": "Helm",
+   "boatType": 0,
+   "tier": 3,
+   "name": "Mithril helm",
+   "page": "Mithril helm",
+   "sailing": 55,
+   "construction": 47,
+   "reqs": [
+    "skillb:Sailing:55",
+    "skillb:Construction:47"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Mahogany plank",
+     "itemId": 8782,
+     "qty": 2
+    },
+    {
+     "name": "Mithril bar",
+     "itemId": 2359,
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "id": "helm_b1_t3",
+   "part": "Helm",
+   "boatType": 1,
+   "tier": 3,
+   "name": "Mithril helm",
+   "page": "Mithril helm",
+   "sailing": 55,
+   "construction": 47,
+   "reqs": [
+    "skillb:Sailing:55",
+    "skillb:Construction:47"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Mahogany plank",
+     "itemId": 8782,
+     "qty": 3
+    },
+    {
+     "name": "Mithril bar",
+     "itemId": 2359,
+     "qty": 6
+    }
+   ]
+  },
+  {
+   "id": "helm_b2_t3",
+   "part": "Helm",
+   "boatType": 2,
+   "tier": 3,
+   "name": "Mithril helm",
+   "page": "Mithril helm",
+   "sailing": 55,
+   "construction": 47,
+   "reqs": [
+    "skillb:Sailing:55",
+    "skillb:Construction:47"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Mahogany plank",
+     "itemId": 8782,
+     "qty": 4
+    },
+    {
+     "name": "Mithril bar",
+     "itemId": 2359,
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "id": "keel_b1_t4",
+   "part": "Keel",
+   "boatType": 1,
+   "tier": 4,
+   "name": "Adamant keel",
+   "page": "Adamant keel",
+   "sailing": 66,
+   "construction": 62,
+   "reqs": [
+    "skillb:Sailing:66",
+    "skillb:Construction:62"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Adamant keel parts",
+     "itemId": 32011,
+     "qty": 10
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "keel_b2_t4",
+   "part": "Keel",
+   "boatType": 2,
+   "tier": 4,
+   "name": "Adamant keel",
+   "page": "Adamant keel",
+   "sailing": 66,
+   "construction": 62,
+   "reqs": [
+    "skillb:Sailing:66",
+    "skillb:Construction:62"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Large adamant keel parts",
+     "itemId": 32032,
+     "qty": 16
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "base_b0_t4",
+   "part": "Base",
+   "boatType": 0,
+   "tier": 4,
+   "name": "Camphor base",
+   "page": "Camphor base",
+   "sailing": 67,
+   "construction": 59,
+   "reqs": [
+    "skillb:Sailing:67",
+    "skillb:Construction:59"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Camphor logs",
+     "itemId": 32904,
+     "qty": 10
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 6
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 10
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "hull_b1_t4",
+   "part": "Hull",
+   "boatType": 1,
+   "tier": 4,
+   "name": "Camphor hull",
+   "page": "Camphor hull",
+   "sailing": 67,
+   "construction": 59,
+   "reqs": [
+    "skillb:Sailing:67",
+    "skillb:Construction:59"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Camphor hull parts",
+     "itemId": 32053,
+     "qty": 10
+    },
+    {
+     "name": "Adamantite nails",
+     "itemId": 4823,
+     "qty": 300
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 20
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "hull_b2_t4",
+   "part": "Hull",
+   "boatType": 2,
+   "tier": 4,
+   "name": "Camphor hull",
+   "page": "Camphor hull",
+   "sailing": 67,
+   "construction": 59,
+   "reqs": [
+    "skillb:Sailing:67",
+    "skillb:Construction:59"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Large camphor hull parts",
+     "itemId": 32074,
+     "qty": 16
+    },
+    {
+     "name": "Adamantite nails",
+     "itemId": 4823,
+     "qty": 600
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 25
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b0_t4",
+   "part": "Sails",
+   "boatType": 0,
+   "tier": 4,
+   "name": "Camphor mast & canvas sails",
+   "page": "Camphor mast and canvas sails",
+   "sailing": 68,
+   "construction": 60,
+   "reqs": [
+    "skillb:Sailing:68",
+    "skillb:Construction:60"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Camphor logs",
+     "itemId": 32904,
+     "qty": 5
+    },
+    {
+     "name": "Adamantite nails",
+     "itemId": 4823,
+     "qty": 20
+    },
+    {
+     "name": "Bolt of canvas",
+     "itemId": 31475,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b1_t4",
+   "part": "Sails",
+   "boatType": 1,
+   "tier": 4,
+   "name": "Camphor mast & canvas sails",
+   "page": "Camphor mast and canvas sails",
+   "sailing": 68,
+   "construction": 60,
+   "reqs": [
+    "skillb:Sailing:68",
+    "skillb:Construction:60"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Camphor logs",
+     "itemId": 32904,
+     "qty": 10
+    },
+    {
+     "name": "Adamantite nails",
+     "itemId": 4823,
+     "qty": 40
+    },
+    {
+     "name": "Bolt of canvas",
+     "itemId": 31475,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b2_t4",
+   "part": "Sails",
+   "boatType": 2,
+   "tier": 4,
+   "name": "Camphor mast & canvas sails",
+   "page": "Camphor mast and canvas sails",
+   "sailing": 68,
+   "construction": 60,
+   "reqs": [
+    "skillb:Sailing:68",
+    "skillb:Construction:60"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Camphor logs",
+     "itemId": 32904,
+     "qty": 15
+    },
+    {
+     "name": "Adamantite nails",
+     "itemId": 4823,
+     "qty": 60
+    },
+    {
+     "name": "Bolt of canvas",
+     "itemId": 31475,
+     "qty": 10
+    }
+   ]
+  },
+  {
+   "id": "helm_b0_t4",
+   "part": "Helm",
+   "boatType": 0,
+   "tier": 4,
+   "name": "Adamant helm",
+   "page": "Adamant helm",
+   "sailing": 72,
+   "construction": 59,
+   "reqs": [
+    "skillb:Sailing:72",
+    "skillb:Construction:59"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Camphor plank",
+     "itemId": 31432,
+     "qty": 2
+    },
+    {
+     "name": "Adamantite bar",
+     "itemId": 2361,
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "id": "helm_b1_t4",
+   "part": "Helm",
+   "boatType": 1,
+   "tier": 4,
+   "name": "Adamant helm",
+   "page": "Adamant helm",
+   "sailing": 72,
+   "construction": 59,
+   "reqs": [
+    "skillb:Sailing:72",
+    "skillb:Construction:59"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Camphor plank",
+     "itemId": 31432,
+     "qty": 3
+    },
+    {
+     "name": "Adamantite bar",
+     "itemId": 2361,
+     "qty": 6
+    }
+   ]
+  },
+  {
+   "id": "helm_b2_t4",
+   "part": "Helm",
+   "boatType": 2,
+   "tier": 4,
+   "name": "Adamant helm",
+   "page": "Adamant helm",
+   "sailing": 72,
+   "construction": 59,
+   "reqs": [
+    "skillb:Sailing:72",
+    "skillb:Construction:59"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Camphor plank",
+     "itemId": 31432,
+     "qty": 4
+    },
+    {
+     "name": "Adamantite bar",
+     "itemId": 2361,
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "id": "base_b0_t5",
+   "part": "Base",
+   "boatType": 0,
+   "tier": 5,
+   "name": "Ironwood base",
+   "page": "Ironwood base",
+   "sailing": 81,
+   "construction": 75,
+   "reqs": [
+    "skillb:Sailing:81",
+    "skillb:Construction:75"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Ironwood logs",
+     "itemId": 32907,
+     "qty": 10
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 6
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 10
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "hull_b1_t5",
+   "part": "Hull",
+   "boatType": 1,
+   "tier": 5,
+   "name": "Ironwood hull",
+   "page": "Ironwood hull",
+   "sailing": 81,
+   "construction": 75,
+   "reqs": [
+    "skillb:Sailing:81",
+    "skillb:Construction:75"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Ironwood hull parts",
+     "itemId": 32056,
+     "qty": 10
+    },
+    {
+     "name": "Rune nails",
+     "itemId": 4824,
+     "qty": 300
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 20
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "hull_b2_t5",
+   "part": "Hull",
+   "boatType": 2,
+   "tier": 5,
+   "name": "Ironwood hull",
+   "page": "Ironwood hull",
+   "sailing": 81,
+   "construction": 75,
+   "reqs": [
+    "skillb:Sailing:81",
+    "skillb:Construction:75"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Large ironwood hull parts",
+     "itemId": 32077,
+     "qty": 16
+    },
+    {
+     "name": "Rune nails",
+     "itemId": 4824,
+     "qty": 600
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 25
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b0_t5",
+   "part": "Sails",
+   "boatType": 0,
+   "tier": 5,
+   "name": "Ironwood mast & cotton sails",
+   "page": "Ironwood mast and cotton sails",
+   "sailing": 83,
+   "construction": 77,
+   "reqs": [
+    "skillb:Sailing:83",
+    "skillb:Construction:77"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Ironwood logs",
+     "itemId": 32907,
+     "qty": 5
+    },
+    {
+     "name": "Rune nails",
+     "itemId": 4824,
+     "qty": 20
+    },
+    {
+     "name": "Bolt of cotton",
+     "itemId": 31478,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b1_t5",
+   "part": "Sails",
+   "boatType": 1,
+   "tier": 5,
+   "name": "Ironwood mast & cotton sails",
+   "page": "Ironwood mast and cotton sails",
+   "sailing": 83,
+   "construction": 77,
+   "reqs": [
+    "skillb:Sailing:83",
+    "skillb:Construction:77"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Ironwood logs",
+     "itemId": 32907,
+     "qty": 10
+    },
+    {
+     "name": "Rune nails",
+     "itemId": 4824,
+     "qty": 40
+    },
+    {
+     "name": "Bolt of cotton",
+     "itemId": 31478,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b2_t5",
+   "part": "Sails",
+   "boatType": 2,
+   "tier": 5,
+   "name": "Ironwood mast & cotton sails",
+   "page": "Ironwood mast and cotton sails",
+   "sailing": 83,
+   "construction": 77,
+   "reqs": [
+    "skillb:Sailing:83",
+    "skillb:Construction:77"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Ironwood logs",
+     "itemId": 32907,
+     "qty": 15
+    },
+    {
+     "name": "Rune nails",
+     "itemId": 4824,
+     "qty": 60
+    },
+    {
+     "name": "Bolt of cotton",
+     "itemId": 31478,
+     "qty": 10
+    }
+   ]
+  },
+  {
+   "id": "keel_b1_t5",
+   "part": "Keel",
+   "boatType": 1,
+   "tier": 5,
+   "name": "Rune keel",
+   "page": "Rune keel",
+   "sailing": 85,
+   "construction": 78,
+   "reqs": [
+    "skillb:Sailing:85",
+    "skillb:Construction:78"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Rune keel parts",
+     "itemId": 32014,
+     "qty": 10
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "keel_b2_t5",
+   "part": "Keel",
+   "boatType": 2,
+   "tier": 5,
+   "name": "Rune keel",
+   "page": "Rune keel",
+   "sailing": 85,
+   "construction": 78,
+   "reqs": [
+    "skillb:Sailing:85",
+    "skillb:Construction:78"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Large rune keel parts",
+     "itemId": 32035,
+     "qty": 16
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "helm_b0_t5",
+   "part": "Helm",
+   "boatType": 0,
+   "tier": 5,
+   "name": "Rune helm",
+   "page": "Rune helm",
+   "sailing": 87,
+   "construction": 81,
+   "reqs": [
+    "skillb:Sailing:87",
+    "skillb:Construction:81"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Ironwood plank",
+     "itemId": 31435,
+     "qty": 2
+    },
+    {
+     "name": "Runite bar",
+     "itemId": 2363,
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "id": "helm_b1_t5",
+   "part": "Helm",
+   "boatType": 1,
+   "tier": 5,
+   "name": "Rune helm",
+   "page": "Rune helm",
+   "sailing": 87,
+   "construction": 81,
+   "reqs": [
+    "skillb:Sailing:87",
+    "skillb:Construction:81"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Ironwood plank",
+     "itemId": 31435,
+     "qty": 3
+    },
+    {
+     "name": "Runite bar",
+     "itemId": 2363,
+     "qty": 6
+    }
+   ]
+  },
+  {
+   "id": "helm_b2_t5",
+   "part": "Helm",
+   "boatType": 2,
+   "tier": 5,
+   "name": "Rune helm",
+   "page": "Rune helm",
+   "sailing": 87,
+   "construction": 81,
+   "reqs": [
+    "skillb:Sailing:87",
+    "skillb:Construction:81"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Ironwood plank",
+     "itemId": 31435,
+     "qty": 4
+    },
+    {
+     "name": "Runite bar",
+     "itemId": 2363,
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "id": "base_b0_t6",
+   "part": "Base",
+   "boatType": 0,
+   "tier": 6,
+   "name": "Rosewood base",
+   "page": "Rosewood base",
+   "sailing": 93,
+   "construction": 84,
+   "reqs": [
+    "skillb:Sailing:93",
+    "skillb:Construction:84"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Rosewood logs",
+     "itemId": 32910,
+     "qty": 10
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 6
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 10
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "hull_b1_t6",
+   "part": "Hull",
+   "boatType": 1,
+   "tier": 6,
+   "name": "Rosewood hull",
+   "page": "Rosewood hull",
+   "sailing": 93,
+   "construction": 84,
+   "reqs": [
+    "skillb:Sailing:93",
+    "skillb:Construction:84",
+    "unlock:schematic_rosewood_hull"
+   ],
+   "schematic": "Rosewood hull schematic",
+   "materials": [
+    {
+     "name": "Rosewood hull parts",
+     "itemId": 32059,
+     "qty": 10
+    },
+    {
+     "name": "Dragon nails",
+     "itemId": 31406,
+     "qty": 300
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 20
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "hull_b2_t6",
+   "part": "Hull",
+   "boatType": 2,
+   "tier": 6,
+   "name": "Rosewood hull",
+   "page": "Rosewood hull",
+   "sailing": 93,
+   "construction": 84,
+   "reqs": [
+    "skillb:Sailing:93",
+    "skillb:Construction:84",
+    "unlock:schematic_rosewood_hull"
+   ],
+   "schematic": "Rosewood hull schematic",
+   "materials": [
+    {
+     "name": "Large rosewood hull parts",
+     "itemId": 32080,
+     "qty": 16
+    },
+    {
+     "name": "Dragon nails",
+     "itemId": 31406,
+     "qty": 600
+    },
+    {
+     "name": "Swamp tar",
+     "itemId": 1939,
+     "qty": 25
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b0_t6",
+   "part": "Sails",
+   "boatType": 0,
+   "tier": 6,
+   "name": "Rosewood mast & cotton sails",
+   "page": "Rosewood mast and cotton sails",
+   "sailing": 94,
+   "construction": 85,
+   "reqs": [
+    "skillb:Sailing:94",
+    "skillb:Construction:85",
+    "unlock:schematic_rosewood_cotton_sails"
+   ],
+   "schematic": "Rosewood & cotton sails schematic",
+   "materials": [
+    {
+     "name": "Rosewood logs",
+     "itemId": 32910,
+     "qty": 5
+    },
+    {
+     "name": "Dragon nails",
+     "itemId": 31406,
+     "qty": 20
+    },
+    {
+     "name": "Bolt of cotton",
+     "itemId": 31478,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b1_t6",
+   "part": "Sails",
+   "boatType": 1,
+   "tier": 6,
+   "name": "Rosewood mast & cotton sails",
+   "page": "Rosewood mast and cotton sails",
+   "sailing": 94,
+   "construction": 85,
+   "reqs": [
+    "skillb:Sailing:94",
+    "skillb:Construction:85",
+    "unlock:schematic_rosewood_cotton_sails"
+   ],
+   "schematic": "Rosewood & cotton sails schematic",
+   "materials": [
+    {
+     "name": "Rosewood logs",
+     "itemId": 32910,
+     "qty": 10
+    },
+    {
+     "name": "Dragon nails",
+     "itemId": 31406,
+     "qty": 40
+    },
+    {
+     "name": "Bolt of cotton",
+     "itemId": 31478,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "sails_b2_t6",
+   "part": "Sails",
+   "boatType": 2,
+   "tier": 6,
+   "name": "Rosewood mast & cotton sails",
+   "page": "Rosewood mast and cotton sails",
+   "sailing": 94,
+   "construction": 85,
+   "reqs": [
+    "skillb:Sailing:94",
+    "skillb:Construction:85",
+    "unlock:schematic_rosewood_cotton_sails"
+   ],
+   "schematic": "Rosewood & cotton sails schematic",
+   "materials": [
+    {
+     "name": "Rosewood logs",
+     "itemId": 32910,
+     "qty": 15
+    },
+    {
+     "name": "Dragon nails",
+     "itemId": 31406,
+     "qty": 60
+    },
+    {
+     "name": "Bolt of cotton",
+     "itemId": 31478,
+     "qty": 10
+    }
+   ]
+  },
+  {
+   "id": "helm_b0_t6",
+   "part": "Helm",
+   "boatType": 0,
+   "tier": 6,
+   "name": "Dragon helm",
+   "page": "Dragon helm",
+   "sailing": 96,
+   "construction": 86,
+   "reqs": [
+    "skillb:Sailing:96",
+    "skillb:Construction:86",
+    "unlock:schematic_dragon_helm"
+   ],
+   "schematic": "Dragon helm schematic",
+   "materials": [
+    {
+     "name": "Rosewood plank",
+     "itemId": 31438,
+     "qty": 2
+    },
+    {
+     "name": "Dragon metal sheet",
+     "itemId": 31996,
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "id": "helm_b1_t6",
+   "part": "Helm",
+   "boatType": 1,
+   "tier": 6,
+   "name": "Dragon helm",
+   "page": "Dragon helm",
+   "sailing": 96,
+   "construction": 86,
+   "reqs": [
+    "skillb:Sailing:96",
+    "skillb:Construction:86",
+    "unlock:schematic_dragon_helm"
+   ],
+   "schematic": "Dragon helm schematic",
+   "materials": [
+    {
+     "name": "Rosewood plank",
+     "itemId": 31438,
+     "qty": 3
+    },
+    {
+     "name": "Dragon metal sheet",
+     "itemId": 31996,
+     "qty": 6
+    }
+   ]
+  },
+  {
+   "id": "helm_b2_t6",
+   "part": "Helm",
+   "boatType": 2,
+   "tier": 6,
+   "name": "Dragon helm",
+   "page": "Dragon helm",
+   "sailing": 96,
+   "construction": 86,
+   "reqs": [
+    "skillb:Sailing:96",
+    "skillb:Construction:86",
+    "unlock:schematic_dragon_helm"
+   ],
+   "schematic": "Dragon helm schematic",
+   "materials": [
+    {
+     "name": "Rosewood plank",
+     "itemId": 31438,
+     "qty": 4
+    },
+    {
+     "name": "Dragon metal sheet",
+     "itemId": 31996,
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "id": "keel_b1_t6",
+   "part": "Keel",
+   "boatType": 1,
+   "tier": 6,
+   "name": "Dragon keel",
+   "page": "Dragon keel",
+   "sailing": 97,
+   "construction": 87,
+   "reqs": [
+    "skillb:Sailing:97",
+    "skillb:Construction:87",
+    "unlock:schematic_dragon_keel"
+   ],
+   "schematic": "Dragon keel schematic",
+   "materials": [
+    {
+     "name": "Dragon keel parts",
+     "itemId": 32017,
+     "qty": 10
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "keel_b2_t6",
+   "part": "Keel",
+   "boatType": 2,
+   "tier": 6,
+   "name": "Dragon keel",
+   "page": "Dragon keel",
+   "sailing": 97,
+   "construction": 87,
+   "reqs": [
+    "skillb:Sailing:97",
+    "skillb:Construction:87",
+    "unlock:schematic_dragon_keel"
+   ],
+   "schematic": "Dragon keel schematic",
+   "materials": [
+    {
+     "name": "Large dragon keel parts",
+     "itemId": 32038,
+     "qty": 16
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "cargo_hold_all_t0",
+   "part": "Cargo Hold",
+   "boatType": -1,
+   "tier": 0,
+   "name": "Wooden cargo hold",
+   "page": "Wooden cargo hold",
+   "sailing": 1,
+   "construction": 1,
+   "reqs": [],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Plank",
+     "itemId": 960,
+     "qty": 8
+    },
+    {
+     "name": "Bronze nails",
+     "itemId": 4819,
+     "qty": 32
+    }
+   ]
+  },
+  {
+   "id": "cargo_hold_all_t1",
+   "part": "Cargo Hold",
+   "boatType": -1,
+   "tier": 1,
+   "name": "Oak cargo hold",
+   "page": "Oak cargo hold",
+   "sailing": 18,
+   "construction": 11,
+   "reqs": [
+    "skillb:Sailing:18",
+    "skillb:Construction:11"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Oak plank",
+     "itemId": 8778,
+     "qty": 8
+    },
+    {
+     "name": "Iron nails",
+     "itemId": 4820,
+     "qty": 32
+    }
+   ]
+  },
+  {
+   "id": "cargo_hold_all_t2",
+   "part": "Cargo Hold",
+   "boatType": -1,
+   "tier": 2,
+   "name": "Teak cargo hold",
+   "page": "Teak cargo hold",
+   "sailing": 29,
+   "construction": 21,
+   "reqs": [
+    "skillb:Sailing:29",
+    "skillb:Construction:21"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Teak plank",
+     "itemId": 8780,
+     "qty": 8
+    },
+    {
+     "name": "Steel nails",
+     "itemId": 1539,
+     "qty": 32
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 3
+    }
+   ]
+  },
+  {
+   "id": "cargo_hold_all_t3",
+   "part": "Cargo Hold",
+   "boatType": -1,
+   "tier": 3,
+   "name": "Mahogany cargo hold",
+   "page": "Mahogany cargo hold",
+   "sailing": 46,
+   "construction": 41,
+   "reqs": [
+    "skillb:Sailing:46",
+    "skillb:Construction:41"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Mahogany plank",
+     "itemId": 8782,
+     "qty": 8
+    },
+    {
+     "name": "Mithril nails",
+     "itemId": 4822,
+     "qty": 32
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 3
+    }
+   ]
+  },
+  {
+   "id": "cargo_hold_all_t4",
+   "part": "Cargo Hold",
+   "boatType": -1,
+   "tier": 4,
+   "name": "Camphor cargo hold",
+   "page": "Camphor cargo hold",
+   "sailing": 60,
+   "construction": 53,
+   "reqs": [
+    "skillb:Sailing:60",
+    "skillb:Construction:53"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Camphor plank",
+     "itemId": 31432,
+     "qty": 8
+    },
+    {
+     "name": "Adamantite nails",
+     "itemId": 4823,
+     "qty": 32
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 3
+    }
+   ]
+  },
+  {
+   "id": "cargo_hold_all_t5",
+   "part": "Cargo Hold",
+   "boatType": -1,
+   "tier": 5,
+   "name": "Ironwood cargo hold",
+   "page": "Ironwood cargo hold",
+   "sailing": 80,
+   "construction": 77,
+   "reqs": [
+    "skillb:Sailing:80",
+    "skillb:Construction:77"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Ironwood plank",
+     "itemId": 31435,
+     "qty": 8
+    },
+    {
+     "name": "Rune nails",
+     "itemId": 4824,
+     "qty": 32
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 3
+    }
+   ]
+  },
+  {
+   "id": "cargo_hold_all_t6",
+   "part": "Cargo Hold",
+   "boatType": -1,
+   "tier": 6,
+   "name": "Rosewood cargo hold",
+   "page": "Rosewood cargo hold",
+   "sailing": 89,
+   "construction": 84,
+   "reqs": [
+    "skillb:Sailing:89",
+    "skillb:Construction:84",
+    "unlock:schematic_rosewood_cargo_hold"
+   ],
+   "schematic": "Rosewood cargo hold schematic",
+   "materials": [
+    {
+     "name": "Rosewood plank",
+     "itemId": 31438,
+     "qty": 8
+    },
+    {
+     "name": "Dragon nails",
+     "itemId": 31406,
+     "qty": 32
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 3
+    }
+   ]
+  },
+  {
+   "id": "salvaging_hook_all_t0",
+   "part": "Salvaging Hook",
+   "boatType": -1,
+   "tier": 0,
+   "name": "Bronze salvaging hook",
+   "page": "Bronze salvaging hook",
+   "sailing": 15,
+   "construction": 1,
+   "reqs": [
+    "skillb:Sailing:15"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Plank",
+     "itemId": 960,
+     "qty": 4
+    },
+    {
+     "name": "Bronze nails",
+     "itemId": 4819,
+     "qty": 16
+    },
+    {
+     "name": "Bronze bar",
+     "itemId": 2349,
+     "qty": 6
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "salvaging_hook_all_t1",
+   "part": "Salvaging Hook",
+   "boatType": -1,
+   "tier": 1,
+   "name": "Iron salvaging hook",
+   "page": "Iron salvaging hook",
+   "sailing": 21,
+   "construction": 9,
+   "reqs": [
+    "skillb:Sailing:21",
+    "skillb:Construction:9"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Oak plank",
+     "itemId": 8778,
+     "qty": 4
+    },
+    {
+     "name": "Iron nails",
+     "itemId": 4820,
+     "qty": 16
+    },
+    {
+     "name": "Iron bar",
+     "itemId": 2351,
+     "qty": 6
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "salvaging_hook_all_t2",
+   "part": "Salvaging Hook",
+   "boatType": -1,
+   "tier": 2,
+   "name": "Steel salvaging hook",
+   "page": "Steel salvaging hook",
+   "sailing": 27,
+   "construction": 18,
+   "reqs": [
+    "skillb:Sailing:27",
+    "skillb:Construction:18"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Teak plank",
+     "itemId": 8780,
+     "qty": 4
+    },
+    {
+     "name": "Steel nails",
+     "itemId": 1539,
+     "qty": 16
+    },
+    {
+     "name": "Steel bar",
+     "itemId": 2353,
+     "qty": 6
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 1
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 3
+    }
+   ]
+  },
+  {
+   "id": "salvaging_hook_all_t3",
+   "part": "Salvaging Hook",
+   "boatType": -1,
+   "tier": 3,
+   "name": "Mithril salvaging hook",
+   "page": "Mithril salvaging hook",
+   "sailing": 44,
+   "construction": 30,
+   "reqs": [
+    "skillb:Sailing:44",
+    "skillb:Construction:30"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Mahogany plank",
+     "itemId": 8782,
+     "qty": 4
+    },
+    {
+     "name": "Mithril nails",
+     "itemId": 4822,
+     "qty": 16
+    },
+    {
+     "name": "Mithril bar",
+     "itemId": 2359,
+     "qty": 6
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 1
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 3
+    }
+   ]
+  },
+  {
+   "id": "salvaging_hook_all_t4",
+   "part": "Salvaging Hook",
+   "boatType": -1,
+   "tier": 4,
+   "name": "Adamant salvaging hook",
+   "page": "Adamant salvaging hook",
+   "sailing": 59,
+   "construction": 52,
+   "reqs": [
+    "skillb:Sailing:59",
+    "skillb:Construction:52"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Camphor plank",
+     "itemId": 31432,
+     "qty": 4
+    },
+    {
+     "name": "Adamantite nails",
+     "itemId": 4823,
+     "qty": 16
+    },
+    {
+     "name": "Adamantite bar",
+     "itemId": 2361,
+     "qty": 6
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 1
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 3
+    }
+   ]
+  },
+  {
+   "id": "salvaging_hook_all_t5",
+   "part": "Salvaging Hook",
+   "boatType": -1,
+   "tier": 5,
+   "name": "Rune salvaging hook",
+   "page": "Rune salvaging hook",
+   "sailing": 74,
+   "construction": 66,
+   "reqs": [
+    "skillb:Sailing:74",
+    "skillb:Construction:66"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Ironwood plank",
+     "itemId": 31435,
+     "qty": 4
+    },
+    {
+     "name": "Rune nails",
+     "itemId": 4824,
+     "qty": 16
+    },
+    {
+     "name": "Runite bar",
+     "itemId": 2363,
+     "qty": 6
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 1
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 4
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "id": "salvaging_hook_all_t6",
+   "part": "Salvaging Hook",
+   "boatType": -1,
+   "tier": 6,
+   "name": "Dragon salvaging hook",
+   "page": "Dragon salvaging hook",
+   "sailing": 86,
+   "construction": 78,
+   "reqs": [
+    "skillb:Sailing:86",
+    "skillb:Construction:78",
+    "unlock:schematic_dragon_salvaging_hook"
+   ],
+   "schematic": "Dragon salvaging hook schematic",
+   "materials": [
+    {
+     "name": "Rosewood plank",
+     "itemId": 31438,
+     "qty": 4
+    },
+    {
+     "name": "Dragon nails",
+     "itemId": 31406,
+     "qty": 16
+    },
+    {
+     "name": "Dragon metal sheet",
+     "itemId": 31996,
+     "qty": 6
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 1
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 4
+    },
+    {
+     "name": "Broken dragon hook",
+     "itemId": 31961,
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "cannon_all_t0",
+   "part": "Cannon",
+   "boatType": -1,
+   "tier": 0,
+   "name": "Bronze cannon",
+   "page": "Bronze cannon",
+   "sailing": 28,
+   "construction": 21,
+   "reqs": [
+    "skillb:Sailing:28",
+    "skillb:Construction:21"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Plank",
+     "itemId": 960,
+     "qty": 4
+    },
+    {
+     "name": "Bronze nails",
+     "itemId": 4819,
+     "qty": 16
+    },
+    {
+     "name": "Bronze bar",
+     "itemId": 2349,
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "id": "cannon_all_t1",
+   "part": "Cannon",
+   "boatType": -1,
+   "tier": 1,
+   "name": "Iron cannon",
+   "page": "Iron cannon",
+   "sailing": 35,
+   "construction": 28,
+   "reqs": [
+    "skillb:Sailing:35",
+    "skillb:Construction:28"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Oak plank",
+     "itemId": 8778,
+     "qty": 4
+    },
+    {
+     "name": "Iron nails",
+     "itemId": 4820,
+     "qty": 16
+    },
+    {
+     "name": "Iron bar",
+     "itemId": 2351,
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "id": "cannon_all_t2",
+   "part": "Cannon",
+   "boatType": -1,
+   "tier": 2,
+   "name": "Steel cannon",
+   "page": "Steel cannon",
+   "sailing": 47,
+   "construction": 39,
+   "reqs": [
+    "skillb:Sailing:47",
+    "skillb:Construction:39"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Teak plank",
+     "itemId": 8780,
+     "qty": 4
+    },
+    {
+     "name": "Steel nails",
+     "itemId": 1539,
+     "qty": 16
+    },
+    {
+     "name": "Steel bar",
+     "itemId": 2353,
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "id": "cannon_all_t3",
+   "part": "Cannon",
+   "boatType": -1,
+   "tier": 3,
+   "name": "Mithril cannon",
+   "page": "Mithril cannon",
+   "sailing": 57,
+   "construction": 50,
+   "reqs": [
+    "skillb:Sailing:57",
+    "skillb:Construction:50"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Mahogany plank",
+     "itemId": 8782,
+     "qty": 4
+    },
+    {
+     "name": "Mithril nails",
+     "itemId": 4822,
+     "qty": 16
+    },
+    {
+     "name": "Mithril bar",
+     "itemId": 2359,
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "id": "cannon_all_t4",
+   "part": "Cannon",
+   "boatType": -1,
+   "tier": 4,
+   "name": "Adamant cannon",
+   "page": "Adamant cannon",
+   "sailing": 69,
+   "construction": 61,
+   "reqs": [
+    "skillb:Sailing:69",
+    "skillb:Construction:61"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Camphor plank",
+     "itemId": 31432,
+     "qty": 4
+    },
+    {
+     "name": "Adamantite nails",
+     "itemId": 4823,
+     "qty": 16
+    },
+    {
+     "name": "Adamantite bar",
+     "itemId": 2361,
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "id": "cannon_all_t5",
+   "part": "Cannon",
+   "boatType": -1,
+   "tier": 5,
+   "name": "Rune cannon",
+   "page": "Rune cannon",
+   "sailing": 80,
+   "construction": 76,
+   "reqs": [
+    "skillb:Sailing:80",
+    "skillb:Construction:76"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Ironwood plank",
+     "itemId": 31435,
+     "qty": 4
+    },
+    {
+     "name": "Rune nails",
+     "itemId": 4824,
+     "qty": 16
+    },
+    {
+     "name": "Runite bar",
+     "itemId": 2363,
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "id": "cannon_all_t6",
+   "part": "Cannon",
+   "boatType": -1,
+   "tier": 6,
+   "name": "Dragon cannon",
+   "page": "Dragon cannon",
+   "sailing": 92,
+   "construction": 84,
+   "reqs": [
+    "skillb:Sailing:92",
+    "skillb:Construction:84",
+    "unlock:schematic_dragon_cannon"
+   ],
+   "schematic": "Dragon cannon schematic",
+   "materials": [
+    {
+     "name": "Rosewood plank",
+     "itemId": 31438,
+     "qty": 4
+    },
+    {
+     "name": "Dragon nails",
+     "itemId": 31406,
+     "qty": 16
+    },
+    {
+     "name": "Dragon metal sheet",
+     "itemId": 31996,
+     "qty": 8
+    },
+    {
+     "name": "Dragon cannon barrel",
+     "itemId": 32115,
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "teleport_focus_all_t0",
+   "part": "Teleport Focus",
+   "boatType": -1,
+   "tier": 0,
+   "name": "Teleport focus",
+   "page": "Teleport focus (facility)",
+   "sailing": 55,
+   "construction": 49,
+   "reqs": [
+    "skillb:Sailing:55",
+    "skillb:Construction:49"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Mahogany plank",
+     "itemId": 8782,
+     "qty": 8
+    },
+    {
+     "name": "Mithril nails",
+     "itemId": 4822,
+     "qty": 32
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 4
+    },
+    {
+     "name": "Magic stone",
+     "itemId": 4703,
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "teleport_focus_all_t1",
+   "part": "Teleport Focus",
+   "boatType": -1,
+   "tier": 1,
+   "name": "Greater teleport focus",
+   "page": "Greater teleport focus (facility)",
+   "sailing": 75,
+   "construction": 69,
+   "reqs": [
+    "skillb:Sailing:75",
+    "skillb:Construction:69"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Ironwood plank",
+     "itemId": 31435,
+     "qty": 8
+    },
+    {
+     "name": "Rune nails",
+     "itemId": 4824,
+     "qty": 32
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 4
+    },
+    {
+     "name": "Magic stone",
+     "itemId": 4703,
+     "qty": 2
+    },
+    {
+     "name": "Bottled storm",
+     "itemId": 31949,
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "wind_device_all_t0",
+   "part": "Wind Device",
+   "boatType": -1,
+   "tier": 0,
+   "name": "Wind catcher",
+   "page": "Wind catcher",
+   "sailing": 53,
+   "construction": 47,
+   "reqs": [
+    "skillb:Sailing:53",
+    "skillb:Construction:47"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Teak plank",
+     "itemId": 8780,
+     "qty": 4
+    },
+    {
+     "name": "Steel nails",
+     "itemId": 1539,
+     "qty": 16
+    },
+    {
+     "name": "Steel bar",
+     "itemId": 2353,
+     "qty": 8
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 4
+    },
+    {
+     "name": "Air rune",
+     "itemId": 556,
+     "qty": 10000
+    },
+    {
+     "name": "Captured wind mote",
+     "itemId": 31745,
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "wind_device_all_t1",
+   "part": "Wind Device",
+   "boatType": -1,
+   "tier": 1,
+   "name": "Gale catcher",
+   "page": "Gale catcher",
+   "sailing": 79,
+   "construction": 70,
+   "reqs": [
+    "skillb:Sailing:79",
+    "skillb:Construction:70",
+    "unlock:schematic_gale_catcher"
+   ],
+   "schematic": "Gale catcher schematic",
+   "materials": [
+    {
+     "name": "Camphor plank",
+     "itemId": 31432,
+     "qty": 4
+    },
+    {
+     "name": "Adamantite nails",
+     "itemId": 4823,
+     "qty": 16
+    },
+    {
+     "name": "Adamantite bar",
+     "itemId": 2361,
+     "qty": 8
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 4
+    },
+    {
+     "name": "Air rune",
+     "itemId": 556,
+     "qty": 25000
+    },
+    {
+     "name": "Captured wind mote",
+     "itemId": 31745,
+     "qty": 1
+    },
+    {
+     "name": "Swift albatross feather",
+     "itemId": 31952,
+     "qty": 5
+    }
+   ]
+  },
+  {
+   "id": "trawling_net_all_t0",
+   "part": "Trawling Net",
+   "boatType": -1,
+   "tier": 0,
+   "name": "Rope trawling net",
+   "page": "Rope trawling net",
+   "sailing": 56,
+   "construction": 45,
+   "reqs": [
+    "skillb:Sailing:56",
+    "skillb:Construction:45"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 7
+    },
+    {
+     "name": "Teak plank",
+     "itemId": 8780,
+     "qty": 4
+    },
+    {
+     "name": "Steel bar",
+     "itemId": 2353,
+     "qty": 4
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "id": "trawling_net_b1_t1",
+   "part": "Trawling Net",
+   "boatType": 1,
+   "tier": 1,
+   "name": "Linen trawling net",
+   "page": "Linen trawling net",
+   "sailing": 65,
+   "construction": 53,
+   "reqs": [
+    "skillb:Sailing:65",
+    "skillb:Construction:53"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Linen yarn",
+     "itemId": 31463,
+     "qty": 6
+    },
+    {
+     "name": "Mahogany plank",
+     "itemId": 8782,
+     "qty": 4
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 1
+    },
+    {
+     "name": "Mithril bar",
+     "itemId": 2359,
+     "qty": 4
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "id": "trawling_net_b2_t1",
+   "part": "Trawling Net",
+   "boatType": 2,
+   "tier": 1,
+   "name": "Linen trawling net",
+   "page": "Linen trawling net",
+   "sailing": 65,
+   "construction": 61,
+   "reqs": [
+    "skillb:Sailing:65",
+    "skillb:Construction:61"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Linen yarn",
+     "itemId": 31463,
+     "qty": 6
+    },
+    {
+     "name": "Mahogany plank",
+     "itemId": 8782,
+     "qty": 4
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 1
+    },
+    {
+     "name": "Mithril bar",
+     "itemId": 2359,
+     "qty": 4
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "id": "trawling_net_all_t2",
+   "part": "Trawling Net",
+   "boatType": -1,
+   "tier": 2,
+   "name": "Hemp trawling net",
+   "page": "Hemp trawling net",
+   "sailing": 76,
+   "construction": 65,
+   "reqs": [
+    "skillb:Sailing:76",
+    "skillb:Construction:65"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Hemp yarn",
+     "itemId": 31466,
+     "qty": 6
+    },
+    {
+     "name": "Camphor plank",
+     "itemId": 31432,
+     "qty": 4
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 1
+    },
+    {
+     "name": "Adamantite bar",
+     "itemId": 2361,
+     "qty": 4
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 2
+    },
+    {
+     "name": "Ray barbs",
+     "itemId": 31959,
+     "qty": 4
+    }
+   ]
+  },
+  {
+   "id": "trawling_net_all_t3",
+   "part": "Trawling Net",
+   "boatType": -1,
+   "tier": 3,
+   "name": "Cotton trawling net",
+   "page": "Cotton trawling net",
+   "sailing": 84,
+   "construction": 73,
+   "reqs": [
+    "skillb:Sailing:84",
+    "skillb:Construction:73"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Cotton yarn",
+     "itemId": 31469,
+     "qty": 6
+    },
+    {
+     "name": "Ironwood plank",
+     "itemId": 31435,
+     "qty": 4
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 1
+    },
+    {
+     "name": "Runite bar",
+     "itemId": 2363,
+     "qty": 4
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 2
+    },
+    {
+     "name": "Ray barbs",
+     "itemId": 31959,
+     "qty": 8
+    }
+   ]
+  },
+  {
+   "id": "chum_station_all_t0",
+   "part": "Chum Station",
+   "boatType": -1,
+   "tier": 0,
+   "name": "Chum station",
+   "page": "Chum station",
+   "sailing": 56,
+   "construction": 45,
+   "reqs": [
+    "skillb:Sailing:56",
+    "skillb:Construction:45"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Mahogany plank",
+     "itemId": 8782,
+     "qty": 10
+    },
+    {
+     "name": "Mithril nails",
+     "itemId": 4822,
+     "qty": 40
+    },
+    {
+     "name": "Steel bar",
+     "itemId": 2353,
+     "qty": 2
+    },
+    {
+     "name": "Fishing bait",
+     "itemId": 313,
+     "qty": 1000
+    },
+    {
+     "name": "Knife",
+     "itemId": 946,
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "chum_station_all_t1",
+   "part": "Chum Station",
+   "boatType": -1,
+   "tier": 1,
+   "name": "Advanced chum station",
+   "page": "Advanced chum station",
+   "sailing": 68,
+   "construction": 61,
+   "reqs": [
+    "skillb:Sailing:68",
+    "skillb:Construction:61"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Camphor plank",
+     "itemId": 31432,
+     "qty": 10
+    },
+    {
+     "name": "Adamantite nails",
+     "itemId": 4823,
+     "qty": 40
+    },
+    {
+     "name": "Steel bar",
+     "itemId": 2353,
+     "qty": 2
+    },
+    {
+     "name": "Fishing bait",
+     "itemId": 313,
+     "qty": 1000
+    },
+    {
+     "name": "Knife",
+     "itemId": 946,
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "chum_station_all_t2",
+   "part": "Chum Station",
+   "boatType": -1,
+   "tier": 2,
+   "name": "Chum spreader",
+   "page": "Chum spreader",
+   "sailing": 82,
+   "construction": 74,
+   "reqs": [
+    "skillb:Sailing:82",
+    "skillb:Construction:74"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Ironwood plank",
+     "itemId": 31435,
+     "qty": 10
+    },
+    {
+     "name": "Rune nails",
+     "itemId": 4824,
+     "qty": 40
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 5
+    },
+    {
+     "name": "Fishing bait",
+     "itemId": 313,
+     "qty": 10000
+    },
+    {
+     "name": "Narwhal horn knife",
+     "itemId": 31957,
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "fathom_device_all_t0",
+   "part": "Fathom Device",
+   "boatType": -1,
+   "tier": 0,
+   "name": "Fathom stone",
+   "page": "Fathom stone",
+   "sailing": 70,
+   "construction": 62,
+   "reqs": [
+    "skillb:Sailing:70",
+    "skillb:Construction:62"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Camphor plank",
+     "itemId": 31432,
+     "qty": 10
+    },
+    {
+     "name": "Adamantite nails",
+     "itemId": 4823,
+     "qty": 40
+    },
+    {
+     "name": "Molten glass",
+     "itemId": 1775,
+     "qty": 4
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 2
+    }
+   ]
+  },
+  {
+   "id": "fathom_device_all_t1",
+   "part": "Fathom Device",
+   "boatType": -1,
+   "tier": 1,
+   "name": "Fathom pearl",
+   "page": "Fathom pearl",
+   "sailing": 91,
+   "construction": 83,
+   "reqs": [
+    "skillb:Sailing:91",
+    "skillb:Construction:83"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Rosewood plank",
+     "itemId": 31438,
+     "qty": 10
+    },
+    {
+     "name": "Dragon nails",
+     "itemId": 31406,
+     "qty": 40
+    },
+    {
+     "name": "Dragon metal sheet",
+     "itemId": 31996,
+     "qty": 2
+    },
+    {
+     "name": "Echo pearl",
+     "itemId": 31946,
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "range_all_t0",
+   "part": "Range",
+   "boatType": -1,
+   "tier": 0,
+   "name": "Range",
+   "page": "Range (facility)",
+   "sailing": 16,
+   "construction": 6,
+   "reqs": [
+    "skillb:Sailing:16",
+    "skillb:Construction:6"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Steel bar",
+     "itemId": 2353,
+     "qty": 4
+    },
+    {
+     "name": "Charcoal",
+     "itemId": 973,
+     "qty": 2
+    },
+    {
+     "name": "Tinderbox",
+     "itemId": 590,
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "keg_all_t0",
+   "part": "Keg",
+   "boatType": -1,
+   "tier": 0,
+   "name": "Keg",
+   "page": "Keg (facility)",
+   "sailing": 33,
+   "construction": 25,
+   "reqs": [
+    "skillb:Sailing:33",
+    "skillb:Construction:25"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Oak plank",
+     "itemId": 8778,
+     "qty": 5
+    },
+    {
+     "name": "Iron nails",
+     "itemId": 4820,
+     "qty": 20
+    },
+    {
+     "name": "Barrel stand",
+     "itemId": 31733,
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "anchor_all_t0",
+   "part": "Anchor",
+   "boatType": -1,
+   "tier": 0,
+   "name": "Anchor",
+   "page": "Anchor (facility)",
+   "sailing": 37,
+   "construction": 29,
+   "reqs": [
+    "skillb:Sailing:37",
+    "skillb:Construction:29"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Steel bar",
+     "itemId": 2353,
+     "qty": 8
+    },
+    {
+     "name": "Lead bar",
+     "itemId": 32889,
+     "qty": 6
+    },
+    {
+     "name": "Rope",
+     "itemId": 954,
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "inoculation_station_all_t0",
+   "part": "Inoculation Station",
+   "boatType": -1,
+   "tier": 0,
+   "name": "Inoculation station",
+   "page": "Inoculation station",
+   "sailing": 40,
+   "construction": 37,
+   "reqs": [
+    "skillb:Sailing:40",
+    "skillb:Construction:37"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Teak plank",
+     "itemId": 8780,
+     "qty": 8
+    },
+    {
+     "name": "Steel nails",
+     "itemId": 1539,
+     "qty": 32
+    },
+    {
+     "name": "Relicym's balm(4)",
+     "itemId": 4842,
+     "qty": 6
+    }
+   ]
+  },
+  {
+   "id": "salvaging_station_all_t0",
+   "part": "Salvaging Station",
+   "boatType": -1,
+   "tier": 0,
+   "name": "Salvaging station",
+   "page": "Salvaging station",
+   "sailing": 42,
+   "construction": 34,
+   "reqs": [
+    "skillb:Sailing:42",
+    "skillb:Construction:34",
+    "unlock:schematic_salvaging_station"
+   ],
+   "schematic": "Salvaging station schematic",
+   "materials": [
+    {
+     "name": "Teak plank",
+     "itemId": 8780,
+     "qty": 4
+    },
+    {
+     "name": "Steel nails",
+     "itemId": 1539,
+     "qty": 16
+    }
+   ]
+  },
+  {
+   "id": "crystal_extractor_all_t0",
+   "part": "Crystal Extractor",
+   "boatType": -1,
+   "tier": 0,
+   "name": "Crystal extractor",
+   "page": "Crystal extractor",
+   "sailing": 73,
+   "construction": 67,
+   "reqs": [
+    "skillb:Sailing:73",
+    "skillb:Construction:67"
+   ],
+   "schematic": null,
+   "materials": [
+    {
+     "name": "Ironwood plank",
+     "itemId": 31435,
+     "qty": 6
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 5
+    },
+    {
+     "name": "Magic stone",
+     "itemId": 4703,
+     "qty": 2
+    },
+    {
+     "name": "Heart of ithell",
+     "itemId": 31757,
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "eternal_brazier_all_t0",
+   "part": "Eternal Brazier",
+   "boatType": -1,
+   "tier": 0,
+   "name": "Eternal brazier",
+   "page": "Eternal brazier",
+   "sailing": 78,
+   "construction": 72,
+   "reqs": [
+    "skillb:Sailing:78",
+    "skillb:Construction:72",
+    "unlock:schematic_eternal_brazier"
+   ],
+   "schematic": "Eternal brazier schematic",
+   "materials": [
+    {
+     "name": "Ironwood plank",
+     "itemId": 31435,
+     "qty": 4
+    },
+    {
+     "name": "Rune nails",
+     "itemId": 4824,
+     "qty": 16
+    },
+    {
+     "name": "Runite bar",
+     "itemId": 2363,
+     "qty": 6
+    },
+    {
+     "name": "Cupronickel bar",
+     "itemId": 32892,
+     "qty": 6
+    },
+    {
+     "name": "Te salt",
+     "itemId": 22593,
+     "qty": 250
+    },
+    {
+     "name": "Efh salt",
+     "itemId": 22595,
+     "qty": 250
+    },
+    {
+     "name": "Urt salt",
+     "itemId": 22597,
+     "qty": 250
+    }
+   ]
+  }
+ ],
+ "detection": {
+  "facilities": [
+   {
+    "part": "Anchor",
+    "tier": 0,
+    "objectIds": [
+     59687,
+     59688,
+     59689,
+     59690
+    ]
+   },
+   {
+    "part": "Cannon",
+    "tier": 0,
+    "objectIds": [
+     59446
+    ]
+   },
+   {
+    "part": "Cannon",
+    "tier": 1,
+    "objectIds": [
+     59447
+    ]
+   },
+   {
+    "part": "Cannon",
+    "tier": 2,
+    "objectIds": [
+     59448
+    ]
+   },
+   {
+    "part": "Cannon",
+    "tier": 3,
+    "objectIds": [
+     59449
+    ]
+   },
+   {
+    "part": "Cannon",
+    "tier": 4,
+    "objectIds": [
+     59450
+    ]
+   },
+   {
+    "part": "Cannon",
+    "tier": 5,
+    "objectIds": [
+     59451
+    ]
+   },
+   {
+    "part": "Cannon",
+    "tier": 6,
+    "objectIds": [
+     59452
+    ]
+   },
+   {
+    "part": "Cargo Hold",
+    "tier": 0,
+    "objectIds": [
+     60245,
+     60259,
+     60273,
+     60577,
+     60581,
+     60603,
+     60604,
+     60629,
+     60630
+    ]
+   },
+   {
+    "part": "Cargo Hold",
+    "tier": 1,
+    "objectIds": [
+     60247,
+     60261,
+     60275,
+     60582,
+     60583,
+     60605,
+     60606,
+     60631,
+     60632
+    ]
+   },
+   {
+    "part": "Cargo Hold",
+    "tier": 2,
+    "objectIds": [
+     60249,
+     60263,
+     60277,
+     60584,
+     60586,
+     60607,
+     60620,
+     60633,
+     60634
+    ]
+   },
+   {
+    "part": "Cargo Hold",
+    "tier": 3,
+    "objectIds": [
+     60251,
+     60265,
+     60279,
+     60588,
+     60590,
+     60621,
+     60622,
+     60635,
+     60636
+    ]
+   },
+   {
+    "part": "Cargo Hold",
+    "tier": 4,
+    "objectIds": [
+     60253,
+     60267,
+     60281,
+     60592,
+     60594,
+     60623,
+     60624,
+     60637,
+     60638
+    ]
+   },
+   {
+    "part": "Cargo Hold",
+    "tier": 5,
+    "objectIds": [
+     60255,
+     60269,
+     60283,
+     60596,
+     60598,
+     60625,
+     60626,
+     60639,
+     60640
+    ]
+   },
+   {
+    "part": "Cargo Hold",
+    "tier": 6,
+    "objectIds": [
+     60257,
+     60271,
+     60285,
+     60601,
+     60602,
+     60627,
+     60628,
+     60641,
+     60642
+    ]
+   },
+   {
+    "part": "Chum Station",
+    "tier": 0,
+    "objectIds": [
+     59743,
+     59744,
+     59745,
+     59746
+    ]
+   },
+   {
+    "part": "Chum Station",
+    "tier": 1,
+    "objectIds": [
+     59747,
+     59748,
+     59749,
+     59750
+    ]
+   },
+   {
+    "part": "Chum Station",
+    "tier": 2,
+    "objectIds": [
+     59751,
+     59752,
+     59753,
+     59754
+    ]
+   },
+   {
+    "part": "Crystal Extractor",
+    "tier": 0,
+    "objectIds": [
+     59702,
+     59703
+    ]
+   },
+   {
+    "part": "Eternal Brazier",
+    "tier": 0,
+    "objectIds": [
+     59707,
+     59708,
+     59709,
+     59710
+    ]
+   },
+   {
+    "part": "Fathom Device",
+    "tier": 0,
+    "objectIds": [
+     59767
+    ]
+   },
+   {
+    "part": "Fathom Device",
+    "tier": 1,
+    "objectIds": [
+     59768
+    ]
+   },
+   {
+    "part": "Inoculation Station",
+    "tier": 0,
+    "objectIds": [
+     59704,
+     59705,
+     59706
+    ]
+   },
+   {
+    "part": "Keg",
+    "tier": 0,
+    "objectIds": [
+     59691,
+     59692,
+     59693,
+     59694,
+     59695,
+     59696,
+     59697,
+     59698
+    ]
+   },
+   {
+    "part": "Range",
+    "tier": 0,
+    "objectIds": [
+     59682
+    ]
+   },
+   {
+    "part": "Salvaging Hook",
+    "tier": 0,
+    "objectIds": [
+     60483,
+     60490,
+     60497,
+     60498
+    ]
+   },
+   {
+    "part": "Salvaging Hook",
+    "tier": 1,
+    "objectIds": [
+     60484,
+     60491,
+     60499,
+     60500
+    ]
+   },
+   {
+    "part": "Salvaging Hook",
+    "tier": 2,
+    "objectIds": [
+     60485,
+     60492,
+     60501,
+     60502
+    ]
+   },
+   {
+    "part": "Salvaging Hook",
+    "tier": 3,
+    "objectIds": [
+     60486,
+     60493,
+     60503,
+     60504
+    ]
+   },
+   {
+    "part": "Salvaging Hook",
+    "tier": 4,
+    "objectIds": [
+     60487,
+     60494,
+     60505,
+     60506
+    ]
+   },
+   {
+    "part": "Salvaging Hook",
+    "tier": 5,
+    "objectIds": [
+     60488,
+     60495,
+     60507,
+     60508
+    ]
+   },
+   {
+    "part": "Salvaging Hook",
+    "tier": 6,
+    "objectIds": [
+     60489,
+     60496,
+     60509,
+     60510
+    ]
+   },
+   {
+    "part": "Salvaging Station",
+    "tier": 0,
+    "objectIds": [
+     59699,
+     59700,
+     59701
+    ]
+   },
+   {
+    "part": "Teleport Focus",
+    "tier": 0,
+    "objectIds": [
+     59715
+    ]
+   },
+   {
+    "part": "Teleport Focus",
+    "tier": 1,
+    "objectIds": [
+     59716
+    ]
+   },
+   {
+    "part": "Trawling Net",
+    "tier": 0,
+    "objectIds": [
+     59755,
+     59759,
+     59763
+    ]
+   },
+   {
+    "part": "Trawling Net",
+    "tier": 1,
+    "objectIds": [
+     59756,
+     59760,
+     59764
+    ]
+   },
+   {
+    "part": "Trawling Net",
+    "tier": 2,
+    "objectIds": [
+     59757,
+     59761,
+     59765
+    ]
+   },
+   {
+    "part": "Trawling Net",
+    "tier": 3,
+    "objectIds": [
+     59758,
+     59762,
+     59766
+    ]
+   },
+   {
+    "part": "Wind Device",
+    "tier": 0,
+    "objectIds": [
+     59683,
+     59684
+    ]
+   },
+   {
+    "part": "Wind Device",
+    "tier": 1,
+    "objectIds": [
+     59685,
+     59686
+    ]
+   }
+  ],
+  "schematics": [
+   {
+    "slug": "dragon_cannon",
+    "name": "Dragon cannon schematic",
+    "upgrade": "Dragon cannon",
+    "varbit": 19549
+   },
+   {
+    "slug": "dragon_helm",
+    "name": "Dragon helm schematic",
+    "upgrade": "Dragon helm",
+    "varbit": 19552
+   },
+   {
+    "slug": "dragon_keel",
+    "name": "Dragon keel schematic",
+    "upgrade": "Dragon keel",
+    "varbit": 19553
+   },
+   {
+    "slug": "dragon_salvaging_hook",
+    "name": "Dragon salvaging hook schematic",
+    "upgrade": "Dragon salvaging hook",
+    "varbit": 19547
+   },
+   {
+    "slug": "eternal_brazier",
+    "name": "Eternal brazier schematic",
+    "upgrade": "Eternal brazier",
+    "varbit": 19546
+   },
+   {
+    "slug": "gale_catcher",
+    "name": "Gale catcher schematic",
+    "upgrade": "Gale catcher",
+    "varbit": 19545
+   },
+   {
+    "slug": "rosewood_cargo_hold",
+    "name": "Rosewood cargo hold schematic",
+    "upgrade": "Rosewood cargo hold",
+    "varbit": 19548
+   },
+   {
+    "slug": "rosewood_cotton_sails",
+    "name": "Rosewood & cotton sails schematic",
+    "upgrade": "Rosewood mast & cotton sails",
+    "varbit": 19551
+   },
+   {
+    "slug": "rosewood_hull",
+    "name": "Rosewood hull schematic",
+    "upgrade": "Rosewood hull",
+    "varbit": 19550
+   },
+   {
+    "slug": "salvaging_station",
+    "name": "Salvaging station schematic",
+    "upgrade": "Salvaging station",
+    "varbit": 19544
+   }
+  ]
+ }
+}

@@ -598,3 +598,47 @@ honesty holds on the very first plan after a profile load, before the login
 varbit read lands. Iron Hub uses it for one thing so far: a UIM has no bank, so
 `PlannerService` passes an EMPTY banked-xp map (banked materials can't discount a
 plan you can't store), and the Bank tab's Banked-XP view says so.
+
+## Sailing boat detection (module: sailing, pack: boat-upgrades.json)
+
+Ported from the Boat Upgrades hub plugin (IEarnSolo/boat-upgrades @ 0c0978b,
+BSD-2). Boats are per-account structures whose state is only readable while
+you interact with them — the module persists per-boat-type snapshots
+("as of last boarding" honesty, tiers only ever rise).
+
+**Activity signal**: `VarbitID.SAILING_BOARDED_BOAT` (19136) OR
+`SAILING_SIDEPANEL_SHIPYARD_MODE` (19173) non-zero. A boarded-boat flip while
+in the shipyard is the shipyard's own board/unboard churn — ignore it. After a
+flip, wait ~2 game ticks before scanning: the boat scene needs a beat to load.
+
+**Whose boat?** The sidepanel names the captain in the varcstring
+`VarClientID.SAILING_SIDEPANEL_CAPTAIN_NAME` (1311) — compare (NBSP-normalized,
+case-insensitive) against the local player or you'll record crewmates' boats.
+
+**Boat type**: `SAILING_BOARDED_BOAT_TYPE` (19137) while boarded, else
+`SAILING_PREVIOUS_BOAT_TYPE_ID` (19143) in the shipyard. Values: 0 = raft
+(1x3), 1 = skiff (2x5), 2 = sloop (3x8) — visible in the reference's material
+tables ("Large … parts" only on type 2) and object suffixes (RAFT/2X5/3X8).
+
+**Core part tiers** (0..6) read straight from sidepanel varbits:
+`SAILING_SIDEPANEL_FACILITY_SAIL` 19154, `_HELM` 19155, `_KEEL` 19167,
+`_HULL` 19168. The raft's hull slot is the catalog's separate "Base" part —
+same varbit. Rafts have no keel; drop parts with no catalog rows for the type.
+
+**Facility tiers** have no readable varbit yet (the reference's own TODO —
+`SAILING_SIDEPANEL_FACILITY_HOTSPOT0..10` exist but are undecoded): sweep the
+player-owned boat WorldEntity's scene (`getTopLevelWorldView().worldEntities()`
+filtered to `OWNER_TYPE_SELF_PLAYER`, then that entity's WorldView scene tiles)
+for built-facility GameObjects and map ids -> part+tier via the pack.
+
+**Upstream bug (fixed at generation, don't re-import it)**: the reference's
+`fathomIdToTier` maps FATHOM_PEARL->0 / FATHOM_STONE->1, inverted vs its own
+catalog (Fathom stone = tier 0 @ Sailing 70, pearl = tier 1 @ 91). Detecting a
+stone as tier 1 would hide the pearl upgrade. gen_boat_upgrades.py swaps them
+and asserts the inversion is still present upstream so a fix there flags us.
+
+**Schematics**: ten late-game upgrades gate on `LOST_SCHEMATIC_*` varbits
+(19544-19553, == 1 when learned); mirrored one-way into
+`unlock:schematic_<slug>` flags so the requirement graph and goal steps gate
+on them. Levels are `skillb:` — shipwright building is boostable (the
+reference reads boosted levels).

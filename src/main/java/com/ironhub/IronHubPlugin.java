@@ -106,15 +106,16 @@ public class IronHubPlugin extends Plugin
 		com.ironhub.modules.dailies.DailiesNewModule dailiesNew,
 		com.ironhub.modules.poh.PohModule poh,
 		com.ironhub.modules.hunter.HunterRumoursModule hunterRumours,
-		com.ironhub.modules.moneymaking.MoneyMakingModule moneyMaking)
+		com.ironhub.modules.moneymaking.MoneyMakingModule moneyMaking,
+		com.ironhub.modules.sailing.SailingUpgradesModule sailingUpgrades)
 	{
-		// TODO: skills, boat — see DESIGN.md §3
+		// TODO: skills — see DESIGN.md §3
 		return ImmutableSet.of(
 			gearProgression, quests, diaries, combatAchievements, qol, loot, bankTracker,
 			farmingRun, dailies, goalPlanner, clueStash,
 			slayerOptimizer, suppliesRunway, collectionLog, externalSync,
 			dashboard, deathRecovery, loadoutLab, designLab, dailiesNew, poh, hunterRumours,
-			moneyMaking);
+			moneyMaking, sailingUpgrades);
 	}
 
 	@Provides
