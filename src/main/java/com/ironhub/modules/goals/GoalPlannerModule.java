@@ -589,54 +589,6 @@ public class GoalPlannerModule implements IronHubModule
 		});
 	}
 
-	public MergePreview previewMerge(GoalsPack.Goal candidate)
-	{
-		java.util.List<GoalsPack.Goal> base = unmetGoals();
-		com.ironhub.engine.ActionDag baseDag =
-			com.ironhub.engine.GoalExpander.expand(base, state, enginePacks);
-		java.util.Set<String> baseIds = new java.util.HashSet<>();
-		baseDag.nodes().forEach(n -> baseIds.add(n.id));
-
-		java.util.List<GoalsPack.Goal> merged = new ArrayList<>(base);
-		merged.add(candidate);
-		com.ironhub.engine.Plan withPlan = com.ironhub.engine.PlannerService.plan(
-			state, enginePacks, bankedPack, merged, state.plannerConstraints());
-		com.ironhub.engine.Plan basePlan = currentPlan != null ? currentPlan
-			: com.ironhub.engine.PlannerService.plan(
-				state, enginePacks, bankedPack, base, state.plannerConstraints());
-
-		int candidateNodes = 0;
-		int shared = 0;
-		for (com.ironhub.engine.Plan.Step step : withPlan.steps)
-		{
-			if (step.action.neededBy.contains(candidate.getId()))
-			{
-				candidateNodes++;
-				if (baseIds.contains(step.action.id))
-				{
-					shared++;
-				}
-			}
-		}
-		return new MergePreview(Math.max(0, withPlan.knownHours - basePlan.knownHours),
-			candidateNodes, shared);
-	}
-
-	/** Add-goal preview numbers (ENGINE-DESIGN merge preview). */
-	public static class MergePreview
-	{
-		public final double addedHours;
-		public final int steps;
-		public final int shared;
-
-		MergePreview(double addedHours, int steps, int shared)
-		{
-			this.addedHours = addedHours;
-			this.steps = steps;
-			this.shared = shared;
-		}
-	}
-
 	/**
 	 * Remove a goal wherever it lives: seeded goals drop their persisted
 	 * seed (which also deselects); everything else — pack goals, gear

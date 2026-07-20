@@ -137,9 +137,6 @@ public class AccountState implements StateView
 	private final java.util.List<PersistedState.ConsumptionEvent> consumptionLog = new CopyOnWriteArrayList<>();
 
 	/** Periodic account-score snapshots for trend sparklines, capped. */
-	public static final int MAX_SCORE_SNAPSHOTS = 60;
-	private static final long SNAPSHOT_MIN_GAP_MS = 20 * 3_600_000L; // ~daily
-	private final java.util.List<PersistedState.ScoreSnapshot> scoreSnapshots = new CopyOnWriteArrayList<>();
 
 	// collection log progress from the last log open (persisted)
 	private volatile int collectionLogSlots;
@@ -1341,35 +1338,6 @@ public class AccountState implements StateView
 		return total;
 	}
 
-	/** Score snapshots oldest-first as (timeMs, score) pairs. */
-	public java.util.List<long[]> getScoreSnapshots()
-	{
-		return scoreSnapshots.stream()
-			.map(sn -> new long[]{sn.timeMs, sn.score})
-			.collect(java.util.stream.Collectors.toList());
-	}
-
-	/** Record a snapshot at most ~daily; returns true when recorded. */
-	public boolean maybeSnapshotScore(int score)
-	{
-		PersistedState.ScoreSnapshot last = scoreSnapshots.isEmpty()
-			? null : scoreSnapshots.get(scoreSnapshots.size() - 1);
-		if (last != null && System.currentTimeMillis() - last.timeMs < SNAPSHOT_MIN_GAP_MS)
-		{
-			return false;
-		}
-		PersistedState.ScoreSnapshot snapshot = new PersistedState.ScoreSnapshot();
-		snapshot.timeMs = System.currentTimeMillis();
-		snapshot.score = score;
-		scoreSnapshots.add(snapshot);
-		while (scoreSnapshots.size() > MAX_SCORE_SNAPSHOTS)
-		{
-			scoreSnapshots.remove(0);
-		}
-		persist();
-		return true;
-	}
-
 	/** Collection log slots filled, recorded when the log was opened. */
 	public int getCollectionLogSlots()
 	{
@@ -2297,8 +2265,6 @@ public class AccountState implements StateView
 		persisted.routeTaskOrder.forEach((k, v) -> routeTaskOrder.put(k, new java.util.ArrayList<>(v)));
 		lastPlanHours = persisted.lastPlanHours;
 		plannerRouteChapters = persisted.plannerRouteChapters;
-		scoreSnapshots.clear();
-		scoreSnapshots.addAll(persisted.scoreSnapshots);
 		collectionLogSlots = persisted.collectionLogSlots;
 		collectionLogTotal = persisted.collectionLogTotal;
 		collectionLogSeenMs = persisted.collectionLogSeenMs;
@@ -2433,7 +2399,6 @@ public class AccountState implements StateView
 		routeTaskOrder.forEach((k, v) -> state.routeTaskOrder.put(k, new java.util.ArrayList<>(v)));
 		state.lastPlanHours = lastPlanHours;
 		state.plannerRouteChapters = plannerRouteChapters;
-		state.scoreSnapshots = new java.util.ArrayList<>(scoreSnapshots);
 		state.collectionLogSlots = collectionLogSlots;
 		state.collectionLogTotal = collectionLogTotal;
 		state.collectionLogSeenMs = collectionLogSeenMs;

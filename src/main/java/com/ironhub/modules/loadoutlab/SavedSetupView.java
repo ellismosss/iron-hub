@@ -102,12 +102,6 @@ class SavedSetupView
 		this.linkV = OsrsIcons.image(theme, "equipment/link_v");
 	}
 
-	/** The worn-equipment interface for a saved setup. */
-	JComponent equipment(PersistedState.SavedSetup setup)
-	{
-		return new EquipmentCanvas(setup, null, null);
-	}
-
 	/**
 	 * The worn-equipment interface with per-slot diff tint borders (slot
 	 * name -> border colour, null = none) and an optional slot-press
@@ -124,12 +118,6 @@ class SavedSetupView
 	JComponent runePouch(PersistedState.SavedSetup setup)
 	{
 		return new PouchCanvas(setup);
-	}
-
-	/** The inventory: items directly on the game's framed side panel. */
-	JComponent inventory(PersistedState.SavedSetup setup)
-	{
-		return new InventoryCanvas(setup, null);
 	}
 
 	/** The inventory with per-slot diff tint borders (28 entries or null). */

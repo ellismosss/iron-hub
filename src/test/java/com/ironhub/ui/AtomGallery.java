@@ -1,17 +1,10 @@
 package com.ironhub.ui;
 
-import com.ironhub.ui.components.AlertChip;
 import com.ironhub.ui.components.GridTile;
-import com.ironhub.ui.components.HubProgressBar;
 import com.ironhub.ui.components.IconButton;
-import com.ironhub.ui.components.LabeledTile;
 import com.ironhub.ui.components.ListRow;
 import com.ironhub.ui.components.NavHeader;
-import com.ironhub.ui.components.SearchField;
-import com.ironhub.ui.components.SegmentedControl;
-import com.ironhub.ui.components.Status;
 import java.awt.Component;
-import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -41,9 +34,6 @@ public class AtomGallery
 		body.setBackground(UiTokens.PANEL_BG);
 		body.setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));
 
-		body.add(new SearchField("Search modules…"));
-		body.add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
-
 		// frame 1a §5 — the four list-row states
 		body.add(ListRow.owned("Dragon defender", IconButton.path(null), IconButton.wiki(null)));
 		body.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
@@ -52,32 +42,6 @@ public class AtomGallery
 		body.add(ListRow.locked("Ava's assembler", "Dragon Slayer II", IconButton.path(null), IconButton.wiki(null)));
 		body.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		body.add(ListRow.warning("Prayer potions", "6 h left", IconButton.wiki(null)));
-		body.add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
-
-		// frame 1a §6 — controls
-		JPanel controls = row();
-		controls.add(new SegmentedControl(false, "Tree", "Checklist"));
-		controls.add(Box.createHorizontalStrut(UiTokens.PAD));
-		controls.add(SegmentedControl.viewToggle());
-		controls.add(Box.createHorizontalStrut(UiTokens.PAD));
-		controls.add(new AlertChip("4 dailies", Status.AVAILABLE));
-		controls.add(Box.createHorizontalGlue());
-		body.add(controls);
-		body.add(Box.createVerticalStrut(UiTokens.PAD));
-
-		SegmentedControl styleTabs = new SegmentedControl(true, "Melee", "Range", "Mage");
-		styleTabs.setSelected(1);
-		body.add(styleTabs);
-		body.add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
-
-		body.add(HubProgressBar.bar(0.34));
-		body.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		body.add(HubProgressBar.bar(1.0));
-		body.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		JPanel miniRow = row();
-		miniRow.add(HubProgressBar.mini(0.57, 48));
-		miniRow.add(Box.createHorizontalGlue());
-		body.add(miniRow);
 		body.add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
 
 		// frame 2a HEAD ladder — grid tile states
@@ -96,19 +60,6 @@ public class AtomGallery
 		}
 		tiles.add(Box.createHorizontalGlue());
 		body.add(tiles);
-		body.add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
-
-		// frame 2f — labeled 3-col tiles
-		JPanel labeled = new JPanel(new GridLayout(1, 3, UiTokens.GRID_GAP, 0));
-		labeled.setBackground(UiTokens.PANEL_BG);
-		labeled.setAlignmentX(Component.LEFT_ALIGNMENT);
-		labeled.add(new LabeledTile("HB", "Herblore", "2.4M", UiTokens.STATUS_AVAILABLE,
-			null, "Herblore — 2.4M banked, method: unf potions"));
-		labeled.add(new LabeledTile("CK", "Cooking", "3.0M", UiTokens.STATUS_AVAILABLE,
-			null, "Cooking — 3.0M banked"));
-		labeled.add(new LabeledTile("FL", "Fletching", "1.1M", UiTokens.STATUS_AVAILABLE,
-			HubProgressBar.mini(0.57, 48), "Fletching — 1.1M banked"));
-		body.add(labeled);
 		body.add(Box.createVerticalGlue());
 
 		root.add(body);

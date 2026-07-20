@@ -32,7 +32,7 @@ public class ModuleRoutingTest
 		assertTrue(qol.enabled());
 		assertNotNull(qol.buildTab());
 
-		IronHubPanel panel = new IronHubPanel(Set.of((IronHubModule) qol), state, new DataPack(new Gson()), config);
+		IronHubPanel panel = new IronHubPanel(Set.of((IronHubModule) qol), state, config);
 		javax.swing.SwingUtilities.invokeAndWait(() ->
 		{
 			panel.openBlock("Progression");

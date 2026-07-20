@@ -57,8 +57,7 @@ public class NavBlocksTest
 			null, null, null, config, null, new DataPack(new Gson()),
 			null, null, null, null, null, null, null);
 		farming.startUp();
-		panel = new IronHubPanel(Set.of((IronHubModule) dailiesNew, farming), state,
-			new DataPack(new Gson()), config);
+		panel = new IronHubPanel(Set.of((IronHubModule) dailiesNew, farming), state, config);
 		home = find(panel, HomePanel.class);
 		assertNotNull("the home must be persistent in the panel", home);
 	}

@@ -1,6 +1,5 @@
 package com.ironhub.ui;
 
-import com.ironhub.data.DataPack;
 import com.ironhub.modules.IronHubModule;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.components.HubScrollPane;
@@ -77,7 +76,7 @@ public class IronHubPanel extends PluginPanel
 	private HomePanel home;
 
 	@Inject
-	public IronHubPanel(Set<IronHubModule> modules, AccountState state, DataPack dataPack,
+	public IronHubPanel(Set<IronHubModule> modules, AccountState state,
 		com.ironhub.IronHubConfig config)
 	{
 		super(false);

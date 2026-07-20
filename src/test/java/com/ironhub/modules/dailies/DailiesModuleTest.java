@@ -571,51 +571,6 @@ public class DailiesModuleTest
 		assertFalse("just logged in — the varbits are exact", module.crossedReset());
 	}
 
-	@Test
-	public void tabRendersHeadless() throws Exception
-	{
-		AccountState state = state();
-		// A mid-game iron: some diaries done, one daily already claimed.
-		StateFixture.varbit(state, Varbits.DIARY_VARROCK_MEDIUM, 1);
-		StateFixture.varbit(state, Varbits.DIARY_KANDARIN_EASY, 1);
-		StateFixture.varbit(state, Varbits.DIARY_MORYTANIA_MEDIUM, 1);
-		StateFixture.varbit(state, Varbits.DIARY_KOUREND_MEDIUM, 1);
-		StateFixture.quest(state, Quest.TEARS_OF_GUTHIX, QuestState.FINISHED);
-		StateFixture.quest(state, Quest.THRONE_OF_MISCELLANIA, QuestState.FINISHED);
-
-		DailiesModule module = module(state);
-		StateFixture.varbit(state, module.pack().daily("flax_bowstring").detection.varbit, 1);
-
-		JComponent tab = module.buildTab();
-		assertNotNull(tab);
-		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
-		assertTrue(image.getHeight() > 100);
-		write(image, "dailies-tab.png");
-		module.shutDown();
-	}
-
-	@Test
-	public void activeRunTabRendersHeadless() throws Exception
-	{
-		AccountState state = state();
-		StateFixture.varbit(state, Varbits.DIARY_VARROCK_ELITE, 1);
-		StateFixture.varbit(state, Varbits.DIARY_KOUREND_MEDIUM, 1);
-		StateFixture.quest(state, Quest.THRONE_OF_MISCELLANIA, QuestState.FINISHED);
-
-		DailiesModule module = module(state);
-		JComponent tab = module.buildTab();
-		module.startRun();
-		// startRun queues its rebuild on the EDT — let it land before rendering.
-		// Rebuilding here directly would race it and double every row.
-		javax.swing.SwingUtilities.invokeAndWait(() ->
-		{
-		});
-
-		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
-		assertTrue(image.getHeight() > 100);
-		write(image, "dailies-run-active.png");
-		module.shutDown();
-	}
 
 	/** The canvas companion, inside the 250x200 overlay budget. */
 	@Test

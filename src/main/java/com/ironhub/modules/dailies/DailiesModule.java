@@ -69,7 +69,6 @@ public class DailiesModule implements IronHubModule
 	private com.ironhub.modules.farming.FarmBankLayout bankLayout;
 	private com.ironhub.ui.components.BankRestockOverlay bankHighlight;
 
-	private DailiesTab tab;
 	private DailiesInfoBox infoBox;
 	private DailyRunInfoBox runInfoBox;
 	private DailiesRunOverlay overlay;
@@ -225,22 +224,7 @@ public class DailiesModule implements IronHubModule
 				layout.clear(); // headless
 			}
 		}
-		if (tab != null)
-		{
-			tab.dispose();
-			tab = null;
-		}
 		endRun(false);
-	}
-
-	@Override
-	public JComponent buildTab()
-	{
-		if (tab == null)
-		{
-			tab = new DailiesTab(this);
-		}
-		return tab;
 	}
 
 	/** Login refreshes every claim varbit from the server — from here until
@@ -679,10 +663,6 @@ public class DailiesModule implements IronHubModule
 
 	private void rebuildTab()
 	{
-		if (tab != null)
-		{
-			SwingUtilities.invokeLater(tab::rebuild);
-		}
 		for (Runnable listener : tabListeners)
 		{
 			SwingUtilities.invokeLater(listener);

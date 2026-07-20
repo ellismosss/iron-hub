@@ -38,6 +38,22 @@ class DailiesNewTab extends JPanel
 	 *  orange = short, warm-faint = spent, neutral grey = locked. */
 	private static final Color LOCKED = new Color(0x8C8C8C);
 
+	/** The wiki's own Wilderness skull, bundled (never a painted stand-in) —
+	 *  moved here when the classic DailiesTab was deleted (2026-07-20). */
+	static final javax.swing.Icon SKULL = bundledIcon("/data/icons/wilderness_skull.png");
+
+	private static javax.swing.Icon bundledIcon(String resource)
+	{
+		java.net.URL url = DailiesNewTab.class.getResource(resource);
+		if (url == null)
+		{
+			return null;
+		}
+		javax.swing.ImageIcon icon = new javax.swing.ImageIcon(url);
+		return new javax.swing.ImageIcon(
+			icon.getImage().getScaledInstance(-1, 14, java.awt.Image.SCALE_SMOOTH));
+	}
+
 	private final DailiesModule module;
 	private final AccountState state;
 	private final OsrsTheme theme;
@@ -238,7 +254,7 @@ class DailiesNewTab extends JPanel
 		String label = daily.name + (current == DailyTracker.State.UNKNOWN ? " ?" : "");
 		Color color = selected ? statusColor(current) : OsrsSkin.FAINT;
 		list.row(label, selected, color, rowTooltip(daily, current),
-			daily.warning != null ? DailiesTab.SKULL : null,
+			daily.warning != null ? SKULL : null,
 			ticked -> onTicked(daily, ticked));
 	}
 

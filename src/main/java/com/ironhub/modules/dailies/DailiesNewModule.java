@@ -15,7 +15,8 @@ import javax.swing.SwingUtilities;
  * two can be compared in-client. Same brain — this module owns no detection,
  * no run state, no overlays; it renders {@link DailiesNewTab} over the
  * injected {@link DailiesModule} and follows the osrsTheme setting. When
- * Luke signs off, the skinned tab replaces DailiesTab and this scaffold goes.
+ * Luke signs off, this scaffold folds into the classic module (the classic
+ * DailiesTab itself was deleted in the 2026-07-20 audit slice 8).
  */
 @Singleton
 public class DailiesNewModule implements IronHubModule
