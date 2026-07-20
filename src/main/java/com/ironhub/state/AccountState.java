@@ -207,11 +207,19 @@ public class AccountState implements StateView
 
 	private volatile long profile = -1;
 
+	/** Bumped by activateProfile; modules holding per-profile caches compare
+	 *  it to drop stale data on a mid-session account switch (2026-07-20 audit:
+	 *  slayer/hunter record caches clobbered the incoming profile's history). */
+	private volatile int profileGeneration;
+
 	// client thread only
 	private boolean questsDirty;
 	private volatile boolean varbitsRefreshNeeded;
 	private int tick;
-	private int lastQuestRefreshTick;
+	// primed so the FIRST logged-in tick refreshes immediately — the throttle
+	// exists for steady-state varbit churn, not to serve 30s of stale
+	// NOT_STARTED gating at every plugin start (2026-07-20 audit)
+	private int lastQuestRefreshTick = -QUEST_REFRESH_TICKS;
 	private boolean containersSeeded;
 
 	/** Persist coalescing (2026-07-17 freeze audit): a burst tick can ask to
@@ -501,9 +509,27 @@ public class AccountState implements StateView
 		listeners.remove(listener);
 	}
 
+	/** Monotonic per-profile generation; see the field comment. */
+	public int profileGeneration()
+	{
+		return profileGeneration;
+	}
+
 	private void notifyListeners()
 	{
-		listeners.forEach(Runnable::run);
+		// isolate listeners: one throwing module must not skip the rest or
+		// propagate into the client-thread event handler (2026-07-20 audit)
+		for (Runnable listener : listeners)
+		{
+			try
+			{
+				listener.run();
+			}
+			catch (RuntimeException e)
+			{
+				log.warn("state listener failed", e);
+			}
+		}
 	}
 
 	// ── writes from modules (chat parsing, manual ticks) ──────────────
@@ -591,6 +617,10 @@ public class AccountState implements StateView
 	public void recordHerbRun(long durationMs)
 	{
 		herbRunsMs.add(durationMs);
+		while (herbRunsMs.size() > 100)
+		{
+			herbRunsMs.remove(0); // cap like farmRunLog — this list is otherwise unbounded
+		}
 		persist();
 		notifyListeners();
 	}
@@ -2098,6 +2128,14 @@ public class AccountState implements StateView
 			persistNow(); // still the OLD profile — never write its coalesced
 		}                 // state under the incoming account's id
 		profile = hash;
+		profileGeneration++;
+		// quest states are per-account client data: clear them and force an
+		// immediate refresh, or the new profile gates on the old account's
+		// quests for up to 30s (2026-07-20 audit)
+		questStates.clear();
+		questPoints = 0;
+		questsDirty = true;
+		lastQuestRefreshTick = tick - QUEST_REFRESH_TICKS;
 		PersistedState persisted = store.load(hash);
 		bank = Map.copyOf(persisted.bank);
 		bankTimestamp = persisted.bankTimestamp;

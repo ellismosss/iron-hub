@@ -52,10 +52,22 @@ public class ProfileStore
 			String json = gson.toJson(state);
 			try
 			{
-				// ponytail: direct write; load tolerates a corrupt file, and a
-				// lost bank snapshot is recovered by opening the bank
+				// write-then-rename so a crash mid-write can never tear state.json:
+				// the file carries goal seeds, records and saved loadouts, none of
+				// which are re-derivable from the client (2026-07-20 audit)
 				Files.createDirectories(file.getParentFile().toPath());
-				Files.write(file.toPath(), json.getBytes(StandardCharsets.UTF_8));
+				java.nio.file.Path tmp = file.toPath().resolveSibling(file.getName() + ".tmp");
+				Files.write(tmp, json.getBytes(StandardCharsets.UTF_8));
+				try
+				{
+					Files.move(tmp, file.toPath(),
+						java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+						java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+				}
+				catch (java.nio.file.AtomicMoveNotSupportedException e)
+				{
+					Files.move(tmp, file.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+				}
 			}
 			catch (IOException e)
 			{
@@ -79,7 +91,18 @@ public class ProfileStore
 		}
 		catch (IOException | JsonParseException e)
 		{
-			log.warn("corrupt iron-hub state at {} — starting fresh", file, e);
+			// keep the damaged file — the next save would otherwise overwrite
+			// it and make the loss permanent
+			try
+			{
+				Files.move(file.toPath(), file.toPath().resolveSibling(file.getName() + ".bak"),
+					java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+				log.warn("corrupt iron-hub state at {} — kept as state.json.bak, starting fresh", file, e);
+			}
+			catch (IOException moveError)
+			{
+				log.warn("corrupt iron-hub state at {} — starting fresh", file, e);
+			}
 			return new PersistedState();
 		}
 	}

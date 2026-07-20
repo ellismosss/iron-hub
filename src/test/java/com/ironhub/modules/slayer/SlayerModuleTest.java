@@ -103,6 +103,33 @@ public class SlayerModuleTest
 	}
 
 	@Test
+	public void profileSwitchDropsCachedRecords()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		SlayerOptimizerModule module = module(state);
+		module.startUp();
+
+		// profile A completes a task
+		StateFixture.stat(state, Skill.SLAYER, 60, 300_000);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_TARGET, 41);
+		StateFixture.varbitChanged(state, VarbitID.SLAYER_MASTER, 5);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT_ORIGINAL, 150);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT, 150);
+		module.applyResolvedTask("Dust devils", "");
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT, 0);
+		StateFixture.varbitChanged(state, VarbitID.SLAYER_TASKS_COMPLETED, 1);
+		assertEquals(1, module.records().size());
+
+		// mid-session switch to profile B: the cached records must reload,
+		// never push A's history into B's persistence (2026-07-20 audit)
+		StateFixture.profile(state, 43L);
+		assertTrue(module.records().isEmpty());
+		assertTrue(state.getSlayerRecords().isEmpty());
+		module.shutDown();
+	}
+
+	@Test
 	public void taskChangeWithoutCompletionClosesHonestly()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());

@@ -144,6 +144,24 @@ public class HunterRumoursModuleTest
 	}
 
 	@Test
+	public void profileSwitchDropsCachedRecords()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		HunterRumoursModule module = module(state);
+		module.startUp();
+		module.assignRumour(pack.rumour("swamp_lizard"), null);
+		assertEquals(1, module.records().size());
+
+		// mid-session switch to profile B: the cached records must reload,
+		// never push A's history into B's persistence (2026-07-20 audit)
+		StateFixture.profile(state, 43L);
+		assertTrue(module.records().isEmpty());
+		assertTrue(state.getRumourRecords().isEmpty());
+		module.shutDown();
+	}
+
+	@Test
 	public void preferredLocationPersists()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());

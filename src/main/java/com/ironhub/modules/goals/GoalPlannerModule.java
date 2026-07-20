@@ -76,6 +76,7 @@ public class GoalPlannerModule implements IronHubModule
 	private final java.util.Set<String> achievedGoalIds = new java.util.HashSet<>();
 	private final java.util.Set<String> seenActiveGoalIds = new java.util.HashSet<>();
 	private volatile boolean firstDetection = true;
+	private int detectionGeneration; // planner thread only
 
 	/** Test convenience (headless: no icon/overlay managers). */
 	public GoalPlannerModule(AccountState state, IronHubConfig config, DataPack dataPack,
@@ -324,6 +325,18 @@ public class GoalPlannerModule implements IronHubModule
 	 */
 	private void detectCompletions(com.ironhub.engine.Plan plan)
 	{
+		// a mid-session profile switch resets the session sets: goal ids are
+		// content-derived and identical across profiles, so profile A's
+		// achieved/seen sets would re-date or clobber profile B's archive
+		// records (2026-07-20 audit)
+		int generation = state.profileGeneration();
+		if (generation != detectionGeneration)
+		{
+			detectionGeneration = generation;
+			achievedGoalIds.clear();
+			seenActiveGoalIds.clear();
+			firstDetection = true;
+		}
 		java.util.Set<String> nowAchieved = new java.util.HashSet<>();
 		for (GoalsPack.Goal goal : allGoals(pack, gearPack, state))
 		{

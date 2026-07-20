@@ -78,6 +78,7 @@ public class HunterRumoursModule implements IronHubModule
 	private HunterRumoursTab tab;
 	private final List<PersistedState.RumourRecord> records = new java.util.concurrent.CopyOnWriteArrayList<>();
 	private boolean recordsLoaded;
+	private int recordsGeneration;
 	private int lastHunterXp = -1;
 
 	@Inject
@@ -215,11 +216,17 @@ public class HunterRumoursModule implements IronHubModule
 
 	private void ensureLoaded()
 	{
-		if (!recordsLoaded)
+		// reload on profile switch too — pushing profile A's cached records
+		// into profile B overwrote B's rumour history, and a stale xp
+		// baseline could register a phantom catch (2026-07-20 audit)
+		int generation = state.profileGeneration();
+		if (!recordsLoaded || generation != recordsGeneration)
 		{
 			recordsLoaded = true;
+			recordsGeneration = generation;
 			records.clear();
 			records.addAll(state.getRumourRecords());
+			lastHunterXp = -1;
 		}
 	}
 

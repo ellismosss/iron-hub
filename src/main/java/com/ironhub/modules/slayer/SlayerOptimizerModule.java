@@ -135,6 +135,7 @@ public class SlayerOptimizerModule implements IronHubModule
 	private int lastRemaining = -1;
 	private int lastStreakSum = -1;
 	private boolean recordsLoaded;
+	private int recordsGeneration;
 
 	// NPC highlighting (highlighter built in the ctor — it captures config)
 	private final List<Pattern> targetPatterns = new ArrayList<>();
@@ -446,11 +447,17 @@ public class SlayerOptimizerModule implements IronHubModule
 
 	private void ensureRecordsLoaded()
 	{
-		if (!recordsLoaded)
+		// reload on profile switch too — pushing profile A's cached records
+		// into profile B overwrote B's whole slayer history (2026-07-20 audit)
+		int generation = state.profileGeneration();
+		if (!recordsLoaded || generation != recordsGeneration)
 		{
 			recordsLoaded = true;
+			recordsGeneration = generation;
 			records.clear();
 			records.addAll(state.getSlayerRecords());
+			lastRemaining = -1;
+			lastStreakSum = -1;
 		}
 	}
 

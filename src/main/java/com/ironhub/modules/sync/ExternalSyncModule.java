@@ -99,6 +99,15 @@ public class ExternalSyncModule implements IronHubModule
 			get(TEMPLE_URL + encode(username));
 			log.debug("sync ping sent for {}", username);
 		}
+		if (event.getGameState() == GameState.LOGGING_IN)
+		{
+			// the next session may be a different account: reseed the name and
+			// the milestone baseline, or WOM pings target the old player and
+			// the first stat ingest fires bogus level webhooks (2026-07-20 audit;
+			// the LOGIN_SCREEN ping above already ran for the outgoing account)
+			username = null;
+			lastLevels.clear();
+		}
 	}
 
 	/** Level-milestone detection off state notifications. */
