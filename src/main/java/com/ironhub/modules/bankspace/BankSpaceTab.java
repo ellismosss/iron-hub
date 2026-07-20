@@ -71,7 +71,8 @@ class BankSpaceTab extends JPanel
 		add(content);
 		add(Box.createVerticalGlue());
 
-		state.addListener(listener);
+		state.addListener(listener, com.ironhub.state.AccountState.Topic.BANK,
+			com.ironhub.state.AccountState.Topic.UNLOCKS);
 		rebuild();
 	}
 

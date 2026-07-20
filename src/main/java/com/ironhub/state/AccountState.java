@@ -501,16 +501,39 @@ public class AccountState implements StateView
 		varbitsRefreshNeeded = true;
 	}
 
-	/** Listeners fire on the client thread after meaningful state changes. */
-	public void addListener(Runnable listener)
+	/**
+	 * Change topics for scoped listeners (2026-07-20 intelligence arc).
+	 * Only the HOT ingestion paths are tagged; every untagged notify is a
+	 * broadcast that reaches ALL listeners regardless of filters — so a
+	 * scoped listener can miss nothing that isn't explicitly tagged, and
+	 * filtering only ever removes the high-volume noise it names.
+	 */
+	public enum Topic
+	{
+		BANK, INVENTORY, EQUIPMENT, SKILLS, QUESTS, VARBITS, UNLOCKS, GOALS, LOOT, RECORDS
+	}
+
+	/** Listeners fire on the client thread after meaningful state changes.
+	 *  With topics given, the listener skips tagged changes outside them
+	 *  (untagged broadcasts always deliver — see {@link Topic}). */
+	public void addListener(Runnable listener, Topic... topics)
 	{
 		listeners.add(listener);
+		if (topics.length > 0)
+		{
+			listenerTopics.put(listener,
+				java.util.EnumSet.of(topics[0], topics));
+		}
 	}
 
 	public void removeListener(Runnable listener)
 	{
 		listeners.remove(listener);
+		listenerTopics.remove(listener);
 	}
+
+	private final Map<Runnable, java.util.EnumSet<Topic>> listenerTopics =
+		new ConcurrentHashMap<>();
 
 	/** Monotonic per-profile generation; see the field comment. */
 	public int profileGeneration()
@@ -520,6 +543,11 @@ public class AccountState implements StateView
 
 	private void notifyListeners()
 	{
+		notifyListeners(null); // untagged = broadcast to every listener
+	}
+
+	private void notifyListeners(Topic topic)
+	{
 		// honour the addListener contract: module listeners assume the client
 		// thread, but EDT tab writes and the planner's recordGoalCompletion
 		// used to fan out on the caller's thread, racing client-thread
@@ -527,13 +555,18 @@ public class AccountState implements StateView
 		// (2026-07-20 audit). Headless stays synchronous for tests.
 		if (client != null && clientThread != null && !client.isClientThread())
 		{
-			clientThread.invoke(this::notifyListeners);
+			clientThread.invoke(() -> notifyListeners(topic));
 			return;
 		}
 		// isolate listeners: one throwing module must not skip the rest or
 		// propagate into the client-thread event handler (2026-07-20 audit)
 		for (Runnable listener : listeners)
 		{
+			java.util.EnumSet<Topic> filter = listenerTopics.get(listener);
+			if (topic != null && filter != null && !filter.contains(topic))
+			{
+				continue; // scoped out of this tagged change
+			}
 			try
 			{
 				listener.run();
@@ -552,7 +585,7 @@ public class AccountState implements StateView
 		if (unlocked ? unlocks.add(key) : unlocks.remove(key))
 		{
 			persist();
-			notifyListeners(); // manual ticks/marks re-render like any state change
+			notifyListeners(Topic.UNLOCKS); // manual ticks/marks re-render like any state change
 		}
 	}
 
@@ -588,7 +621,7 @@ public class AccountState implements StateView
 	{
 		killCounts.merge(source, 1, Integer::sum);
 		persist();
-		notifyListeners();
+		notifyListeners(Topic.LOOT); // kill counts render on the loot surfaces
 	}
 
 	/** Aggregate a loot drop into the per-source totals (client thread). */
@@ -606,7 +639,7 @@ public class AccountState implements StateView
 			}
 		}
 		persist();
-		notifyListeners();
+		notifyListeners(Topic.LOOT);
 	}
 
 	/** Sources with recorded loot, for the loot tab's selector. */
@@ -1680,7 +1713,7 @@ public class AccountState implements StateView
 		if (unlocks.addAll(keys))
 		{
 			persist();
-			notifyListeners();
+			notifyListeners(Topic.UNLOCKS);
 		}
 	}
 
@@ -1975,7 +2008,7 @@ public class AccountState implements StateView
 				{
 					syncAccountType();
 				}
-				notifyListeners();
+				notifyListeners(Topic.VARBITS);
 			}
 		}
 		// raw varp updates arrive with varbitId == -1
@@ -1984,7 +2017,7 @@ public class AccountState implements StateView
 			Integer previous = varpValues.put(event.getVarpId(), event.getValue());
 			if (previous == null || previous != event.getValue())
 			{
-				notifyListeners();
+				notifyListeners(Topic.VARBITS);
 			}
 		}
 	}
@@ -2006,7 +2039,7 @@ public class AccountState implements StateView
 		{
 			equipment = Map.copyOf(itemsOf(event.getItemContainer()));
 			equipmentSlots = slotsOf(event.getItemContainer(), 14);
-			notifyListeners(); // gear swaps are rare and loadout-relevant
+			notifyListeners(Topic.EQUIPMENT); // gear swaps are rare and loadout-relevant
 		}
 	}
 
@@ -2038,12 +2071,12 @@ public class AccountState implements StateView
 		if (bankDirty) // at most one fan-out per tick, not one per slot event
 		{
 			bankDirty = false;
-			notifyListeners();
+			notifyListeners(Topic.BANK);
 		}
 		if (inventoryDirty && tick % 10 == 0) // ~6s: keeps panel rebuilds sane
 		{
 			inventoryDirty = false;
-			notifyListeners();
+			notifyListeners(Topic.INVENTORY);
 		}
 		if (persistDirty && tick - lastPersistTick >= PERSIST_FLUSH_TICKS)
 		{
@@ -2061,7 +2094,7 @@ public class AccountState implements StateView
 		trackRateSession(skill, previousXp, experience);
 		if (previousLevel == null || previousLevel != level)
 		{
-			notifyListeners(); // levels gate requirements; xp drops alone don't
+			notifyListeners(Topic.SKILLS); // levels gate requirements; xp drops alone don't
 		}
 	}
 
@@ -2191,7 +2224,7 @@ public class AccountState implements StateView
 		}
 		if (client == null)
 		{
-			notifyListeners(); // headless: no ticks, keep the synchronous contract
+			notifyListeners(Topic.BANK); // headless: no ticks, keep the synchronous contract
 		}
 		else
 		{

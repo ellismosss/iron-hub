@@ -96,7 +96,7 @@ class LootTab extends JPanel
 		add(supplies);
 		add(Box.createVerticalGlue());
 
-		state.addListener(listener);
+		state.addListener(listener, AccountState.Topic.LOOT);
 		sourcesChanged();
 	}
 

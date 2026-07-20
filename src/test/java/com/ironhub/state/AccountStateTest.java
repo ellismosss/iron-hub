@@ -18,6 +18,34 @@ public class AccountStateTest
 	public TemporaryFolder temp = new TemporaryFolder();
 
 	@Test
+	public void topicListenersSkipTaggedNoiseButHearBroadcasts()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		int[] bankOnly = new int[1];
+		int[] everything = new int[1];
+		state.addListener(() -> bankOnly[0]++, AccountState.Topic.BANK);
+		state.addListener(() -> everything[0]++);
+		bankOnly[0] = 0;
+		everything[0] = 0;
+
+		// a BANK-tagged change reaches both
+		state.ingestBank(java.util.Map.of(995, 1000));
+		org.junit.Assert.assertEquals(1, bankOnly[0]);
+		org.junit.Assert.assertEquals(1, everything[0]);
+
+		// a SKILLS-tagged change skips the bank-scoped listener
+		StateFixture.stat(state, net.runelite.api.Skill.ATTACK, 50, 101_333);
+		org.junit.Assert.assertEquals(1, bankOnly[0]);
+		org.junit.Assert.assertEquals(2, everything[0]);
+
+		// an untagged change is a broadcast — scoped listeners always hear it
+		state.setSlayerTask("Dust devils");
+		org.junit.Assert.assertEquals(2, bankOnly[0]);
+		org.junit.Assert.assertEquals(3, everything[0]);
+	}
+
+	@Test
 	public void statsAndQuestsReadBack()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
