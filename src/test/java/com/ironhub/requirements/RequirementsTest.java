@@ -29,6 +29,31 @@ public class RequirementsTest
 	}
 
 	@Test
+	public void gapMeasuresDistanceToMet()
+	{
+		StateFixture.stat(state, Skill.AGILITY, 65, 0);
+		// skill leaves count level gaps; met = 0
+		assertEquals(5, Requirements.parse("skill:Agility:70").gap(state), 1e-9);
+		assertEquals(0, Requirements.parse("skill:Agility:60").gap(state), 1e-9);
+		// quests grade: in progress is closer than unstarted
+		Requirement quest = Requirements.parse("quest:Dragon Slayer I");
+		double unstarted = quest.gap(state);
+		StateFixture.quest(state, net.runelite.api.Quest.DRAGON_SLAYER_I,
+			net.runelite.api.QuestState.IN_PROGRESS);
+		double inProgress = quest.gap(state);
+		StateFixture.quest(state, net.runelite.api.Quest.DRAGON_SLAYER_I,
+			net.runelite.api.QuestState.FINISHED);
+		assertTrue(unstarted > inProgress);
+		assertEquals(0, quest.gap(state), 1e-9);
+		// anyOf takes the cheapest path; the string form composes
+		StateFixture.stat(state, Skill.HUNTER, 80, 0);
+		assertEquals(15, Requirements.parse(
+			"any:skill:Crafting:80|skill:Hunter:83&skill:Agility:77").gap(state), 1e-9);
+		// unparseable manual requirements stay a flat chunk, never 0
+		assertTrue(Requirements.parse("some manual thing").gap(state) > 0);
+	}
+
+	@Test
 	public void skillRequirement()
 	{
 		Requirement req = Requirements.skill(Skill.AGILITY, 70);

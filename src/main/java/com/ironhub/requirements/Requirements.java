@@ -289,6 +289,12 @@ public final class Requirements
 		}
 
 		@Override
+		public double gap(StateView state)
+		{
+			return Math.max(0, level - state.getRealLevel(skill));
+		}
+
+		@Override
 		public boolean isMetWithBoosts(StateView state, java.util.Map<Skill, Integer> boosts)
 		{
 			int boost = boostable ? boosts.getOrDefault(skill, 0) : 0;
@@ -318,7 +324,18 @@ public final class Requirements
 		}
 
 		@Override
+		public double gap(StateView state)
+		{
+			return Math.max(0, level - combatLevel(state));
+		}
+
+		@Override
 		public boolean isMet(StateView state)
+		{
+			return combatLevel(state) >= level;
+		}
+
+		private static int combatLevel(StateView state)
 		{
 			return net.runelite.api.Experience.getCombatLevel(
 				state.getRealLevel(Skill.ATTACK),
@@ -327,7 +344,7 @@ public final class Requirements
 				state.getRealLevel(Skill.HITPOINTS),
 				state.getRealLevel(Skill.MAGIC),
 				state.getRealLevel(Skill.RANGED),
-				state.getRealLevel(Skill.PRAYER)) >= level;
+				state.getRealLevel(Skill.PRAYER)) ;
 		}
 
 		@Override
@@ -353,6 +370,14 @@ public final class Requirements
 		}
 
 		@Override
+		public double gap(StateView state)
+		{
+			QuestState questState = state.getQuestState(quest);
+			return questState == QuestState.FINISHED ? 0
+				: questState == QuestState.IN_PROGRESS ? 12 : 25;
+		}
+
+		@Override
 		public String describe()
 		{
 			return quest.getName();
@@ -372,6 +397,12 @@ public final class Requirements
 		public boolean isMet(StateView state)
 		{
 			return state.getQuestState(quest) != QuestState.NOT_STARTED;
+		}
+
+		@Override
+		public double gap(StateView state)
+		{
+			return isMet(state) ? 0 : 5; // just walk there and start it
 		}
 
 		@Override
@@ -501,6 +532,12 @@ public final class Requirements
 		}
 
 		@Override
+		public double gap(StateView state)
+		{
+			return Math.max(0, points - state.getQuestPoints());
+		}
+
+		@Override
 		public String describe()
 		{
 			return points + " quest points";
@@ -545,6 +582,12 @@ public final class Requirements
 		}
 
 		@Override
+		public double gap(StateView state)
+		{
+			return children.stream().mapToDouble(c -> c.gap(state)).sum();
+		}
+
+		@Override
 		public boolean isMetWithBoosts(StateView state, java.util.Map<Skill, Integer> boosts)
 		{
 			return children.stream().allMatch(c -> c.isMetWithBoosts(state, boosts));
@@ -581,6 +624,12 @@ public final class Requirements
 		public boolean isMet(StateView state)
 		{
 			return children.stream().anyMatch(c -> c.isMet(state));
+		}
+
+		@Override
+		public double gap(StateView state)
+		{
+			return children.stream().mapToDouble(c -> c.gap(state)).min().orElse(0);
 		}
 
 		@Override

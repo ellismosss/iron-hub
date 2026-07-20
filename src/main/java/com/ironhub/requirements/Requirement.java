@@ -33,6 +33,19 @@ public interface Requirement
 	String describe();
 
 	/**
+	 * Distance to met, 0 when satisfied (2026-07-20 intelligence arc —
+	 * three tabs had privately reinvented "how close am I"). Units are
+	 * effort-ish: a missing skill level costs 1, quest points 1 each, an
+	 * unstarted quest ~25 (in progress ~12), anything opaque a flat 25.
+	 * Composites: allOf sums, anyOf takes the cheapest path. A ranking
+	 * aid, never a promise — display copy still comes from missing().
+	 */
+	default double gap(StateView state)
+	{
+		return isMet(state) ? 0 : 25;
+	}
+
+	/**
 	 * The unmet leaf requirements blocking this one — what a locked row
 	 * shows on its "needs:" line and what plans are built from.
 	 */

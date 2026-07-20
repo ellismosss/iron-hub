@@ -119,9 +119,22 @@ class CluesTab extends JPanel
 			// count, filter and sort key each re-ran it, the sort per
 			// comparison (2026-07-20 audit)
 			Map<ClueStepsPack.Clue, Boolean> doableByClue = new java.util.IdentityHashMap<>();
+			Map<ClueStepsPack.Clue, Double> gapByClue = new java.util.IdentityHashMap<>();
 			for (ClueStepsPack.Clue clue : clues)
 			{
-				doableByClue.put(clue, ClueStashModule.doable(clue, state));
+				boolean doable = ClueStashModule.doable(clue, state);
+				doableByClue.put(clue, doable);
+				// blocked steps rank closest-to-doable first — the graph's
+				// own distance (2026-07-20 intelligence arc)
+				double gap = 0;
+				if (!doable && clue.reqs != null)
+				{
+					for (String req : clue.reqs)
+					{
+						gap += com.ironhub.requirements.Requirements.parse(req).gap(state);
+					}
+				}
+				gapByClue.put(clue, gap);
 			}
 			long doable = doableByClue.values().stream().filter(Boolean::booleanValue).count();
 			content.add(section(tier, doable + "/" + clues.size() + " doable"));
@@ -134,8 +147,10 @@ class CluesTab extends JPanel
 					shown.add(clue);
 				}
 			}
-			// blocked (actionable) rows first, then doable when shown
-			shown.sort(java.util.Comparator.comparing(doableByClue::get));
+			// blocked (actionable) rows first — closest-to-doable leading —
+			// then doable when shown
+			shown.sort(java.util.Comparator.comparing(doableByClue::get)
+				.thenComparing(gapByClue::get));
 			if (shown.isEmpty())
 			{
 				content.add(faintLine("All " + tier.toLowerCase() + " steps doable."));

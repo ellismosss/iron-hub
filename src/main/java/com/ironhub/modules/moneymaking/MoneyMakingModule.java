@@ -233,16 +233,11 @@ public class MoneyMakingModule implements IronHubModule
 
 	private static double reqDistance(AccountState state, String req)
 	{
-		int[] sl = skillLevel(req);
-		if (sl != null)
-		{
-			return Math.max(0, sl[1] - state.getRealLevel(Skill.values()[sl[0]]));
-		}
-		if (req.startsWith("qp:"))
-		{
-			return Math.max(0, Integer.parseInt(req.substring(3)) - state.getQuestPoints());
-		}
-		return 25; // a quest is a chunk of work
+		// the graph's own distance-to-met (2026-07-20 intelligence arc) —
+		// this used to be one of three private reimplementations of
+		// "how close am I"; same level/qp semantics, quests now grade
+		// in-progress closer than unstarted
+		return Requirements.parse(req).gap(state);
 	}
 
 	/** The blocking hard requirements, as short display labels. */
