@@ -23,9 +23,9 @@ public class ClogPack
 	public List<Alias> aliases;
 	public List<ChatName> chatNames;
 
-	private transient Map<Integer, Integer> canonicalByAlt;
-	private transient Set<Integer> slotIds;
-	private transient Map<String, Integer> idsByName;
+	private transient volatile Map<Integer, Integer> canonicalByAlt;
+	private transient volatile Set<Integer> slotIds;
+	private transient volatile Map<String, Integer> idsByName;
 
 	/** The canonical slot item id for an item (body-type variants map to
 	 *  the id slots.json carries), or the id unchanged. */

@@ -4,6 +4,7 @@ import com.ironhub.state.StateView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import net.runelite.api.Quest;
 import net.runelite.api.QuestState;
@@ -146,8 +147,29 @@ public final class Requirements
 		return requirement instanceof TextRequirement;
 	}
 
+	/** Parsed-requirement memo: pack strings are static for the process
+	 *  lifetime and Requirement objects are immutable (isMet takes the
+	 *  state), yet hot loops across the codebase re-parsed the same strings
+	 *  per rebuild, per notification and per frame (2026-07-20 audit).
+	 *  get-then-put, NOT computeIfAbsent — the any: branch recurses into
+	 *  parse and ConcurrentHashMap forbids reentrant mapping functions. */
+	private static final java.util.concurrent.ConcurrentHashMap<String, Requirement> PARSE_CACHE =
+		new java.util.concurrent.ConcurrentHashMap<>();
+
 	/** Parse the data-pack string form; falls back to a manual text requirement. */
 	public static Requirement parse(String s)
+	{
+		Requirement cached = PARSE_CACHE.get(s);
+		if (cached != null)
+		{
+			return cached;
+		}
+		Requirement parsed = parseUncached(s);
+		PARSE_CACHE.put(s, parsed);
+		return parsed;
+	}
+
+	private static Requirement parseUncached(String s)
 	{
 		// alternative obtainment paths: any:<path>|<path>, leaves within a
 		// path joined by & — e.g. glory: any:skill:Crafting:80|skill:Hunter:83
@@ -221,15 +243,25 @@ public final class Requirements
 			: null;
 	}
 
+	/** Built once: questByName ran a ~200-entry Quest.values() stream scan
+	 *  per quest leaf, inside the parse loops above (2026-07-20 audit). */
+	private static volatile Map<String, Quest> questsByName;
+
 	private static Quest questByName(String name)
 	{
 		// trailing period tolerated: wiki-sourced packs strip sentence-final
 		// dots, which also strips it from names like "Another Slice of H.A.M."
-		String wanted = stripTrailingDot(name.trim());
-		return Arrays.stream(Quest.values())
-			.filter(q -> stripTrailingDot(q.getName()).equalsIgnoreCase(wanted))
-			.findFirst()
-			.orElse(null);
+		Map<String, Quest> index = questsByName;
+		if (index == null)
+		{
+			index = new java.util.HashMap<>();
+			for (Quest quest : Quest.values())
+			{
+				index.put(stripTrailingDot(quest.getName()).toLowerCase(java.util.Locale.ROOT), quest);
+			}
+			questsByName = index;
+		}
+		return index.get(stripTrailingDot(name.trim()).toLowerCase(java.util.Locale.ROOT));
 	}
 
 	private static String stripTrailingDot(String s)

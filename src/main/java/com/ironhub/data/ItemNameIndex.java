@@ -49,12 +49,15 @@ public class ItemNameIndex
 	public java.util.List<String> search(String query, int limit)
 	{
 		String needle = normalize(query);
+		// sort the NORMALIZED keys (they are the match domain anyway) \u2014 the
+		// old comparator re-ran normalize()'s three regex passes on every
+		// comparison, per keystroke on the EDT (2026-07-20 audit)
 		java.util.List<String> hits = new java.util.ArrayList<>();
 		for (String key : byNormalizedName.keySet())
 		{
 			if (key.contains(needle))
 			{
-				hits.add(pretty(key));
+				hits.add(key);
 				if (hits.size() >= limit * 4)
 				{
 					break;
@@ -62,18 +65,31 @@ public class ItemNameIndex
 			}
 		}
 		hits.sort(java.util.Comparator
-			.comparing((String s) -> !normalize(s).startsWith(needle))
+			.comparing((String key) -> !key.startsWith(needle))
 			.thenComparing(String::length));
-		return hits.subList(0, Math.min(limit, hits.size()));
+		java.util.List<String> out = new java.util.ArrayList<>();
+		for (int i = 0; i < Math.min(limit, hits.size()); i++)
+		{
+			out.add(pretty(hits.get(i)));
+		}
+		return out;
 	}
+
+	// compiled once \u2014 normalize runs per keystroke and per idOf lookup
+	private static final java.util.regex.Pattern APOSTROPHES =
+		java.util.regex.Pattern.compile("['\u2019]");
+	private static final java.util.regex.Pattern NON_ALNUM =
+		java.util.regex.Pattern.compile("[^A-Z0-9]+");
+	private static final java.util.regex.Pattern EDGE_UNDERSCORES =
+		java.util.regex.Pattern.compile("^_|_$");
 
 	static String normalize(String name)
 	{
 		// apostrophes vanish in ItemID constants (AHRIMS_ROBETOP), they
 		// don't become separators
-		return name.replaceAll("['\u2019]", "")
-			.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]+", "_")
-			.replaceAll("^_|_$", "");
+		String s = APOSTROPHES.matcher(name).replaceAll("");
+		s = NON_ALNUM.matcher(s.toUpperCase(Locale.ROOT)).replaceAll("_");
+		return EDGE_UNDERSCORES.matcher(s).replaceAll("");
 	}
 
 	private static String pretty(String normalized)

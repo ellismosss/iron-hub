@@ -9,8 +9,6 @@ import com.ironhub.requirements.Requirements;
 import com.ironhub.state.AccountState;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.JComponent;
@@ -74,7 +72,6 @@ public class DiariesModule implements IronHubModule
 	private DiariesPack pack;
 	private DiariesTab tab;
 	/** Parsed requirement per pack string — parse once, shared across tasks. */
-	private final Map<String, Requirement> parsedReqs = new ConcurrentHashMap<>();
 
 	@Inject
 	public DiariesModule(AccountState state, IronHubConfig config, DataPack dataPack)
@@ -236,7 +233,7 @@ public class DiariesModule implements IronHubModule
 
 	private Requirement parsed(String s)
 	{
-		return parsedReqs.computeIfAbsent(s, Requirements::parse);
+		return Requirements.parse(s); // memoized centrally since the 2026-07-20 audit
 	}
 
 	/**

@@ -23,12 +23,12 @@ public final class CostModel
 	{
 	}
 
-	/** Parsed-requirement cache shared across costings (parse is pure). */
-	private static final Map<String, Requirement> PARSED = new HashMap<>();
-
-	static synchronized Requirement parsed(String req)
+	static Requirement parsed(String req)
 	{
-		return PARSED.computeIfAbsent(req, Requirements::parse);
+		// Requirements.parse memoizes centrally (lock-free) since the
+		// 2026-07-20 audit — the synchronized map here contended the
+		// planner and suggester threads in their hottest loops
+		return Requirements.parse(req);
 	}
 
 	/**

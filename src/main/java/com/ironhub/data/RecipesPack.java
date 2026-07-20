@@ -154,5 +154,5 @@ public class RecipesPack
 		return names.get(itemId);
 	}
 
-	private transient Map<Integer, String> names;
+	private transient volatile Map<Integer, String> names;
 }

@@ -28,9 +28,13 @@ public class PortTasksPack
 	public List<Reward> rewards;
 	public List<Route> routes;
 
-	private transient Map<Integer, Port> portByDbrow;
-	private transient Map<Integer, Reward> rewardByDbrow;
-	private transient Map<Integer, Map<Integer, Double>> shortest;
+	private transient volatile Map<Integer, Port> portByDbrow;
+	private transient volatile Map<Integer, Reward> rewardByDbrow;
+	/** Growing Dijkstra cache, hit from the EDT tab and the client render
+	 *  thread — ConcurrentHashMap, values immutable once stored
+	 *  (2026-07-20 audit: was a plain HashMap mutated unsynchronized). */
+	private final transient Map<Integer, Map<Integer, Double>> shortest =
+		new java.util.concurrent.ConcurrentHashMap<>();
 
 	public Port port(int dbrow)
 	{
@@ -79,10 +83,6 @@ public class PortTasksPack
 
 	private Map<Integer, Double> shortestFrom(int source)
 	{
-		if (shortest == null)
-		{
-			shortest = new HashMap<>();
-		}
 		Map<Integer, Double> cached = shortest.get(source);
 		if (cached != null)
 		{

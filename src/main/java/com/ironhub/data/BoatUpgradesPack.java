@@ -28,8 +28,8 @@ public class BoatUpgradesPack
 	public List<Upgrade> upgrades;
 	public Detection detection;
 
-	private transient Map<String, Part> byKey;
-	private transient Map<Integer, FacilityHit> byObjectId;
+	private transient volatile Map<String, Part> byKey;
+	private transient volatile Map<Integer, FacilityHit> byObjectId;
 
 	public Part part(String key)
 	{

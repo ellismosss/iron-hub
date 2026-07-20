@@ -267,17 +267,61 @@ public class Router
 					}
 				}
 			}
-			// travel-effect activation: cheaper future quests
-			ProjectedState after = projection.branch();
-			applyEffects(node, after, new HashMap<>());
-			double factorNow = CostModel.travelFactor(projection, packs.effects);
-			double factorAfter = CostModel.travelFactor(after, packs.effects);
-			if (factorAfter < factorNow - 1e-9)
+			// travel-effect activation: cheaper future quests — but only
+			// quests an effect actually references can move the factor, so
+			// skip the projection branch + double travelFactor for the rest
+			// (2026-07-20 audit: this ran for EVERY ready quest node on
+			// EVERY pick iteration)
+			if (canMoveTravelFactor(node.questName, entry))
 			{
-				saved += (factorNow - factorAfter) * 4.0; // ~4h of errands ahead, coarse
+				ProjectedState after = projection.branch();
+				applyEffects(node, after, new HashMap<>());
+				double factorNow = CostModel.travelFactor(projection, packs.effects);
+				double factorAfter = CostModel.travelFactor(after, packs.effects);
+				if (factorAfter < factorNow - 1e-9)
+				{
+					saved += (factorNow - factorAfter) * 4.0; // ~4h of errands ahead, coarse
+				}
 			}
 		}
 		return saved;
+	}
+
+	/** Quest names referenced by any travel effect's active requirement,
+	 *  plus whether any effect gates on quest points (a qp: effect can be
+	 *  tipped by any qp-granting quest). Built once per Router. */
+	private java.util.Set<String> travelEffectQuests;
+	private boolean travelEffectsUseQp;
+
+	private boolean canMoveTravelFactor(String questName, QuestsPack.QuestEntry entry)
+	{
+		if (travelEffectQuests == null)
+		{
+			java.util.Set<String> quests = new java.util.HashSet<>();
+			boolean qp = false;
+			for (com.ironhub.data.EffectsPack.Effect effect : packs.effects.effects)
+			{
+				if (effect.active == null)
+				{
+					continue;
+				}
+				// active reqs are quest:/queststarted:/qp: leaves (possibly
+				// &-joined inside any:); a name scan is exact enough here
+				String lower = effect.active.toLowerCase(java.util.Locale.ROOT);
+				qp |= lower.contains("qp:");
+				for (QuestsPack.QuestEntry candidate : packs.quests.quests)
+				{
+					if (lower.contains(candidate.name.toLowerCase(java.util.Locale.ROOT)))
+					{
+						quests.add(candidate.name);
+					}
+				}
+			}
+			travelEffectsUseQp = qp;
+			travelEffectQuests = quests;
+		}
+		return travelEffectQuests.contains(questName)
+			|| (travelEffectsUseQp && entry.qp > 0);
 	}
 
 	/** Route prior: earlier OQG position wins ties; then lexicographic id. */

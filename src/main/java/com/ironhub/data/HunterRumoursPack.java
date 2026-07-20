@@ -23,8 +23,8 @@ public class HunterRumoursPack
 	public List<Location> locations;
 	public List<Integer> outfit;
 
-	private transient Map<Integer, Hunter> hunterByNpc;
-	private transient Map<String, Rumour> rumourById;
+	private transient volatile Map<Integer, Hunter> hunterByNpc;
+	private transient volatile Map<String, Rumour> rumourById;
 
 	public Hunter hunterByNpcId(int npcId)
 	{

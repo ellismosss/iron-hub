@@ -23,7 +23,7 @@ public class DailiesPack
 	/** Every event, in the run's route order. */
 	public List<Daily> dailies;
 
-	private transient Map<String, Daily> byId;
+	private transient volatile Map<String, Daily> byId;
 
 	public Daily daily(String id)
 	{

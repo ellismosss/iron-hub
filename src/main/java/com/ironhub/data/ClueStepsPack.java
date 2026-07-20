@@ -20,8 +20,8 @@ public class ClueStepsPack
 	public List<Clue> clues;
 	public List<Stash> stash;
 
-	private transient Map<String, Clue> clueById;
-	private transient Map<Integer, Stash> stashByObject;
+	private transient volatile Map<String, Clue> clueById;
+	private transient volatile Map<Integer, Stash> stashByObject;
 
 	public Clue clue(String id)
 	{

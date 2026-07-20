@@ -20,6 +20,14 @@ public class DataPack
 {
 	private final Gson gson;
 
+	/** Parsed packs are immutable and several modules load the same ones
+	 *  (clog, quests, xp-actions...), so each was Gson-parsed and retained
+	 *  two or three times — plus once more per theme-flip tab rebuild
+	 *  (2026-07-20 audit). Keyed by name+type: two models over one file
+	 *  stay distinct. */
+	private final java.util.concurrent.ConcurrentHashMap<String, Object> cache =
+		new java.util.concurrent.ConcurrentHashMap<>();
+
 	@Inject
 	public DataPack(Gson gson)
 	{
@@ -27,6 +35,12 @@ public class DataPack
 	}
 
 	public <T> T load(String name, Class<T> type)
+	{
+		return type.cast(cache.computeIfAbsent(name + "|" + type.getName(),
+			key -> parse(name, type)));
+	}
+
+	private <T> T parse(String name, Class<T> type)
 	{
 		String path = "/data/" + name + ".json";
 		InputStream in = DataPack.class.getResourceAsStream(path);

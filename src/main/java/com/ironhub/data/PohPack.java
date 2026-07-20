@@ -17,7 +17,7 @@ public class PohPack
 	public int version;
 	public List<Space> spaces;
 
-	private transient Map<Integer, Tier> byObjectId;
+	private transient volatile Map<Integer, Tier> byObjectId;
 
 	/** The tier whose built furniture has this object id, or null. */
 	public Tier tierByObjectId(int objectId)

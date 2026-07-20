@@ -22,7 +22,7 @@ public class SlayerTasksPack
 	public List<Master> masters;
 	public List<Unlock> unlocks;
 
-	private transient Map<String, Task> byName;
+	private transient volatile Map<String, Task> byName;
 
 	/** Task by canonical name, case-insensitive; null when unknown. */
 	public Task task(String name)

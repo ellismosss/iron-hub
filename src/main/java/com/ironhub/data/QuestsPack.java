@@ -16,9 +16,24 @@ public class QuestsPack
 	public String generated;
 	public List<QuestEntry> quests;
 
+	/** The package's standard lazy index — byName used to be a linear
+	 *  stream scan, and QuestsTab called it per enum entry AND per sort
+	 *  comparison, per keystroke (2026-07-20 audit). */
+	private transient volatile Map<String, QuestEntry> byName;
+
 	public QuestEntry byName(String name)
 	{
-		return quests.stream().filter(q -> q.name.equalsIgnoreCase(name)).findFirst().orElse(null);
+		Map<String, QuestEntry> index = byName;
+		if (index == null)
+		{
+			index = new java.util.HashMap<>();
+			for (QuestEntry quest : quests)
+			{
+				index.put(quest.name.toLowerCase(java.util.Locale.ROOT), quest);
+			}
+			byName = index;
+		}
+		return index.get(name.toLowerCase(java.util.Locale.ROOT));
 	}
 
 	public static class QuestEntry

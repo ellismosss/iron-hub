@@ -40,7 +40,7 @@ public class FarmRunsPack
 		return herbs == null ? null : herbs.get(String.valueOf(grimyId));
 	}
 
-	private transient Map<String, Location> byId;
+	private transient volatile Map<String, Location> byId;
 
 	/** Ordered location ids of a named route, or null. */
 	public List<String> route(String name)
