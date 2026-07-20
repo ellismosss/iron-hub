@@ -688,3 +688,30 @@ the advisor ranks offers by Sailing XP per tile ADDED to the optimal
 tour over your active tasks (exact Held-Karp with pickup-before-delivery
 precedence, <= ~12 stops) — with speed a constant, xp-per-marginal-tile
 preserves the xp/h ordering without inventing a speed figure.
+
+## Bank space saver (module: bankspace, pack: bank-storage.json)
+
+Ported from Wasted Bank Space (mcgeer/WastedBankSpace @ 1cb3b28, BSD-2,
+Riley McGee): 21 storage-location tables (tackle box, seed vault, the POH
+armour case / cape rack / magic wardrobe / toy box / fancy dress box /
+cape rack, treasure chest, master scroll book, ...) of items that can
+live outside the bank. Wasted space = bank ∩ location items − ignored −
+(bis unless opted in); `bis` marks best-in-slot gear (only the three POH
+gear storages carry it) that players deliberately keep banked — hidden
+from flagging by default, in the reference and here.
+
+Iron Hub derives the flag set from the PERSISTED bank snapshot (already
+placeholder-free — `itemsOf` skips qty-0 items), so the tab works
+offline; the reference needs the bank open. Its login-state gymnastics
+and bank-hash caching aren't needed here.
+
+**Legacy ItemID constant trap (generator knowledge that will bite
+again):** the item-name index (data/index/item-names.json) deliberately
+filters constants matching `.*_\d+` — but that pattern covers TWO
+opposite breeds: id-suffixed duplicate names (PRESCRIPTION_GOGGLES_29976
+— the suffix IS the item id) and dose/tier constants (ABSORPTION_1 = id
+11737, the suffix is a DOSE). Never "resolve" a filtered constant by its
+suffix; read tools/itemids.txt (the unfiltered dump the index is built
+from) when a port references legacy constants verbatim. One reference
+row uses a raw id with no constant at all (22818, its comment names it
+Fish chunks) — curated, fail-fast on any new one.

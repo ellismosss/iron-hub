@@ -196,6 +196,9 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "portTasks", name = "Port tasks", description = "Sailing courier and bounty tasks: active slots, port suggestions and the noticeboard advisor", section = modulesSection, position = 30)
 	default boolean portTasks() { return true; }
 
+	@ConfigItem(keyName = "bankSpaceSaver", name = "Bank space saver", description = "Bank items that could live in dedicated storage (tackle box, seed vault, POH cases and more)", section = modulesSection, position = 31)
+	default boolean bankSpaceSaver() { return true; }
+
 	@ConfigItem(keyName = "portBoardAdvice", name = "Port task board advisor", description = "While a port task board is open, overlay the best courier picks (Sailing XP per tile added to your route)", section = notificationsSection, position = 13)
 	default boolean portBoardAdvice() { return true; }
 

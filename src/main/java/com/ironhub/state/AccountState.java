@@ -110,6 +110,9 @@ public class AccountState implements StateView
 	private final Set<String> pohBuilt = ConcurrentHashMap.newKeySet();
 	private final Map<String, PersistedState.BoatSnapshot> sailingBoats = new ConcurrentHashMap<>();
 	private final Set<Integer> preferredPorts = ConcurrentHashMap.newKeySet();
+	private final Set<String> bankStorageOff = ConcurrentHashMap.newKeySet();
+	private final Set<Integer> bankStorageIgnored = ConcurrentHashMap.newKeySet();
+	private volatile boolean bankStorageFlagBis;
 
 	// hunters' rumours: preferred locations + capped records
 	public static final int MAX_RUMOUR_RECORDS = 50;
@@ -690,6 +693,56 @@ public class AccountState implements StateView
 		}
 		persist();
 		notifyListeners();
+	}
+
+	// ── bank space saver ──────────────────────────────────────────────
+
+	/** Storage locations switched OFF (default: all on). */
+	public Set<String> getBankStorageOff()
+	{
+		return new HashSet<>(bankStorageOff);
+	}
+
+	public void toggleBankStorageLocation(String locationId)
+	{
+		if (!bankStorageOff.remove(locationId))
+		{
+			bankStorageOff.add(locationId);
+		}
+		persist();
+		notifyListeners();
+	}
+
+	/** Item ids the player never wants flagged as storable. */
+	public Set<Integer> getBankStorageIgnored()
+	{
+		return new HashSet<>(bankStorageIgnored);
+	}
+
+	public void toggleBankStorageIgnored(int itemId)
+	{
+		if (!bankStorageIgnored.remove(itemId))
+		{
+			bankStorageIgnored.add(itemId);
+		}
+		persist();
+		notifyListeners();
+	}
+
+	/** Whether best-in-slot gear is flagged too (default no). */
+	public boolean isBankStorageFlagBis()
+	{
+		return bankStorageFlagBis;
+	}
+
+	public void setBankStorageFlagBis(boolean flag)
+	{
+		if (bankStorageFlagBis != flag)
+		{
+			bankStorageFlagBis = flag;
+			persist();
+			notifyListeners();
+		}
 	}
 
 	/** Commit a boat sync: part tiers as detected on the boarded boat.
@@ -2105,6 +2158,11 @@ public class AccountState implements StateView
 		persisted.sailingBoats.forEach((k, v) -> sailingBoats.put(k, v.copy()));
 		preferredPorts.clear();
 		preferredPorts.addAll(persisted.preferredPorts);
+		bankStorageOff.clear();
+		bankStorageOff.addAll(persisted.bankStorageOff);
+		bankStorageIgnored.clear();
+		bankStorageIgnored.addAll(persisted.bankStorageIgnored);
+		bankStorageFlagBis = persisted.bankStorageFlagBis;
 		rumourPrefLocations.clear();
 		rumourPrefLocations.putAll(persisted.rumourPrefLocations);
 		rumourRecords.clear();
@@ -2242,6 +2300,9 @@ public class AccountState implements StateView
 		state.pohBuilt = new HashSet<>(pohBuilt);
 		sailingBoats.forEach((k, v) -> state.sailingBoats.put(k, v.copy()));
 		state.preferredPorts = new HashSet<>(preferredPorts);
+		state.bankStorageOff = new HashSet<>(bankStorageOff);
+		state.bankStorageIgnored = new HashSet<>(bankStorageIgnored);
+		state.bankStorageFlagBis = bankStorageFlagBis;
 		state.rumourPrefLocations = new HashMap<>(rumourPrefLocations);
 		for (PersistedState.RumourRecord r : rumourRecords)
 		{

@@ -139,6 +139,13 @@ public class PersistedState
 	/** Preferred courier-task ports (port-tasks pack dbrows). */
 	java.util.Set<Integer> preferredPorts = new java.util.HashSet<>();
 
+	/** Bank space saver: storage locations switched OFF (default all on),
+	 *  item ids the player ignores, and whether best-in-slot gear is
+	 *  flagged too (default no — you keep bis gear banked on purpose). */
+	java.util.Set<String> bankStorageOff = new java.util.HashSet<>();
+	java.util.Set<Integer> bankStorageIgnored = new java.util.HashSet<>();
+	boolean bankStorageFlagBis;
+
 	public static class BoatSnapshot
 	{
 		/** Part key (boat-upgrades pack) -> highest tier seen built. */

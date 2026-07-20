@@ -166,6 +166,20 @@ public class GoalPlannerModule implements IronHubModule
 		{
 			pendingReplan.cancel(false);
 		}
+		// wait out an IN-FLIGHT replan (bounded): it mutates state and
+		// persists, and returning while that write runs hands the caller a
+		// profile file mid-write (profile switches; headless reloads). The
+		// single-threaded executor makes a no-op barrier a completion fence;
+		// with nothing running it returns immediately.
+		try
+		{
+			plannerExecutor.submit(() -> { })
+				.get(2, java.util.concurrent.TimeUnit.SECONDS);
+		}
+		catch (Exception e)
+		{
+			log.debug("replan still running at shutdown", e);
+		}
 		if (tab != null)
 		{
 			tab.dispose();
