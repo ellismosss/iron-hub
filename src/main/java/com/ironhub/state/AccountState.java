@@ -109,6 +109,7 @@ public class AccountState implements StateView
 	// built POH tiers (pack tier ids)
 	private final Set<String> pohBuilt = ConcurrentHashMap.newKeySet();
 	private final Map<String, PersistedState.BoatSnapshot> sailingBoats = new ConcurrentHashMap<>();
+	private final Set<Integer> preferredPorts = ConcurrentHashMap.newKeySet();
 
 	// hunters' rumours: preferred locations + capped records
 	public static final int MAX_RUMOUR_RECORDS = 50;
@@ -673,6 +674,22 @@ public class AccountState implements StateView
 		Map<String, PersistedState.BoatSnapshot> out = new HashMap<>();
 		sailingBoats.forEach((k, v) -> out.put(k, v.copy()));
 		return out;
+	}
+
+	/** Preferred courier-task ports (port-tasks pack dbrows). */
+	public Set<Integer> getPreferredPorts()
+	{
+		return new HashSet<>(preferredPorts);
+	}
+
+	public void togglePreferredPort(int portDbrow)
+	{
+		if (!preferredPorts.remove(portDbrow))
+		{
+			preferredPorts.add(portDbrow);
+		}
+		persist();
+		notifyListeners();
 	}
 
 	/** Commit a boat sync: part tiers as detected on the boarded boat.
@@ -2086,6 +2103,8 @@ public class AccountState implements StateView
 		pohBuilt.addAll(persisted.pohBuilt);
 		sailingBoats.clear();
 		persisted.sailingBoats.forEach((k, v) -> sailingBoats.put(k, v.copy()));
+		preferredPorts.clear();
+		preferredPorts.addAll(persisted.preferredPorts);
 		rumourPrefLocations.clear();
 		rumourPrefLocations.putAll(persisted.rumourPrefLocations);
 		rumourRecords.clear();
@@ -2222,6 +2241,7 @@ public class AccountState implements StateView
 		state.deaths = new java.util.ArrayList<>(deaths);
 		state.pohBuilt = new HashSet<>(pohBuilt);
 		sailingBoats.forEach((k, v) -> state.sailingBoats.put(k, v.copy()));
+		state.preferredPorts = new HashSet<>(preferredPorts);
 		state.rumourPrefLocations = new HashMap<>(rumourPrefLocations);
 		for (PersistedState.RumourRecord r : rumourRecords)
 		{

@@ -51,7 +51,7 @@ public class IronHubPanel extends PluginPanel
 	private static final Map<String, List<String>> BLOCKS = Map.of(
 		"Goals", List.of("Goal planner"),
 		"Combat", List.of("Loadout", "Slayer", "Loot & supplies"),
-		"Dailies", List.of("Dailies", "Farm runs", "Hunters' Rumours"),
+		"Dailies", List.of("Dailies", "Farm runs", "Hunters' Rumours", "Port tasks"),
 		"Progression", List.of("Collection log", "Combat achievements", "Gear progression",
 			"PoH", "Sailing upgrades", "Achievement diaries", "Quests", "Clues & STASH",
 			"QoL checklist"),

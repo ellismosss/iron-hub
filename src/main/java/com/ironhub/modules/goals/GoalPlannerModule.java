@@ -227,10 +227,15 @@ public class GoalPlannerModule implements IronHubModule
 			{
 				sessionStartPlanHours = state.getLastPlanHours();
 			}
+			// detect BEFORE publishing: once currentPlan is visible, callers
+			// may mutate state, and this pass's detector must have already
+			// seen each active goal unachieved (else a completion lands
+			// "detected" instead of dated — a real race, caught by
+			// GoalArchiveTest under load)
+			detectCompletions(plan);
 			currentPlan = plan;
 			sharedPlan = plan;
 			state.recordPlanHours(plan.knownHours);
-			detectCompletions(plan);
 			for (Runnable listener : planListeners)
 			{
 				javax.swing.SwingUtilities.invokeLater(listener);

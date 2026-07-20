@@ -136,6 +136,9 @@ public class PersistedState
 	 *  only resolve while ON the boat, so this is the offline snapshot. */
 	Map<String, BoatSnapshot> sailingBoats = new HashMap<>();
 
+	/** Preferred courier-task ports (port-tasks pack dbrows). */
+	java.util.Set<Integer> preferredPorts = new java.util.HashSet<>();
+
 	public static class BoatSnapshot
 	{
 		/** Part key (boat-upgrades pack) -> highest tier seen built. */

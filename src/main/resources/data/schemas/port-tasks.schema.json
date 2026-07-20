@@ -1,0 +1,59 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Sailing port-task static tables (ported from nucleon/port-tasks at the plugin-hub pin, BSD-2)",
+	"type": "object",
+	"required": ["version", "source", "ports", "rewards", "routes"],
+	"additionalProperties": false,
+	"properties": {
+		"version": {"type": "integer", "minimum": 1},
+		"source": {"type": "string", "minLength": 1},
+		"ports": {
+			"type": "array",
+			"minItems": 30,
+			"maxItems": 30,
+			"items": {
+				"type": "object",
+				"required": ["dbrow", "name", "level", "x", "y", "plane", "board"],
+				"additionalProperties": false,
+				"properties": {
+					"dbrow": {"type": "integer", "minimum": 1},
+					"name": {"type": "string", "minLength": 1},
+					"level": {"type": ["integer", "null"], "minimum": 1, "maximum": 99},
+					"x": {"type": "integer", "minimum": 1},
+					"y": {"type": "integer", "minimum": 1},
+					"plane": {"type": "integer", "minimum": 0, "maximum": 3},
+					"board": {"type": "boolean"}
+				}
+			}
+		},
+		"rewards": {
+			"type": "array",
+			"minItems": 271,
+			"items": {
+				"type": "object",
+				"required": ["dbrow", "xp", "label", "type"],
+				"additionalProperties": false,
+				"properties": {
+					"dbrow": {"type": "integer", "minimum": 1},
+					"xp": {"type": "integer", "minimum": 1},
+					"label": {"type": "string", "minLength": 1},
+					"type": {"enum": ["courier", "bounty"]}
+				}
+			}
+		},
+		"routes": {
+			"type": "array",
+			"minItems": 160,
+			"items": {
+				"type": "object",
+				"required": ["a", "b", "distance"],
+				"additionalProperties": false,
+				"properties": {
+					"a": {"type": "integer", "minimum": 1},
+					"b": {"type": "integer", "minimum": 1},
+					"distance": {"type": "number", "exclusiveMinimum": 0}
+				}
+			}
+		}
+	}
+}

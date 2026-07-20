@@ -642,3 +642,49 @@ and asserts the inversion is still present upstream so a fix there flags us.
 `unlock:schematic_<slug>` flags so the requirement graph and goal steps gate
 on them. Levels are `skillb:` — shipwright building is boostable (the
 reference reads boosted levels).
+
+## Port tasks detection (module: porttasks, pack: port-tasks.json)
+
+Ported from the Port Tasks hub plugin (nucleon/port-tasks @ 8004542, BSD-2,
+nucleon + Cooper Morris). The task CATALOG is not static: names, ports,
+cargo items/amounts, bounty targets and level gates come from cache
+**DBTable 197** (`DBTableID.PortTask`) at runtime —
+`client.getDBTableRows(197)` + `getDBTableField(dbrow, col, tuple)[0]`
+on the client thread (gamestate >= LOGIN_SCREEN or the reads are empty).
+A row is a **courier** iff `COL_CARGO_PORT(5) != COL_ENDING_PORT(6)`,
+else a **bounty**; rows whose ports aren't in the 30-port table are quest
+rows — drop them. `COL_CARGO(16)` is a tuple: item id at tuple 0,
+amount at tuple 1. Per-task Sailing XP is NOT in the DBTable — the
+reference authors transcribed it (271 rows, keyed by DBRow, in the pack).
+
+**Two different integers per task**: the slot varbits carry
+`COL_TASK_ID(0)` (the "id"); the noticeboard widgets and the XP table use
+the **DBRow**. Conflating them breaks everything quietly.
+
+**Five task slots**, per-slot varbits (ID / cargo-taken / delivered have
+gameval names `PORT_TASK_SLOT_n_*` = 19574..19588; the bounty COUNT
+varbits have NO gameval names and are raw, interleaved out of order:
+slot 0..4 = **14662, 14663, 14819, 15370, 15397**). The COUNT varbit
+stores items **REMAINING** — collected = required − remaining. The
+reference re-adds a task on every ID varbit change and login replay
+duplicates them (its known bug); Iron Hub derives slot state statelessly
+from the varbits on every read, so duplication is impossible by
+construction. Extra useful varbits the reference ignores:
+`PORT_TASKS_COMPLETED_TODAY` (19591 — the game's own daily counter; the
+board restocks every 8) and `PORT_TASK_EXTRA_SLOTS_UNLOCKED` (19589).
+
+**Noticeboard offers**: interface group `PORT_TASK_BOARD` (941),
+container `InterfaceID.PortTaskBoard.CONTAINER`; each dynamic child's
+`getOnOpListener()[3]` is the offered task's **DBRow**. Scan on
+WidgetLoaded (client thread, next-cycle — the children need a beat).
+
+**Distances**: the reference hand-draws 163 sailing routes as
+relative-move polylines; the pack reduces each to its length (sum of
+Euclidean hops + the hop onto the destination nav point, byte-faithful
+to its computeDistance). Port pairs with no direct route chain through
+the route graph (Dijkstra — sea travel is port-to-port); the pack test
+proves every pair reaches every other. **Boat speed is unknowable**, so
+the advisor ranks offers by Sailing XP per tile ADDED to the optimal
+tour over your active tasks (exact Held-Karp with pickup-before-delivery
+precedence, <= ~12 stops) — with speed a constant, xp-per-marginal-tile
+preserves the xp/h ordering without inventing a speed figure.

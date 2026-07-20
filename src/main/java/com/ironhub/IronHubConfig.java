@@ -193,6 +193,12 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "dailiesNew", name = "Dailies (New)", description = "The Dailies tab in the OSRS skin, beside the classic one for comparison (migration preview)", section = modulesSection, position = 27)
 	default boolean dailiesNew() { return true; }
 
+	@ConfigItem(keyName = "portTasks", name = "Port tasks", description = "Sailing courier and bounty tasks: active slots, port suggestions and the noticeboard advisor", section = modulesSection, position = 30)
+	default boolean portTasks() { return true; }
+
+	@ConfigItem(keyName = "portBoardAdvice", name = "Port task board advisor", description = "While a port task board is open, overlay the best courier picks (Sailing XP per tile added to your route)", section = notificationsSection, position = 13)
+	default boolean portBoardAdvice() { return true; }
+
 	@ConfigItem(keyName = "moneyMaking", name = "Money making", description = "The OSRS wiki Money making guide, filtered to what your account can do", section = modulesSection, position = 29)
 	default boolean moneyMaking() { return true; }
 
