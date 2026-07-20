@@ -99,11 +99,16 @@ public class BankCollectView
 	 *  nothing is left behind in the player's bank. Client thread. */
 	public void clear()
 	{
-		if (!available() || !applied)
+		if (!available())
 		{
 			return;
 		}
-		bankTagsService.closeBankTag();
+		if (applied)
+		{
+			bankTagsService.closeBankTag();
+		}
+		// unconditional: also heals a tag a crashed session left behind
+		// (the in-memory flag was the only gate — 2026-07-20 audit)
 		removeApplied();
 	}
 
@@ -114,12 +119,9 @@ public class BankCollectView
 
 	private void removeApplied()
 	{
-		if (applied)
-		{
-			tagManager.removeTag(tag);
-			layoutManager.removeLayout(tag);
-			applied = false;
-			appliedSignature = 0;
-		}
+		tagManager.removeTag(tag);
+		layoutManager.removeLayout(tag);
+		applied = false;
+		appliedSignature = 0;
 	}
 }

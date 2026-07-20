@@ -171,7 +171,7 @@ public class SlayerOptimizerModule implements IronHubModule
 		this.overlayManager = overlayManager;
 		this.chatMessageManager = chatMessageManager;
 		this.bankLayout = new com.ironhub.modules.farming.FarmBankLayout(
-			bankTagsService, tagManager, layoutManager, itemManager);
+			"slayer", bankTagsService, tagManager, layoutManager, itemManager);
 		this.state = state;
 		this.client = client;
 		this.clientThread = clientThread;

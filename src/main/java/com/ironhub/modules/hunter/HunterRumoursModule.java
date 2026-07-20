@@ -105,7 +105,7 @@ public class HunterRumoursModule implements IronHubModule
 		this.npcOverlayService = npcOverlayService;
 		this.worldMapPointManager = worldMapPointManager;
 		this.bankLayout = new com.ironhub.modules.farming.FarmBankLayout(
-			bankTagsService, tagManager, layoutManager, itemManager);
+			"hunter", bankTagsService, tagManager, layoutManager, itemManager);
 		this.highlighter = npc ->
 		{
 			HunterRumoursPack.Rumour current = currentRumour();

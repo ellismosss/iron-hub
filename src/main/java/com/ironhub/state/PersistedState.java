@@ -356,5 +356,16 @@ public class PersistedState
 		public int[] inventoryQty = new int[0];   // parallel quantities
 		public int[] pouchRunes = new int[0];     // rune item ids, -1 empty
 		public int[] pouchAmounts = new int[0];
+
+		public SavedSetup copy()
+		{
+			SavedSetup c = new SavedSetup();
+			c.equipment = new HashMap<>(equipment);
+			c.inventory = inventory.clone();
+			c.inventoryQty = inventoryQty.clone();
+			c.pouchRunes = pouchRunes.clone();
+			c.pouchAmounts = pouchAmounts.clone();
+			return c;
+		}
 	}
 }

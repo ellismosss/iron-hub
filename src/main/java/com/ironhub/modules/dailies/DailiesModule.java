@@ -172,7 +172,7 @@ public class DailiesModule implements IronHubModule
 			infoBoxManager.addInfoBox(runInfoBox);
 		}
 		bankLayout = new com.ironhub.modules.farming.FarmBankLayout(
-			bankTagsService, tagManager, layoutManager, itemManager);
+			"dailies", bankTagsService, tagManager, layoutManager, itemManager);
 		if (overlayManager != null)
 		{
 			overlay = new DailiesRunOverlay(this);
@@ -212,8 +212,18 @@ public class DailiesModule implements IronHubModule
 		}
 		if (bankLayout != null)
 		{
-			bankLayout.clear(); // shutDown runs on the client thread
+			// a config-panel toggle lands here on the EDT — the layout's
+			// Bank Tags writes are client-thread-only (2026-07-20 audit)
+			com.ironhub.modules.farming.FarmBankLayout layout = bankLayout;
 			bankLayout = null;
+			if (clientThread != null)
+			{
+				clientThread.invoke(layout::clear);
+			}
+			else
+			{
+				layout.clear(); // headless
+			}
 		}
 		if (tab != null)
 		{

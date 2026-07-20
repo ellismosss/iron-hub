@@ -40,24 +40,16 @@ public class GoalPlannerModule implements IronHubModule
 	private GoalsHubTab tab;
 
 	// ── engine wiring: one worker, debounced replans, published plans ──
-	private final java.util.concurrent.ScheduledExecutorService plannerExecutor =
-		java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r ->
-		{
-			Thread t = new Thread(r, "iron-hub-planner");
-			t.setDaemon(true);
-			return t;
-		});
+	// created in startUp, terminated in shutDown — construction-time
+	// executors left two threads alive for the JVM lifetime after a module
+	// toggle-off and pinned the classloader after a hub uninstall
+	// (2026-07-20 audit)
+	private volatile java.util.concurrent.ScheduledExecutorService plannerExecutor;
 	private java.util.concurrent.ScheduledFuture<?> pendingReplan;
 	private volatile com.ironhub.engine.Plan currentPlan;
 	/** Stepping-stone suggestions (G6), computed off the planner thread so a
 	 *  ~40-candidate sweep never delays a replan; memoized on plan fingerprint. */
-	private final java.util.concurrent.ExecutorService suggestExecutor =
-		java.util.concurrent.Executors.newSingleThreadExecutor(r ->
-		{
-			Thread t = new Thread(r, "iron-hub-suggester");
-			t.setDaemon(true);
-			return t;
-		});
+	private volatile java.util.concurrent.ExecutorService suggestExecutor;
 	private volatile java.util.List<Suggester.Suggestion> suggestions = java.util.List.of();
 	private volatile String suggestionsFingerprint = "";
 	private volatile String lastNotifiedFingerprint; // planner thread only
@@ -115,6 +107,18 @@ public class GoalPlannerModule implements IronHubModule
 	@Override
 	public void startUp()
 	{
+		plannerExecutor = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r ->
+		{
+			Thread t = new Thread(r, "iron-hub-planner");
+			t.setDaemon(true);
+			return t;
+		});
+		suggestExecutor = java.util.concurrent.Executors.newSingleThreadExecutor(r ->
+		{
+			Thread t = new Thread(r, "iron-hub-suggester");
+			t.setDaemon(true);
+			return t;
+		});
 		pack = dataPack.load("goals", GoalsPack.class);
 		gearPack = dataPack.load("gear-progression", com.ironhub.data.GearProgressionPack.class);
 		bankedPack = dataPack.load("banked-xp", com.ironhub.data.BankedXpPack.class);
@@ -173,14 +177,22 @@ public class GoalPlannerModule implements IronHubModule
 		// profile file mid-write (profile switches; headless reloads). The
 		// single-threaded executor makes a no-op barrier a completion fence;
 		// with nothing running it returns immediately.
-		try
+		if (plannerExecutor != null)
 		{
-			plannerExecutor.submit(() -> { })
-				.get(2, java.util.concurrent.TimeUnit.SECONDS);
+			try
+			{
+				plannerExecutor.submit(() -> { })
+					.get(2, java.util.concurrent.TimeUnit.SECONDS);
+			}
+			catch (Exception e)
+			{
+				log.debug("replan still running at shutdown", e);
+			}
+			plannerExecutor.shutdown();
 		}
-		catch (Exception e)
+		if (suggestExecutor != null)
 		{
-			log.debug("replan still running at shutdown", e);
+			suggestExecutor.shutdownNow(); // suggestions are droppable mid-compute
 		}
 		if (tab != null)
 		{

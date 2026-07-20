@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class FarmBankLayoutTest
 {
-	private static final String TAG = "_ironhubfarm_herbrun";
+	private static final String TAG = "_ironhubfarm_farm";
 
 	private static PersistedState.SavedSetup setup()
 	{
@@ -59,7 +59,7 @@ public class FarmBankLayoutTest
 		Mockito.when(itemManager.canonicalize(Mockito.anyInt()))
 			.thenAnswer(inv -> inv.getArgument(0));
 
-		FarmBankLayout layout = new FarmBankLayout(bankTags, tagManager, layoutManager, itemManager);
+		FarmBankLayout layout = new FarmBankLayout("farm", bankTags, tagManager, layoutManager, itemManager);
 		layout.apply("Herb run", setup());
 
 		// the setup's items got tagged and pinned, the tag hidden, and the
@@ -81,15 +81,17 @@ public class FarmBankLayoutTest
 
 		layout.clear();
 		Mockito.verify(bankTags).closeBankTag();
-		Mockito.verify(tagManager).removeTag(TAG);
-		Mockito.verify(layoutManager).removeLayout(TAG);
+		// twice: the FIRST apply also removes the fixed tag unconditionally,
+		// healing anything a crashed session left in Bank Tags' config
+		Mockito.verify(tagManager, Mockito.times(2)).removeTag(TAG);
+		Mockito.verify(layoutManager, Mockito.times(2)).removeLayout(TAG);
 		assertFalse(layout.isApplied());
 	}
 
 	@Test
 	public void nullServicesAreANoOp()
 	{
-		FarmBankLayout layout = new FarmBankLayout(null, null, null, null);
+		FarmBankLayout layout = new FarmBankLayout("farm", null, null, null, null);
 		layout.apply("Herb run", setup()); // must not throw
 		layout.clear();
 		assertFalse(layout.isApplied());

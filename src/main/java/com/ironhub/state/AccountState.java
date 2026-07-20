@@ -2341,13 +2341,17 @@ public class AccountState implements StateView
 		{
 			return;
 		}
-		if (client != null)
+		if (client != null && client.getGameState() == GameState.LOGGED_IN)
 		{
 			// live client: coalesce — onGameTick flushes at most every
 			// PERSIST_FLUSH_TICKS, logout/hop/shutdown flush immediately
 			persistDirty = true;
 			return;
 		}
+		// no ticks fire outside LOGGED_IN, so a panel edit made at the login
+		// screen would sit dirty until shutdown — and be lost to a crash
+		// (2026-07-20 audit). No game-thread contention there either, and
+		// serialization already runs on the store's executor.
 		persistNow();
 	}
 
@@ -2375,10 +2379,14 @@ public class AccountState implements StateView
 		lootBySource.forEach((src, items) -> state.lootBySource.put(src, new HashMap<>(items)));
 		suppliesBySource.forEach((src, items) -> state.suppliesBySource.put(src, new HashMap<>(items)));
 		savedLoadouts.forEach((activity, slots) -> state.savedLoadouts.put(activity, new HashMap<>(slots)));
-		state.savedSetups.putAll(savedSetups);
+		// setups deep-copy (ProfileStore's contract: toJson runs on the
+		// executor against this snapshot — 2026-07-20 audit); the record
+		// lists below stay element-shared deliberately: records are
+		// append-only and never mutated after creation
+		savedSetups.forEach((key, setup) -> state.savedSetups.put(key, setup.copy()));
 		state.herbRunsMs = new java.util.ArrayList<>(herbRunsMs);
 		state.farmRuns = new HashMap<>(farmRuns);
-		state.farmRunSetups = new HashMap<>(farmRunSetups);
+		farmRunSetups.forEach((key, setup) -> state.farmRunSetups.put(key, setup.copy()));
 		state.farmTeleportPrefs = new HashMap<>(farmTeleportPrefs);
 		state.farmRunChoice = new HashMap<>(farmRunChoice);
 		state.farmRunOrder = new java.util.ArrayList<>(farmRunOrder);

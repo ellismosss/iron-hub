@@ -260,7 +260,7 @@ public class FarmingRunModule implements IronHubModule
 			tracking = new FarmTrackingService(client, itemManager, configManager,
 				configManager.getConfig(TimeTrackingConfig.class), notifier);
 		}
-		bankLayout = new FarmBankLayout(bankTagsService, tagManager, layoutManager, itemManager);
+		bankLayout = new FarmBankLayout("farm", bankTagsService, tagManager, layoutManager, itemManager);
 		eventBus.register(this);
 		if (overlayManager != null)
 		{
@@ -307,8 +307,18 @@ public class FarmingRunModule implements IronHubModule
 		readyBoxes.clear();
 		if (bankLayout != null)
 		{
-			bankLayout.clear(); // shutDown runs on the client thread
+			// a config-panel toggle lands here on the EDT — the layout's
+			// Bank Tags writes are client-thread-only (2026-07-20 audit)
+			FarmBankLayout layout = bankLayout;
 			bankLayout = null;
+			if (clientThread != null)
+			{
+				clientThread.invoke(layout::clear);
+			}
+			else
+			{
+				layout.clear(); // headless
+			}
 		}
 		if (tab != null)
 		{
@@ -723,6 +733,15 @@ public class FarmingRunModule implements IronHubModule
 	 */
 	void markThrough(String locationId)
 	{
+		// single-writer: run state is mutated on the client thread only — a
+		// sidebar Skip (EDT) racing an automatic advance could double-record
+		// a run or misattribute xp (2026-07-20 audit; the GoalArchiveTest
+		// race family). Headless calls stay direct.
+		if (clientThread != null && client != null && !client.isClientThread())
+		{
+			clientThread.invoke(() -> markThrough(locationId));
+			return;
+		}
 		boolean changed = false;
 		for (Stop stop : stops)
 		{
@@ -1264,6 +1283,11 @@ public class FarmingRunModule implements IronHubModule
 
 	void endRun(boolean complete)
 	{
+		if (clientThread != null && client != null && !client.isClientThread())
+		{
+			clientThread.invoke(() -> endRun(complete)); // see markThrough
+			return;
+		}
 		boolean wasRunning = running();
 		if (wasRunning && complete)
 		{

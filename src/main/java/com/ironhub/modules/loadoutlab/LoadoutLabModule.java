@@ -87,8 +87,10 @@ public class LoadoutLabModule implements IronHubModule
 	private final com.ironhub.ui.components.BankCollectView collectView;
 
 	/** Visibility-gated once the holder exists (RebuildGate): a hidden lab
-	 *  strip must not rebuild on every state change — pre-build, the plain
-	 *  path is a cheap no-op (refreshStrip guards on null). */
+	 *  strip must not rebuild on every state change. Pre-build, a genuine
+	 *  no-op — the old fallback ran the full auto-follow BiS chain per
+	 *  combat-target change for a tab that was never opened (2026-07-20
+	 *  audit); buildTab seeds itself from live state when it finally runs. */
 	private volatile Runnable gatedListener;
 	private final Runnable listener = () ->
 	{
@@ -96,10 +98,6 @@ public class LoadoutLabModule implements IronHubModule
 		if (gated != null)
 		{
 			gated.run();
-		}
-		else
-		{
-			SwingUtilities.invokeLater(this::onStateChanged);
 		}
 	};
 	private com.ironhub.modules.loadout.StrategyClient strategyClient;
@@ -227,7 +225,9 @@ public class LoadoutLabModule implements IronHubModule
 			top.add(buildStrip());
 			holder.add(top, BorderLayout.NORTH);
 			mountPanel();
-			refreshStrip();
+			// full pass, not just the strip: with the pre-build listener now a
+			// no-op, the first build must also auto-follow the current activity
+			onStateChanged();
 			gatedListener = com.ironhub.ui.components.RebuildGate.install(
 				holder, this::onStateChanged);
 		}

@@ -52,12 +52,19 @@ public class FarmBankLayout
 	private final LayoutManager layoutManager;
 	private final ItemManager itemManager;
 
-	private String appliedTag;
+	/** ONE fixed tag per owning module — the old per-runName tags meant a
+	 *  crash mid-run orphaned that run's hidden tag + layout in Bank Tags'
+	 *  persisted config forever, one per run name (2026-07-20 audit). A
+	 *  fixed name lets the next apply/clear overwrite or remove whatever a
+	 *  dead session left behind. */
+	private final String tag;
+	private boolean applied;
 	private int appliedSignature;
 
-	public FarmBankLayout(BankTagsService bankTagsService, TagManager tagManager,
+	public FarmBankLayout(String owner, BankTagsService bankTagsService, TagManager tagManager,
 		LayoutManager layoutManager, ItemManager itemManager)
 	{
+		this.tag = TAG_PREFIX + owner;
 		this.bankTagsService = bankTagsService;
 		this.tagManager = tagManager;
 		this.layoutManager = layoutManager;
@@ -115,10 +122,9 @@ public class FarmBankLayout
 		{
 			return;
 		}
-		String tag = TAG_PREFIX + runName.toLowerCase().replaceAll("[^a-z0-9]", "");
 		Map<Integer, Integer> byPos = positions(setup);
 		int signature = byPos.hashCode();
-		if (tag.equals(appliedTag) && signature == appliedSignature
+		if (applied && signature == appliedSignature
 			&& tag.equals(bankTagsService.getActiveTag()))
 		{
 			// already showing exactly this — every openBankTag forces a full
@@ -126,7 +132,7 @@ public class FarmBankLayout
 			// rebuilds (2026-07-18 bank-open freeze audit)
 			return;
 		}
-		if (!tag.equals(appliedTag) || signature != appliedSignature)
+		if (!applied || signature != appliedSignature)
 		{
 			removeApplied();
 			Layout layout = new Layout(tag);
@@ -138,7 +144,7 @@ public class FarmBankLayout
 			}
 			layoutManager.saveLayout(layout);
 			tagManager.setHidden(tag, true); // never clutters the tag bar
-			appliedTag = tag;
+			applied = true;
 			appliedSignature = signature;
 		}
 		bankTagsService.openBankTag(tag, BankTagsService.OPTION_HIDE_TAG_NAME);
@@ -148,27 +154,29 @@ public class FarmBankLayout
 	 *  is left behind in the player's bank. Client thread. */
 	public void clear()
 	{
-		if (!available() || appliedTag == null)
+		if (!available())
 		{
 			return;
 		}
-		bankTagsService.closeBankTag();
+		if (applied)
+		{
+			bankTagsService.closeBankTag();
+		}
+		// unconditional: also heals a tag a crashed session left behind
+		// (the in-memory flag was the only gate — 2026-07-20 audit)
 		removeApplied();
 	}
 
 	public boolean isApplied()
 	{
-		return appliedTag != null;
+		return applied;
 	}
 
 	private void removeApplied()
 	{
-		if (appliedTag != null)
-		{
-			tagManager.removeTag(appliedTag);
-			layoutManager.removeLayout(appliedTag);
-			appliedTag = null;
-			appliedSignature = 0;
-		}
+		tagManager.removeTag(tag);
+		layoutManager.removeLayout(tag);
+		applied = false;
+		appliedSignature = 0;
 	}
 }
