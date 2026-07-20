@@ -333,6 +333,23 @@ public class DailiesModule implements IronHubModule
 		{
 			return;
 		}
+		// never open/close a bank tag during the bank's own build script —
+		// defer past it (the 2026-07-18 fix the hunter/slayer copies carry;
+		// this copy had drifted — 2026-07-20 audit)
+		if (clientThread == null)
+		{
+			applyOrClearBankLayout(); // headless: no script is running
+			return;
+		}
+		clientThread.invokeLater(this::applyOrClearBankLayout);
+	}
+
+	private void applyOrClearBankLayout()
+	{
+		if (bankLayout == null)
+		{
+			return; // shut down while the deferral was queued
+		}
 		if (config.farmBankSetup() && running())
 		{
 			com.ironhub.state.PersistedState.SavedSetup setup = state.getFarmRunSetup(RUN_NAME);
