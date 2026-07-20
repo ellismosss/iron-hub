@@ -93,7 +93,7 @@ class FarmingTab extends JPanel
 		this.module = module;
 		this.itemManager = itemManager;
 		this.theme = theme;
-		this.sprites = new SpriteCache(itemManager, this::rebuild);
+		this.sprites = new SpriteCache(itemManager, listener);
 		this.builderName = new StoneTextField(theme, "Run name…");
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);

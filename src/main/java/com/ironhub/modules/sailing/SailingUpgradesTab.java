@@ -44,6 +44,7 @@ class SailingUpgradesTab extends JPanel
 	private final OsrsTheme theme;
 	private final ItemManager itemManager; // null headless — sprites skipped
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
+	private final com.ironhub.ui.components.SpriteCache sprites;
 
 	private final JPanel content = new JPanel();
 	private String expanded; // "<boatType>:<part key>"
@@ -55,6 +56,7 @@ class SailingUpgradesTab extends JPanel
 		this.module = module;
 		this.theme = theme;
 		this.itemManager = itemManager;
+		this.sprites = new com.ironhub.ui.components.SpriteCache(itemManager, listener);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
@@ -282,7 +284,8 @@ class SailingUpgradesTab extends JPanel
 		r.setBorder(new EmptyBorder(1, UiTokens.PAD, 1, 0));
 		if (itemManager != null)
 		{
-			Icon icon = sized(itemManager.getImage(m.itemId));
+			java.awt.Image sprite = sprites.getBox(m.itemId, 16);
+			Icon icon = sprite == null ? null : new ImageIcon(sprite);
 			if (icon != null)
 			{
 				r.add(new JLabel(icon));

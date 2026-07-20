@@ -60,6 +60,7 @@ public class GoalPlannerModule implements IronHubModule
 		});
 	private volatile java.util.List<Suggester.Suggestion> suggestions = java.util.List.of();
 	private volatile String suggestionsFingerprint = "";
+	private volatile String lastNotifiedFingerprint; // planner thread only
 	/** Cross-module read seam (WhatNow, Dashboard): the freshest plan. */
 	private static volatile com.ironhub.engine.Plan sharedPlan;
 	/** Plan hours at session start — the "since last session" anchor. */
@@ -197,12 +198,10 @@ public class GoalPlannerModule implements IronHubModule
 			{
 				startUp();
 			}
+			// the tab's constructor reads currentPlan itself — the old extra
+			// onPlanUpdated queued a redundant ungated rebuild (2026-07-20 audit)
 			tab = new GoalsHubTab(this, state, pack, gearPack, itemManager, skillIconManager,
 				config.osrsTheme());
-			if (currentPlan != null)
-			{
-				tab.onPlanUpdated(currentPlan);
-			}
 		}
 		return tab;
 	}
@@ -251,9 +250,17 @@ public class GoalPlannerModule implements IronHubModule
 			currentPlan = plan;
 			sharedPlan = plan;
 			state.recordPlanHours(plan.knownHours);
-			for (Runnable listener : planListeners)
+			// the engine is deterministic: a state change that doesn't touch
+			// the plan reproduces it byte-for-byte, and notifying anyway
+			// rebuilt the (visible) Goals tab twice per burst (2026-07-20
+			// audit). The state listener still covers state-driven repaint.
+			if (!plan.fingerprint.equals(lastNotifiedFingerprint))
 			{
-				javax.swing.SwingUtilities.invokeLater(listener);
+				lastNotifiedFingerprint = plan.fingerprint;
+				for (Runnable listener : planListeners)
+				{
+					javax.swing.SwingUtilities.invokeLater(listener);
+				}
 			}
 			scheduleSuggestions(plan);
 		}
@@ -514,6 +521,62 @@ public class GoalPlannerModule implements IronHubModule
 	 * already in the merged plan (shared). Runs on the caller's thread —
 	 * call it off the EDT for live typing, or accept ~100ms.
 	 */
+	/**
+	 * Fill the just-added goal's seed.estimatedHours off the EDT — the
+	 * archive's "est" figure. Its only writer was PlannerTab's add flow,
+	 * deleted in G7 part 2, so every goal archived since recorded 0 and
+	 * rendered "est —" (2026-07-20 audit). Best-effort: an unknown-cost
+	 * goal honestly stays 0.
+	 */
+	void captureEstimate(String goalId)
+	{
+		if (enginePacks == null)
+		{
+			return;
+		}
+		plannerExecutor.execute(() ->
+		{
+			try
+			{
+				if (!engineActive || state.getGoalSeeds().get(goalId) == null)
+				{
+					return;
+				}
+				java.util.List<GoalsPack.Goal> all = unmetGoals();
+				java.util.List<GoalsPack.Goal> base = new ArrayList<>();
+				GoalsPack.Goal candidate = null;
+				for (GoalsPack.Goal goal : all)
+				{
+					if (goal.getId().equals(goalId))
+					{
+						candidate = goal;
+					}
+					else
+					{
+						base.add(goal);
+					}
+				}
+				if (candidate == null)
+				{
+					return;
+				}
+				com.ironhub.engine.Plan with = com.ironhub.engine.PlannerService.plan(
+					state, enginePacks, bankedPack, all, state.plannerConstraints());
+				com.ironhub.engine.Plan without = com.ironhub.engine.PlannerService.plan(
+					state, enginePacks, bankedPack, base, state.plannerConstraints());
+				double added = with.knownHours - without.knownHours;
+				if (!Double.isNaN(added))
+				{
+					state.setGoalEstimatedHours(goalId, Math.max(0, added));
+				}
+			}
+			catch (RuntimeException e)
+			{
+				log.debug("estimate capture failed for {}", goalId, e);
+			}
+		});
+	}
+
 	public MergePreview previewMerge(GoalsPack.Goal candidate)
 	{
 		java.util.List<GoalsPack.Goal> base = unmetGoals();
@@ -713,29 +776,39 @@ public class GoalPlannerModule implements IronHubModule
 	 */
 	public static boolean isAchieved(GoalsPack.Goal goal, AccountState state)
 	{
-		List<String> proof = goal.getAchieved();
-		if (proof != null && !proof.isEmpty()
-			&& proof.stream().allMatch(r -> Requirements.parse(r).isMet(state)))
-		{
-			return true;
-		}
-		return compile(goal, state).stream().allMatch(s -> s.met);
+		return proofHolds(goal, state)
+			|| compile(goal, state).stream().allMatch(s -> s.met);
 	}
+
+	/** The pack's ownership proof — owning the end product trumps steps. */
+	private static boolean proofHolds(GoalsPack.Goal goal, AccountState state)
+	{
+		List<String> proof = goal.getAchieved();
+		return proof != null && !proof.isEmpty()
+			&& proof.stream().allMatch(r -> Requirements.parse(r).isMet(state));
+	}
+
+	// progress/nextStep compile ONCE and derive achieved from the same
+	// list — the old isAchieved-then-compile-again shape evaluated every
+	// step's requirements two or three times per goal row per rebuild,
+	// on the EDT (2026-07-20 audit)
 
 	public static double progress(GoalsPack.Goal goal, AccountState state)
 	{
-		if (isAchieved(goal, state))
+		if (proofHolds(goal, state))
 		{
 			return 1.0;
 		}
 		List<CompiledStep> steps = compile(goal, state);
-		return steps.stream().filter(s -> s.met).count() / (double) steps.size();
+		long met = steps.stream().filter(s -> s.met).count();
+		return steps.isEmpty() || met == steps.size()
+			? 1.0 : met / (double) steps.size();
 	}
 
 	/** First unmet step, or null when the goal is complete. */
 	public static CompiledStep nextStep(GoalsPack.Goal goal, AccountState state)
 	{
-		if (isAchieved(goal, state))
+		if (proofHolds(goal, state))
 		{
 			return null;
 		}

@@ -161,6 +161,25 @@ public class StoneNavButton extends JComponent
 	 */
 	public static java.util.List<java.awt.Point> ringPath(int inset, int w, int h)
 	{
+		// memoized: callers ask up to twice per paintComponent and the
+		// answer is pure geometry — ~120 boxed Points per call otherwise
+		// (2026-07-20 audit). A handful of tile geometries exist.
+		long key = (long) inset << 40 | (long) w << 20 | h;
+		java.util.List<java.awt.Point> cached = RING_CACHE.get(key);
+		if (cached != null)
+		{
+			return cached;
+		}
+		java.util.List<java.awt.Point> computed = computeRingPath(inset, w, h);
+		RING_CACHE.put(key, computed);
+		return computed;
+	}
+
+	private static final java.util.Map<Long, java.util.List<java.awt.Point>> RING_CACHE =
+		new java.util.concurrent.ConcurrentHashMap<>();
+
+	private static java.util.List<java.awt.Point> computeRingPath(int inset, int w, int h)
+	{
 		int c = CORNER - inset;
 		java.util.List<java.awt.Point> path = new java.util.ArrayList<>();
 		int cx = w / 2;

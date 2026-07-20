@@ -52,7 +52,7 @@ class DailiesNewTab extends JPanel
 		this.module = module;
 		this.state = module.state();
 		this.theme = theme;
-		this.sprites = new SpriteCache(module.itemManager(), this::rebuild);
+		this.sprites = new SpriteCache(module.itemManager(), stateListener);
 		// frameless: the tab renders its content directly on the theme's
 		// backing, so a host (the Dailies hub inside the home's stone frame)
 		// connects with it as ONE block — no frame-in-frame seam (Luke)

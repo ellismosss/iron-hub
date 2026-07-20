@@ -894,6 +894,20 @@ public class AccountState implements StateView
 		}
 	}
 
+	/** Record the plan hours a just-added goal contributed (the archive's
+	 *  "est" figure — its only writer left with PlannerTab in G7 part 2,
+	 *  so every record since read "est —"; 2026-07-20 audit). Persist only:
+	 *  the figure renders later, never re-plans. */
+	public void setGoalEstimatedHours(String goalId, double hours)
+	{
+		PersistedState.GoalSeed seed = goalSeeds.get(goalId);
+		if (seed != null && seed.estimatedHours == 0 && hours > 0)
+		{
+			seed.estimatedHours = hours;
+			persist();
+		}
+	}
+
 	/** Remove a goal seed and deselect its goal. */
 	public void removeGoalSeed(String goalId)
 	{
@@ -1683,6 +1697,10 @@ public class AccountState implements StateView
 
 	public void recordPlanHours(double hours)
 	{
+		if (hours == lastPlanHours)
+		{
+			return; // every replan called this — an unchanged figure dirtied
+		}           // the whole profile for nothing (2026-07-20 audit)
 		lastPlanHours = hours;
 		persist(); // no notify: recording the plan must not trigger a replan
 	}

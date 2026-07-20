@@ -23,7 +23,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import net.runelite.client.game.ItemManager;
-import net.runelite.client.util.AsyncBufferedImage;
 import net.runelite.client.util.QuantityFormatter;
 
 /**
@@ -40,6 +39,7 @@ class LootTab extends JPanel
 	private final ItemManager itemManager; // null in unit tests — icons skipped
 	private final OsrsTheme theme;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::sourcesChanged);
+	private final com.ironhub.ui.components.SpriteCache sprites;
 
 	private final JComboBox<String> source = new JComboBox<>();
 	private final StoneChipRow view;
@@ -53,6 +53,7 @@ class LootTab extends JPanel
 		this.state = state;
 		this.itemManager = itemManager;
 		this.theme = theme;
+		this.sprites = new com.ironhub.ui.components.SpriteCache(itemManager, listener);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
@@ -63,7 +64,13 @@ class LootTab extends JPanel
 		StoneComboBoxUI.skin(source, theme);
 		source.setAlignmentX(LEFT_ALIGNMENT);
 		source.setMaximumSize(new Dimension(Integer.MAX_VALUE, source.getPreferredSize().height));
-		source.addActionListener(e -> rebuild());
+		source.addActionListener(e ->
+		{
+			if (!repopulating)
+			{
+				rebuild();
+			}
+		});
 		add(source);
 		add(Box.createVerticalStrut(3));
 
@@ -107,16 +114,29 @@ class LootTab extends JPanel
 		if (!fresh.equals(sources))
 		{
 			String selected = (String) source.getSelectedItem();
-			sources = fresh;
-			source.removeAllItems();
-			sources.forEach(source::addItem);
-			if (selected != null && sources.contains(selected))
+			// removeAllItems/addItem fire the combo's action listener per
+			// mutation — up to four full list rebuilds in one pass
+			// (2026-07-20 audit); the trailing rebuild() covers the result
+			repopulating = true;
+			try
 			{
-				source.setSelectedItem(selected); // fires rebuild via listener
+				sources = fresh;
+				source.removeAllItems();
+				sources.forEach(source::addItem);
+				if (selected != null && sources.contains(selected))
+				{
+					source.setSelectedItem(selected);
+				}
+			}
+			finally
+			{
+				repopulating = false;
 			}
 		}
 		rebuild();
 	}
+
+	private boolean repopulating;
 
 	private void rebuild()
 	{
@@ -204,13 +224,10 @@ class LootTab extends JPanel
 		icon.setPreferredSize(iconSize);
 		icon.setMinimumSize(iconSize);
 		icon.setMaximumSize(iconSize);
-		if (itemManager != null)
+		java.awt.Image sprite = sprites.get(itemId, -1, 16);
+		if (sprite != null)
 		{
-			AsyncBufferedImage sprite = itemManager.getImage(itemId);
-			Runnable apply = () -> icon.setIcon(new ImageIcon(
-				sprite.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH)));
-			apply.run();
-			sprite.onLoaded(apply);
+			icon.setIcon(new ImageIcon(sprite));
 		}
 		row.add(icon);
 		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));

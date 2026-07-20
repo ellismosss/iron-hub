@@ -112,16 +112,25 @@ public class OsrsLabel extends JComponent
 		return this;
 	}
 
+	/** Cached: text and font never change after construction, and Swing
+	 *  asks for pref/min/max sizes far more often than it paints —
+	 *  re-measuring every line each time was churn (2026-07-20 audit). */
+	private Dimension preferredSize;
+
 	@Override
 	public Dimension getPreferredSize()
 	{
-		FontMetrics fm = getFontMetrics(getFont());
-		int width = 0;
-		for (String line : lines)
+		if (preferredSize == null)
 		{
-			width = Math.max(width, fm.stringWidth(line));
+			FontMetrics fm = getFontMetrics(getFont());
+			int width = 0;
+			for (String line : lines)
+			{
+				width = Math.max(width, fm.stringWidth(line));
+			}
+			preferredSize = new Dimension(width + 1, LINE_PITCH * lines.length + DESCENT);
 		}
-		return new Dimension(width + 1, LINE_PITCH * lines.length + DESCENT);
+		return preferredSize;
 	}
 
 	@Override

@@ -43,6 +43,11 @@ class BankSpaceTab extends JPanel
 	private final OsrsTheme theme;
 	private final ItemManager itemManager; // null headless — sprites skipped
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
+	/** Async sprites via the cache: the old sized(getImage(id)) snapshotted
+	 *  a still-blank AsyncBufferedImage with no onLoaded hook, so first-time
+	 *  expansions rendered iconless until an unrelated rebuild (2026-07-20
+	 *  audit). */
+	private final com.ironhub.ui.components.SpriteCache sprites;
 
 	private final JPanel content = new JPanel();
 	private String expanded; // location id, or "ignored"
@@ -54,6 +59,7 @@ class BankSpaceTab extends JPanel
 		this.module = module;
 		this.theme = theme;
 		this.itemManager = itemManager;
+		this.sprites = new com.ironhub.ui.components.SpriteCache(itemManager, listener);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
@@ -300,7 +306,8 @@ class BankSpaceTab extends JPanel
 		r.setBorder(new EmptyBorder(1, UiTokens.PAD, 1, 0));
 		if (itemManager != null)
 		{
-			Icon icon = sized(itemManager.getImage(entry.id));
+			java.awt.Image sprite = sprites.getBox(entry.id, 16);
+			Icon icon = sprite == null ? null : new ImageIcon(sprite);
 			if (icon != null)
 			{
 				r.add(new JLabel(icon));

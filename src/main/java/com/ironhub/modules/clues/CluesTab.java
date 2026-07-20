@@ -115,19 +115,27 @@ class CluesTab extends JPanel
 			{
 				continue;
 			}
-			long doable = ClueStashModule.doableCount(clues, state);
+			// evaluate each clue's requirement graph ONCE per rebuild — the
+			// count, filter and sort key each re-ran it, the sort per
+			// comparison (2026-07-20 audit)
+			Map<ClueStepsPack.Clue, Boolean> doableByClue = new java.util.IdentityHashMap<>();
+			for (ClueStepsPack.Clue clue : clues)
+			{
+				doableByClue.put(clue, ClueStashModule.doable(clue, state));
+			}
+			long doable = doableByClue.values().stream().filter(Boolean::booleanValue).count();
 			content.add(section(tier, doable + "/" + clues.size() + " doable"));
 
 			List<ClueStepsPack.Clue> shown = new ArrayList<>();
 			for (ClueStepsPack.Clue clue : clues)
 			{
-				if (showAll || !ClueStashModule.doable(clue, state))
+				if (showAll || !doableByClue.get(clue))
 				{
 					shown.add(clue);
 				}
 			}
 			// blocked (actionable) rows first, then doable when shown
-			shown.sort(java.util.Comparator.comparing(c -> ClueStashModule.doable(c, state)));
+			shown.sort(java.util.Comparator.comparing(doableByClue::get));
 			if (shown.isEmpty())
 			{
 				content.add(faintLine("All " + tier.toLowerCase() + " steps doable."));

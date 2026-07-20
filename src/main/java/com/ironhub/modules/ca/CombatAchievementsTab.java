@@ -219,13 +219,16 @@ class CombatAchievementsTab extends JPanel
 	 * when points or the set of CA goals actually changed. */
 	private void onStateChanged()
 	{
-		refreshStats();
+		// only rebuild when something CA-relevant moved — refreshStats alone
+		// is three full ~637-task passes, and it ran on EVERY coalesced
+		// state change (2026-07-20 audit)
 		Set<String> caGoals = selectedCaGoals();
 		int points = module.points();
 		if (!caGoals.equals(lastCaGoals) || points != lastPoints)
 		{
 			lastCaGoals = caGoals;
 			lastPoints = points;
+			refreshStats();
 			rebuildContent();
 		}
 	}

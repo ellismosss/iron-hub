@@ -209,9 +209,17 @@ class QuestsTab extends JPanel
 				? "All " + (miniquests ? "miniquests" : "quests") + " complete."
 				: "No matches."));
 		}
-		for (Quest quest : quests)
+		// the Bank grammar row cap (2026-07-20 audit — a fresh account
+		// rendered ~200 rows per rebuild, per keystroke)
+		int limit = Math.min(quests.size(), 50);
+		for (Quest quest : quests.subList(0, limit))
 		{
 			list.add(row(quest));
+		}
+		if (quests.size() > limit)
+		{
+			list.add(faintLine("+ " + (quests.size() - limit)
+				+ " more — refine your search"));
 		}
 		revalidate();
 		repaint();

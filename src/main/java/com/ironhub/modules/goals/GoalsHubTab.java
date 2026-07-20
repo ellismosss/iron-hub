@@ -87,6 +87,9 @@ class GoalsHubTab extends JPanel
 
 	private final JPanel content = new JPanel();
 	private final Runnable rebuildGate = RebuildGate.install(this, this::rebuild);
+	/** Async item sprites via the cache (2026-07-20 audit: sized(getImage)
+	 *  re-scaled per rebuild and snapshotted still-loading sprites). */
+	private com.ironhub.ui.components.SpriteCache sprites;
 	private final Runnable planListener;
 
 	/** One expanded Route at a time; the completed-archive depth-2 view. */
@@ -144,12 +147,6 @@ class GoalsHubTab extends JPanel
 	{
 		state.removeListener(rebuildGate);
 		module.removePlanListener(planListener);
-	}
-
-	void onPlanUpdated(Plan plan)
-	{
-		latestPlan = plan;
-		SwingUtilities.invokeLater(this::rebuild);
 	}
 
 	/** Test seams. */
@@ -850,7 +847,7 @@ class GoalsHubTab extends JPanel
 		row.setBorder(new EmptyBorder(1, UiTokens.ROW_GAP + 6, 1, UiTokens.ROW_GAP));
 		if (itemId > 0 && itemManager != null)
 		{
-			row.add(new JLabel(sized(itemManager.getImage(itemId))));
+			row.add(new JLabel(itemIcon(itemId, BADGE_H)));
 			row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		}
 		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.smallFont())
@@ -1098,11 +1095,13 @@ class GoalsHubTab extends JPanel
 			String quest = goalId.substring("quest::".length());
 			String id = "custom:quest:" + quest.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-");
 			state.addGoalSeed(com.ironhub.state.GoalSeeds.custom(id, quest, "quest:" + quest));
+			goalId = id; // the seed the estimate attaches to
 		}
 		else
 		{
 			state.selectGoal(goalId, true); // gear/pack goals: just select
 		}
+		module.captureEstimate(goalId); // archive "est" figure, off the EDT
 		searchResults.clear();
 		if (searchField != null)
 		{
@@ -1414,15 +1413,28 @@ class GoalsHubTab extends JPanel
 		if (step.action.kind == com.ironhub.engine.Action.Kind.OBTAIN && itemManager != null
 			&& step.action.itemId > 0)
 		{
-			return sized(itemManager.getImage(step.action.itemId), height);
+			return itemIcon(step.action.itemId, height);
 		}
 		return null;
 	}
 
 	/** The green »» double-chevron sprite (marks the current/active thing),
-	 *  themed; dimmed to a "ghost" affordance for the un-pinned state. */
+	 *  themed; dimmed to a "ghost" affordance for the un-pinned state.
+	 *  Composited once per state — this ran a fresh BufferedImage +
+	 *  Graphics2D per route row per rebuild (2026-07-20 audit). */
+	private Icon chevronBright;
+	private Icon chevronDim;
+
 	private Icon doubleChevron(boolean bright)
 	{
+		if (bright && chevronBright != null)
+		{
+			return chevronBright;
+		}
+		if (!bright && chevronDim != null)
+		{
+			return chevronDim;
+		}
 		java.awt.image.BufferedImage img = OsrsIcons.image(theme, "green_right_double");
 		if (img == null)
 		{
@@ -1430,7 +1442,8 @@ class GoalsHubTab extends JPanel
 		}
 		if (bright)
 		{
-			return new ImageIcon(img);
+			chevronBright = new ImageIcon(img);
+			return chevronBright;
 		}
 		java.awt.image.BufferedImage dim = new java.awt.image.BufferedImage(
 			img.getWidth(), img.getHeight(), java.awt.image.BufferedImage.TYPE_INT_ARGB);
@@ -1438,7 +1451,8 @@ class GoalsHubTab extends JPanel
 		g.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.30f));
 		g.drawImage(img, 0, 0, null);
 		g.dispose();
-		return new ImageIcon(dim);
+		chevronDim = new ImageIcon(dim);
+		return chevronDim;
 	}
 
 	private static final java.awt.image.BufferedImage CA_IMG = bundledImage("/data/icons/combat_achievements.png");
@@ -1465,6 +1479,18 @@ class GoalsHubTab extends JPanel
 	private static Icon sized(java.awt.Image img)
 	{
 		return sized(img, BADGE_H);
+	}
+
+	/** Async item sprite at the given height, or null until it arrives
+	 *  (the cache's gated rebuild picks it up). */
+	private Icon itemIcon(int itemId, int height)
+	{
+		if (sprites == null)
+		{
+			sprites = new com.ironhub.ui.components.SpriteCache(itemManager, rebuildGate);
+		}
+		java.awt.Image img = sprites.get(itemId, -1, height);
+		return img == null ? null : new ImageIcon(img);
 	}
 
 	private static Icon sized(java.awt.Image img, int height)
@@ -1504,12 +1530,12 @@ class GoalsHubTab extends JPanel
 			int scroll = clueTierItem(goal.getName());
 			if (scroll > 0)
 			{
-				return sized(itemManager.getImage(scroll));
+				return itemIcon(scroll, BADGE_H);
 			}
 		}
 		if (itemManager != null && goal.icon() != null)
 		{
-			return sized(itemManager.getImage(goal.icon()));
+			return itemIcon(goal.icon(), BADGE_H);
 		}
 		return null;
 	}

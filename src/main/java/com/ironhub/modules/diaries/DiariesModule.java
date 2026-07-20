@@ -163,10 +163,24 @@ public class DiariesModule implements IronHubModule
 		return pack;
 	}
 
-	/** Region metadata (tier claim varbits) by pack region name. */
+	/** Region metadata (tier claim varbits) by pack region name. Indexed
+	 *  once — the stream scan ran ~1,500 times per tab rebuild
+	 *  (2026-07-20 audit). */
+	private static final java.util.Map<String, DiaryRegion> REGION_BY_NAME = buildRegionIndex();
+
+	private static java.util.Map<String, DiaryRegion> buildRegionIndex()
+	{
+		java.util.Map<String, DiaryRegion> map = new java.util.HashMap<>();
+		for (DiaryRegion region : REGIONS)
+		{
+			map.put(region.name, region);
+		}
+		return map;
+	}
+
 	static DiaryRegion regionMeta(String name)
 	{
-		return Arrays.stream(REGIONS).filter(r -> r.name.equals(name)).findFirst().orElse(null);
+		return REGION_BY_NAME.get(name);
 	}
 
 	/**
@@ -293,9 +307,13 @@ public class DiariesModule implements IronHubModule
 			{
 				for (DiariesPack.Task task : region.tiers.get(i).tasks)
 				{
-					String key = "diarytask_" + slug(task);
-					if (goalSlugs.contains(slug(task)) && !state.isUnlocked(key)
-						&& taskComplete(region, i, task))
+					String slug = slug(task);
+					if (!goalSlugs.contains(slug))
+					{
+						continue; // filter before allocating keys for all 492
+					}
+					String key = "diarytask_" + slug;
+					if (!state.isUnlocked(key) && taskComplete(region, i, task))
 					{
 						newlyDone.add(key);
 					}

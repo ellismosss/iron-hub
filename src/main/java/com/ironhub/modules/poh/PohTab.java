@@ -24,7 +24,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
-import net.runelite.client.util.AsyncBufferedImage;
 import net.runelite.client.util.LinkBrowser;
 
 /**
@@ -43,6 +42,7 @@ class PohTab extends JPanel
 	private final OsrsTheme theme;
 	private final ItemManager itemManager; // null headless — icons skipped
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
+	private final com.ironhub.ui.components.SpriteCache sprites;
 
 	private final JPanel content = new JPanel();
 	private String expanded;
@@ -58,6 +58,7 @@ class PohTab extends JPanel
 		this.module = module;
 		this.theme = theme;
 		this.itemManager = itemManager;
+		this.sprites = new com.ironhub.ui.components.SpriteCache(itemManager, listener);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
@@ -177,13 +178,13 @@ class PohTab extends JPanel
 		StoneTile tile = new StoneTile(theme, bevel, dim,
 			"<html><div style='width:200px'>" + space.name + " — " + status + "</div></html>");
 		Integer icon = space.icon;
-		if (itemManager != null && icon != null)
+		if (icon != null)
 		{
-			AsyncBufferedImage sprite = itemManager.getImage(icon);
-			Runnable apply = () -> tile.setIconImage(
-				sprite.getScaledInstance(-1, StoneTile.ICON, java.awt.Image.SCALE_SMOOTH));
-			apply.run();
-			sprite.onLoaded(apply);
+			java.awt.Image sprite = sprites.get(icon, -1, StoneTile.ICON);
+			if (sprite != null)
+			{
+				tile.setIconImage(sprite);
+			}
 		}
 		tile.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
 		tile.addMouseListener(new java.awt.event.MouseAdapter()

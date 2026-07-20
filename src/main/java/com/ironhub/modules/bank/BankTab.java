@@ -117,6 +117,7 @@ class BankTab extends JPanel
 	private List<Integer> fullResultIds = List.of();
 	private final OsrsTheme theme;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
+	private final com.ironhub.ui.components.SpriteCache spriteCache;
 
 	private final StoneTextField search;
 	private final javax.swing.JComboBox<String> statFilter;
@@ -182,6 +183,7 @@ class BankTab extends JPanel
 		this.skillIcons = skillIcons;
 		this.selection = selection;
 		this.onBankDisplay = onBankDisplay;
+		this.spriteCache = new com.ironhub.ui.components.SpriteCache(itemManager, listener);
 		this.bankedXpPack = bankedXpPack;
 		this.xpActionsPack = xpActionsPack;
 		this.theme = theme;
@@ -698,13 +700,10 @@ class BankTab extends JPanel
 		icon.setPreferredSize(iconSize);
 		icon.setMinimumSize(iconSize);
 		icon.setMaximumSize(iconSize);
-		if (itemManager != null)
+		java.awt.Image sprite = spriteCache.get(itemId, -1, 16);
+		if (sprite != null)
 		{
-			AsyncBufferedImage sprite = itemManager.getImage(itemId);
-			Runnable apply = () -> icon.setIcon(new ImageIcon(
-				sprite.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH)));
-			apply.run();
-			sprite.onLoaded(apply);
+			icon.setIcon(new ImageIcon(sprite));
 		}
 		return icon;
 	}
@@ -1817,10 +1816,11 @@ class BankTab extends JPanel
 			// the raw 36x32 sprite, unscaled
 			JLabel icon = new JLabel();
 			icon.setAlignmentX(LEFT_ALIGNMENT);
+			// AsyncBufferedImage pixels fill in place — repaint suffices, and
+			// the old onLoaded(setIcon) ran Swing mutation on the client thread
 			AsyncBufferedImage sprite = itemManager.getImage(itemId);
-			Runnable apply = () -> icon.setIcon(new ImageIcon(sprite));
-			apply.run();
-			sprite.onLoaded(apply);
+			icon.setIcon(new ImageIcon(sprite));
+			sprite.onLoaded(icon::repaint);
 			col.add(icon);
 		}
 		col.add(new OsrsLabel(state.itemName(itemId), OsrsSkin.LABEL, OsrsSkin.smallFont())

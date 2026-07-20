@@ -30,7 +30,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import net.runelite.client.ui.ColorScheme;
-import net.runelite.client.util.AsyncBufferedImage;
 import net.runelite.client.util.QuantityFormatter;
 
 /**
@@ -55,6 +54,10 @@ class SlayerTab extends JPanel
 	private final SlayerOptimizerModule module;
 	private final OsrsTheme theme;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
+	/** One sprite request per id for the tab's life (2026-07-20 audit —
+	 *  per-rebuild getImage+onLoaded stacked client-thread listeners,
+	 *  SpriteCache's own documented failure mode). */
+	private final com.ironhub.ui.components.SpriteCache sprites;
 
 	private final StoneChipRow views;
 	private final JPanel content = new JPanel();
@@ -70,6 +73,7 @@ class SlayerTab extends JPanel
 		this.state = state;
 		this.module = module;
 		this.theme = theme;
+		this.sprites = new com.ironhub.ui.components.SpriteCache(module.itemManager(), listener);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
@@ -726,13 +730,10 @@ class SlayerTab extends JPanel
 		holder.setPreferredSize(d);
 		holder.setMinimumSize(d);
 		holder.setMaximumSize(d);
-		if (module.itemManager() != null)
+		java.awt.Image sprite = sprites.get(itemId, -1, size);
+		if (sprite != null)
 		{
-			AsyncBufferedImage sprite = module.itemManager().getImage(itemId);
-			Runnable apply = () -> holder.setIcon(new ImageIcon(
-				sprite.getScaledInstance(-1, size, java.awt.Image.SCALE_SMOOTH)));
-			apply.run();
-			sprite.onLoaded(apply);
+			holder.setIcon(new ImageIcon(sprite));
 		}
 		return holder;
 	}

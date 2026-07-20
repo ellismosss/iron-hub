@@ -59,8 +59,19 @@ class RunwayTab extends JPanel
 		state.removeListener(listener);
 	}
 
+	/** The stock-target field being edited; rebuilds defer until focus
+	 *  leaves it — a per-kill notification used to replace the field under
+	 *  the cursor and wipe the number mid-typing (2026-07-20 audit). */
+	private javax.swing.JComponent editingField;
+	private boolean rebuildDeferred;
+
 	private void rebuild()
 	{
+		if (editingField != null && editingField.hasFocus())
+		{
+			rebuildDeferred = true;
+			return;
+		}
 		list.removeAll();
 		Map<Integer, Runway> runways = SuppliesRunwayModule.compute(state);
 		// no title of its own: the host's stone header plate names the module
@@ -131,6 +142,28 @@ class RunwayTab extends JPanel
 		com.ironhub.ui.osrs.StoneTextField qty = new com.ironhub.ui.osrs.StoneTextField(theme, null);
 		qty.setText(String.valueOf(isGoal ? trackedQty(goalId, suggested) : suggested));
 		qty.setToolTipText("Stock target");
+		qty.addFocusListener(new java.awt.event.FocusAdapter()
+		{
+			@Override
+			public void focusGained(java.awt.event.FocusEvent e)
+			{
+				editingField = qty;
+			}
+
+			@Override
+			public void focusLost(java.awt.event.FocusEvent e)
+			{
+				if (editingField == qty)
+				{
+					editingField = null;
+				}
+				if (rebuildDeferred)
+				{
+					rebuildDeferred = false;
+					rebuild();
+				}
+			}
+		});
 		JPanel qtyCap = new JPanel(new java.awt.BorderLayout());
 		qtyCap.setOpaque(false);
 		qtyCap.add(qty);

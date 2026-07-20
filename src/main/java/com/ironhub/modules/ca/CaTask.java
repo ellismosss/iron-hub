@@ -17,6 +17,11 @@ class CaTask
 	boolean completed;
 	Double communityPct; // null = unknown
 
+	/** Lowercased search haystack, built once — matches() lowercased three
+	 *  fields per task per keystroke, ~2,500 throwaway strings per filter
+	 *  pass (2026-07-20 audit). */
+	private final String haystack;
+
 	CaTask(int id, String name, String description, CaTier tier, String type, String boss,
 		boolean completed)
 	{
@@ -27,6 +32,7 @@ class CaTask
 		this.type = type;
 		this.boss = boss;
 		this.completed = completed;
+		this.haystack = (name + "\n" + description + "\n" + boss).toLowerCase();
 	}
 
 	String wikiUrl()
@@ -36,13 +42,7 @@ class CaTask
 
 	boolean matches(String search)
 	{
-		if (search == null || search.isEmpty())
-		{
-			return true;
-		}
-		String term = search.toLowerCase();
-		return name.toLowerCase().contains(term)
-			|| description.toLowerCase().contains(term)
-			|| boss.toLowerCase().contains(term);
+		return search == null || search.isEmpty()
+			|| haystack.contains(search.toLowerCase());
 	}
 }

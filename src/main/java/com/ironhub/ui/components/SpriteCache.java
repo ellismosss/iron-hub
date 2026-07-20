@@ -46,17 +46,33 @@ public class SpriteCache
 	}
 
 	/**
-	 * The sprite scaled to {@code size}, or null if it isn't ready — in which
-	 * case it is requested once and {@code onArrived} fires when it lands.
-	 * Call from the EDT.
+	 * The sprite scaled to {@code size}x{@code size}, or null if it isn't
+	 * ready — in which case it is requested once and {@code onArrived} fires
+	 * when it lands. Call from the EDT.
 	 */
 	public Image get(int itemId, int size)
+	{
+		return get(itemId, size, size);
+	}
+
+	/** Scaled to FIT a box x box square preserving aspect (the money-making
+	 *  icon rule: never height-only, wide sprites shrink to the box). */
+	public Image getBox(int itemId, int box)
+	{
+		return get(itemId, BOX_FIT, box);
+	}
+
+	private static final int BOX_FIT = 0xFFFE; // width sentinel for getBox
+
+	/** As above with explicit dimensions; width -1 preserves the sprite's
+	 *  36x32 aspect (the row-icon convention across the module tabs). */
+	public Image get(int itemId, int width, int height)
 	{
 		if (itemManager == null || itemId <= 0)
 		{
 			return null;
 		}
-		long key = (long) itemId << 32 | size;
+		long key = (long) itemId << 32 | (width & 0xFFFFL) << 16 | (height & 0xFFFFL);
 		Image ready = scaled.get(key);
 		if (ready != null || !pending.add(key))
 		{
@@ -71,7 +87,20 @@ public class SpriteCache
 		image.onLoaded(() ->
 		{
 			// runs on the client thread — scale once, here, and never again
-			Image result = image.getScaledInstance(size, size, Image.SCALE_SMOOTH);
+			Image result;
+			if (width == BOX_FIT)
+			{
+				int w = Math.max(1, image.getWidth());
+				int h = Math.max(1, image.getHeight());
+				double s = height / (double) Math.max(w, h);
+				result = image.getScaledInstance(
+					Math.max(1, (int) Math.round(w * s)), Math.max(1, (int) Math.round(h * s)),
+					Image.SCALE_SMOOTH);
+			}
+			else
+			{
+				result = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+			}
 			SwingUtilities.invokeLater(() ->
 			{
 				scaled.put(key, result);

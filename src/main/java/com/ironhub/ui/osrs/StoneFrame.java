@@ -53,7 +53,29 @@ public class StoneFrame extends AbstractBorder
 		g.fillRect(x + 1, y + CORNER, 1, h - 2 * CORNER);
 		g.fillRect(x + w - 2, y + CORNER, 1, h - 2 * CORNER);
 
-		Color outside = outside(c);
+		// pre-rendered corner stamps, the StoneBorder recipe (2026-07-20
+		// audit — this was still a ~256-fillRect pixel loop per paint).
+		// ARGB: 'F' pixels stay transparent so the panel's own fill shows.
+		java.awt.image.BufferedImage[] stamps =
+			stampCache.computeIfAbsent(outside(c), this::renderStamps);
+		g.drawImage(stamps[0], x, y, null);
+		g.drawImage(stamps[1], x + w - CORNER, y, null);
+		g.drawImage(stamps[2], x, y + h - CORNER, null);
+		g.drawImage(stamps[3], x + w - CORNER, y + h - CORNER, null);
+	}
+
+	private final java.util.Map<Color, java.awt.image.BufferedImage[]> stampCache =
+		new java.util.HashMap<>();
+
+	/** TL, TR, BL, BR corner images for one outside colour. */
+	private java.awt.image.BufferedImage[] renderStamps(Color outside)
+	{
+		java.awt.image.BufferedImage[] out = new java.awt.image.BufferedImage[4];
+		for (int i = 0; i < 4; i++)
+		{
+			out[i] = new java.awt.image.BufferedImage(CORNER, CORNER,
+				java.awt.image.BufferedImage.TYPE_INT_ARGB);
+		}
 		for (int row = 0; row < CORNER; row++)
 		{
 			for (int col = 0; col < CORNER; col++)
@@ -61,16 +83,17 @@ public class StoneFrame extends AbstractBorder
 				char token = STAMP[row].charAt(col);
 				if (token == 'F')
 				{
-					continue; // the panel's own fill already covers it
+					continue; // transparent — the panel's own fill covers it
 				}
-				Color color = token == 'D' ? theme.edgeDark
-					: token == 'L' ? theme.edgeLight : outside;
-				stamp(g, color, x + col, y + row);
-				stamp(g, color, x + w - 1 - col, y + row);
-				stamp(g, color, x + col, y + h - 1 - row);
-				stamp(g, color, x + w - 1 - col, y + h - 1 - row);
+				int rgb = (token == 'D' ? theme.edgeDark
+					: token == 'L' ? theme.edgeLight : outside).getRGB();
+				out[0].setRGB(col, row, rgb);
+				out[1].setRGB(CORNER - 1 - col, row, rgb);
+				out[2].setRGB(col, CORNER - 1 - row, rgb);
+				out[3].setRGB(CORNER - 1 - col, CORNER - 1 - row, rgb);
 			}
 		}
+		return out;
 	}
 
 	/** The chamfer cuts through to whatever hosts the frame. */
@@ -78,12 +101,6 @@ public class StoneFrame extends AbstractBorder
 	{
 		Component parent = c.getParent();
 		return parent != null && parent.isOpaque() ? parent.getBackground() : UiTokens.PANEL_BG;
-	}
-
-	private void stamp(Graphics g, Color color, int px, int py)
-	{
-		g.setColor(color);
-		g.fillRect(px, py, 1, 1);
 	}
 
 	@Override

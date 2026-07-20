@@ -48,7 +48,7 @@ class DailiesTab extends JPanel
 	{
 		this.module = module;
 		this.state = module.state();
-		this.sprites = new SpriteCache(module.itemManager(), this::rebuild);
+		this.sprites = new SpriteCache(module.itemManager(), listener);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setBackground(UiTokens.PANEL_BG);
 		setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD, UiTokens.PAD));

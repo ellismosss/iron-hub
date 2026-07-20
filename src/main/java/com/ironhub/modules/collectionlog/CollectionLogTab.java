@@ -69,6 +69,7 @@ class CollectionLogTab extends JPanel
 	private final ItemManager itemManager; // null in headless tests
 	private final OsrsTheme theme;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::onStateChanged);
+	private final com.ironhub.ui.components.SpriteCache sprites;
 
 	// stats card — OsrsLabel text is immutable, so refreshStats refills it
 	private final StonePanel card;
@@ -93,6 +94,7 @@ class CollectionLogTab extends JPanel
 		this.state = state;
 		this.itemManager = itemManager;
 		this.theme = theme;
+		this.sprites = new com.ironhub.ui.components.SpriteCache(itemManager, listener);
 
 		// Activities that count as "Slayer" for the Show filter: anything
 		// with a Slayer-level requirement, minus boat bounty-task entries
@@ -175,6 +177,7 @@ class CollectionLogTab extends JPanel
 	 *  model actually changed (xp drops fire this constantly). */
 	private void onStateChanged()
 	{
+		rankingCache = null; // state moved — one fresh rank serves the pass
 		refreshStats();
 		List<Object> fingerprint = fingerprint();
 		if (!fingerprint.equals(lastFingerprint))
@@ -274,10 +277,20 @@ class CollectionLogTab extends JPanel
 
 	// ── ranking ───────────────────────────────────────────────────────
 
+	/** Cached until the next state change — one notification used to rank
+	 *  the full 256-activity catalog four times (fingerprint + content),
+	 *  and every search keystroke three more (2026-07-20 audit). Search
+	 *  and filter changes reuse the cache; rank inputs live in state. */
+	private List<ClogRanker.Ranked> rankingCache;
+
 	private List<ClogRanker.Ranked> ranking()
 	{
-		return ClogRanker.rank(module.pack(), state.getClogObtained(),
-			state.getClogSkipped(), state);
+		if (rankingCache == null)
+		{
+			rankingCache = ClogRanker.rank(module.pack(), state.getClogObtained(),
+				state.getClogSkipped(), state);
+		}
+		return rankingCache;
 	}
 
 	private List<ClogRanker.Ranked> filtered(List<ClogRanker.Ranked> ranked)
@@ -692,15 +705,11 @@ class CollectionLogTab extends JPanel
 
 	private void itemIcon(int itemId, Consumer<javax.swing.Icon> setter)
 	{
-		if (itemManager == null)
+		java.awt.Image sprite = sprites.get(itemId, -1, 16);
+		if (sprite != null)
 		{
-			return;
+			setter.accept(new javax.swing.ImageIcon(sprite));
 		}
-		net.runelite.client.util.AsyncBufferedImage image = itemManager.getImage(itemId);
-		Runnable apply = () -> setter.accept(new javax.swing.ImageIcon(
-			image.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH)));
-		apply.run();
-		image.onLoaded(apply);
 	}
 
 	private JComponent emptyLabel(String text)

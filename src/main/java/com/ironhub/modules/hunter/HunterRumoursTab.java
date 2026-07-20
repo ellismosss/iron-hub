@@ -25,7 +25,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import net.runelite.client.game.ItemManager;
-import net.runelite.client.util.AsyncBufferedImage;
 
 /**
  * Hunters' Rumours tab in the OSRS stonework skin: chip views Rumour ·
@@ -44,6 +43,7 @@ class HunterRumoursTab extends JPanel
 	private final OsrsTheme theme;
 	private final ItemManager itemManager;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
+	private final com.ironhub.ui.components.SpriteCache sprites;
 
 	private final StoneChipRow views;
 	private final JPanel content = new JPanel();
@@ -55,6 +55,7 @@ class HunterRumoursTab extends JPanel
 		this.module = module;
 		this.theme = theme;
 		this.itemManager = itemManager;
+		this.sprites = new com.ironhub.ui.components.SpriteCache(itemManager, listener);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
@@ -365,13 +366,10 @@ class HunterRumoursTab extends JPanel
 		holder.setPreferredSize(d);
 		holder.setMinimumSize(d);
 		holder.setMaximumSize(d);
-		if (itemManager != null)
+		java.awt.Image sprite = sprites.get(itemId, -1, size);
+		if (sprite != null)
 		{
-			AsyncBufferedImage sprite = itemManager.getImage(itemId);
-			Runnable apply = () -> holder.setIcon(new ImageIcon(
-				sprite.getScaledInstance(-1, size, java.awt.Image.SCALE_SMOOTH)));
-			apply.run();
-			sprite.onLoaded(apply);
+			holder.setIcon(new ImageIcon(sprite));
 		}
 		return holder;
 	}

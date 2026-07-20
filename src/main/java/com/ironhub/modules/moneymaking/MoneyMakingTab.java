@@ -60,6 +60,7 @@ class MoneyMakingTab extends JPanel
 
 	private final JPanel content = new JPanel();
 	private final Runnable listener = RebuildGate.install(this, this::rebuild);
+	private final com.ironhub.ui.components.SpriteCache sprites;
 
 	private String selectedCategory;         // null = All
 	private boolean availableOnly = true;    // default: only what you can do (7)
@@ -77,6 +78,7 @@ class MoneyMakingTab extends JPanel
 		this.itemManager = itemManager;
 		this.skillIcons = skillIcons;
 		this.theme = theme;
+		this.sprites = new com.ironhub.ui.components.SpriteCache(itemManager, listener);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
@@ -119,6 +121,7 @@ class MoneyMakingTab extends JPanel
 
 	private void rebuild()
 	{
+		canDoCache.clear(); // fresh state per pass; see canDo
 		content.removeAll();
 
 		content.add(pad(new OsrsLabel(pack.methods.size() + " methods · profit as of "
@@ -296,14 +299,25 @@ class MoneyMakingTab extends JPanel
 		{
 			return state.isMoneyFavourite(m.id);
 		}
-		return !availableOnly || MoneyMakingModule.available(state, m);
+		return !availableOnly || canDo(m);
+	}
+
+	/** Availability per rebuild pass — the filter, each row and the detail
+	 *  card all ask, and one evaluation walks the method's requirement
+	 *  graph; 526 methods per keystroke added up (2026-07-20 audit). */
+	private final java.util.Map<String, Boolean> canDoCache = new java.util.HashMap<>();
+
+	private boolean canDo(Method m)
+	{
+		return canDoCache.computeIfAbsent(m.id,
+			id -> MoneyMakingModule.available(state, m));
 	}
 
 	// ── rows ─────────────────────────────────────────────────────────────
 
 	private JComponent methodRow(Method m)
 	{
-		boolean can = MoneyMakingModule.available(state, m);
+		boolean can = canDo(m);
 		boolean fav = state.isMoneyFavourite(m.id);
 		boolean expanded = m.id.equals(expandedId);
 		StonePanel card = new StonePanel(theme);
@@ -443,7 +457,7 @@ class MoneyMakingTab extends JPanel
 		block.add(goalRow);
 
 		// "unlock this method" as a goal — routes the requirements (11)
-		if (!MoneyMakingModule.available(state, m) && !m.reqs.isEmpty())
+		if (!canDo(m) && !m.reqs.isEmpty())
 		{
 			boolean tracking = state.getGoalSeeds().containsKey("custom:money-unlock:" + m.id);
 			JPanel unlockRow = row();
@@ -516,7 +530,8 @@ class MoneyMakingTab extends JPanel
 		r.setBorder(new javax.swing.border.EmptyBorder(1, 0, 1, 0));
 		if (itemManager != null && in.itemId > 0)
 		{
-			r.add(new JLabel(sized(itemManager.getImage(in.itemId))));
+			java.awt.Image inSprite = sprites.getBox(in.itemId, 16);
+			r.add(new JLabel(inSprite == null ? null : new ImageIcon(inSprite)));
 			r.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		}
 		// a plain quantity reads as "3× Anglerfish"; a drop-rate expression

@@ -394,12 +394,9 @@ public class HunterRumoursModule implements IronHubModule
 		record.start = System.currentTimeMillis();
 		records.add(record);
 		lastHunterXp = client == null ? -1 : client.getSkillExperience(Skill.HUNTER);
-		pushRecords();
-		rumourChanged();
-		if (tab != null)
-		{
-			SwingUtilities.invokeLater(tab::rebuild);
-		}
+		pushRecords(); // setRumourRecords notifies — the tab's RebuildGate
+		rumourChanged(); // covers the rebuild (2026-07-20 audit: the extra
+		// bare invokeLater force-rebuilt hidden tabs per catch)
 	}
 
 	/** Rebuild the in-game surfaces that follow the current rumour. */
@@ -433,11 +430,7 @@ public class HunterRumoursModule implements IronHubModule
 		if (rumour != null && active != null && !active.pieceFound && rumour.matchesCatchXp(gained))
 		{
 			active.caught++;
-			pushRecords();
-			if (tab != null)
-			{
-				SwingUtilities.invokeLater(tab::rebuild);
-			}
+			pushRecords(); // notifies through the gate — see assignRumour
 		}
 	}
 
