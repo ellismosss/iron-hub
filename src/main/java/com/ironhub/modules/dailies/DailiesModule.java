@@ -426,11 +426,27 @@ public class DailiesModule implements IronHubModule
 	}
 
 	/** Claimable now and selected for the run. UNKNOWN (Tears of Guthix before
-	 *  we have seen a visit) does not count — we never guess it either way. */
+	 *  we have seen a visit) does not count — we never guess it either way.
+	 *  Time-quantized live (the infobox polls it up to twice per rendered
+	 *  frame, and each evaluation walks all ten dailies incl. bank scans —
+	 *  2026-07-20 audit); headless stays fresh for tests. */
 	int outstanding()
 	{
-		return outstanding(state, pack);
+		if (client == null)
+		{
+			return outstanding(state, pack);
+		}
+		long now = System.currentTimeMillis();
+		if (outstandingCache < 0 || now - outstandingCacheAtMs >= 600)
+		{
+			outstandingCache = outstanding(state, pack);
+			outstandingCacheAtMs = now;
+		}
+		return outstandingCache;
 	}
+
+	private volatile int outstandingCache = -1;
+	private volatile long outstandingCacheAtMs;
 
 	/** How many you get from this event at your current diary tier. */
 	int quantity(DailiesPack.Daily daily)

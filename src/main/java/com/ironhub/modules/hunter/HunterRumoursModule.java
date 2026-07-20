@@ -291,7 +291,10 @@ public class HunterRumoursModule implements IronHubModule
 	@Subscribe
 	public void onChatMessage(ChatMessage event)
 	{
-		if (pack == null)
+		// gate on type BEFORE any string work — this handler fires for every
+		// chat line and only reads game messages and dialog (2026-07-20 audit)
+		if (pack == null || (event.getType() != ChatMessageType.GAMEMESSAGE
+			&& event.getType() != ChatMessageType.DIALOG))
 		{
 			return;
 		}
@@ -559,6 +562,7 @@ public class HunterRumoursModule implements IronHubModule
 		{
 			fairyRingPanelOpen = true;
 			fairyRingScrolled = false;
+			fairyRingHighlighted = null;
 		}
 	}
 
@@ -568,18 +572,34 @@ public class HunterRumoursModule implements IronHubModule
 		if (event.getGroupId() == net.runelite.api.gameval.InterfaceID.FAIRYRINGS)
 		{
 			fairyRingPanelOpen = false;
+			fairyRingHighlighted = null; // never hold widgets past the panel
 		}
 	}
 
 	/** The game re-renders the travel log continuously, so the highlight
 	 *  re-asserts each client tick while the panel is open (reference
 	 *  plugin behaviour); the scroll fires once per panel lifetime. */
+	/** The last widget we highlighted: while the game hasn't re-rendered the
+	 *  log, its text still carries the prefix and the full scan (widget copy
+	 *  + string sweep, 50x/sec while the panel is open) can be skipped
+	 *  (2026-07-20 audit). */
+	private Widget fairyRingHighlighted;
+
 	@Subscribe
 	public void onPostClientTick(net.runelite.api.events.PostClientTick event)
 	{
 		if (!fairyRingPanelOpen || client == null || !config.hunterNavAids())
 		{
 			return;
+		}
+		if (fairyRingHighlighted != null)
+		{
+			String text = fairyRingHighlighted.getText();
+			if (text != null && text.startsWith("(Rumour) "))
+			{
+				return; // still applied — nothing to re-assert this tick
+			}
+			fairyRingHighlighted = null;
 		}
 		String code = fairyRingCode();
 		if (code == null || code.length() != 3)
@@ -613,6 +633,7 @@ public class HunterRumoursModule implements IronHubModule
 			}
 			widget.setTextColor(0x00FF00);
 			widget.setText("(Rumour) " + text);
+			fairyRingHighlighted = widget;
 			if (!fairyRingScrolled)
 			{
 				fairyRingScrolled = true;

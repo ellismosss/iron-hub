@@ -37,6 +37,32 @@ class SlayerSuiteOverlay extends OverlayPanel
 		setPosition(OverlayPosition.TOP_LEFT);
 	}
 
+	/** Derived state resolved at most once per game tick — the carried-item
+	 *  variation scans, skip-list lookup and Turael-area check ran per
+	 *  rendered frame for the whole task duration (2026-07-20 audit; the
+	 *  BankRestockOverlay memoize-per-tick rule). Varbit-backed reads
+	 *  (remaining, task name) are cheap map lookups and stay live. */
+	private int snapshotTick = -1;
+	private List<String> missing = List.of();
+	private boolean onSkipList;
+	private boolean inTuraelArea;
+	private String preferredLocation;
+
+	private void snapshot(SlayerTasksPack.Task entry)
+	{
+		int tick = client == null ? -1 : client.getTickCount();
+		if (tick == snapshotTick && tick != -1)
+		{
+			return;
+		}
+		snapshotTick = tick;
+		missing = module.missingBring();
+		onSkipList = module.onSkipList();
+		inTuraelArea = entry != null && entry.turael != null && module.inTuraelArea();
+		preferredLocation = entry == null || entry.locations == null || entry.locations.isEmpty()
+			? null : module.preferredLocationName(entry);
+	}
+
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
@@ -86,9 +112,11 @@ class SlayerSuiteOverlay extends OverlayPanel
 				.build());
 		}
 
-		locationLines(task);
+		SlayerTasksPack pack = module.pack();
+		SlayerTasksPack.Task entry = pack == null ? null : pack.task(task);
+		snapshot(entry);
+		locationLines(entry);
 
-		List<String> missing = module.missingBring();
 		if (!missing.isEmpty())
 		{
 			// red is earned: these are required items verified not carried
@@ -98,7 +126,7 @@ class SlayerSuiteOverlay extends OverlayPanel
 				.build());
 		}
 
-		if (module.onSkipList())
+		if (onSkipList)
 		{
 			panelComponent.getChildren().add(LineComponent.builder()
 				.left("On your skip list — 30 pts").leftColor(UiTokens.CANVAS_AVAILABLE)
@@ -109,17 +137,15 @@ class SlayerSuiteOverlay extends OverlayPanel
 
 	/** Turael spot + teleports (suppressed once in the kill area), else the
 	 *  preferred/first pack location by name. */
-	private void locationLines(String task)
+	private void locationLines(SlayerTasksPack.Task entry)
 	{
-		SlayerTasksPack pack = module.pack();
-		SlayerTasksPack.Task entry = pack == null ? null : pack.task(task);
 		if (entry == null)
 		{
 			return;
 		}
 		if (entry.turael != null)
 		{
-			if (module.inTuraelArea())
+			if (inTuraelArea)
 			{
 				return; // you're there — stop navigating
 			}
@@ -148,15 +174,10 @@ class SlayerSuiteOverlay extends OverlayPanel
 			}
 			return;
 		}
-		if (entry.locations == null || entry.locations.isEmpty())
-		{
-			return;
-		}
-		String preferred = module.preferredLocationName(entry);
-		if (preferred != null)
+		if (preferredLocation != null)
 		{
 			panelComponent.getChildren().add(LineComponent.builder()
-				.left(preferred).leftColor(Color.YELLOW)
+				.left(preferredLocation).leftColor(Color.YELLOW)
 				.build());
 		}
 	}

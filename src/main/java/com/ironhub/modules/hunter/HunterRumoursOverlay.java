@@ -35,21 +35,47 @@ class HunterRumoursOverlay extends OverlayPanel
 		setPosition(OverlayPosition.TOP_LEFT);
 	}
 
+	/** Derived state resolved at most once per game tick — the outfit
+	 *  canonicalStock expansions, the 55-location preferred scan and the
+	 *  carried-trap sweep were re-run per rendered frame (2026-07-20
+	 *  audit; the BankRestockOverlay memoize-per-tick rule). */
+	private int snapshotTick = -1;
+	private HunterRumoursPack.Rumour rumour;
+	private PersistedState.RumourRecord active;
+	private int pity;
+	private boolean nearPreferred;
+	private HunterRumoursPack.Location preferred;
+	private String missingTrap;
+
+	private void snapshot()
+	{
+		int tick = client == null ? -1 : client.getTickCount();
+		if (tick == snapshotTick && tick != -1)
+		{
+			return;
+		}
+		snapshotTick = tick;
+		rumour = module.currentRumour();
+		active = module.active();
+		pity = rumour == null ? 0 : rumour.pityFor(module.outfitPieces());
+		nearPreferred = module.nearPreferredLocation();
+		preferred = rumour == null ? null : module.preferredLocation(rumour);
+		missingTrap = module.missingTrapItem();
+	}
+
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		HunterRumoursPack.Rumour rumour = module.currentRumour();
+		snapshot();
 		if (!config.hunterOverlay() || rumour == null)
 		{
 			return null;
 		}
-		PersistedState.RumourRecord active = module.active();
 		panelComponent.getChildren().clear();
 		panelComponent.setBackgroundColor(UiTokens.OVERLAY_BG);
 		panelComponent.setPreferredSize(new Dimension(WIDTH, 0));
 
 		int caught = active == null ? 0 : active.caught;
-		int pity = rumour.pityFor(module.outfitPieces());
 		boolean pieceFound = active != null && active.pieceFound;
 		panelComponent.getChildren().add(LineComponent.builder()
 			.left(rumour.name).leftColor(Color.WHITE)
@@ -68,9 +94,8 @@ class HunterRumoursOverlay extends OverlayPanel
 				.leftColor(UiTokens.OVERLAY_VALUE)
 				.build());
 		}
-		else if (!module.nearPreferredLocation())
+		else if (!nearPreferred)
 		{
-			HunterRumoursPack.Location preferred = module.preferredLocation(rumour);
 			if (preferred != null)
 			{
 				panelComponent.getChildren().add(LineComponent.builder()
@@ -81,7 +106,6 @@ class HunterRumoursOverlay extends OverlayPanel
 			}
 		}
 
-		String missingTrap = module.missingTrapItem();
 		if (missingTrap != null && !pieceFound)
 		{
 			// red is earned: the trap item is verified not carried

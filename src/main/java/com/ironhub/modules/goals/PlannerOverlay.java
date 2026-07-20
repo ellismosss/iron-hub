@@ -16,6 +16,7 @@ import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import net.runelite.api.Experience;
@@ -65,6 +66,9 @@ class PlannerOverlay extends OverlayPanel
 	// eased bar so movement feels smooth rather than stepped
 	private double displayFraction;
 	private String displayFractionStepId;
+	// methodLine match memo (2026-07-20 audit) — see methodLine
+	private List<Object> methodLineKey;
+	private String methodLineLabel;
 
 	PlannerOverlay(GoalPlannerModule module, AccountState state, IronHubConfig config)
 	{
@@ -204,21 +208,25 @@ class PlannerOverlay extends OverlayPanel
 	private void methodLine(Plan.Step head, Skill skill, long xpLeft, double measured)
 	{
 		long median = gauge.medianDrop();
-		String label = head.methodName;
-		MethodsPack.Method matched = matchMethod(module.methodsPack(), skill, median);
-		if (matched != null)
+		// the fingerprint match walks the methods pack + xp-actions catalog;
+		// its inputs only change on an xp drop or a level, not per rendered
+		// frame (2026-07-20 audit) — memoize the match on (skill, median,
+		// level). The cheap pace-divergence fallback stays live since
+		// `measured` decays continuously.
+		int level = state.getRealLevel(skill);
+		List<Object> key = List.of(String.valueOf(skill), median, level);
+		if (!key.equals(methodLineKey))
 		{
-			label = matched.name;
+			methodLineKey = key;
+			MethodsPack.Method matched = matchMethod(module.methodsPack(), skill, median);
+			methodLineLabel = matched != null ? matched.name
+				: matchAction(module.xpActions(), skill, median, level);
 		}
-		else
+		String label = methodLineLabel;
+		if (label == null)
 		{
-			String action = matchAction(module.xpActions(), skill, median,
-				state.getRealLevel(skill));
-			if (action != null)
-			{
-				label = action;
-			}
-			else if (median > 0 && !Double.isNaN(measured) && head.methodRate > 0
+			label = head.methodName;
+			if (median > 0 && !Double.isNaN(measured) && head.methodRate > 0
 				&& Math.abs(measured - head.methodRate) / head.methodRate > PACE_DIVERGENCE)
 			{
 				label = "Your method";
