@@ -29,6 +29,12 @@ public class ProjectedState implements StateView
 	private final Map<String, Integer> kcDelta = new HashMap<>();
 	private int questPointsAdded;
 
+	@Override
+	public double measuredRate(net.runelite.api.Skill skill)
+	{
+		return base.measuredRate(skill); // pace is the player's, not the projection's
+	}
+
 	public ProjectedState(StateView base)
 	{
 		this.base = base;

@@ -223,6 +223,16 @@ public class GoalPlannerTest
 		module.startUp();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
+		// wait out the debounced replan and drain its queued EDT rebuild —
+		// rendering mid-replan races removeAll() (the documented
+		// mutate-then-render lesson; exposed here by suite-load timing)
+		for (int i = 0; i < 50 && module.currentPlan() == null; i++)
+		{
+			Thread.sleep(100);
+		}
+		javax.swing.SwingUtilities.invokeAndWait(() ->
+		{
+		});
 		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
 		assertTrue(image.getHeight() > 200);
 		java.io.File out = new java.io.File("build/reports/goals-tab.png");

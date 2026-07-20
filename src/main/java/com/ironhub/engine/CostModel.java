@@ -58,6 +58,14 @@ public final class CostModel
 		{
 			return 0;
 		}
+		// the player's own measured pace beats any curated rate — it IS the
+		// truth about how they train this skill (2026-07-20 intelligence
+		// arc; EWMA-recent, so it follows them up the bands)
+		double personal = view.measuredRate(skill);
+		if (personal > 0)
+		{
+			return (targetXp - startXp) / personal;
+		}
 		MethodsPack.SkillLadder ladder = methods == null ? null : methods.ladder(skill);
 		if (ladder == null || ladder.methods == null || ladder.methods.isEmpty())
 		{

@@ -32,6 +32,16 @@ public interface StateView
 	/** Quest points from the last quest refresh. */
 	int getQuestPoints();
 
+	/**
+	 * The player's MEASURED xp/hr for a skill (persisted EWMA over real
+	 * play sessions), or 0 when unobserved / below the honesty threshold —
+	 * callers fall back to pack rates (2026-07-20 intelligence arc).
+	 */
+	default double measuredRate(Skill skill)
+	{
+		return 0;
+	}
+
 	int getKillCount(String source);
 
 	/** Last seen value of a watched varbit (0 until first refresh). */

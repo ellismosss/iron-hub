@@ -412,7 +412,11 @@ class GoalsHubTab extends JPanel
 		stats.add(new OsrsLabel(left, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned().squeezable());
 		stats.add(Box.createHorizontalGlue());
 		OsrsLabel pace = new OsrsLabel(timeText(step), OsrsSkin.FAINT, OsrsSkin.smallFont());
-		pace.setToolTipText("At your measured pace"
+		boolean personal = step.action.kind == com.ironhub.engine.Action.Kind.TRAIN
+			&& state.measuredRate(step.action.trainSkill) > 0;
+		pace.setToolTipText((personal
+			? "At your measured pace (" + compactXp(Math.round(state.measuredRate(step.action.trainSkill))) + "/hr observed)"
+			: "At book pace — your own rate measures in as you train")
 			+ (Double.isNaN(step.spreadHours) ? "" : " · up to ~" + compactHours(step.spreadHours) + " if unlucky"));
 		stats.add(pace);
 		card.add(Box.createVerticalStrut(2));

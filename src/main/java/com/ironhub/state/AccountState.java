@@ -190,6 +190,8 @@ public class AccountState implements StateView
 	private volatile int[] equipmentSlots = new int[0]; // EquipmentInventorySlot index order
 	private volatile boolean inventoryDirty;
 	private volatile boolean bankDirty;
+	private final Map<String, Double> measuredRates = new ConcurrentHashMap<>();
+	private final Map<String, Double> measuredRateHours = new ConcurrentHashMap<>();
 	/** Rune pouch contents (rune item id -> quantity), rebuilt from the pouch
 	 *  varbits on the client thread; empty until seen / when unavailable. */
 	private volatile Map<Integer, Integer> runePouch = Map.of();
@@ -2055,11 +2057,103 @@ public class AccountState implements StateView
 	void ingestStat(Skill skill, int level, int experience)
 	{
 		Integer previousLevel = realLevels.put(skill, level);
-		xp.put(skill, experience);
+		Integer previousXp = xp.put(skill, experience);
+		trackRateSession(skill, previousXp, experience);
 		if (previousLevel == null || previousLevel != level)
 		{
 			notifyListeners(); // levels gate requirements; xp drops alone don't
 		}
+	}
+
+	// ── measured xp rates (2026-07-20 intelligence arc) ───────────────
+	// The plugin used to measure pace live (XpGauge) and then plan from
+	// book rates anyway. Sessions accrue here per drop with XP-Tracker
+	// idle semantics; substantial sessions fold into a persisted per-skill
+	// EWMA that CostModel prefers over pack rates ("at your pace").
+
+	/** Gap between drops beyond which the clock stops (XP Tracker's rule). */
+	private static final long RATE_IDLE_MS = 5 * 60_000;
+	/** Single drops above this are lamps/quest rewards, not a method. */
+	private static final int RATE_MAX_DROP = 20_000;
+	/** A session folds into the EWMA once this much active time accrues. */
+	private static final long RATE_FOLD_ACTIVE_MS = 15 * 60_000;
+	/** Total observed hours before measuredRate() speaks at all. */
+	private static final double RATE_MIN_OBSERVED_HOURS = 1.0;
+	/** Sanity ceiling — nothing sustains this; guards burst artifacts. */
+	private static final double RATE_CAP = 1_500_000;
+
+	/** skill -> [lastDropMs, sessionXp, sessionActiveMs]; client thread. */
+	private final Map<Skill, long[]> rateSessions = new java.util.EnumMap<>(Skill.class);
+
+	private void trackRateSession(Skill skill, Integer previousXp, int experience)
+	{
+		if (previousXp == null || previousXp <= 0)
+		{
+			return; // login baseline, not a drop
+		}
+		int delta = experience - previousXp;
+		if (delta <= 0 || delta > RATE_MAX_DROP)
+		{
+			return;
+		}
+		long now = System.currentTimeMillis();
+		long[] session = rateSessions.computeIfAbsent(skill, k -> new long[3]);
+		if (session[0] > 0 && now - session[0] <= RATE_IDLE_MS)
+		{
+			session[2] += now - session[0];
+		}
+		session[1] += delta;
+		session[0] = now;
+	}
+
+	/** Fold substantial sessions into the persisted EWMA; runs at the
+	 *  persistNow flush points on live clients (headless never folds, so
+	 *  fixture xp seeding can't pollute rates). */
+	private void foldRateSessions()
+	{
+		for (Map.Entry<Skill, long[]> entry : rateSessions.entrySet())
+		{
+			long[] session = entry.getValue();
+			if (session[2] < RATE_FOLD_ACTIVE_MS)
+			{
+				continue;
+			}
+			foldRateSample(entry.getKey(), session[1], session[2] / 3_600_000.0);
+			session[1] = 0;
+			session[2] = 0;
+		}
+	}
+
+	/** One observed sample into the EWMA — the fold core (test seam). */
+	void foldRateSample(Skill skill, double xpGained, double activeHours)
+	{
+		if (activeHours <= 0 || xpGained <= 0)
+		{
+			return;
+		}
+		double rate = Math.min(RATE_CAP, xpGained / activeHours);
+		String key = skill.getName();
+		Double previous = measuredRates.get(key);
+		// recency-weighted so the figure follows the player up the bands
+		measuredRates.put(key, previous == null || previous <= 0
+			? rate : 0.7 * previous + 0.3 * rate);
+		measuredRateHours.merge(key, activeHours, Double::sum);
+		persist();
+	}
+
+	/** The measured EWMA xp/hr, or 0 below the observation threshold —
+	 *  CostModel falls back to pack rates (StateView contract). */
+	@Override
+	public double measuredRate(Skill skill)
+	{
+		String key = skill.getName();
+		Double hours = measuredRateHours.get(key);
+		if (hours == null || hours < RATE_MIN_OBSERVED_HOURS)
+		{
+			return 0;
+		}
+		Double rate = measuredRates.get(key);
+		return rate == null ? 0 : rate;
 	}
 
 	void ingestQuest(Quest quest, QuestState state)
@@ -2146,6 +2240,7 @@ public class AccountState implements StateView
 		}                 // state under the incoming account's id
 		profile = hash;
 		profileGeneration++;
+		rateSessions.clear(); // pace sessions are per-account
 		// quest states are per-account client data: clear them and force an
 		// immediate refresh, or the new profile gates on the old account's
 		// quests for up to 30s (2026-07-20 audit)
@@ -2264,6 +2359,10 @@ public class AccountState implements StateView
 		routeTaskOrder.clear();
 		persisted.routeTaskOrder.forEach((k, v) -> routeTaskOrder.put(k, new java.util.ArrayList<>(v)));
 		lastPlanHours = persisted.lastPlanHours;
+		measuredRates.clear();
+		measuredRates.putAll(persisted.measuredRates);
+		measuredRateHours.clear();
+		measuredRateHours.putAll(persisted.measuredRateHours);
 		plannerRouteChapters = persisted.plannerRouteChapters;
 		collectionLogSlots = persisted.collectionLogSlots;
 		collectionLogTotal = persisted.collectionLogTotal;
@@ -2326,6 +2425,10 @@ public class AccountState implements StateView
 		if (profile == -1)
 		{
 			return;
+		}
+		if (client != null)
+		{
+			foldRateSessions(); // live flush points close out substantial sessions
 		}
 		persistDirty = false;
 		PersistedState state = new PersistedState();
@@ -2398,6 +2501,8 @@ public class AccountState implements StateView
 		state.pinnedGoals = new java.util.ArrayList<>(pinnedGoals);
 		routeTaskOrder.forEach((k, v) -> state.routeTaskOrder.put(k, new java.util.ArrayList<>(v)));
 		state.lastPlanHours = lastPlanHours;
+		state.measuredRates = new HashMap<>(measuredRates);
+		state.measuredRateHours = new HashMap<>(measuredRateHours);
 		state.plannerRouteChapters = plannerRouteChapters;
 		state.collectionLogSlots = collectionLogSlots;
 		state.collectionLogTotal = collectionLogTotal;

@@ -307,6 +307,10 @@ public class PersistedState
 	java.util.List<String> pinnedGoals = new ArrayList<>();  // pinned goal ids, priority order
 	Map<String, java.util.List<String>> routeTaskOrder = new HashMap<>(); // goal id -> manual action-id order
 	double lastPlanHours;                            // known hours at last replan (session diffs)
+	/** skill name -> measured xp/hr EWMA + total observed active hours —
+	 *  the personal pace CostModel prefers over pack rates (2026-07-20). */
+	Map<String, Double> measuredRates = new HashMap<>();
+	Map<String, Double> measuredRateHours = new HashMap<>();
 	boolean plannerRouteChapters;                    // Route view: chapter headers (default flat order)
 	Map<String, CustomGoal> customGoals = new HashMap<>(); // legacy: goal id -> seed
 

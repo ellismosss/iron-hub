@@ -23,6 +23,13 @@ public final class StateFixture
 		return new AccountState(null, null, new ProfileStore(new Gson(), Runnable::run, storageDir), null);
 	}
 
+	/** Fold one observed pace sample (the live fold core's test seam). */
+	public static void measuredRate(AccountState state, net.runelite.api.Skill skill,
+		double xpGained, double activeHours)
+	{
+		state.foldRateSample(skill, xpGained, activeHours);
+	}
+
 	public static ProfileStore store(File storageDir)
 	{
 		return new ProfileStore(new Gson(), Runnable::run, storageDir);

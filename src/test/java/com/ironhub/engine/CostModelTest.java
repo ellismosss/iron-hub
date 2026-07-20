@@ -60,6 +60,29 @@ public class CostModelTest
 	}
 
 	@Test
+	public void measuredRateBeatsPackRatesAndSurvivesProjection()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		StateFixture.stat(state, Skill.FISHING, 50, Experience.getXpForLevel(50));
+		MethodsPack methods = pack("Fishing", method("slow", 0, 10_000, null));
+
+		long remaining = Experience.getXpForLevel(70) - Experience.getXpForLevel(50);
+		// below the 1h observation threshold: pack rates hold
+		StateFixture.measuredRate(state, Skill.FISHING, 20_000, 0.5);
+		assertEquals(remaining / 10_000.0,
+			CostModel.trainHours(Skill.FISHING, 70, new ProjectedState(state), methods, 0), 1e-9);
+
+		// enough observation: the measured EWMA prices the whole stretch,
+		// and the projection delegates to the base view's pace
+		StateFixture.measuredRate(state, Skill.FISHING, 40_000, 1.0);
+		double rate = state.measuredRate(Skill.FISHING);
+		assertTrue(rate > 0);
+		assertEquals(remaining / rate,
+			CostModel.trainHours(Skill.FISHING, 70, new ProjectedState(state), methods, 0), 1e-9);
+	}
+
+	@Test
 	public void bankedXpShortensTheFront()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
