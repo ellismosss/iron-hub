@@ -126,6 +126,12 @@ public class SavedSetupView
 		return new InventoryCanvas(setup, tints);
 	}
 
+	/** Diff tints paint 1px at ~2/3 alpha — visible, never shouty (Luke). */
+	private static java.awt.Color subtle(java.awt.Color tint)
+	{
+		return new java.awt.Color(tint.getRed(), tint.getGreen(), tint.getBlue(), 170);
+	}
+
 	private AsyncBufferedImage sprite(JComponent repaintTarget, int itemId, int quantity)
 	{
 		if (itemManager == null)
@@ -338,10 +344,9 @@ public class SavedSetupView
 				java.awt.Color tint = tints != null ? tints.get(entry.getKey().name()) : null;
 				if (tint != null)
 				{
-					// 2px diff border on top of the tile (1px vanishes
-					// against the slot art at this size)
-					OsrsSkin.outline(g2, tint, at.x, at.y, SLOT, SLOT);
-					OsrsSkin.outline(g2, tint, at.x + 1, at.y + 1, SLOT - 2, SLOT - 2);
+					// 1px + translucent: the loud double border overwhelmed
+					// the slot art (Luke, 2026-07-21)
+					OsrsSkin.outline(g2, subtle(tint), at.x, at.y, SLOT, SLOT);
 				}
 			}
 		}
@@ -580,9 +585,8 @@ public class SavedSetupView
 				java.awt.Color tint = tints != null && i < tints.length ? tints[i] : null;
 				if (tint != null)
 				{
-					// the game's 36x32 item cell, 2px diff border
-					OsrsSkin.outline(g2, tint, x, y, 36, 32);
-					OsrsSkin.outline(g2, tint, x + 1, y + 1, 34, 30);
+					// the game's 36x32 item cell, 1px subtle diff border (Luke)
+					OsrsSkin.outline(g2, subtle(tint), x, y, 36, 32);
 				}
 			}
 		}

@@ -161,9 +161,11 @@ public class LoadoutLabModule implements IronHubModule
 	private volatile String spellName;
 	private EquipmentInventorySlot searchSlot;
 	private int lastViewFp;
-	private boolean dpsCalcCollapsed;
-	/** The pouch + inventory viewers fold under one "Inventory" header (Luke). */
-	private boolean inventoryCollapsed;
+	/** The pouch + inventory viewers fold under one "Inventory" slab,
+	 *  collapsed by default (Luke). */
+	private boolean inventoryCollapsed = true;
+	/** The Equipment-Stats bonus groups slab, collapsed by default (Luke). */
+	private boolean equipStatsCollapsed = true;
 	private JPanel buttonsRow;
 	private boolean started;
 
@@ -827,16 +829,12 @@ public class LoadoutLabModule implements IronHubModule
 			Arrays.hashCode(state.getEquipmentSlots()),
 			Arrays.hashCode(state.getInventorySlots()),
 			state.getRunePouch(),
-			state.getVarp(VarPlayer.ATTACK_STYLE),
-			state.getVarbit(AUTOCAST_SPELL),
-			state.getVarbit(WEAPON_CATEGORY),
-			weaponTypeVerified,
-			spellName,
 			state.savedSetupNames(),
 			viewedSetup,
 			draft != null ? draft.equipment : null,
 			namesOpen,
 			inventoryCollapsed,
+			equipStatsCollapsed,
 			viewSource,
 			dpsStyle,
 			System.identityHashCode(dpsResults),
@@ -848,25 +846,30 @@ public class LoadoutLabModule implements IronHubModule
 		lastViewFp = fp;
 
 		renderNames();
-		// the DPS view shows the calc's suggestion; an explicitly viewed
-		// setup/draft still wins (that IS "doing something else")
-		boolean dps = viewSource == ViewSource.DPS && isLive()
-			&& suggestionSetup(dpsStyle) != null;
+		// dpsMode = the player is USING the calc (its section shows); the
+		// suggestion renders once results exist. An explicitly viewed
+		// setup/draft still wins (that IS "doing something else").
+		boolean dpsMode = viewSource == ViewSource.DPS && isLive();
+		boolean dps = dpsMode && suggestionSetup(dpsStyle) != null;
 		boolean live = isLive() && !dps;
 		liveButton.setVisible(!isLive());
 		PersistedState.SavedSetup shown = dps ? suggestionSetup(dpsStyle)
 			: live ? liveSetup() : viewedOrDraft();
+		if (lab.getPanel() != null)
+		{
+			// the whole calc section only shows while the DPS view is up
+			lab.getPanel().setVisible(dpsMode);
+		}
 
 		setupView.removeAll();
-		String title = dps
-			? "DPS Calc · " + (dpsMonster == null ? "" : dpsMonster.getName())
-			: live ? "Live gear & inventory"
-			: (draft != null ? "Draft (unsaved) · vs current" : viewedSetup + " · vs current");
-		com.ironhub.ui.osrs.OsrsLabel titleLabel = new com.ironhub.ui.osrs.OsrsLabel(title,
-			com.ironhub.ui.osrs.OsrsSkin.MUTED, com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
-		setupView.add(titleLabel);
-		if (!live)
+		if (!live && !dps)
 		{
+			// a viewed setup keeps its name + diff legend; the live and DPS
+			// views carry no headline at all (Luke, 2026-07-21)
+			com.ironhub.ui.osrs.OsrsLabel titleLabel = new com.ironhub.ui.osrs.OsrsLabel(
+				draft != null ? "Draft (unsaved) · vs current" : viewedSetup + " · vs current",
+				com.ironhub.ui.osrs.OsrsSkin.MUTED, com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
+			setupView.add(titleLabel);
 			com.ironhub.ui.osrs.OsrsLabel legend = new com.ironhub.ui.osrs.OsrsLabel(
 				"Orange = swap · Red = deposit",
 				com.ironhub.ui.osrs.OsrsSkin.FAINT, com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
@@ -874,29 +877,6 @@ public class LoadoutLabModule implements IronHubModule
 				+ " — withdraw or equip it. Red border: you carry this but the"
 				+ " setup has no place for it — deposit it.");
 			setupView.add(legend);
-		}
-		// the LIVE style line has no place over a suggested loadout
-		String combat = dps ? null : combatLine();
-		if (combat != null)
-		{
-			JPanel combatRow = new JPanel();
-			combatRow.setLayout(new BoxLayout(combatRow, BoxLayout.X_AXIS));
-			combatRow.setOpaque(false);
-			combatRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-			javax.swing.Icon typeIcon = combatIcon();
-			if (typeIcon != null)
-			{
-				// icons ride in their own holder beside the OsrsLabel (skin rule)
-				combatRow.add(new JLabel(typeIcon));
-				combatRow.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-			}
-			com.ironhub.ui.osrs.OsrsLabel combatLabel = new com.ironhub.ui.osrs.OsrsLabel(combat,
-				com.ironhub.ui.osrs.OsrsSkin.LABEL, com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
-			combatLabel.setToolTipText(combatTooltip());
-			combatRow.add(combatLabel);
-			combatRow.add(Box.createHorizontalGlue());
-			combatRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, combatRow.getPreferredSize().height));
-			setupView.add(combatRow);
 		}
 		setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 
@@ -954,12 +934,13 @@ public class LoadoutLabModule implements IronHubModule
 		}
 
 		// the source switch sits directly ABOVE the gear viewer (Luke): which
-		// gear the viewer shows — your current equipment or the calc's pick
-		if (dpsResults != null && isLive())
+		// gear the viewer shows — your current equipment or the calc's pick.
+		// Always offered — "DPS Calc" is also how the calc section opens.
+		if (isLive())
 		{
 			com.ironhub.ui.osrs.StoneChipRow sourceChips =
 				new com.ironhub.ui.osrs.StoneChipRow(theme, true, "Current gear", "DPS Calc");
-			sourceChips.setSelected(dps ? 1 : 0);
+			sourceChips.setSelected(dpsMode ? 1 : 0);
 			sourceChips.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 			sourceChips.onChange(i ->
 			{
@@ -970,17 +951,17 @@ public class LoadoutLabModule implements IronHubModule
 			setupView.add(sourceChips);
 			setupView.add(Box.createVerticalStrut(2));
 		}
-		if (dps)
-		{
-			setupView.add(styleButtonsRow());
-			setupView.add(Box.createVerticalStrut(2));
-		}
 
 		setupView.add(centered(view.equipment(display, equipTints, dps ? null : this::openSlotSearch)));
 
-		// the setup controls live directly under the worn-equipment view
-		// (Luke, 2026-07-21), then the shared stat tile, then the setups list
+		// style buttons BELOW the viewer, above the setup controls (Luke),
+		// then the stat tile, the collapsed Equipment-stats slab, the list
 		setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+		if (dpsMode && dpsResults != null)
+		{
+			setupView.add(styleButtonsRow());
+			setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+		}
 		setupView.add(buttonsRow);
 		if (lab.getPanel() != null)
 		{
@@ -990,20 +971,41 @@ public class LoadoutLabModule implements IronHubModule
 			{
 				setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 				setupView.add(lab.getPanel().statsTile(tileStats));
+				javax.swing.JComponent bonuses = lab.getPanel().bonusesTile(tileStats);
+				if (bonuses != null)
+				{
+					// the Equipment-Stats groups on their own expandable
+					// slab, folded by default (Luke)
+					setupView.add(Box.createVerticalStrut(2));
+					setupView.add(sectionToggle("Equipment stats", equipStatsCollapsed, () ->
+					{
+						equipStatsCollapsed = !equipStatsCollapsed;
+						lastViewFp = 0;
+						renderView();
+					}));
+					if (!equipStatsCollapsed)
+					{
+						setupView.add(Box.createVerticalStrut(2));
+						setupView.add(bonuses);
+					}
+				}
 			}
 		}
 		setupView.add(Box.createVerticalStrut(2));
 		setupView.add(liveButton);
 		setupView.add(namesPanel);
 
-		// rune pouch + inventory fold under ONE "Inventory" section (Luke)
+		// rune pouch + inventory fold under ONE "Inventory" slab (Luke:
+		// stone-backed, collapsed by default)
 		boolean hasPouch = display.pouchRunes.length > 0
 			&& Arrays.stream(display.pouchRunes).anyMatch(r -> r > 0);
 		boolean hasInventory = display.inventory.length > 0;
 		if (hasPouch || hasInventory)
 		{
-			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-			setupView.add(sectionToggle("Inventory", inventoryCollapsed, () ->
+			com.ironhub.ui.osrs.StonePanel inventorySlab = new com.ironhub.ui.osrs.StonePanel(theme);
+			inventorySlab.setLayout(new BoxLayout(inventorySlab, BoxLayout.Y_AXIS));
+			inventorySlab.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+			inventorySlab.add(sectionToggle("Inventory", inventoryCollapsed, () ->
 			{
 				inventoryCollapsed = !inventoryCollapsed;
 				lastViewFp = 0;
@@ -1013,17 +1015,21 @@ public class LoadoutLabModule implements IronHubModule
 			{
 				if (hasPouch)
 				{
-					setupView.add(Box.createVerticalStrut(2));
-					setupView.add(smallLabel("Rune pouch"));
-					setupView.add(Box.createVerticalStrut(2));
-					setupView.add(centered(view.runePouch(display)));
+					inventorySlab.add(Box.createVerticalStrut(2));
+					inventorySlab.add(smallLabel("Rune pouch"));
+					inventorySlab.add(Box.createVerticalStrut(2));
+					inventorySlab.add(centered(view.runePouch(display)));
 				}
 				if (hasInventory)
 				{
-					setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-					setupView.add(centered(view.inventory(display, invTints)));
+					inventorySlab.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+					inventorySlab.add(centered(view.inventory(display, invTints)));
 				}
 			}
+			inventorySlab.setMaximumSize(new Dimension(Integer.MAX_VALUE,
+				inventorySlab.getPreferredSize().height));
+			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			setupView.add(inventorySlab);
 		}
 
 		setupView.revalidate();
@@ -1583,56 +1589,11 @@ public class LoadoutLabModule implements IronHubModule
 		}
 		if (lab.getPanel() != null)
 		{
-			// collapsible DPS Calc section wrapping the whole lab panel — the
-			// header wears the MODULE-PLATE grammar (notched stone, bold TITLE
-			// text centred, triangle left) so it reads like the hub's other
-			// section headers (Luke, 2026-07-21)
-			JPanel section = new JPanel(new BorderLayout());
-			section.setOpaque(false);
-			com.ironhub.ui.osrs.StonePanel plate = new com.ironhub.ui.osrs.StonePanel(theme);
-			plate.setLayout(new BoxLayout(plate, BoxLayout.X_AXIS));
-			plate.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			plate.setToolTipText("Show or hide the DPS calculator");
-			JLabel triangleLabel = new JLabel(new com.ironhub.ui.components.PaintedIcon(triangle(), 10));
-			triangleLabel.setForeground(com.ironhub.ui.osrs.OsrsSkin.MUTED);
-			plate.add(triangleLabel);
-			plate.add(Box.createHorizontalGlue());
-			com.ironhub.ui.osrs.OsrsLabel title = new com.ironhub.ui.osrs.OsrsLabel("DPS Calc",
-				com.ironhub.ui.osrs.OsrsSkin.TITLE, com.ironhub.ui.osrs.OsrsSkin.boldFont());
-			title.setToolTipText("Show or hide the DPS calculator");
-			plate.add(title);
-			plate.add(Box.createHorizontalGlue());
-			// mirror the triangle's width so the title stays optically centred
-			plate.add(Box.createHorizontalStrut(10));
-			java.awt.event.MouseAdapter toggle = new java.awt.event.MouseAdapter()
-			{
-				@Override
-				public void mousePressed(java.awt.event.MouseEvent e)
-				{
-					dpsCalcCollapsed = !dpsCalcCollapsed;
-					lab.getPanel().setVisible(!dpsCalcCollapsed);
-					triangleLabel.setIcon(new com.ironhub.ui.components.PaintedIcon(triangle(), 10));
-					// closing the calc reverts the shared viewer to live gear;
-					// reopening returns to the suggestion when one exists (Luke)
-					viewSource = dpsCalcCollapsed ? ViewSource.LIVE
-						: dpsResults != null ? ViewSource.DPS : viewSource;
-					lastViewFp = 0;
-					renderView();
-					holder.revalidate();
-				}
-			};
-			// the title's tooltip swallows row clicks — children carry it too
-			plate.addMouseListener(toggle);
-			title.addMouseListener(toggle);
-			triangleLabel.addMouseListener(toggle);
-			JPanel header = new JPanel(new BorderLayout());
-			header.setOpaque(false);
-			header.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 4, 3, 4));
-			header.add(plate, BorderLayout.CENTER);
-			section.add(header, BorderLayout.NORTH);
-			section.add(lab.getPanel(), BorderLayout.CENTER);
-			lab.getPanel().setVisible(!dpsCalcCollapsed);
-			holder.add(section, BorderLayout.CENTER);
+			// no section header any more (Luke, 2026-07-21): the calc panel
+			// simply shows while the DPS view is up ("DPS Calc" chip) and
+			// hides otherwise — renderView keeps the visibility in step
+			holder.add(lab.getPanel(), BorderLayout.CENTER);
+			lab.getPanel().setVisible(viewSource == ViewSource.DPS && isLive());
 			wireHooks();
 			onStateChanged(); // panel just arrived: apply auto-follow now
 		}
@@ -1651,13 +1612,6 @@ public class LoadoutLabModule implements IronHubModule
 		holder.repaint();
 	}
 
-	/** The DPS Calc header triangle for the current collapse state. */
-	private com.ironhub.ui.components.PaintedIcon.Shape triangle()
-	{
-		return dpsCalcCollapsed
-			? com.ironhub.ui.components.PaintedIcon.Shape.TRIANGLE_RIGHT
-			: com.ironhub.ui.components.PaintedIcon.Shape.TRIANGLE_DOWN;
-	}
 
 	/** Idempotent: attach all wrapper hooks once the panel exists. The
 	 *  panel's Load button now toggles the all-setups list at the top
@@ -1746,6 +1700,11 @@ public class LoadoutLabModule implements IronHubModule
 			{
 				button.labelColor(com.ironhub.ui.osrs.OsrsSkin.FAINT);
 			}
+			else
+			{
+				// weaker styles read light, never orange (Luke)
+				button.labelColor(com.ironhub.ui.osrs.OsrsSkin.LABEL);
+			}
 			button.setToolTipText(dps == null ? "No usable owned set for " + style
 				: "Show the best owned " + style.toString().toLowerCase(Locale.ROOT) + " set");
 			row.add(button);
@@ -1784,6 +1743,9 @@ public class LoadoutLabModule implements IronHubModule
 		com.loadoutlab.engine.Loadout loadout = new com.loadoutlab.engine.Loadout(gear);
 		com.loadoutlab.ui.LoadoutLabPanel.TileStats stats = new com.loadoutlab.ui.LoadoutLabPanel.TileStats();
 		stats.loadout = loadout;
+		// the real style names from the weapon-styles pack live in the tile's
+		// Style row now (the floating line above the viewer is gone — Luke)
+		stats.styleText = combatLine();
 		int npcId = state.getCombatNpcId();
 		if (npcId > 0)
 		{
