@@ -18,7 +18,8 @@ public class PanelGalleryTest
 	@org.junit.Rule
 	public org.junit.rules.TemporaryFolder temp = new org.junit.rules.TemporaryFolder();
 
-	/** The reworked OSRS-skin home (2026-07-16): name, summary, 6 nav blocks. */
+	/** The OSRS-skin home: the player's name over the 6 nav stones (the
+	 *  summary tiles were cut 2026-07-21 on Luke's word). */
 	@Test
 	public void homeRendersInBothThemes() throws Exception
 	{
@@ -27,10 +28,10 @@ public class PanelGalleryTest
 		com.ironhub.state.StateFixture.playerName(state, "Iron Luke");
 		for (com.ironhub.ui.osrs.OsrsTheme theme : com.ironhub.ui.osrs.OsrsTheme.values())
 		{
-			HomePanel home = new HomePanel(state, null, theme, name -> {});
+			HomePanel home = new HomePanel(state, theme, name -> {});
 			BufferedImage image = SwingRender.render(home);
 			assertEquals(UiTokens.PANEL_WIDTH, image.getWidth());
-			assertTrue(image.getHeight() > 150);
+			assertTrue(image.getHeight() > 60);
 			write(image, "home-" + theme.name().toLowerCase() + ".png");
 			home.dispose();
 		}

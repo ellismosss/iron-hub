@@ -110,11 +110,7 @@ public class IronHubPanel extends PluginPanel
 		{
 			home.dispose();
 		}
-		IronHubModule goalModule = modulesByName.get("Goals");
-		home = new HomePanel(state,
-			goalModule instanceof com.ironhub.modules.goals.GoalPlannerModule
-				? (com.ironhub.modules.goals.GoalPlannerModule) goalModule : null,
-			config.osrsTheme(), this::openBlock);
+		home = new HomePanel(state, config.osrsTheme(), this::openBlock);
 		homeCard.removeAll();
 		HubScrollPane pane = new HubScrollPane(home, false);
 		// the home scrolls on the THEME backing, not the classic grey — the
