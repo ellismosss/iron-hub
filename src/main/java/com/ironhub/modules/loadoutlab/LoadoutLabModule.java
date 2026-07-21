@@ -138,6 +138,8 @@ public class LoadoutLabModule implements IronHubModule
 	}
 
 	private ViewSource viewSource = ViewSource.LIVE;
+	/** The optimizer is running: the gear viewer wears a "Thinking..." scrim. */
+	private boolean computing;
 	private java.util.Map<com.loadoutlab.engine.CombatStyle,
 		com.loadoutlab.optimizer.OptimizerService.StyleResult> dpsResults;
 	private com.loadoutlab.data.MonsterStats dpsMonster;
@@ -310,7 +312,7 @@ public class LoadoutLabModule implements IronHubModule
 			theme, theme.boxFill, "Save setup", this::saveNamedSetup);
 		save.setToolTipText("Save what the view shows under a name");
 		com.ironhub.ui.osrs.StoneButton viewAll = new com.ironhub.ui.osrs.StoneButton(
-			theme, theme.boxFill, "View all setups", this::toggleAllSetups);
+			theme, theme.boxFill, "View setups", this::toggleAllSetups);
 		viewAll.setToolTipText("List every saved setup; click one to compare it"
 			+ " against what you are wearing and carrying");
 		buttonsRow.add(save);
@@ -681,6 +683,7 @@ public class LoadoutLabModule implements IronHubModule
 			viewedSetup,
 			draft != null ? draft.equipment : null,
 			namesOpen,
+			computing,
 			inventoryCollapsed,
 			equipStatsCollapsed,
 			viewSource,
@@ -804,11 +807,39 @@ public class LoadoutLabModule implements IronHubModule
 			setupView.add(Box.createVerticalStrut(2));
 		}
 
-		setupView.add(centered(view.equipment(display, equipTints, dps ? null : this::openSlotSearch)));
+		JComponent equipmentView = centered(view.equipment(display, equipTints, dps ? null : this::openSlotSearch));
+		JPanel thinkingWrap = new JPanel(new java.awt.BorderLayout())
+		{
+			@Override
+			public void paint(java.awt.Graphics g)
+			{
+				super.paint(g);
+				if (computing)
+				{
+					// translucent scrim + "Thinking..." while the optimizer
+					// runs (Luke: no more "Optimizing vs ..." popup)
+					g.setColor(new Color(0, 0, 0, 150));
+					g.fillRect(0, 0, getWidth(), getHeight());
+					com.ironhub.ui.osrs.OsrsSkin.crisp((javax.swing.JComponent) this);
+					g.setFont(com.ironhub.ui.osrs.OsrsSkin.boldFont());
+					g.setColor(com.ironhub.ui.osrs.OsrsSkin.TITLE);
+					java.awt.FontMetrics fm = g.getFontMetrics();
+					String text = "Thinking...";
+					g.drawString(text, (getWidth() - fm.stringWidth(text)) / 2,
+						getHeight() / 2 + fm.getAscent() / 2 - 2);
+				}
+			}
+		};
+		thinkingWrap.setOpaque(false);
+		thinkingWrap.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		thinkingWrap.add(equipmentView, java.awt.BorderLayout.CENTER);
+		thinkingWrap.setMaximumSize(new Dimension(Integer.MAX_VALUE,
+			thinkingWrap.getPreferredSize().height));
+		setupView.add(thinkingWrap);
 
 		// setup controls under the viewer; the style buttons moved into the
 		// calc's Options section (Luke, round 4)
-		setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+		setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		setupView.add(buttonsRow);
 		if (lab.getPanel() != null)
 		{
@@ -841,7 +872,7 @@ public class LoadoutLabModule implements IronHubModule
 			// rides below the search in BOTH views (Luke, round 4)
 			javax.swing.JComponent monster = lab.getPanel().monsterArea();
 			monster.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-			setupView.add(Box.createVerticalStrut(2));
+			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 			setupView.add(monster);
 			if (tileStats != null)
 			{
@@ -873,7 +904,6 @@ public class LoadoutLabModule implements IronHubModule
 		}
 		setupView.add(Box.createVerticalStrut(2));
 		setupView.add(liveButton);
-		setupView.add(namesPanel);
 
 		// inventory fold: plain header + bare views (no slab — Luke),
 		// inventory grid first, the rune pouch beneath it. Persistent across
@@ -903,12 +933,32 @@ public class LoadoutLabModule implements IronHubModule
 				if (hasPouch)
 				{
 					setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-					setupView.add(smallLabel("Rune pouch"));
-					setupView.add(Box.createVerticalStrut(2));
-					setupView.add(centered(view.runePouch(carried)));
+					JPanel pouchRow = new JPanel();
+					pouchRow.setLayout(new BoxLayout(pouchRow, BoxLayout.X_AXIS));
+					pouchRow.setOpaque(false);
+					pouchRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+					pouchRow.add(Box.createHorizontalGlue());
+					if (itemManager != null)
+					{
+						// the pouch's own sprite names the row (Luke, round 6)
+						JLabel pouchIcon = new JLabel();
+						net.runelite.client.util.AsyncBufferedImage sprite =
+							itemManager.getImage(net.runelite.api.ItemID.RUNE_POUCH);
+						sprite.addTo(pouchIcon);
+						pouchRow.add(pouchIcon);
+						pouchRow.add(Box.createHorizontalStrut(4));
+					}
+					pouchRow.add(view.runePouch(carried));
+					pouchRow.add(Box.createHorizontalGlue());
+					pouchRow.setMaximumSize(new Dimension(Integer.MAX_VALUE,
+						pouchRow.getPreferredSize().height));
+					setupView.add(pouchRow);
 				}
 			}
 		}
+
+		// the setups list opens BELOW the Inventory section (Luke, round 6)
+		setupView.add(namesPanel);
 
 		setupView.revalidate();
 		setupView.repaint();
@@ -960,11 +1010,10 @@ public class LoadoutLabModule implements IronHubModule
 		{
 			return option.button; // bulwark's no-attack Block
 		}
-		if (option.button.equals(option.style) || option.button.equals(option.type))
-		{
-			return option.type + ": " + (option.style == null ? option.button : option.style);
-		}
-		return option.type + ": " + option.style + " (" + option.button + ")";
+		// "Slash (Aggressive)" — type first, style in parens, the button's
+		// own name dropped (Luke, round 6)
+		return option.style == null ? option.type
+			: option.type + " (" + option.style + ")";
 	}
 
 	/** The pack option for the current weapon type + style index — live
@@ -1151,7 +1200,7 @@ public class LoadoutLabModule implements IronHubModule
 			public Dimension getPreferredSize()
 			{
 				Dimension d = super.getPreferredSize();
-				return new Dimension(d.width, Math.min(d.height, 132)); // ~6 rows
+				return new Dimension(d.width, Math.min(d.height, 264)); // ~12 rows (Luke)
 			}
 		};
 		scroll.setBorder(null);
@@ -1509,6 +1558,7 @@ public class LoadoutLabModule implements IronHubModule
 					java.util.Map<com.loadoutlab.engine.CombatStyle,
 						com.loadoutlab.optimizer.OptimizerService.StyleResult> results)
 				{
+					computing = false;
 					dpsResults = results;
 					dpsMonster = monster;
 					if (suggestionSetup(dpsStyle) == null)
@@ -1525,8 +1575,17 @@ public class LoadoutLabModule implements IronHubModule
 				@Override
 				public void onCleared()
 				{
+					computing = false;
 					dpsResults = null;
 					dpsMonster = null;
+					lastViewFp = 0;
+					renderView();
+				}
+
+				@Override
+				public void onComputing()
+				{
+					computing = true;
 					lastViewFp = 0;
 					renderView();
 				}

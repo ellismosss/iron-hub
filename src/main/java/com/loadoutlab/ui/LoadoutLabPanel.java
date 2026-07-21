@@ -319,7 +319,6 @@ public class LoadoutLabPanel extends PluginPanel
 	private Runnable loadSetupHook;
 	private java.util.function.Function<com.loadoutlab.data.GearSlot, Integer> wornLookup;
 	private DpsCalcExport dpsCalcHook;
-	private Map<com.loadoutlab.data.GearSlot, Integer> lastShownLoadout;
 
 	/** Iron Hub: open the wiki DPS calc mirroring the shown setup. */
 	public interface DpsCalcExport
@@ -349,6 +348,8 @@ public class LoadoutLabPanel extends PluginPanel
 	/** Which style's set is currently glowing in the bank (null = none). */
 	/** Outline + filter the bank to the selected style's best set. */
 	private final ToggleRow showInBank = new ToggleRow("Show in bank");
+	/** The monster-option toggles ride one stone slab (Luke, round 6). */
+	private final StonePanel togglesSlab = new StonePanel(ironHubTheme());
 	/** D-4: which frontier point to recommend per style — three segment
 	 *  buttons, not a dropdown (Luke, 2026-07-21). Built in the ctor
 	 *  (needs the resolved theme). */
@@ -508,7 +509,6 @@ public class LoadoutLabPanel extends PluginPanel
 		selectedLabel.setFont(OsrsSkin.boldFont());
 		selectedLabel.setBorder(new EmptyBorder(2, 0, 2, 0));
 		selectedRow.add(selectedLabel, BorderLayout.CENTER);
-		// lastShownLoadout resets each recompute via the results rebuild
 		JPanel selectedButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
 		selectedButtons.setOpaque(false);
 		selectedButtons.add(glyphButton(new ReloadIcon(11), null,
@@ -576,24 +576,30 @@ public class LoadoutLabPanel extends PluginPanel
 
 		initToggle(slayerTask, "On task: slayer helmet bonuses apply");
 		slayerTask.setSelected(true); // Iron Hub: assume on-task by default
-		monsterHolder.add(slayerTask);
+		togglesSlab.setLayout(new BoxLayout(togglesSlab, BoxLayout.Y_AXIS));
+		togglesSlab.setAlignmentX(LEFT_ALIGNMENT);
+		togglesSlab.setBorder(BorderFactory.createCompoundBorder(togglesSlab.getBorder(),
+			new EmptyBorder(2, 4, 2, 4)));
+		togglesSlab.setVisible(false);
+		monsterHolder.add(togglesSlab);
+		togglesSlab.add(slayerTask);
 
 		// Wilderness only: everything below is OPT-IN behind this switch —
 		// fighting the same monster outside the wilderness is the norm
 		initToggle(wildyInfo, "Fighting this monster IN the wilderness: show"
 			+ " death risk, kept items and risk caps");
 		wildyInfo.setVisible(false);
-		monsterHolder.add(wildyInfo);
+		togglesSlab.add(wildyInfo);
 
 		// Wilderness only: cap the set to the items death mechanics keep.
 		initToggle(lowRisk, "Keep your 3 most valuable items (4 with Protect Item);"
 			+ " everything else must total under the risk cap");
 		lowRisk.setVisible(false);
-		monsterHolder.add(lowRisk);
+		togglesSlab.add(lowRisk);
 
 		initToggle(protectItem, "Protect Item keeps a 4th item (not while skulled)");
 		protectItem.setVisible(false);
-		monsterHolder.add(protectItem);
+		togglesSlab.add(protectItem);
 
 		// How much gp the set may drop on a wilderness death; 0 = nothing
 		// droppable and no fees at all.
@@ -604,7 +610,7 @@ public class LoadoutLabPanel extends PluginPanel
 		riskBudget.setSelectedIndex(2);
 		riskBudget.addActionListener(e -> recompute());
 		riskBudget.setVisible(false);
-		monsterHolder.add(riskBudget);
+		togglesSlab.add(riskBudget);
 
 
 		// Lock the magic card's auto-spell to one spellbook.
@@ -1138,6 +1144,11 @@ public class LoadoutLabPanel extends PluginPanel
 		void onResults(MonsterStats monster, Map<CombatStyle, StyleResult> results);
 
 		void onCleared();
+
+		/** The optimizer just started — the wrapper shows its thinking scrim. */
+		default void onComputing()
+		{
+		}
 	}
 
 	private final JPanel searchHolder = new JPanel();
@@ -1336,10 +1347,10 @@ public class LoadoutLabPanel extends PluginPanel
 		// everything else leaves it to the player.
 		if (SlayerLockedMonsters.isTaskOnly(monster))
 		{
+			// slayer-only: always on-task — nothing to choose, so no row (Luke)
 			slayerTask.setSelected(true);
 			slayerTask.setEnabled(false);
-			slayerTask.setVisible(true);
-			slayerTask.setToolTipText("Task-only boss - always on");
+			slayerTask.setVisible(false);
 		}
 		else if (!monster.isSlayerMonster())
 		{
@@ -1353,6 +1364,7 @@ public class LoadoutLabPanel extends PluginPanel
 			slayerTask.setVisible(true);
 			slayerTask.setToolTipText("On task: slayer helmet bonuses apply");
 		}
+		refreshTogglesSlab();
 		usageLog.record(monster.label());
 		selectedLabel.setText(monster.label());
 		selectedRow.setVisible(true);
@@ -2373,6 +2385,15 @@ public class LoadoutLabPanel extends PluginPanel
 		lowRisk.setVisible(on);
 		protectItem.setVisible(on);
 		riskBudget.setVisible(on);
+		refreshTogglesSlab();
+	}
+
+	/** The toggles ride a stone slab (Luke) — hidden whole when nothing in
+	 *  it applies, so an empty slab never paints its border. */
+	private void refreshTogglesSlab()
+	{
+		togglesSlab.setVisible(selectedMonster != null
+			&& (slayerTask.isVisible() || wildyInfo.isVisible()));
 	}
 
 	/** Whether wilderness-specific info (risk, kept items) should show. */
@@ -2385,27 +2406,22 @@ public class LoadoutLabPanel extends PluginPanel
 	private void recompute()
 	{
 		updateWildernessControls();
-		lastShownLoadout = null; // recapture from the fresh results
 		if (selectedMonster == null)
 		{
 			return;
 		}
 		// Clear stale results immediately - showing the previous monster's
 		// sets while the optimizer runs reads as an answer for this one.
+		// The busy cue is the wrapper's "Thinking..." scrim over the gear
+		// viewer now (Luke, round 6), not a popup here.
 		resultsPanel.removeAll();
-		if (MascotSpinner.available())
-		{
-			resultsPanel.add(new MascotSpinner());
-		}
-		// html so long monster names wrap instead of clipping at the edge
-		JLabel computing = new JLabel("<html>Optimizing vs " + selectedMonster.getName() + "...</html>");
-		computing.setForeground(MUTED);
-		computing.setAlignmentX(LEFT_ALIGNMENT);
-		computing.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
-		resultsPanel.add(computing);
 		resultsPanel.revalidate();
 		resultsPanel.repaint();
 		statusLabel.setText(" ");
+		if (resultsListener != null)
+		{
+			resultsListener.onComputing();
+		}
 		computeHook.compute(selectedMonster, f2pOnly.isSelected(), slayerTask.isSelected(),
 			spellbookLock(), riskCap(), selectedRiskBudget(),
 			superAntifireAssumed && DragonfireRules.breathesFire(selectedMonster),
@@ -2431,6 +2447,11 @@ public class LoadoutLabPanel extends PluginPanel
 	private void clearSelection()
 	{
 		selectedMonster = null;
+		// no monster = nothing the toggles could apply to (Luke, round 6)
+		slayerTask.setVisible(false);
+		wildyInfo.setVisible(false);
+		updateWildernessControls();
+		refreshTogglesSlab();
 		if (resultsListener != null)
 		{
 			resultsListener.onCleared(); // the shared viewer reverts to live
@@ -3231,10 +3252,24 @@ public class LoadoutLabPanel extends PluginPanel
 	{
 		StoneButton open = new StoneButton(theme, "Open DPS calc", () ->
 		{
-			if (dpsCalcHook != null && selectedMonster != null && lastShownLoadout != null)
+			// the loadout derives from the CURRENT results at click time —
+			// the old lastShownLoadout capture died with the icon grid,
+			// which left this button dead (Luke's report, round 6)
+			StyleResult detail = lastResults == null ? null : lastResults.get(detailStyle);
+			if (dpsCalcHook != null && selectedMonster != null && detail != null
+				&& detail.owned != null && !detail.owned.isEmpty())
 			{
+				Map<GearSlot, Integer> loadout = new java.util.EnumMap<>(GearSlot.class);
+				for (Map.Entry<GearSlot, GearItem> slot
+					: detail.owned.get(0).getLoadout().getGear().entrySet())
+				{
+					if (slot.getValue() != null)
+					{
+						loadout.put(slot.getKey(), slot.getValue().getId());
+					}
+				}
 				dpsCalcHook.open(selectedMonster.getId(), selectedMonster.getName(),
-					lastShownLoadout, slayerTask.isSelected());
+					loadout, slayerTask.isSelected());
 			}
 		});
 		open.setToolTipText("Open the wiki DPS calculator with this monster and setup mirrored");
@@ -3371,265 +3406,8 @@ public class LoadoutLabPanel extends PluginPanel
 		img.onLoaded(() -> SwingUtilities.invokeLater(set));
 		set.run();
 	}
+	// iconGrid DELETED (round 6): the shared SavedSetupView is the viewer.
 
-	/**
-	 * The set as a fixed 3x4 equipment grid - 11 explicit slots (empty =
-	 * empty box) plus the spec weapon as the 12th cell, amber-bordered.
-	 * Fixed rows x cols means the preferred height is always right (the
-	 * old wrapping grid clipped its second row).
-	 */
-	private JPanel iconGrid(DpsResult result, SpecialAttack spec, GearItem specWeapon, double specExpected,
-		double specDrainValue, double replacedAutoExpected, String specFallbackTooltip)
-	{
-		return iconGrid(result, spec, specWeapon, specExpected, specDrainValue,
-			replacedAutoExpected, specFallbackTooltip, false, null);
-	}
-
-	private JPanel iconGrid(DpsResult result, SpecialAttack spec, GearItem specWeapon, double specExpected,
-		double specDrainValue, double replacedAutoExpected, String specFallbackTooltip, boolean markUnowned,
-		Loadout gameBest)
-	{
-		// Iron Hub: OSRS worn-equipment arrangement (Inventory Setups style)
-		JPanel icons = new JPanel(new GridLayout(5, 3, 1, 1));
-		icons.setOpaque(false);
-		icons.setAlignmentX(LEFT_ALIGNMENT);
-		// Inventory Setups slot geometry: fixed 46x42 boxes
-		int cell = 46;
-		final int cellH = 42;
-		// Wilderness: badge every cell with its death fate (opt-in switch).
-		PvpRisk.Assessment fates = null;
-		if (markUnowned && wildernessOn())
-		{
-			fates = PvpRisk.assess(result.getLoadout(), specWeapon,
-				protectItem.isSelected() ? 4 : 3);
-		}
-		if (lastShownLoadout == null)
-		{
-			Map<com.loadoutlab.data.GearSlot, Integer> shown = new java.util.EnumMap<>(com.loadoutlab.data.GearSlot.class);
-			for (GearSlot slotType : GRID_ORDER)
-			{
-				GearItem shownItem = result.getLoadout().get(slotType);
-				if (shownItem != null)
-				{
-					shown.put(slotType, shownItem.getId());
-				}
-			}
-			lastShownLoadout = shown;
-		}
-		java.util.Map<GearSlot, RiskDotLabel> bySlot = new java.util.EnumMap<>(GearSlot.class);
-		for (GearSlot slotType : GRID_ORDER)
-		{
-			GearItem item = result.getLoadout().get(slotType);
-			RiskDotLabel slot = new RiskDotLabel();
-			slot.setPreferredSize(new Dimension(cell, cellH));
-			slot.setOpaque(true);
-			slot.setBackground(theme.recess);
-			slot.setHorizontalAlignment(SwingConstants.CENTER);
-			List<JMenuItem> extras = slotType == GearSlot.SHIELD
-				? dragonfireMenuEntries() : Collections.emptyList();
-			if (item != null)
-			{
-				// Border language: green = you don't own it (dream/budget
-				// upgrade); gold = your item IS the game's best available
-				// for this slot; blue = the spec cell (matches the in-game
-				// special attack bar).
-				boolean unowned = markUnowned && !ownedCheck.owns(item.getId());
-				GearItem bisItem = gameBest == null ? null : gameBest.get(slotType);
-				// Analogs count: a stat-identical item (any god's d'hide
-				// coif) is just as best-available as the exact pick.
-				boolean bis = !unowned && bisItem != null
-					&& (bisItem.getId() == item.getId() || statEquivalent(bisItem, item));
-				Color border = unowned ? BORDER_UNOWNED
-					: bis ? BORDER_BIS : theme.edgeLight;
-				slot.setBorder(new MatteBorder(1, 1, 1, 1, border));
-				// Quest rewards are earned, not bought: name the quest
-				// instead of quoting a gp price.
-				String quest = QuestRewardItems.questFor(item);
-				String obtain = quest != null ? "quest: " + quest
-					: PvpRisk.formatGp(item.getPriceOrZero());
-				String fate = "";
-				if (fates != null)
-				{
-					if (containsId(fates.kept, item))
-					{
-						slot.setFate(Fate.KEPT);
-						fate = " - protected on death";
-					}
-					else if (containsId(fates.lost, item))
-					{
-						slot.setFate(Fate.DROPPED);
-						fate = " - lost on death ("
-							+ PvpRisk.formatGp(fates.valueOf(item))
-							+ imbueRefundNote(item) + ")";
-					}
-					else
-					{
-						long fee = feeFor(fates, item);
-						long friction = com.loadoutlab.engine.UntradeableDeathCosts.frictionFor(item);
-						if (fee > 0 && fee <= friction)
-						{
-							// Gp-free but a real errand chain (salve line):
-							// the charge is all rebuild friction.
-							slot.setFate(Fate.FEE);
-							fate = " - breaks on death (rebuild errand ~" + PvpRisk.formatGp(friction) + ")";
-						}
-						else if (fee > 0)
-						{
-							slot.setFate(Fate.FEE);
-							fate = " - replaceable for " + PvpRisk.formatGp(fee) + " on death";
-						}
-						else if (hasDeathCharge(fates, item))
-						{
-							slot.setFate(Fate.FEE);
-							fate = " - breaks on death (free reclaim)";
-						}
-					}
-				}
-				// Location clause only when a fetch trip is needed - "in
-				// bank" would be noise on 95% of cells.
-				String where = unowned ? "" : locationHint.hint(item.getId());
-				Integer pinnedHere = renderingStyle == null ? null
-					: mobProfile.pins(currentMonsterId(), renderingStyle).get(slotType);
-				String pinNote = pinnedHere != null && pinnedHere == item.getId()
-					? " - pinned" : "";
-				// Source dot + legend entry: only for locations we know.
-				if (!unowned)
-				{
-					String source = locationHint.primary(item.getId());
-					Color sourceColor = SOURCE_COLORS.get(source);
-					if (sourceColor != null)
-					{
-						slot.setSourceDot(sourceColor);
-						usedSources.add(source);
-					}
-				}
-				slot.setToolTipText(slotName(slotType) + ": " + item.label()
-					+ pinNote
-					+ (unowned ? " - NOT OWNED (" + obtain + ")" : "")
-					+ (where.isEmpty() ? "" : " - " + where)
-					+ (bis ? " - best available" : "")
-					+ fate
-					+ " (right-click to exclude)");
-				AsyncBufferedImage img = itemManager.getImage(item.getId());
-				img.addTo(slot);
-				List<GearItem> menuItems = new ArrayList<>();
-				menuItems.add(item);
-				GearItem dart = slotType == GearSlot.WEAPON ? loadedDart(result) : null;
-				if (dart != null)
-				{
-					menuItems.add(dart);
-				}
-				attachExclusionMenu(slot, menuItems, extras, slotType, renderingStyle);
-			}
-			else
-			{
-				slot.setBorder(new MatteBorder(1, 1, 1, 1, theme.edgeDark));
-				slot.setToolTipText(slotName(slotType) + ": empty");
-				if (!extras.isEmpty())
-				{
-					attachExclusionMenu(slot, Collections.emptyList(), extras);
-				}
-			}
-			bySlot.put(slotType, slot);
-		}
-		// The special-attack weapon to swap in (top-right, quiver-position).
-		RiskDotLabel specCell = new RiskDotLabel();
-		specCell.setPreferredSize(new Dimension(cell, cellH));
-		specCell.setOpaque(true);
-		specCell.setBackground(theme.recess);
-		specCell.setHorizontalAlignment(SwingConstants.CENTER);
-		if (spec != null && specWeapon != null && specExpected > 0)
-		{
-			// Light sky blue, sampled from the in-game spec orb's gradient.
-			specCell.setBorder(new MatteBorder(1, 1, 1, 1, BORDER_SPEC));
-			String specFate = "";
-			if (fates != null && specWeapon != null)
-			{
-				if (containsId(fates.kept, specWeapon))
-				{
-					specCell.setFate(Fate.KEPT);
-					specFate = "<br>Protected on death.";
-				}
-				else if (containsId(fates.lost, specWeapon))
-				{
-					specCell.setFate(Fate.DROPPED);
-					specFate = "<br>Lost on death ("
-						+ PvpRisk.formatGp(fates.valueOf(specWeapon)) + ").";
-				}
-				else if (feeFor(fates, specWeapon) == 0 && hasDeathCharge(fates, specWeapon))
-				{
-					specCell.setFate(Fate.FEE);
-					specFate = "<br>Breaks on death (free reclaim).";
-				}
-				else if (feeFor(fates, specWeapon) > 0)
-				{
-					specCell.setFate(Fate.FEE);
-					specFate = "<br>Replaceable for "
-						+ PvpRisk.formatGp(feeFor(fates, specWeapon)) + " on death.";
-				}
-			}
-			String specTip = specTooltip(spec, specExpected,
-				specDrainValue, replacedAutoExpected, specFallbackTooltip);
-			specCell.setToolTipText(specFate.isEmpty() ? specTip
-				: specTip.replace("</html>", specFate + "</html>"));
-			itemManager.getImage(specWeapon.getId()).addTo(specCell);
-			attachExclusionMenu(specCell, List.of(specWeapon));
-		}
-		else
-		{
-			specCell.setBorder(new MatteBorder(1, 1, 1, 1, theme.edgeDark));
-			specCell.setToolTipText("Spec: none");
-		}
-		// blank | head | spec, cape | neck | ammo, weapon | body | shield,
-		// blank | legs | blank, hands | feet | ring — the in-game layout
-		GearSlot[][] arrangement = {
-			{null, GearSlot.HEAD, null},
-			{GearSlot.CAPE, GearSlot.NECK, GearSlot.AMMO},
-			{GearSlot.WEAPON, GearSlot.BODY, GearSlot.SHIELD},
-			{null, GearSlot.LEGS, null},
-			{GearSlot.HANDS, GearSlot.FEET, GearSlot.RING},
-		};
-		boolean specPlaced = false;
-		for (GearSlot[] row : arrangement)
-		{
-			for (GearSlot slotType : row)
-			{
-				if (slotType != null)
-				{
-					icons.add(bySlot.get(slotType));
-				}
-				else if (!specPlaced)
-				{
-					icons.add(specCell); // first gap = the quiver position
-					specPlaced = true;
-				}
-				else
-				{
-					// non-slots show the card's stone fill, as the game's own
-					// worn-equipment screen leaves them bare
-					JLabel blank = new JLabel();
-					blank.setPreferredSize(new Dimension(cell, cellH));
-					blank.setOpaque(false);
-					icons.add(blank);
-				}
-			}
-		}
-		// Fixed Inventory-Setups geometry: pin the grid so BoxLayout parents
-		// can neither stretch nor squash it, and centre it in the panel.
-		Dimension gridSize = new Dimension(3 * cell + 2, 5 * cellH + 4);
-		icons.setPreferredSize(gridSize);
-		icons.setMinimumSize(gridSize);
-		icons.setMaximumSize(gridSize);
-		JPanel centered = new JPanel();
-		centered.setLayout(new BoxLayout(centered, BoxLayout.X_AXIS));
-		centered.setOpaque(false);
-		centered.setAlignmentX(LEFT_ALIGNMENT);
-		centered.setMaximumSize(new Dimension(Integer.MAX_VALUE, gridSize.height));
-		centered.add(Box.createHorizontalGlue());
-		centered.add(icons);
-		centered.add(Box.createHorizontalGlue());
-		return centered;
-	}
 
 	/** Same combat stats in every block - interchangeable for dps. */
 	private static boolean statEquivalent(GearItem a, GearItem b)

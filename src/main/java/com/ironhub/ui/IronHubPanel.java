@@ -47,11 +47,6 @@ public class IronHubPanel extends PluginPanel
 	 * The classic Dailies tab left the nav — its module keeps the brain
 	 * (detection, runs, overlays) that Dailies (New) renders.
 	 */
-	/** Modules pinned ALWAYS-OPEN in their hub (Luke, 2026-07-21: the gear &
-	 *  combat view IS the combat hub's face — never collapsible). Exclusive
-	 *  expansion still governs the hub's OTHER modules. */
-	private static final java.util.Set<String> PINNED_MODULES = java.util.Set.of("Gear & Combat");
-
 	private static final Map<String, List<String>> BLOCKS = Map.of(
 		"Goals", List.of("Goals"),
 		"Gear & Combat", List.of("Gear & Combat", "Slayer", "Loot & supplies"),
@@ -226,10 +221,9 @@ public class IronHubPanel extends PluginPanel
 	{
 		com.ironhub.ui.osrs.OsrsTheme theme = config.osrsTheme();
 		// a hub with one module never collapses — it's the whole section
-		// (Luke: Goals is the hub's only module) — and pinned modules stay
-		// open regardless of what else the hub shows
-		boolean collapsible = BLOCKS.get(hubName).size() > 1
-			&& !PINNED_MODULES.contains(name);
+		// (Luke: Goals is the hub's only module). Gear & Combat is ordinary
+		// again (round 6): collapsible, open by default as the hub's first.
+		boolean collapsible = BLOCKS.get(hubName).size() > 1;
 		com.ironhub.ui.osrs.StonePanel plate = new com.ironhub.ui.osrs.StonePanel(theme);
 		plate.setLayout(new BoxLayout(plate, BoxLayout.X_AXIS));
 		if (collapsible)
@@ -282,8 +276,7 @@ public class IronHubPanel extends PluginPanel
 		Map<String, JLabel> triangles = hubTriangles.get(name);
 		for (Map.Entry<String, JPanel> entry : slots.entrySet())
 		{
-			boolean expanded = entry.getKey().equals(open)
-				|| PINNED_MODULES.contains(entry.getKey());
+			boolean expanded = entry.getKey().equals(open);
 			JLabel triangle = triangles == null ? null : triangles.get(entry.getKey());
 			if (triangle != null)
 			{
