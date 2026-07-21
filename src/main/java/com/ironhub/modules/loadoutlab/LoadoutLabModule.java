@@ -786,7 +786,7 @@ public class LoadoutLabModule implements IronHubModule
 		if (isLive())
 		{
 			com.ironhub.ui.osrs.StoneChipRow sourceChips =
-				new com.ironhub.ui.osrs.StoneChipRow(theme, true, "Current gear", "DPS Calc");
+				new com.ironhub.ui.osrs.StoneChipRow(theme, true, "Current gear", "Recommended");
 			sourceChips.setSelected(dpsMode ? 1 : 0);
 			sourceChips.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 			sourceChips.onChange(i ->
@@ -798,7 +798,7 @@ public class LoadoutLabModule implements IronHubModule
 			if (suggestionBeatsCurrent())
 			{
 				sourceChips.highlight(1, true); // subtle: the calc found better
-				sourceChips.setToolTipText("The DPS Calc found a better setup than your current gear");
+				sourceChips.setToolTipText("The calc found a better setup than your current gear");
 			}
 			setupView.add(sourceChips);
 			setupView.add(Box.createVerticalStrut(2));
@@ -806,14 +806,20 @@ public class LoadoutLabModule implements IronHubModule
 
 		setupView.add(centered(view.equipment(display, equipTints, dps ? null : this::openSlotSearch)));
 
-		// setup controls first, then the style buttons (swapped — Luke),
-		// then the stat tile with the monster search under it
+		// setup controls under the viewer; the style buttons moved into the
+		// calc's Options section (Luke, round 4)
 		setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 		setupView.add(buttonsRow);
-		if (dpsMode && dpsResults != null)
+		if (lab.getPanel() != null)
 		{
-			setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
-			setupView.add(styleButtonsRow());
+			javax.swing.JPanel slot = lab.getPanel().styleButtonsSlot();
+			slot.removeAll();
+			if (dpsResults != null)
+			{
+				slot.add(styleButtonsRow());
+			}
+			slot.revalidate();
+			slot.repaint();
 		}
 		if (lab.getPanel() != null)
 		{
@@ -831,6 +837,12 @@ public class LoadoutLabModule implements IronHubModule
 			search.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 			setupView.add(search);
+			// the monster card (name, icon, weakness, toggles, bank actions)
+			// rides below the search in BOTH views (Luke, round 4)
+			javax.swing.JComponent monster = lab.getPanel().monsterArea();
+			monster.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+			setupView.add(Box.createVerticalStrut(2));
+			setupView.add(monster);
 			if (tileStats != null)
 			{
 				javax.swing.JComponent bonuses = lab.getPanel().bonusesTile(tileStats);
@@ -864,10 +876,14 @@ public class LoadoutLabModule implements IronHubModule
 		setupView.add(namesPanel);
 
 		// inventory fold: plain header + bare views (no slab — Luke),
-		// inventory grid first, the rune pouch beneath it
-		boolean hasPouch = display.pouchRunes.length > 0
-			&& Arrays.stream(display.pouchRunes).anyMatch(r -> r > 0);
-		boolean hasInventory = display.inventory.length > 0;
+		// inventory grid first, the rune pouch beneath it. Persistent across
+		// BOTH views (round 4): it always shows what YOU carry — the calc's
+		// suggestion has no inventory to show
+		PersistedState.SavedSetup carried = dps ? liveSetup() : display;
+		Color[] carriedTints = dps ? null : invTints;
+		boolean hasPouch = carried.pouchRunes.length > 0
+			&& Arrays.stream(carried.pouchRunes).anyMatch(r -> r > 0);
+		boolean hasInventory = carried.inventory.length > 0;
 		if (hasPouch || hasInventory)
 		{
 			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
@@ -882,14 +898,14 @@ public class LoadoutLabModule implements IronHubModule
 				if (hasInventory)
 				{
 					setupView.add(Box.createVerticalStrut(2));
-					setupView.add(centered(view.inventory(display, invTints)));
+					setupView.add(centered(view.inventory(carried, carriedTints)));
 				}
 				if (hasPouch)
 				{
 					setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 					setupView.add(smallLabel("Rune pouch"));
 					setupView.add(Box.createVerticalStrut(2));
-					setupView.add(centered(view.runePouch(display)));
+					setupView.add(centered(view.runePouch(carried)));
 				}
 			}
 		}
@@ -1485,6 +1501,7 @@ public class LoadoutLabModule implements IronHubModule
 			lab.getPanel().setSetupHooks(this::saveNamedSetup, this::toggleAllSetups);
 			lab.getPanel().setWornLookup(this::wornItemFor);
 			lab.getPanel().setDpsCalcHook(this::openDpsCalc);
+			lab.getPanel().setMonsterIconLookup(this::fetchMonsterIcon);
 			lab.getPanel().setResultsListener(new com.loadoutlab.ui.LoadoutLabPanel.ResultsListener()
 			{
 				@Override
@@ -1499,8 +1516,8 @@ public class LoadoutLabModule implements IronHubModule
 						// keep a live selection where possible; else strongest
 						dpsStyle = bestDpsStyle();
 					}
-					// fresh numbers = the calc is what the player is doing
-					viewSource = ViewSource.DPS;
+					// the view STAYS where the player put it (Luke, round 4)
+					// — the green Recommended-chip cue invites the switch
 					lastViewFp = 0;
 					renderView();
 				}
@@ -1510,7 +1527,6 @@ public class LoadoutLabModule implements IronHubModule
 				{
 					dpsResults = null;
 					dpsMonster = null;
-					viewSource = ViewSource.LIVE;
 					lastViewFp = 0;
 					renderView();
 				}
@@ -1574,6 +1590,60 @@ public class LoadoutLabModule implements IronHubModule
 		}
 		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
 		return row;
+	}
+
+	private final java.util.Map<Integer, java.awt.Image> monsterIcons =
+		new java.util.concurrent.ConcurrentHashMap<>();
+
+	/**
+	 * Async wiki art for the monster card (user-initiated — it serves the
+	 * player's own search/auto-follow pick; misses stay silent, hits cache).
+	 */
+	private void fetchMonsterIcon(com.loadoutlab.data.MonsterStats monster,
+		java.util.function.Consumer<java.awt.Image> onReady)
+	{
+		java.awt.Image cached = monsterIcons.get(monster.getId());
+		if (cached != null)
+		{
+			onReady.accept(cached);
+			return;
+		}
+		if (httpClient == null)
+		{
+			return;
+		}
+		String url = "https://oldschool.runescape.wiki/images/"
+			+ monster.getName().replace(' ', '_').replace("'", "%27") + ".png";
+		okhttp3.Request request = new okhttp3.Request.Builder().url(url)
+			.header("User-Agent", "Iron Hub RuneLite plugin (github.com/ellismosss/iron-hub)")
+			.build();
+		httpClient.newCall(request).enqueue(new okhttp3.Callback()
+		{
+			@Override
+			public void onFailure(okhttp3.Call call, java.io.IOException e)
+			{
+				// no icon is fine — never a placeholder guess
+			}
+
+			@Override
+			public void onResponse(okhttp3.Call call, okhttp3.Response response) throws java.io.IOException
+			{
+				try (okhttp3.ResponseBody body = response.body())
+				{
+					if (!response.isSuccessful() || body == null)
+					{
+						return;
+					}
+					java.awt.image.BufferedImage image =
+						javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(body.bytes()));
+					if (image != null)
+					{
+						monsterIcons.put(monster.getId(), image);
+						SwingUtilities.invokeLater(() -> onReady.accept(image));
+					}
+				}
+			}
+		});
 	}
 
 	/** The protect-prayer icon for a style button (wiki art, 16px high). */

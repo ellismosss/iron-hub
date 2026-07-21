@@ -485,11 +485,19 @@ public class LoadoutLabPanel extends PluginPanel
 		searchField.setAlignmentX(LEFT_ALIGNMENT);
 		searchField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
 		// Iron Hub (Luke, 2026-07-21): the search field + its dropdown live
-		// in searchHolder, MOUNTED by the wrapper below the shared stat tile
+		// in searchHolder, and the monster card + toggles + bank actions in
+		// monsterHolder — both MOUNTED by the wrapper below the shared stat
+		// tile so they show in BOTH views
 		searchHolder.setLayout(new BoxLayout(searchHolder, BoxLayout.Y_AXIS));
 		searchHolder.setOpaque(false);
 		searchHolder.setAlignmentX(LEFT_ALIGNMENT);
 		searchHolder.add(searchField);
+		monsterHolder.setLayout(new BoxLayout(monsterHolder, BoxLayout.Y_AXIS));
+		monsterHolder.setOpaque(false);
+		monsterHolder.setAlignmentX(LEFT_ALIGNMENT);
+		bankRowHolder.setLayout(new BoxLayout(bankRowHolder, BoxLayout.Y_AXIS));
+		bankRowHolder.setOpaque(false);
+		bankRowHolder.setAlignmentX(LEFT_ALIGNMENT);
 		top.add(Box.createVerticalStrut(4));
 
 		// Selected-monster row: replaces the dropdown once a pick is made.
@@ -512,14 +520,14 @@ public class LoadoutLabPanel extends PluginPanel
 			"Choose a different monster", this::clearSelection));
 		selectedRow.add(selectedButtons, BorderLayout.EAST);
 		selectedRow.setVisible(false);
-		top.add(selectedRow);
+		monsterHolder.add(selectedRow);
 		OsrsSkin.crisp(weaknessLabel);
 		weaknessLabel.setForeground(OsrsSkin.VALUE);
 		weaknessLabel.setFont(OsrsSkin.font());
 		weaknessLabel.setBorder(new EmptyBorder(2, 0, 2, 0));
 		weaknessLabel.setAlignmentX(LEFT_ALIGNMENT);
 		weaknessLabel.setVisible(false);
-		top.add(weaknessLabel);
+		monsterHolder.add(weaknessLabel);
 
 		// Curated mechanics note (finishing items, immunities) for the
 		// selected monster - so a correct suggestion doesn't look wrong.
@@ -529,7 +537,7 @@ public class LoadoutLabPanel extends PluginPanel
 		monsterNote.setFont(monsterNote.getFont().deriveFont(UiTokens.FONT_SIZE_SECONDARY));
 		monsterNote.setAlignmentX(LEFT_ALIGNMENT);
 		monsterNote.setVisible(false);
-		top.add(monsterNote);
+		monsterHolder.add(monsterNote);
 
 		monsterList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		monsterList.setVisibleRowCount(6);
@@ -567,28 +575,28 @@ public class LoadoutLabPanel extends PluginPanel
 
 		initToggle(f2pOnly, "Only consider free-to-play gear");
 		f2pOnly.setVisible(false); // only shown on non-members worlds
-		top.add(f2pOnly);
+		monsterHolder.add(f2pOnly);
 
 		initToggle(slayerTask, "On task: slayer helmet bonuses apply");
 		slayerTask.setSelected(true); // Iron Hub: assume on-task by default
-		top.add(slayerTask);
+		monsterHolder.add(slayerTask);
 
 		// Wilderness only: everything below is OPT-IN behind this switch —
 		// fighting the same monster outside the wilderness is the norm
 		initToggle(wildyInfo, "Fighting this monster IN the wilderness: show"
 			+ " death risk, kept items and risk caps");
 		wildyInfo.setVisible(false);
-		top.add(wildyInfo);
+		monsterHolder.add(wildyInfo);
 
 		// Wilderness only: cap the set to the items death mechanics keep.
 		initToggle(lowRisk, "Keep your 3 most valuable items (4 with Protect Item);"
 			+ " everything else must total under the risk cap");
 		lowRisk.setVisible(false);
-		top.add(lowRisk);
+		monsterHolder.add(lowRisk);
 
 		initToggle(protectItem, "Protect Item keeps a 4th item (not while skulled)");
 		protectItem.setVisible(false);
-		top.add(protectItem);
+		monsterHolder.add(protectItem);
 
 		// How much gp the set may drop on a wilderness death; 0 = nothing
 		// droppable and no fees at all.
@@ -599,7 +607,9 @@ public class LoadoutLabPanel extends PluginPanel
 		riskBudget.setSelectedIndex(2);
 		riskBudget.addActionListener(e -> recompute());
 		riskBudget.setVisible(false);
-		top.add(riskBudget);
+		monsterHolder.add(riskBudget);
+		// the bank actions close the monster card (they act on its results)
+		monsterHolder.add(bankRowHolder);
 
 
 		// Lock the magic card's auto-spell to one spellbook.
@@ -765,6 +775,11 @@ public class LoadoutLabPanel extends PluginPanel
 		assumptions.setToolTipText("Prayers, potions and spellbook the DPS numbers may assume");
 		bottomControls.add(assumptions);
 		bottomControls.add(Box.createVerticalStrut(4));
+		styleButtonsHolder.setLayout(new BoxLayout(styleButtonsHolder, BoxLayout.Y_AXIS));
+		styleButtonsHolder.setOpaque(false);
+		styleButtonsHolder.setAlignmentX(LEFT_ALIGNMENT);
+		bottomControls.add(styleButtonsHolder);
+		bottomControls.add(Box.createVerticalStrut(4));
 		JPanel spellRow = new JPanel(new GridLayout(1, 3, 2, 0));
 		spellRow.setOpaque(false);
 		spellRow.add(spellbookIcon("standard.png", "Standard spellbook", 1));
@@ -800,11 +815,11 @@ public class LoadoutLabPanel extends PluginPanel
 				com.loadoutlab.optimizer.BoostSelector.HEART_ASSUMED = on;
 				recompute();
 			}));
+		bottomControls.add(optimizeMode);
+		bottomControls.add(Box.createVerticalStrut(6));
 		bottomControls.add(centeredRow(boostRow, 5 * 36 + 8, 36));
 		bottomControls.add(Box.createVerticalStrut(2));
 		bottomControls.add(centeredRow(spellRow, 3 * 36 + 4, 36));
-		bottomControls.add(Box.createVerticalStrut(8));
-		bottomControls.add(optimizeMode);
 		bottomControls.add(Box.createVerticalStrut(4));
 		// Iron Hub (Luke, 2026-07-21): the calc's own Save/Load setup buttons
 		// are gone — the wrapper's Save setup / View all setups (under the
@@ -1119,10 +1134,36 @@ public class LoadoutLabPanel extends PluginPanel
 
 	private final JPanel searchHolder = new JPanel();
 
+	private final JPanel monsterHolder = new JPanel();
+	private final JPanel styleButtonsHolder = new JPanel();
+	private final JPanel bankRowHolder = new JPanel();
+	/** Wrapper-provided async monster icon fetch (wiki art, user-initiated). */
+	private java.util.function.BiConsumer<MonsterStats,
+		java.util.function.Consumer<java.awt.Image>> monsterIconLookup;
+
 	/** The monster search (field + fitted dropdown) for the wrapper to mount. */
 	public javax.swing.JComponent searchArea()
 	{
 		return searchHolder;
+	}
+
+	/** The monster card + toggles + bank actions, for the wrapper to mount. */
+	public javax.swing.JComponent monsterArea()
+	{
+		return monsterHolder;
+	}
+
+	public void setMonsterIconLookup(java.util.function.BiConsumer<MonsterStats,
+		java.util.function.Consumer<java.awt.Image>> lookup)
+	{
+		monsterIconLookup = lookup;
+	}
+
+	/** The Options section's top slot: the wrapper's style buttons mount
+	 *  here, above the optimize mode and the icon rows (Luke, round 4). */
+	public javax.swing.JPanel styleButtonsSlot()
+	{
+		return styleButtonsHolder;
 	}
 
 	private ResultsListener resultsListener;
@@ -1257,10 +1298,26 @@ public class LoadoutLabPanel extends PluginPanel
 		}
 		monsterModel.clear();
 		monsterScroll.setVisible(false);
-		// Iron Hub: the empty search box is dead weight once a target is
-		// picked - hide it; the x button brings it back
-		searchField.setVisible(false);
+		// the search field stays visible at all times (Luke, round 4)
 		selectedMonster = monster;
+		selectedLabel.setIcon(null);
+		if (monsterIconLookup != null)
+		{
+			final MonsterStats requested = monster;
+			monsterIconLookup.accept(monster, image ->
+			{
+				if (selectedMonster == requested && image != null)
+				{
+					selectedLabel.setIcon(new ImageIcon(
+						image.getScaledInstance(-1, 20, java.awt.Image.SCALE_SMOOTH)));
+					selectedLabel.setIconTextGap(6);
+				}
+			});
+		}
+		else
+		{
+			selectedLabel.setIcon(null);
+		}
 		boolean wilderness = WildernessMonsters.isWilderness(monster);
 		wildyInfo.setVisible(wilderness);
 		updateWildernessControls();
@@ -2411,7 +2468,9 @@ public class LoadoutLabPanel extends PluginPanel
 			detailStyle = bestStyle(results);
 		}
 		// the per-style card is GONE (Luke: the shared viewer/tile show the
-		// set) — only its two bank actions remain, as a bare row
+		// set) — only its two bank actions remain, riding the monster card
+		// so they show in BOTH views
+		bankRowHolder.removeAll();
 		StyleResult detail = results.get(detailStyle);
 		if (detail != null && detail.owned != null && !detail.owned.isEmpty())
 		{
@@ -2422,9 +2481,11 @@ public class LoadoutLabPanel extends PluginPanel
 			bankRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
 			bankRow.add(bankButton(detailStyle, detailBest, detail.specWeapon));
 			bankRow.add(bankFilterButton(detailStyle, detailBest, detail.specWeapon));
-			resultsPanel.add(bankRow);
-			resultsPanel.add(Box.createVerticalStrut(6));
+			bankRowHolder.add(Box.createVerticalStrut(2));
+			bankRowHolder.add(bankRow);
 		}
+		bankRowHolder.revalidate();
+		bankRowHolder.repaint();
 		if (resultsListener != null)
 		{
 			resultsListener.onResults(monster, results);

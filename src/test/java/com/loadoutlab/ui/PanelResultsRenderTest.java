@@ -78,7 +78,10 @@ public class PanelResultsRenderTest
 				panel[0].showResults(computed.get(), out.get());
 				image[0] = com.ironhub.ui.SwingRender.render(panel[0]);
 			});
-			Assert.assertTrue(image[0].getHeight() > 300);
+			// the monster card/search/bank row now render in WRAPPER-mounted
+			// holders (see WrapperIntegrationRenderTest) — standalone, the
+			// panel is just the status + Options section
+			Assert.assertTrue(image[0].getHeight() > 150);
 			java.io.File file = new java.io.File("build/reports/dps-calc-results.png");
 			file.getParentFile().mkdirs();
 			javax.imageio.ImageIO.write(image[0], "png", file);

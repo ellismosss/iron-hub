@@ -107,6 +107,9 @@ public class WrapperIntegrationRenderTest
 			javax.swing.SwingUtilities.invokeAndWait(() ->
 			{
 				panel[0].showResults(monster, out.get());
+				// results no longer hijack the view (round 4) — enter the
+				// Recommended view the way the chip would
+				module.setViewSourceForTest(true);
 				image[0] = com.ironhub.ui.SwingRender.render((javax.swing.JPanel) tab[0]);
 			});
 			Assert.assertTrue(image[0].getHeight() > 400);
