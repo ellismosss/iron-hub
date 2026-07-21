@@ -54,7 +54,7 @@ def parse_recipe_materials(wikitext):
         return []
     block = m.group(1)
     mats = []
-    for i in range(1, 9):
+    for i in range(1, 16):
         nm = re.search(r"\|\s*mat%d\s*=\s*([^\n|]+)" % i, block)
         if not nm:
             break
@@ -76,8 +76,12 @@ QUESTS = {q.strip().lower() for q in open(os.path.join(os.path.dirname(__file__)
 CATS = {'melee', 'ranged', 'magic', 'utility', 'poh', 'boat'}
 missing = []
 
-def I(name, const, cats, reqs=(), wiki=None, exact=False, implies=(), hours=None, source_note=None):
-    """Detectable item: const is both icon and ownership detection."""
+def I(name, const, cats, reqs=(), wiki=None, exact=False, implies=(), hours=None, source_note=None,
+      materials=()):
+    """Detectable item: const is both icon and ownership detection.
+    materials = ((CONST, qty, 'Display name'), ...) — bulk items the craft
+    consumes (shards, bars); rare COMPONENT drops belong in reqs as
+    item:CONST:qty:Name so they route as their own obtain step."""
     e = _entry(name, const, None, cats, reqs, wiki)
     if exact:
         e['exact'] = True
@@ -87,6 +91,14 @@ def I(name, const, cats, reqs=(), wiki=None, exact=False, implies=(), hours=None
         e['hours'] = hours
     if source_note is not None:
         e['sourceNote'] = source_note
+    if materials:
+        mats = []
+        for mc, qty, display in materials:
+            if mc not in IDS:
+                missing.append(f'MATERIAL? {mc} ({name})')
+                continue
+            mats.append({'itemId': IDS[mc], 'qty': qty, 'name': display})
+        e['materials'] = mats
     return e
 
 def M(name, icon_const, cats, reqs=(), wiki=None, iconfile=None, implies=()):
@@ -102,6 +114,7 @@ def M(name, icon_const, cats, reqs=(), wiki=None, iconfile=None, implies=()):
 def _entry(name, const, icon_const, cats, reqs, wiki):
     for c in cats:
         assert c in CATS, f'bad category {c} on {name}'
+    reqs = [_resolve_req(r, name) for r in reqs]
     for r in reqs:
         if r.startswith('quest:'):
             q = r[len('quest:'):].strip().lower()
@@ -120,6 +133,21 @@ def _entry(name, const, icon_const, cats, reqs, wiki):
     if wiki:
         e['wiki'] = wiki
     return e
+
+def _resolve_req(r, entry_name):
+    """item:/itemx: reqs may name the id by ItemID CONSTANT for safety —
+    resolve to the numeric id here, failing the run on an unknown name."""
+    for prefix in ('item:', 'itemx:'):
+        if r.startswith(prefix):
+            parts = r.split(':')
+            if not parts[1].isdigit():
+                if parts[1] not in IDS:
+                    missing.append(f'REQITEM? {parts[1]} ({entry_name})')
+                    return r
+                parts[1] = str(IDS[parts[1]])
+                return ':'.join(parts)
+    return r
+
 
 def G(label, *items):
     return {'label': label, 'items': list(items)}
@@ -401,6 +429,186 @@ phases = [
   ]},
 ]
 
+# ── 2026-07-21 wiki requirement audit (Luke: "find and patch all of the
+# holes") — every entry swept against its wiki page; additions only, applied
+# over the curated entries above so the whole audit reviews in one block.
+# Shape: name -> (add_reqs, add_materials [(CONST, qty, display)], source_note|None).
+# item: reqs may use CONSTANT names (resolved via _resolve_req).
+# DECLINED from the sweep, deliberately: raid completion kc: gates (CoX/ToB/
+# ToA rewards are not NpcLootReceived — the gate would never detect; the
+# clog-rated obtain step already prices the raid) and Penance Queen kc:
+# (chest reward, same gap — sourceNotes carry the honesty instead).
+WIKI_AUDIT = {
+  'Ardougne cloak 1': (['diary:Ardougne:Easy'], [], None),
+  'Anti-dragon shield': (['queststarted:Dragon Slayer I'], [], None),
+  'Amulet of strength': ([], [('GOLD_BAR', 1, 'Gold bar'), ('RUBY', 1, 'Ruby'),
+    ('COSMIC_RUNE', 1, 'Cosmic rune'), ('FIRE_RUNE', 5, 'Fire rune')], None),
+  'Studded body': (['skillb:Crafting:41'],
+    [('LEATHER_BODY', 1, 'Leather body'), ('STEEL_STUDS', 1, 'Steel studs')], None),
+  'Snakeskin body': (['skillb:Crafting:53'], [('SNAKESKIN', 15, 'Snakeskin')], None),
+  "Green d'hide body": (['skillb:Crafting:63'],
+    [('GREEN_DRAGON_LEATHER', 3, 'Green dragon leather')], None),
+  'Magic shortbow': (['skillb:Fletching:80'],
+    [('MAGIC_LOGS', 1, 'Magic logs'), ('BOW_STRING', 1, 'Bow string')], None),
+  "Ava's accumulator": ([], [('STEEL_ARROW', 75, 'Steel arrow')], None),
+  'Fighter torso': ([], [], '375+ honour points in every role, then a Penance Queen kill'),
+  'Granite body': ([], [], 'Requires a Penance Queen kill; 95,000 coins'),
+  'God cape': (['quest:Mage Arena I'], [], None),
+  'Imcando hammer': (['skillb:Mining:14'], [('BARRONITE_SHARDS', 1250, 'Barronite shards')], None),
+  # ── chunk 2 ──
+  'Dragon defender': (['item:RUNE_DEFENDER:1:Rune defender'], [], None),
+  'Salve amulet (ei)': (['quest:Lair of Tarn Razorlor'], [], None),
+  'Zombie axe': (['item:BROKEN_ZOMBIE_AXE:1:Broken zombie axe'], [], None),
+  'Dual macuahuitl': (['quest:Perilous Moons'], [], None),
+  'Blood moon chestplate': (['quest:Perilous Moons'], [], None),
+  'Blood moon tassets': (['quest:Perilous Moons'], [], None),
+  'Eclipse atlatl': (['quest:Perilous Moons'], [], None),
+  'Eclipse moon chestplate': (['quest:Perilous Moons'], [], None),
+  'Blue moon spear': (['quest:Perilous Moons'], [], None),
+  'Mixed hide cape': (['quest:Children of the Sun', 'skillb:Crafting:68'],
+    [('MIXED_HIDE_BASE', 1, 'Mixed hide base'), ('JAGUAR_FUR', 1, 'Jaguar fur')], None),
+  'Mixed hide boots': (['quest:Children of the Sun', 'skillb:Crafting:69', 'skillb:Hunter:72'],
+    [('MIXED_HIDE_BASE', 1, 'Mixed hide base'), ('SUNLIGHT_ANTELOPE_FUR', 1, 'Sunlight antelope fur')], None),
+  'Imbued god cape': (['quest:Mage Arena II'], [], None),
+  'Black mask (i)': (['quest:Cabin Fever'], [], None),
+  "Pharaoh's sceptre": (["queststarted:Icthlarin's Little Helper"], [], None),
+  'Arclight': (['quest:Shadow of the Storm'], [('ANCIENT_SHARD', 3, 'Ancient shard')], None),
+  'Slayer helmet (i)': (['skillb:Crafting:55'],
+    [('EARMUFFS', 1, 'Earmuffs'), ('FACEMASK', 1, 'Facemask'), ('NOSE_PEG', 1, 'Nose peg'),
+     ('SPINY_HELMET', 1, 'Spiny helmet'), ('ENCHANTED_GEM', 1, 'Enchanted gem')], None),
+  "Ghommal's hilt 2": ([], [], 'Medium Combat Achievements reward'),
+  "Ghommal's hilt 4": ([], [], 'Elite Combat Achievements reward'),
+  'Twinflame staff': (['item:FIRE_ELEMENT_STAFF_CROWN:1:Fire element staff crown',
+    'item:ICE_ELEMENT_STAFF_CROWN:1:Ice element staff crown'],
+    [('BATTLESTAFF', 1, 'Battlestaff')], None),
+  "Hunters' sunlight crossbow": (['quest:Children of the Sun'],
+    [('SUNLIGHT_ANTELOPE_ANTLER', 1, 'Sunlight antelope antler'),
+     ('HUNTERS_CROSSBOW', 1, "Hunters' crossbow")], None),
+  'Dragon hunter wand': (['quest:Children of the Sun'], [], None),
+  # ── chunk 3 ──
+  'Crystal halberd': (['diary:Western Provinces:Hard'], [], None),
+  'Gem sack': (['skillb:Crafting:81', 'item:GEM_TOTE:1:Gem tote',
+    'item:IMMACULATE_MOLE_SKIN:1:Immaculate mole skin'], [], None),
+  'Divine rune pouch': (['item:THREAD_OF_ELIDINIS:1:Thread of Elidinis'], [], None),
+  'Fletching knife': (['quest:Children of the Sun'], [], None),
+  'Basic quetzal whistle': (['quest:Children of the Sun'], [], None),
+  "Huntsman's kit": (['quest:Children of the Sun'], [], None),
+  'Bottomless compost bucket': (['kc:Hespori:1'], [], None),
+  'Ash covered tome': (['quest:Bone Voyage'], [], None),
+  'Bow of Faerdhinen': (['skill:Agility:70', 'skillb:Smithing:82', 'skillb:Crafting:82',
+    'item:ENHANCED_CRYSTAL_WEAPON_SEED:1:Enhanced crystal weapon seed'],
+    [('CRYSTAL_SHARD', 100, 'Crystal shard')], None),
+  'Crystal helm': (['skillb:Smithing:70', 'skillb:Crafting:70',
+    'item:CRYSTAL_ARMOUR_SEED:1:Crystal armour seed'], [('CRYSTAL_SHARD', 50, 'Crystal shard')], None),
+  'Crystal body': (['skillb:Smithing:74', 'skillb:Crafting:74',
+    'item:CRYSTAL_ARMOUR_SEED:3:Crystal armour seed'], [('CRYSTAL_SHARD', 150, 'Crystal shard')], None),
+  'Crystal legs': (['skillb:Smithing:72', 'skillb:Crafting:72',
+    'item:CRYSTAL_ARMOUR_SEED:2:Crystal armour seed'], [('CRYSTAL_SHARD', 100, 'Crystal shard')], None),
+  'Amulet of fury': (['item:UNCUT_ONYX:1:Uncut onyx'], [], None),
+  'Bloodbark body': (['item:SPLITBARK_BODY:1:Splitbark body',
+    'item:RUNESCROLL_OF_BLOODBARK:1:Runescroll of bloodbark'],
+    [('BLOOD_RUNE', 500, 'Blood rune')], None),
+  "Ava's assembler": ([], [('MITHRIL_ARROW', 75, 'Mithril arrow')], None),
+  'Necklace of anguish': (['item:ZENYTE_SHARD:1:Zenyte shard', 'item:UNCUT_ONYX:1:Uncut onyx'], [], None),
+  'Amulet of torture': (['item:ZENYTE_SHARD:1:Zenyte shard', 'item:UNCUT_ONYX:1:Uncut onyx'], [], None),
+  'Zamorakian hasta': (['item:ZAMORAKIAN_SPEAR:1:Zamorakian spear', 'quest:Barbarian Training'], [], None),
+  'Bandos godsword': (['skillb:Smithing:80', 'item:BANDOS_HILT:1:Bandos hilt',
+    'item:GODSWORD_SHARD_1:1:Godsword shard 1', 'item:GODSWORD_SHARD_2:1:Godsword shard 2',
+    'item:GODSWORD_SHARD_3:1:Godsword shard 3'], [], None),
+  'Voidwaker': (['item:VOIDWAKER_BLADE:1:Voidwaker blade', 'item:VOIDWAKER_HILT:1:Voidwaker hilt',
+    'item:VOIDWAKER_GEM:1:Voidwaker gem'], [], None),
+  # ── chunk 4 ──
+  'Abyssal tentacle': (['item:KRAKEN_TENTACLE:1:Kraken tentacle'], [], None),
+  'Emberlight': (['item:TORMENTED_SYNAPSE:1:Tormented synapse'], [],
+    'Requires a fully-charged or infused Arclight'),
+  'Scorching bow': (['item:TORMENTED_SYNAPSE:1:Tormented synapse'],
+    [('MAGIC_LONGBOW_U', 1, 'Magic longbow (u)')], None),
+  'Purging staff': (['item:TORMENTED_SYNAPSE:1:Tormented synapse', 'skill:Smithing:55'],
+    [('BATTLESTAFF', 1, 'Battlestaff'), ('IRON_BAR', 1, 'Iron bar')], None),
+  'Burning claws': (['item:BURNING_CLAW:2:Burning claw'], [], None),
+  'Tormented bracelet': (['item:ZENYTE_SHARD:1:Zenyte shard', 'item:UNCUT_ONYX:1:Uncut onyx'],
+    [('GOLD_BAR', 1, 'Gold bar'), ('COSMIC_RUNE', 1, 'Cosmic rune'),
+     ('SOUL_RUNE', 20, 'Soul rune'), ('BLOOD_RUNE', 20, 'Blood rune')], None),
+  'Ring of suffering (i)': (['item:ZENYTE_SHARD:1:Zenyte shard', 'item:UNCUT_ONYX:1:Uncut onyx'],
+    [('GOLD_BAR', 1, 'Gold bar'), ('COSMIC_RUNE', 1, 'Cosmic rune'),
+     ('SOUL_RUNE', 20, 'Soul rune'), ('BLOOD_RUNE', 20, 'Blood rune')],
+    'Imbue: 725,000 NMZ points or 300 Soul Wars zeal'),
+  'Eye of ayak': (['kc:Doom of Mokhaiotl:1'], [], None),
+  'Confliction gauntlets': (['item:MOKHAIOTL_CLOTH:1:Mokhaiotl cloth'],
+    [('DEMON_TEAR', 10000, 'Demon tear')], None),
+  'Avernic treads': (['kc:Doom of Mokhaiotl:1', 'skillb:Magic:80', 'skillb:Runecraft:60'],
+    [('DEMON_TEAR', 12000, 'Demon tear')], None),
+  'Primordial boots': (['item:PRIMORDIAL_CRYSTAL:1:Primordial crystal',
+    'item:DRAGON_BOOTS:1:Dragon boots', 'skill:Magic:60', 'skill:Runecraft:60'], [], None),
+  'Eternal boots': (['item:ETERNAL_CRYSTAL:1:Eternal crystal',
+    'item:INFINITY_BOOTS:1:Infinity boots', 'skill:Magic:60', 'skill:Runecraft:60'], [], None),
+  'Pegasian boots': (['item:PEGASIAN_CRYSTAL:1:Pegasian crystal',
+    'item:RANGER_BOOTS:1:Ranger boots', 'skill:Magic:60', 'skill:Runecraft:60'], [], None),
+  'Amulet of rancour': (['skillb:Crafting:86', 'item:ARAXYTE_FANG:1:Araxyte fang'], [], None),
+  'Ferocious gloves': (['item:HYDRA_LEATHER:1:Hydra leather'], [], None),
+  'Toxic blowpipe': (['item:TANZANITE_FANG:1:Tanzanite fang'], [], None),
+  'Serpentine helm': (['item:SERPENTINE_VISAGE:1:Serpentine visage'], [], None),
+  'Neitiznot faceguard': (['item:BASILISK_JAW:1:Basilisk jaw'], [], None),
+  # ── chunk 5 ──
+  'Infernal cape': (['item:FIRE_CAPE:1:Fire cape'], [], None),
+  'Oathplate helm': (['quest:A Kingdom Divided'], [], None),
+  'Oathplate chest': (['quest:A Kingdom Divided'], [], None),
+  'Oathplate legs': (['quest:A Kingdom Divided'], [], None),
+  'Ultor ring': (['item:ULTOR_VESTIGE:1:Ultor vestige', 'item:BERSERKER_RING:1:Berserker ring'],
+    [('CHROMIUM_INGOT', 3, 'Chromium ingot'), ('BLOOD_RUNE', 500, 'Blood rune')], None),
+  "Dizana's quiver": (['quest:Children of the Sun'], [], None),
+  'Avernic defender': (['item:AVERNIC_DEFENDER_HILT:1:Avernic defender hilt'], [], None),
+  'Magus ring': (['item:MAGUS_VESTIGE:1:Magus vestige', 'item:SEERS_RING:1:Seers ring'],
+    [('CHROMIUM_INGOT', 3, 'Chromium ingot'), ('BLOOD_RUNE', 500, 'Blood rune')], None),
+  'Masori mask (f)': (['skillb:Crafting:90', 'item:MASORI_MASK:1:Masori mask',
+    'item:ARMADYLEAN_PLATE:1:Armadylean plate'], [], None),
+  'Masori body (f)': (['skillb:Crafting:90', 'item:MASORI_BODY:1:Masori body',
+    'item:ARMADYLEAN_PLATE:4:Armadylean plate'], [], None),
+  'Masori chaps (f)': (['skillb:Crafting:90', 'item:MASORI_CHAPS:1:Masori chaps',
+    'item:ARMADYLEAN_PLATE:3:Armadylean plate'], [], None),
+  "Elidinis' ward (f)": (['skillb:Prayer:90', 'skillb:Smithing:90',
+    "item:ELIDINIS_WARD:1:Elidinis' ward", 'item:ARCANE_SIGIL:1:Arcane sigil'],
+    [('SOUL_RUNE', 10000, 'Soul rune')], None),
+  'Saturated heart': (['item:IMBUED_HEART:1:Imbued heart'],
+    [('ANCIENT_ESSENCE', 150000, 'Ancient essence')], None),
+  'Zaryte crossbow': (['item:ARMADYL_CROSSBOW:1:Armadyl crossbow', 'item:NIHIL_HORN:1:Nihil horn'],
+    [('NIHIL_SHARD', 250, 'Nihil shard')], None),
+  'Venator ring': (['item:VENATOR_VESTIGE:1:Venator vestige', 'item:ARCHERS_RING:1:Archers ring'],
+    [('CHROMIUM_INGOT', 3, 'Chromium ingot'), ('BLOOD_RUNE', 500, 'Blood rune')], None),
+  'Bellator ring': (['item:BELLATOR_VESTIGE:1:Bellator vestige', 'item:WARRIOR_RING:1:Warrior ring'],
+    [('CHROMIUM_INGOT', 3, 'Chromium ingot'), ('BLOOD_RUNE', 500, 'Blood rune')], None),
+  'Soulreaper axe': (['skill:Magic:75', "item:LEVIATHANS_LURE:1:Leviathan's lure",
+    "item:SIRENS_STAFF:1:Siren's staff", "item:EXECUTIONERS_AXE_HEAD:1:Executioner's axe head",
+    'item:EYE_OF_THE_DUKE:1:Eye of the duke'], [('BLOOD_RUNE', 2000, 'Blood rune')], None),
+  'Torva platebody': (['skillb:Smithing:90', 'item:TORVA_PLATEBODY_DAMAGED:1:Torva platebody (damaged)',
+    'item:BANDOSIAN_COMPONENTS:2:Bandosian components'], [], None),
+  'Camphor blowpipe': ([], [('CAMPHOR_LOGS', 2, 'Camphor logs'), ('SQUID_BEAK', 1, 'Squid beak')], None),
+  'Ironwood blowpipe': ([], [('IRONWOOD_LOGS', 2, 'Ironwood logs'), ('SQUID_BEAK', 1, 'Squid beak')], None),
+}
+
+for _p in phases:
+    for _g in _p['groups']:
+        for _i in _g['items']:
+            if _i['name'] not in WIKI_AUDIT:
+                continue
+            _reqs, _mats, _note = WIKI_AUDIT.pop(_i['name'])
+            for _r in _reqs:
+                _r = _resolve_req(_r, _i['name'])
+                if _r.startswith('quest:') and _r[len('quest:'):].strip().lower() not in QUESTS:
+                    missing.append(f'QUEST? {_r} ({_i["name"]})')
+                if _r not in _i['requirements']:
+                    _i['requirements'].append(_r)
+            if _mats:
+                _out = _i.setdefault('materials', [])
+                for _mc, _qty, _disp in _mats:
+                    if _mc not in IDS:
+                        missing.append(f'MATERIAL? {_mc} ({_i["name"]})')
+                    else:
+                        _out.append({'itemId': IDS[_mc], 'qty': _qty, 'name': _disp})
+            if _note and 'sourceNote' not in _i:
+                _i['sourceNote'] = _note
+assert not WIKI_AUDIT, f'audit patches for unknown entries: {sorted(WIKI_AUDIT)}'
+
 pack = {'$schema': './schemas/gear-progression.schema.json', 'version': 1, 'phases': phases}
 
 
@@ -487,7 +695,7 @@ if missing:
     sys.exit(1)
 
 out = os.path.join(os.path.dirname(__file__), '../src/main/resources/data/gear-progression.json')
-with open(out, 'w') as f:
+if True:
     # ── POH build materials from the wiki (manual entries only) ──
     _here = os.path.dirname(os.path.abspath(__file__))
     item_names = json.load(open(os.path.join(_here, '../src/main/resources/data/index/item-names.json')))
@@ -505,10 +713,37 @@ with open(out, 'w') as f:
         titles.append(e['name'].replace(' ', '_'))
         titles.append(e['wiki'])
     pages = fetch_pages(list(dict.fromkeys(titles)), cache_dir)
-    # predecessor furniture appears as Recipe "materials" — the gear chain
-    # covers those tiers; they are not bankable items
-    furniture = {e['name'].lower() for e in manual_entries}
-    furniture.update({"rejuvenation pool", "ancient altar", "restoration pool", "gilded portal nexus", "portal nexus"})
+    # predecessor furniture appears as Recipe "materials": the build CONSUMES
+    # the previous tier, so it becomes a HARD GATE on the entry (Luke's ornate
+    # jewellery box report — you must have built the fancy box first), mapped
+    # to the pack's nearest ladder entry when the wiki tier isn't carried.
+    entry_by_lname = {e['name'].lower(): e for e in manual_entries}
+    furniture_alias = {
+        "rejuvenation pool": "restoration pool",              # pool tiers we skip
+        "ancient altar": "ancient / lunar / dark altar",
+        "gilded portal nexus": "marble portal nexus",
+        "portal nexus": "marble portal nexus",
+    }
+    furniture = set(entry_by_lname) | set(furniture_alias)
+
+    # apostrophes/hyphens/doses normalize differently than the constants
+    # ("Anti-venom(4)" vs ANTIVENOM4, "Curator's medallion" vs
+    # CURATORS_MEDALLION) — an underscore-collapsed index absorbs them all
+    collapsed = {}
+    for cn, cid in item_names.items():
+        collapsed.setdefault(cn.replace('_', ''), cid)
+    for cn, cid in IDS.items():
+        collapsed.setdefault(cn.replace('_', ''), cid)
+
+    def resolve_material(name):
+        key = normalize_item_name(name)
+        for k in (key, re.sub(r'_(\d+)$', r'\1', key)):
+            if k in item_names:
+                return item_names[k]
+            if k in IDS:
+                return IDS[k]
+        return collapsed.get(key.replace('_', ''))
+
     for entry in manual_entries:
         text = pages.get(entry['name'].replace(' ', '_')) or pages.get(entry['wiki'])
         if not text or "mat1" not in text:
@@ -517,14 +752,31 @@ with open(out, 'w') as f:
             continue
         materials = []
         for name, qty in parse_recipe_materials(text):
-            if name.lower() in furniture:
+            lname = name.lower()
+            if lname in furniture:
+                target = entry_by_lname.get(furniture_alias.get(lname, lname))
+                if target is not None and target is not entry:
+                    slug = re.sub(r'[^a-z0-9]+', '_', target['name'].lower()).strip('_')
+                    req = 'unlock:gearmark_' + slug
+                    if req not in entry['requirements']:
+                        entry['requirements'].append(req)
                 continue
-            item_id = item_names.get(normalize_item_name(name))
+            item_id = resolve_material(name)
             if item_id is None:
+                # a silently-dropped material shipped ornate's box without its
+                # 8 glories + 8 rings of wealth (2026-07-21) — fail loud now
+                missing.append(f'MATERIAL? {name} ({entry["name"]})')
                 continue
             materials.append({"itemId": item_id, "qty": qty, "name": name})
         if materials:
             entry['materials'] = materials
+
+# the write happens only once everything resolved — a fail-fast mid-write
+# used to truncate the shipped pack
+if missing:
+    print('\n'.join(missing), file=sys.stderr)
+    sys.exit(1)
+with open(out, 'w') as f:
     json.dump(pack, f, indent=2)
     f.write('\n')
 n = sum(len(g['items']) for p in phases for g in p['groups'])

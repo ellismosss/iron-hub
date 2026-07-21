@@ -375,6 +375,20 @@ public class GoalExpander
 			if (gearItem != null)
 			{
 				node.materials = gearItem.getMaterials();
+				// a mark-proven build (POH ladder tier) carries its OWN gates:
+				// "build the fancy box first" must chain Construction 86, the
+				// basic box and its materials, not sit as a bare tick (Luke's
+				// ornate jewellery box report)
+				if (gearItem.getRequirements() != null)
+				{
+					for (String req : gearItem.getRequirements())
+					{
+						for (String dep : expandRequirement(req, goalId, null))
+						{
+							node.dependsOn.add(dep);
+						}
+					}
+				}
 			}
 			if (unlockKey.startsWith("diarytask_"))
 			{

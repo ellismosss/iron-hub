@@ -24,7 +24,8 @@
                 "utility"
               ],
               "requirements": [
-                "skill:Thieving:15"
+                "skill:Thieving:15",
+                "diary:Ardougne:Easy"
               ],
               "wiki": "Ardougne_cloak"
             },
@@ -45,7 +46,9 @@
                 "melee",
                 "magic"
               ],
-              "requirements": [],
+              "requirements": [
+                "queststarted:Dragon Slayer I"
+              ],
               "wiki": "Anti-dragon_shield"
             }
           ]
@@ -62,6 +65,28 @@
               "requirements": [
                 "skill:Crafting:50",
                 "skill:Magic:49"
+              ],
+              "materials": [
+                {
+                  "itemId": 2357,
+                  "qty": 1,
+                  "name": "Gold bar"
+                },
+                {
+                  "itemId": 1603,
+                  "qty": 1,
+                  "name": "Ruby"
+                },
+                {
+                  "itemId": 564,
+                  "qty": 1,
+                  "name": "Cosmic rune"
+                },
+                {
+                  "itemId": 554,
+                  "qty": 5,
+                  "name": "Fire rune"
+                }
               ]
             },
             {
@@ -170,7 +195,20 @@
                 "ranged"
               ],
               "requirements": [
-                "skill:Ranged:20"
+                "skill:Ranged:20",
+                "skillb:Crafting:41"
+              ],
+              "materials": [
+                {
+                  "itemId": 1129,
+                  "qty": 1,
+                  "name": "Leather body"
+                },
+                {
+                  "itemId": 2370,
+                  "qty": 1,
+                  "name": "Steel studs"
+                }
               ]
             },
             {
@@ -180,7 +218,15 @@
                 "ranged"
               ],
               "requirements": [
-                "skill:Ranged:30"
+                "skill:Ranged:30",
+                "skillb:Crafting:53"
+              ],
+              "materials": [
+                {
+                  "itemId": 6289,
+                  "qty": 15,
+                  "name": "Snakeskin"
+                }
               ]
             },
             {
@@ -203,9 +249,17 @@
               ],
               "requirements": [
                 "quest:Dragon Slayer I",
-                "skill:Ranged:40"
+                "skill:Ranged:40",
+                "skillb:Crafting:63"
               ],
-              "wiki": "Green_d'hide_body"
+              "wiki": "Green_d'hide_body",
+              "materials": [
+                {
+                  "itemId": 1745,
+                  "qty": 3,
+                  "name": "Green dragon leather"
+                }
+              ]
             },
             {
               "name": "Magic shortbow",
@@ -214,7 +268,20 @@
                 "ranged"
               ],
               "requirements": [
-                "skill:Ranged:50"
+                "skill:Ranged:50",
+                "skillb:Fletching:80"
+              ],
+              "materials": [
+                {
+                  "itemId": 1513,
+                  "qty": 1,
+                  "name": "Magic logs"
+                },
+                {
+                  "itemId": 1777,
+                  "qty": 1,
+                  "name": "Bow string"
+                }
               ]
             },
             {
@@ -230,6 +297,13 @@
               "wiki": "Ava's_accumulator",
               "implies": [
                 "Ava's attractor"
+              ],
+              "materials": [
+                {
+                  "itemId": 886,
+                  "qty": 75,
+                  "name": "Steel arrow"
+                }
               ]
             }
           ]
@@ -245,7 +319,8 @@
               ],
               "requirements": [
                 "skill:Defence:40"
-              ]
+              ],
+              "sourceNote": "375+ honour points in every role, then a Penance Queen kill"
             },
             {
               "name": "Granite body",
@@ -256,7 +331,8 @@
               "requirements": [
                 "skill:Defence:50",
                 "skill:Strength:50"
-              ]
+              ],
+              "sourceNote": "Requires a Penance Queen kill; 95,000 coins"
             }
           ]
         },
@@ -320,7 +396,8 @@
                 "magic"
               ],
               "requirements": [
-                "skill:Magic:60"
+                "skill:Magic:60",
+                "quest:Mage Arena I"
               ],
               "wiki": "God_capes"
             },
@@ -390,7 +467,15 @@
                 "utility"
               ],
               "requirements": [
-                "quest:Below Ice Mountain"
+                "quest:Below Ice Mountain",
+                "skillb:Mining:14"
+              ],
+              "materials": [
+                {
+                  "itemId": 25676,
+                  "qty": 1250,
+                  "name": "Barronite shards"
+                }
               ]
             },
             {
@@ -437,7 +522,8 @@
               "requirements": [
                 "skill:Attack:65",
                 "skill:Strength:65",
-                "skill:Defence:60"
+                "skill:Defence:60",
+                "item:8850:1:Rune defender"
               ]
             },
             {
@@ -463,7 +549,8 @@
                 "magic"
               ],
               "requirements": [
-                "quest:Haunted Mine"
+                "quest:Haunted Mine",
+                "quest:Lair of Tarn Razorlor"
               ],
               "wiki": "Salve_amulet_(ei)",
               "exact": true
@@ -482,7 +569,8 @@
               "requirements": [
                 "quest:Defender of Varrock",
                 "skill:Attack:65",
-                "skillb:Smithing:70"
+                "skillb:Smithing:70",
+                "item:28813:1:Broken zombie axe"
               ]
             },
             {
@@ -520,7 +608,8 @@
               ],
               "requirements": [
                 "skill:Attack:70",
-                "skill:Strength:75"
+                "skill:Strength:75",
+                "quest:Perilous Moons"
               ]
             },
             {
@@ -531,7 +620,8 @@
               ],
               "requirements": [
                 "skill:Strength:75",
-                "skill:Defence:50"
+                "skill:Defence:50",
+                "quest:Perilous Moons"
               ]
             },
             {
@@ -542,7 +632,8 @@
               ],
               "requirements": [
                 "skill:Strength:75",
-                "skill:Defence:50"
+                "skill:Defence:50",
+                "quest:Perilous Moons"
               ]
             },
             {
@@ -554,7 +645,8 @@
               "requirements": [
                 "skill:Ranged:75",
                 "skill:Attack:50",
-                "skill:Strength:50"
+                "skill:Strength:50",
+                "quest:Perilous Moons"
               ]
             },
             {
@@ -565,7 +657,8 @@
               ],
               "requirements": [
                 "skill:Ranged:75",
-                "skill:Defence:50"
+                "skill:Defence:50",
+                "quest:Perilous Moons"
               ]
             },
             {
@@ -576,7 +669,8 @@
               ],
               "requirements": [
                 "skill:Attack:70",
-                "skill:Magic:75"
+                "skill:Magic:75",
+                "quest:Perilous Moons"
               ]
             },
             {
@@ -603,7 +697,21 @@
               ],
               "requirements": [
                 "skill:Ranged:60",
-                "skill:Defence:50"
+                "skill:Defence:50",
+                "quest:Children of the Sun",
+                "skillb:Crafting:68"
+              ],
+              "materials": [
+                {
+                  "itemId": 29292,
+                  "qty": 1,
+                  "name": "Mixed hide base"
+                },
+                {
+                  "itemId": 29218,
+                  "qty": 1,
+                  "name": "Jaguar fur"
+                }
               ]
             },
             {
@@ -614,7 +722,22 @@
               ],
               "requirements": [
                 "skill:Ranged:60",
-                "skill:Defence:50"
+                "skill:Defence:50",
+                "quest:Children of the Sun",
+                "skillb:Crafting:69",
+                "skillb:Hunter:72"
+              ],
+              "materials": [
+                {
+                  "itemId": 29292,
+                  "qty": 1,
+                  "name": "Mixed hide base"
+                },
+                {
+                  "itemId": 29177,
+                  "qty": 1,
+                  "name": "Sunlight antelope fur"
+                }
               ]
             },
             {
@@ -625,7 +748,8 @@
               ],
               "requirements": [
                 "skill:Magic:75",
-                "any:item:2412:1:Saradomin cape|item:2413:1:Guthix cape|item:2414:1:Zamorak cape"
+                "any:item:2412:1:Saradomin cape|item:2413:1:Guthix cape|item:2414:1:Zamorak cape",
+                "quest:Mage Arena II"
               ],
               "wiki": "Imbued_god_cape",
               "implies": [
@@ -679,7 +803,8 @@
               "requirements": [
                 "skillb:Slayer:58",
                 "skill:Strength:20",
-                "skill:Defence:10"
+                "skill:Defence:10",
+                "quest:Cabin Fever"
               ],
               "wiki": "Black_mask",
               "exact": true
@@ -691,7 +816,8 @@
                 "utility"
               ],
               "requirements": [
-                "skillb:Thieving:21"
+                "skillb:Thieving:21",
+                "queststarted:Icthlarin's Little Helper"
               ],
               "wiki": "Pharaoh's_sceptre"
             },
@@ -702,7 +828,15 @@
                 "melee"
               ],
               "requirements": [
-                "skill:Attack:75"
+                "skill:Attack:75",
+                "quest:Shadow of the Storm"
+              ],
+              "materials": [
+                {
+                  "itemId": 19677,
+                  "qty": 3,
+                  "name": "Ancient shard"
+                }
               ]
             },
             {
@@ -715,12 +849,40 @@
               ],
               "requirements": [
                 "skill:Slayer:58",
-                "item:8901:1:Black mask"
+                "item:8901:1:Black mask",
+                "skillb:Crafting:55"
               ],
               "wiki": "Slayer_helmet",
               "exact": true,
               "implies": [
                 "Black mask (i)"
+              ],
+              "materials": [
+                {
+                  "itemId": 4166,
+                  "qty": 1,
+                  "name": "Earmuffs"
+                },
+                {
+                  "itemId": 4164,
+                  "qty": 1,
+                  "name": "Facemask"
+                },
+                {
+                  "itemId": 4168,
+                  "qty": 1,
+                  "name": "Nose peg"
+                },
+                {
+                  "itemId": 4551,
+                  "qty": 1,
+                  "name": "Spiny helmet"
+                },
+                {
+                  "itemId": 4155,
+                  "qty": 1,
+                  "name": "Enchanted gem"
+                }
               ]
             },
             {
@@ -731,7 +893,8 @@
               ],
               "requirements": [],
               "wiki": "Ghommal's_hilt",
-              "exact": true
+              "exact": true,
+              "sourceNote": "Medium Combat Achievements reward"
             }
           ]
         },
@@ -767,7 +930,16 @@
                 "magic"
               ],
               "requirements": [
-                "skill:Magic:60"
+                "skill:Magic:60",
+                "item:30631:1:Fire element staff crown",
+                "item:30628:1:Ice element staff crown"
+              ],
+              "materials": [
+                {
+                  "itemId": 1391,
+                  "qty": 1,
+                  "name": "Battlestaff"
+                }
               ]
             },
             {
@@ -800,9 +972,22 @@
               "requirements": [
                 "skill:Ranged:66",
                 "skillb:Hunter:72",
-                "skillb:Fletching:74"
+                "skillb:Fletching:74",
+                "quest:Children of the Sun"
               ],
-              "wiki": "Hunters'_sunlight_crossbow"
+              "wiki": "Hunters'_sunlight_crossbow",
+              "materials": [
+                {
+                  "itemId": 29168,
+                  "qty": 1,
+                  "name": "Sunlight antelope antler"
+                },
+                {
+                  "itemId": 10156,
+                  "qty": 1,
+                  "name": "Hunters' crossbow"
+                }
+              ]
             },
             {
               "name": "Dragon hunter wand",
@@ -811,7 +996,8 @@
                 "magic"
               ],
               "requirements": [
-                "skill:Magic:65"
+                "skill:Magic:65",
+                "quest:Children of the Sun"
               ]
             }
           ]
@@ -888,7 +1074,8 @@
                 "quest:Roving Elves",
                 "skill:Attack:70",
                 "skill:Strength:35",
-                "skill:Agility:50"
+                "skill:Agility:50",
+                "diary:Western Provinces:Hard"
               ]
             },
             {
@@ -938,7 +1125,10 @@
                 "utility"
               ],
               "requirements": [
-                "item:12020:1:Gem bag"
+                "item:12020:1:Gem bag",
+                "skillb:Crafting:81",
+                "item:33390:1:Gem tote",
+                "item:33382:1:Immaculate mole skin"
               ],
               "implies": [
                 "Gem bag"
@@ -1002,7 +1192,8 @@
               "requirements": [
                 "quest:Beneath Cursed Sands",
                 "skillb:Crafting:75",
-                "item:12791:1:Rune pouch"
+                "item:12791:1:Rune pouch",
+                "item:27279:1:Thread of Elidinis"
               ],
               "implies": [
                 "Rune pouch"
@@ -1014,7 +1205,9 @@
               "categories": [
                 "utility"
               ],
-              "requirements": []
+              "requirements": [
+                "quest:Children of the Sun"
+              ]
             },
             {
               "name": "Basic quetzal whistle",
@@ -1023,7 +1216,8 @@
                 "utility"
               ],
               "requirements": [
-                "skill:Hunter:46"
+                "skill:Hunter:46",
+                "quest:Children of the Sun"
               ]
             },
             {
@@ -1044,7 +1238,8 @@
                 "utility"
               ],
               "requirements": [
-                "skill:Hunter:46"
+                "skill:Hunter:46",
+                "quest:Children of the Sun"
               ],
               "wiki": "Huntsman's_kit"
             },
@@ -1065,7 +1260,8 @@
                 "utility"
               ],
               "requirements": [
-                "skill:Farming:65"
+                "skill:Farming:65",
+                "kc:Hespori:1"
               ]
             },
             {
@@ -1075,7 +1271,8 @@
                 "utility"
               ],
               "requirements": [
-                "skillb:Mining:50"
+                "skillb:Mining:50",
+                "quest:Bone Voyage"
               ]
             }
           ]
@@ -1097,7 +1294,18 @@
               ],
               "requirements": [
                 "quest:Song of the Elves",
-                "skill:Ranged:80"
+                "skill:Ranged:80",
+                "skill:Agility:70",
+                "skillb:Smithing:82",
+                "skillb:Crafting:82",
+                "item:25859:1:Enhanced crystal weapon seed"
+              ],
+              "materials": [
+                {
+                  "itemId": 23962,
+                  "qty": 100,
+                  "name": "Crystal shard"
+                }
               ]
             },
             {
@@ -1109,9 +1317,19 @@
               "requirements": [
                 "quest:Song of the Elves",
                 "skill:Defence:70",
-                "skill:Agility:50"
+                "skill:Agility:50",
+                "skillb:Smithing:70",
+                "skillb:Crafting:70",
+                "item:23956:1:Crystal armour seed"
               ],
-              "wiki": "Crystal_armour"
+              "wiki": "Crystal_armour",
+              "materials": [
+                {
+                  "itemId": 23962,
+                  "qty": 50,
+                  "name": "Crystal shard"
+                }
+              ]
             },
             {
               "name": "Crystal body",
@@ -1122,9 +1340,19 @@
               "requirements": [
                 "quest:Song of the Elves",
                 "skill:Defence:70",
-                "skill:Agility:50"
+                "skill:Agility:50",
+                "skillb:Smithing:74",
+                "skillb:Crafting:74",
+                "item:23956:3:Crystal armour seed"
               ],
-              "wiki": "Crystal_armour"
+              "wiki": "Crystal_armour",
+              "materials": [
+                {
+                  "itemId": 23962,
+                  "qty": 150,
+                  "name": "Crystal shard"
+                }
+              ]
             },
             {
               "name": "Crystal legs",
@@ -1135,9 +1363,19 @@
               "requirements": [
                 "quest:Song of the Elves",
                 "skill:Defence:70",
-                "skill:Agility:50"
+                "skill:Agility:50",
+                "skillb:Smithing:72",
+                "skillb:Crafting:72",
+                "item:23956:2:Crystal armour seed"
               ],
-              "wiki": "Crystal_armour"
+              "wiki": "Crystal_armour",
+              "materials": [
+                {
+                  "itemId": 23962,
+                  "qty": 100,
+                  "name": "Crystal shard"
+                }
+              ]
             }
           ]
         },
@@ -1154,7 +1392,8 @@
               ],
               "requirements": [
                 "skillb:Crafting:90",
-                "skillb:Magic:87"
+                "skillb:Magic:87",
+                "item:6571:1:Uncut onyx"
               ]
             },
             {
@@ -1166,9 +1405,18 @@
               "requirements": [
                 "skill:Magic:60",
                 "skill:Defence:60",
-                "skillb:Runecraft:81"
+                "skillb:Runecraft:81",
+                "item:3387:1:Splitbark body",
+                "item:25481:1:Runescroll of bloodbark"
               ],
-              "wiki": "Bloodbark_armour"
+              "wiki": "Bloodbark_armour",
+              "materials": [
+                {
+                  "itemId": 565,
+                  "qty": 500,
+                  "name": "Blood rune"
+                }
+              ]
             },
             {
               "name": "Ava's assembler",
@@ -1185,6 +1433,13 @@
               "wiki": "Ava's_assembler",
               "implies": [
                 "Ava's accumulator"
+              ],
+              "materials": [
+                {
+                  "itemId": 888,
+                  "qty": 75,
+                  "name": "Mithril arrow"
+                }
               ]
             },
             {
@@ -1225,7 +1480,9 @@
                 "quest:Monkey Madness II",
                 "skill:Hitpoints:75",
                 "skillb:Magic:93",
-                "skillb:Crafting:92"
+                "skillb:Crafting:92",
+                "item:19529:1:Zenyte shard",
+                "item:6571:1:Uncut onyx"
               ]
             },
             {
@@ -1238,7 +1495,9 @@
                 "quest:Monkey Madness II",
                 "skill:Hitpoints:75",
                 "skillb:Magic:93",
-                "skillb:Crafting:98"
+                "skillb:Crafting:98",
+                "item:19529:1:Zenyte shard",
+                "item:6571:1:Uncut onyx"
               ]
             },
             {
@@ -1248,7 +1507,9 @@
                 "melee"
               ],
               "requirements": [
-                "skill:Attack:70"
+                "skill:Attack:70",
+                "item:11824:1:Zamorakian spear",
+                "quest:Barbarian Training"
               ]
             },
             {
@@ -1259,7 +1520,12 @@
               ],
               "requirements": [
                 "skill:Attack:75",
-                "kc:General Graardor:1"
+                "kc:General Graardor:1",
+                "skillb:Smithing:80",
+                "item:11812:1:Bandos hilt",
+                "item:11818:1:Godsword shard 1",
+                "item:11820:1:Godsword shard 2",
+                "item:11822:1:Godsword shard 3"
               ]
             }
           ]
@@ -1274,7 +1540,10 @@
                 "melee"
               ],
               "requirements": [
-                "skill:Attack:75"
+                "skill:Attack:75",
+                "item:27684:1:Voidwaker blade",
+                "item:27681:1:Voidwaker hilt",
+                "item:27687:1:Voidwaker gem"
               ]
             },
             {
@@ -1298,7 +1567,8 @@
               "exact": true,
               "implies": [
                 "Ghommal's hilt 2"
-              ]
+              ],
+              "sourceNote": "Elite Combat Achievements reward"
             }
           ]
         },
@@ -1325,7 +1595,8 @@
               "requirements": [
                 "skillb:Slayer:87",
                 "skill:Attack:75",
-                "item:4151:1:Abyssal whip"
+                "item:4151:1:Abyssal whip",
+                "item:12004:1:Kraken tentacle"
               ],
               "implies": [
                 "Abyssal whip"
@@ -1351,11 +1622,13 @@
                 "quest:While Guthix Sleeps",
                 "skill:Attack:77",
                 "skillb:Smithing:74",
-                "item:19675:1:Arclight"
+                "item:19675:1:Arclight",
+                "item:29580:1:Tormented synapse"
               ],
               "implies": [
                 "Arclight"
-              ]
+              ],
+              "sourceNote": "Requires a fully-charged or infused Arclight"
             },
             {
               "name": "Scorching bow",
@@ -1366,7 +1639,15 @@
               "requirements": [
                 "quest:While Guthix Sleeps",
                 "skill:Ranged:77",
-                "skillb:Fletching:74"
+                "skillb:Fletching:74",
+                "item:29580:1:Tormented synapse"
+              ],
+              "materials": [
+                {
+                  "itemId": 70,
+                  "qty": 1,
+                  "name": "Magic longbow (u)"
+                }
               ]
             },
             {
@@ -1379,7 +1660,21 @@
                 "quest:While Guthix Sleeps",
                 "skill:Magic:77",
                 "skill:Attack:50",
-                "skillb:Crafting:74"
+                "skillb:Crafting:74",
+                "item:29580:1:Tormented synapse",
+                "skill:Smithing:55"
+              ],
+              "materials": [
+                {
+                  "itemId": 1391,
+                  "qty": 1,
+                  "name": "Battlestaff"
+                },
+                {
+                  "itemId": 2351,
+                  "qty": 1,
+                  "name": "Iron bar"
+                }
               ]
             },
             {
@@ -1390,7 +1685,8 @@
               ],
               "requirements": [
                 "quest:While Guthix Sleeps",
-                "skill:Attack:60"
+                "skill:Attack:60",
+                "item:29574:2:Burning claw"
               ]
             },
             {
@@ -1414,7 +1710,31 @@
                 "quest:Monkey Madness II",
                 "skill:Hitpoints:75",
                 "skillb:Magic:93",
-                "skillb:Crafting:95"
+                "skillb:Crafting:95",
+                "item:19529:1:Zenyte shard",
+                "item:6571:1:Uncut onyx"
+              ],
+              "materials": [
+                {
+                  "itemId": 2357,
+                  "qty": 1,
+                  "name": "Gold bar"
+                },
+                {
+                  "itemId": 564,
+                  "qty": 1,
+                  "name": "Cosmic rune"
+                },
+                {
+                  "itemId": 566,
+                  "qty": 20,
+                  "name": "Soul rune"
+                },
+                {
+                  "itemId": 565,
+                  "qty": 20,
+                  "name": "Blood rune"
+                }
               ]
             },
             {
@@ -1449,10 +1769,35 @@
                 "quest:Monkey Madness II",
                 "skill:Hitpoints:75",
                 "skillb:Magic:93",
-                "skillb:Crafting:89"
+                "skillb:Crafting:89",
+                "item:19529:1:Zenyte shard",
+                "item:6571:1:Uncut onyx"
               ],
               "wiki": "Ring_of_suffering",
-              "exact": true
+              "exact": true,
+              "materials": [
+                {
+                  "itemId": 2357,
+                  "qty": 1,
+                  "name": "Gold bar"
+                },
+                {
+                  "itemId": 564,
+                  "qty": 1,
+                  "name": "Cosmic rune"
+                },
+                {
+                  "itemId": 566,
+                  "qty": 20,
+                  "name": "Soul rune"
+                },
+                {
+                  "itemId": 565,
+                  "qty": 20,
+                  "name": "Blood rune"
+                }
+              ],
+              "sourceNote": "Imbue: 725,000 NMZ points or 300 Soul Wars zeal"
             }
           ]
         },
@@ -1466,7 +1811,8 @@
                 "magic"
               ],
               "requirements": [
-                "skill:Magic:83"
+                "skill:Magic:83",
+                "kc:Doom of Mokhaiotl:1"
               ]
             },
             {
@@ -1479,10 +1825,18 @@
                 "skill:Hitpoints:90",
                 "skillb:Crafting:83",
                 "skillb:Smithing:70",
-                "item:19544:1:Tormented bracelet"
+                "item:19544:1:Tormented bracelet",
+                "item:31109:1:Mokhaiotl cloth"
               ],
               "implies": [
                 "Tormented bracelet"
+              ],
+              "materials": [
+                {
+                  "itemId": 31111,
+                  "qty": 10000,
+                  "name": "Demon tear"
+                }
               ]
             },
             {
@@ -1496,12 +1850,22 @@
               "requirements": [
                 "item:13239:1:Primordial boots",
                 "item:13235:1:Eternal boots",
-                "item:13237:1:Pegasian boots"
+                "item:13237:1:Pegasian boots",
+                "kc:Doom of Mokhaiotl:1",
+                "skillb:Magic:80",
+                "skillb:Runecraft:60"
               ],
               "implies": [
                 "Primordial boots",
                 "Eternal boots",
                 "Pegasian boots"
+              ],
+              "materials": [
+                {
+                  "itemId": 31111,
+                  "qty": 12000,
+                  "name": "Demon tear"
+                }
               ]
             }
           ]
@@ -1542,7 +1906,11 @@
               "requirements": [
                 "skillb:Slayer:91",
                 "skill:Strength:75",
-                "skill:Defence:75"
+                "skill:Defence:75",
+                "item:13231:1:Primordial crystal",
+                "item:11840:1:Dragon boots",
+                "skill:Magic:60",
+                "skill:Runecraft:60"
               ],
               "implies": [
                 "Dragon boots"
@@ -1557,7 +1925,11 @@
               "requirements": [
                 "skillb:Slayer:91",
                 "skill:Magic:75",
-                "skill:Defence:75"
+                "skill:Defence:75",
+                "item:13227:1:Eternal crystal",
+                "item:6920:1:Infinity boots",
+                "skill:Magic:60",
+                "skill:Runecraft:60"
               ],
               "implies": [
                 "Infinity boots"
@@ -1572,7 +1944,11 @@
               "requirements": [
                 "skillb:Slayer:91",
                 "skill:Ranged:75",
-                "skill:Defence:75"
+                "skill:Defence:75",
+                "item:13229:1:Pegasian crystal",
+                "item:2577:1:Ranger boots",
+                "skill:Magic:60",
+                "skill:Runecraft:60"
               ]
             },
             {
@@ -1584,7 +1960,9 @@
               "requirements": [
                 "skillb:Slayer:92",
                 "skill:Hitpoints:90",
-                "item:19553:1:Amulet of torture"
+                "item:19553:1:Amulet of torture",
+                "skillb:Crafting:86",
+                "item:29799:1:Araxyte fang"
               ],
               "implies": [
                 "Amulet of torture"
@@ -1600,7 +1978,8 @@
                 "quest:Dragon Slayer II",
                 "skillb:Slayer:95",
                 "skill:Attack:80",
-                "skill:Defence:80"
+                "skill:Defence:80",
+                "item:22983:1:Hydra leather"
               ]
             }
           ]
@@ -1617,7 +1996,8 @@
               "requirements": [
                 "skill:Ranged:75",
                 "kc:Zulrah:1",
-                "skillb:Fletching:78"
+                "skillb:Fletching:78",
+                "item:12922:1:Tanzanite fang"
               ]
             },
             {
@@ -1630,7 +2010,8 @@
               "requirements": [
                 "kc:Zulrah:1",
                 "skill:Defence:75",
-                "skillb:Crafting:52"
+                "skillb:Crafting:52",
+                "item:12927:1:Serpentine visage"
               ]
             },
             {
@@ -1715,7 +2096,8 @@
                 "quest:The Fremennik Exiles",
                 "skill:Defence:70",
                 "skill:Slayer:60",
-                "item:10828:1:Helm of Neitiznot"
+                "item:10828:1:Helm of Neitiznot",
+                "item:24268:1:Basilisk jaw"
               ],
               "implies": [
                 "Helm of Neitiznot"
@@ -1739,7 +2121,8 @@
                 "melee"
               ],
               "requirements": [
-                "kc:TzKal-Zuk:1"
+                "kc:TzKal-Zuk:1",
+                "item:6570:1:Fire cape"
               ],
               "implies": [
                 "Fire cape"
@@ -1753,7 +2136,8 @@
               ],
               "requirements": [
                 "kc:Yama:1",
-                "skill:Defence:78"
+                "skill:Defence:78",
+                "quest:A Kingdom Divided"
               ],
               "wiki": "Oathplate_armour"
             },
@@ -1765,7 +2149,8 @@
               ],
               "requirements": [
                 "kc:Yama:1",
-                "skill:Defence:78"
+                "skill:Defence:78",
+                "quest:A Kingdom Divided"
               ],
               "wiki": "Oathplate_armour"
             },
@@ -1777,7 +2162,8 @@
               ],
               "requirements": [
                 "kc:Yama:1",
-                "skill:Defence:78"
+                "skill:Defence:78",
+                "quest:A Kingdom Divided"
               ],
               "wiki": "Oathplate_armour"
             },
@@ -1790,9 +2176,23 @@
               "requirements": [
                 "quest:Desert Treasure II - The Fallen Empire",
                 "skillb:Magic:90",
-                "skillb:Crafting:80"
+                "skillb:Crafting:80",
+                "item:28285:1:Ultor vestige",
+                "item:6737:1:Berserker ring"
               ],
-              "wiki": "Ultor_ring"
+              "wiki": "Ultor_ring",
+              "materials": [
+                {
+                  "itemId": 28276,
+                  "qty": 3,
+                  "name": "Chromium ingot"
+                },
+                {
+                  "itemId": 565,
+                  "qty": 500,
+                  "name": "Blood rune"
+                }
+              ]
             },
             {
               "name": "Dizana's quiver",
@@ -1802,7 +2202,8 @@
               ],
               "requirements": [
                 "kc:Sol Heredit:1",
-                "skill:Ranged:75"
+                "skill:Ranged:75",
+                "quest:Children of the Sun"
               ],
               "wiki": "Dizana's_quiver"
             }
@@ -1820,7 +2221,8 @@
               "requirements": [
                 "skill:Attack:70",
                 "skill:Defence:70",
-                "item:12954:1:Dragon defender"
+                "item:12954:1:Dragon defender",
+                "item:22477:1:Avernic defender hilt"
               ],
               "implies": [
                 "Dragon defender"
@@ -1858,7 +2260,21 @@
               "requirements": [
                 "quest:Desert Treasure II - The Fallen Empire",
                 "skillb:Magic:90",
-                "skillb:Crafting:80"
+                "skillb:Crafting:80",
+                "item:28281:1:Magus vestige",
+                "item:6731:1:Seers ring"
+              ],
+              "materials": [
+                {
+                  "itemId": 28276,
+                  "qty": 3,
+                  "name": "Chromium ingot"
+                },
+                {
+                  "itemId": 565,
+                  "qty": 500,
+                  "name": "Blood rune"
+                }
               ]
             },
             {
@@ -1936,7 +2352,10 @@
               "requirements": [
                 "quest:Beneath Cursed Sands",
                 "skill:Ranged:80",
-                "skill:Defence:80"
+                "skill:Defence:80",
+                "skillb:Crafting:90",
+                "item:27226:1:Masori mask",
+                "item:27269:1:Armadylean plate"
               ],
               "wiki": "Masori_armour"
             },
@@ -1949,7 +2368,10 @@
               "requirements": [
                 "quest:Beneath Cursed Sands",
                 "skill:Ranged:80",
-                "skill:Defence:80"
+                "skill:Defence:80",
+                "skillb:Crafting:90",
+                "item:27229:1:Masori body",
+                "item:27269:4:Armadylean plate"
               ],
               "wiki": "Masori_armour"
             },
@@ -1962,7 +2384,10 @@
               "requirements": [
                 "quest:Beneath Cursed Sands",
                 "skill:Ranged:80",
-                "skill:Defence:80"
+                "skill:Defence:80",
+                "skillb:Crafting:90",
+                "item:27232:1:Masori chaps",
+                "item:27269:3:Armadylean plate"
               ],
               "wiki": "Masori_armour"
             },
@@ -1976,9 +2401,20 @@
                 "quest:Beneath Cursed Sands",
                 "skill:Magic:80",
                 "skill:Defence:80",
-                "skill:Prayer:80"
+                "skill:Prayer:80",
+                "skillb:Prayer:90",
+                "skillb:Smithing:90",
+                "item:25985:1:Elidinis' ward",
+                "item:12827:1:Arcane sigil"
               ],
-              "wiki": "Elidinis'_ward"
+              "wiki": "Elidinis'_ward",
+              "materials": [
+                {
+                  "itemId": 566,
+                  "qty": 10000,
+                  "name": "Soul rune"
+                }
+              ]
             },
             {
               "name": "Saturated heart",
@@ -1987,7 +2423,15 @@
                 "magic"
               ],
               "requirements": [
-                "skill:Magic:98"
+                "skill:Magic:98",
+                "item:20724:1:Imbued heart"
+              ],
+              "materials": [
+                {
+                  "itemId": 27616,
+                  "qty": 150000,
+                  "name": "Ancient essence"
+                }
               ]
             },
             {
@@ -1998,7 +2442,16 @@
               ],
               "requirements": [
                 "skill:Ranged:80",
-                "kc:Nex:1"
+                "kc:Nex:1",
+                "item:11785:1:Armadyl crossbow",
+                "item:26372:1:Nihil horn"
+              ],
+              "materials": [
+                {
+                  "itemId": 26231,
+                  "qty": 250,
+                  "name": "Nihil shard"
+                }
               ]
             },
             {
@@ -2040,7 +2493,21 @@
               "requirements": [
                 "quest:Desert Treasure II - The Fallen Empire",
                 "skillb:Magic:90",
-                "skillb:Crafting:80"
+                "skillb:Crafting:80",
+                "item:28283:1:Venator vestige",
+                "item:6733:1:Archers ring"
+              ],
+              "materials": [
+                {
+                  "itemId": 28276,
+                  "qty": 3,
+                  "name": "Chromium ingot"
+                },
+                {
+                  "itemId": 565,
+                  "qty": 500,
+                  "name": "Blood rune"
+                }
               ]
             },
             {
@@ -2052,7 +2519,21 @@
               "requirements": [
                 "quest:Desert Treasure II - The Fallen Empire",
                 "skillb:Magic:90",
-                "skillb:Crafting:80"
+                "skillb:Crafting:80",
+                "item:28279:1:Bellator vestige",
+                "item:6735:1:Warrior ring"
+              ],
+              "materials": [
+                {
+                  "itemId": 28276,
+                  "qty": 3,
+                  "name": "Chromium ingot"
+                },
+                {
+                  "itemId": 565,
+                  "qty": 500,
+                  "name": "Blood rune"
+                }
               ]
             },
             {
@@ -2064,7 +2545,19 @@
               "requirements": [
                 "quest:Desert Treasure II - The Fallen Empire",
                 "skill:Attack:80",
-                "skill:Strength:80"
+                "skill:Strength:80",
+                "skill:Magic:75",
+                "item:28325:1:Leviathan's lure",
+                "item:28323:1:Siren's staff",
+                "item:28319:1:Executioner's axe head",
+                "item:28321:1:Eye of the duke"
+              ],
+              "materials": [
+                {
+                  "itemId": 565,
+                  "qty": 2000,
+                  "name": "Blood rune"
+                }
               ]
             },
             {
@@ -2075,7 +2568,10 @@
               ],
               "requirements": [
                 "skill:Defence:80",
-                "kc:Nex:1"
+                "kc:Nex:1",
+                "skillb:Smithing:90",
+                "item:26378:1:Torva platebody (damaged)",
+                "item:26394:2:Bandosian components"
               ],
               "wiki": "Torva_armour"
             }
@@ -2207,6 +2703,26 @@
                   "itemId": 1761,
                   "qty": 6,
                   "name": "Soft clay"
+                },
+                {
+                  "itemId": 7488,
+                  "qty": 1,
+                  "name": "Brown spice (4)"
+                },
+                {
+                  "itemId": 7484,
+                  "qty": 1,
+                  "name": "Orange spice (4)"
+                },
+                {
+                  "itemId": 7480,
+                  "qty": 1,
+                  "name": "Red spice (4)"
+                },
+                {
+                  "itemId": 7492,
+                  "qty": 1,
+                  "name": "Yellow spice (4)"
                 }
               ]
             },
@@ -2484,6 +3000,16 @@
                   "itemId": 2353,
                   "qty": 1,
                   "name": "Steel bar"
+                },
+                {
+                  "itemId": 2552,
+                  "qty": 3,
+                  "name": "Ring of dueling(8)"
+                },
+                {
+                  "itemId": 3853,
+                  "qty": 3,
+                  "name": "Games necklace(8)"
                 }
               ]
             },
@@ -2510,6 +3036,11 @@
                   "itemId": 4692,
                   "qty": 1,
                   "name": "Gold leaf"
+                },
+                {
+                  "itemId": 22710,
+                  "qty": 1,
+                  "name": "Curator's medallion"
                 }
               ]
             },
@@ -2520,7 +3051,8 @@
                 "poh"
               ],
               "requirements": [
-                "skillb:Construction:85"
+                "skillb:Construction:85",
+                "unlock:gearmark_restoration_pool"
               ],
               "wiki": "Fancy_rejuvenation_pool",
               "iconFile": "poh/fancy_pool.png",
@@ -2532,6 +3064,11 @@
                   "itemId": 8786,
                   "qty": 2,
                   "name": "Marble block"
+                },
+                {
+                  "itemId": 3024,
+                  "qty": 10,
+                  "name": "Super restore(4)"
                 }
               ]
             },
@@ -2567,7 +3104,8 @@
                 "poh"
               ],
               "requirements": [
-                "skillb:Construction:86"
+                "skillb:Construction:86",
+                "unlock:gearmark_basic_jewellery_box"
               ],
               "wiki": "Jewellery_box",
               "iconFile": "poh/fancy_jewellery_box.png",
@@ -2579,6 +3117,16 @@
                   "itemId": 4692,
                   "qty": 1,
                   "name": "Gold leaf"
+                },
+                {
+                  "itemId": 11118,
+                  "qty": 5,
+                  "name": "Combat bracelet(4)"
+                },
+                {
+                  "itemId": 11105,
+                  "qty": 5,
+                  "name": "Skills necklace(4)"
                 }
               ]
             },
@@ -2591,7 +3139,8 @@
               "requirements": [
                 "skillb:Construction:90",
                 "quest:Lunar Diplomacy",
-                "quest:Desert Treasure I"
+                "quest:Desert Treasure I",
+                "unlock:gearmark_ancient_lunar_dark_altar"
               ],
               "wiki": "Occult_altar",
               "iconFile": "poh/occult_altar.png",
@@ -2633,7 +3182,8 @@
                 "poh"
               ],
               "requirements": [
-                "skillb:Construction:90"
+                "skillb:Construction:90",
+                "unlock:gearmark_fancy_rejuvenation_pool"
               ],
               "wiki": "Ornate_rejuvenation_pool",
               "iconFile": "poh/ornate_pool.png",
@@ -2645,6 +3195,11 @@
                   "itemId": 4692,
                   "qty": 5,
                   "name": "Gold leaf"
+                },
+                {
+                  "itemId": 12905,
+                  "qty": 10,
+                  "name": "Anti-venom(4)"
                 },
                 {
                   "itemId": 565,
@@ -2660,7 +3215,8 @@
                 "poh"
               ],
               "requirements": [
-                "skillb:Construction:91"
+                "skillb:Construction:91",
+                "unlock:gearmark_fancy_jewellery_box"
               ],
               "wiki": "Jewellery_box",
               "iconFile": "poh/ornate_jewellery_box.png",
@@ -2672,6 +3228,16 @@
                   "itemId": 4692,
                   "qty": 2,
                   "name": "Gold leaf"
+                },
+                {
+                  "itemId": 11980,
+                  "qty": 8,
+                  "name": "Ring of wealth (5)"
+                },
+                {
+                  "itemId": 1712,
+                  "qty": 8,
+                  "name": "Amulet of glory(4)"
                 }
               ]
             },
@@ -2682,7 +3248,8 @@
                 "poh"
               ],
               "requirements": [
-                "skillb:Construction:92"
+                "skillb:Construction:92",
+                "unlock:gearmark_marble_portal_nexus"
               ],
               "wiki": "Portal_Nexus",
               "iconFile": "poh/crystalline_nexus.png",
@@ -2752,6 +3319,18 @@
               "requirements": [
                 "skill:Ranged:45",
                 "skillb:Fletching:58"
+              ],
+              "materials": [
+                {
+                  "itemId": 32904,
+                  "qty": 2,
+                  "name": "Camphor logs"
+                },
+                {
+                  "itemId": 31572,
+                  "qty": 1,
+                  "name": "Squid beak"
+                }
               ]
             },
             {
@@ -2764,6 +3343,18 @@
               "requirements": [
                 "skill:Ranged:55",
                 "skillb:Fletching:72"
+              ],
+              "materials": [
+                {
+                  "itemId": 32907,
+                  "qty": 2,
+                  "name": "Ironwood logs"
+                },
+                {
+                  "itemId": 31572,
+                  "qty": 1,
+                  "name": "Squid beak"
+                }
               ]
             }
           ]
