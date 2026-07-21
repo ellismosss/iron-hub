@@ -491,6 +491,65 @@ public class GoalPlannerModule implements IronHubModule
 		return currentPlan;
 	}
 
+	/** The home header's goal-bar snapshot: name + route progress 0..1. */
+	public static final class NextGoal
+	{
+		public final String name;
+		public final double fraction;
+
+		NextGoal(String name, double fraction)
+		{
+			this.name = name;
+			this.fraction = fraction;
+		}
+	}
+
+	/**
+	 * The goal the current plan will FINISH first — the one whose remaining
+	 * work ends earliest in route order (ties: seen first in the plan) —
+	 * with the same route progress the Goals hub shows. Null when no plan
+	 * has landed or nothing is selected.
+	 */
+	public NextGoal nextGoal()
+	{
+		com.ironhub.engine.Plan plan = currentPlan;
+		GoalsPack goals = pack;
+		if (plan == null || goals == null)
+		{
+			return null;
+		}
+		java.util.Map<String, Integer> lastStep = new java.util.LinkedHashMap<>();
+		for (int i = 0; i < plan.steps.size(); i++)
+		{
+			for (String goalId : plan.steps.get(i).action.neededBy)
+			{
+				lastStep.put(goalId, i);
+			}
+		}
+		String nextId = null;
+		int best = Integer.MAX_VALUE;
+		for (java.util.Map.Entry<String, Integer> e : lastStep.entrySet())
+		{
+			if (e.getValue() < best) // strict: ties keep the earlier-seen goal
+			{
+				best = e.getValue();
+				nextId = e.getKey();
+			}
+		}
+		if (nextId == null)
+		{
+			return null;
+		}
+		for (GoalsPack.Goal goal : allGoals(goals, gearPack, state))
+		{
+			if (nextId.equals(goal.getId()))
+			{
+				return new NextGoal(goal.getName(), progress(goal, state));
+			}
+		}
+		return null;
+	}
+
 	/**
 	 * What the current plan is working toward, as cheap set-membership
 	 * queries — the cross-module seam (2026-07-20 intelligence arc; replaces
@@ -605,12 +664,13 @@ public class GoalPlannerModule implements IronHubModule
 		return sessionStartPlanHours;
 	}
 
-	void addPlanListener(Runnable listener)
+	/** Public: the home header's goal bar listens alongside the Goals tab. */
+	public void addPlanListener(Runnable listener)
 	{
 		planListeners.add(listener);
 	}
 
-	void removePlanListener(Runnable listener)
+	public void removePlanListener(Runnable listener)
 	{
 		planListeners.remove(listener);
 	}

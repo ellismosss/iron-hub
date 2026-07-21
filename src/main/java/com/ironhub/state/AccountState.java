@@ -206,6 +206,10 @@ public class AccountState implements StateView
 	/** Last-seen ACCOUNT_TYPE varbit value; -1 = never seen (see accountType). */
 	private volatile int accountType = -1;
 
+	/** The local player's display name; "" = never seen logged in. Persisted
+	 *  so the home header greets the right character offline. */
+	private volatile String playerName = "";
+
 	private volatile long profile = -1;
 
 	/** Bumped by activateProfile; modules holding per-profile caches compare
@@ -437,6 +441,12 @@ public class AccountState implements StateView
 	public int getVarbit(int varbitId)
 	{
 		return varbitValues.getOrDefault(varbitId, 0);
+	}
+
+	/** The local player's display name; "" until first seen logged in. */
+	public String playerName()
+	{
+		return playerName;
 	}
 
 	// ── account type (G8, iron-first honesty) ─────────────────────────────
@@ -2050,6 +2060,12 @@ public class AccountState implements StateView
 		{
 			return;
 		}
+		net.runelite.api.Player local = client.getLocalPlayer();
+		if (local != null)
+		{
+			// the name arrives a beat after LOGGED_IN; ingest no-ops once seen
+			ingestPlayerName(local.getName());
+		}
 		if (questsDirty && tick - lastQuestRefreshTick >= QUEST_REFRESH_TICKS)
 		{
 			refreshQuests();
@@ -2086,6 +2102,16 @@ public class AccountState implements StateView
 	}
 
 	// ── ingestion internals (package-private for tests) ───────────────
+
+	void ingestPlayerName(String name)
+	{
+		if (name != null && !name.isEmpty() && !name.equals(playerName))
+		{
+			playerName = name;
+			persist();
+			notifyListeners(); // rare (login/name change) — broadcast is fine
+		}
+	}
 
 	void ingestStat(Skill skill, int level, int experience)
 	{
@@ -2285,6 +2311,7 @@ public class AccountState implements StateView
 		bank = Map.copyOf(persisted.bank);
 		bankTimestamp = persisted.bankTimestamp;
 		accountType = persisted.accountType;
+		playerName = persisted.playerName == null ? "" : persisted.playerName;
 		itemNames.clear();
 		itemNames.putAll(persisted.itemNames);
 		unlocks.clear();
@@ -2468,6 +2495,7 @@ public class AccountState implements StateView
 		state.bank = new HashMap<>(bank);
 		state.bankTimestamp = bankTimestamp;
 		state.accountType = accountType;
+		state.playerName = playerName;
 		state.itemNames = new HashMap<>(itemNames);
 		state.unlocks = new HashSet<>(unlocks);
 		state.moneyFavourites = new HashSet<>(moneyFavourites);

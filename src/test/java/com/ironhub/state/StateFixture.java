@@ -35,6 +35,11 @@ public final class StateFixture
 		return new ProfileStore(new Gson(), Runnable::run, storageDir);
 	}
 
+	public static void playerName(AccountState state, String name)
+	{
+		state.ingestPlayerName(name);
+	}
+
 	public static void stat(AccountState state, Skill skill, int level, int xp)
 	{
 		state.ingestStat(skill, level, xp);

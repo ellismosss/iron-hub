@@ -209,6 +209,36 @@ public class GoalPlannerTest
 		assertEquals(0, module.plannedTargetLevel(Skill.FLETCHING));
 	}
 
+	/** The home header's goal bar: nextGoal names the plan's earliest finisher. */
+	@Test
+	public void nextGoalNamesThePlanEarliestFinisher() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		// a short skill chain vs the bowfa grind — the chain finishes first
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.custom(
+			"custom:skill:fletching:70", "Fletching 70", "skill:Fletching:70"));
+		state.selectGoal("bowfa", true);
+		StateFixture.stat(state, Skill.FLETCHING, 50, 101_333);
+
+		GoalPlannerModule module = new GoalPlannerModule(state, new IronHubConfig()
+		{
+		}, new DataPack(new Gson()), null);
+		assertTrue(module.nextGoal() == null); // no plan yet — bar stays honest
+		module.startUp();
+		for (int i = 0; i < 50 && module.currentPlan() == null; i++)
+		{
+			Thread.sleep(100);
+		}
+		assertNotNull(module.currentPlan());
+
+		GoalPlannerModule.NextGoal next = module.nextGoal();
+		assertNotNull(next);
+		assertEquals("Fletching 70", next.name);
+		assertTrue(next.fraction >= 0 && next.fraction < 1); // 50 -> 70: underway, not done
+		module.shutDown();
+	}
+
 	@Test
 	public void tabRendersHeadless() throws Exception
 	{
@@ -223,17 +253,27 @@ public class GoalPlannerTest
 		module.startUp();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
-		// wait out the debounced replan and drain its queued EDT rebuild —
-		// rendering mid-replan races removeAll() (the documented
-		// mutate-then-render lesson; exposed here by suite-load timing)
+		// wait out the debounced replan, then poll for a SETTLED render on the
+		// EDT: currentPlan lands before the listener rebuild is even queued,
+		// so a single drain still races removeAll() under suite load (the
+		// mutate-then-render lesson, 5th appearance). Rendering on the EDT
+		// serializes with the rebuild; polling waits the notify gap out.
 		for (int i = 0; i < 50 && module.currentPlan() == null; i++)
 		{
 			Thread.sleep(100);
 		}
-		javax.swing.SwingUtilities.invokeAndWait(() ->
+		assertNotNull(module.currentPlan());
+		java.awt.image.BufferedImage[] rendered = new java.awt.image.BufferedImage[1];
+		for (int i = 0; i < 50; i++)
 		{
-		});
-		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
+			javax.swing.SwingUtilities.invokeAndWait(() -> rendered[0] = SwingRender.render((JPanel) tab));
+			if (rendered[0].getHeight() > 200)
+			{
+				break;
+			}
+			Thread.sleep(100);
+		}
+		java.awt.image.BufferedImage image = rendered[0];
 		assertTrue(image.getHeight() > 200);
 		java.io.File out = new java.io.File("build/reports/goals-tab.png");
 		out.getParentFile().mkdirs();

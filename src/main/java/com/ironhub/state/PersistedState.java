@@ -21,6 +21,8 @@ public class PersistedState
 	 *  -1 = never seen. Persisted so UIM honesty holds before the first login
 	 *  varbit read. */
 	int accountType = -1;
+	/** The local player's display name; "" = never seen logged in. */
+	String playerName = "";
 	Map<Integer, String> itemNames = new HashMap<>();
 	Set<String> unlocks = new HashSet<>();
 	Map<String, Integer> killCounts = new HashMap<>();

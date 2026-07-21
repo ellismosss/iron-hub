@@ -53,6 +53,7 @@ public class HomePanel extends JPanel
 	};
 
 	private final AccountState state;
+	private final com.ironhub.modules.goals.GoalPlannerModule planner; // null headless
 	private final OsrsTheme theme;
 	private final java.util.function.Consumer<String> onBlock;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::refresh);
@@ -70,10 +71,11 @@ public class HomePanel extends JPanel
 	private String selectedBlock;
 	private long statsFingerprint = -1;
 
-	public HomePanel(AccountState state, OsrsTheme theme,
-		java.util.function.Consumer<String> onBlock)
+	public HomePanel(AccountState state, com.ironhub.modules.goals.GoalPlannerModule planner,
+		OsrsTheme theme, java.util.function.Consumer<String> onBlock)
 	{
 		this.state = state;
+		this.planner = planner;
 		this.theme = theme;
 		this.onBlock = onBlock;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -97,12 +99,22 @@ public class HomePanel extends JPanel
 		add(Box.createVerticalGlue());
 
 		state.addListener(listener);
+		if (planner != null)
+		{
+			// replans land off the state-listener path — hear them too, or the
+			// goal bar lags the plan by one unrelated state change
+			planner.addPlanListener(listener);
+		}
 		rebuild();
 	}
 
 	public void dispose()
 	{
 		state.removeListener(listener);
+		if (planner != null)
+		{
+			planner.removePlanListener(listener);
+		}
 	}
 
 	/** Skill ingestion fires constantly; only re-render when the summary moved. */
@@ -117,12 +129,20 @@ public class HomePanel extends JPanel
 
 	private long fingerprint()
 	{
-		long xp = 0;
+		long fp = 0;
 		for (Skill skill : Skill.values())
 		{
-			xp += state.getXp(skill);
+			fp += state.getXp(skill);
 		}
-		return xp;
+		fp = fp * 31 + state.playerName().hashCode();
+		com.ironhub.modules.goals.GoalPlannerModule.NextGoal next =
+			planner == null ? null : planner.nextGoal();
+		if (next != null)
+		{
+			fp = fp * 31 + next.name.hashCode();
+			fp = fp * 31 + Math.round(next.fraction * 1000);
+		}
+		return fp;
 	}
 
 	private void rebuild()
@@ -130,8 +150,9 @@ public class HomePanel extends JPanel
 		statsFingerprint = fingerprint();
 		frame.removeAll();
 		frame.add(strut(4));
-		// the player's in-game name once the wiring lands; the plugin's until then
-		frame.add(centered(OsrsLabel.title("Iron Hub")));
+		// the player's in-game name; the plugin's until first seen logged in
+		String name = state.playerName();
+		frame.add(centered(OsrsLabel.title(name.isEmpty() ? "Iron Hub" : name)));
 		frame.add(strut(4));
 		frame.add(summary());
 		frame.add(strut(6));
@@ -266,14 +287,31 @@ public class HomePanel extends JPanel
 		return panel;
 	}
 
-	/** "Progress to next goal": a bar where a stat box would carry its value. */
+	/**
+	 * "Progress to next goal": the goal the plan finishes FIRST, at the same
+	 * route progress the Goals hub shows for it; the goal's name rides the
+	 * tooltip (225px has no room for it beside the bar). No plan or no goals
+	 * = an honest empty bar, never an invented figure.
+	 */
 	private JComponent goalBox()
 	{
 		StonePanel box = new StonePanel(theme);
 		box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
 		box.add(OsrsLabel.label("Progress to\nnext goal:"));
 		box.add(Box.createVerticalStrut(3));
-		box.add(new StoneProgressBar(theme, GOAL_BLUE, 0.31).labels(null, "31%", null));
+		com.ironhub.modules.goals.GoalPlannerModule.NextGoal next =
+			planner == null ? null : planner.nextGoal();
+		if (next == null)
+		{
+			box.add(new StoneProgressBar(theme, GOAL_BLUE, 0).labels(null, "—", null));
+			box.setToolTipText("No active goal — add one under Goals");
+		}
+		else
+		{
+			box.add(new StoneProgressBar(theme, GOAL_BLUE, next.fraction)
+				.labels(null, Math.round(next.fraction * 100) + "%", null));
+			box.setToolTipText(next.name);
+		}
 		return box;
 	}
 

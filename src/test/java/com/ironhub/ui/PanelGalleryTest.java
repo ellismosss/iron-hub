@@ -24,9 +24,10 @@ public class PanelGalleryTest
 	{
 		com.ironhub.state.AccountState state =
 			com.ironhub.state.StateFixture.state(temp.getRoot());
+		com.ironhub.state.StateFixture.playerName(state, "Iron Luke");
 		for (com.ironhub.ui.osrs.OsrsTheme theme : com.ironhub.ui.osrs.OsrsTheme.values())
 		{
-			HomePanel home = new HomePanel(state, theme, name -> {});
+			HomePanel home = new HomePanel(state, null, theme, name -> {});
 			BufferedImage image = SwingRender.render(home);
 			assertEquals(UiTokens.PANEL_WIDTH, image.getWidth());
 			assertTrue(image.getHeight() > 150);
