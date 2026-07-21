@@ -22,9 +22,15 @@ public class LinkInTest
 		data = new DataService().load();
 	}
 
-	private static LoadoutLabPanel panel(AtomicReference<MonsterStats> computed)
+	static LoadoutLabPanel panel(AtomicReference<MonsterStats> computed)
 	{
-		return new LoadoutLabPanel(data,
+		return panel(data, computed);
+	}
+
+	/** Shared with PanelResultsRenderTest — its own corpus, no static coupling. */
+	static LoadoutLabPanel panel(LoadoutData corpus, AtomicReference<MonsterStats> computed)
+	{
+		return new LoadoutLabPanel(corpus,
 			Mockito.mock(ItemManager.class, Mockito.RETURNS_DEEP_STUBS),
 			Mockito.mock(SpriteManager.class),
 			(monster, f2p, slayer, book, maxTradeables, riskBudget, antifire, budget, mode, onDone) -> computed.set(monster),

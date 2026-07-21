@@ -511,24 +511,53 @@ public class LoadoutLabModule implements IronHubModule
 		return strip;
 	}
 
-	/** Slayer task wins for planning; the last fight/kill breaks ties. */
+	/** The activity the tips/setups serve: whatever changed LAST (a fresh
+	 *  task assignment or a new fight both re-aim the calc — Luke). */
 	private String activity()
 	{
-		return !state.getCombatNpcName().isEmpty()
+		return !lastAutoSelected.isEmpty() ? lastAutoSelected
+			: !state.getCombatNpcName().isEmpty()
 			? state.getCombatNpcName() : state.getSlayerTask();
 	}
+
+	/** Change-edge snapshots: whichever of task/fight moved most RECENTLY
+	 *  wins the auto-follow, so a new assignment re-runs the calc even
+	 *  mid-fight and a new fight re-runs it even mid-task (Luke, 2026-07-21). */
+	private String seenTask = "";
+	private String seenNpc = "";
 
 	private void onStateChanged()
 	{
 		refreshStrip();
-		// auto-follow: select the activity's monster in the lab exactly once
-		String activity = activity();
-		if (config.labFollowActivity() && !activity.isEmpty()
-			&& !activity.equals(lastAutoSelected) && lab.getPanel() != null)
+		if (!config.labFollowActivity() || lab.getPanel() == null)
 		{
-			lastAutoSelected = activity;
-			boolean isNpc = activity.equals(state.getCombatNpcName());
-			lab.getPanel().selectExternal(activity, isNpc ? state.getCombatNpcId() : null);
+			return;
+		}
+		String task = state.getSlayerTask();
+		String npc = state.getCombatNpcName();
+		String follow = null;
+		Integer npcId = null;
+		if (!task.equals(seenTask))
+		{
+			seenTask = task;
+			if (!task.isEmpty())
+			{
+				follow = task;
+			}
+		}
+		if (!npc.equals(seenNpc))
+		{
+			seenNpc = npc;
+			if (!npc.isEmpty())
+			{
+				follow = npc; // the fight is the more immediate context
+				npcId = state.getCombatNpcId();
+			}
+		}
+		if (follow != null && !follow.equals(lastAutoSelected))
+		{
+			lastAutoSelected = follow;
+			lab.getPanel().selectExternal(follow, npcId);
 		}
 	}
 

@@ -349,9 +349,10 @@ public class LoadoutLabPanel extends PluginPanel
 	private CombatStyle bankFiltered;
 	/** Which style's set is currently glowing in the bank (null = none). */
 	private CombatStyle bankShown;
-	/** D-4: which frontier point to recommend per style. */
-	private final JComboBox<String> optimizeMode = new JComboBox<>(
-		new String[]{"Optimize: Max DPS", "Optimize: Balanced", "Optimize: Tanky"});
+	/** D-4: which frontier point to recommend per style — three segment
+	 *  buttons, not a dropdown (Luke, 2026-07-21). Built in the ctor
+	 *  (needs the resolved theme). */
+	private com.ironhub.ui.osrs.StoneChipRow optimizeMode;
 	/** Free-form upgrade budget: "750k", "1m", "1.5b", plain gp, or "-"
 	 * for max. Empty or unparseable = off. */
 	private final JTextField upgradeBudget = new StoneTextField(ironHubTheme(), null);
@@ -389,6 +390,11 @@ public class LoadoutLabPanel extends PluginPanel
 	/** Guards against programmatic search-field changes re-opening the list. */
 	private boolean suppressSearchEvents;
 
+	/** Iron Hub: master switch for wilderness-specific info (death risk, kept
+	 *  items, risk caps). Many "wilderness" monsters also live elsewhere —
+	 *  hellhounds, green dragons — so the info is OPT-IN per player, never
+	 *  auto-shown just because the corpus flags the monster (Luke, 2026-07-21). */
+	private final ToggleRow wildyInfo = new ToggleRow("Wilderness trip info");
 	private final ToggleRow lowRisk = new ToggleRow("Low-risk (wilderness)");
 	private final ToggleRow protectItem = new ToggleRow("Protect Item (keep 4)");
 	/** Wilderness risk-cap dropdown values in gp; 75k is the default. */
@@ -562,6 +568,13 @@ public class LoadoutLabPanel extends PluginPanel
 		slayerTask.setSelected(true); // Iron Hub: assume on-task by default
 		top.add(slayerTask);
 
+		// Wilderness only: everything below is OPT-IN behind this switch —
+		// fighting the same monster outside the wilderness is the norm
+		initToggle(wildyInfo, "Show wilderness-specific info for this monster:"
+			+ " death risk, kept items and risk caps");
+		wildyInfo.setVisible(false);
+		top.add(wildyInfo);
+
 		// Wilderness only: cap the set to the items death mechanics keep.
 		initToggle(lowRisk, "Keep your 3 most valuable items (4 with Protect Item);"
 			+ " everything else must total under the risk cap");
@@ -615,10 +628,10 @@ public class LoadoutLabPanel extends PluginPanel
 		// Iron Hub: upgrade-budget row dropped per user direction
 
 		// D-4: pick the offense/defense frontier point (sweep is slower).
+		optimizeMode = new com.ironhub.ui.osrs.StoneChipRow(theme, true, "DPS", "Balanced", "Tank");
 		optimizeMode.setAlignmentX(LEFT_ALIGNMENT);
-		optimizeMode.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
-		optimizeMode.setToolTipText("Balanced/Tanky trade dps for less damage taken");
-		optimizeMode.addActionListener(e -> recompute());
+		optimizeMode.setToolTipText("Balanced/Tank trade dps for less damage taken");
+		optimizeMode.onChange(i -> recompute());
 		// Iron Hub: optimize selector moves below the results (see bottomControls)
 
 		// Excluded items ("protected" from suggestions) - click to manage.
@@ -786,7 +799,6 @@ public class LoadoutLabPanel extends PluginPanel
 		bottomControls.add(Box.createVerticalStrut(2));
 		bottomControls.add(centeredRow(spellRow, 3 * 36 + 4, 36));
 		bottomControls.add(Box.createVerticalStrut(8));
-		StoneComboBoxUI.skin(optimizeMode, theme);
 		bottomControls.add(optimizeMode);
 		bottomControls.add(Box.createVerticalStrut(8));
 		JPanel setupButtons = new JPanel(new GridLayout(1, 2, 4, 0));
@@ -1084,6 +1096,15 @@ public class LoadoutLabPanel extends PluginPanel
 		{
 			monsterModel.addElement(m);
 		}
+		// the dropdown is only as tall as its results (Luke, 2026-07-21):
+		// one hit = one row, capped at 6 with the stone scrollbar beyond
+		if (!monsterModel.isEmpty())
+		{
+			monsterList.setVisibleRowCount(Math.min(monsterModel.size(), 6));
+			int height = monsterList.getPreferredScrollableViewportSize().height + 2; // matte border
+			monsterScroll.setPreferredSize(new Dimension(0, height));
+			monsterScroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
+		}
 		monsterScroll.setVisible(!monsterModel.isEmpty());
 		statusLabel.setText(monsterModel.isEmpty() ? "No monsters match." : " ");
 		revalidate();
@@ -1124,6 +1145,19 @@ public class LoadoutLabPanel extends PluginPanel
 			{
 				hits = data.searchMonsters(monsterName.substring(0, paren), 1);
 			}
+			// Slayer assignments are PLURAL category names ("Dust devils",
+			// "Wolves") while the corpus is singular - without these retries
+			// a fresh task only FILLED the search box instead of running the
+			// calc (Luke, 2026-07-21).
+			for (String singular : singularForms(paren > 0
+				? monsterName.substring(0, paren) : monsterName))
+			{
+				if (!hits.isEmpty())
+				{
+					break;
+				}
+				hits = data.searchMonsters(singular, 1);
+			}
 			if (!hits.isEmpty())
 			{
 				select(hits.get(0));
@@ -1135,6 +1169,31 @@ public class LoadoutLabPanel extends PluginPanel
 			searchField.setText(monsterName);
 		}
 		return false;
+	}
+
+	/** Singular retries for plural task names, most-specific first:
+	 *  wolves -> wolf, harpies -> harpy, spectres -> spectre, devils -> devil. */
+	private static List<String> singularForms(String name)
+	{
+		List<String> forms = new java.util.ArrayList<>();
+		String lower = name.toLowerCase(java.util.Locale.ROOT);
+		if (lower.endsWith("ves"))
+		{
+			forms.add(name.substring(0, name.length() - 3) + "f");
+		}
+		if (lower.endsWith("ies"))
+		{
+			forms.add(name.substring(0, name.length() - 3) + "y");
+		}
+		if (lower.endsWith("es"))
+		{
+			forms.add(name.substring(0, name.length() - 2));
+		}
+		if (lower.endsWith("s"))
+		{
+			forms.add(name.substring(0, name.length() - 1));
+		}
+		return forms;
 	}
 
 	/** A pick: collapse the dropdown, show the selection, clear the query. */
@@ -1156,9 +1215,8 @@ public class LoadoutLabPanel extends PluginPanel
 		searchField.setVisible(false);
 		selectedMonster = monster;
 		boolean wilderness = WildernessMonsters.isWilderness(monster);
-		lowRisk.setVisible(wilderness);
-		protectItem.setVisible(wilderness);
-		riskBudget.setVisible(wilderness);
+		wildyInfo.setVisible(wilderness);
+		updateWildernessControls();
 		superAntifireAssumed = false; // each monster starts on gear protection
 		bankShown = null;
 		bankHighlighter.highlight(null);
@@ -2196,8 +2254,27 @@ public class LoadoutLabPanel extends PluginPanel
 		}
 	}
 
+	/** Wilderness sub-controls follow the master switch: hidden until the
+	 *  player says this is a wilderness trip (every ToggleRow press routes
+	 *  through recompute, so the visibility stays in step). */
+	private void updateWildernessControls()
+	{
+		boolean on = wildyInfo.isVisible() && wildyInfo.isSelected();
+		lowRisk.setVisible(on);
+		protectItem.setVisible(on);
+		riskBudget.setVisible(on);
+	}
+
+	/** Whether wilderness-specific info (risk, kept items) should show. */
+	private boolean wildernessOn()
+	{
+		return selectedMonster != null && WildernessMonsters.isWilderness(selectedMonster)
+			&& wildyInfo.isSelected();
+	}
+
 	private void recompute()
 	{
+		updateWildernessControls();
 		lastShownLoadout = null; // recapture from the fresh results
 		if (selectedMonster == null)
 		{
@@ -2223,7 +2300,7 @@ public class LoadoutLabPanel extends PluginPanel
 			spellbookLock(), riskCap(), selectedRiskBudget(),
 			superAntifireAssumed && DragonfireRules.breathesFire(selectedMonster),
 			parsedBudgetGp(),
-			com.loadoutlab.optimizer.OptimizerService.OptimizeMode.values()[optimizeMode.getSelectedIndex()],
+			com.loadoutlab.optimizer.OptimizerService.OptimizeMode.values()[optimizeMode.getSelected()],
 			() -> statusLabel.setText(" "));
 	}
 
@@ -2470,26 +2547,18 @@ public class LoadoutLabPanel extends PluginPanel
 			card.add(Box.createVerticalStrut(4));
 			card.add(bar);
 		}
-		card.add(Box.createVerticalStrut(3));
-		JLabel caption = line(ceiling > 0
-			? String.format("Max %d · %.0f%% acc · %.0f%% of best",
-				best.getMaxHit(), best.getAccuracy() * 100,
-				Math.min(100.0, 100.0 * best.getDps() / ceiling))
-			: String.format("Max %d · %.0f%% acc",
-				best.getMaxHit(), best.getAccuracy() * 100), MUTED);
-		caption.setToolTipText("Max hit and accuracy of your best owned set");
-		card.add(caption);
+		card.add(Box.createVerticalStrut(4));
+		// Iron Hub (Luke, 2026-07-21): the scattered stat lines collect into
+		// ONE tile — dps, max hit, accuracy, avg ttk, style/spell, spellbook,
+		// prayer bonus and (opted-in wilderness) risk, readable at a glance.
+		card.add(statsTile(style, result, best));
 		addAssumesRow(card, result.boostLabel, "Assumed prayer + boost (you own these)");
 		addIncomingLine(card, result.incoming);
 		if (result.modeTrade != null)
 		{
 			card.add(modeTradeRow(result.modeTrade));
 		}
-		addRiskLine(card, best, result.specWeapon);
 		addUpgradeLine(card, best);
-		addPrayerLine(card, best);
-		addStyleLine(card, style, best);
-		addSpellLine(card, style, best);
 		addDartLine(card, best);
 		card.add(Box.createVerticalStrut(4));
 		// The owned grid marks what you don't own (green) and what already
@@ -2597,46 +2666,163 @@ public class LoadoutLabPanel extends PluginPanel
 		return label;
 	}
 
-	/** The set's total prayer bonus - just the prayer icon and the number. */
-	private void addPrayerLine(JPanel card, DpsResult result)
+	/**
+	 * The at-a-glance stat tile (Luke, 2026-07-21): a sunken two-column
+	 * grid of the numbers that used to sprawl across five separate lines,
+	 * plus full-width style/spell and (opt-in wilderness) risk rows.
+	 */
+	private JPanel statsTile(CombatStyle style, StyleResult result, DpsResult best)
 	{
-		int prayer = result.getLoadout().getBonuses().getPrayer();
-		if (prayer == 0)
-		{
-			return;
-		}
-		JLabel line = line(PRAYER_ICON == null ? String.format("Prayer %+d", prayer)
-			: String.format("%+d", prayer), MUTED);
-		if (PRAYER_ICON != null)
-		{
-			line.setIcon(PRAYER_ICON);
-			line.setIconTextGap(4);
-		}
-		line.setToolTipText("Gear prayer bonus - slower prayer drain");
-		card.add(line);
-	}
+		JPanel tile = new JPanel();
+		tile.setLayout(new BoxLayout(tile, BoxLayout.Y_AXIS));
+		tile.setOpaque(true);
+		tile.setBackground(theme.recess);
+		tile.setAlignmentX(LEFT_ALIGNMENT);
+		tile.setBorder(BorderFactory.createCompoundBorder(
+			new MatteBorder(1, 1, 1, 1, theme.edgeDark), new EmptyBorder(4, 6, 4, 6)));
 
-	/** The attack style the numbers use: "Style: Slash (aggressive)". */
-	private void addStyleLine(JPanel card, CombatStyle style, DpsResult result)
-	{
+		JPanel grid = new JPanel(new GridLayout(0, 2, 10, 2));
+		grid.setOpaque(false);
+		grid.setAlignmentX(LEFT_ALIGNMENT);
+		grid.add(statCell("DPS", String.format("%.2f", best.getDps()), GOOD,
+			"Damage per second of your best owned set"));
+		grid.add(statCell("Max hit", String.valueOf(best.getMaxHit()), INFO,
+			"Highest possible hit"));
+		grid.add(statCell("Accuracy", String.format("%.0f%%", best.getAccuracy() * 100), INFO,
+			"Chance an attack lands"));
+		grid.add(statCell("Avg TTK", ttkText(best), INFO,
+			"Average time to kill: the monster's hitpoints over your dps"));
+		int prayer = best.getLoadout().getBonuses().getPrayer();
+		String spellName = best.getSpellName();
+		String book = spellName == null || spellName.isEmpty() ? "" : data.getSpells().stream()
+			.filter(s -> spellName.equals(s.getName()))
+			.map(s -> capitalize(s.getSpellbook()))
+			.findFirst().orElse("");
+		if (prayer != 0)
+		{
+			grid.add(statCell("Prayer", String.format("%+d", prayer), prayer > 0 ? GOOD : MUTED,
+				"Gear prayer bonus - slower prayer drain"));
+			grid.add(statCell(" ", " ", MUTED, null));
+		}
+		grid.setMaximumSize(new Dimension(Integer.MAX_VALUE, grid.getPreferredSize().height));
+		tile.add(grid);
+
+		// full-width: the style or spell the numbers assume
+		String styleText = null;
 		if (style == CombatStyle.MAGIC)
 		{
-			return; // the spell / powered-staff line already covers magic
+			styleText = spellName == null || spellName.isEmpty() ? null : spellName + " (Spell)";
 		}
-		String type = result.getAttackType();
-		String text;
-		if (style == CombatStyle.RANGED)
+		else if (style == CombatStyle.RANGED)
 		{
-			text = type.contains("rapid") ? "Rapid" : "Accurate";
+			styleText = best.getAttackType().contains("rapid") ? "Rapid" : "Accurate";
 		}
 		else
 		{
-			text = capitalize(type);
+			styleText = capitalize(best.getAttackType());
 		}
-		JLabel line = line("Style: " + text, INFO);
-		line.setToolTipText("Use this attack style");
-		card.add(line);
+		if (styleText != null)
+		{
+			tile.add(Box.createVerticalStrut(2));
+			tile.add(fullRow("Style", styleText, INFO,
+				style == CombatStyle.MAGIC ? "Autocast this spell" : "Use this attack style"));
+		}
+		if (!book.isEmpty())
+		{
+			// full-width: "Spellbook" + book collide in a half-width cell
+			tile.add(Box.createVerticalStrut(2));
+			tile.add(fullRow("Spellbook", book, INFO, "The spellbook this spell needs"));
+		}
+
+		JLabel risk = riskRow(best, result.specWeapon);
+		if (risk != null)
+		{
+			tile.add(Box.createVerticalStrut(2));
+			tile.add(fullRow("Risk", risk));
+		}
+		tile.setMaximumSize(new Dimension(Integer.MAX_VALUE, tile.getPreferredSize().height));
+		return tile;
 	}
+
+	/** One label-left / value-right cell of the stat tile. */
+	private JPanel statCell(String label, String value, Color valueColor, String tip)
+	{
+		JPanel cell = new JPanel(new BorderLayout(4, 0));
+		cell.setOpaque(false);
+		JLabel key = line(label, MUTED);
+		key.setFont(OsrsSkin.smallFont());
+		JLabel val = line(value, valueColor);
+		val.setFont(OsrsSkin.boldFont());
+		val.setHorizontalAlignment(SwingConstants.RIGHT);
+		cell.add(key, BorderLayout.WEST);
+		cell.add(val, BorderLayout.EAST);
+		if (tip != null)
+		{
+			cell.setToolTipText(tip);
+			key.setToolTipText(tip);
+			val.setToolTipText(tip);
+		}
+		return cell;
+	}
+
+	private JPanel fullRow(String label, String value, Color valueColor, String tip)
+	{
+		JLabel val = line(value, valueColor);
+		if (tip != null)
+		{
+			val.setToolTipText(tip);
+		}
+		return fullRow(label, val);
+	}
+
+	private JPanel fullRow(String label, JLabel value)
+	{
+		JPanel row = new JPanel(new BorderLayout(4, 0));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		JLabel key = line(label, MUTED);
+		key.setFont(OsrsSkin.smallFont());
+		row.add(key, BorderLayout.WEST);
+		value.setHorizontalAlignment(SwingConstants.RIGHT);
+		row.add(value, BorderLayout.EAST);
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+		return row;
+	}
+
+	/** "~24s" / "~2m 05s": the monster's hp over the set's dps. */
+	private String ttkText(DpsResult best)
+	{
+		if (selectedMonster == null || best.getDps() <= 0)
+		{
+			return "?";
+		}
+		double seconds = selectedMonster.getHitpoints() / best.getDps();
+		if (seconds < 90)
+		{
+			return String.format("~%.0fs", seconds);
+		}
+		return String.format("~%dm %02ds", (int) (seconds / 60), Math.round(seconds % 60));
+	}
+
+	/** The wilderness risk value as a label with the kept/lost tooltip, or
+	 *  null when wilderness info is off — the tile's Risk row. */
+	private JLabel riskRow(DpsResult best, GearItem specWeapon)
+	{
+		if (!wildernessOn())
+		{
+			return null;
+		}
+		int keep = protectItem.isSelected() ? 4 : 3;
+		PvpRisk.Assessment risk = PvpRisk.assess(best.getLoadout(), specWeapon, keep);
+		JLabel line = line(String.format("%s gp (%d kept)",
+			PvpRisk.formatGp(risk.riskGp), keep),
+			risk.riskGp <= selectedRiskBudget() ? GOOD : new Color(220, 140, 120));
+		line.setToolTipText(riskTooltip(risk));
+		return line;
+	}
+
+	// addPrayerLine / addStyleLine / addRiskLine folded into statsTile
+	// (Luke, 2026-07-21) — the tile is the one place these numbers live.
 
 	/** Blowpipes: name the loaded dart the numbers assume. */
 	private void addDartLine(JPanel card, DpsResult result)
@@ -2734,21 +2920,11 @@ public class LoadoutLabPanel extends PluginPanel
 	/**
 	 * Wilderness: what a PvP death costs in gp for this set. Worn
 	 * tradeables plus the carried spec weapon compete for the kept-on-
-	 * death slots by value; everything past them is the risk.
+	 * death slots by value; everything past them is the risk. Renders as
+	 * the stat tile's Risk row via {@link #riskRow}.
 	 */
-	private void addRiskLine(JPanel card, DpsResult best, GearItem specWeapon)
+	private String riskTooltip(PvpRisk.Assessment risk)
 	{
-		if (!WildernessMonsters.isWilderness(selectedMonster))
-		{
-			return;
-		}
-		int keep = protectItem.isSelected() ? 4 : 3;
-		PvpRisk.Assessment risk =
-			PvpRisk.assess(best.getLoadout(), specWeapon, keep);
-		JLabel line = line(String.format("Risk: %s gp (%d kept on death)",
-			PvpRisk.formatGp(risk.riskGp), keep),
-			risk.riskGp <= selectedRiskBudget()
-				? GOOD : new Color(220, 140, 120));
 		StringBuilder tip = new StringBuilder("<html>Kept on death:");
 		if (risk.kept.isEmpty())
 		{
@@ -2779,8 +2955,7 @@ public class LoadoutLabPanel extends PluginPanel
 		}
 		tip.append("<br>Skulled: keep 0-1.");
 		tip.append("</html>");
-		line.setToolTipText(tip.toString());
-		card.add(line);
+		return tip.toString();
 	}
 
 	/**
@@ -3236,9 +3411,9 @@ public class LoadoutLabPanel extends PluginPanel
 		// Inventory Setups slot geometry: fixed 46x42 boxes
 		int cell = 46;
 		final int cellH = 42;
-		// Wilderness: badge every cell with its death fate.
+		// Wilderness: badge every cell with its death fate (opt-in switch).
 		PvpRisk.Assessment fates = null;
-		if (markUnowned && WildernessMonsters.isWilderness(selectedMonster))
+		if (markUnowned && wildernessOn())
 		{
 			fates = PvpRisk.assess(result.getLoadout(), specWeapon,
 				protectItem.isSelected() ? 4 : 3);

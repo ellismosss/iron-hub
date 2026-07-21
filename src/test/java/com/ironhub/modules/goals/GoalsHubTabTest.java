@@ -194,13 +194,28 @@ public class GoalsHubTabTest
 		// force a direct rebuild against the settled plan (the ctor may have run
 		// before the background replan finished; RebuildGate defers while hidden)
 		javax.swing.SwingUtilities.invokeAndWait(() -> holder[0].expandRoute("custom:skill:agility:70"));
-		javax.swing.SwingUtilities.invokeAndWait(() -> { });
 
-		com.ironhub.ui.components.HubScrollPane pane = new com.ironhub.ui.components.HubScrollPane(holder[0]);
-		pane.setSize(UiTokens.PANEL_WIDTH, 1200);
-		layoutOnce(pane);
+		// layout + collect ON the EDT, polling for settled content: the
+		// SUGGESTER finishes after the plan and its queued listener rebuild
+		// can removeAll() mid-layout on the test thread under suite load
+		// (the mutate-then-render race, 6th appearance, 2026-07-21)
 		List<OsrsLabel> labels = new ArrayList<>();
-		collect(holder[0], labels);
+		for (int attempt = 0; attempt < 50 && labels.size() <= 10; attempt++)
+		{
+			if (attempt > 0)
+			{
+				Thread.sleep(100);
+			}
+			javax.swing.SwingUtilities.invokeAndWait(() ->
+			{
+				labels.clear();
+				com.ironhub.ui.components.HubScrollPane pane =
+					new com.ironhub.ui.components.HubScrollPane(holder[0]);
+				pane.setSize(UiTokens.PANEL_WIDTH, 1200);
+				layoutOnce(pane);
+				collect(holder[0], labels);
+			});
+		}
 		assertTrue("no labels found", labels.size() > 10);
 		for (OsrsLabel label : labels)
 		{
