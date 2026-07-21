@@ -215,7 +215,7 @@ class SailingUpgradesTab extends JPanel
 			boolean isGoal = module.isGoal(next);
 			top.add(goalGlyph(isGoal, isGoal
 					? next.name + " - tracked; click to untrack"
-					: "Track building " + next.name + " in the Goal planner",
+					: "Track building " + next.name + " in Goals",
 				() -> module.toggleGoal(next)));
 			top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 			top.add(wikiGlyph(next.page));

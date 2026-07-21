@@ -61,6 +61,7 @@ public class AccountState implements StateView
 	private final Map<Quest, QuestState> questStates = new ConcurrentHashMap<>();
 	private final Set<String> unlocks = ConcurrentHashMap.newKeySet();
 	private final Set<String> moneyFavourites = ConcurrentHashMap.newKeySet();
+	private final Set<String> suggestionsDismissed = ConcurrentHashMap.newKeySet();
 	private final Map<String, Integer> killCounts = new ConcurrentHashMap<>();
 
 	// display names for items seen in the bank — persisted so bank search
@@ -623,6 +624,22 @@ public class AccountState implements StateView
 		{
 			persist();
 			notifyListeners();
+		}
+	}
+
+	// ── dismissed Goals-hub suggestions ────────────────────────────────────
+
+	public java.util.Set<String> getDismissedSuggestions()
+	{
+		return java.util.Set.copyOf(suggestionsDismissed);
+	}
+
+	public void dismissSuggestion(String key)
+	{
+		if (suggestionsDismissed.add(key))
+		{
+			persist();
+			notifyListeners(); // schedules the replan that refills the list
 		}
 	}
 
@@ -2318,6 +2335,8 @@ public class AccountState implements StateView
 		unlocks.addAll(persisted.unlocks);
 		moneyFavourites.clear();
 		moneyFavourites.addAll(persisted.moneyFavourites);
+		suggestionsDismissed.clear();
+		suggestionsDismissed.addAll(persisted.suggestionsDismissed);
 		killCounts.clear();
 		killCounts.putAll(persisted.killCounts);
 		dailiesDoneAt.clear();
@@ -2499,6 +2518,7 @@ public class AccountState implements StateView
 		state.itemNames = new HashMap<>(itemNames);
 		state.unlocks = new HashSet<>(unlocks);
 		state.moneyFavourites = new HashSet<>(moneyFavourites);
+		state.suggestionsDismissed = new HashSet<>(suggestionsDismissed);
 		state.killCounts = new HashMap<>(killCounts);
 		state.dailiesDoneAt = new HashMap<>(dailiesDoneAt);
 		state.alchExcluded = new HashSet<>(alchExcludedAtQty.keySet()); // legacy readers

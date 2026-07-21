@@ -48,7 +48,7 @@ public class IronHubPanel extends PluginPanel
 	 * (detection, runs, overlays) that Dailies (New) renders.
 	 */
 	private static final Map<String, List<String>> BLOCKS = Map.of(
-		"Goals", List.of("Goal planner"),
+		"Goals", List.of("Goals"),
 		"Combat", List.of("Loadout", "Slayer", "Loot & supplies"),
 		"Dailies", List.of("Dailies", "Farm runs", "Hunters' Rumours", "Port tasks"),
 		"Progression", List.of("Collection log", "Combat achievements", "Gear progression",
@@ -105,7 +105,7 @@ public class IronHubPanel extends PluginPanel
 		{
 			home.dispose();
 		}
-		IronHubModule goalModule = modulesByName.get("Goal planner");
+		IronHubModule goalModule = modulesByName.get("Goals");
 		home = new HomePanel(state,
 			goalModule instanceof com.ironhub.modules.goals.GoalPlannerModule
 				? (com.ironhub.modules.goals.GoalPlannerModule) goalModule : null,

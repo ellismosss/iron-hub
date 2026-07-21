@@ -468,7 +468,7 @@ class CombatAchievementsTab extends JPanel
 			if (visible.isEmpty())
 			{
 				content.add(note(views.getSelected() == 1
-					? "No CA goals match the filters. The + on any row adds that task to the Goal planner."
+					? "No CA goals match the filters. The + on any row adds that task to Goals."
 					: "No tasks match the filters."));
 			}
 			addTaskRows(visible);
@@ -664,14 +664,14 @@ class CombatAchievementsTab extends JPanel
 		OsrsLabel name = new OsrsLabel(task.name,
 			task.completed ? OsrsSkin.VALUE : goal ? OsrsSkin.TITLE : OsrsSkin.MUTED,
 			OsrsSkin.boldFont()).leftAligned().squeezable();
-		name.setToolTipText(task.name + (goal ? " - in your Goal planner" : ""));
+		name.setToolTipText(task.name + (goal ? " - in your Goals" : ""));
 		titleLine.add(name);
 		titleLine.add(Box.createHorizontalGlue());
 		titleLine.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 
 		OsrsLabel track = new OsrsLabel(goal ? "×" : "+", OsrsSkin.FAINT, OsrsSkin.boldFont());
-		track.setToolTipText(goal ? "Remove this task from the Goal planner"
-			: "Add this task as a goal in the Goal planner");
+		track.setToolTipText(goal ? "Remove this task from Goals"
+			: "Add this task as a goal in Goals");
 		track.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		track.putClientProperty(OWN_ACTION, Boolean.TRUE);
 		track.addMouseListener(new MouseAdapter()
@@ -723,7 +723,7 @@ class CombatAchievementsTab extends JPanel
 		wiki.addActionListener(a -> LinkBrowser.browse(task.wikiUrl()));
 		menu.add(wiki);
 		JMenuItem trackItem = new JMenuItem(isGoal(task)
-			? "Remove from Goal planner" : "Add as goal in Goal planner");
+			? "Remove from Goals" : "Add as goal in Goals");
 		trackItem.addActionListener(a -> toggleGoal(task));
 		menu.add(trackItem);
 		if (!task.boss.isEmpty())

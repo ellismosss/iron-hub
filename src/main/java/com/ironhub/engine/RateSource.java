@@ -4,6 +4,7 @@ import com.ironhub.data.ClogPack;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Drop/kill rates for the cost model (Goals v2 G3), derived from the bundled
@@ -149,7 +150,58 @@ public class RateSource
 		{
 			return null;
 		}
-		return "1/" + Math.round(item.attempts) + " · " + activity.name;
+		return "1/" + Math.round(item.attempts) + " · from " + sourceLabel(activity.name);
+	}
+
+	/** Log Adviser gerund verbs that open its activity names ("killing
+	 *  araxxor", "sorting through small salvage") — stripped for display. */
+	private static final Set<String> ACTIVITY_VERBS = Set.of(
+		"killing", "looting", "defeating", "harvesting", "hunting", "catching",
+		"pickpocketing", "stealing", "mining", "fishing", "woodcutting",
+		"collecting", "sorting", "opening", "earning", "completing", "getting",
+		"finishing", "delving", "searching", "pulling", "rummaging", "finding",
+		"spending", "exploring", "running", "giving", "farming", "thieving");
+	private static final Set<String> ACTIVITY_PREPOSITIONS =
+		Set.of("through", "from", "in", "at");
+
+	/**
+	 * The plain SOURCE behind a Log Adviser activity name, for drop-rate copy
+	 * (Luke: "1/75 · from Royal titans", never "Looting eldric, the ice king
+	 * (royal titans)"). A trailing all-letters parenthetical is the real
+	 * activity ("(royal titans)", "(corrupted gauntlet)"); otherwise the
+	 * leading gerund verb (+ its preposition) drops; modifier parens like
+	 * "(on task)" or "(150)" stay with the name they qualify.
+	 */
+	static String sourceLabel(String activityName)
+	{
+		String name = activityName.trim();
+		java.util.regex.Matcher parens =
+			java.util.regex.Pattern.compile("\\(([^)]+)\\)\\s*$").matcher(name);
+		if (parens.find())
+		{
+			String inner = parens.group(1).trim();
+			if (inner.matches("[a-z' -]+") && !inner.contains("task"))
+			{
+				return capitalize(inner);
+			}
+		}
+		String[] words = name.split("\\s+", 2);
+		if (words.length == 2 && ACTIVITY_VERBS.contains(words[0].toLowerCase(Locale.ROOT)))
+		{
+			String rest = words[1];
+			String[] next = rest.split("\\s+", 2);
+			if (next.length == 2 && ACTIVITY_PREPOSITIONS.contains(next[0].toLowerCase(Locale.ROOT)))
+			{
+				rest = next[1];
+			}
+			return capitalize(rest);
+		}
+		return capitalize(name);
+	}
+
+	private static String capitalize(String s)
+	{
+		return s.isEmpty() ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
 	}
 
 	private static String normalize(String name)

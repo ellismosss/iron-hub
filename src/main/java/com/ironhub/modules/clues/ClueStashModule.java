@@ -28,7 +28,7 @@ import net.runelite.client.util.Text;
  * Clues & STASH (DESIGN.md §3.15, rebuilt 2026-07-18): STASH units
  * built/filled per tier with ready-to-fill counts, and emote clue-step
  * doability against owned items via the requirement graph — with a `+`
- * that adds unlocking a step to the Goal planner.
+ * that adds unlocking a step to Goals.
  *
  * <p>STASH detection ports the STASH Tracker plugin (BSD-2, Nearvaas,
  * github.com/Nearvaas/S.T.A.S.H-Toolkit): a built STASH's game object
@@ -164,7 +164,7 @@ public class ClueStashModule implements IronHubModule
 
 	// ── goal planner integration ──────────────────────────────────────
 
-	/** Add unlocking this clue step to the Goal planner; a step already
+	/** Add unlocking this clue step to Goals; a step already
 	 *  doable lands achieved immediately. */
 	void addGoal(ClueStepsPack.Clue clue)
 	{

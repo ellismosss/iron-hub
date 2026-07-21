@@ -50,7 +50,7 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "boatUpgrades", name = "Sailing upgrades", description = "Per-boat available upgrades, materials owned and next locked tiers", section = modulesSection, position = 11)
 	default boolean boatUpgrades() { return true; }
 
-	@ConfigItem(keyName = "goalPlanner", name = "Goal planner", description = "Dependency-tree plans for any target (item, quest, capstone)", section = modulesSection, position = 12)
+	@ConfigItem(keyName = "goalPlanner", name = "Goals", description = "Dependency-tree plans for any target (item, quest, capstone)", section = modulesSection, position = 12)
 	default boolean goalPlanner() { return true; }
 
 	@ConfigItem(keyName = "clueStash", name = "Clues & STASH", description = "STASH tracking and emote-clue readiness", section = modulesSection, position = 14)
@@ -181,7 +181,7 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "labFollowActivity", name = "Loadout Lab follows activity", description = "Automatically select your slayer task or most recently fought/killed NPC in Loadout Lab", section = modulesSection, position = 23)
 	default boolean labFollowActivity() { return true; }
 
-	@ConfigItem(keyName = "plannerOverlay", name = "Goal overlay", description = "On-screen overlay that follows your current plan step (part of the Goal planner)", section = modulesSection, position = 24)
+	@ConfigItem(keyName = "plannerOverlay", name = "Goal overlay", description = "On-screen overlay that follows your current plan step (part of the Goals module)", section = modulesSection, position = 24)
 	default boolean plannerOverlay() { return true; }
 
 	@ConfigItem(keyName = "designLab", name = "Design lab", description = "OSRS-look design system test gallery (development stage)", section = modulesSection, position = 25)

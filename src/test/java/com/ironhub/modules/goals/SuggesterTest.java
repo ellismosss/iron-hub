@@ -68,10 +68,41 @@ public class SuggesterTest
 
 	private List<Suggester.Suggestion> suggest(AccountState state, List<GoalsPack.Goal> base)
 	{
+		return suggest(state, base, java.util.Set.of());
+	}
+
+	private List<Suggester.Suggestion> suggest(AccountState state, List<GoalsPack.Goal> base,
+		java.util.Set<String> dismissed)
+	{
 		EnginePacks p = packs();
 		BankedXpPack bx = DATA.load("banked-xp", BankedXpPack.class);
 		Plan basePlan = PlannerService.plan(state, p, bx, base, PlanConstraints.none());
-		return Suggester.compute(base, state, p, bx, PlanConstraints.none(), basePlan);
+		return Suggester.compute(base, state, p, bx, PlanConstraints.none(), basePlan, dismissed);
+	}
+
+	/** Accepting an offer (custom:effect:<id> now a goal) or dismissing its
+	 *  key removes it from the next compute; another candidate fills in. */
+	@Test
+	public void acceptedAndDismissedOffersLeaveTheList()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		List<GoalsPack.Goal> base = List.of(goal("g", "quest:Song of the Elves"));
+		List<Suggester.Suggestion> before = suggest(state, base);
+		Suggester.Suggestion fairy = before.stream()
+			.filter(x -> "Fairy rings".equals(x.name)).findFirst().orElse(null);
+		assertTrue(fairy != null);
+
+		// dismissed: gone by key
+		List<Suggester.Suggestion> afterDismiss = suggest(state, base, java.util.Set.of(fairy.key()));
+		assertTrue(afterDismiss.stream().noneMatch(x -> "Fairy rings".equals(x.name)));
+
+		// accepted: tracking the unlock as a goal retires the offer even
+		// though the effect itself is still unmet (Luke's Prifddinas report)
+		String effectId = fairy.goalId.substring("suggest:effect:".length());
+		List<GoalsPack.Goal> withAccepted = new ArrayList<>(base);
+		withAccepted.add(goal("custom:effect:" + effectId, "unlock:" + effectId));
+		List<Suggester.Suggestion> afterAccept = suggest(state, withAccepted);
+		assertTrue(afterAccept.stream().noneMatch(x -> "Fairy rings".equals(x.name)));
 	}
 
 	/** Two Routes sharing a big requirement chain get a merge offer. */

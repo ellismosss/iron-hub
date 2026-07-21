@@ -95,7 +95,7 @@ public class GoalPlannerModule implements IronHubModule
 	@Override
 	public String name()
 	{
-		return "Goal planner";
+		return "Goals";
 	}
 
 	@Override
@@ -290,9 +290,14 @@ public class GoalPlannerModule implements IronHubModule
 	 */
 	private void scheduleSuggestions(com.ironhub.engine.Plan plan)
 	{
-		if (plan.fingerprint.equals(suggestionsFingerprint))
+		// dismissals join the memo key: dismissing doesn't change the plan,
+		// but the next replan must refill the list with fresh candidates
+		java.util.Set<String> dismissed = state.getDismissedSuggestions();
+		String memoKey = plan.fingerprint + "|"
+			+ dismissed.stream().sorted().collect(java.util.stream.Collectors.joining(","));
+		if (memoKey.equals(suggestionsFingerprint))
 		{
-			return; // already computed for this exact plan
+			return; // already computed for this exact plan + dismissal set
 		}
 		suggestExecutor.submit(() ->
 		{
@@ -306,14 +311,14 @@ public class GoalPlannerModule implements IronHubModule
 				}
 				java.util.List<Suggester.Suggestion> computed = Suggester.compute(
 					unmetGoals(), state, enginePacks, bankedPack,
-					state.plannerConstraints(), plan);
+					state.plannerConstraints(), plan, dismissed);
 				if (!engineActive || currentPlan == null
 					|| !currentPlan.fingerprint.equals(plan.fingerprint))
 				{
 					return; // stale by the time we finished — drop it
 				}
 				suggestions = computed;
-				suggestionsFingerprint = plan.fingerprint;
+				suggestionsFingerprint = memoKey;
 				for (Runnable listener : planListeners)
 				{
 					javax.swing.SwingUtilities.invokeLater(listener);
@@ -326,10 +331,24 @@ public class GoalPlannerModule implements IronHubModule
 		});
 	}
 
-	/** The freshest stepping-stone suggestions (empty until first computed). */
+	/** The freshest stepping-stone suggestions (empty until first computed).
+	 *  Dismissed and just-accepted offers filter out HERE so the card leaves
+	 *  on the click — the async recompute refills the list afterwards. */
 	public java.util.List<Suggester.Suggestion> suggestions()
 	{
-		return suggestions;
+		java.util.Set<String> dismissed = state.getDismissedSuggestions();
+		Set<String> selected = state.getSelectedGoals();
+		java.util.List<Suggester.Suggestion> out = new java.util.ArrayList<>();
+		for (Suggester.Suggestion s : suggestions)
+		{
+			boolean accepted = s.goalId != null && s.goalId.startsWith("suggest:effect:")
+				&& selected.contains("custom:effect:" + s.goalId.substring("suggest:effect:".length()));
+			if (!dismissed.contains(s.key()) && !accepted)
+			{
+				out.add(s);
+			}
+		}
+		return out;
 	}
 
 	/**
@@ -461,6 +480,14 @@ public class GoalPlannerModule implements IronHubModule
 	com.ironhub.data.RecipesPack recipesPack()
 	{
 		return recipesPack;
+	}
+
+	/** The boat-upgrades pack (DataPack.load is memoized — lazy is cheap):
+	 *  boat goals resolve their VERIFIED wiki page here, never their display
+	 *  name ("Mithril helm (Sloop)" is not a wiki page — Luke). */
+	com.ironhub.data.BoatUpgradesPack boatPack()
+	{
+		return dataPack.load("boat-upgrades", com.ironhub.data.BoatUpgradesPack.class);
 	}
 
 	com.ironhub.data.XpActionsPack xpActions()

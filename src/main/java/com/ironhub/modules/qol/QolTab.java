@@ -129,7 +129,7 @@ class QolTab extends JPanel
 		row.add(Box.createHorizontalGlue());
 		boolean isGoal = state.getGoalSeeds().containsKey("qol:" + unlock.getId());
 		row.add(goalGlyph(isGoal, isGoal ? unlock.getName() + " — tracked; click to untrack"
-			: "Track unlocking " + unlock.getName() + " in the Goal planner",
+			: "Track unlocking " + unlock.getName() + " in Goals",
 			() -> toggleGoal(unlock)));
 		row.add(Box.createHorizontalStrut(4));
 		row.add(wikiGlyph(unlock.getName()));

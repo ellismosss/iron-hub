@@ -17,6 +17,8 @@ public class PersistedState
 	long bankTimestamp;
 	/** Favourited money-making method ids (Money making module). */
 	Set<String> moneyFavourites = new HashSet<>();
+	/** Dismissed Goals-hub suggestion keys (effect goal ids / merge pairs). */
+	Set<String> suggestionsDismissed = new HashSet<>();
 	/** Last-seen ACCOUNT_TYPE varbit value (ordinal into api.vars.AccountType);
 	 *  -1 = never seen. Persisted so UIM honesty holds before the first login
 	 *  varbit read. */

@@ -250,7 +250,7 @@ class PohTab extends JPanel
 		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		boolean isGoal = module.isGoal(tier);
 		top.add(goalGlyph(isGoal, isGoal ? tier.name + " — tracked; click to untrack"
-			: "Track building " + tier.name + " in the Goal planner",
+			: "Track building " + tier.name + " in Goals",
 			() -> module.toggleGoal(tier)));
 		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		top.add(wikiGlyph(tier.page));

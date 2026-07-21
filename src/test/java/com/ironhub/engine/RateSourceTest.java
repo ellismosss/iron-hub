@@ -107,6 +107,29 @@ public class RateSourceTest
 			Double.isNaN(rates.killHours("Not a boss", 50)));
 	}
 
+	/** Drop copy names the plain SOURCE, never the Log Adviser slot prose
+	 *  (Luke: "1/75 · from Royal titans", not "Looting eldric, the ice king"). */
+	@Test
+	public void sourceLabelNamesThePlainActivity()
+	{
+		// a real-activity parenthetical wins
+		assertEquals("Royal titans",
+			RateSource.sourceLabel("Looting eldric, the ice king (royal titans)"));
+		assertEquals("Corrupted gauntlet",
+			RateSource.sourceLabel("Opening reward chest (corrupted gauntlet)"));
+		assertEquals("Chambers of xeric",
+			RateSource.sourceLabel("Ancient chest (chambers of xeric)"));
+		// modifier parens ("on task", counts) stay with the stripped name
+		assertEquals("Abyssal sire (on task)",
+			RateSource.sourceLabel("Killing abyssal sire (on task)"));
+		assertEquals("Tombs of amascut reward chests (150)",
+			RateSource.sourceLabel("Tombs of amascut reward chests (150)"));
+		// gerund verb + preposition drop
+		assertEquals("Amoxliatl", RateSource.sourceLabel("Killing amoxliatl"));
+		assertEquals("Small salvage", RateSource.sourceLabel("Sorting through small salvage"));
+		assertEquals("Darkmeyer vyres", RateSource.sourceLabel("Pickpocketing from darkmeyer vyres"));
+	}
+
 	@Test
 	public void nullClogYieldsOnlyNaN()
 	{

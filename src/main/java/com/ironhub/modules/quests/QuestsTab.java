@@ -386,8 +386,8 @@ class QuestsTab extends JPanel
 				}
 				SwingUtilities.invokeLater(this::rebuild);
 			});
-			goal.setToolTipText(tracked ? "Remove from the Goal planner"
-				: "Track completing this quest in the Goal planner");
+			goal.setToolTipText(tracked ? "Remove from Goals"
+				: "Track completing this quest in Goals");
 			goal.setMaximumSize(goal.getPreferredSize());
 			row.add(goal);
 			row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));

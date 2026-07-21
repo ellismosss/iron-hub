@@ -25,7 +25,7 @@ import javax.swing.border.EmptyBorder;
 /**
  * Clues & STASH tab: chip views Steps · STASH. Steps = emote clue-step
  * doability per tier against owned items, blocked steps first with their
- * first missing item and a "+ Goal" affordance into the Goal planner.
+ * first missing item and a "+ Goal" affordance into Goals.
  * STASH = built/filled/ready-to-fill counts per tier with unit rows
  * (click toggles filled — the manual escape hatch for pre-plugin fills).
  * Clue collection-log slots deliberately live elsewhere. Frameless —
@@ -180,7 +180,7 @@ class CluesTab extends JPanel
 	}
 
 	/** One step: green doable / muted blocked with its first missing item
-	 *  and a "+ Goal" button that tracks unlocking it in the Goal planner. */
+	 *  and a "+ Goal" button that tracks unlocking it in Goals. */
 	private JComponent clueRow(ClueStepsPack.Clue clue)
 	{
 		JPanel row = new JPanel();
@@ -214,8 +214,8 @@ class CluesTab extends JPanel
 				}
 				SwingUtilities.invokeLater(this::rebuild);
 			});
-			goal.setToolTipText(tracked ? "Remove from the Goal planner"
-				: "Track unlocking this step in the Goal planner");
+			goal.setToolTipText(tracked ? "Remove from Goals"
+				: "Track unlocking this step in Goals");
 			goal.setMaximumSize(goal.getPreferredSize());
 			top.add(goal);
 		}

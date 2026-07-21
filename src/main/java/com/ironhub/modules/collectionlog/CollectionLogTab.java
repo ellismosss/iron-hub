@@ -46,7 +46,7 @@ import net.runelite.client.util.LinkBrowser;
  * Adviser-style ranking): overall progress + sync status card, then every
  * remaining activity ranked by Time-To-Next-Slot. Rows expand into the
  * activity's slots (owned ticks, drop rates) and every slot's +/× assigns it
- * to the Goal planner as a {@code clog:<itemId>} goal — same grammar as the
+ * to Goals as a {@code clog:<itemId>} goal — same grammar as the
  * CA and diaries tabs. Skipped activities sink to a recoverable section.
  * Same brain as before the skin port; only the clothing changed.
  */
@@ -641,8 +641,8 @@ class CollectionLogTab extends JPanel
 		OsrsSkin.crisp(glyph);
 		glyph.setFont(OsrsSkin.font());
 		glyph.setForeground(OsrsSkin.FAINT);
-		glyph.setToolTipText(goal ? "Remove " + slotName + " from the Goal planner"
-			: "Add " + slotName + " as a goal in the Goal planner");
+		glyph.setToolTipText(goal ? "Remove " + slotName + " from Goals"
+			: "Add " + slotName + " as a goal in Goals");
 		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		glyph.putClientProperty(OWN_ACTION, Boolean.TRUE);
 		glyph.addMouseListener(new MouseAdapter()

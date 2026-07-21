@@ -195,7 +195,7 @@ public class PohModule implements IronHubModule
 
 	// ── goal planner integration ──────────────────────────────────────
 
-	/** Add building this tier to the Goal planner ({@code poh:<id>}); a tier
+	/** Add building this tier to Goals ({@code poh:<id>}); a tier
 	 *  already built lands its proof immediately. */
 	void toggleGoal(PohPack.Tier tier)
 	{

@@ -120,7 +120,7 @@ public class QuestsModule implements IronHubModule
 		return "custom:quest:" + questName.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-");
 	}
 
-	/** Track completing a quest in the Goal planner — the engine expands
+	/** Track completing a quest in Goals — the engine expands
 	 *  the quest: requirement into its full prerequisite chain. */
 	void addGoal(String questName)
 	{

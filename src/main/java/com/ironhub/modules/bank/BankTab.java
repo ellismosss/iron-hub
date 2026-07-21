@@ -1031,7 +1031,7 @@ class BankTab extends JPanel
 			String goalId = "custom:skill:" + skillName.toLowerCase(Locale.ROOT) + ":" + target;
 			boolean isGoal = state.getGoalSeeds().containsKey(goalId);
 			row.add(goalGlyph(isGoal, isGoal ? skillName + " " + target + " — tracked; click to untrack"
-				: "Track " + skillName + " " + target + " in the Goal planner",
+				: "Track " + skillName + " " + target + " in Goals",
 				() -> toggleSkillGoal(skillName, target)));
 		}
 		cap(row);
