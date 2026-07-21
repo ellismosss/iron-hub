@@ -154,8 +154,6 @@ public class SlayerOptimizerModule implements IronHubModule
 	private SlayerSuiteOverlay overlay;
 	private com.ironhub.ui.components.BankRestockOverlay bankGlow;
 	private volatile long superiorSeenMs;
-	/** "Show in bank" armed from the tab; the next bank opens lay the setup out. */
-	private volatile boolean bankShow;
 	private String lastAdvisedMaster;
 
 	@Inject
@@ -259,8 +257,9 @@ public class SlayerOptimizerModule implements IronHubModule
 			overlay = new SlayerSuiteOverlay(this, config, client);
 			overlayManager.add(overlay);
 			// missing setup items glow in the real bank while it's open — a
-			// passive highlight, never the full tag relayout (that stays on
-			// the user-armed Show-in-bank button)
+			// passive highlight only (the Show-in-bank relayout button was
+			// removed 2026-07-21; the setup surface is Gear & Combat's
+			// Slayer view now)
 			bankGlow = new com.ironhub.ui.components.BankRestockOverlay(this::missingSetupItems);
 			overlayManager.add(bankGlow);
 		}
@@ -291,9 +290,11 @@ public class SlayerOptimizerModule implements IronHubModule
 		}
 		if (clientThread != null)
 		{
+			// healing-only since the Show-in-bank button went (2026-07-21):
+			// clear() unconditionally removes a "slayer" tag+layout an older
+			// version or a crashed session left in Bank Tags
 			clientThread.invoke(bankLayout::clear);
 		}
-		bankShow = false;
 		if (infoBox != null)
 		{
 			infoBoxManager.removeInfoBox(infoBox);
@@ -940,40 +941,6 @@ public class SlayerOptimizerModule implements IronHubModule
 			.build());
 	}
 
-	@Subscribe
-	public void onScriptPreFired(net.runelite.api.events.ScriptPreFired event)
-	{
-		if (event.getScriptId() != net.runelite.api.ScriptID.BANKMAIN_INIT || !bankShow)
-		{
-			return;
-		}
-		PersistedState.SavedSetup setup = taskSetup();
-		if (setup == null || clientThread == null)
-		{
-			return;
-		}
-		String name = taskName;
-		// never open a bank tag during the bank's own build script — defer
-		// (2026-07-18 bank-open freeze audit)
-		clientThread.invokeLater(() -> bankLayout.apply("slayer " + name, setup));
-	}
-
-	@Subscribe
-	public void onScriptPostFired(net.runelite.api.events.ScriptPostFired event)
-	{
-		if (event.getScriptId() != net.runelite.api.ScriptID.BANKMAIN_FINISHBUILDING
-			|| client == null || !bankLayout.isApplied())
-		{
-			return;
-		}
-		net.runelite.api.widgets.Widget title =
-			client.getWidget(net.runelite.api.gameval.InterfaceID.Bankmain.TITLE);
-		if (title != null)
-		{
-			title.setText("<col=ff981f>" + taskName + "</col> — slayer setup");
-		}
-	}
-
 	/** The saved gear+inventory setup for the current task (Loadout key space). */
 	PersistedState.SavedSetup taskSetup()
 	{
@@ -1018,21 +985,6 @@ public class SlayerOptimizerModule implements IronHubModule
 			}
 		}
 		return out;
-	}
-
-	boolean bankShowArmed()
-	{
-		return bankShow;
-	}
-
-	/** Arm/disarm the bank layout; disarming clears an applied layout. */
-	void setBankShow(boolean show)
-	{
-		bankShow = show;
-		if (!show && clientThread != null)
-		{
-			clientThread.invoke(bankLayout::clear);
-		}
 	}
 
 	// ── overlay reads ─────────────────────────────────────────────────

@@ -195,54 +195,18 @@ class SlayerTab extends JPanel
 		content.add(hero);
 		content.add(Box.createVerticalStrut(4));
 
-		// the task's saved setup renders right at the top (Luke, 2026-07-21):
-		// items you are NOT currently wearing/holding tint ORANGE and glow in
-		// the real bank via the module's restock overlay
-		PersistedState.SavedSetup taskSetup = remaining > 0 ? module.taskSetup() : null;
-		if (taskSetup != null)
-		{
-			com.ironhub.modules.loadoutlab.SavedSetupView setupView =
-				new com.ironhub.modules.loadoutlab.SavedSetupView(theme, module.itemManager(), state::itemName);
-			java.util.Map<String, java.awt.Color> equipTints = new java.util.HashMap<>();
-			for (java.util.Map.Entry<String, Integer> slot : taskSetup.equipment.entrySet())
-			{
-				if (slot.getValue() != null && slot.getValue() > 0
-					&& state.carriedCount(slot.getValue()) == 0)
-				{
-					equipTints.put(slot.getKey(), OsrsSkin.TITLE); // orange: not worn/held
-				}
-			}
-			content.add(centered(setupView.equipment(taskSetup, equipTints, null)));
-			if (taskSetup.inventory.length > 0)
-			{
-				java.awt.Color[] invTints = new java.awt.Color[28];
-				boolean anyItem = false;
-				for (int i = 0; i < taskSetup.inventory.length && i < 28; i++)
-				{
-					int id = taskSetup.inventory[i];
-					anyItem |= id > 0;
-					if (id > 0 && state.carriedCount(id) == 0)
-					{
-						invTints[i] = OsrsSkin.TITLE;
-					}
-				}
-				if (anyItem)
-				{
-					content.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-					content.add(centered(setupView.inventory(taskSetup, invTints)));
-				}
-			}
-			if (!module.missingSetupItems().isEmpty())
-			{
-				content.add(textLine("Orange = not carried — highlighted in your bank",
-					OsrsSkin.FAINT, OsrsSkin.smallFont()));
-			}
-			content.add(Box.createVerticalStrut(4));
-		}
+		// the task's setup now renders through Gear & Combat's shared viewer
+		// (the "Slayer" source chip) — the old top-of-tab viewers are gone
+		// (Luke, 2026-07-21); the missing-item bank glow stays module-side
 
-		content.add(statRow("Slayer points", QuantityFormatter.formatNumber(module.points())));
-		content.add(Box.createVerticalStrut(4));
-		content.add(statRow("Task streak", QuantityFormatter.formatNumber(module.streak())));
+		// Slayer points + Task streak share one row (Luke, 2026-07-21)
+		JPanel stats = new JPanel(new java.awt.GridLayout(1, 2, 4, 0));
+		stats.setOpaque(false);
+		stats.setAlignmentX(LEFT_ALIGNMENT);
+		stats.add(statBox("Slayer points", QuantityFormatter.formatNumber(module.points())));
+		stats.add(statBox("Task streak", QuantityFormatter.formatNumber(module.streak())));
+		stats.setMaximumSize(new Dimension(Integer.MAX_VALUE, stats.getPreferredSize().height));
+		content.add(stats);
 
 		PersistedState.SlayerTaskRecord active = module.activeRecord();
 		if (active != null && remaining > 0)
@@ -283,23 +247,26 @@ class SlayerTab extends JPanel
 
 		if (entry.locations != null && !entry.locations.isEmpty())
 		{
-			content.add(section("Locations"));
+			// section rows ride a stone slab now (Luke, 2026-07-21)
+			StonePanel locations = slab("Locations");
 			String preferred = state.getSlayerLocationPref(entry.name);
 			for (SlayerTasksPack.Location location : entry.locations)
 			{
-				content.add(locationRow(entry, location,
+				locations.add(locationRow(entry, location,
 					location.name.equalsIgnoreCase(preferred)));
 			}
-			content.add(textLine("Click a location to prefer it", OsrsSkin.FAINT, OsrsSkin.smallFont()));
+			locations.add(textLine("Click a location to prefer it", OsrsSkin.FAINT, OsrsSkin.smallFont()));
+			addSlab(locations);
 		}
 
 		if (entry.bring != null && !entry.bring.isEmpty())
 		{
-			content.add(section("Bring"));
+			StonePanel bring = slab("Bring");
 			for (SlayerTasksPack.BringItem item : entry.bring)
 			{
-				content.add(bringRow(item));
+				bring.add(bringRow(item));
 			}
+			addSlab(bring);
 		}
 		if (entry.finisher != null)
 		{
@@ -309,57 +276,35 @@ class SlayerTab extends JPanel
 
 		if (entry.stats != null)
 		{
-			content.add(section("Monster"));
+			StonePanel monster = slab("Monster");
 			for (String line : statsLines(entry.stats))
 			{
-				content.add(textLine(line, OsrsSkin.MUTED, OsrsSkin.smallFont()));
+				monster.add(textLine(line, OsrsSkin.MUTED, OsrsSkin.smallFont()));
 			}
 			if (Boolean.TRUE.equals(entry.stats.cannonImmune))
 			{
-				content.add(textLine("Cannon immune", UiTokens.STATUS_WARNING, OsrsSkin.smallFont()));
+				monster.add(textLine("Cannon immune", UiTokens.STATUS_WARNING, OsrsSkin.smallFont()));
 			}
+			addSlab(monster);
 		}
 
+		// the setup itself lives in Gear & Combat's "Slayer" view now — this
+		// tab only captures it (the viewers, saved-count line, replace and
+		// Show-in-bank buttons are gone; Luke, 2026-07-21)
 		content.add(section("Gear"));
-		PersistedState.SavedSetup setup = module.taskSetup();
-		if (setup == null)
+		if (module.taskSetup() == null)
 		{
 			content.add(textLine("No setup saved for this task", OsrsSkin.FAINT, OsrsSkin.smallFont()));
 		}
-		else
-		{
-			int items = setupItemCount(setup);
-			content.add(textLine("Setup saved · " + items + " items — shown at the top",
-				OsrsSkin.VALUE, OsrsSkin.smallFont()));
-		}
 		JPanel gearButtons = row(2);
-		StoneButton save = new StoneButton(theme,
-			setup == null ? "Save current gear" : "Replace with current gear",
-			module::saveTaskSetup);
+		StoneButton save = new StoneButton(theme, "Save current gear", module::saveTaskSetup);
+		save.setToolTipText("Snapshot your worn gear + inventory as this task's"
+			+ " setup — shown under Gear & Combat's Slayer view");
 		save.setMaximumSize(save.getPreferredSize());
 		gearButtons.add(save);
-		if (setup != null)
-		{
-			gearButtons.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-			boolean armed = module.bankShowArmed();
-			StoneButton show = new StoneButton(theme,
-				armed ? "Stop bank layout" : "Show in bank",
-				() ->
-				{
-					module.setBankShow(!armed);
-					javax.swing.SwingUtilities.invokeLater(this::rebuild);
-				});
-			show.setMaximumSize(show.getPreferredSize());
-			gearButtons.add(show);
-		}
 		gearButtons.add(Box.createHorizontalGlue());
 		cap(gearButtons);
 		content.add(gearButtons);
-		if (module.bankShowArmed())
-		{
-			content.add(textLine("Opening the bank lays this setup out",
-				OsrsSkin.FAINT, OsrsSkin.smallFont()));
-		}
 
 		content.add(section("Notes"));
 		if (noteField == null || !noteTask.equals(entry.name))
@@ -793,20 +738,6 @@ class SlayerTab extends JPanel
 		return row;
 	}
 
-	/** Center a fixed-size canvas (the setup viewers) in the panel width. */
-	private JComponent centered(JComponent inner)
-	{
-		JPanel holder = new JPanel();
-		holder.setLayout(new BoxLayout(holder, BoxLayout.X_AXIS));
-		holder.setOpaque(false);
-		holder.setAlignmentX(LEFT_ALIGNMENT);
-		holder.add(Box.createHorizontalGlue());
-		holder.add(inner);
-		holder.add(Box.createHorizontalGlue());
-		cap(holder);
-		return holder;
-	}
-
 	private JComponent textLine(String text, Color color, java.awt.Font font)
 	{
 		JPanel holder = row(1);
@@ -834,17 +765,38 @@ class SlayerTab extends JPanel
 		return row;
 	}
 
-	/** A label · value line in a stone box (the stat-row grammar). */
-	private JComponent statRow(String label, String value)
+	/** A half-width stone stat box: small muted label over the value
+	 *  (points + streak share one row — Luke, 2026-07-21). */
+	private JComponent statBox(String label, String value)
 	{
-		StonePanel row = new StonePanel(theme);
-		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.add(new OsrsLabel(label, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
-		row.add(Box.createHorizontalGlue());
-		row.add(OsrsLabel.value(value));
-		cap(row);
-		return row;
+		StonePanel box = new StonePanel(theme);
+		box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
+		box.add(new OsrsLabel(label, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+		box.add(Box.createVerticalStrut(1));
+		box.add(OsrsLabel.value(value).leftAligned());
+		return box;
+	}
+
+	/** A titled stone slab holding a section's rows (Luke, 2026-07-21). */
+	private StonePanel slab(String title)
+	{
+		StonePanel slab = new StonePanel(theme);
+		slab.setLayout(new BoxLayout(slab, BoxLayout.Y_AXIS));
+		slab.setAlignmentX(LEFT_ALIGNMENT);
+		JPanel head = row(0);
+		head.add(new OsrsLabel(title, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+		head.add(Box.createHorizontalGlue());
+		cap(head);
+		slab.add(head);
+		slab.add(Box.createVerticalStrut(2));
+		return slab;
+	}
+
+	private void addSlab(StonePanel slab)
+	{
+		content.add(Box.createVerticalStrut(6));
+		cap(slab);
+		content.add(slab);
 	}
 
 	/** Compact monster stat lines — only what the pack actually knows. */
@@ -913,33 +865,6 @@ class SlayerTab extends JPanel
 			lines.add(xp + " Slayer xp per kill");
 		}
 		return lines;
-	}
-
-	/** Worn + inventory item count of a saved setup. */
-	static int setupItemCount(PersistedState.SavedSetup setup)
-	{
-		int count = 0;
-		if (setup.equipment != null)
-		{
-			for (Integer id : setup.equipment.values())
-			{
-				if (id != null && id > 0)
-				{
-					count++;
-				}
-			}
-		}
-		if (setup.inventory != null)
-		{
-			for (int id : setup.inventory)
-			{
-				if (id > 0)
-				{
-					count++;
-				}
-			}
-		}
-		return count;
 	}
 
 	private static void cap(JComponent c)

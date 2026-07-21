@@ -109,7 +109,7 @@ public class WrapperIntegrationRenderTest
 				panel[0].showResults(monster, out.get());
 				// results no longer hijack the view (round 4) — enter the
 				// Recommended view the way the chip would
-				module.setViewSourceForTest(true);
+				module.setViewSourceForTest(2);
 				image[0] = com.ironhub.ui.SwingRender.render((javax.swing.JPanel) tab[0]);
 			});
 			Assert.assertTrue(image[0].getHeight() > 400);
@@ -122,12 +122,34 @@ public class WrapperIntegrationRenderTest
 				panel[0].selectExternal("Goblin", null); // select -> clear via new select is fine
 				panel[0].showResults(computed.get(), out.get()); // stale: ignored (different monster)
 			});
-			javax.swing.SwingUtilities.invokeAndWait(() -> module.setViewSourceForTest(false));
+			javax.swing.SwingUtilities.invokeAndWait(() -> module.setViewSourceForTest(0));
 			java.awt.image.BufferedImage[] live = new java.awt.image.BufferedImage[1];
 			javax.swing.SwingUtilities.invokeAndWait(() ->
 				live[0] = com.ironhub.ui.SwingRender.render((javax.swing.JPanel) tab[0]));
 			Assert.assertTrue(live[0].getHeight() > 300);
 			write(live[0], "loadout-integrated-live.png");
+
+			// the Slayer chip (2026-07-21): the task's saved setup renders in
+			// the SAME viewer, diffed vs current — the facemask is not carried
+			// so it must arrive orange, and the setup's inventory shows in the
+			// shared Inventory fold
+			com.ironhub.state.PersistedState.SavedSetup slayerSetup =
+				new com.ironhub.state.PersistedState.SavedSetup();
+			slayerSetup.equipment.put("HEAD", 4164);   // facemask — not carried
+			slayerSetup.equipment.put("WEAPON", 4151); // whip — already worn
+			slayerSetup.inventory = new int[28];
+			java.util.Arrays.fill(slayerSetup.inventory, -1);
+			slayerSetup.inventoryQty = new int[28];
+			slayerSetup.inventory[0] = 560;            // death runes
+			slayerSetup.inventoryQty[0] = 200;
+			state.setSlayerTask("Dust devils");
+			state.saveSetup("Dust devils", slayerSetup);
+			javax.swing.SwingUtilities.invokeAndWait(() -> module.setViewSourceForTest(1));
+			java.awt.image.BufferedImage[] slayer = new java.awt.image.BufferedImage[1];
+			javax.swing.SwingUtilities.invokeAndWait(() ->
+				slayer[0] = com.ironhub.ui.SwingRender.render((javax.swing.JPanel) tab[0]));
+			Assert.assertTrue(slayer[0].getHeight() > 300);
+			write(slayer[0], "loadout-integrated-slayer.png");
 		}
 		finally
 		{

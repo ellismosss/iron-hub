@@ -134,7 +134,7 @@ public class LoadoutLabModule implements IronHubModule
 	// and the style buttons/detail follow. EDT-only mutation. ──
 	private enum ViewSource
 	{
-		LIVE, DPS
+		LIVE, SLAYER, DPS
 	}
 
 	private ViewSource viewSource = ViewSource.LIVE;
@@ -429,6 +429,15 @@ public class LoadoutLabModule implements IronHubModule
 		return viewedSetup != null ? state.savedSetup(viewedSetup) : null;
 	}
 
+	/** The current slayer task's saved setup — the shared Loadout key space
+	 *  the Slayer tab saves into (keyed by task name), so the "Slayer" source
+	 *  chip needs no module coupling. Null with no task or no setup. */
+	private PersistedState.SavedSetup slayerSetup()
+	{
+		String task = state.getSlayerTask();
+		return task.isEmpty() ? null : state.savedSetup(task);
+	}
+
 	private void toggleAllSetups()
 	{
 		namesOpen = !namesOpen;
@@ -520,8 +529,13 @@ public class LoadoutLabModule implements IronHubModule
 		// saves the SUGGESTED loadout under a monster-flavoured name
 		boolean dps = viewSource == ViewSource.DPS && isLive() && suggestionSetup(dpsStyle) != null;
 		// the suggested name is the most recently CALCULATED monster (Luke,
-		// round 5), whatever the view; then the usual fallbacks
-		String suggested = dpsMonster != null ? dpsMonster.getName()
+		// round 5), whatever the view; then the usual fallbacks. In the
+		// Slayer view the task name comes first — saving under it IS the
+		// task's setup (shared key space), so this is how you replace it
+		// with current gear now that the Slayer tab's button is gone.
+		String suggested = viewSource == ViewSource.SLAYER && !state.getSlayerTask().isEmpty()
+			? state.getSlayerTask()
+			: dpsMonster != null ? dpsMonster.getName()
 			: viewedSetup != null ? viewedSetup
 			: activity().isEmpty() ? "My setup" : activity();
 		String name = (String) javax.swing.JOptionPane.showInputDialog(holder,
@@ -688,7 +702,9 @@ public class LoadoutLabModule implements IronHubModule
 			equipStatsCollapsed,
 			viewSource,
 			dpsStyle,
-			System.identityHashCode(dpsResults));
+			System.identityHashCode(dpsResults),
+			state.getSlayerTask(),
+			System.identityHashCode(slayerSetup()));
 		if (fp == lastViewFp)
 		{
 			return;
@@ -701,9 +717,14 @@ public class LoadoutLabModule implements IronHubModule
 		// setup/draft still wins (that IS "doing something else").
 		boolean dpsMode = viewSource == ViewSource.DPS && isLive();
 		boolean dps = dpsMode && suggestionSetup(dpsStyle) != null;
-		boolean live = isLive() && !dps;
+		// the Slayer chip shows the current task's saved setup through the
+		// SAME viewer, diffed vs what you carry (Luke, 2026-07-21); with no
+		// task/setup it honestly falls back to the live view + a note
+		boolean slayer = viewSource == ViewSource.SLAYER && isLive() && slayerSetup() != null;
+		boolean live = isLive() && !dps && !slayer;
 		liveButton.setVisible(!isLive());
 		PersistedState.SavedSetup shown = dps ? suggestionSetup(dpsStyle)
+			: slayer ? slayerSetup()
 			: live ? liveSetup() : viewedOrDraft();
 		if (lab.getPanel() != null)
 		{
@@ -712,10 +733,10 @@ public class LoadoutLabModule implements IronHubModule
 		}
 
 		setupView.removeAll();
-		if (!live && !dps)
+		if (!live && !dps && !slayer)
 		{
-			// a viewed setup keeps its name + diff legend; the live and DPS
-			// views carry no headline at all (Luke, 2026-07-21)
+			// a viewed setup keeps its name + diff legend; the live, Slayer
+			// and DPS chip views carry no headline at all (Luke, 2026-07-21)
 			com.ironhub.ui.osrs.OsrsLabel titleLabel = new com.ironhub.ui.osrs.OsrsLabel(
 				draft != null ? "Draft (unsaved) · vs current" : viewedSetup + " · vs current",
 				com.ironhub.ui.osrs.OsrsSkin.MUTED, com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
@@ -788,26 +809,42 @@ public class LoadoutLabModule implements IronHubModule
 		// Always offered — "DPS Calc" is also how the calc section opens.
 		if (isLive())
 		{
+			// natural widths: three chips split evenly clip "Recommended"
+			// inside 225px — the render caught it
 			com.ironhub.ui.osrs.StoneChipRow sourceChips =
-				new com.ironhub.ui.osrs.StoneChipRow(theme, true, "Current gear", "Recommended");
-			sourceChips.setSelected(dpsMode ? 1 : 0);
+				new com.ironhub.ui.osrs.StoneChipRow(theme, false, "Current", "Slayer", "Recommended");
+			sourceChips.setSelected(dpsMode ? 2 : viewSource == ViewSource.SLAYER ? 1 : 0);
 			sourceChips.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 			sourceChips.onChange(i ->
 			{
-				viewSource = i == 1 ? ViewSource.DPS : ViewSource.LIVE;
+				viewSource = i == 2 ? ViewSource.DPS
+					: i == 1 ? ViewSource.SLAYER : ViewSource.LIVE;
 				lastViewFp = 0;
 				renderView();
 			});
 			if (suggestionBeatsCurrent())
 			{
-				sourceChips.highlight(1, true); // subtle: the calc found better
+				sourceChips.highlight(2, true); // subtle: the calc found better
 				sourceChips.setToolTipText("The calc found a better setup than your current gear");
 			}
 			setupView.add(sourceChips);
 			setupView.add(Box.createVerticalStrut(2));
+			if (viewSource == ViewSource.SLAYER && !slayer)
+			{
+				// honest: nothing to show for the Slayer chip — the viewer
+				// below falls back to live gear
+				setupView.add(com.ironhub.ui.osrs.OsrsLabel.wrapped(
+					state.getSlayerTask().isEmpty()
+						? "No slayer task — the viewer shows your live gear"
+						: "No setup saved for this task — save one from the Slayer module",
+					195, com.ironhub.ui.osrs.OsrsSkin.FAINT,
+					com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned());
+				setupView.add(Box.createVerticalStrut(2));
+			}
 		}
 
-		JComponent equipmentView = centered(view.equipment(display, equipTints, dps ? null : this::openSlotSearch));
+		JComponent equipmentView = centered(view.equipment(display, equipTints,
+			dps || slayer ? null : this::openSlotSearch)); // chip views are display-only
 		JPanel thinkingWrap = new JPanel(new java.awt.BorderLayout())
 		{
 			@Override
@@ -1961,10 +1998,12 @@ public class LoadoutLabModule implements IronHubModule
 		toggleAllSetups();
 	}
 
-	/** Test seam: force the shared viewer's source (true = DPS view). */
-	public void setViewSourceForTest(boolean dps)
+	/** Test seam: force the shared viewer's source by chip index
+	 *  (0 Current · 1 Slayer · 2 Recommended). */
+	public void setViewSourceForTest(int index)
 	{
-		viewSource = dps ? ViewSource.DPS : ViewSource.LIVE;
+		viewSource = index == 2 ? ViewSource.DPS
+			: index == 1 ? ViewSource.SLAYER : ViewSource.LIVE;
 		lastViewFp = 0;
 		renderView();
 	}

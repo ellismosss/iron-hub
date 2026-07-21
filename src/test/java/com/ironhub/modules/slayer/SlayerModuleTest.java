@@ -340,8 +340,9 @@ public class SlayerModuleTest
 		state.setSlayerBlockPref("Duradel", java.util.List.of("Smoke devils", "Cave kraken"));
 		state.setSlayerSkipPref("Duradel", java.util.List.of("Steel dragons"));
 
-		// a saved setup renders at the TOP of the task view; the facemask is
-		// banked (not carried) so it must count as missing -> orange + glow
+		// the saved setup renders in Gear & Combat's Slayer view now, but the
+		// missing-item bank glow stays module-side: the facemask is banked
+		// (not carried) so it must count as missing
 		com.ironhub.state.PersistedState.SavedSetup setup =
 			new com.ironhub.state.PersistedState.SavedSetup();
 		setup.equipment.put("HEAD", 4164);           // facemask — banked only

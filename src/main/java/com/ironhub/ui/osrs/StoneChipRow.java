@@ -89,13 +89,14 @@ public class StoneChipRow extends JPanel
 	}
 
 	/** A subtle cue on one chip: its label reads VALUE-green while not
-	 *  selected (the DPS chip when the calc beats your current gear). */
+	 *  selected (the DPS chip when the calc beats your current gear).
+	 *  Indexes the chip list, never getComponents() — non-stretch rows
+	 *  interleave spacer struts there (the render caught the off-by-strut). */
 	public void highlight(int index, boolean on)
 	{
-		java.awt.Component[] chips = getComponents();
-		if (index >= 0 && index < chips.length && chips[index] instanceof Chip)
+		if (index >= 0 && index < chips.size())
 		{
-			((Chip) chips[index]).setHighlighted(on);
+			chips.get(index).setHighlighted(on);
 		}
 	}
 
