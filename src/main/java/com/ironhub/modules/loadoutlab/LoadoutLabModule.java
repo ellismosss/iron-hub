@@ -483,6 +483,7 @@ public class LoadoutLabModule implements IronHubModule
 	 *  mid-fight and a new fight re-runs it even mid-task (Luke, 2026-07-21). */
 	private String seenTask = "";
 	private String seenNpc = "";
+	private int seenTaskGen;
 
 	private void onStateChanged()
 	{
@@ -493,16 +494,18 @@ public class LoadoutLabModule implements IronHubModule
 		}
 		String task = state.getSlayerTask();
 		String npc = state.getCombatNpcName();
+		// the generation moves on RE-CHECKS too (helm/gem chat) — an
+		// unchanged task re-aims the calc when the player re-confirms it
+		int taskGen = state.getSlayerTaskGeneration();
+		boolean rechecked = taskGen != seenTaskGen;
+		seenTaskGen = taskGen;
 		String follow = null;
 		Integer npcId = null;
-		if (!task.equals(seenTask))
+		if ((!task.equals(seenTask) || rechecked) && !task.isEmpty())
 		{
-			seenTask = task;
-			if (!task.isEmpty())
-			{
-				follow = task;
-			}
+			follow = task;
 		}
+		seenTask = task;
 		if (!npc.equals(seenNpc))
 		{
 			seenNpc = npc;
@@ -510,9 +513,10 @@ public class LoadoutLabModule implements IronHubModule
 			{
 				follow = npc; // the fight is the more immediate context
 				npcId = state.getCombatNpcId();
+				rechecked = false; // a fresh fight outranks the re-check
 			}
 		}
-		if (follow != null && !follow.equals(lastAutoSelected))
+		if (follow != null && (rechecked || !follow.equals(lastAutoSelected)))
 		{
 			lastAutoSelected = follow;
 			lab.getPanel().selectExternal(follow, npcId);

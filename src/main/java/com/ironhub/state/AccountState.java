@@ -197,6 +197,8 @@ public class AccountState implements StateView
 	 *  varbits on the client thread; empty until seen / when unavailable. */
 	private volatile Map<Integer, Integer> runePouch = Map.of();
 	private volatile String slayerTask = "";
+	/** Session-scoped: bumps on task set AND on a re-check confirmation. */
+	private volatile int slayerTaskGen;
 	private volatile String combatNpcName = "";
 	private volatile int combatNpcId = -1;
 
@@ -362,8 +364,24 @@ public class AccountState implements StateView
 		if (!value.equals(slayerTask))
 		{
 			slayerTask = value;
+			slayerTaskGen++;
 			notifyListeners();
 		}
+	}
+
+	/** Bumped whenever the task is set OR re-confirmed (a helm/gem check) —
+	 *  consumers that act on a task (the DPS calc auto-follow) re-run when
+	 *  this moves even though the name is unchanged (Luke, 2026-07-21). */
+	public int getSlayerTaskGeneration()
+	{
+		return slayerTaskGen;
+	}
+
+	/** The player re-checked their unchanged task (slayer helm/gem chat). */
+	public void touchSlayerTask()
+	{
+		slayerTaskGen++;
+		notifyListeners();
 	}
 
 	/** Most recently fought NPC (name, id), or empty/-1. */

@@ -134,7 +134,10 @@
      "plane": 0
     },
     {
-     "name": "Wilderness Slayer Cave"
+     "name": "Wilderness Slayer Cave",
+     "x": 3260,
+     "y": 3664,
+     "plane": 0
     },
     {
      "name": "Abyssal Nexus",
@@ -178,7 +181,10 @@
      "plane": 0
     },
     {
-     "name": "Wilderness Slayer Cave"
+     "name": "Wilderness Slayer Cave",
+     "x": 3260,
+     "y": 3664,
+     "plane": 0
     },
     {
      "name": "Stronghold Slayer Cave",
@@ -410,7 +416,10 @@
      "plane": 0
     },
     {
-     "name": "Wilderness Slayer Cave"
+     "name": "Wilderness Slayer Cave",
+     "x": 3260,
+     "y": 3664,
+     "plane": 0
     }
    ]
   },
@@ -935,7 +944,10 @@
      "plane": 0
     },
     {
-     "name": "Wilderness Slayer Cave"
+     "name": "Wilderness Slayer Cave",
+     "x": 3260,
+     "y": 3664,
+     "plane": 0
     },
     {
      "name": "Crash Site Cavern",
@@ -999,7 +1011,10 @@
      ]
     },
     {
-     "name": "Wilderness Slayer Cave"
+     "name": "Wilderness Slayer Cave",
+     "x": 3260,
+     "y": 3664,
+     "plane": 0
     },
     {
      "name": "Corsair Cove Dungeon",
@@ -1056,7 +1071,10 @@
      "plane": 0
     },
     {
-     "name": "North of Venenatis"
+     "name": "North of Venenatis",
+     "x": 3319,
+     "y": 3798,
+     "plane": 0
     },
     {
      "name": "Taverley Dungeon",
@@ -2579,7 +2597,10 @@
      "plane": 0
     },
     {
-     "name": "Wilderness Slayer Dungeon"
+     "name": "Wilderness Slayer Dungeon",
+     "x": 3260,
+     "y": 3664,
+     "plane": 0
     }
    ],
    "bring": [
@@ -2891,7 +2912,10 @@
    ],
    "locations": [
     {
-     "name": "Stronghold of Security (level 2)"
+     "name": "Stronghold of Security (level 2)",
+     "x": 3081,
+     "y": 3420,
+     "plane": 0
     }
    ],
    "bring": [
@@ -3438,7 +3462,10 @@
    },
    "locations": [
     {
-     "name": "Wilderness Slayer Cave"
+     "name": "Wilderness Slayer Cave",
+     "x": 3260,
+     "y": 3664,
+     "plane": 0
     },
     {
      "name": "Brimhaven Dungeon",
@@ -3619,7 +3646,10 @@
      ]
     },
     {
-     "name": "Wilderness Slayer Cave"
+     "name": "Wilderness Slayer Cave",
+     "x": 3260,
+     "y": 3664,
+     "plane": 0
     },
     {
      "name": "Stronghold Slayer Dungeon",
@@ -3886,7 +3916,10 @@
      "plane": 0
     },
     {
-     "name": "Wilderness Slayer Cave"
+     "name": "Wilderness Slayer Cave",
+     "x": 3260,
+     "y": 3664,
+     "plane": 0
     },
     {
      "name": "Settlement Ruins",
@@ -4117,7 +4150,10 @@
      ]
     },
     {
-     "name": "Wilderness Slayer Cave"
+     "name": "Wilderness Slayer Cave",
+     "x": 3260,
+     "y": 3664,
+     "plane": 0
     },
     {
      "name": "Catacombs of Kourend",
@@ -4484,7 +4520,10 @@
      "plane": 0
     },
     {
-     "name": "Wilderness Slayer Cave"
+     "name": "Wilderness Slayer Cave",
+     "x": 3260,
+     "y": 3664,
+     "plane": 0
     },
     {
      "name": "Taverley Dungeon",
@@ -5249,7 +5288,10 @@
      ]
     },
     {
-     "name": "Wildnerness Slayer Cave"
+     "name": "Wildnerness Slayer Cave",
+     "x": 3260,
+     "y": 3664,
+     "plane": 0
     }
    ],
    "reqs": [
@@ -6824,7 +6866,10 @@
      ]
     },
     {
-     "name": "Enchanted Valley"
+     "name": "Enchanted Valley",
+     "x": 3040,
+     "y": 4512,
+     "plane": 0
     },
     {
      "name": "Neitiznot",
@@ -6997,7 +7042,10 @@
      "plane": 0
     },
     {
-     "name": "Meiyerditch Mine"
+     "name": "Meiyerditch Mine",
+     "x": 2389,
+     "y": 4627,
+     "plane": 0
     },
     {
      "name": "Ver Sinhaza",
@@ -9789,7 +9837,8 @@
      "weight": 2,
      "amount": "120-170",
      "reqs": [
-      "combat:75"
+      "combat:75",
+      "quest:Barbarian Training"
      ],
      "locations": [
       "Ancient Cavern",
@@ -10693,7 +10742,8 @@
      "weight": 2,
      "amount": "130-200",
      "reqs": [
-      "combat:75"
+      "combat:75",
+      "quest:Barbarian Training"
      ]
     },
     {
@@ -11141,7 +11191,8 @@
    "points": 120,
    "varbit": "SLAYER_AUTOKILL_GARGOYLES",
    "category": "unlock",
-   "desc": "Gargoyles are automatically dealt the finishing blow if the player has a rock hammer in their inventory."
+   "desc": "Gargoyles are automatically dealt the finishing blow if the player has a rock hammer in their inventory.",
+   "icon": "gargoylesmasher.png"
   },
   {
    "key": "slayerreward_slugsalter",
@@ -11149,7 +11200,8 @@
    "points": 10,
    "varbit": "SLAYER_AUTOKILL_ROCKSLUGS",
    "category": "unlock",
-   "desc": "Rock slugs are automatically dealt the finishing blow if the player has a bag of salt in their inventory."
+   "desc": "Rock slugs are automatically dealt the finishing blow if the player has a bag of salt in their inventory.",
+   "icon": "slugsalter.png"
   },
   {
    "key": "slayerreward_reptilefreezer",
@@ -11157,7 +11209,8 @@
    "points": 10,
    "varbit": "SLAYER_AUTOKILL_DESERTLIZARDS",
    "category": "unlock",
-   "desc": "Desert lizards are automatically dealt the finishing blow if the player has an ice cooler in their inventory."
+   "desc": "Desert lizards are automatically dealt the finishing blow if the player has an ice cooler in their inventory.",
+   "icon": "reptilefreezer.png"
   },
   {
    "key": "slayerreward_shroomsprayer",
@@ -11165,7 +11218,8 @@
    "points": 110,
    "varbit": "SLAYER_AUTOKILL_ZYGOMITES",
    "category": "unlock",
-   "desc": "Mutated zygomites are automatically dealt the finishing blow if the player has fungicide spray and fungicide in their inventory."
+   "desc": "Mutated zygomites are automatically dealt the finishing blow if the player has fungicide spray and fungicide in their inventory.",
+   "icon": "shroomsprayer.png"
   },
   {
    "key": "slayerreward_malevolentmasquerade",
@@ -11173,7 +11227,8 @@
    "points": 400,
    "varbit": "SLAYER_HELM_UNLOCKED",
    "category": "unlock",
-   "desc": "Learn to assemble a Slayer helmet, which requires level 55 Crafting."
+   "desc": "Learn to assemble a Slayer helmet, which requires level 55 Crafting.",
+   "icon": "malevolentmasquerade.png"
   },
   {
    "key": "slayerreward_ringbling",
@@ -11181,7 +11236,8 @@
    "points": 150,
    "varbit": "SLAYER_RING_UNLOCKED",
    "category": "unlock",
-   "desc": "Learn to craft a Slayer ring, which requires level 75 Crafting."
+   "desc": "Learn to craft a Slayer ring, which requires level 75 Crafting.",
+   "icon": "ringbling.png"
   },
   {
    "key": "slayerreward_broaderfletching",
@@ -11189,7 +11245,8 @@
    "points": 300,
    "varbit": "SLAYER_AMMO_UNLOCKED",
    "category": "unlock",
-   "desc": "Learn to fletch broad arrows (level 52 Fletching), broad bolts (level 55 Fletching), and amethyst broad bolts (level 76 Fletching)."
+   "desc": "Learn to fletch broad arrows (level 52 Fletching), broad bolts (level 55 Fletching), and amethyst broad bolts (level 76 Fletching).",
+   "icon": "broaderfletching.png"
   },
   {
    "key": "slayerreward_seeingred",
@@ -11197,7 +11254,8 @@
    "points": 50,
    "varbit": "SLAYER_UNLOCK_REDDRAGONS",
    "category": "unlock",
-   "desc": "Konar, Duradel, and Nieve will be able to assign you red dragons as your task."
+   "desc": "Konar, Duradel, and Nieve will be able to assign you red dragons as your task.",
+   "icon": "seeingred.png"
   },
   {
    "key": "slayerreward_watchthebirdie",
@@ -11205,7 +11263,8 @@
    "points": 80,
    "varbit": "SLAYER_UNLOCK_AVIANSIES",
    "category": "unlock",
-   "desc": "Konar, Duradel, Nieve, Chaeldar, and Krystilia will be able to assign you Aviansie as your task. Requires level 60 Agility or 60 Strength to unlock."
+   "desc": "Konar, Duradel, Nieve, Chaeldar, and Krystilia will be able to assign you Aviansie as your task. Requires level 60 Agility or 60 Strength to unlock.",
+   "icon": "watchthebirdie.png"
   },
   {
    "key": "slayerreward_hotstuff",
@@ -11213,7 +11272,8 @@
    "points": 100,
    "varbit": "SLAYER_UNLOCK_TZHAAR",
    "category": "unlock",
-   "desc": "Duradel, Nieve, and Chaeldar will be able to assign TzHaar as your task. You will be offered a chance to slay TzTok-Jad."
+   "desc": "Duradel, Nieve, and Chaeldar will be able to assign TzHaar as your task. You will be offered a chance to slay TzTok-Jad.",
+   "icon": "hotstuff.png"
   },
   {
    "key": "slayerreward_likeaboss",
@@ -11221,7 +11281,8 @@
    "points": 200,
    "varbit": "SLAYER_UNLOCK_BOSSES",
    "category": "unlock",
-   "desc": "Konar, Duradel, Krystilia, and Nieve will be able to assign boss monsters as your task, excluding: the Corporeal Beast, Yama, Nightmare, and Nex."
+   "desc": "Konar, Duradel, Krystilia, and Nieve will be able to assign boss monsters as your task, excluding: the Corporeal Beast, Yama, Nightmare, and Nex.",
+   "icon": "likeaboss.png"
   },
   {
    "key": "slayerreward_reptilegotripped",
@@ -11229,7 +11290,8 @@
    "points": 75,
    "varbit": "SLAYER_UNLOCK_LIZARDMEN",
    "category": "unlock",
-   "desc": "Konar, Duradel, Nieve, and Chaeldar will be able to assign Lizardmen as your task."
+   "desc": "Konar, Duradel, Nieve, and Chaeldar will be able to assign Lizardmen as your task.",
+   "icon": "reptilegotripped.png"
   },
   {
    "key": "slayerreward_biggerandbadder",
@@ -11237,7 +11299,8 @@
    "points": 50,
    "varbit": "SLAYER_UNLOCK_SUPERIORMOBS",
    "category": "unlock",
-   "desc": "Certain Slayer monsters will have the chance of spawning a superior version whilst on a Slayer task."
+   "desc": "Certain Slayer monsters will have the chance of spawning a superior version whilst on a Slayer task.",
+   "icon": "biggerandbadder.png"
   },
   {
    "key": "slayerreward_dulynoted",
@@ -11245,7 +11308,8 @@
    "points": 200,
    "varbit": "SLAYER_UNLOCK_NOTEDMITHRILBARS",
    "category": "unlock",
-   "desc": "Mithril dragons drop mithril bars in banknote form while killed on assignment."
+   "desc": "Mithril dragons drop mithril bars in banknote form while killed on assignment.",
+   "icon": "dulynoted.png"
   },
   {
    "key": "slayerreward_stopthewyvern",
@@ -11253,7 +11317,8 @@
    "points": 500,
    "varbit": "SLAYER_UNLOCK_FOSSILWYVERNBLOCK",
    "category": "unlock",
-   "desc": "Stops you getting Fossil Island Wyvern tasks, without counting towards your blocked task limit. This does not cancel a current fossil wyvern task."
+   "desc": "Stops you getting Fossil Island Wyvern tasks, without counting towards your blocked task limit. This does not cancel a current fossil wyvern task.",
+   "icon": "stopthewyvern.png"
   },
   {
    "key": "slayerreward_doubletrouble",
@@ -11261,7 +11326,8 @@
    "points": 500,
    "varbit": "SLAYER_UNLOCK_GROTESQUEKILLS",
    "category": "unlock",
-   "desc": "Slaying Dusk and Dawn now counts for two kills towards your task rather than one."
+   "desc": "Slaying Dusk and Dawn now counts for two kills towards your task rather than one.",
+   "icon": "doubletrouble.png"
   },
   {
    "key": "slayerreward_basilocked",
@@ -11269,7 +11335,8 @@
    "points": 80,
    "varbit": "SLAYER_UNLOCK_BASILISK",
    "category": "unlock",
-   "desc": "Konar, Duradel, and Nieve will be able to assign Basilisks as your task."
+   "desc": "Konar, Duradel, and Nieve will be able to assign Basilisks as your task.",
+   "icon": "basilocked.png"
   },
   {
    "key": "slayerreward_actualvampyreslayer",
@@ -11277,7 +11344,8 @@
    "points": 80,
    "varbit": "SLAYER_UNLOCK_VAMPYRES",
    "category": "unlock",
-   "desc": "Konar, Duradel, Nieve, and Chaeldar will be able to assign Vampyres as your task."
+   "desc": "Konar, Duradel, Nieve, and Chaeldar will be able to assign Vampyres as your task.",
+   "icon": "actualvampyreslayer.png"
   },
   {
    "key": "slayerreward_taskstorage",
@@ -11285,7 +11353,8 @@
    "points": 500,
    "varbit": "SLAYER_UNLOCK_STORAGE",
    "category": "unlock",
-   "desc": "Gain the ability to store your task. Once unlocked the operation is controlled by the tasks tab of the reward option. You can freely swap between your current task and stored task by using the reward "
+   "desc": "Gain the ability to store your task. Once unlocked the operation is controlled by the tasks tab of the reward option. You can freely swap between your current task and stored task by using the reward ",
+   "icon": "taskstorage.png"
   },
   {
    "key": "slayerreward_iwildymoreslayer",
@@ -11293,7 +11362,8 @@
    "points": 0,
    "varbit": "SLAYER_UNLOCK_WILDY_EXTRATASKS",
    "category": "unlock",
-   "desc": "Krystilia will be able to assign Jellies, Dust Devils, Nechryaels, and Abyssal Demons as your task."
+   "desc": "Krystilia will be able to assign Jellies, Dust Devils, Nechryaels, and Abyssal Demons as your task.",
+   "icon": "iwildymoreslayer.png"
   },
   {
    "key": "slayerreward_warpedreality",
@@ -11301,7 +11371,8 @@
    "points": 60,
    "varbit": "SLAYER_UNLOCK_WARPED_CREATURES",
    "category": "unlock",
-   "desc": "Konar, Duradel, Nieve, and Chaeldar will be able to assign Warped creatures as your task."
+   "desc": "Konar, Duradel, Nieve, and Chaeldar will be able to assign Warped creatures as your task.",
+   "icon": "warpedreality.png"
   },
   {
    "key": "slayerreward_luredin",
@@ -11309,7 +11380,8 @@
    "points": 80,
    "varbit": "SLAYER_UNLOCK_AQUANITES",
    "category": "unlock",
-   "desc": "Nieve and Duradel will be able to assign Aquanites as your task."
+   "desc": "Nieve and Duradel will be able to assign Aquanites as your task.",
+   "icon": "luredin.png"
   },
   {
    "key": "slayerreward_wingsspread",
@@ -11317,7 +11389,8 @@
    "points": 80,
    "varbit": "SLAYER_UNLOCK_GRYPHONS",
    "category": "unlock",
-   "desc": "Nieve and Duradel will be able to assign Gryphons as your task."
+   "desc": "Nieve and Duradel will be able to assign Gryphons as your task.",
+   "icon": "wingsspread.png"
   },
   {
    "key": "slayerreward_chanceofheavyfrost",
@@ -11325,7 +11398,8 @@
    "points": 100,
    "varbit": "SLAYER_WEIGHTED_LONGER_FROST_DRAGONS",
    "category": "unlock",
-   "desc": "Weighting increased from 5 to 8 for Frost dragon tasks from Nieve and Duradel."
+   "desc": "Weighting increased from 5 to 8 for Frost dragon tasks from Nieve and Duradel.",
+   "icon": "chanceofheavyfrost.png"
   },
   {
    "key": "slayerreward_needmoredarkness",
@@ -11333,7 +11407,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_DARKBEASTS",
    "category": "extend",
-   "desc": "Number of dark beasts assigned is increased to 110-135."
+   "desc": "Number of dark beasts assigned is increased to 110-135.",
+   "icon": "needmoredarkness.png"
   },
   {
    "key": "slayerreward_ankouverymuch",
@@ -11341,7 +11416,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_ANKOU",
    "category": "extend",
-   "desc": "Number of ankou assigned is increased to 91-150."
+   "desc": "Number of ankou assigned is increased to 91-150.",
+   "icon": "ankouverymuch.png"
   },
   {
    "key": "slayerreward_suqanotherone",
@@ -11349,7 +11425,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_SUQAH",
    "category": "extend",
-   "desc": "Number of suqahs assigned is increased to 186-250."
+   "desc": "Number of suqahs assigned is increased to 186-250.",
+   "icon": "suqanotherone.png"
   },
   {
    "key": "slayerreward_firedarkness",
@@ -11357,7 +11434,8 @@
    "points": 50,
    "varbit": "SLAYER_LONGER_BLACKDRAGONS",
    "category": "extend",
-   "desc": "Number of black dragons assigned is increased to 40-60."
+   "desc": "Number of black dragons assigned is increased to 40-60.",
+   "icon": "firedarkness.png"
   },
   {
    "key": "slayerreward_pedaltothemetals",
@@ -11365,7 +11443,8 @@
    "points": 200,
    "varbit": "SLAYER_LONGER_METALDRAGONS",
    "category": "extend",
-   "desc": "Number of metal dragons assigned is increased to 150-200."
+   "desc": "Number of metal dragons assigned is increased to 150-200.",
+   "icon": "pedaltothemetals.png"
   },
   {
    "key": "slayerreward_spiritualfervour",
@@ -11373,7 +11452,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_SPIRITUALGWD",
    "category": "extend",
-   "desc": "Number of spiritual creatures assigned is increased to 181-250."
+   "desc": "Number of spiritual creatures assigned is increased to 181-250.",
+   "icon": "spiritualfervour.png"
   },
   {
    "key": "slayerreward_augmentmyabbies",
@@ -11381,7 +11461,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_ABYSSALDEMONS",
    "category": "extend",
-   "desc": "Number of abyssal demons assigned is increased to 200-250."
+   "desc": "Number of abyssal demons assigned is increased to 200-250.",
+   "icon": "augmentmyabbies.png"
   },
   {
    "key": "slayerreward_itsdarkinhere",
@@ -11389,7 +11470,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_BLACKDEMONS",
    "category": "extend",
-   "desc": "Number of black demons assigned is increased to 200-250."
+   "desc": "Number of black demons assigned is increased to 200-250.",
+   "icon": "itsdarkinhere.png"
   },
   {
    "key": "slayerreward_greaterchallenge",
@@ -11397,7 +11479,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_GREATERDEMONS",
    "category": "extend",
-   "desc": "Number of greater demons assigned is increased to 200-250."
+   "desc": "Number of greater demons assigned is increased to 200-250.",
+   "icon": "greaterchallenge.png"
   },
   {
    "key": "slayerreward_bleedmedry",
@@ -11405,7 +11488,8 @@
    "points": 75,
    "varbit": "SLAYER_LONGER_BLOODVELD",
    "category": "extend",
-   "desc": "Number of bloodveld assigned is increased to 200-250."
+   "desc": "Number of bloodveld assigned is increased to 200-250.",
+   "icon": "bleedmedry.png"
   },
   {
    "key": "slayerreward_smellyalater",
@@ -11413,7 +11497,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_ABERRANTSPECTRES",
    "category": "extend",
-   "desc": "Number of aberrant spectres assigned is increased to 200-250."
+   "desc": "Number of aberrant spectres assigned is increased to 200-250.",
+   "icon": "smellyalater.png"
   },
   {
    "key": "slayerreward_birdsofafeather",
@@ -11421,7 +11506,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_AVIANSIES",
    "category": "extend",
-   "desc": "Number of aviansie assigned is increased to 200-250."
+   "desc": "Number of aviansie assigned is increased to 200-250.",
+   "icon": "birdsofafeather.png"
   },
   {
    "key": "slayerreward_horrorific",
@@ -11429,7 +11515,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_CAVEHORRORS",
    "category": "extend",
-   "desc": "Number of cave horrors assigned is increased to 200-250."
+   "desc": "Number of cave horrors assigned is increased to 200-250.",
+   "icon": "horrorific.png"
   },
   {
    "key": "slayerreward_todustyoushallreturn",
@@ -11437,7 +11524,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_DUSTDEVILS",
    "category": "extend",
-   "desc": "Number of dust devils assigned is increased to 200-250."
+   "desc": "Number of dust devils assigned is increased to 200-250.",
+   "icon": "todustyoushallreturn.png"
   },
   {
    "key": "slayerreward_wyvernotherone",
@@ -11445,7 +11533,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_SKELETALWYVERNS",
    "category": "extend",
-   "desc": "Number of Skeletal Wyverns assigned is increased to 50-75."
+   "desc": "Number of Skeletal Wyverns assigned is increased to 50-75.",
+   "icon": "wyvernotherone.png"
   },
   {
    "key": "slayerreward_getsmashed",
@@ -11453,7 +11542,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_GARGOYLES",
    "category": "extend",
-   "desc": "Number of gargoyles assigned is increased to 200-250."
+   "desc": "Number of gargoyles assigned is increased to 200-250.",
+   "icon": "getsmashed.png"
   },
   {
    "key": "slayerreward_nechsplease",
@@ -11461,7 +11551,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_NECHRYAEL",
    "category": "extend",
-   "desc": "Number of nechryael assigned is increased to 200-250."
+   "desc": "Number of nechryael assigned is increased to 200-250.",
+   "icon": "nechsplease.png"
   },
   {
    "key": "slayerreward_krackon",
@@ -11469,7 +11560,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_CAVEKRAKEN",
    "category": "extend",
-   "desc": "Number of cave kraken assigned is increased to 150-200."
+   "desc": "Number of cave kraken assigned is increased to 150-200.",
+   "icon": "krackon.png"
   },
   {
    "key": "slayerreward_getscabarightonit",
@@ -11477,7 +11569,8 @@
    "points": 50,
    "varbit": "SLAYER_LONGER_SCABARITES",
    "category": "extend",
-   "desc": "Number of scabarites assigned is increased to 130-170."
+   "desc": "Number of scabarites assigned is increased to 130-170.",
+   "icon": "getscabarightonit.png"
   },
   {
    "key": "slayerreward_wyvernothertwo",
@@ -11485,7 +11578,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_FOSSILWYVERNS",
    "category": "extend",
-   "desc": "Number of Fossil Island Wyverns assigned is increased to 55-75."
+   "desc": "Number of Fossil Island Wyverns assigned is increased to 55-75.",
+   "icon": "wyvernothertwo.png"
   },
   {
    "key": "slayerreward_basilonger",
@@ -11493,7 +11587,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_BASILISK",
    "category": "extend",
-   "desc": "Number of basilisks assigned is increased to 200-250."
+   "desc": "Number of basilisks assigned is increased to 200-250.",
+   "icon": "basilonger.png"
   },
   {
    "key": "slayerreward_moreatstake",
@@ -11501,7 +11596,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_VAMPYRES",
    "category": "extend",
-   "desc": "Number of vampyres assigned is increased to 200-250."
+   "desc": "Number of vampyres assigned is increased to 200-250.",
+   "icon": "moreatstake.png"
   },
   {
    "key": "slayerreward_revenenenenenants",
@@ -11509,7 +11605,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_REVENANTS",
    "category": "extend",
-   "desc": "Number of revenants assigned is increased to 100-150."
+   "desc": "Number of revenants assigned is increased to 100-150.",
+   "icon": "revenenenenenants.png"
   },
   {
    "key": "slayerreward_moreeyesthansense",
@@ -11517,7 +11614,8 @@
    "points": 150,
    "varbit": "SLAYER_LONGER_ARAXYTES",
    "category": "extend",
-   "desc": "Number of araxytes assigned is increased to 200-250."
+   "desc": "Number of araxytes assigned is increased to 200-250.",
+   "icon": "moreeyesthansense.png"
   },
   {
    "key": "slayerreward_unrestrainingorder",
@@ -11525,7 +11623,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_CUSTODIANS",
    "category": "extend",
-   "desc": "Number of custodian stalkers assigned is increased to 200-250."
+   "desc": "Number of custodian stalkers assigned is increased to 200-250.",
+   "icon": "unrestrainingorder.png"
   },
   {
    "key": "slayerreward_letsstayallaquanite",
@@ -11533,7 +11632,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_AQUANITES",
    "category": "extend",
-   "desc": "Number of aquanites assigned is increased to 150-200."
+   "desc": "Number of aquanites assigned is increased to 150-200.",
+   "icon": "letsstayallaquanite.png"
   },
   {
    "key": "slayerreward_canofwyrms",
@@ -11541,7 +11641,8 @@
    "points": 100,
    "varbit": "SLAYER_LONGER_WYRMS",
    "category": "extend",
-   "desc": "Number of wyrms assigned is increased to 200-250."
+   "desc": "Number of wyrms assigned is increased to 200-250.",
+   "icon": "canofwyrms.png"
   },
   {
    "key": "slayerreward_gryphonandon",
@@ -11549,7 +11650,8 @@
    "points": 50,
    "varbit": "SLAYER_UNLOCK_LONGER_GRYPHON",
    "category": "extend",
-   "desc": "Number of gryphons assigned is increased by 80."
+   "desc": "Number of gryphons assigned is increased by 80.",
+   "icon": "gryphonandon.png"
   },
   {
    "key": "slayerreward_iseedragons",
@@ -11557,7 +11659,8 @@
    "points": 100,
    "varbit": "SLAYER_UNLOCK_LONGER_FROST_DRAGONS",
    "category": "extend",
-   "desc": "Number of frost dragons assigned is increased to 180-240"
+   "desc": "Number of frost dragons assigned is increased to 180-240",
+   "icon": "iseedragons.png"
   }
  ]
 }

@@ -525,6 +525,21 @@ def req_json_to_list(req: dict, quest_names):
     return leaves or None
 
 
+# Locations the reference ships WITHOUT coordinates (16 task rows lacked a
+# Route button) — curated from each location's own wiki page {{Map}}, using
+# the pack's existing SURFACE-ENTRANCE convention for underground spots.
+# "Wildnerness" is the reference's own typo, kept so its row still joins.
+CURATED_COORDS = {
+    "wilderness slayer cave": (3260, 3664, 0),      # Wilderness_Slayer_Cave southern entrance
+    "wilderness slayer dungeon": (3260, 3664, 0),   # the same cave's older name
+    "wildnerness slayer cave": (3260, 3664, 0),     # reference typo of the above
+    "north of venenatis": (3319, 3798, 0),          # Venenatis page maplink
+    "stronghold of security (level 2)": (3081, 3420, 0),  # Entrance_(Stronghold_of_Security)
+    "enchanted valley": (3040, 4512, 0),            # Enchanted_Valley {{Map}} (fairy ring BKQ)
+    "meiyerditch mine": (2389, 4627, 0),            # Meiyerditch_mine {{Map}}
+}
+
+
 def ss_locations_and_items(resolve, quest_names, item_ids_by_norm):
     index = ss_json("tasks/_index.json")
     coords = ss_json("location_coordinates.json")
@@ -535,6 +550,8 @@ def ss_locations_and_items(resolve, quest_names, item_ids_by_norm):
         coord_lookup[name.lower()] = (name, c)
         for alias in c.get("aliases") or []:
             coord_lookup[alias.lower()] = (name, c)
+    for lname, (x, y, plane) in CURATED_COORDS.items():
+        coord_lookup.setdefault(lname, (lname, {"x": x, "y": y, "plane": plane}))
 
     loc_reqs = {}
     for name, r in (reqs.get("locations") or {}).items():
@@ -769,6 +786,40 @@ UNLOCK_VARBITS = {
 }
 
 
+ICONS_OUT = os.path.join(HERE, "..", "src", "main", "resources", "data", "icons", "slayer")
+
+
+def fetch_icon(file_name: str, out_name: str) -> str:
+    """Download a wiki [[File:...]] image (cached, PNG-checked) into the
+    bundled slayer icon directory; returns the bundled file name."""
+    safe = file_name.strip().replace(" ", "_")
+    cached = os.path.join(CACHE, "icon-" + re.sub(r"[^A-Za-z0-9._-]+", "_", safe))
+    if not os.path.exists(cached):
+        url = ("https://oldschool.runescape.wiki/w/Special:FilePath/"
+               + urllib.parse.quote(safe))
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        data = None
+        for attempt in range(5):
+            import time
+            time.sleep(1 if attempt == 0 else 15 * attempt)  # polite pace + 429 backoff
+            try:
+                with urllib.request.urlopen(req) as resp:
+                    data = resp.read()
+                break
+            except urllib.error.HTTPError as e:
+                if e.code != 429 or attempt == 4:
+                    raise
+        if not data.startswith(b"\x89PNG"):
+            raise SystemExit(f"icon is not a PNG: {file_name}")
+        os.makedirs(CACHE, exist_ok=True)
+        with open(cached, "wb") as f:
+            f.write(data)
+    os.makedirs(ICONS_OUT, exist_ok=True)
+    with open(cached, "rb") as src, open(os.path.join(ICONS_OUT, out_name), "wb") as dst:
+        dst.write(src.read())
+    return out_name
+
+
 def parse_unlocks(varbit_ids):
     text = wiki_text("Slayer Rewards")
     unlocks = []
@@ -818,11 +869,21 @@ def parse_unlocks(varbit_ids):
                 desc = clean_cell(cells[ci_desc])
                 if desc:
                     unlock["desc"] = re.sub(r"\s+", " ", desc)[:200]
+            # the table's unnamed first column is the wiki's own icon per
+            # reward ([[File:Gargoyle icon.png]]) — bundle it (Luke, 2026-07-21)
+            if ci_name != 0:
+                im = re.search(r"\[\[File:([^|\]]+)", cells[0])
+                if im:
+                    unlock["icon"] = fetch_icon(
+                        im.group(1), unlock["key"].replace("slayerreward_", "") + ".png")
             unlocks.append(unlock)
     if unmapped:
         raise SystemExit("rewards not in UNLOCK_VARBITS map: " + "; ".join(unmapped))
     if len(unlocks) < 30:
         raise SystemExit(f"suspiciously few unlocks: {len(unlocks)}")
+    with_icons = sum(1 for u in unlocks if "icon" in u)
+    if with_icons < len(unlocks) - 5:
+        raise SystemExit(f"suspiciously few unlock icons: {with_icons}/{len(unlocks)}")
     return unlocks
 
 
@@ -930,6 +991,11 @@ def main():
     assert len(tasks_out) >= 120, "task floor"
     assert len(masters_out) == 9, "master count"
     assert len(unlocks) >= 30, "unlock floor"
+    # every location must route: a coordless one silently loses its Route
+    # button (Luke's Wilderness Slayer Dungeon report) — curate, never drop
+    coordless = [(t["name"], l["name"]) for t in tasks_out
+                 for l in t.get("locations", []) if "x" not in l]
+    assert not coordless, f"locations without coordinates: {coordless}"
 
 
 if __name__ == "__main__":

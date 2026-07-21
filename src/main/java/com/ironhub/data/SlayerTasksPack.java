@@ -218,5 +218,6 @@ public class SlayerTasksPack
 		public String varbit;  // gameval VarbitID constant name
 		public String category; // unlock | extend
 		public String desc;
+		public String icon;    // bundled wiki icon under /data/icons/slayer/
 	}
 }

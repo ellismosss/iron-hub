@@ -102,6 +102,129 @@ public class SlayerModuleTest
 		module.shutDown();
 	}
 
+	/**
+	 * Luke's history spam (2026-07-21): every session stacked a "done · 0
+	 * kills · 1m" record. Login replay lands the task varps before the
+	 * streak varbit, so the module saw a 0 -> N streak "jump" against its
+	 * fresh baseline and stamped the new record complete. A completion is an
+	 * EXACT +1 with kills observed; logout zeroing never closes a record.
+	 */
+	@Test
+	public void loginReplayNeverFabricatesCompletions()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		SlayerOptimizerModule module = module(state);
+		module.startUp();
+
+		StateFixture.stat(state, Skill.SLAYER, 60, 300_000);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_TARGET, 41);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT_ORIGINAL, 150);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT, 63);
+		module.applyResolvedTask("Dust devils", "");
+		// the streak varbit ingests AFTER the record exists: a replay jump
+		StateFixture.varbitChanged(state, VarbitID.SLAYER_TASKS_COMPLETED, 43);
+
+		PersistedState.SlayerTaskRecord active = module.activeRecord();
+		assertNotNull("replay must never complete the record", active);
+		assertFalse(active.completed);
+
+		// logout/hop zeroing must not close it as skipped...
+		module.applyResolvedTask("", "");
+		assertNotNull(module.activeRecord());
+		// ...and the same task resolving again reuses it — no new record
+		module.applyResolvedTask("Dust devils", "");
+		assertEquals(1, module.records().size());
+
+		// a genuine finish: kills observed, then the streak moves exactly +1
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT, 61); // 2 kills seen
+		StateFixture.varbitChanged(state, VarbitID.SLAYER_TASKS_COMPLETED, 44);
+		assertNull(module.activeRecord());
+		assertTrue(module.records().get(0).completed);
+		module.shutDown();
+	}
+
+	/** The artifacts this bug already persisted heal on load: a "done"
+	 *  record with zero kills AND zero xp was never a real task. */
+	@Test
+	public void legacyReplayArtifactsPruneOnLoad()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		PersistedState.SlayerTaskRecord junk = new PersistedState.SlayerTaskRecord();
+		junk.name = "Dust devils";
+		junk.master = "Duradel";
+		junk.completed = true;
+		junk.start = 1;
+		junk.end = 60_001;
+		PersistedState.SlayerTaskRecord real = new PersistedState.SlayerTaskRecord();
+		real.name = "Nechryael";
+		real.master = "Duradel";
+		real.completed = true;
+		real.killed = 120;
+		real.xpGained = 12_000;
+		real.start = 1;
+		real.end = 60_001;
+		state.setSlayerRecords(List.of(junk, real, junk));
+
+		SlayerOptimizerModule module = module(state);
+		module.startUp();
+		assertEquals(1, module.records().size());
+		assertEquals("Nechryael", module.records().get(0).name);
+		assertEquals(1, state.getSlayerRecords().size()); // healed in persistence too
+		module.shutDown();
+	}
+
+	/** Re-checking the task (helm/gem chat) bumps the task generation so the
+	 *  DPS calc auto-follow re-aims at the unchanged assignment. */
+	@Test
+	public void checkMessageBumpsTheTaskGeneration()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		SlayerOptimizerModule module = module(state);
+		module.startUp();
+		int before = state.getSlayerTaskGeneration();
+		module.onChatMessage(new net.runelite.api.events.ChatMessage(null,
+			net.runelite.api.ChatMessageType.GAMEMESSAGE, "",
+			"You're assigned to kill Dust devils; only 63 more to go.", "", 0));
+		assertEquals(before + 1, state.getSlayerTaskGeneration());
+		module.onChatMessage(new net.runelite.api.events.ChatMessage(null,
+			net.runelite.api.ChatMessageType.GAMEMESSAGE, "",
+			"You have completed your task!", "", 0));
+		assertEquals("only a check line bumps the generation",
+			before + 1, state.getSlayerTaskGeneration());
+		module.shutDown();
+	}
+
+	/** Dust devils list Facemask AND Slayer helmet as required — they are
+	 *  protection ALTERNATIVES: one any-of group, satisfied by either. */
+	@Test
+	public void slayerHelmetSatisfiesTheProtectionAlternatives()
+	{
+		com.ironhub.data.SlayerTasksPack pack = new DataPack(new Gson())
+			.load("slayer-tasks", com.ironhub.data.SlayerTasksPack.class);
+		com.ironhub.data.SlayerTasksPack.Task dustDevils = pack.task("Dust devils");
+		List<List<com.ironhub.data.SlayerTasksPack.BringItem>> groups =
+			SlayerOptimizerModule.bringGroups(dustDevils.bring);
+		assertEquals(1, groups.size());
+		assertEquals(2, groups.get(0).size());
+
+		AccountState state = StateFixture.state(temp.getRoot());
+		SlayerOptimizerModule module = module(state);
+		module.startUp();
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_TARGET, 41);
+		module.applyResolvedTask("Dust devils", "");
+		assertEquals(List.of("Facemask or Slayer helmet"), module.missingBring());
+
+		// carrying the helm satisfies the whole group — no facemask needed
+		int[] worn = new int[net.runelite.api.EquipmentInventorySlot.RING.getSlotIdx() + 1];
+		java.util.Arrays.fill(worn, -1);
+		worn[net.runelite.api.EquipmentInventorySlot.HEAD.getSlotIdx()] = 11864; // slayer helmet
+		StateFixture.equipmentSlots(state, worn);
+		assertTrue(module.missingBring().isEmpty());
+		module.shutDown();
+	}
+
 	@Test
 	public void profileSwitchDropsCachedRecords()
 	{

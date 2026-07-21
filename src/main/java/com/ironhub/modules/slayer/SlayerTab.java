@@ -247,7 +247,8 @@ class SlayerTab extends JPanel
 
 		if (entry.locations != null && !entry.locations.isEmpty())
 		{
-			// section rows ride a stone slab now (Luke, 2026-07-21)
+			// section rows ride a stone slab now (Luke, 2026-07-21); the
+			// click-to-prefer hint lives in the row tooltips, not a line
 			StonePanel locations = slab("Locations");
 			String preferred = state.getSlayerLocationPref(entry.name);
 			for (SlayerTasksPack.Location location : entry.locations)
@@ -255,16 +256,18 @@ class SlayerTab extends JPanel
 				locations.add(locationRow(entry, location,
 					location.name.equalsIgnoreCase(preferred)));
 			}
-			locations.add(textLine("Click a location to prefer it", OsrsSkin.FAINT, OsrsSkin.smallFont()));
 			addSlab(locations);
 		}
 
 		if (entry.bring != null && !entry.bring.isEmpty())
 		{
 			StonePanel bring = slab("Bring");
-			for (SlayerTasksPack.BringItem item : entry.bring)
+			// protection alternatives render as ONE any-of row — the slayer
+			// helmet replaces the facemask family (Luke, 2026-07-21)
+			for (List<SlayerTasksPack.BringItem> group
+				: SlayerOptimizerModule.bringGroups(entry.bring))
 			{
-				bring.add(bringRow(item));
+				bring.add(bringRow(group));
 			}
 			addSlab(bring);
 		}
@@ -288,23 +291,9 @@ class SlayerTab extends JPanel
 			addSlab(monster);
 		}
 
-		// the setup itself lives in Gear & Combat's "Slayer" view now — this
-		// tab only captures it (the viewers, saved-count line, replace and
-		// Show-in-bank buttons are gone; Luke, 2026-07-21)
-		content.add(section("Gear"));
-		if (module.taskSetup() == null)
-		{
-			content.add(textLine("No setup saved for this task", OsrsSkin.FAINT, OsrsSkin.smallFont()));
-		}
-		JPanel gearButtons = row(2);
-		StoneButton save = new StoneButton(theme, "Save current gear", module::saveTaskSetup);
-		save.setToolTipText("Snapshot your worn gear + inventory as this task's"
-			+ " setup — shown under Gear & Combat's Slayer view");
-		save.setMaximumSize(save.getPreferredSize());
-		gearButtons.add(save);
-		gearButtons.add(Box.createHorizontalGlue());
-		cap(gearButtons);
-		content.add(gearButtons);
+		// no Gear section at all (Luke, 2026-07-21): the task's setup lives
+		// in Gear & Combat's "Slayer" view — saving under the task's name
+		// there IS the task setup
 
 		content.add(section("Notes"));
 		if (noteField == null || !noteTask.equals(entry.name))
@@ -345,7 +334,8 @@ class SlayerTab extends JPanel
 		String text = location.name + (preferred ? " · preferred" : "");
 		OsrsLabel name = new OsrsLabel(text, preferred ? OsrsSkin.TITLE : color, OsrsSkin.font())
 			.leftAligned().squeezable();
-		name.setToolTipText(missing == null ? location.name : "Needs: " + missing);
+		name.setToolTipText(missing != null ? "Needs: " + missing
+			: preferred ? "Preferred — click to unprefer" : "Click to prefer this location");
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
 		if (location.worldPoint() != null)
@@ -369,23 +359,44 @@ class SlayerTab extends JPanel
 		return row;
 	}
 
-	private JComponent bringRow(SlayerTasksPack.BringItem item)
+	/** One bring row — a singleton item, or a group of protection
+	 *  ALTERNATIVES rendered "Facemask or Slayer helmet" and satisfied by
+	 *  owning ANY member (variants count — an imbued helm still counts). */
+	private JComponent bringRow(List<SlayerTasksPack.BringItem> group)
 	{
 		JPanel row = row(2);
-		if (item.id != null)
+		boolean owned = false;
+		boolean required = false;
+		SlayerTasksPack.BringItem iconItem = null;
+		for (SlayerTasksPack.BringItem item : group)
 		{
-			row.add(icon(item.id, 16));
+			required |= item.required;
+			boolean has = item.id != null && state.canonicalStock(item.id) > 0;
+			owned |= has;
+			if (iconItem == null || (has && !(iconItem.id != null
+				&& state.canonicalStock(iconItem.id) > 0)))
+			{
+				iconItem = item; // the first owned member's sprite, else the first
+			}
+		}
+		if (iconItem.id != null)
+		{
+			row.add(icon(iconItem.id, 16));
 			row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		}
-		boolean owned = item.id != null && state.canonicalStock(item.id) > 0; // variants count (imbued/recoloured)
+		String label = group.stream().map(i -> i.name)
+			.collect(java.util.stream.Collectors.joining(" or "));
 		Color color = owned ? OsrsSkin.VALUE
-			: item.required ? UiTokens.STATUS_WARNING : OsrsSkin.FAINT;
-		OsrsLabel name = new OsrsLabel(item.name, color, OsrsSkin.font()).leftAligned().squeezable();
-		name.setToolTipText(item.id == null ? item.name
-			: owned ? "Owned" : item.required ? "Required — you own none" : "Suggested — you own none");
+			: required ? UiTokens.STATUS_WARNING : OsrsSkin.FAINT;
+		OsrsLabel name = new OsrsLabel(label, color, OsrsSkin.font()).leftAligned().squeezable();
+		name.setToolTipText(group.size() > 1
+			? (owned ? "Any one of these works — you own one"
+				: "Any one of these works — you own none")
+			: group.get(0).id == null ? label
+			: owned ? "Owned" : required ? "Required — you own none" : "Suggested — you own none");
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
-		row.add(new OsrsLabel(item.required ? "required" : "suggested",
+		row.add(new OsrsLabel(required ? "required" : "suggested",
 			OsrsSkin.FAINT, OsrsSkin.smallFont()));
 		cap(row);
 		return row;
@@ -491,6 +502,10 @@ class SlayerTab extends JPanel
 
 	// ── Unlocks view ──────────────────────────────────────────────────
 
+	/** Redesigned 2026-07-21 (Luke: "dull and boring, way too much text"):
+	 *  a points hero with an unlock-progress meter, then Unlocks/Extends
+	 *  slabs of icon rows — the wiki's own reward icons, green when owned,
+	 *  cost orange when affordable right now; the prose lives in tooltips. */
 	private void rebuildUnlocks()
 	{
 		SlayerTasksPack pack = module.pack();
@@ -507,44 +522,122 @@ class SlayerTab extends JPanel
 				owned++;
 			}
 		}
-		JPanel head = row(2);
-		head.add(new OsrsLabel("Points", OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+		StonePanel hero = new StonePanel(theme);
+		hero.setLayout(new BoxLayout(hero, BoxLayout.Y_AXIS));
+		hero.setAlignmentX(LEFT_ALIGNMENT);
+		JPanel head = row(0);
+		head.add(new OsrsLabel("Slayer points", OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
 		head.add(Box.createHorizontalGlue());
-		head.add(OsrsLabel.value(QuantityFormatter.formatNumber(module.points())));
+		head.add(new OsrsLabel(QuantityFormatter.formatNumber(module.points()),
+			OsrsSkin.VALUE, OsrsSkin.boldFont()));
 		cap(head);
-		content.add(head);
-		content.add(textLine(owned + " of " + pack.unlocks.size() + " unlocked",
-			OsrsSkin.FAINT, OsrsSkin.smallFont()));
+		hero.add(head);
+		hero.add(Box.createVerticalStrut(3));
+		StoneMeter meter = new StoneMeter(theme, OsrsSkin.PROGRESS_BLUE,
+			pack.unlocks.isEmpty() ? 0 : owned / (double) pack.unlocks.size());
+		meter.setAlignmentX(LEFT_ALIGNMENT);
+		hero.add(meter);
+		hero.add(Box.createVerticalStrut(2));
+		JPanel counts = row(0);
+		counts.add(new OsrsLabel(owned + " of " + pack.unlocks.size() + " unlocked",
+			OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+		counts.add(Box.createHorizontalGlue());
+		cap(counts);
+		hero.add(counts);
+		cap(hero);
+		content.add(hero);
 
 		for (String category : List.of("unlock", "extend"))
 		{
-			content.add(section(category.equals("unlock") ? "Unlocks" : "Extends"));
+			StonePanel slab = slab(category.equals("unlock") ? "Unlocks" : "Extends");
 			for (SlayerTasksPack.Unlock unlock : pack.unlocks)
 			{
-				if (!category.equals(unlock.category))
+				if (category.equals(unlock.category))
 				{
-					continue;
+					slab.add(unlockRow(unlock));
 				}
-				boolean has = module.unlockOwned(unlock);
-				JPanel row = row(2);
-				OsrsLabel name = new OsrsLabel(unlock.name,
-					has ? OsrsSkin.VALUE : OsrsSkin.MUTED, OsrsSkin.font()).leftAligned().squeezable();
-				if (unlock.desc != null)
+			}
+			addSlab(slab);
+		}
+	}
+
+	private JComponent unlockRow(SlayerTasksPack.Unlock unlock)
+	{
+		boolean has = module.unlockOwned(unlock);
+		boolean affordable = !has && module.points() >= unlock.points;
+		JPanel row = row(2);
+		JLabel iconHolder = new JLabel();
+		Dimension d = new Dimension(16, 16);
+		iconHolder.setPreferredSize(d);
+		iconHolder.setMinimumSize(d);
+		iconHolder.setMaximumSize(d);
+		iconHolder.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+		javax.swing.Icon wiki = unlockIcon(unlock.icon);
+		if (wiki != null)
+		{
+			iconHolder.setIcon(wiki);
+		}
+		row.add(iconHolder);
+		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		OsrsLabel name = new OsrsLabel(unlock.name,
+			has ? OsrsSkin.VALUE : OsrsSkin.MUTED, OsrsSkin.font()).leftAligned().squeezable();
+		String tip = unlock.desc == null ? unlock.name : unlock.desc;
+		name.setToolTipText("<html><div style='width:180px'>" + tip
+			+ (has ? "<br>Unlocked" : affordable ? "<br>You can afford this now" : "")
+			+ "</div></html>");
+		row.add(name);
+		row.add(Box.createHorizontalGlue());
+		row.add(new OsrsLabel(unlock.points + " pts",
+			has ? OsrsSkin.FAINT : affordable ? OsrsSkin.TITLE : OsrsSkin.LABEL,
+			OsrsSkin.smallFont()));
+		cap(row);
+		return row;
+	}
+
+	/** Bundled wiki reward icons, box-fit to 16px, cached per tab (a miss
+	 *  caches null — honest empty holder, never a placeholder guess). */
+	private final java.util.Map<String, javax.swing.ImageIcon> unlockIcons = new java.util.HashMap<>();
+
+	private javax.swing.Icon unlockIcon(String file)
+	{
+		if (file == null)
+		{
+			return null;
+		}
+		if (unlockIcons.containsKey(file))
+		{
+			return unlockIcons.get(file);
+		}
+		javax.swing.ImageIcon icon = null;
+		try (java.io.InputStream in =
+			SlayerTab.class.getResourceAsStream("/data/icons/slayer/" + file))
+		{
+			if (in != null)
+			{
+				java.awt.image.BufferedImage img = javax.imageio.ImageIO.read(in);
+				if (img != null)
 				{
-					name.setToolTipText("<html><div style='width:180px'>" + unlock.desc + "</div></html>");
+					int max = Math.max(img.getWidth(), img.getHeight());
+					icon = max <= 16 ? new javax.swing.ImageIcon(img)
+						: new javax.swing.ImageIcon(img.getScaledInstance(
+							Math.max(1, img.getWidth() * 16 / max),
+							Math.max(1, img.getHeight() * 16 / max),
+							java.awt.Image.SCALE_SMOOTH));
 				}
-				row.add(name);
-				row.add(Box.createHorizontalGlue());
-				row.add(new OsrsLabel(unlock.points + " pts",
-					has ? OsrsSkin.FAINT : OsrsSkin.LABEL, OsrsSkin.smallFont()));
-				cap(row);
-				content.add(row);
 			}
 		}
+		catch (java.io.IOException ignored)
+		{
+		}
+		unlockIcons.put(file, icon);
+		return icon;
 	}
 
 	// ── Blocks view ───────────────────────────────────────────────────
 
+	/** Redesigned 2026-07-21 (same brief as Unlocks): master selector over a
+	 *  master hero card, then Blocked-now / Preferred-blocks / Always-skip
+	 *  slabs whose rows carry each task's own item sprite. */
 	private void rebuildBlocks()
 	{
 		SlayerTasksPack pack = module.pack();
@@ -583,65 +676,130 @@ class SlayerTab extends JPanel
 		{
 			return;
 		}
+		content.add(Box.createVerticalStrut(4));
+		StonePanel masterCard = new StonePanel(theme);
+		masterCard.setLayout(new BoxLayout(masterCard, BoxLayout.Y_AXIS));
+		masterCard.setAlignmentX(LEFT_ALIGNMENT);
+		JPanel points = row(0);
+		points.add(new OsrsLabel("Points per task", OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+		points.add(Box.createHorizontalGlue());
+		points.add(new OsrsLabel(String.valueOf(master.points),
+			OsrsSkin.VALUE, OsrsSkin.boldFont()));
+		cap(points);
+		masterCard.add(points);
+		if (master.wilderness)
+		{
+			JPanel wildy = row(0);
+			wildy.add(new OsrsLabel("Separate wilderness streak",
+				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+			wildy.add(Box.createHorizontalGlue());
+			cap(wildy);
+			masterCard.add(wildy);
+		}
 		String missing = missingText(master.reqs);
-		content.add(textLine(master.points + " points per task"
-				+ (master.wilderness ? " · wilderness streak" : ""),
-			OsrsSkin.FAINT, OsrsSkin.smallFont()));
 		if (missing != null)
 		{
-			content.add(textLine("Needs: " + missing, ADVISE, OsrsSkin.smallFont()));
+			JPanel needs = row(0);
+			OsrsLabel needsLabel = new OsrsLabel("Needs: " + missing, ADVISE, OsrsSkin.smallFont())
+				.leftAligned().squeezable();
+			needsLabel.setToolTipText("<html><div style='width:180px'>Needs: "
+				+ missing + "</div></html>");
+			needs.add(needsLabel);
+			needs.add(Box.createHorizontalGlue());
+			cap(needs);
+			masterCard.add(needs);
 		}
+		cap(masterCard);
+		content.add(masterCard);
 
 		// live blocked slots from the game's own varbits
-		content.add(section("Blocked now"));
+		StonePanel blocked = slab("Blocked now");
 		List<Integer> blockedIds = module.blockedTaskIds(master.focusId);
 		List<String> blockedNames = new ArrayList<>();
 		if (blockedIds.isEmpty())
 		{
-			content.add(faintLine("No blocked tasks at " + master.name + "."));
+			blocked.add(textLine("No blocked tasks at " + master.name + ".",
+				OsrsSkin.FAINT, OsrsSkin.font()));
 		}
 		for (Integer taskId : blockedIds)
 		{
 			String name = module.taskNameById(taskId);
-			String shown = name == null ? "Task #" + taskId : name;
 			if (name != null)
 			{
 				blockedNames.add(name.toLowerCase(Locale.ROOT));
 			}
-			content.add(textLine(shown, OsrsSkin.MUTED, OsrsSkin.font()));
+			blocked.add(taskRow(name == null ? "Task #" + taskId : name,
+				taskIconId(name), OsrsSkin.MUTED, null));
 		}
+		addSlab(blocked);
 
-		content.add(section("Preferred blocks"));
+		StonePanel blocks = slab("Preferred blocks");
 		List<String> prefs = state.getSlayerBlockPref(master.name);
-		prefList(master, prefs, blockedNames,
+		prefList(blocks, master, prefs, blockedNames,
 			list -> state.setSlayerBlockPref(master.name, list),
 			"Block", BLOCK_COST);
+		addSlab(blocks);
 
-		content.add(section("Always skip"));
+		StonePanel skipSlab = slab("Always skip");
 		List<String> skips = state.getSlayerSkipPref(master.name);
-		prefList(master, skips, List.of(),
+		prefList(skipSlab, master, skips, List.of(),
 			list -> state.setSlayerSkipPref(master.name, list),
 			null, SKIP_COST);
 		if (!skips.isEmpty())
 		{
-			content.add(textLine("Skipping costs " + SKIP_COST + " pts per task",
+			skipSlab.add(textLine("Skipping costs " + SKIP_COST + " pts per task",
 				OsrsSkin.FAINT, OsrsSkin.smallFont()));
 		}
+		addSlab(skipSlab);
 	}
 
-	/** A preferred-task list: rows with remove, an add selector, and (for
-	 *  blocks) advice lines comparing against the live blocked slots. */
-	private void prefList(SlayerTasksPack.Master master, List<String> current,
+	/** The pack's item-sprite id for a task name, or 0. */
+	private int taskIconId(String taskName)
+	{
+		SlayerTasksPack pack = module.pack();
+		SlayerTasksPack.Task entry = pack == null || taskName == null
+			? null : pack.task(taskName);
+		return entry == null ? 0 : entry.icon;
+	}
+
+	/** One task row: 16px task sprite · name · optional trailing control. */
+	private JComponent taskRow(String name, int iconId, Color color, JComponent trailing)
+	{
+		JPanel row = row(2);
+		JLabel holder = new JLabel();
+		Dimension d = new Dimension(16, 16);
+		holder.setPreferredSize(d);
+		holder.setMinimumSize(d);
+		holder.setMaximumSize(d);
+		if (iconId > 0)
+		{
+			java.awt.Image sprite = sprites.get(iconId, -1, 16);
+			if (sprite != null)
+			{
+				holder.setIcon(new ImageIcon(sprite));
+			}
+		}
+		row.add(holder);
+		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		row.add(new OsrsLabel(name, color, OsrsSkin.font()).leftAligned().squeezable());
+		row.add(Box.createHorizontalGlue());
+		if (trailing != null)
+		{
+			row.add(trailing);
+		}
+		cap(row);
+		return row;
+	}
+
+	/** A preferred-task list inside its slab: icon rows with remove, an add
+	 *  selector, and (for blocks) advice lines vs the live blocked slots. */
+	private void prefList(StonePanel slab, SlayerTasksPack.Master master, List<String> current,
 		List<String> liveBlockedLower, java.util.function.Consumer<List<String>> save,
 		String adviseVerb, int cost)
 	{
 		for (String task : current)
 		{
-			JPanel row = row(2);
 			boolean live = liveBlockedLower.contains(task.toLowerCase(Locale.ROOT));
-			row.add(new OsrsLabel(task, live ? OsrsSkin.VALUE : OsrsSkin.MUTED, OsrsSkin.font())
-				.leftAligned().squeezable());
-			row.add(Box.createHorizontalGlue());
 			StoneButton remove = new StoneButton(theme, "×", () ->
 			{
 				List<String> next = new ArrayList<>(current);
@@ -649,12 +807,11 @@ class SlayerTab extends JPanel
 				save.accept(next);
 			});
 			remove.setMaximumSize(remove.getPreferredSize());
-			row.add(remove);
-			cap(row);
-			content.add(row);
+			slab.add(taskRow(task, taskIconId(task),
+				live ? OsrsSkin.VALUE : OsrsSkin.MUTED, remove));
 			if (adviseVerb != null && !live)
 			{
-				content.add(textLine(adviseVerb + " " + task + " at " + master.name
+				slab.add(textLine(adviseVerb + " " + task + " at " + master.name
 					+ " — " + cost + " pts", ADVISE, OsrsSkin.smallFont()));
 			}
 		}
@@ -686,7 +843,7 @@ class SlayerTab extends JPanel
 				save.accept(next);
 			}
 		});
-		content.add(add);
+		slab.add(add);
 	}
 
 	// ── shared bits ───────────────────────────────────────────────────

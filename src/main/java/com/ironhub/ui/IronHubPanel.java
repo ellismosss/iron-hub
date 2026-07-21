@@ -64,13 +64,18 @@ public class IronHubPanel extends PluginPanel
 	private final Map<String, Map<String, JLabel>> hubTriangles = new HashMap<>();
 	private final Map<String, JComponent> hubPages = new HashMap<>();
 	/**
-	 * Hub name → the ONE module whose tab is built and shown (Luke,
+	 * Hub name → the modules whose tabs are built and shown (Luke,
 	 * 2026-07-17: sections are collapsible and EXCLUSIVE — building a
 	 * seven-tab hub page in one click was a resource spike, and only one
-	 * module is read at a time anyway). Null = all collapsed. Survives
+	 * module is read at a time anyway). Empty = all collapsed. Survives
 	 * theme swaps so the re-adopted page reopens where the player was.
+	 * Hubs in MULTI_EXPAND toggle independently instead (Luke, 2026-07-21:
+	 * Gear & Combat + Slayer open side by side) — three tabs at most there,
+	 * not the seven-tab spike the exclusivity rule exists for.
 	 */
-	private final Map<String, String> expandedModules = new HashMap<>();
+	private final Map<String, java.util.LinkedHashSet<String>> expandedModules = new HashMap<>();
+	/** Hubs whose sections expand independently rather than exclusively. */
+	private static final Set<String> MULTI_EXPAND = Set.of("Gear & Combat");
 	private final AccountState state;
 	private final com.ironhub.IronHubConfig config;
 	private HomePanel home;
@@ -163,7 +168,8 @@ public class IronHubPanel extends PluginPanel
 			for (Map.Entry<String, Map<String, JPanel>> hub : hubSlots.entrySet())
 			{
 				JPanel slot = hub.getValue().get(name);
-				if (slot != null && name.equals(expandedModules.get(hub.getKey())))
+				java.util.Set<String> open = expandedModules.get(hub.getKey());
+				if (slot != null && open != null && open.contains(name))
 				{
 					mount(name, slot);
 				}
@@ -174,12 +180,25 @@ public class IronHubPanel extends PluginPanel
 	/**
 	 * Expand one module in a hub (collapsing whichever was open — the
 	 * sections are exclusive), or collapse it if it was the open one.
+	 * MULTI_EXPAND hubs toggle each section independently instead.
 	 * The header plates route here; also the test seam.
 	 */
 	public void toggleModule(String hub, String module)
 	{
-		String open = expandedModules.get(hub);
-		expandedModules.put(hub, module.equals(open) ? null : module);
+		java.util.LinkedHashSet<String> open =
+			expandedModules.computeIfAbsent(hub, k -> new java.util.LinkedHashSet<>());
+		if (open.contains(module))
+		{
+			open.remove(module);
+		}
+		else
+		{
+			if (!MULTI_EXPAND.contains(hub))
+			{
+				open.clear();
+			}
+			open.add(module);
+		}
 		refreshHub(hub);
 	}
 
@@ -205,7 +224,8 @@ public class IronHubPanel extends PluginPanel
 		}
 		hubSlots.put(name, slots);
 		hubTriangles.put(name, triangles);
-		expandedModules.putIfAbsent(name, BLOCKS.get(name).get(0));
+		expandedModules.putIfAbsent(name,
+			new java.util.LinkedHashSet<>(List.of(BLOCKS.get(name).get(0))));
 		return stack;
 	}
 
@@ -272,11 +292,11 @@ public class IronHubPanel extends PluginPanel
 		{
 			return;
 		}
-		String open = expandedModules.get(name);
+		java.util.Set<String> open = expandedModules.getOrDefault(name, new java.util.LinkedHashSet<>());
 		Map<String, JLabel> triangles = hubTriangles.get(name);
 		for (Map.Entry<String, JPanel> entry : slots.entrySet())
 		{
-			boolean expanded = entry.getKey().equals(open);
+			boolean expanded = open.contains(entry.getKey());
 			JLabel triangle = triangles == null ? null : triangles.get(entry.getKey());
 			if (triangle != null)
 			{

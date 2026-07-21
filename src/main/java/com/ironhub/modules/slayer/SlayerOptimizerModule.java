@@ -477,9 +477,20 @@ public class SlayerOptimizerModule implements IronHubModule
 			recordsLoaded = true;
 			recordsGeneration = generation;
 			records.clear();
-			records.addAll(state.getSlayerRecords());
+			List<PersistedState.SlayerTaskRecord> loaded =
+				new ArrayList<>(state.getSlayerRecords());
+			// one-time heal of the login-replay artifacts this bug left
+			// behind: a "done" record with zero kills and zero xp was never
+			// a real task (genuine completions always observed kills)
+			boolean pruned = loaded.removeIf(
+				r -> r.completed && r.killed == 0 && r.xpGained == 0);
+			records.addAll(loaded);
 			lastRemaining = -1;
 			lastStreakSum = -1;
+			if (pruned)
+			{
+				pushRecords();
+			}
 		}
 	}
 
@@ -523,10 +534,13 @@ public class SlayerOptimizerModule implements IronHubModule
 		state.setSlayerTask(name); // shared: the loadout tab keys strategies off it
 
 		PersistedState.SlayerTaskRecord active = activeRecord();
-		if (active != null && !active.name.equalsIgnoreCase(name))
+		if (active != null && !name.isEmpty() && !active.name.equalsIgnoreCase(name))
 		{
 			// the previous task ended without an observed completion
-			// (points skip, or it changed while the plugin was off)
+			// (points skip, or it changed while the plugin was off). An
+			// EMPTY name never closes the record — varps zero through login/
+			// hop replay, and closing here forced a fresh record every
+			// session (the 0-kill history spam, Luke 2026-07-21)
 			active.end = System.currentTimeMillis();
 			finishRecord(active);
 			active = null;
@@ -607,7 +621,11 @@ public class SlayerOptimizerModule implements IronHubModule
 				}
 				dirty = true;
 			}
-			if (lastStreakSum >= 0 && streakSum > lastStreakSum)
+			// a genuine completion is an EXACT +1 with kills observed this
+			// record — login replay ingests the streak varbit after a 0
+			// baseline (0 -> 43 jump) and used to stamp a fresh record
+			// "done" at 0 kills every session (Luke's history spam)
+			if (lastStreakSum >= 0 && streakSum == lastStreakSum + 1 && active.killed > 0)
 			{
 				active.completed = true;
 				active.end = System.currentTimeMillis();
@@ -792,6 +810,12 @@ public class SlayerOptimizerModule implements IronHubModule
 		}
 	}
 
+	/** The helm/gem/bracelet check line — Slayer Simplified's pattern
+	 *  (BSD-2, byte-faithful): "You're assigned to kill X; only N more to
+	 *  go." plus the "still hunting"/"currently assigned" variants. */
+	static final java.util.regex.Pattern CHECK_MESSAGE = java.util.regex.Pattern.compile(
+		"You're (?:still hunting|(?:currently )?assigned to kill) (.+?); (?:you have|only) (\\d+)(?: more)? to go\\.");
+
 	@Subscribe
 	public void onChatMessage(ChatMessage event)
 	{
@@ -800,13 +824,20 @@ public class SlayerOptimizerModule implements IronHubModule
 		{
 			return;
 		}
-		if (SUPERIOR_MESSAGE.equals(Text.removeTags(event.getMessage())))
+		String message = Text.removeTags(event.getMessage());
+		if (SUPERIOR_MESSAGE.equals(message))
 		{
 			superiorSeenMs = System.currentTimeMillis();
 			if (notifier != null && config.slayerSuperiorNotify())
 			{
 				notifier.notify(SUPERIOR_MESSAGE);
 			}
+		}
+		else if (CHECK_MESSAGE.matcher(message).matches())
+		{
+			// re-checking an unchanged task is a signal too: the DPS calc
+			// auto-follow re-aims at it (Luke, 2026-07-21)
+			state.touchSlayerTask();
 		}
 	}
 
@@ -947,15 +978,6 @@ public class SlayerOptimizerModule implements IronHubModule
 		return taskName.isEmpty() ? null : state.savedSetup(taskName);
 	}
 
-	/** Save the player's current gear+inventory as this task's setup. */
-	void saveTaskSetup()
-	{
-		if (!taskName.isEmpty())
-		{
-			state.saveSetup(taskName, state.captureSetup());
-		}
-	}
-
 	/**
 	 * Setup items not currently worn or held anywhere (variation-aware
 	 * carried check) — the tab tints these ORANGE and the bank glow
@@ -1012,6 +1034,51 @@ public class SlayerOptimizerModule implements IronHubModule
 	}
 
 	/** Required bring items not currently carried (names). */
+	/**
+	 * Slayer protective headgear the slayer helmet REPLACES (it is assembled
+	 * from these and carries all their protections) — when a task's bring
+	 * list names two or more of this family they are ALTERNATIVES, never a
+	 * stack of requirements (Luke, 2026-07-21: dust devils read as needing a
+	 * facemask AND a slayer helmet). Lowercase, as the pack spells them.
+	 */
+	private static final java.util.Set<String> PROTECTION_ALTERNATIVES = java.util.Set.of(
+		"facemask", "earmuffs", "nose peg", "spiny helmet", "reinforced goggles",
+		"black mask", "slayer helmet");
+
+	/** The bring list re-grouped: protection alternatives collapse into ONE
+	 *  any-of group (kept at the first member's position); everything else
+	 *  stays a singleton group. Pure. */
+	static List<List<SlayerTasksPack.BringItem>> bringGroups(List<SlayerTasksPack.BringItem> bring)
+	{
+		List<SlayerTasksPack.BringItem> protection = new ArrayList<>();
+		for (SlayerTasksPack.BringItem item : bring)
+		{
+			if (PROTECTION_ALTERNATIVES.contains(item.name.toLowerCase(java.util.Locale.ROOT)))
+			{
+				protection.add(item);
+			}
+		}
+		List<List<SlayerTasksPack.BringItem>> groups = new ArrayList<>();
+		boolean grouped = protection.size() >= 2;
+		boolean placed = false;
+		for (SlayerTasksPack.BringItem item : bring)
+		{
+			if (grouped && protection.contains(item))
+			{
+				if (!placed)
+				{
+					groups.add(protection);
+					placed = true;
+				}
+			}
+			else
+			{
+				groups.add(List.of(item));
+			}
+		}
+		return groups;
+	}
+
 	List<String> missingBring()
 	{
 		SlayerTasksPack.Task entry = pack == null ? null : pack.task(taskName);
@@ -1020,11 +1087,21 @@ public class SlayerOptimizerModule implements IronHubModule
 			return List.of();
 		}
 		List<String> missing = new ArrayList<>();
-		for (SlayerTasksPack.BringItem item : entry.bring)
+		for (List<SlayerTasksPack.BringItem> group : bringGroups(entry.bring))
 		{
-			if (item.required && item.id != null && state.carriedCount(item.id) == 0)
+			boolean required = false;
+			boolean carried = false;
+			boolean identifiable = false;
+			for (SlayerTasksPack.BringItem item : group)
 			{
-				missing.add(item.name);
+				required |= item.required;
+				identifiable |= item.id != null;
+				carried |= item.id != null && state.carriedCount(item.id) > 0;
+			}
+			if (required && identifiable && !carried)
+			{
+				missing.add(group.stream().map(i -> i.name)
+					.collect(java.util.stream.Collectors.joining(" or ")));
 			}
 		}
 		return missing;
