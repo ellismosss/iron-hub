@@ -715,3 +715,36 @@ suffix; read tools/itemids.txt (the unfiltered dump the index is built
 from) when a port references legacy constants verbatim. One reference
 row uses a raw id with no constant at all (22818, its comment names it
 Fish chunks) — curated, fail-fast on any new one.
+
+## Combat style & autocast naming (module: loadoutlab, pack: weapon-styles.json)
+
+The combat tab's BUTTON labels ("Chop", "Hack", "Lunge") and per-button
+attack TYPES (Stab/Slash/Crush) exist nowhere in queryable cache config —
+they are string literals in the combat_interface_setup clientscript,
+switched on the COMBAT_WEAPON_CATEGORY varbit (357). The weapon-style
+STRUCTS (EnumID.WEAPON_STYLES = enum 3908 → per-type enum → structs) carry
+only the style KIND (param 1407 "Accurate"/"Controlled"/…) and the xp-split
+params 1401-1405; verified by full struct dumps 2026-07-21. RuneLite's own
+AttackStylesPlugin shows kinds only, for exactly this reason.
+
+So the pack is parsed from the RuneStar cs2 decompilation at a pinned
+commit (tools/gen_weapon_styles.py, ids 0-28), and a LIVE client must pass
+the style-kind CROSS-CHECK before a row is trusted: read the cache kinds
+via the enum-3908 walk (client thread) and compare per option index with a
+vocabulary map — cs2 "Rapid"/ranged-magic "Accurate" read "Ranging"/
+"Casting" in the cache, melee kinds match 1:1. A reused or newer weapon
+type id fails the check and the display falls back to "Attack style N",
+never a wrong name. Types the cache itself doesn't map return -1 from enum
+3908 (blue moon spear) — also fallback.
+
+Autocast spell names: varbit 276 (AUTOCAST_SPELL) → enum 1986 (int→OBJ; no
+EnumID constant exists — raw id, taken from the game's own
+combat_interface_autocast script) → a dummy spell ITEM whose param 601
+(ParamID.SPELL_NAME) is the display name. Cross-checked live: value 3 →
+item 3277 → "Earth Strike" with matching level/rune params. Enum keys
+1-20 and 31-58; 0 = no autocast. NOTE: enum 1064, commonly cited for
+autocast, is WRONG (it is a 5-entry item map, unrelated).
+
+Attack-type icons: the wiki's own equipment-infobox set (White dagger /
+White scimitar / White warhammer / Ranged icon / Magic icon), fetched by
+the generator into data/icons/osrs/styles/.

@@ -340,6 +340,19 @@ public class SlayerModuleTest
 		state.setSlayerBlockPref("Duradel", java.util.List.of("Smoke devils", "Cave kraken"));
 		state.setSlayerSkipPref("Duradel", java.util.List.of("Steel dragons"));
 
+		// a saved setup renders at the TOP of the task view; the facemask is
+		// banked (not carried) so it must count as missing -> orange + glow
+		com.ironhub.state.PersistedState.SavedSetup setup =
+			new com.ironhub.state.PersistedState.SavedSetup();
+		setup.equipment.put("HEAD", 4164);           // facemask — banked only
+		setup.inventory = new int[28];
+		java.util.Arrays.fill(setup.inventory, -1);
+		setup.inventoryQty = new int[28];
+		setup.inventory[0] = 560;                    // death runes — not owned
+		setup.inventoryQty[0] = 200;
+		state.saveSetup("Dust devils", setup);
+		assertEquals(java.util.Set.of(4164, 560), module.missingSetupItems());
+
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
 		String[] names = {"task", "history", "unlocks", "blocks"};

@@ -1,0 +1,61 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Combat-style option names per weapon type (RuneStar cs2 dump)",
+	"type": "object",
+	"required": ["version", "source", "types"],
+	"properties": {
+		"$schema": {
+			"type": "string"
+		},
+		"version": {
+			"type": "integer"
+		},
+		"source": {
+			"type": "string"
+		},
+		"types": {
+			"type": "object",
+			"minProperties": 29,
+			"propertyNames": {
+				"pattern": "^[0-9]{1,2}$"
+			},
+			"additionalProperties": {
+				"type": "object",
+				"required": ["options"],
+				"additionalProperties": false,
+				"properties": {
+					"options": {
+						"type": "array",
+						"minItems": 1,
+						"maxItems": 4,
+						"items": {
+							"type": "object",
+							"required": ["index", "button"],
+							"additionalProperties": false,
+							"properties": {
+								"index": {
+									"type": "integer",
+									"minimum": 0,
+									"maximum": 3
+								},
+								"button": {
+									"type": "string",
+									"minLength": 1
+								},
+								"style": {
+									"type": ["string", "null"],
+									"enum": ["Accurate", "Aggressive", "Controlled", "Defensive", "Rapid", "Longrange", null]
+								},
+								"type": {
+									"type": ["string", "null"],
+									"enum": ["Stab", "Slash", "Crush", "Ranged", "Magic", null]
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"additionalProperties": false
+}

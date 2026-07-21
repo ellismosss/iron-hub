@@ -73,6 +73,15 @@ public class LoadoutLabModule implements IronHubModule
 	};
 	/** Autocast spell varbit (gameval; legacy Varbits has no autocast). */
 	private static final int AUTOCAST_SPELL = net.runelite.api.gameval.VarbitID.AUTOCAST_SPELL;
+	/** Equipped weapon category — drives which style names apply. */
+	private static final int WEAPON_CATEGORY = net.runelite.api.gameval.VarbitID.COMBAT_WEAPON_CATEGORY;
+	/**
+	 * Autocast index → dummy spell OBJ, whose param 601 (SPELL_NAME) is the
+	 * display name — the route the game's own autocast clientscripts take
+	 * (enum(int,obj,enum_1986,%varbit276); verified live 2026-07-21, e.g.
+	 * value 3 → "Earth Strike"). runelite-api has no EnumID constant for it.
+	 */
+	private static final int AUTOCAST_SPELLS_ENUM = 1986;
 
 	private final LoadoutLabPlugin lab;
 	private final EventBus eventBus;
@@ -94,6 +103,10 @@ public class LoadoutLabModule implements IronHubModule
 	private volatile Runnable gatedListener;
 	private final Runnable listener = () ->
 	{
+		// state listeners run on the CLIENT THREAD (the addListener
+		// contract) — the cache reads behind the combat line happen here,
+		// change-guarded, before the gated EDT rebuild
+		refreshCombatNames();
 		Runnable gated = gatedListener;
 		if (gated != null)
 		{
@@ -121,9 +134,23 @@ public class LoadoutLabModule implements IronHubModule
 	private String viewedSetup;
 	private PersistedState.SavedSetup draft;
 	private boolean namesOpen;
+	/** Lazy + volatile: read from the EDT (render) and the client thread
+	 *  (cache cross-check); DataPack.load is memoized so double-init is
+	 *  the same instance. */
+	private volatile com.ironhub.data.WeaponStylesPack stylesPack;
+	/** Client-thread cache snapshot for the combat line: whether the pack row
+	 *  for this weapon type survived the cache cross-check, and the autocast
+	 *  spell's display name. Volatile — the EDT render reads them. */
+	private volatile int namedWeaponType = -1;
+	private volatile boolean weaponTypeVerified;
+	private volatile int namedSpell;
+	private volatile String spellName;
 	private EquipmentInventorySlot searchSlot;
 	private int lastViewFp;
 	private boolean dpsCalcCollapsed;
+	/** The pouch + inventory viewers fold under one "Inventory" header (Luke). */
+	private boolean inventoryCollapsed;
+	private JPanel buttonsRow;
 	private boolean started;
 
 	@Inject
@@ -150,7 +177,7 @@ public class LoadoutLabModule implements IronHubModule
 	@Override
 	public String name()
 	{
-		return "Loadout";
+		return "Gear & Combat"; // renamed from "Loadout" (Luke, 2026-07-21)
 	}
 
 	@Override
@@ -168,8 +195,9 @@ public class LoadoutLabModule implements IronHubModule
 				httpClient, gson, new com.ironhub.data.ItemNameIndex(gson));
 		}
 		// combat line above the live view: attack style varp + autocast varbit
+		// + the weapon category that names the style buttons
 		state.watchVarps(VarPlayer.ATTACK_STYLE);
-		state.watchVarbits(AUTOCAST_SPELL);
+		state.watchVarbits(AUTOCAST_SPELL, WEAPON_CATEGORY);
 		// the upstream panel styles itself at construction from this seam
 		com.loadoutlab.ui.LoadoutLabPanel.setIronHubTheme(config.osrsTheme());
 		lab.setPanelReadyCallback(() -> SwingUtilities.invokeLater(() ->
@@ -269,10 +297,12 @@ public class LoadoutLabModule implements IronHubModule
 		section.setOpaque(false);
 		section.setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD_TIGHT, UiTokens.PAD));
 
-		JPanel buttons = new JPanel();
-		buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
-		buttons.setOpaque(false);
-		buttons.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		// Save/View-all sit BELOW the equipment viewer (Luke, 2026-07-21) —
+		// built once here, re-added into the render flow each pass
+		buttonsRow = new JPanel();
+		buttonsRow.setLayout(new BoxLayout(buttonsRow, BoxLayout.X_AXIS));
+		buttonsRow.setOpaque(false);
+		buttonsRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 		com.ironhub.ui.osrs.StoneButton save = new com.ironhub.ui.osrs.StoneButton(
 			theme, theme.boxFill, "Save setup", this::saveNamedSetup);
 		save.setToolTipText("Save what the view shows under a name");
@@ -280,11 +310,10 @@ public class LoadoutLabModule implements IronHubModule
 			theme, theme.boxFill, "View all setups", this::toggleAllSetups);
 		viewAll.setToolTipText("List every saved setup; click one to compare it"
 			+ " against what you are wearing and carrying");
-		buttons.add(save);
-		buttons.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		buttons.add(viewAll);
-		buttons.setMaximumSize(new Dimension(Integer.MAX_VALUE, buttons.getPreferredSize().height));
-		section.add(buttons);
+		buttonsRow.add(save);
+		buttonsRow.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		buttonsRow.add(viewAll);
+		buttonsRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, buttonsRow.getPreferredSize().height));
 
 		liveButton = new com.ironhub.ui.osrs.StoneButton(
 			theme, theme.boxFill, "Back to live view", this::backToLive);
@@ -292,15 +321,12 @@ public class LoadoutLabModule implements IronHubModule
 			+ " currently wear and carry");
 		liveButton.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 		liveButton.setVisible(false);
-		section.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
-		section.add(liveButton);
 
 		namesPanel.setLayout(new BoxLayout(namesPanel, BoxLayout.Y_AXIS));
 		namesPanel.setOpaque(false);
 		namesPanel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 		namesPanel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
 		namesPanel.setVisible(false);
-		section.add(namesPanel);
 
 		setupView.setLayout(new BoxLayout(setupView, BoxLayout.Y_AXIS));
 		setupView.setOpaque(false);
@@ -754,10 +780,14 @@ public class LoadoutLabModule implements IronHubModule
 			state.getRunePouch(),
 			state.getVarp(VarPlayer.ATTACK_STYLE),
 			state.getVarbit(AUTOCAST_SPELL),
+			state.getVarbit(WEAPON_CATEGORY),
+			weaponTypeVerified,
+			spellName,
 			state.savedSetupNames(),
 			viewedSetup,
 			draft != null ? draft.equipment : null,
-			namesOpen);
+			namesOpen,
+			inventoryCollapsed);
 		if (fp == lastViewFp)
 		{
 			return;
@@ -788,10 +818,24 @@ public class LoadoutLabModule implements IronHubModule
 		String combat = combatLine();
 		if (combat != null)
 		{
+			JPanel combatRow = new JPanel();
+			combatRow.setLayout(new BoxLayout(combatRow, BoxLayout.X_AXIS));
+			combatRow.setOpaque(false);
+			combatRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+			javax.swing.Icon typeIcon = combatIcon();
+			if (typeIcon != null)
+			{
+				// icons ride in their own holder beside the OsrsLabel (skin rule)
+				combatRow.add(new JLabel(typeIcon));
+				combatRow.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+			}
 			com.ironhub.ui.osrs.OsrsLabel combatLabel = new com.ironhub.ui.osrs.OsrsLabel(combat,
 				com.ironhub.ui.osrs.OsrsSkin.LABEL, com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
 			combatLabel.setToolTipText(combatTooltip());
-			setupView.add(combatLabel);
+			combatRow.add(combatLabel);
+			combatRow.add(Box.createHorizontalGlue());
+			combatRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, combatRow.getPreferredSize().height));
+			setupView.add(combatRow);
 		}
 		setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 
@@ -845,21 +889,42 @@ public class LoadoutLabModule implements IronHubModule
 
 		setupView.add(centered(view.equipment(display, equipTints, this::openSlotSearch)));
 
-		if (display.pouchRunes.length > 0
-			&& Arrays.stream(display.pouchRunes).anyMatch(r -> r > 0))
-		{
-			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-			setupView.add(smallLabel("Rune pouch"));
-			setupView.add(Box.createVerticalStrut(2));
-			setupView.add(centered(view.runePouch(display)));
-		}
+		// the setup controls live directly under the worn-equipment view
+		// (Luke, 2026-07-21), with the setups list opening beneath them
+		setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+		setupView.add(buttonsRow);
+		setupView.add(Box.createVerticalStrut(2));
+		setupView.add(liveButton);
+		setupView.add(namesPanel);
 
-		if (display.inventory.length > 0)
+		// rune pouch + inventory fold under ONE "Inventory" section (Luke)
+		boolean hasPouch = display.pouchRunes.length > 0
+			&& Arrays.stream(display.pouchRunes).anyMatch(r -> r > 0);
+		boolean hasInventory = display.inventory.length > 0;
+		if (hasPouch || hasInventory)
 		{
 			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-			setupView.add(smallLabel("Inventory"));
-			setupView.add(Box.createVerticalStrut(2));
-			setupView.add(centered(view.inventory(display, invTints)));
+			setupView.add(sectionToggle("Inventory", inventoryCollapsed, () ->
+			{
+				inventoryCollapsed = !inventoryCollapsed;
+				lastViewFp = 0;
+				renderView();
+			}));
+			if (!inventoryCollapsed)
+			{
+				if (hasPouch)
+				{
+					setupView.add(Box.createVerticalStrut(2));
+					setupView.add(smallLabel("Rune pouch"));
+					setupView.add(Box.createVerticalStrut(2));
+					setupView.add(centered(view.runePouch(display)));
+				}
+				if (hasInventory)
+				{
+					setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+					setupView.add(centered(view.inventory(display, invTints)));
+				}
+			}
 		}
 
 		setupView.revalidate();
@@ -882,10 +947,12 @@ public class LoadoutLabModule implements IronHubModule
 	}
 
 	/**
-	 * The selected spell or attack style, or null pre-login. Honesty: the
-	 * client API names neither autocast spells (no enum constant maps the
-	 * varbit) nor per-weapon style names without the weapon-type cache
-	 * walk, so this shows the game's own numbers, never an invented name.
+	 * The selected spell or attack style, or null pre-login. Named honestly
+	 * (Luke, 2026-07-21): "Stab: Controlled (Lunge)" from the weapon-styles
+	 * pack once the LIVE cache cross-check vouches for the weapon type's row
+	 * (see WeaponStylesPack.matchesKinds); the autocast spell's own cache
+	 * name + " (Spell)". Anything unverified falls back to the game's raw
+	 * numbers — never an invented name.
 	 */
 	private String combatLine()
 	{
@@ -894,18 +961,167 @@ public class LoadoutLabModule implements IronHubModule
 			return null; // nothing ingested yet — unknown, so silent
 		}
 		int spell = state.getVarbit(AUTOCAST_SPELL);
-		return spell > 0 ? "Autocast spell " + spell
-			: "Attack style " + (state.getVarp(VarPlayer.ATTACK_STYLE) + 1);
+		if (spell > 0)
+		{
+			String name = spellName;
+			return name != null && !name.isEmpty()
+				? name + " (Spell)" : "Autocast spell " + spell;
+		}
+		com.ironhub.data.WeaponStylesPack.Option option = styleOption();
+		int idx = state.getVarp(VarPlayer.ATTACK_STYLE);
+		if (option == null)
+		{
+			return "Attack style " + (idx + 1);
+		}
+		if (option.type == null)
+		{
+			return option.button; // bulwark's no-attack Block
+		}
+		if (option.button.equals(option.style) || option.button.equals(option.type))
+		{
+			return option.type + ": " + (option.style == null ? option.button : option.style);
+		}
+		return option.type + ": " + option.style + " (" + option.button + ")";
+	}
+
+	/** The pack option for the current weapon type + style index — live
+	 *  clients require the cache cross-check to have vouched for the type
+	 *  (headless trusts the pack; deterministic for tests). */
+	private com.ironhub.data.WeaponStylesPack stylesPack()
+	{
+		com.ironhub.data.WeaponStylesPack pack = stylesPack;
+		if (pack == null)
+		{
+			// lazy — DataPack.load is memoized centrally, and the headless
+			// tab (no startUp) still names styles deterministically
+			pack = new com.ironhub.data.DataPack(gson)
+				.load("weapon-styles", com.ironhub.data.WeaponStylesPack.class);
+			stylesPack = pack;
+		}
+		return pack;
+	}
+
+	private com.ironhub.data.WeaponStylesPack.Option styleOption()
+	{
+		com.ironhub.data.WeaponStylesPack stylesPack = stylesPack();
+		int weaponType = state.getVarbit(WEAPON_CATEGORY);
+		if (client != null && !(weaponType == namedWeaponType && weaponTypeVerified))
+		{
+			return null;
+		}
+		return stylesPack.option(weaponType, state.getVarp(VarPlayer.ATTACK_STYLE));
+	}
+
+	/** The attack-type icon beside the combat line (wiki's own set), or null. */
+	private javax.swing.Icon combatIcon()
+	{
+		String type = null;
+		if (state.getVarbit(AUTOCAST_SPELL) > 0)
+		{
+			type = "magic";
+		}
+		else
+		{
+			com.ironhub.data.WeaponStylesPack.Option option = styleOption();
+			if (option != null && option.type != null)
+			{
+				type = option.type.toLowerCase(Locale.ROOT);
+			}
+		}
+		if (type == null)
+		{
+			return null;
+		}
+		java.awt.image.BufferedImage img =
+			com.ironhub.ui.osrs.OsrsIcons.image(theme, "styles/" + type);
+		return img == null ? null
+			: new javax.swing.ImageIcon(img.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH));
 	}
 
 	private String combatTooltip()
 	{
 		int spell = state.getVarbit(AUTOCAST_SPELL);
-		return spell > 0
-			? "The game's autocast spell number — the client API does not expose its name"
-			: "The selected combat style slot; its name depends on the equipped weapon type";
+		if (spell > 0)
+		{
+			return spellName != null && !spellName.isEmpty()
+				? "The spell set to autocast"
+				: "The game's autocast spell number — its name is not in the cache yet";
+		}
+		return styleOption() != null
+			? "The selected combat style: attack type, style and the button's own name"
+			: "The selected combat style slot; this weapon type's style names"
+				+ " could not be verified against the game cache";
 	}
 
+	/**
+	 * Client-thread, change-guarded: verify the weapon type's pack row
+	 * against the cache's style-kind signature (the AttackStylesPlugin
+	 * enum walk) and resolve the autocast spell's display name (enum 1986 →
+	 * spell obj → SPELL_NAME param — the game's own autocast script route).
+	 */
+	private void refreshCombatNames()
+	{
+		if (client == null || !client.isClientThread())
+		{
+			return;
+		}
+		int weaponType = state.getVarbit(WEAPON_CATEGORY);
+		if (weaponType != namedWeaponType)
+		{
+			weaponTypeVerified = stylesPack().matchesKinds(weaponType, cacheStyleKinds(weaponType));
+			namedWeaponType = weaponType;
+		}
+		int spell = state.getVarbit(AUTOCAST_SPELL);
+		if (spell != namedSpell)
+		{
+			spellName = spell > 0 ? cacheSpellName(spell) : null;
+			namedSpell = spell;
+		}
+	}
+
+	/** Param-1407 style kinds by option index for a weapon type, or null
+	 *  when the cache doesn't map it (e.g. blue moon spear). Client thread. */
+	private String[] cacheStyleKinds(int weaponType)
+	{
+		try
+		{
+			int sub = client.getEnum(net.runelite.api.EnumID.WEAPON_STYLES).getIntValue(weaponType);
+			if (sub == -1)
+			{
+				return null;
+			}
+			int[] structs = client.getEnum(sub).getIntVals();
+			String[] kinds = new String[structs.length];
+			for (int i = 0; i < structs.length; i++)
+			{
+				kinds[i] = client.getStructComposition(structs[i])
+					.getStringValue(net.runelite.api.ParamID.ATTACK_STYLE_NAME);
+			}
+			return kinds;
+		}
+		catch (RuntimeException e)
+		{
+			return null; // unreadable cache = unverified, never a guess
+		}
+	}
+
+	private String cacheSpellName(int spell)
+	{
+		try
+		{
+			int itemId = client.getEnum(AUTOCAST_SPELLS_ENUM).getIntValue(spell);
+			return itemId > 0 ? client.getItemDefinition(itemId)
+				.getStringValue(net.runelite.api.ParamID.SPELL_NAME) : null;
+		}
+		catch (RuntimeException e)
+		{
+			return null;
+		}
+	}
+
+	/** The saved-setups list: the Design lab's checklist grammar without the
+	 *  checkboxes — rows in one notched frame, whole-row hover/hit — inside a
+	 *  stone-scrolled viewport so a long list stays short (Luke, 2026-07-21). */
 	private void renderNames()
 	{
 		namesPanel.removeAll();
@@ -921,33 +1137,103 @@ public class LoadoutLabModule implements IronHubModule
 				com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned());
 			return;
 		}
+		JPanel list = new JPanel()
+		{
+			@Override
+			public Dimension getPreferredSize()
+			{
+				Dimension d = super.getPreferredSize();
+				// track the viewport width so rows fill the frame
+				java.awt.Container parent = getParent();
+				return parent instanceof javax.swing.JViewport
+					? new Dimension(parent.getWidth(), d.height) : d;
+			}
+		};
+		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
+		list.setOpaque(false);
 		for (String name : names)
 		{
 			boolean active = draft == null && name.equals(viewedSetup);
-			com.ironhub.ui.osrs.OsrsLabel row = new com.ironhub.ui.osrs.OsrsLabel(
-				(active ? "> " : "· ") + name,
-				active ? com.ironhub.ui.osrs.OsrsSkin.TITLE : com.ironhub.ui.osrs.OsrsSkin.MUTED,
-				com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
-			row.setToolTipText(active ? "Viewing — click again for the live view"
-				: "Compare this setup against what you wear and carry");
-			row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			row.addMouseListener(new java.awt.event.MouseAdapter()
-			{
-				@Override
-				public void mousePressed(java.awt.event.MouseEvent e)
-				{
-					if (active)
-					{
-						backToLive();
-					}
-					else
-					{
-						viewSetup(name);
-					}
-				}
-			});
-			namesPanel.add(row);
+			list.add(setupRow(name, active));
 		}
+
+		com.ironhub.ui.osrs.StonePanel frame = new com.ironhub.ui.osrs.StonePanel(theme);
+		frame.setLayout(new BorderLayout());
+		frame.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(list,
+			javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+			javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER)
+		{
+			@Override
+			public Dimension getPreferredSize()
+			{
+				Dimension d = super.getPreferredSize();
+				return new Dimension(d.width, Math.min(d.height, 132)); // ~6 rows
+			}
+		};
+		scroll.setBorder(null);
+		scroll.setOpaque(false);
+		scroll.getViewport().setOpaque(false);
+		com.ironhub.ui.osrs.StoneScrollBarUI.skin(scroll.getVerticalScrollBar(), theme);
+		scroll.getVerticalScrollBar().setUnitIncrement(22);
+		frame.add(scroll, BorderLayout.CENTER);
+		frame.setMaximumSize(new Dimension(Integer.MAX_VALUE, frame.getPreferredSize().height));
+		namesPanel.add(frame);
+	}
+
+	/** One setup row: name in the checklist-row look (hover fill, whole-row
+	 *  hit target), TITLE-orange when it is the one being viewed. */
+	private JComponent setupRow(String name, boolean active)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(true);
+		row.setBackground(theme.boxFill);
+		row.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		row.setBorder(new EmptyBorder(3, 6, 3, 6));
+		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		com.ironhub.ui.osrs.OsrsLabel label = new com.ironhub.ui.osrs.OsrsLabel(name,
+			active ? com.ironhub.ui.osrs.OsrsSkin.TITLE : com.ironhub.ui.osrs.OsrsSkin.LABEL,
+			com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned().squeezable();
+		String tip = active ? "Viewing — click again for the live view"
+			: "Compare this setup against what you wear and carry";
+		row.setToolTipText(tip);
+		label.setToolTipText(tip);
+		row.add(label);
+		row.add(Box.createHorizontalGlue());
+		java.awt.event.MouseAdapter click = new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(java.awt.event.MouseEvent e)
+			{
+				row.setBackground(theme.hoverFill);
+				row.repaint();
+			}
+
+			@Override
+			public void mouseExited(java.awt.event.MouseEvent e)
+			{
+				row.setBackground(theme.boxFill);
+				row.repaint();
+			}
+
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				if (active)
+				{
+					backToLive();
+				}
+				else
+				{
+					viewSetup(name);
+				}
+			}
+		};
+		row.addMouseListener(click);
+		label.addMouseListener(click);
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+		return row;
 	}
 
 	// ── per-slot item search (edits a draft) ──────────────────────────
@@ -1148,6 +1434,40 @@ public class LoadoutLabModule implements IronHubModule
 			com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
 	}
 
+	/** A small collapsible sub-section header: triangle + label, whole row
+	 *  the hit target (the Inventory fold). */
+	private JComponent sectionToggle(String text, boolean collapsed, Runnable onToggle)
+	{
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		JLabel triangle = new JLabel(new com.ironhub.ui.components.PaintedIcon(collapsed
+			? com.ironhub.ui.components.PaintedIcon.Shape.TRIANGLE_RIGHT
+			: com.ironhub.ui.components.PaintedIcon.Shape.TRIANGLE_DOWN, 10));
+		triangle.setForeground(com.ironhub.ui.osrs.OsrsSkin.MUTED);
+		row.add(triangle);
+		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		com.ironhub.ui.osrs.OsrsLabel label = new com.ironhub.ui.osrs.OsrsLabel(text,
+			com.ironhub.ui.osrs.OsrsSkin.MUTED, com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
+		row.add(label);
+		row.add(Box.createHorizontalGlue());
+		java.awt.event.MouseAdapter toggle = new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				onToggle.run();
+			}
+		};
+		row.addMouseListener(toggle);
+		label.addMouseListener(toggle);
+		triangle.addMouseListener(toggle);
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+		return row;
+	}
+
 	/** The lab panel arrives async (its ~3MB dataset parses off-thread). */
 	private void mountPanel()
 	{
@@ -1164,26 +1484,27 @@ public class LoadoutLabModule implements IronHubModule
 		}
 		if (lab.getPanel() != null)
 		{
-			// collapsible DPS Calc section wrapping the whole lab panel -
-			// the skin's collapsible header (triangle + game label); the lab
-			// panel itself keeps upstream's own look
+			// collapsible DPS Calc section wrapping the whole lab panel — the
+			// header wears the MODULE-PLATE grammar (notched stone, bold TITLE
+			// text centred, triangle left) so it reads like the hub's other
+			// section headers (Luke, 2026-07-21)
 			JPanel section = new JPanel(new BorderLayout());
 			section.setOpaque(false);
-			JPanel header = new JPanel();
-			header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
-			header.setOpaque(false);
-			header.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, UiTokens.PAD, UiTokens.PAD_TIGHT, UiTokens.PAD));
-			header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			header.setToolTipText("Show or hide the DPS calculator");
+			com.ironhub.ui.osrs.StonePanel plate = new com.ironhub.ui.osrs.StonePanel(theme);
+			plate.setLayout(new BoxLayout(plate, BoxLayout.X_AXIS));
+			plate.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			plate.setToolTipText("Show or hide the DPS calculator");
 			JLabel triangleLabel = new JLabel(new com.ironhub.ui.components.PaintedIcon(triangle(), 10));
 			triangleLabel.setForeground(com.ironhub.ui.osrs.OsrsSkin.MUTED);
-			header.add(triangleLabel);
-			header.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+			plate.add(triangleLabel);
+			plate.add(Box.createHorizontalGlue());
 			com.ironhub.ui.osrs.OsrsLabel title = new com.ironhub.ui.osrs.OsrsLabel("DPS Calc",
-				com.ironhub.ui.osrs.OsrsSkin.MUTED, com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
+				com.ironhub.ui.osrs.OsrsSkin.TITLE, com.ironhub.ui.osrs.OsrsSkin.boldFont());
 			title.setToolTipText("Show or hide the DPS calculator");
-			header.add(title);
-			header.add(Box.createHorizontalGlue());
+			plate.add(title);
+			plate.add(Box.createHorizontalGlue());
+			// mirror the triangle's width so the title stays optically centred
+			plate.add(Box.createHorizontalStrut(10));
 			java.awt.event.MouseAdapter toggle = new java.awt.event.MouseAdapter()
 			{
 				@Override
@@ -1196,9 +1517,13 @@ public class LoadoutLabModule implements IronHubModule
 				}
 			};
 			// the title's tooltip swallows row clicks — children carry it too
-			header.addMouseListener(toggle);
+			plate.addMouseListener(toggle);
 			title.addMouseListener(toggle);
 			triangleLabel.addMouseListener(toggle);
+			JPanel header = new JPanel(new BorderLayout());
+			header.setOpaque(false);
+			header.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 4, 3, 4));
+			header.add(plate, BorderLayout.CENTER);
 			section.add(header, BorderLayout.NORTH);
 			section.add(lab.getPanel(), BorderLayout.CENTER);
 			lab.getPanel().setVisible(!dpsCalcCollapsed);
@@ -1335,6 +1660,11 @@ public class LoadoutLabModule implements IronHubModule
 	// ── test seams ────────────────────────────────────────────────────
 
 	/** Test seam: view a saved setup diffed against current. */
+	void toggleAllSetupsForTest()
+	{
+		toggleAllSetups();
+	}
+
 	void viewSetupForTest(String name)
 	{
 		viewSetup(name);

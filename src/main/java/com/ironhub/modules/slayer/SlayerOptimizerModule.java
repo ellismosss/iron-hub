@@ -152,6 +152,7 @@ public class SlayerOptimizerModule implements IronHubModule
 	private final com.ironhub.modules.farming.FarmBankLayout bankLayout; // null-service tolerant
 
 	private SlayerSuiteOverlay overlay;
+	private com.ironhub.ui.components.BankRestockOverlay bankGlow;
 	private volatile long superiorSeenMs;
 	/** "Show in bank" armed from the tab; the next bank opens lay the setup out. */
 	private volatile boolean bankShow;
@@ -257,6 +258,11 @@ public class SlayerOptimizerModule implements IronHubModule
 		{
 			overlay = new SlayerSuiteOverlay(this, config, client);
 			overlayManager.add(overlay);
+			// missing setup items glow in the real bank while it's open — a
+			// passive highlight, never the full tag relayout (that stays on
+			// the user-armed Show-in-bank button)
+			bankGlow = new com.ironhub.ui.components.BankRestockOverlay(this::missingSetupItems);
+			overlayManager.add(bankGlow);
 		}
 	}
 
@@ -277,6 +283,11 @@ public class SlayerOptimizerModule implements IronHubModule
 		{
 			overlayManager.remove(overlay);
 			overlay = null;
+		}
+		if (bankGlow != null)
+		{
+			overlayManager.remove(bankGlow);
+			bankGlow = null;
 		}
 		if (clientThread != null)
 		{
@@ -976,6 +987,37 @@ public class SlayerOptimizerModule implements IronHubModule
 		{
 			state.saveSetup(taskName, state.captureSetup());
 		}
+	}
+
+	/**
+	 * Setup items not currently worn or held anywhere (variation-aware
+	 * carried check) — the tab tints these ORANGE and the bank glow
+	 * highlights them while the bank is open (Luke, 2026-07-21). Empty when
+	 * no task or no saved setup.
+	 */
+	java.util.Set<Integer> missingSetupItems()
+	{
+		PersistedState.SavedSetup setup = taskSetup();
+		if (setup == null)
+		{
+			return java.util.Set.of();
+		}
+		java.util.Set<Integer> out = new java.util.HashSet<>();
+		for (Integer id : setup.equipment.values())
+		{
+			if (id != null && id > 0 && state.carriedCount(id) == 0)
+			{
+				out.add(id);
+			}
+		}
+		for (int id : setup.inventory)
+		{
+			if (id > 0 && state.carriedCount(id) == 0)
+			{
+				out.add(id);
+			}
+		}
+		return out;
 	}
 
 	boolean bankShowArmed()

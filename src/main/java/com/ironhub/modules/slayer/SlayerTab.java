@@ -195,6 +195,51 @@ class SlayerTab extends JPanel
 		content.add(hero);
 		content.add(Box.createVerticalStrut(4));
 
+		// the task's saved setup renders right at the top (Luke, 2026-07-21):
+		// items you are NOT currently wearing/holding tint ORANGE and glow in
+		// the real bank via the module's restock overlay
+		PersistedState.SavedSetup taskSetup = remaining > 0 ? module.taskSetup() : null;
+		if (taskSetup != null)
+		{
+			com.ironhub.modules.loadoutlab.SavedSetupView setupView =
+				new com.ironhub.modules.loadoutlab.SavedSetupView(theme, module.itemManager(), state::itemName);
+			java.util.Map<String, java.awt.Color> equipTints = new java.util.HashMap<>();
+			for (java.util.Map.Entry<String, Integer> slot : taskSetup.equipment.entrySet())
+			{
+				if (slot.getValue() != null && slot.getValue() > 0
+					&& state.carriedCount(slot.getValue()) == 0)
+				{
+					equipTints.put(slot.getKey(), OsrsSkin.TITLE); // orange: not worn/held
+				}
+			}
+			content.add(centered(setupView.equipment(taskSetup, equipTints, null)));
+			if (taskSetup.inventory.length > 0)
+			{
+				java.awt.Color[] invTints = new java.awt.Color[28];
+				boolean anyItem = false;
+				for (int i = 0; i < taskSetup.inventory.length && i < 28; i++)
+				{
+					int id = taskSetup.inventory[i];
+					anyItem |= id > 0;
+					if (id > 0 && state.carriedCount(id) == 0)
+					{
+						invTints[i] = OsrsSkin.TITLE;
+					}
+				}
+				if (anyItem)
+				{
+					content.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+					content.add(centered(setupView.inventory(taskSetup, invTints)));
+				}
+			}
+			if (!module.missingSetupItems().isEmpty())
+			{
+				content.add(textLine("Orange = not carried — highlighted in your bank",
+					OsrsSkin.FAINT, OsrsSkin.smallFont()));
+			}
+			content.add(Box.createVerticalStrut(4));
+		}
+
 		content.add(statRow("Slayer points", QuantityFormatter.formatNumber(module.points())));
 		content.add(Box.createVerticalStrut(4));
 		content.add(statRow("Task streak", QuantityFormatter.formatNumber(module.streak())));
@@ -284,7 +329,7 @@ class SlayerTab extends JPanel
 		else
 		{
 			int items = setupItemCount(setup);
-			content.add(textLine("Setup saved · " + items + " items — the Loadout tab shows it",
+			content.add(textLine("Setup saved · " + items + " items — shown at the top",
 				OsrsSkin.VALUE, OsrsSkin.smallFont()));
 		}
 		JPanel gearButtons = row(2);
@@ -746,6 +791,20 @@ class SlayerTab extends JPanel
 		row.setAlignmentX(LEFT_ALIGNMENT);
 		row.setBorder(new EmptyBorder(vpad, UiTokens.ROW_GAP, vpad, UiTokens.ROW_GAP));
 		return row;
+	}
+
+	/** Center a fixed-size canvas (the setup viewers) in the panel width. */
+	private JComponent centered(JComponent inner)
+	{
+		JPanel holder = new JPanel();
+		holder.setLayout(new BoxLayout(holder, BoxLayout.X_AXIS));
+		holder.setOpaque(false);
+		holder.setAlignmentX(LEFT_ALIGNMENT);
+		holder.add(Box.createHorizontalGlue());
+		holder.add(inner);
+		holder.add(Box.createHorizontalGlue());
+		cap(holder);
+		return holder;
 	}
 
 	private JComponent textLine(String text, Color color, java.awt.Font font)

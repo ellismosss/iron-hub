@@ -1,0 +1,699 @@
+{
+  "$schema": "./schemas/weapon-styles.schema.json",
+  "version": 1,
+  "source": "RuneStar/cs2-scripts@7da6c1fba combat_interface_setup",
+  "types": {
+    "0": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Punch",
+          "style": "Accurate",
+          "type": "Crush"
+        },
+        {
+          "index": 1,
+          "button": "Kick",
+          "style": "Aggressive",
+          "type": "Crush"
+        },
+        {
+          "index": 3,
+          "button": "Block",
+          "style": "Defensive",
+          "type": "Crush"
+        }
+      ]
+    },
+    "1": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Chop",
+          "style": "Accurate",
+          "type": "Slash"
+        },
+        {
+          "index": 1,
+          "button": "Hack",
+          "style": "Aggressive",
+          "type": "Slash"
+        },
+        {
+          "index": 2,
+          "button": "Smash",
+          "style": "Aggressive",
+          "type": "Crush"
+        },
+        {
+          "index": 3,
+          "button": "Block",
+          "style": "Defensive",
+          "type": "Slash"
+        }
+      ]
+    },
+    "2": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Pound",
+          "style": "Accurate",
+          "type": "Crush"
+        },
+        {
+          "index": 1,
+          "button": "Pummel",
+          "style": "Aggressive",
+          "type": "Crush"
+        },
+        {
+          "index": 3,
+          "button": "Block",
+          "style": "Defensive",
+          "type": "Crush"
+        }
+      ]
+    },
+    "3": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Accurate",
+          "style": "Accurate",
+          "type": "Ranged"
+        },
+        {
+          "index": 1,
+          "button": "Rapid",
+          "style": "Rapid",
+          "type": "Ranged"
+        },
+        {
+          "index": 3,
+          "button": "Longrange",
+          "style": "Longrange",
+          "type": "Ranged"
+        }
+      ]
+    },
+    "4": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Chop",
+          "style": "Accurate",
+          "type": "Slash"
+        },
+        {
+          "index": 1,
+          "button": "Slash",
+          "style": "Aggressive",
+          "type": "Slash"
+        },
+        {
+          "index": 2,
+          "button": "Lunge",
+          "style": "Controlled",
+          "type": "Stab"
+        },
+        {
+          "index": 3,
+          "button": "Block",
+          "style": "Defensive",
+          "type": "Slash"
+        }
+      ]
+    },
+    "5": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Accurate",
+          "style": "Accurate",
+          "type": "Ranged"
+        },
+        {
+          "index": 1,
+          "button": "Rapid",
+          "style": "Rapid",
+          "type": "Ranged"
+        },
+        {
+          "index": 3,
+          "button": "Longrange",
+          "style": "Longrange",
+          "type": "Ranged"
+        }
+      ]
+    },
+    "6": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Scorch",
+          "style": "Aggressive",
+          "type": "Slash"
+        },
+        {
+          "index": 1,
+          "button": "Flare",
+          "style": "Accurate",
+          "type": "Ranged"
+        },
+        {
+          "index": 2,
+          "button": "Blaze",
+          "style": "Defensive",
+          "type": "Magic"
+        }
+      ]
+    },
+    "7": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Short fuse",
+          "style": null,
+          "type": "Ranged"
+        },
+        {
+          "index": 1,
+          "button": "Medium fuse",
+          "style": null,
+          "type": "Ranged"
+        },
+        {
+          "index": 3,
+          "button": "Long fuse",
+          "style": null,
+          "type": "Ranged"
+        }
+      ]
+    },
+    "8": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Aim and Fire",
+          "style": null,
+          "type": null
+        },
+        {
+          "index": 1,
+          "button": "Kick",
+          "style": "Aggressive",
+          "type": "Crush"
+        }
+      ]
+    },
+    "9": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Chop",
+          "style": "Accurate",
+          "type": "Slash"
+        },
+        {
+          "index": 1,
+          "button": "Slash",
+          "style": "Aggressive",
+          "type": "Slash"
+        },
+        {
+          "index": 2,
+          "button": "Lunge",
+          "style": "Controlled",
+          "type": "Stab"
+        },
+        {
+          "index": 3,
+          "button": "Block",
+          "style": "Defensive",
+          "type": "Slash"
+        }
+      ]
+    },
+    "10": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Chop",
+          "style": "Accurate",
+          "type": "Slash"
+        },
+        {
+          "index": 1,
+          "button": "Slash",
+          "style": "Aggressive",
+          "type": "Slash"
+        },
+        {
+          "index": 2,
+          "button": "Smash",
+          "style": "Aggressive",
+          "type": "Crush"
+        },
+        {
+          "index": 3,
+          "button": "Block",
+          "style": "Defensive",
+          "type": "Slash"
+        }
+      ]
+    },
+    "11": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Spike",
+          "style": "Accurate",
+          "type": "Stab"
+        },
+        {
+          "index": 1,
+          "button": "Impale",
+          "style": "Aggressive",
+          "type": "Stab"
+        },
+        {
+          "index": 2,
+          "button": "Smash",
+          "style": "Aggressive",
+          "type": "Crush"
+        },
+        {
+          "index": 3,
+          "button": "Block",
+          "style": "Defensive",
+          "type": "Stab"
+        }
+      ]
+    },
+    "12": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Jab",
+          "style": "Controlled",
+          "type": "Stab"
+        },
+        {
+          "index": 1,
+          "button": "Swipe",
+          "style": "Aggressive",
+          "type": "Slash"
+        },
+        {
+          "index": 3,
+          "button": "Fend",
+          "style": "Defensive",
+          "type": "Stab"
+        }
+      ]
+    },
+    "13": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Bash",
+          "style": "Accurate",
+          "type": "Crush"
+        },
+        {
+          "index": 1,
+          "button": "Pound",
+          "style": "Aggressive",
+          "type": "Crush"
+        },
+        {
+          "index": 3,
+          "button": "Block",
+          "style": "Defensive",
+          "type": "Crush"
+        }
+      ]
+    },
+    "14": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Reap",
+          "style": "Accurate",
+          "type": "Slash"
+        },
+        {
+          "index": 1,
+          "button": "Chop",
+          "style": "Aggressive",
+          "type": "Slash"
+        },
+        {
+          "index": 2,
+          "button": "Jab",
+          "style": "Aggressive",
+          "type": "Crush"
+        },
+        {
+          "index": 3,
+          "button": "Block",
+          "style": "Defensive",
+          "type": "Slash"
+        }
+      ]
+    },
+    "15": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Lunge",
+          "style": "Controlled",
+          "type": "Stab"
+        },
+        {
+          "index": 1,
+          "button": "Swipe",
+          "style": "Controlled",
+          "type": "Slash"
+        },
+        {
+          "index": 2,
+          "button": "Pound",
+          "style": "Controlled",
+          "type": "Crush"
+        },
+        {
+          "index": 3,
+          "button": "Block",
+          "style": "Defensive",
+          "type": "Stab"
+        }
+      ]
+    },
+    "16": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Pound",
+          "style": "Accurate",
+          "type": "Crush"
+        },
+        {
+          "index": 1,
+          "button": "Pummel",
+          "style": "Aggressive",
+          "type": "Crush"
+        },
+        {
+          "index": 2,
+          "button": "Spike",
+          "style": "Controlled",
+          "type": "Stab"
+        },
+        {
+          "index": 3,
+          "button": "Block",
+          "style": "Defensive",
+          "type": "Crush"
+        }
+      ]
+    },
+    "17": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Stab",
+          "style": "Accurate",
+          "type": "Stab"
+        },
+        {
+          "index": 1,
+          "button": "Lunge",
+          "style": "Aggressive",
+          "type": "Stab"
+        },
+        {
+          "index": 2,
+          "button": "Slash",
+          "style": "Aggressive",
+          "type": "Slash"
+        },
+        {
+          "index": 3,
+          "button": "Block",
+          "style": "Defensive",
+          "type": "Stab"
+        }
+      ]
+    },
+    "18": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Bash",
+          "style": "Accurate",
+          "type": "Crush"
+        },
+        {
+          "index": 1,
+          "button": "Pound",
+          "style": "Aggressive",
+          "type": "Crush"
+        },
+        {
+          "index": 3,
+          "button": "Focus",
+          "style": "Defensive",
+          "type": "Crush"
+        }
+      ]
+    },
+    "19": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Accurate",
+          "style": "Accurate",
+          "type": "Ranged"
+        },
+        {
+          "index": 1,
+          "button": "Rapid",
+          "style": "Rapid",
+          "type": "Ranged"
+        },
+        {
+          "index": 3,
+          "button": "Longrange",
+          "style": "Longrange",
+          "type": "Ranged"
+        }
+      ]
+    },
+    "20": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Flick",
+          "style": "Accurate",
+          "type": "Slash"
+        },
+        {
+          "index": 1,
+          "button": "Lash",
+          "style": "Controlled",
+          "type": "Slash"
+        },
+        {
+          "index": 3,
+          "button": "Deflect",
+          "style": "Defensive",
+          "type": "Slash"
+        }
+      ]
+    },
+    "21": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Jab",
+          "style": "Accurate",
+          "type": "Stab"
+        },
+        {
+          "index": 1,
+          "button": "Swipe",
+          "style": "Aggressive",
+          "type": "Slash"
+        },
+        {
+          "index": 3,
+          "button": "Fend",
+          "style": "Defensive",
+          "type": "Crush"
+        }
+      ]
+    },
+    "22": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Chop",
+          "style": "Accurate",
+          "type": "Slash"
+        },
+        {
+          "index": 1,
+          "button": "Slash",
+          "style": "Aggressive",
+          "type": "Slash"
+        },
+        {
+          "index": 2,
+          "button": "Smash",
+          "style": "Aggressive",
+          "type": "Crush"
+        },
+        {
+          "index": 3,
+          "button": "Block",
+          "style": "Defensive",
+          "type": "Slash"
+        }
+      ]
+    },
+    "23": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Accurate",
+          "style": "Accurate",
+          "type": "Magic"
+        },
+        {
+          "index": 1,
+          "button": "Accurate",
+          "style": "Accurate",
+          "type": "Magic"
+        },
+        {
+          "index": 3,
+          "button": "Longrange",
+          "style": "Longrange",
+          "type": "Magic"
+        }
+      ]
+    },
+    "24": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Lunge",
+          "style": "Accurate",
+          "type": "Stab"
+        },
+        {
+          "index": 1,
+          "button": "Swipe",
+          "style": "Aggressive",
+          "type": "Slash"
+        },
+        {
+          "index": 2,
+          "button": "Pound",
+          "style": "Controlled",
+          "type": "Crush"
+        },
+        {
+          "index": 3,
+          "button": "Block",
+          "style": "Defensive",
+          "type": "Stab"
+        }
+      ]
+    },
+    "25": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Jab",
+          "style": "Controlled",
+          "type": "Stab"
+        },
+        {
+          "index": 1,
+          "button": "Swipe",
+          "style": "Aggressive",
+          "type": "Slash"
+        },
+        {
+          "index": 3,
+          "button": "Fend",
+          "style": "Defensive",
+          "type": "Stab"
+        }
+      ]
+    },
+    "26": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Pound",
+          "style": "Aggressive",
+          "type": "Crush"
+        },
+        {
+          "index": 1,
+          "button": "Pummel",
+          "style": "Aggressive",
+          "type": "Crush"
+        },
+        {
+          "index": 3,
+          "button": "Smash",
+          "style": "Aggressive",
+          "type": "Crush"
+        }
+      ]
+    },
+    "27": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Pummel",
+          "style": "Accurate",
+          "type": "Crush"
+        },
+        {
+          "index": 3,
+          "button": "Block",
+          "style": null,
+          "type": null
+        }
+      ]
+    },
+    "28": {
+      "options": [
+        {
+          "index": 0,
+          "button": "Accurate",
+          "style": "Accurate",
+          "type": "Magic"
+        },
+        {
+          "index": 1,
+          "button": "Accurate",
+          "style": "Accurate",
+          "type": "Magic"
+        },
+        {
+          "index": 3,
+          "button": "Longrange",
+          "style": "Longrange",
+          "type": "Magic"
+        }
+      ]
+    }
+  }
+}

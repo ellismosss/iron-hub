@@ -36,7 +36,7 @@ import net.runelite.client.util.AsyncBufferedImage;
  * texture tiled inside the bottom_line_mode_side_panel edge/corner frame,
  * each theme shipping its own redraws under dialog_inventory_sprites/.
  */
-class SavedSetupView
+public class SavedSetupView
 {
 	private static final int SLOT = 36;
 	/** Slot positions in the 204px-wide reference frame (measured). */
@@ -91,7 +91,7 @@ class SavedSetupView
 	private final BufferedImage linkH;
 	private final BufferedImage linkV;
 
-	SavedSetupView(OsrsTheme theme, ItemManager itemManager,
+	public SavedSetupView(OsrsTheme theme, ItemManager itemManager,
 		Function<Integer, String> itemName)
 	{
 		this.theme = theme;
@@ -107,7 +107,7 @@ class SavedSetupView
 	 * name -> border colour, null = none) and an optional slot-press
 	 * callback (fires for ANY slot, filled or empty).
 	 */
-	JComponent equipment(PersistedState.SavedSetup setup,
+	public JComponent equipment(PersistedState.SavedSetup setup,
 		Map<String, java.awt.Color> tints,
 		java.util.function.Consumer<EquipmentInventorySlot> onSlotPress)
 	{
@@ -115,13 +115,13 @@ class SavedSetupView
 	}
 
 	/** The rune pouch as a short row of slot tiles. */
-	JComponent runePouch(PersistedState.SavedSetup setup)
+	public JComponent runePouch(PersistedState.SavedSetup setup)
 	{
 		return new PouchCanvas(setup);
 	}
 
 	/** The inventory with per-slot diff tint borders (28 entries or null). */
-	JComponent inventory(PersistedState.SavedSetup setup, java.awt.Color[] tints)
+	public JComponent inventory(PersistedState.SavedSetup setup, java.awt.Color[] tints)
 	{
 		return new InventoryCanvas(setup, tints);
 	}

@@ -47,9 +47,14 @@ public class IronHubPanel extends PluginPanel
 	 * The classic Dailies tab left the nav — its module keeps the brain
 	 * (detection, runs, overlays) that Dailies (New) renders.
 	 */
+	/** Modules pinned ALWAYS-OPEN in their hub (Luke, 2026-07-21: the gear &
+	 *  combat view IS the combat hub's face — never collapsible). Exclusive
+	 *  expansion still governs the hub's OTHER modules. */
+	private static final java.util.Set<String> PINNED_MODULES = java.util.Set.of("Gear & Combat");
+
 	private static final Map<String, List<String>> BLOCKS = Map.of(
 		"Goals", List.of("Goals"),
-		"Combat", List.of("Loadout", "Slayer", "Loot & supplies"),
+		"Gear & Combat", List.of("Gear & Combat", "Slayer", "Loot & supplies"),
 		"Dailies", List.of("Dailies", "Farm runs", "Hunters' Rumours", "Port tasks"),
 		"Progression", List.of("Collection log", "Combat achievements", "Gear progression",
 			"PoH", "Sailing upgrades", "Achievement diaries", "Quests", "Clues & STASH",
@@ -225,8 +230,10 @@ public class IronHubPanel extends PluginPanel
 	{
 		com.ironhub.ui.osrs.OsrsTheme theme = config.osrsTheme();
 		// a hub with one module never collapses — it's the whole section
-		// (Luke: the Goal planner is the only Goals module)
-		boolean collapsible = BLOCKS.get(hubName).size() > 1;
+		// (Luke: Goals is the hub's only module) — and pinned modules stay
+		// open regardless of what else the hub shows
+		boolean collapsible = BLOCKS.get(hubName).size() > 1
+			&& !PINNED_MODULES.contains(name);
 		com.ironhub.ui.osrs.StonePanel plate = new com.ironhub.ui.osrs.StonePanel(theme);
 		plate.setLayout(new BoxLayout(plate, BoxLayout.X_AXIS));
 		if (collapsible)
@@ -279,7 +286,8 @@ public class IronHubPanel extends PluginPanel
 		Map<String, JLabel> triangles = hubTriangles.get(name);
 		for (Map.Entry<String, JPanel> entry : slots.entrySet())
 		{
-			boolean expanded = entry.getKey().equals(open);
+			boolean expanded = entry.getKey().equals(open)
+				|| PINNED_MODULES.contains(entry.getKey());
 			JLabel triangle = triangles == null ? null : triangles.get(entry.getKey());
 			if (triangle != null)
 			{

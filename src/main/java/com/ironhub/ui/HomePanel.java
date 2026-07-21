@@ -45,7 +45,7 @@ public class HomePanel extends JPanel
 	 */
 	private static final String[][] NAV = {
 		{"goals", "Goals"},
-		{"combat", "Combat"},
+		{"combat", "Gear & Combat"},
 		{"dailies", "Dailies"},
 		{"progression", "Progression"},
 		{"bank", "Bank"},

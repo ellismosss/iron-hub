@@ -230,6 +230,29 @@ public class LoadoutLabModuleTest
 		javax.imageio.ImageIO.write(image, "png", out);
 	}
 
+	/** The setups list: checkbox-less checklist rows inside a stone-scrolled
+	 *  frame, capped so a long list never dominates the tab (Luke). */
+	@Test
+	public void setupsListRendersFramedAndScrollCapped() throws Exception
+	{
+		AccountState state = liveState();
+		for (int i = 1; i <= 12; i++)
+		{
+			PersistedState.SavedSetup setup = new PersistedState.SavedSetup();
+			setup.equipment.put("WEAPON", 12926);
+			state.saveSetup("Setup " + i, setup);
+		}
+		LoadoutLabModule module = newModule(state);
+		javax.swing.JComponent tab = module.buildTab();
+		javax.swing.SwingUtilities.invokeAndWait(module::toggleAllSetupsForTest);
+		java.awt.image.BufferedImage image =
+			com.ironhub.ui.SwingRender.render((javax.swing.JPanel) tab);
+		assertTrue(image.getHeight() > 200);
+		java.io.File out = new java.io.File("build/reports/loadout-setups-list.png");
+		out.getParentFile().mkdirs();
+		javax.imageio.ImageIO.write(image, "png", out);
+	}
+
 	@Test
 	public void equipmentRendersInOsrsLayoutOrder()
 	{
