@@ -86,6 +86,19 @@ public class StoneButton extends StonePanel
 		return this;
 	}
 
+	/** An icon before the text (its own holder — the skin's icon rule). */
+	public StoneButton icon(javax.swing.Icon icon)
+	{
+		if (icon != null)
+		{
+			javax.swing.JLabel holder = new javax.swing.JLabel(icon);
+			// index 1 = after the leading glue, before the text label
+			add(holder, 1);
+			add(Box.createHorizontalStrut(4), 2);
+		}
+		return this;
+	}
+
 	/** Test seam: the fill a given pointer state paints. */
 	public Color fillFor(boolean hovering, boolean down)
 	{

@@ -484,7 +484,12 @@ public class LoadoutLabPanel extends PluginPanel
 
 		searchField.setAlignmentX(LEFT_ALIGNMENT);
 		searchField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
-		top.add(searchField);
+		// Iron Hub (Luke, 2026-07-21): the search field + its dropdown live
+		// in searchHolder, MOUNTED by the wrapper below the shared stat tile
+		searchHolder.setLayout(new BoxLayout(searchHolder, BoxLayout.Y_AXIS));
+		searchHolder.setOpaque(false);
+		searchHolder.setAlignmentX(LEFT_ALIGNMENT);
+		searchHolder.add(searchField);
 		top.add(Box.createVerticalStrut(4));
 
 		// Selected-monster row: replaces the dropdown once a pick is made.
@@ -558,7 +563,7 @@ public class LoadoutLabPanel extends PluginPanel
 		monsterScroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 130));
 		monsterScroll.setAlignmentX(LEFT_ALIGNMENT);
 		monsterScroll.setVisible(false);
-		top.add(monsterScroll);
+		searchHolder.add(monsterScroll);
 
 		initToggle(f2pOnly, "Only consider free-to-play gear");
 		f2pOnly.setVisible(false); // only shown on non-members worlds
@@ -755,8 +760,8 @@ public class LoadoutLabPanel extends PluginPanel
 		bottomControls.setLayout(new BoxLayout(bottomControls, BoxLayout.Y_AXIS));
 		bottomControls.setOpaque(false);
 		bottomControls.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
-		OsrsLabel assumptions = new OsrsLabel("Assumptions",
-			OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned();
+		OsrsLabel assumptions = new OsrsLabel("Options",
+			OsrsSkin.TITLE, OsrsSkin.font()).leftAligned();
 		assumptions.setToolTipText("Prayers, potions and spellbook the DPS numbers may assume");
 		bottomControls.add(assumptions);
 		bottomControls.add(Box.createVerticalStrut(4));
@@ -1110,6 +1115,14 @@ public class LoadoutLabPanel extends PluginPanel
 		void onResults(MonsterStats monster, Map<CombatStyle, StyleResult> results);
 
 		void onCleared();
+	}
+
+	private final JPanel searchHolder = new JPanel();
+
+	/** The monster search (field + fitted dropdown) for the wrapper to mount. */
+	public javax.swing.JComponent searchArea()
+	{
+		return searchHolder;
 	}
 
 	private ResultsListener resultsListener;
@@ -2397,8 +2410,21 @@ public class LoadoutLabPanel extends PluginPanel
 		{
 			detailStyle = bestStyle(results);
 		}
-		resultsPanel.add(styleCard(detailStyle, results.get(detailStyle)));
-		resultsPanel.add(Box.createVerticalStrut(6));
+		// the per-style card is GONE (Luke: the shared viewer/tile show the
+		// set) — only its two bank actions remain, as a bare row
+		StyleResult detail = results.get(detailStyle);
+		if (detail != null && detail.owned != null && !detail.owned.isEmpty())
+		{
+			DpsResult detailBest = detail.owned.get(0);
+			JPanel bankRow = new JPanel(new GridLayout(1, 2, 4, 0));
+			bankRow.setOpaque(false);
+			bankRow.setAlignmentX(LEFT_ALIGNMENT);
+			bankRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
+			bankRow.add(bankButton(detailStyle, detailBest, detail.specWeapon));
+			bankRow.add(bankFilterButton(detailStyle, detailBest, detail.specWeapon));
+			resultsPanel.add(bankRow);
+			resultsPanel.add(Box.createVerticalStrut(6));
+		}
 		if (resultsListener != null)
 		{
 			resultsListener.onResults(monster, results);
@@ -2747,22 +2773,32 @@ public class LoadoutLabPanel extends PluginPanel
 		JPanel tile = slab();
 		DpsResult best = stats.result;
 
-		JPanel grid = statGrid();
-		grid.add(statCell("DPS", best == null ? "?" : String.format("%.2f", best.getDps()), GOOD,
-			"Damage per second vs " + (stats.monster == null ? "your last-fought monster" : stats.monster.getName()), true));
-		grid.add(statCell("Max hit", best == null ? "?" : String.valueOf(best.getMaxHit()), INFO,
-			"Highest possible hit", true));
-		grid.add(statCell("Accuracy", best == null ? "?" : String.format("%.0f%%", best.getAccuracy() * 100), INFO,
-			"Chance an attack lands", true));
-		grid.add(statCell("Avg TTK", ttkText(stats), INFO,
-			"Average time to kill: the monster's hitpoints over the dps", true));
-		tile.add(grid);
+		// unknown values render NOTHING, never "?" (Luke) — with no result
+		// the tile is just the style row + bonus folds
+		if (best != null)
+		{
+			JPanel grid = statGrid();
+			grid.add(statCell("DPS", String.format("%.2f", best.getDps()), GOOD,
+				"Damage per second vs " + (stats.monster == null ? "your target" : stats.monster.getName()),
+				OsrsSkin.boldFont()));
+			grid.add(statCell("Max hit", String.valueOf(best.getMaxHit()), INFO,
+				"Highest possible hit", OsrsSkin.font()));
+			grid.add(statCell("Accuracy", String.format("%.0f%%", best.getAccuracy() * 100), INFO,
+				"Chance an attack lands", OsrsSkin.font()));
+			String ttk = ttkText(stats);
+			if (!"?".equals(ttk))
+			{
+				grid.add(statCell("Avg TTK", ttk, INFO,
+					"Average time to kill: the monster's hitpoints over the dps", OsrsSkin.font()));
+			}
+			tile.add(grid);
+		}
 
 		if (stats.styleText != null)
 		{
 			tile.add(Box.createVerticalStrut(2));
 			JLabel styleValue = line(stats.styleText, INFO);
-			styleValue.setFont(OsrsSkin.boldFont());
+			styleValue.setFont(OsrsSkin.font()); // medium, not bold (Luke)
 			styleValue.setToolTipText("The style the numbers assume");
 			tile.add(fullRow("Style", styleValue, OsrsSkin.font()));
 		}
@@ -2799,30 +2835,30 @@ public class LoadoutLabPanel extends PluginPanel
 		com.loadoutlab.data.StatBlock bon = loadout.getBonuses();
 		tile.add(groupHeader("Attack bonuses"));
 		JPanel atk = statGrid();
-		atk.add(statCell("Stab", plus(off.getStab()), INFO, null, false));
-		atk.add(statCell("Slash", plus(off.getSlash()), INFO, null, false));
-		atk.add(statCell("Crush", plus(off.getCrush()), INFO, null, false));
-		atk.add(statCell("Magic", plus(off.getMagic()), INFO, null, false));
-		atk.add(statCell("Range", plus(off.getRanged()), INFO, null, false));
-		atk.add(statCell(" ", " ", MUTED, null, false));
+		atk.add(statCell("Stab", plus(off.getStab()), INFO, null, OsrsSkin.smallFont()));
+		atk.add(statCell("Slash", plus(off.getSlash()), INFO, null, OsrsSkin.smallFont()));
+		atk.add(statCell("Crush", plus(off.getCrush()), INFO, null, OsrsSkin.smallFont()));
+		atk.add(statCell("Magic", plus(off.getMagic()), INFO, null, OsrsSkin.smallFont()));
+		atk.add(statCell("Range", plus(off.getRanged()), INFO, null, OsrsSkin.smallFont()));
+		atk.add(statCell(" ", " ", MUTED, null, OsrsSkin.smallFont()));
 		tile.add(atk);
 		tile.add(Box.createVerticalStrut(3));
 		tile.add(groupHeader("Defence bonuses"));
 		JPanel dfn = statGrid();
-		dfn.add(statCell("Stab", plus(def.getStab()), INFO, null, false));
-		dfn.add(statCell("Slash", plus(def.getSlash()), INFO, null, false));
-		dfn.add(statCell("Crush", plus(def.getCrush()), INFO, null, false));
-		dfn.add(statCell("Magic", plus(def.getMagic()), INFO, null, false));
-		dfn.add(statCell("Range", plus(def.getRanged()), INFO, null, false));
-		dfn.add(statCell(" ", " ", MUTED, null, false));
+		dfn.add(statCell("Stab", plus(def.getStab()), INFO, null, OsrsSkin.smallFont()));
+		dfn.add(statCell("Slash", plus(def.getSlash()), INFO, null, OsrsSkin.smallFont()));
+		dfn.add(statCell("Crush", plus(def.getCrush()), INFO, null, OsrsSkin.smallFont()));
+		dfn.add(statCell("Magic", plus(def.getMagic()), INFO, null, OsrsSkin.smallFont()));
+		dfn.add(statCell("Range", plus(def.getRanged()), INFO, null, OsrsSkin.smallFont()));
+		dfn.add(statCell(" ", " ", MUTED, null, OsrsSkin.smallFont()));
 		tile.add(dfn);
 		tile.add(Box.createVerticalStrut(3));
 		tile.add(groupHeader("Other bonuses"));
 		JPanel oth = statGrid();
-		oth.add(statCell("Melee STR", plus(bon.getStrength()), INFO, "Melee strength", false));
-		oth.add(statCell("Ranged STR", plus(bon.getRangedStrength()), INFO, "Ranged strength", false));
-		oth.add(statCell("Magic DMG", String.format("%+d%%", bon.getMagicDamage()), INFO, "Magic damage", false));
-		oth.add(statCell("Prayer", plus(bon.getPrayer()), INFO, "Prayer bonus - slower drain", false));
+		oth.add(statCell("Melee STR", plus(bon.getStrength()), INFO, "Melee strength", OsrsSkin.smallFont()));
+		oth.add(statCell("Ranged STR", plus(bon.getRangedStrength()), INFO, "Ranged strength", OsrsSkin.smallFont()));
+		oth.add(statCell("Magic DMG", String.format("%+d%%", bon.getMagicDamage()), INFO, "Magic damage", OsrsSkin.smallFont()));
+		oth.add(statCell("Prayer", plus(bon.getPrayer()), INFO, "Prayer bonus - slower drain", OsrsSkin.smallFont()));
 		tile.add(oth);
 		GearItem weapon = loadout.getWeapon();
 		if (weapon != null)
@@ -2868,16 +2904,18 @@ public class LoadoutLabPanel extends PluginPanel
 		return header;
 	}
 
-	/** One label-left / value-right cell; emphasis = medium label + bold
-	 *  value (the headline stats), else small/small (the bonus groups). */
-	private JPanel statCell(String label, String value, Color valueColor, String tip, boolean emphasis)
+	/** One label-left / value-right cell with an explicit value font —
+	 *  headline labels ride medium, bonus-group cells all small. */
+	private JPanel statCell(String label, String value, Color valueColor, String tip,
+		java.awt.Font valueFont)
 	{
+		boolean headline = valueFont != OsrsSkin.smallFont();
 		JPanel cell = new JPanel(new BorderLayout(4, 0));
 		cell.setOpaque(false);
 		JLabel key = line(label, MUTED);
-		key.setFont(emphasis ? OsrsSkin.font() : OsrsSkin.smallFont());
+		key.setFont(headline ? OsrsSkin.font() : OsrsSkin.smallFont());
 		JLabel val = line(value, valueColor);
-		val.setFont(emphasis ? OsrsSkin.boldFont() : OsrsSkin.smallFont());
+		val.setFont(valueFont);
 		val.setHorizontalAlignment(SwingConstants.RIGHT);
 		cell.add(key, BorderLayout.WEST);
 		cell.add(val, BorderLayout.EAST);

@@ -113,13 +113,9 @@ public class LoadoutLabModule implements IronHubModule
 			gated.run();
 		}
 	};
-	private com.ironhub.modules.loadout.StrategyClient strategyClient;
 	private com.ironhub.data.ItemNameIndex nameIndex;
 	private com.ironhub.ui.osrs.OsrsTheme theme;
 	private JPanel holder;
-	private JPanel strip;
-	private final JPanel activityHolder = new JPanel();
-	private final JPanel tipsPanel = new JPanel();
 	private final JPanel setupView = new JPanel();
 	private final JPanel namesPanel = new JPanel();
 	private final JPanel searchPanel = new JPanel();
@@ -127,7 +123,6 @@ public class LoadoutLabModule implements IronHubModule
 	private final JPanel searchTitleHolder = new JPanel();
 	private com.ironhub.ui.osrs.StoneTextField searchField;
 	private com.ironhub.ui.osrs.StoneButton liveButton;
-	private String activityLine = "";
 	private String lastAutoSelected = "";
 	/** Viewing state: a named setup diffed vs current, an unsaved edited
 	 *  draft (wins over the name), or — both null — the live view. */
@@ -205,11 +200,6 @@ public class LoadoutLabModule implements IronHubModule
 	@Override
 	public void startUp()
 	{
-		if (httpClient != null)
-		{
-			strategyClient = new com.ironhub.modules.loadout.StrategyClient(
-				httpClient, gson, new com.ironhub.data.ItemNameIndex(gson));
-		}
 		// combat line above the live view: attack style varp + autocast varbit
 		// + the weapon category that names the style buttons
 		state.watchVarps(VarPlayer.ATTACK_STYLE);
@@ -244,7 +234,6 @@ public class LoadoutLabModule implements IronHubModule
 			clientThread.invoke(collectView::clear);
 		}
 		holder = null;
-		strip = null;
 		gatedListener = null;
 	}
 
@@ -260,13 +249,12 @@ public class LoadoutLabModule implements IronHubModule
 			// the header plate; the upstream lab panel keeps its own look
 			holder.setOpaque(true);
 			holder.setBackground(theme.background);
-			// setup section FIRST (Luke): live gear view + saved setups at
-			// the top, activity strip below, the lab panel underneath
+			// setup section on top; the lab (calc) panel underneath — the
+			// Activity/Wiki-tips strip is GONE (Luke, 2026-07-21)
 			JPanel top = new JPanel();
 			top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
 			top.setOpaque(false);
 			top.add(buildSetupSection());
-			top.add(buildStrip());
 			holder.add(top, BorderLayout.NORTH);
 			mountPanel();
 			// full pass, not just the strip: with the pre-build listener now a
@@ -299,7 +287,6 @@ public class LoadoutLabModule implements IronHubModule
 		SwingUtilities.invokeLater(() ->
 		{
 			holder = null;
-			strip = null;
 			gatedListener = null; // the gate watched the dropped holder
 		});
 	}
@@ -471,63 +458,6 @@ public class LoadoutLabModule implements IronHubModule
 
 	// ── slayer/fight auto-follow (unchanged) ──────────────────────────
 
-	/** The activity card: what the module is auto-following, plus wiki tips. */
-	private JPanel buildStrip()
-	{
-		strip = new JPanel();
-		strip.setLayout(new BoxLayout(strip, BoxLayout.Y_AXIS));
-		strip.setOpaque(false);
-		strip.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, UiTokens.PAD, UiTokens.PAD_TIGHT, UiTokens.PAD));
-
-		com.ironhub.ui.osrs.StonePanel card = new com.ironhub.ui.osrs.StonePanel(theme);
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-
-		JPanel headerRow = new JPanel();
-		headerRow.setLayout(new BoxLayout(headerRow, BoxLayout.X_AXIS));
-		headerRow.setOpaque(false);
-		headerRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-		headerRow.add(new com.ironhub.ui.osrs.OsrsLabel("Activity",
-			com.ironhub.ui.osrs.OsrsSkin.MUTED, com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned());
-		headerRow.add(Box.createHorizontalGlue());
-		com.ironhub.ui.osrs.StoneButton tips = new com.ironhub.ui.osrs.StoneButton(
-			theme, theme.boxFill, "Wiki tips", this::fetchTips);
-		tips.setToolTipText("Fetch tips for this task/boss from its wiki strategy page"
-			+ " (user-initiated request); click again to hide them");
-		tips.setMaximumSize(tips.getPreferredSize());
-		headerRow.add(tips);
-		headerRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, headerRow.getPreferredSize().height));
-		card.add(headerRow);
-		card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-
-		activityHolder.setLayout(new BoxLayout(activityHolder, BoxLayout.Y_AXIS));
-		activityHolder.setOpaque(false);
-		activityHolder.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-		card.add(activityHolder);
-
-		tipsPanel.setLayout(new BoxLayout(tipsPanel, BoxLayout.Y_AXIS));
-		tipsPanel.setOpaque(false);
-		tipsPanel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-		tipsPanel.setVisible(false);
-		tipsPanel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
-		tipsPanel.setToolTipText("Click to dismiss");
-		tipsPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		tipsPanel.addMouseListener(new java.awt.event.MouseAdapter()
-		{
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
-			{
-				tipsPanel.setVisible(false);
-				strip.revalidate();
-				strip.repaint();
-			}
-		});
-		card.add(tipsPanel);
-
-		strip.add(card);
-		return strip;
-	}
-
 	/** The activity the tips/setups serve: whatever changed LAST (a fresh
 	 *  task assignment or a new fight both re-aim the calc — Luke). */
 	private String activity()
@@ -545,7 +475,7 @@ public class LoadoutLabModule implements IronHubModule
 
 	private void onStateChanged()
 	{
-		refreshStrip();
+		renderView();
 		if (!config.labFollowActivity() || lab.getPanel() == null)
 		{
 			return;
@@ -576,89 +506,6 @@ public class LoadoutLabModule implements IronHubModule
 			lastAutoSelected = follow;
 			lab.getPanel().selectExternal(follow, npcId);
 		}
-	}
-
-	private void refreshStrip()
-	{
-		if (strip == null)
-		{
-			return;
-		}
-		String task = state.getSlayerTask();
-		String fighting = state.getCombatNpcName();
-		StringBuilder line = new StringBuilder();
-		if (!task.isEmpty())
-		{
-			line.append("Task: ").append(task);
-		}
-		if (!fighting.isEmpty())
-		{
-			line.append(line.length() > 0 ? " · " : "").append("Last fought: ").append(fighting);
-		}
-		activityLine = line.length() > 0 ? line.toString() : "No task or fight detected yet";
-		activityHolder.removeAll();
-		com.ironhub.ui.osrs.OsrsLabel text = com.ironhub.ui.osrs.OsrsLabel.wrapped(
-			activityLine, 180, com.ironhub.ui.osrs.OsrsSkin.LABEL,
-			com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
-		text.setToolTipText(activityLine);
-		activityHolder.add(text);
-		activityHolder.revalidate();
-		activityHolder.repaint();
-		renderView();
-	}
-
-	// ── wiki tips ─────────────────────────────────────────────────────
-
-	private void fetchTips()
-	{
-		// second press = dismiss (the tips had no way to close)
-		if (tipsPanel.isVisible())
-		{
-			tipsPanel.setVisible(false);
-			strip.revalidate();
-			strip.repaint();
-			return;
-		}
-		String activity = activity();
-		if (strategyClient == null || activity.isEmpty())
-		{
-			return;
-		}
-		boolean slayerTask = activity.equals(state.getSlayerTask());
-		strategyClient.fetch(activity, slayerTask, strategies ->
-			SwingUtilities.invokeLater(() -> showTips(activity, strategies)));
-	}
-
-	private void showTips(String activity, List<com.ironhub.modules.loadout.WikiStrategy> strategies)
-	{
-		tipsPanel.removeAll();
-		boolean any = false;
-		for (com.ironhub.modules.loadout.WikiStrategy strategy : strategies)
-		{
-			if (!strategy.notes.isEmpty())
-			{
-				if (any)
-				{
-					tipsPanel.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-				}
-				any = true;
-				tipsPanel.add(new com.ironhub.ui.osrs.OsrsLabel(strategy.name(),
-					com.ironhub.ui.osrs.OsrsSkin.MUTED,
-					com.ironhub.ui.osrs.OsrsSkin.boldFont()).leftAligned());
-				tipsPanel.add(com.ironhub.ui.osrs.OsrsLabel.wrapped(strategy.notes, 180,
-					com.ironhub.ui.osrs.OsrsSkin.MUTED,
-					com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned());
-			}
-		}
-		if (!any)
-		{
-			tipsPanel.add(com.ironhub.ui.osrs.OsrsLabel.wrapped(
-				"No wiki tips found for " + activity, 180,
-				com.ironhub.ui.osrs.OsrsSkin.FAINT,
-				com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned());
-		}
-		tipsPanel.setVisible(true);
-		strip.revalidate();
 	}
 
 	// ── saving setups ─────────────────────────────────────────────────
@@ -948,21 +795,26 @@ public class LoadoutLabModule implements IronHubModule
 				lastViewFp = 0;
 				renderView();
 			});
+			if (suggestionBeatsCurrent())
+			{
+				sourceChips.highlight(1, true); // subtle: the calc found better
+				sourceChips.setToolTipText("The DPS Calc found a better setup than your current gear");
+			}
 			setupView.add(sourceChips);
 			setupView.add(Box.createVerticalStrut(2));
 		}
 
 		setupView.add(centered(view.equipment(display, equipTints, dps ? null : this::openSlotSearch)));
 
-		// style buttons BELOW the viewer, above the setup controls (Luke),
-		// then the stat tile, the collapsed Equipment-stats slab, the list
+		// setup controls first, then the style buttons (swapped — Luke),
+		// then the stat tile with the monster search under it
 		setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+		setupView.add(buttonsRow);
 		if (dpsMode && dpsResults != null)
 		{
-			setupView.add(styleButtonsRow());
 			setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
+			setupView.add(styleButtonsRow());
 		}
-		setupView.add(buttonsRow);
 		if (lab.getPanel() != null)
 		{
 			com.loadoutlab.ui.LoadoutLabPanel.TileStats tileStats = dps
@@ -971,13 +823,25 @@ public class LoadoutLabModule implements IronHubModule
 			{
 				setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 				setupView.add(lab.getPanel().statsTile(tileStats));
+			}
+			// the monster search lives HERE, under the tile, in BOTH views
+			// (Luke) — picking a monster runs the calc AND retargets the
+			// live tile at the same monster
+			javax.swing.JComponent search = lab.getPanel().searchArea();
+			search.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			setupView.add(search);
+			if (tileStats != null)
+			{
 				javax.swing.JComponent bonuses = lab.getPanel().bonusesTile(tileStats);
 				if (bonuses != null)
 				{
-					// the Equipment-Stats groups on their own expandable
-					// slab, folded by default (Luke)
+					// the Equipment-Stats slab carries its OWN header (Luke)
 					setupView.add(Box.createVerticalStrut(2));
-					setupView.add(sectionToggle("Equipment stats", equipStatsCollapsed, () ->
+					com.ironhub.ui.osrs.StonePanel statsSlab = new com.ironhub.ui.osrs.StonePanel(theme);
+					statsSlab.setLayout(new BoxLayout(statsSlab, BoxLayout.Y_AXIS));
+					statsSlab.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+					statsSlab.add(sectionToggle("Equipment stats", equipStatsCollapsed, () ->
 					{
 						equipStatsCollapsed = !equipStatsCollapsed;
 						lastViewFp = 0;
@@ -985,9 +849,13 @@ public class LoadoutLabModule implements IronHubModule
 					}));
 					if (!equipStatsCollapsed)
 					{
-						setupView.add(Box.createVerticalStrut(2));
-						setupView.add(bonuses);
+						statsSlab.add(Box.createVerticalStrut(2));
+						bonuses.setBorder(null); // the outer slab is the frame
+						statsSlab.add(bonuses);
 					}
+					statsSlab.setMaximumSize(new Dimension(Integer.MAX_VALUE,
+						statsSlab.getPreferredSize().height));
+					setupView.add(statsSlab);
 				}
 			}
 		}
@@ -995,17 +863,15 @@ public class LoadoutLabModule implements IronHubModule
 		setupView.add(liveButton);
 		setupView.add(namesPanel);
 
-		// rune pouch + inventory fold under ONE "Inventory" slab (Luke:
-		// stone-backed, collapsed by default)
+		// inventory fold: plain header + bare views (no slab — Luke),
+		// inventory grid first, the rune pouch beneath it
 		boolean hasPouch = display.pouchRunes.length > 0
 			&& Arrays.stream(display.pouchRunes).anyMatch(r -> r > 0);
 		boolean hasInventory = display.inventory.length > 0;
 		if (hasPouch || hasInventory)
 		{
-			com.ironhub.ui.osrs.StonePanel inventorySlab = new com.ironhub.ui.osrs.StonePanel(theme);
-			inventorySlab.setLayout(new BoxLayout(inventorySlab, BoxLayout.Y_AXIS));
-			inventorySlab.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-			inventorySlab.add(sectionToggle("Inventory", inventoryCollapsed, () ->
+			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			setupView.add(sectionToggle("Inventory", inventoryCollapsed, () ->
 			{
 				inventoryCollapsed = !inventoryCollapsed;
 				lastViewFp = 0;
@@ -1013,23 +879,19 @@ public class LoadoutLabModule implements IronHubModule
 			}));
 			if (!inventoryCollapsed)
 			{
-				if (hasPouch)
-				{
-					inventorySlab.add(Box.createVerticalStrut(2));
-					inventorySlab.add(smallLabel("Rune pouch"));
-					inventorySlab.add(Box.createVerticalStrut(2));
-					inventorySlab.add(centered(view.runePouch(display)));
-				}
 				if (hasInventory)
 				{
-					inventorySlab.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-					inventorySlab.add(centered(view.inventory(display, invTints)));
+					setupView.add(Box.createVerticalStrut(2));
+					setupView.add(centered(view.inventory(display, invTints)));
+				}
+				if (hasPouch)
+				{
+					setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+					setupView.add(smallLabel("Rune pouch"));
+					setupView.add(Box.createVerticalStrut(2));
+					setupView.add(centered(view.runePouch(display)));
 				}
 			}
-			inventorySlab.setMaximumSize(new Dimension(Integer.MAX_VALUE,
-				inventorySlab.getPreferredSize().height));
-			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-			setupView.add(inventorySlab);
 		}
 
 		setupView.revalidate();
@@ -1678,8 +1540,8 @@ public class LoadoutLabModule implements IronHubModule
 		for (com.loadoutlab.engine.CombatStyle style : com.loadoutlab.engine.CombatStyle.concreteValues())
 		{
 			Double dps = suggestedDps(style);
-			// one decimal: three buttons share 225px and "Melee · 4.71" clips
-			String label = style.toString() + " " + (dps == null ? "—" : String.format(Locale.ROOT, "%.1f", dps));
+			// protect-prayer icon names the style; the number is the dps
+			String label = dps == null ? "—" : String.format(Locale.ROOT, "%.1f", dps);
 			boolean selected = style == dpsStyle;
 			com.ironhub.ui.osrs.StoneButton button = new com.ironhub.ui.osrs.StoneButton(theme,
 				selected ? theme.selectFill : theme.boxFill, label, dps == null ? null : () ->
@@ -1705,12 +1567,25 @@ public class LoadoutLabModule implements IronHubModule
 				// weaker styles read light, never orange (Luke)
 				button.labelColor(com.ironhub.ui.osrs.OsrsSkin.LABEL);
 			}
+			button.icon(styleButtonIcon(style));
 			button.setToolTipText(dps == null ? "No usable owned set for " + style
 				: "Show the best owned " + style.toString().toLowerCase(Locale.ROOT) + " set");
 			row.add(button);
 		}
 		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
 		return row;
+	}
+
+	/** The protect-prayer icon for a style button (wiki art, 16px high). */
+	private javax.swing.Icon styleButtonIcon(com.loadoutlab.engine.CombatStyle style)
+	{
+		String name = style == com.loadoutlab.engine.CombatStyle.MELEE ? "protect_from_melee"
+			: style == com.loadoutlab.engine.CombatStyle.RANGED ? "protect_from_missiles"
+			: "protect_from_magic";
+		java.awt.image.BufferedImage img =
+			com.ironhub.ui.osrs.OsrsIcons.image(theme, "styles/" + name);
+		return img == null ? null
+			: new javax.swing.ImageIcon(img.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH));
 	}
 
 	/**
@@ -1746,15 +1621,25 @@ public class LoadoutLabModule implements IronHubModule
 		// the real style names from the weapon-styles pack live in the tile's
 		// Style row now (the floating line above the viewer is gone — Luke)
 		stats.styleText = combatLine();
-		int npcId = state.getCombatNpcId();
-		if (npcId > 0)
+		// a SEARCHED monster retargets the live numbers too (Luke: one search
+		// runs the calc twice — best setup AND your current gear); the
+		// last-attacked NPC is the fallback
+		if (dpsMonster != null)
 		{
-			for (com.loadoutlab.data.MonsterStats m : data.getMonsters())
+			stats.monster = dpsMonster;
+		}
+		else
+		{
+			int npcId = state.getCombatNpcId();
+			if (npcId > 0)
 			{
-				if (m.getId() == npcId)
+				for (com.loadoutlab.data.MonsterStats m : data.getMonsters())
 				{
-					stats.monster = m;
-					break;
+					if (m.getId() == npcId)
+					{
+						stats.monster = m;
+						break;
+					}
 				}
 			}
 		}
@@ -1825,6 +1710,20 @@ public class LoadoutLabModule implements IronHubModule
 		com.loadoutlab.optimizer.OptimizerService.StyleResult result = dpsResults.get(style);
 		return result == null || result.owned == null || result.owned.isEmpty()
 			? null : result.owned.get(0).getDps();
+	}
+
+	/** Whether the calc's best suggestion out-damages your current gear
+	 *  against the same monster — the chip-highlight cue. */
+	private boolean suggestionBeatsCurrent()
+	{
+		Double best = suggestedDps(bestDpsStyle());
+		if (best == null)
+		{
+			return false;
+		}
+		com.loadoutlab.ui.LoadoutLabPanel.TileStats live = liveTileStats();
+		double liveDps = live != null && live.result != null ? live.result.getDps() : 0;
+		return best > liveDps + 0.005;
 	}
 
 	/** The calc's suggested loadout for a style as a displayable setup. */

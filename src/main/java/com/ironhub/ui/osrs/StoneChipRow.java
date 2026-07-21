@@ -88,12 +88,24 @@ public class StoneChipRow extends JPanel
 		return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
 	}
 
+	/** A subtle cue on one chip: its label reads VALUE-green while not
+	 *  selected (the DPS chip when the calc beats your current gear). */
+	public void highlight(int index, boolean on)
+	{
+		java.awt.Component[] chips = getComponents();
+		if (index >= 0 && index < chips.length && chips[index] instanceof Chip)
+		{
+			((Chip) chips[index]).setHighlighted(on);
+		}
+	}
+
 	private static class Chip extends StonePanel
 	{
 		private final OsrsTheme theme;
 		private final OsrsLabel label;
 		private boolean selected;
 		private boolean hover;
+		private boolean highlighted;
 
 		Chip(OsrsTheme theme, String text, Runnable onPress)
 		{
@@ -135,10 +147,17 @@ public class StoneChipRow extends JPanel
 			refresh();
 		}
 
+		void setHighlighted(boolean value)
+		{
+			highlighted = value;
+			refresh();
+		}
+
 		private void refresh()
 		{
 			setBackground(selected ? theme.selectFill : hover ? theme.hoverFill : theme.boxFill);
-			label.setColor(selected ? OsrsSkin.TITLE : OsrsSkin.MUTED);
+			label.setColor(selected ? OsrsSkin.TITLE
+				: highlighted ? OsrsSkin.VALUE : OsrsSkin.MUTED);
 			repaint();
 		}
 	}

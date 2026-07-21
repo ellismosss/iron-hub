@@ -28,6 +28,10 @@ ICONS = {
     "crush": "https://oldschool.runescape.wiki/images/White_warhammer.png",
     "ranged": "https://oldschool.runescape.wiki/images/Ranged_icon.png",
     "magic": "https://oldschool.runescape.wiki/images/Magic_icon.png",
+    # the wrapper's combat-style buttons (Luke: icons, not words)
+    "protect_from_melee": "https://oldschool.runescape.wiki/images/Protect_from_Melee.png",
+    "protect_from_missiles": "https://oldschool.runescape.wiki/images/Protect_from_Missiles.png",
+    "protect_from_magic": "https://oldschool.runescape.wiki/images/Protect_from_Magic.png",
 }
 
 HERE = os.path.dirname(os.path.abspath(__file__))
