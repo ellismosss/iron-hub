@@ -394,7 +394,7 @@ public class LoadoutLabPanel extends PluginPanel
 	 *  items, risk caps). Many "wilderness" monsters also live elsewhere —
 	 *  hellhounds, green dragons — so the info is OPT-IN per player, never
 	 *  auto-shown just because the corpus flags the monster (Luke, 2026-07-21). */
-	private final ToggleRow wildyInfo = new ToggleRow("Wilderness trip info");
+	private final ToggleRow wildyInfo = new ToggleRow("In wilderness");
 	private final ToggleRow lowRisk = new ToggleRow("Low-risk (wilderness)");
 	private final ToggleRow protectItem = new ToggleRow("Protect Item (keep 4)");
 	/** Wilderness risk-cap dropdown values in gp; 75k is the default. */
@@ -570,7 +570,7 @@ public class LoadoutLabPanel extends PluginPanel
 
 		// Wilderness only: everything below is OPT-IN behind this switch —
 		// fighting the same monster outside the wilderness is the norm
-		initToggle(wildyInfo, "Show wilderness-specific info for this monster:"
+		initToggle(wildyInfo, "Fighting this monster IN the wilderness: show"
 			+ " death risk, kept items and risk caps");
 		wildyInfo.setVisible(false);
 		top.add(wildyInfo);
@@ -800,31 +800,10 @@ public class LoadoutLabPanel extends PluginPanel
 		bottomControls.add(centeredRow(spellRow, 3 * 36 + 4, 36));
 		bottomControls.add(Box.createVerticalStrut(8));
 		bottomControls.add(optimizeMode);
-		bottomControls.add(Box.createVerticalStrut(8));
-		JPanel setupButtons = new JPanel(new GridLayout(1, 2, 4, 0));
-		setupButtons.setOpaque(false);
-		setupButtons.setAlignmentX(LEFT_ALIGNMENT);
-		setupButtons.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
-		StoneButton saveSetupButton = new StoneButton(theme, "Save setup", () ->
-		{
-			if (saveSetupHook != null)
-			{
-				saveSetupHook.run();
-			}
-		});
-		saveSetupButton.setToolTipText("Save this loadout as a named setup");
-		StoneButton loadSetupButton = new StoneButton(theme, "Load setup", () ->
-		{
-			if (loadSetupHook != null)
-			{
-				loadSetupHook.run();
-			}
-		});
-		loadSetupButton.setToolTipText("Show a previously saved setup");
-		setupButtons.add(saveSetupButton);
-		setupButtons.add(loadSetupButton);
-		bottomControls.add(setupButtons);
 		bottomControls.add(Box.createVerticalStrut(4));
+		// Iron Hub (Luke, 2026-07-21): the calc's own Save/Load setup buttons
+		// are gone — the wrapper's Save setup / View all setups (under the
+		// shared gear viewer) serve both systems.
 		StoneButton openDpsCalc = new StoneButton(theme, "Open OSRS DPS Calc", () ->
 		{
 			if (dpsCalcHook != null && selectedMonster != null && lastShownLoadout != null)
@@ -1120,6 +1099,61 @@ public class LoadoutLabPanel extends PluginPanel
 	{
 		saveSetupHook = onSave;
 		loadSetupHook = onLoad;
+	}
+
+	// ── Iron Hub shared-viewer seam (Luke, 2026-07-21): the wrapper owns the
+	// gear viewer, stat tile and style buttons; the panel publishes results
+	// and renders the selected style's detail card only. ──
+
+	public interface ResultsListener
+	{
+		void onResults(MonsterStats monster, Map<CombatStyle, StyleResult> results);
+
+		void onCleared();
+	}
+
+	private ResultsListener resultsListener;
+	private CombatStyle detailStyle;
+
+	public void setResultsListener(ResultsListener listener)
+	{
+		resultsListener = listener;
+	}
+
+	/** The gear corpus, for the wrapper's live-gear stat sums. */
+	public LoadoutData data()
+	{
+		return data;
+	}
+
+	/** The wrapper's style buttons route here: the detail card follows. */
+	public void setDetailStyle(CombatStyle style)
+	{
+		detailStyle = style;
+		if (selectedMonster != null && lastResults != null)
+		{
+			showResults(selectedMonster, lastResults);
+			revalidate();
+			repaint();
+		}
+	}
+
+	/** The strongest style by your best owned set's dps (MELEE when none). */
+	private static CombatStyle bestStyle(Map<CombatStyle, StyleResult> results)
+	{
+		CombatStyle best = CombatStyle.MELEE;
+		double bestDps = -1;
+		for (CombatStyle style : CombatStyle.concreteValues())
+		{
+			StyleResult r = results.get(style);
+			if (r != null && r.owned != null && !r.owned.isEmpty()
+				&& r.owned.get(0).getDps() > bestDps)
+			{
+				bestDps = r.owned.get(0).getDps();
+				best = style;
+			}
+		}
+		return best;
 	}
 
 	public boolean selectExternal(String monsterName, Integer npcId)
@@ -2321,6 +2355,10 @@ public class LoadoutLabPanel extends PluginPanel
 	private void clearSelection()
 	{
 		selectedMonster = null;
+		if (resultsListener != null)
+		{
+			resultsListener.onCleared(); // the shared viewer reverts to live
+		}
 		cardCollapsed.clear();
 		selectedRow.setVisible(false);
 		searchField.setVisible(true);
@@ -2349,47 +2387,21 @@ public class LoadoutLabPanel extends PluginPanel
 		refreshDwmsLabel();
 		resultsPanel.removeAll();
 		usedSources.clear();
-		// Default collapse: a set a full standard deviation under the best
-		// dps (or with no usable set at all) starts folded to its header.
-		autoCollapsed.clear();
-		double bestDps = 0;
-		double sum = 0;
-		double sumSquares = 0;
-		int usable = 0;
-		for (CombatStyle style : CombatStyle.values())
+		// Iron Hub (Luke, 2026-07-21): the three per-style cards became style
+		// BUTTONS in the wrapper (which also owns the shared gear viewer and
+		// stat tile) — the results area shows ONE detail card, for whichever
+		// style the wrapper has selected. Default the detail to the
+		// strongest style so the first render lands on the best answer.
+		if (detailStyle == null || results.get(detailStyle) == null
+			|| results.get(detailStyle).owned == null || results.get(detailStyle).owned.isEmpty())
 		{
-			StyleResult r = results.get(style);
-			if (r != null && r.owned != null && !r.owned.isEmpty())
-			{
-				double d = r.owned.get(0).getDps();
-				bestDps = Math.max(bestDps, d);
-				sum += d;
-				sumSquares += d * d;
-				usable++;
-			}
+			detailStyle = bestStyle(results);
 		}
-		double stdev = usable > 1
-			? Math.sqrt(Math.max(0, sumSquares / usable - (sum / usable) * (sum / usable)))
-			: 0;
-		for (CombatStyle style : CombatStyle.values())
+		resultsPanel.add(styleCard(detailStyle, results.get(detailStyle)));
+		resultsPanel.add(Box.createVerticalStrut(6));
+		if (resultsListener != null)
 		{
-			StyleResult r = results.get(style);
-			boolean hasSet = r != null && r.owned != null && !r.owned.isEmpty();
-			autoCollapsed.put(style, !hasSet
-				|| (usable > 1 && stdev > 0.01
-					&& r.owned.get(0).getDps() < bestDps - stdev));
-		}
-		// Strongest style first: order the cards by your best set's dps.
-		CombatStyle[] styleOrder = {CombatStyle.MELEE, CombatStyle.RANGED, CombatStyle.MAGIC};
-		Arrays.sort(styleOrder, Comparator.comparingDouble(style ->
-		{
-			StyleResult r = results.get(style);
-			return r == null || r.owned.isEmpty() ? 0.0 : -r.owned.get(0).getDps();
-		}));
-		for (CombatStyle style : styleOrder)
-		{
-			resultsPanel.add(styleCard(style, results.get(style)));
-			resultsPanel.add(Box.createVerticalStrut(6));
+			resultsListener.onResults(monster, results);
 		}
 		javax.swing.JComponent legend = buildSourceLegend();
 		if (legend != null)
@@ -2548,10 +2560,9 @@ public class LoadoutLabPanel extends PluginPanel
 			card.add(bar);
 		}
 		card.add(Box.createVerticalStrut(4));
-		// Iron Hub (Luke, 2026-07-21): the scattered stat lines collect into
-		// ONE tile — dps, max hit, accuracy, avg ttk, style/spell, spellbook,
-		// prayer bonus and (opted-in wilderness) risk, readable at a glance.
-		card.add(statsTile(style, result, best));
+		// Iron Hub (Luke, 2026-07-21): the stat tile and the owned-set grid
+		// live in the WRAPPER now (shared gear viewer + stat tile) — this
+		// card keeps only the calc-specific detail.
 		addAssumesRow(card, result.boostLabel, "Assumed prayer + boost (you own these)");
 		addIncomingLine(card, result.incoming);
 		if (result.modeTrade != null)
@@ -2560,12 +2571,6 @@ public class LoadoutLabPanel extends PluginPanel
 		}
 		addUpgradeLine(card, best);
 		addDartLine(card, best);
-		card.add(Box.createVerticalStrut(4));
-		// The owned grid marks what you don't own (green) and what already
-		// matches the game-best pick (gold).
-		card.add(iconGrid(best, result.spec, result.specWeapon, result.specExpectedDamage,
-			result.specDrainValue, best.getExpectedHit(), "Swap in for the special attack",
-			true, result.overallBest == null ? null : result.overallBest.getLoadout()));
 		// Iron Hub: full-width paired action buttons instead of floating ones
 		JPanel bankRow = new JPanel(new GridLayout(1, 2, 4, 0));
 		bankRow.setOpaque(false);
@@ -2671,7 +2676,73 @@ public class LoadoutLabPanel extends PluginPanel
 	 * grid of the numbers that used to sprawl across five separate lines,
 	 * plus full-width style/spell and (opt-in wilderness) risk rows.
 	 */
-	private JPanel statsTile(CombatStyle style, StyleResult result, DpsResult best)
+	// ── the shared stat tile (Luke, 2026-07-21): built HERE (the panel owns
+	// the corpus + risk state) but MOUNTED by the wrapper below its Save
+	// setup / View all setups buttons, fed either the calc's suggestion or
+	// the player's live gear. All small text; DPS alone medium weight. ──
+
+	/** Everything one tile render needs; nullable fields go honest "?". */
+	public static final class TileStats
+	{
+		public DpsResult result;     // monster-dependent numbers (nullable)
+		public Loadout loadout;      // bonuses source (falls back to result's)
+		public MonsterStats monster; // for avg ttk (nullable)
+		public String styleText;     // full-width Style row (nullable)
+		public String spellbook;     // nullable
+		public String riskText;      // nullable = no risk row
+		public String riskTip;
+		public boolean riskOk;
+	}
+
+	/** The calc's suggestion for one style as tile stats, or null when the
+	 *  style has no usable owned set / no results yet. */
+	public TileStats suggestionStats(CombatStyle style)
+	{
+		if (lastResults == null)
+		{
+			return null;
+		}
+		StyleResult result = lastResults.get(style);
+		if (result == null || result.owned == null || result.owned.isEmpty())
+		{
+			return null;
+		}
+		DpsResult best = result.owned.get(0);
+		TileStats stats = new TileStats();
+		stats.result = best;
+		stats.loadout = best.getLoadout();
+		stats.monster = selectedMonster;
+		String spellName = best.getSpellName();
+		if (style == CombatStyle.MAGIC)
+		{
+			stats.styleText = spellName == null || spellName.isEmpty() ? null : spellName + " (Spell)";
+			stats.spellbook = spellName == null || spellName.isEmpty() ? null : data.getSpells().stream()
+				.filter(sp -> spellName.equals(sp.getName()))
+				.map(sp -> capitalize(sp.getSpellbook()))
+				.findFirst().orElse(null);
+		}
+		else if (style == CombatStyle.RANGED)
+		{
+			stats.styleText = best.getAttackType().contains("rapid") ? "Rapid" : "Accurate";
+		}
+		else
+		{
+			stats.styleText = capitalize(best.getAttackType());
+		}
+		if (wildernessOn())
+		{
+			int keep = protectItem.isSelected() ? 4 : 3;
+			PvpRisk.Assessment risk = PvpRisk.assess(best.getLoadout(), result.specWeapon, keep);
+			stats.riskText = String.format("%s gp (%d kept)", PvpRisk.formatGp(risk.riskGp), keep);
+			stats.riskTip = riskTooltip(risk);
+			stats.riskOk = risk.riskGp <= selectedRiskBudget();
+		}
+		return stats;
+	}
+
+	/** Render one stat tile: dps grid, the Equipment-Stats bonus groups
+	 *  (attack, defence, other, weapon speed) and the style/spell/risk rows. */
+	public javax.swing.JComponent statsTile(TileStats stats)
 	{
 		JPanel tile = new JPanel();
 		tile.setLayout(new BoxLayout(tile, BoxLayout.Y_AXIS));
@@ -2681,78 +2752,117 @@ public class LoadoutLabPanel extends PluginPanel
 		tile.setBorder(BorderFactory.createCompoundBorder(
 			new MatteBorder(1, 1, 1, 1, theme.edgeDark), new EmptyBorder(4, 6, 4, 6)));
 
-		JPanel grid = new JPanel(new GridLayout(0, 2, 10, 2));
-		grid.setOpaque(false);
-		grid.setAlignmentX(LEFT_ALIGNMENT);
-		grid.add(statCell("DPS", String.format("%.2f", best.getDps()), GOOD,
-			"Damage per second of your best owned set"));
-		grid.add(statCell("Max hit", String.valueOf(best.getMaxHit()), INFO,
-			"Highest possible hit"));
-		grid.add(statCell("Accuracy", String.format("%.0f%%", best.getAccuracy() * 100), INFO,
-			"Chance an attack lands"));
-		grid.add(statCell("Avg TTK", ttkText(best), INFO,
-			"Average time to kill: the monster's hitpoints over your dps"));
-		int prayer = best.getLoadout().getBonuses().getPrayer();
-		String spellName = best.getSpellName();
-		String book = spellName == null || spellName.isEmpty() ? "" : data.getSpells().stream()
-			.filter(s -> spellName.equals(s.getName()))
-			.map(s -> capitalize(s.getSpellbook()))
-			.findFirst().orElse("");
-		if (prayer != 0)
-		{
-			grid.add(statCell("Prayer", String.format("%+d", prayer), prayer > 0 ? GOOD : MUTED,
-				"Gear prayer bonus - slower prayer drain"));
-			grid.add(statCell(" ", " ", MUTED, null));
-		}
-		grid.setMaximumSize(new Dimension(Integer.MAX_VALUE, grid.getPreferredSize().height));
+		DpsResult best = stats.result;
+		Loadout loadout = stats.loadout != null ? stats.loadout
+			: best != null ? best.getLoadout() : null;
+
+		JPanel grid = statGrid();
+		grid.add(statCell("DPS", best == null ? "?" : String.format("%.2f", best.getDps()), GOOD,
+			"Damage per second vs " + (stats.monster == null ? "your last-fought monster" : stats.monster.getName()), true));
+		grid.add(statCell("Max hit", best == null ? "?" : String.valueOf(best.getMaxHit()), INFO,
+			"Highest possible hit", false));
+		grid.add(statCell("Accuracy", best == null ? "?" : String.format("%.0f%%", best.getAccuracy() * 100), INFO,
+			"Chance an attack lands", false));
+		grid.add(statCell("Avg TTK", ttkText(stats), INFO,
+			"Average time to kill: the monster's hitpoints over the dps", false));
 		tile.add(grid);
 
-		// full-width: the style or spell the numbers assume
-		String styleText = null;
-		if (style == CombatStyle.MAGIC)
-		{
-			styleText = spellName == null || spellName.isEmpty() ? null : spellName + " (Spell)";
-		}
-		else if (style == CombatStyle.RANGED)
-		{
-			styleText = best.getAttackType().contains("rapid") ? "Rapid" : "Accurate";
-		}
-		else
-		{
-			styleText = capitalize(best.getAttackType());
-		}
-		if (styleText != null)
+		if (stats.styleText != null)
 		{
 			tile.add(Box.createVerticalStrut(2));
-			tile.add(fullRow("Style", styleText, INFO,
-				style == CombatStyle.MAGIC ? "Autocast this spell" : "Use this attack style"));
+			tile.add(fullRow("Style", stats.styleText, INFO, "The style the numbers assume"));
 		}
-		if (!book.isEmpty())
+		if (stats.spellbook != null && !stats.spellbook.isEmpty())
 		{
-			// full-width: "Spellbook" + book collide in a half-width cell
 			tile.add(Box.createVerticalStrut(2));
-			tile.add(fullRow("Spellbook", book, INFO, "The spellbook this spell needs"));
+			tile.add(fullRow("Spellbook", stats.spellbook, INFO, "The spellbook this spell needs"));
+		}
+		if (stats.riskText != null)
+		{
+			tile.add(Box.createVerticalStrut(2));
+			JLabel risk = line(stats.riskText, stats.riskOk ? GOOD : new Color(220, 140, 120));
+			risk.setFont(OsrsSkin.smallFont());
+			risk.setToolTipText(stats.riskTip);
+			tile.add(fullRow("Risk", risk));
 		}
 
-		JLabel risk = riskRow(best, result.specWeapon);
-		if (risk != null)
+		// the in-game Equipment Stats groups, small text throughout
+		if (loadout != null)
 		{
-			tile.add(Box.createVerticalStrut(2));
-			tile.add(fullRow("Risk", risk));
+			com.loadoutlab.data.StatBlock off = loadout.getOffensive();
+			com.loadoutlab.data.StatBlock def = loadout.getDefensive();
+			com.loadoutlab.data.StatBlock bon = loadout.getBonuses();
+			tile.add(Box.createVerticalStrut(4));
+			tile.add(groupHeader("Attack bonuses"));
+			JPanel atk = statGrid();
+			atk.add(statCell("Stab", plus(off.getStab()), INFO, null, false));
+			atk.add(statCell("Slash", plus(off.getSlash()), INFO, null, false));
+			atk.add(statCell("Crush", plus(off.getCrush()), INFO, null, false));
+			atk.add(statCell("Magic", plus(off.getMagic()), INFO, null, false));
+			atk.add(statCell("Range", plus(off.getRanged()), INFO, null, false));
+			atk.add(statCell(" ", " ", MUTED, null, false));
+			tile.add(atk);
+			tile.add(Box.createVerticalStrut(3));
+			tile.add(groupHeader("Defence bonuses"));
+			JPanel dfn = statGrid();
+			dfn.add(statCell("Stab", plus(def.getStab()), INFO, null, false));
+			dfn.add(statCell("Slash", plus(def.getSlash()), INFO, null, false));
+			dfn.add(statCell("Crush", plus(def.getCrush()), INFO, null, false));
+			dfn.add(statCell("Magic", plus(def.getMagic()), INFO, null, false));
+			dfn.add(statCell("Range", plus(def.getRanged()), INFO, null, false));
+			dfn.add(statCell(" ", " ", MUTED, null, false));
+			tile.add(dfn);
+			tile.add(Box.createVerticalStrut(3));
+			tile.add(groupHeader("Other bonuses"));
+			JPanel oth = statGrid();
+			oth.add(statCell("Melee STR", plus(bon.getStrength()), INFO, "Melee strength", false));
+			oth.add(statCell("Ranged STR", plus(bon.getRangedStrength()), INFO, "Ranged strength", false));
+			oth.add(statCell("Magic DMG", String.format("%+d%%", bon.getMagicDamage()), INFO, "Magic damage", false));
+			oth.add(statCell("Prayer", plus(bon.getPrayer()), INFO, "Prayer bonus - slower drain", false));
+			tile.add(oth);
+			GearItem weapon = loadout.getWeapon();
+			if (weapon != null)
+			{
+				tile.add(Box.createVerticalStrut(3));
+				tile.add(fullRow("Weapon speed", weapon.getSpeed() + " ticks ("
+					+ String.format("%.1fs", weapon.getSpeed() * 0.6) + ")", INFO,
+					"Time between attacks"));
+			}
 		}
 		tile.setMaximumSize(new Dimension(Integer.MAX_VALUE, tile.getPreferredSize().height));
 		return tile;
 	}
 
-	/** One label-left / value-right cell of the stat tile. */
-	private JPanel statCell(String label, String value, Color valueColor, String tip)
+	private static String plus(int value)
+	{
+		return String.format("%+d", value);
+	}
+
+	private JPanel statGrid()
+	{
+		JPanel grid = new JPanel(new GridLayout(0, 2, 10, 1));
+		grid.setOpaque(false);
+		grid.setAlignmentX(LEFT_ALIGNMENT);
+		return grid;
+	}
+
+	private JLabel groupHeader(String text)
+	{
+		JLabel header = line(text, MUTED);
+		header.setFont(OsrsSkin.smallFont());
+		header.setAlignmentX(LEFT_ALIGNMENT);
+		return header;
+	}
+
+	/** One label-left / value-right cell; small text, DPS medium (Luke). */
+	private JPanel statCell(String label, String value, Color valueColor, String tip, boolean medium)
 	{
 		JPanel cell = new JPanel(new BorderLayout(4, 0));
 		cell.setOpaque(false);
 		JLabel key = line(label, MUTED);
 		key.setFont(OsrsSkin.smallFont());
 		JLabel val = line(value, valueColor);
-		val.setFont(OsrsSkin.boldFont());
+		val.setFont(medium ? OsrsSkin.font() : OsrsSkin.smallFont());
 		val.setHorizontalAlignment(SwingConstants.RIGHT);
 		cell.add(key, BorderLayout.WEST);
 		cell.add(val, BorderLayout.EAST);
@@ -2768,6 +2878,7 @@ public class LoadoutLabPanel extends PluginPanel
 	private JPanel fullRow(String label, String value, Color valueColor, String tip)
 	{
 		JLabel val = line(value, valueColor);
+		val.setFont(OsrsSkin.smallFont());
 		if (tip != null)
 		{
 			val.setToolTipText(tip);
@@ -2789,36 +2900,19 @@ public class LoadoutLabPanel extends PluginPanel
 		return row;
 	}
 
-	/** "~24s" / "~2m 05s": the monster's hp over the set's dps. */
-	private String ttkText(DpsResult best)
+	/** "~24s" / "~2m 05s": the monster's hp over the dps, honest "?". */
+	private static String ttkText(TileStats stats)
 	{
-		if (selectedMonster == null || best.getDps() <= 0)
+		if (stats.monster == null || stats.result == null || stats.result.getDps() <= 0)
 		{
 			return "?";
 		}
-		double seconds = selectedMonster.getHitpoints() / best.getDps();
+		double seconds = stats.monster.getHitpoints() / stats.result.getDps();
 		if (seconds < 90)
 		{
 			return String.format("~%.0fs", seconds);
 		}
 		return String.format("~%dm %02ds", (int) (seconds / 60), Math.round(seconds % 60));
-	}
-
-	/** The wilderness risk value as a label with the kept/lost tooltip, or
-	 *  null when wilderness info is off — the tile's Risk row. */
-	private JLabel riskRow(DpsResult best, GearItem specWeapon)
-	{
-		if (!wildernessOn())
-		{
-			return null;
-		}
-		int keep = protectItem.isSelected() ? 4 : 3;
-		PvpRisk.Assessment risk = PvpRisk.assess(best.getLoadout(), specWeapon, keep);
-		JLabel line = line(String.format("%s gp (%d kept)",
-			PvpRisk.formatGp(risk.riskGp), keep),
-			risk.riskGp <= selectedRiskBudget() ? GOOD : new Color(220, 140, 120));
-		line.setToolTipText(riskTooltip(risk));
-		return line;
 	}
 
 	// addPrayerLine / addStyleLine / addRiskLine folded into statsTile

@@ -133,6 +133,20 @@ public class LoadoutLabModule implements IronHubModule
 	 *  draft (wins over the name), or — both null — the live view. */
 	private String viewedSetup;
 	private PersistedState.SavedSetup draft;
+
+	// ── DPS Calc integration (Luke, 2026-07-21): the wrapper owns the ONE
+	// gear viewer + stat tile; the calc publishes its per-style results here
+	// and the style buttons/detail follow. EDT-only mutation. ──
+	private enum ViewSource
+	{
+		LIVE, DPS
+	}
+
+	private ViewSource viewSource = ViewSource.LIVE;
+	private java.util.Map<com.loadoutlab.engine.CombatStyle,
+		com.loadoutlab.optimizer.OptimizerService.StyleResult> dpsResults;
+	private com.loadoutlab.data.MonsterStats dpsMonster;
+	private com.loadoutlab.engine.CombatStyle dpsStyle = com.loadoutlab.engine.CombatStyle.MELEE;
 	private boolean namesOpen;
 	/** Lazy + volatile: read from the EDT (render) and the client thread
 	 *  (cache cross-check); DataPack.load is memoized so double-init is
@@ -436,6 +450,7 @@ public class LoadoutLabModule implements IronHubModule
 	{
 		viewedSetup = name;
 		draft = null;
+		viewSource = ViewSource.LIVE; // viewing a setup IS "doing something else"
 		searchPanel.setVisible(false);
 		lastViewFp = 0;
 		renderView();
@@ -650,7 +665,12 @@ public class LoadoutLabModule implements IronHubModule
 	 *  setup when one is up, else a live capture (gear+inv+pouch). */
 	private void saveNamedSetup()
 	{
-		String suggested = viewedSetup != null ? viewedSetup
+		// the shared button serves the DPS Calc too (Luke): in DPS view it
+		// saves the SUGGESTED loadout under a monster-flavoured name
+		boolean dps = viewSource == ViewSource.DPS && isLive() && suggestionSetup(dpsStyle) != null;
+		String suggested = dps
+			? (dpsMonster == null ? "DPS setup" : dpsMonster.getName() + " · " + dpsStyle)
+			: viewedSetup != null ? viewedSetup
 			: activity().isEmpty() ? "My setup" : activity();
 		String name = (String) javax.swing.JOptionPane.showInputDialog(holder,
 			"Setup name:", "Save setup", javax.swing.JOptionPane.PLAIN_MESSAGE,
@@ -660,7 +680,7 @@ public class LoadoutLabModule implements IronHubModule
 			return;
 		}
 		name = name.trim();
-		PersistedState.SavedSetup source = viewedOrDraft();
+		PersistedState.SavedSetup source = dps ? suggestionSetup(dpsStyle) : viewedOrDraft();
 		if (source != null)
 		{
 			state.saveSetup(name, copy(source)); // persists + notifies
@@ -816,7 +836,11 @@ public class LoadoutLabModule implements IronHubModule
 			viewedSetup,
 			draft != null ? draft.equipment : null,
 			namesOpen,
-			inventoryCollapsed);
+			inventoryCollapsed,
+			viewSource,
+			dpsStyle,
+			System.identityHashCode(dpsResults),
+			state.getCombatNpcId());
 		if (fp == lastViewFp)
 		{
 			return;
@@ -824,12 +848,19 @@ public class LoadoutLabModule implements IronHubModule
 		lastViewFp = fp;
 
 		renderNames();
-		boolean live = isLive();
-		liveButton.setVisible(!live);
-		PersistedState.SavedSetup shown = live ? liveSetup() : viewedOrDraft();
+		// the DPS view shows the calc's suggestion; an explicitly viewed
+		// setup/draft still wins (that IS "doing something else")
+		boolean dps = viewSource == ViewSource.DPS && isLive()
+			&& suggestionSetup(dpsStyle) != null;
+		boolean live = isLive() && !dps;
+		liveButton.setVisible(!isLive());
+		PersistedState.SavedSetup shown = dps ? suggestionSetup(dpsStyle)
+			: live ? liveSetup() : viewedOrDraft();
 
 		setupView.removeAll();
-		String title = live ? "Live gear & inventory"
+		String title = dps
+			? "DPS Calc · " + (dpsMonster == null ? "" : dpsMonster.getName())
+			: live ? "Live gear & inventory"
 			: (draft != null ? "Draft (unsaved) · vs current" : viewedSetup + " · vs current");
 		com.ironhub.ui.osrs.OsrsLabel titleLabel = new com.ironhub.ui.osrs.OsrsLabel(title,
 			com.ironhub.ui.osrs.OsrsSkin.MUTED, com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned();
@@ -844,7 +875,8 @@ public class LoadoutLabModule implements IronHubModule
 				+ " setup has no place for it — deposit it.");
 			setupView.add(legend);
 		}
-		String combat = combatLine();
+		// the LIVE style line has no place over a suggested loadout
+		String combat = dps ? null : combatLine();
 		if (combat != null)
 		{
 			JPanel combatRow = new JPanel();
@@ -870,7 +902,9 @@ public class LoadoutLabModule implements IronHubModule
 
 		SavedSetupView view = new SavedSetupView(theme, itemManager, state::itemName);
 		// merged display: setup items, plus deposit-only current items in
-		// the slots the setup leaves empty; tints from the pure diff
+		// the slots the setup leaves empty; tints from the pure diff. The
+		// DPS suggestion diffs its EQUIPMENT vs current (orange = swap in)
+		// but never the inventory — it suggests gear, not carried items.
 		PersistedState.SavedSetup display = shown;
 		Map<String, Color> equipTints = null;
 		Color[] invTints = null;
@@ -896,32 +930,68 @@ public class LoadoutLabModule implements IronHubModule
 					equipTints.put(entry.getKey(), tint);
 				}
 			}
-			SetupDiff.Slot[] inv = SetupDiff.inventory(shown, state.getInventorySlots());
-			display.inventory = new int[28];
-			display.inventoryQty = new int[28];
-			invTints = new Color[28];
-			Map<Integer, Integer> carriedQty = state.getInventorySnapshot();
-			for (int i = 0; i < 28; i++)
+			if (!dps)
 			{
-				display.inventory[i] = inv[i].itemId;
-				if (inv[i].itemId > 0)
+				SetupDiff.Slot[] inv = SetupDiff.inventory(shown, state.getInventorySlots());
+				display.inventory = new int[28];
+				display.inventoryQty = new int[28];
+				invTints = new Color[28];
+				Map<Integer, Integer> carriedQty = state.getInventorySnapshot();
+				for (int i = 0; i < 28; i++)
 				{
-					// deposit-only slots show the CURRENT item; its stack
-					// count comes from what is actually carried
-					display.inventoryQty[i] = inv[i].tint == SetupDiff.Tint.DEPOSIT
-						? carriedQty.getOrDefault(inv[i].itemId, 1)
-						: (i < shown.inventoryQty.length ? Math.max(1, shown.inventoryQty[i]) : 1);
+					display.inventory[i] = inv[i].itemId;
+					if (inv[i].itemId > 0)
+					{
+						// deposit-only slots show the CURRENT item; its stack
+						// count comes from what is actually carried
+						display.inventoryQty[i] = inv[i].tint == SetupDiff.Tint.DEPOSIT
+							? carriedQty.getOrDefault(inv[i].itemId, 1)
+							: (i < shown.inventoryQty.length ? Math.max(1, shown.inventoryQty[i]) : 1);
+					}
+					invTints[i] = tintColor(inv[i].tint);
 				}
-				invTints[i] = tintColor(inv[i].tint);
 			}
 		}
 
-		setupView.add(centered(view.equipment(display, equipTints, this::openSlotSearch)));
+		// the source switch sits directly ABOVE the gear viewer (Luke): which
+		// gear the viewer shows — your current equipment or the calc's pick
+		if (dpsResults != null && isLive())
+		{
+			com.ironhub.ui.osrs.StoneChipRow sourceChips =
+				new com.ironhub.ui.osrs.StoneChipRow(theme, true, "Current gear", "DPS Calc");
+			sourceChips.setSelected(dps ? 1 : 0);
+			sourceChips.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+			sourceChips.onChange(i ->
+			{
+				viewSource = i == 1 ? ViewSource.DPS : ViewSource.LIVE;
+				lastViewFp = 0;
+				renderView();
+			});
+			setupView.add(sourceChips);
+			setupView.add(Box.createVerticalStrut(2));
+		}
+		if (dps)
+		{
+			setupView.add(styleButtonsRow());
+			setupView.add(Box.createVerticalStrut(2));
+		}
+
+		setupView.add(centered(view.equipment(display, equipTints, dps ? null : this::openSlotSearch)));
 
 		// the setup controls live directly under the worn-equipment view
-		// (Luke, 2026-07-21), with the setups list opening beneath them
+		// (Luke, 2026-07-21), then the shared stat tile, then the setups list
 		setupView.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 		setupView.add(buttonsRow);
+		if (lab.getPanel() != null)
+		{
+			com.loadoutlab.ui.LoadoutLabPanel.TileStats tileStats = dps
+				? lab.getPanel().suggestionStats(dpsStyle) : liveTileStats();
+			if (tileStats != null)
+			{
+				setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+				setupView.add(lab.getPanel().statsTile(tileStats));
+			}
+		}
 		setupView.add(Box.createVerticalStrut(2));
 		setupView.add(liveButton);
 		setupView.add(namesPanel);
@@ -1542,6 +1612,12 @@ public class LoadoutLabModule implements IronHubModule
 					dpsCalcCollapsed = !dpsCalcCollapsed;
 					lab.getPanel().setVisible(!dpsCalcCollapsed);
 					triangleLabel.setIcon(new com.ironhub.ui.components.PaintedIcon(triangle(), 10));
+					// closing the calc reverts the shared viewer to live gear;
+					// reopening returns to the suggestion when one exists (Luke)
+					viewSource = dpsCalcCollapsed ? ViewSource.LIVE
+						: dpsResults != null ? ViewSource.DPS : viewSource;
+					lastViewFp = 0;
+					renderView();
 					holder.revalidate();
 				}
 			};
@@ -1593,7 +1669,226 @@ public class LoadoutLabModule implements IronHubModule
 			lab.getPanel().setSetupHooks(this::saveNamedSetup, this::toggleAllSetups);
 			lab.getPanel().setWornLookup(this::wornItemFor);
 			lab.getPanel().setDpsCalcHook(this::openDpsCalc);
+			lab.getPanel().setResultsListener(new com.loadoutlab.ui.LoadoutLabPanel.ResultsListener()
+			{
+				@Override
+				public void onResults(com.loadoutlab.data.MonsterStats monster,
+					java.util.Map<com.loadoutlab.engine.CombatStyle,
+						com.loadoutlab.optimizer.OptimizerService.StyleResult> results)
+				{
+					dpsResults = results;
+					dpsMonster = monster;
+					if (suggestionSetup(dpsStyle) == null)
+					{
+						// keep a live selection where possible; else strongest
+						dpsStyle = bestDpsStyle();
+					}
+					// fresh numbers = the calc is what the player is doing
+					viewSource = ViewSource.DPS;
+					lastViewFp = 0;
+					renderView();
+				}
+
+				@Override
+				public void onCleared()
+				{
+					dpsResults = null;
+					dpsMonster = null;
+					viewSource = ViewSource.LIVE;
+					lastViewFp = 0;
+					renderView();
+				}
+			});
 		}
+	}
+
+	/**
+	 * One button per combat style, each listing its suggested dps — the
+	 * highest in green — switching the shared viewer, tile and the calc's
+	 * detail card (Luke: buttons replaced the three expandable panels).
+	 */
+	private JPanel styleButtonsRow()
+	{
+		JPanel row = new JPanel(new java.awt.GridLayout(1, 3, 4, 0));
+		row.setOpaque(false);
+		row.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		Double best = null;
+		for (com.loadoutlab.engine.CombatStyle style : com.loadoutlab.engine.CombatStyle.concreteValues())
+		{
+			Double dps = suggestedDps(style);
+			if (dps != null && (best == null || dps > best))
+			{
+				best = dps;
+			}
+		}
+		for (com.loadoutlab.engine.CombatStyle style : com.loadoutlab.engine.CombatStyle.concreteValues())
+		{
+			Double dps = suggestedDps(style);
+			// one decimal: three buttons share 225px and "Melee · 4.71" clips
+			String label = style.toString() + " " + (dps == null ? "—" : String.format(Locale.ROOT, "%.1f", dps));
+			boolean selected = style == dpsStyle;
+			com.ironhub.ui.osrs.StoneButton button = new com.ironhub.ui.osrs.StoneButton(theme,
+				selected ? theme.selectFill : theme.boxFill, label, dps == null ? null : () ->
+			{
+				dpsStyle = style;
+				if (lab.getPanel() != null)
+				{
+					lab.getPanel().setDetailStyle(style);
+				}
+				lastViewFp = 0;
+				renderView();
+			});
+			if (dps != null && best != null && dps.equals(best))
+			{
+				button.labelColor(com.ironhub.ui.osrs.OsrsSkin.VALUE); // best dps = green
+			}
+			else if (dps == null)
+			{
+				button.labelColor(com.ironhub.ui.osrs.OsrsSkin.FAINT);
+			}
+			button.setToolTipText(dps == null ? "No usable owned set for " + style
+				: "Show the best owned " + style.toString().toLowerCase(Locale.ROOT) + " set");
+			row.add(button);
+		}
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+		return row;
+	}
+
+	/**
+	 * The live tile: your worn gear's bonuses, with the monster-dependent
+	 * numbers evaluated against the LAST monster you attacked (honest "?"
+	 * before any fight) at your real levels, unboosted.
+	 */
+	private com.loadoutlab.ui.LoadoutLabPanel.TileStats liveTileStats()
+	{
+		if (lab.getPanel() == null || lab.getPanel().data() == null)
+		{
+			return null;
+		}
+		com.loadoutlab.data.LoadoutData data = lab.getPanel().data();
+		java.util.Map<com.loadoutlab.data.GearSlot, com.loadoutlab.data.GearItem> gear =
+			new java.util.EnumMap<>(com.loadoutlab.data.GearSlot.class);
+		int[] worn = state.getEquipmentSlots();
+		for (java.util.Map.Entry<String, EquipmentInventorySlot> slot : LAB_SLOTS.entrySet())
+		{
+			int idx = slot.getValue().getSlotIdx();
+			if (idx < worn.length && worn[idx] > 0)
+			{
+				com.loadoutlab.data.GearItem item = data.getGear(worn[idx]);
+				if (item != null)
+				{
+					gear.put(com.loadoutlab.data.GearSlot.valueOf(slot.getKey()), item);
+				}
+			}
+		}
+		com.loadoutlab.engine.Loadout loadout = new com.loadoutlab.engine.Loadout(gear);
+		com.loadoutlab.ui.LoadoutLabPanel.TileStats stats = new com.loadoutlab.ui.LoadoutLabPanel.TileStats();
+		stats.loadout = loadout;
+		int npcId = state.getCombatNpcId();
+		if (npcId > 0)
+		{
+			for (com.loadoutlab.data.MonsterStats m : data.getMonsters())
+			{
+				if (m.getId() == npcId)
+				{
+					stats.monster = m;
+					break;
+				}
+			}
+		}
+		if (stats.monster != null)
+		{
+			try
+			{
+				java.util.Map<net.runelite.api.Skill, Integer> levels = new java.util.HashMap<>();
+				for (net.runelite.api.Skill skill : net.runelite.api.Skill.values())
+				{
+					levels.put(skill, state.getRealLevel(skill));
+				}
+				com.loadoutlab.engine.OptimizationRequest request =
+					new com.loadoutlab.engine.OptimizationRequest(stats.monster,
+						liveWeaponStyle(loadout), com.loadoutlab.engine.PlayerLevels.from(levels),
+						null, null, 0, null, true, false, null, 1);
+				stats.result = new com.loadoutlab.engine.DpsCalculator().calculate(request, loadout);
+			}
+			catch (RuntimeException e)
+			{
+				stats.result = null; // unknowable stays "?" — never invented
+			}
+		}
+		return stats;
+	}
+
+	/** The style the worn weapon fights in (unarmed/unknown = melee). */
+	private static com.loadoutlab.engine.CombatStyle liveWeaponStyle(com.loadoutlab.engine.Loadout loadout)
+	{
+		com.loadoutlab.data.GearItem weapon = loadout.getWeapon();
+		if (weapon != null)
+		{
+			for (com.loadoutlab.engine.CombatStyle style : com.loadoutlab.engine.CombatStyle.concreteValues())
+			{
+				if (weapon.isWeaponFor(style))
+				{
+					return style;
+				}
+			}
+		}
+		return com.loadoutlab.engine.CombatStyle.MELEE;
+	}
+
+	/** The strongest style by suggested dps (MELEE when nothing usable). */
+	private com.loadoutlab.engine.CombatStyle bestDpsStyle()
+	{
+		com.loadoutlab.engine.CombatStyle best = com.loadoutlab.engine.CombatStyle.MELEE;
+		double bestDps = -1;
+		for (com.loadoutlab.engine.CombatStyle style : com.loadoutlab.engine.CombatStyle.concreteValues())
+		{
+			Double dps = suggestedDps(style);
+			if (dps != null && dps > bestDps)
+			{
+				bestDps = dps;
+				best = style;
+			}
+		}
+		return best;
+	}
+
+	/** The best owned set's dps for a style, or null when no usable set. */
+	private Double suggestedDps(com.loadoutlab.engine.CombatStyle style)
+	{
+		if (dpsResults == null)
+		{
+			return null;
+		}
+		com.loadoutlab.optimizer.OptimizerService.StyleResult result = dpsResults.get(style);
+		return result == null || result.owned == null || result.owned.isEmpty()
+			? null : result.owned.get(0).getDps();
+	}
+
+	/** The calc's suggested loadout for a style as a displayable setup. */
+	private PersistedState.SavedSetup suggestionSetup(com.loadoutlab.engine.CombatStyle style)
+	{
+		if (dpsResults == null)
+		{
+			return null;
+		}
+		com.loadoutlab.optimizer.OptimizerService.StyleResult result = dpsResults.get(style);
+		if (result == null || result.owned == null || result.owned.isEmpty())
+		{
+			return null;
+		}
+		PersistedState.SavedSetup setup = new PersistedState.SavedSetup();
+		for (java.util.Map.Entry<com.loadoutlab.data.GearSlot, com.loadoutlab.data.GearItem> slot
+			: result.owned.get(0).getLoadout().getGear().entrySet())
+		{
+			EquipmentInventorySlot mapped = slot.getValue() == null
+				? null : LAB_SLOTS.get(slot.getKey().name());
+			if (mapped != null)
+			{
+				setup.equipment.put(mapped.name(), slot.getValue().getId());
+			}
+		}
+		return setup;
 	}
 
 	/** GearSlot → currently worn item id (or null). */
@@ -1692,6 +1987,14 @@ public class LoadoutLabModule implements IronHubModule
 	void toggleAllSetupsForTest()
 	{
 		toggleAllSetups();
+	}
+
+	/** Test seam: force the shared viewer's source (true = DPS view). */
+	public void setViewSourceForTest(boolean dps)
+	{
+		viewSource = dps ? ViewSource.DPS : ViewSource.LIVE;
+		lastViewFp = 0;
+		renderView();
 	}
 
 	void viewSetupForTest(String name)
