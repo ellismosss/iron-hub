@@ -517,8 +517,9 @@ public class LoadoutLabModule implements IronHubModule
 		// the shared button serves the DPS Calc too (Luke): in DPS view it
 		// saves the SUGGESTED loadout under a monster-flavoured name
 		boolean dps = viewSource == ViewSource.DPS && isLive() && suggestionSetup(dpsStyle) != null;
-		String suggested = dps
-			? (dpsMonster == null ? "DPS setup" : dpsMonster.getName() + " · " + dpsStyle)
+		// the suggested name is the most recently CALCULATED monster (Luke,
+		// round 5), whatever the view; then the usual fallbacks
+		String suggested = dpsMonster != null ? dpsMonster.getName()
 			: viewedSetup != null ? viewedSetup
 			: activity().isEmpty() ? "My setup" : activity();
 		String name = (String) javax.swing.JOptionPane.showInputDialog(holder,
@@ -684,8 +685,7 @@ public class LoadoutLabModule implements IronHubModule
 			equipStatsCollapsed,
 			viewSource,
 			dpsStyle,
-			System.identityHashCode(dpsResults),
-			state.getCombatNpcId());
+			System.identityHashCode(dpsResults));
 		if (fp == lastViewFp)
 		{
 			return;
@@ -1691,28 +1691,10 @@ public class LoadoutLabModule implements IronHubModule
 		// the real style names from the weapon-styles pack live in the tile's
 		// Style row now (the floating line above the viewer is gone — Luke)
 		stats.styleText = combatLine();
-		// a SEARCHED monster retargets the live numbers too (Luke: one search
-		// runs the calc twice — best setup AND your current gear); the
-		// last-attacked NPC is the fallback
-		if (dpsMonster != null)
-		{
-			stats.monster = dpsMonster;
-		}
-		else
-		{
-			int npcId = state.getCombatNpcId();
-			if (npcId > 0)
-			{
-				for (com.loadoutlab.data.MonsterStats m : data.getMonsters())
-				{
-					if (m.getId() == npcId)
-					{
-						stats.monster = m;
-						break;
-					}
-				}
-			}
-		}
+		// only the SELECTED monster drives the numbers (the auto-follow
+		// selects your task/fight anyway): closing the search out empties
+		// the monster-specific cells instead of guessing (Luke, round 5)
+		stats.monster = dpsMonster;
 		if (stats.monster != null)
 		{
 			try

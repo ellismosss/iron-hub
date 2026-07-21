@@ -346,9 +346,9 @@ public class LoadoutLabPanel extends PluginPanel
 	private final BankHighlighter bankHighlighter;
 	private final BankFilter bankFilter;
 	/** Which style's set is filtering the bank (null = none). */
-	private CombatStyle bankFiltered;
 	/** Which style's set is currently glowing in the bank (null = none). */
-	private CombatStyle bankShown;
+	/** Outline + filter the bank to the selected style's best set. */
+	private final ToggleRow showInBank = new ToggleRow("Show in bank");
 	/** D-4: which frontier point to recommend per style — three segment
 	 *  buttons, not a dropdown (Luke, 2026-07-21). Built in the ctor
 	 *  (needs the resolved theme). */
@@ -495,9 +495,6 @@ public class LoadoutLabPanel extends PluginPanel
 		monsterHolder.setLayout(new BoxLayout(monsterHolder, BoxLayout.Y_AXIS));
 		monsterHolder.setOpaque(false);
 		monsterHolder.setAlignmentX(LEFT_ALIGNMENT);
-		bankRowHolder.setLayout(new BoxLayout(bankRowHolder, BoxLayout.Y_AXIS));
-		bankRowHolder.setOpaque(false);
-		bankRowHolder.setAlignmentX(LEFT_ALIGNMENT);
 		top.add(Box.createVerticalStrut(4));
 
 		// Selected-monster row: replaces the dropdown once a pick is made.
@@ -608,8 +605,6 @@ public class LoadoutLabPanel extends PluginPanel
 		riskBudget.addActionListener(e -> recompute());
 		riskBudget.setVisible(false);
 		monsterHolder.add(riskBudget);
-		// the bank actions close the monster card (they act on its results)
-		monsterHolder.add(bankRowHolder);
 
 
 		// Lock the magic card's auto-spell to one spellbook.
@@ -820,21 +815,21 @@ public class LoadoutLabPanel extends PluginPanel
 		bottomControls.add(centeredRow(boostRow, 5 * 36 + 8, 36));
 		bottomControls.add(Box.createVerticalStrut(2));
 		bottomControls.add(centeredRow(spellRow, 3 * 36 + 4, 36));
+		bottomControls.add(Box.createVerticalStrut(6));
+		// Show-in-bank is a CHECKBOX that both outlines AND filters the bank
+		// (the separate Filter-bank button is gone — filtered is the default;
+		// Luke, round 5), with the wiki-calc link beside it
+		initToggle(showInBank, "While the bank is open: outline this set's items"
+			+ " and filter the bank to them (needs Bank Tags enabled)");
+		showInBank.onToggle(this::applyShowInBank);
+		JPanel bankOpenRow = new JPanel(new GridLayout(1, 2, 4, 0));
+		bankOpenRow.setOpaque(false);
+		bankOpenRow.setAlignmentX(LEFT_ALIGNMENT);
+		bankOpenRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
+		bankOpenRow.add(showInBank);
+		bankOpenRow.add(openDpsCalcButton());
+		bottomControls.add(bankOpenRow);
 		bottomControls.add(Box.createVerticalStrut(4));
-		// Iron Hub (Luke, 2026-07-21): the calc's own Save/Load setup buttons
-		// are gone — the wrapper's Save setup / View all setups (under the
-		// shared gear viewer) serve both systems.
-		StoneButton openDpsCalc = new StoneButton(theme, "Open OSRS DPS Calc", () ->
-		{
-			if (dpsCalcHook != null && selectedMonster != null && lastShownLoadout != null)
-			{
-				dpsCalcHook.open(selectedMonster.getId(), selectedMonster.getName(),
-					lastShownLoadout, slayerTask.isSelected());
-			}
-		});
-		openDpsCalc.setToolTipText("Open the wiki DPS calculator with this monster and setup mirrored");
-		openDpsCalc.setAlignmentX(LEFT_ALIGNMENT);
-		bottomControls.add(openDpsCalc);
 		// NORTH-anchor so spare height stays empty instead of stretching cards
 		JPanel resultsAnchor = new JPanel(new BorderLayout());
 		resultsAnchor.setOpaque(false);
@@ -889,6 +884,12 @@ public class LoadoutLabPanel extends PluginPanel
 
 		private final StoneCheckbox box;
 		private final OsrsLabel label;
+		private Runnable onToggle; // null = the default recompute
+
+		void onToggle(Runnable action)
+		{
+			onToggle = action;
+		}
 
 		ToggleRow(String text)
 		{
@@ -912,7 +913,14 @@ public class LoadoutLabPanel extends PluginPanel
 						return;
 					}
 					box.setChecked(!box.isChecked());
-					recompute();
+					if (onToggle != null)
+					{
+						onToggle.run();
+					}
+					else
+					{
+						recompute();
+					}
 				}
 			};
 			// tooltips register the children's own mouse listeners, which
@@ -1136,7 +1144,6 @@ public class LoadoutLabPanel extends PluginPanel
 
 	private final JPanel monsterHolder = new JPanel();
 	private final JPanel styleButtonsHolder = new JPanel();
-	private final JPanel bankRowHolder = new JPanel();
 	/** Wrapper-provided async monster icon fetch (wiki art, user-initiated). */
 	private java.util.function.BiConsumer<MonsterStats,
 		java.util.function.Consumer<java.awt.Image>> monsterIconLookup;
@@ -1322,10 +1329,7 @@ public class LoadoutLabPanel extends PluginPanel
 		wildyInfo.setVisible(wilderness);
 		updateWildernessControls();
 		superAntifireAssumed = false; // each monster starts on gear protection
-		bankShown = null;
-		bankHighlighter.highlight(null);
-		bankFiltered = null;
-		bankFilter.filter(null);
+		applyShowInBank(); // no results yet for this monster: aids clear
 		// The slayer toggle has three states by monster: task-only bosses
 		// (Hydra, Araxxor, Sire...) force it ON - you cannot fight them
 		// off-task; unassignable monsters (raid bosses) force it OFF; and
@@ -1334,17 +1338,19 @@ public class LoadoutLabPanel extends PluginPanel
 		{
 			slayerTask.setSelected(true);
 			slayerTask.setEnabled(false);
+			slayerTask.setVisible(true);
 			slayerTask.setToolTipText("Task-only boss - always on");
 		}
 		else if (!monster.isSlayerMonster())
 		{
+			// not assignable: the greyed row was noise — hide it (Luke)
 			slayerTask.setSelected(false);
-			slayerTask.setEnabled(false);
-			slayerTask.setToolTipText("Not assignable as a slayer task");
+			slayerTask.setVisible(false);
 		}
 		else
 		{
 			slayerTask.setEnabled(true);
+			slayerTask.setVisible(true);
 			slayerTask.setToolTipText("On task: slayer helmet bonuses apply");
 		}
 		usageLog.record(monster.label());
@@ -2411,8 +2417,8 @@ public class LoadoutLabPanel extends PluginPanel
 	/** Account or profile switched: nothing on screen may survive. */
 	public void resetForIdentityChange()
 	{
-		bankShown = null;
-		bankFiltered = null;
+		showInBank.setSelected(false);
+		applyShowInBank();
 		lastResults = null;
 		clearSelection();
 		refreshExclusionsLabel();
@@ -2467,25 +2473,9 @@ public class LoadoutLabPanel extends PluginPanel
 		{
 			detailStyle = bestStyle(results);
 		}
-		// the per-style card is GONE (Luke: the shared viewer/tile show the
-		// set) — only its two bank actions remain, riding the monster card
-		// so they show in BOTH views
-		bankRowHolder.removeAll();
-		StyleResult detail = results.get(detailStyle);
-		if (detail != null && detail.owned != null && !detail.owned.isEmpty())
-		{
-			DpsResult detailBest = detail.owned.get(0);
-			JPanel bankRow = new JPanel(new GridLayout(1, 2, 4, 0));
-			bankRow.setOpaque(false);
-			bankRow.setAlignmentX(LEFT_ALIGNMENT);
-			bankRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
-			bankRow.add(bankButton(detailStyle, detailBest, detail.specWeapon));
-			bankRow.add(bankFilterButton(detailStyle, detailBest, detail.specWeapon));
-			bankRowHolder.add(Box.createVerticalStrut(2));
-			bankRowHolder.add(bankRow);
-		}
-		bankRowHolder.revalidate();
-		bankRowHolder.repaint();
+		// the bank aids follow fresh results and style switches while the
+		// Show-in-bank checkbox is on (Luke, round 5)
+		applyShowInBank();
 		if (resultsListener != null)
 		{
 			resultsListener.onResults(monster, results);
@@ -2501,207 +2491,9 @@ public class LoadoutLabPanel extends PluginPanel
 		resultsPanel.revalidate();
 		resultsPanel.repaint();
 	}
+	// styleCard DELETED (Luke, rounds 3-5): the shared viewer/tile and the
+	// Options-section Show-in-bank checkbox replaced everything it drew.
 
-	private JPanel styleCard(CombatStyle style, StyleResult result)
-	{
-		renderingStyle = style;
-		// Iron Hub: stone box card — engraved StoneBorder over the theme fill
-		JPanel card = new StonePanel(theme);
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setAlignmentX(LEFT_ALIGNMENT);
-
-		boolean hasSet = result != null && result.owned != null && !result.owned.isEmpty();
-		boolean collapsed = cardCollapsed.containsKey(style)
-			? cardCollapsed.get(style)
-			: autoCollapsed.getOrDefault(style, false);
-
-		// Header row: collapse triangle + STYLE left, the summary dps value
-		// right, then the set's own menu (per-set pins and filter supplies).
-		JLabel header = new JLabel(style.toString().toUpperCase());
-		header.setIcon(new PaintedIcon(collapsed
-			? PaintedIcon.Shape.TRIANGLE_RIGHT : PaintedIcon.Shape.TRIANGLE_DOWN, 10));
-		header.setIconTextGap(6);
-		OsrsSkin.crisp(header);
-		header.setForeground(OsrsSkin.TITLE);
-		header.setFont(OsrsSkin.boldFont());
-		header.setBorder(new EmptyBorder(2, 0, 2, 0));
-		header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		header.setToolTipText(collapsed ? "Click to expand this set" : "Click to collapse this set");
-		header.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				cardCollapsed.put(style, !collapsed);
-				if (selectedMonster != null && lastResults != null)
-				{
-					showResults(selectedMonster, lastResults);
-				}
-			}
-		});
-		JPanel headerRow = new JPanel(new BorderLayout());
-		headerRow.setOpaque(false);
-		headerRow.setAlignmentX(LEFT_ALIGNMENT);
-		headerRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
-		headerRow.add(header, BorderLayout.WEST);
-		// Hover-glyph idiom for the compact "more options" affordance
-		final JLabel[] setMenuRef = new JLabel[1];
-		setMenuRef[0] = glyphButton(new DotsIcon(11), null,
-			"Pins and bank-filter items for this set", () ->
-		{
-			JPopupMenu menu = new JPopupMenu();
-			JMenuItem pinThis = new JMenuItem("Pin an item - this set only (search)...");
-			pinThis.addActionListener(ev -> searchAndPin(style.name()));
-			menu.add(pinThis);
-			JMenuItem pinAll = new JMenuItem("Pin an item - all sets (search)...");
-			pinAll.addActionListener(ev -> searchAndPin(ALL_SETS));
-			menu.add(pinAll);
-			JMenuItem filterThis = new JMenuItem("Bank-filter item - this set only (search)...");
-			filterThis.addActionListener(ev -> searchAndAddFilter(style.name()));
-			menu.add(filterThis);
-			JMenuItem filterAll = new JMenuItem("Bank-filter item - all sets (search)...");
-			filterAll.addActionListener(ev -> searchAndAddFilter(ALL_SETS));
-			menu.add(filterAll);
-			menu.show(setMenuRef[0], 0, setMenuRef[0].getHeight());
-		});
-		JLabel setMenu = setMenuRef[0];
-		// Iron Hub: the dps value sits right-aligned in the header - the
-		// single number per style, once (it used to repeat three times).
-		JPanel headerEast = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
-		headerEast.setOpaque(false);
-		JLabel dpsValue = new JLabel(hasSet
-			? String.format("%.2f dps", result.owned.get(0).getDps()) : "no set");
-		OsrsSkin.crisp(dpsValue);
-		dpsValue.setForeground(hasSet ? GOOD : MUTED);
-		dpsValue.setFont(OsrsSkin.boldFont());
-		dpsValue.setBorder(new EmptyBorder(2, 0, 2, 0));
-		headerEast.add(dpsValue);
-		headerEast.add(setMenu);
-		headerRow.add(headerEast, BorderLayout.EAST);
-		card.add(headerRow);
-		if (collapsed)
-		{
-			return card;
-		}
-
-		if (result == null || result.owned == null || result.owned.isEmpty())
-		{
-			boolean vyre = selectedMonster != null && selectedMonster.hasAttribute("vampyre3");
-			boolean flying = style == CombatStyle.MELEE
-				&& selectedMonster != null && selectedMonster.hasAttribute("flying");
-			boolean immune = MonsterMechanics.styleImmune(selectedMonster, style);
-			boolean leafy = selectedMonster != null && selectedMonster.hasAttribute("leafy");
-			JLabel none = line(immune
-				? "Immune to " + style.toString().toLowerCase()
-				: vyre
-				? "Immune - needs a vyre weapon"
-				: leafy
-				? "Needs leaf-bladed / broad / Magic Dart"
-				: flying
-					? "Flying - needs a halberd"
-					: "No usable owned set found.", MUTED);
-			if (vyre)
-			{
-				none.setToolTipText("Only the Ivandis flail, blisterwood weapons,"
-					+ " Sunspear, or Hallowed flail can damage this monster");
-			}
-			else if (flying)
-			{
-				none.setToolTipText("Melee cannot reach this monster"
-					+ " except with halberds or salamanders");
-			}
-			card.add(none);
-			return card;
-		}
-
-		DpsResult best = result.owned.get(0);
-
-		// Iron Hub: one stat strip replaces the three dps text lines - a bar
-		// to the game-best ceiling (click inspects that set) + one caption.
-		double ceiling = result.overallBest != null ? result.overallBest.getDps() : 0;
-		if (ceiling > 0)
-		{
-			double fraction = Math.min(1.0, best.getDps() / ceiling);
-			StoneProgressBar bar = new StoneProgressBar(theme, OsrsSkin.PROGRESS_BLUE, fraction);
-			bar.setAlignmentX(LEFT_ALIGNMENT);
-			bar.setToolTipText(String.format(
-				"You are at %.0f%% of the game-best set (%.2f DPS) - click to inspect it",
-				fraction * 100, ceiling));
-			bar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			bar.addMouseListener(new MouseAdapter()
-			{
-				@Override
-				public void mousePressed(MouseEvent e)
-				{
-					if (!gameBestExpanded.remove(style))
-					{
-						gameBestExpanded.add(style);
-					}
-					if (selectedMonster != null && lastResults != null)
-					{
-						showResults(selectedMonster, lastResults);
-					}
-				}
-			});
-			card.add(Box.createVerticalStrut(4));
-			card.add(bar);
-		}
-		card.add(Box.createVerticalStrut(4));
-		// Iron Hub (Luke, 2026-07-21): the stat tile and the owned-set grid
-		// live in the WRAPPER now (shared gear viewer + stat tile) — this
-		// card keeps only the calc-specific detail.
-		addAssumesRow(card, result.boostLabel, "Assumed prayer + boost (you own these)");
-		addIncomingLine(card, result.incoming);
-		if (result.modeTrade != null)
-		{
-			card.add(modeTradeRow(result.modeTrade));
-		}
-		addUpgradeLine(card, best);
-		addDartLine(card, best);
-		// Iron Hub: full-width paired action buttons instead of floating ones
-		JPanel bankRow = new JPanel(new GridLayout(1, 2, 4, 0));
-		bankRow.setOpaque(false);
-		bankRow.setAlignmentX(LEFT_ALIGNMENT);
-		bankRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
-		bankRow.add(bankButton(style, best, result.specWeapon));
-		bankRow.add(bankFilterButton(style, best, result.specWeapon));
-		card.add(Box.createVerticalStrut(6));
-		card.add(bankRow);
-
-		// The ceiling set itself - the progress bar is the toggle; when
-		// expanded, a labelled sub-section keeps it visually subordinate.
-		if (result.overallBest != null && result.overallBest.getDps() > 0
-			&& gameBestExpanded.contains(style))
-		{
-			card.add(Box.createVerticalStrut(8));
-			OsrsLabel gameBest = new OsrsLabel(
-				String.format("Game best · %.2f dps", result.overallBest.getDps()),
-				OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned();
-			gameBest.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			gameBest.setToolTipText("Click to hide the game-best set");
-			gameBest.addMouseListener(new MouseAdapter()
-			{
-				@Override
-				public void mousePressed(MouseEvent e)
-				{
-					gameBestExpanded.remove(style);
-					if (selectedMonster != null && lastResults != null)
-					{
-						showResults(selectedMonster, lastResults);
-					}
-				}
-			});
-			card.add(gameBest);
-			addAssumesRow(card, result.gameBoostLabel, "Best prayers + boost in the game");
-			addSpellLine(card, style, result.overallBest);
-			addDartLine(card, result.overallBest);
-			card.add(Box.createVerticalStrut(4));
-			card.add(iconGrid(result.overallBest, result.gameSpec, result.gameSpecWeapon, result.gameSpecExpectedDamage,
-				result.gameSpecDrainValue, result.overallBest.getExpectedHit(),
-				"Strongest special attack in the game vs this monster"));
-		}
-		return card;
-	}
 
 	private static final ImageIcon PRAYER_ICON = loadPrayerIcon();
 	private static final ImageIcon SWORD_ICON = loadSkillIcon("attack");
@@ -3435,80 +3227,60 @@ public class LoadoutLabPanel extends PluginPanel
 	}
 
 	/** "Filter bank": a virtual bank tag showing only this set's items. */
-	private StoneButton bankFilterButton(CombatStyle style, DpsResult best, GearItem specWeapon)
+	private StoneButton openDpsCalcButton()
 	{
-		boolean filtering = bankFiltered == style;
-		StoneButton button = new StoneButton(theme,
-			filtering ? "Unfilter bank" : "Filter bank", () ->
+		StoneButton open = new StoneButton(theme, "Open DPS calc", () ->
 		{
-			if (bankFiltered == style)
+			if (dpsCalcHook != null && selectedMonster != null && lastShownLoadout != null)
 			{
-				bankFiltered = null;
-				bankFilter.filter(null);
-			}
-			else
-			{
-				bankFiltered = style;
-				Set<Integer> filterIds =
-					new java.util.HashSet<>(setItemIds(best, specWeapon, loadedDart(best)));
-				// The mob profile's supplies (food, antidotes...) join the
-				// filtered bank view - they are part of THIS trip; ALL-sets
-				// items plus this style's own (ranged pot on the ranged set).
-				filterIds.addAll(mobProfile.filterItems(currentMonsterId(), style));
-				bankFilter.filter(filterIds);
-			}
-			if (selectedMonster != null && lastResults != null)
-			{
-				showResults(selectedMonster, lastResults);
+				dpsCalcHook.open(selectedMonster.getId(), selectedMonster.getName(),
+					lastShownLoadout, slayerTask.isSelected());
 			}
 		});
-		button.setToolTipText("Show only this set's items in the bank (needs Bank Tags enabled)");
-		return button;
+		open.setToolTipText("Open the wiki DPS calculator with this monster and setup mirrored");
+		return open;
 	}
 
-	/** "Show in bank": outline this set's items while the bank is open. */
-	private StoneButton bankButton(CombatStyle style, DpsResult best, GearItem specWeapon)
+	/**
+	 * The Show-in-bank checkbox applies BOTH the outline and the filter for
+	 * the selected style's best set (filtered is the default — the separate
+	 * button is gone; Luke, round 5). Re-applied on new results and style
+	 * switches; unchecked or cleared = both off.
+	 */
+	private void applyShowInBank()
 	{
-		boolean showing = bankShown == style;
-		StoneButton button = new StoneButton(theme,
-			showing ? "Stop showing" : "Show in bank", () ->
+		StyleResult detail = lastResults == null || selectedMonster == null
+			? null : lastResults.get(detailStyle);
+		if (!showInBank.isSelected() || detail == null
+			|| detail.owned == null || detail.owned.isEmpty())
 		{
-			if (bankShown == style)
+			bankHighlighter.highlight(null);
+			bankFilter.filter(null);
+			return;
+		}
+		DpsResult best = detail.owned.get(0);
+		Set<Integer> ids = new java.util.HashSet<>();
+		for (GearItem item : best.getLoadout().getGear().values())
+		{
+			if (item != null)
 			{
-				bankShown = null;
-				bankHighlighter.highlight(null);
+				ids.add(item.getId());
 			}
-			else
-			{
-				Set<Integer> ids = new java.util.HashSet<>();
-				for (GearItem item : best.getLoadout().getGear().values())
-				{
-					if (item != null)
-					{
-						ids.add(item.getId());
-					}
-				}
-				GearItem dart = loadedDart(best);
-				if (dart != null)
-				{
-					ids.add(dart.getId());
-				}
-				if (specWeapon != null)
-				{
-					ids.add(specWeapon.getId());
-				}
-				ids.addAll(mobProfile.filterItems(currentMonsterId(), style));
-				bankShown = style;
-				bankHighlighter.highlight(ids);
-			}
-			if (selectedMonster != null && lastResults != null)
-			{
-				showResults(selectedMonster, lastResults); // refresh button labels
-			}
-		});
-		button.setAlignmentX(LEFT_ALIGNMENT);
-		button.setToolTipText("Outline this set's items in the bank");
-		return button;
+		}
+		GearItem dart = loadedDart(best);
+		if (dart != null)
+		{
+			ids.add(dart.getId());
+		}
+		if (detail.specWeapon != null)
+		{
+			ids.add(detail.specWeapon.getId());
+		}
+		// trip supplies (food, antidotes...) join the filtered view
+		Set<Integer> filterIds = new java.util.HashSet<>(ids);
+		filterIds.addAll(mobProfile.filterItems(currentMonsterId(), detailStyle));
+		bankHighlighter.highlight(filterIds);
+		bankFilter.filter(filterIds);
 	}
 
 	/** A left-aligned, height-capped flow row added to the card. */
