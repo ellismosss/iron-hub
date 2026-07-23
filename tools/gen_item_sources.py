@@ -37,6 +37,21 @@ RESTRICTED = re.compile(
 # "Lost Property shop" as their only source)
 RECLAIM_SHOPS = ("Lost Property",)
 
+# discontinued / holiday joke containers — "Always"-drop novelties that
+# rank top by probability but are absurd obtainment advice ("open a
+# Christmas cracker for silk", Luke 2026-07-24). Never a source.
+HOLIDAY_CONTAINERS = frozenset({
+    "Christmas cracker", "Easter egg", "Chocolate egg", "Mystery box",
+})
+
+# how → sensible-order rank: RELIABLE, REPEATABLE sources lead (buy it,
+# make it) and random drops / novelty containers sink. For a true unique
+# (drop-only) the drop is still first because it is the only option
+# (Luke 2026-07-24: Mithril arrow led with a 4/101 Catablepon drop over
+# the shop and the Fletching recipe).
+HOW_ORDER = {"shop": 0, "make": 1, "reward": 2, "spell": 3,
+             "drop": 4, "open": 5, "other": 6}
+
 # the 12 diaries' actual reward item families — anything ELSE a diary
 # Rewards section links is benefit prose, not a reward (Pharaoh's sceptre
 # was labelled "Reward: Desert Diary" because the diary improves it)
@@ -148,7 +163,8 @@ def display_from(source):
 
 
 def best_drop(rows):
-    rows = [r for r in rows if not RESTRICTED.search(r[0])]
+    rows = [r for r in rows if not RESTRICTED.search(r[0])
+            and display_from(r[0]) not in HOLIDAY_CONTAINERS]
     if not rows:
         return None
     rows.sort(key=lambda r: -prob(r[1]))
@@ -245,9 +261,11 @@ def make_rows(rows, name, ids_by_name=None):
         # note↔item conversions are bank mechanics, not recipes
         if detail in (name, name + " note"):
             continue
-        # a skill-only row ("Make: Crafting 85") is still honest; only a row
-        # with NEITHER skill nor materials — the old "(see recipe)" — dies
-        if not detail and not entry.get("skill"):
+        # a REAL recipe consumes materials — a make row with a skill but no
+        # materials is spurious ("Vorkath's head · Make: Prayer 1" was the
+        # wiki listing it as a Prayer-altar offering, Luke 2026-07-24). Drop
+        # any make with no materials (this also kills the old "(see recipe)").
+        if not detail:
             continue
         key = (entry.get("skill"), detail)
         if key not in {(v.get("skill"), v.get("detail")) for v in variants}:
@@ -395,6 +413,12 @@ def main():
             # famous activity containers carry their activity for context
             if frm in CONTAINER_ACTIVITY:
                 s["from"] = CONTAINER_ACTIVITY[frm] + " — " + frm
+        # drop holiday joke containers however they were classified
+        sources = [s for s in sources
+                   if display_from(s.get("from") or "") not in HOLIDAY_CONTAINERS]
+        # sensible order: buy/make lead, random drops and novelty containers
+        # sink — a stable sort keeps the within-how order (best drop first)
+        sources.sort(key=lambda s: HOW_ORDER.get(s["how"], 9))
         seen_from = set()
         deduped = []
         for s in sources:

@@ -134,6 +134,53 @@ public class ItemSourcesPackTest
 		}
 	}
 
+	/** The 2026-07-24 source-quality report (Luke). */
+	@Test
+	public void sourceQualityFixesHold()
+	{
+		// Vorkath's head 2425: ONLY the 1/50 drop — the spurious "Make:
+		// Prayer 1" (a make with no materials) is gone
+		ItemSourcesPack.Entry vork = pack.entry(2425);
+		assertNotNull(vork);
+		for (ItemSourcesPack.Source s : vork.getSources())
+		{
+			assertFalse("Vorkath's head has no spurious make: " + s.label(),
+				"make".equals(s.getHow()));
+		}
+		// no make row ANYWHERE lacks materials (the "(see recipe)" / altar-
+		// offering class of bug)
+		for (ItemSourcesPack.Entry e : pack.getItems())
+		{
+			for (ItemSourcesPack.Source s : e.getSources() == null
+				? java.util.List.<ItemSourcesPack.Source>of() : e.getSources())
+			{
+				if ("make".equals(s.getHow()))
+				{
+					assertTrue(e.getName() + " make row must have materials",
+						s.getMaterials() != null && !s.getMaterials().isEmpty());
+				}
+			}
+		}
+		// Mithril arrow 888: buy/make lead, the weird crate/drop sink
+		ItemSourcesPack.Entry mith = pack.entry(888);
+		java.util.List<String> hows = new java.util.ArrayList<>();
+		for (ItemSourcesPack.Source s : mith.getSources())
+		{
+			hows.add(s.getHow());
+		}
+		assertEquals("shop leads Mithril arrow", "shop", hows.get(0));
+		assertTrue("make is offered before the drop",
+			hows.indexOf("make") >= 0 && hows.indexOf("make") < hows.indexOf("drop"));
+		// Silk 950: no Christmas cracker anywhere; shop leads
+		ItemSourcesPack.Entry silk = pack.entry(950);
+		assertEquals("shop", silk.getSources().get(0).getHow());
+		for (ItemSourcesPack.Source s : silk.getSources())
+		{
+			assertFalse("no Christmas cracker for silk",
+				"Christmas cracker".equals(s.getFrom()));
+		}
+	}
+
 	@Test
 	public void packShapeSane()
 	{
