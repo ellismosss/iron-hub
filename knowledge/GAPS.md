@@ -5,6 +5,13 @@ Notes column (or tell me in chat) and I'll fold it in; resolved rows
 move out on the next harvest.
 
 
+## boat
+
+- [ ] **Crystal extractor** — materials-drift: pack [["cupronickel bar", "5"], ["heart of ithell", "1"], ["ironwood plank", "6"], ["magic stone", "2"]] matches none of the page's 1 recipe versions on 'Crystal extractor'
+- [ ] **Gale catcher** — materials-drift: pack [["adamantite bar", "8"], ["adamantite nails", "16"], ["air rune", "25000"], ["camphor plank", "4"], ["captured wind mote", "1"], ["cupronickel bar", "4"], ["swift albatross feather", "5"]] matches none of the page's 1 recipe versions on 'Gale catcher'
+- [ ] **Keg** — materials-drift: pack [["barrel stand", "1"], ["iron nails", "20"], ["oak plank", "5"]] matches none of the page's 1 recipe versions on 'Keg (facility)'
+- [ ] **Wind catcher** — materials-drift: pack [["air rune", "10000"], ["captured wind mote", "1"], ["lead bar", "4"], ["steel bar", "8"], ["steel nails", "16"], ["teak plank", "4"]] matches none of the page's 1 recipe versions on 'Wind catcher'
+
 ## boosts
 
 - [ ] **(coverage)** — catalog: boosts.json holds 10 boost sources; the wiki Temporary skill boost tables list far more — full harvest required
@@ -17,6 +24,10 @@ move out on the next harvest.
 
 - [ ] **Barronite mace (id 25641)** — source: no clog-pack activity and no wiki drop line matched the name
 - [ ] **Champion's cape (id 21439)** — source: no clog-pack activity and no wiki drop line matched the name
+- [ ] **Golden armadyl special attack (id 24868)** — what-it-does: no equipment effect and no examine matched by id or name
+- [ ] **Golden bandos special attack (id 24869)** — what-it-does: no equipment effect and no examine matched by id or name
+- [ ] **Golden saradomin special attack (id 24870)** — what-it-does: no equipment effect and no examine matched by id or name
+- [ ] **Golden zamorak special attack (id 24871)** — what-it-does: no equipment effect and no examine matched by id or name
 - [ ] **Merchant's paint (id 32110)** — source: no clog-pack activity and no wiki drop line matched the name
 
 ## consumables
@@ -172,6 +183,10 @@ move out on the next harvest.
 - [ ] **Voice potion** — obtain: no recipe, drop tag or store line found on the page
 - [ ] **Xochipaltic rosé** — obtain: no recipe, drop tag or store line found on the page
 
+## diary
+
+- [ ] **Karamja** — task-counts: could not read per-tier task numbering on Karamja Diary
+
 ## equipment
 
 - [ ] **Hat** — stats: page in Category:Head slot items has no Infobox Bonuses — stats unknown
@@ -184,7 +199,33 @@ move out on the next harvest.
 
 ## qol
 
+- [ ] **(catalog definition)** — scope: QoL is a plugin concept: current catalog = Category:Storage items + a curated utility list. Review what belongs — additions are one line in harvest_qol.py CURATED
 - [ ] **(coverage)** — catalog: qol.json holds only 9 unlocks; full QoL catalog needs harvesting (sacks, jewellery, graceful, teleports, tool upgrades, ...)
+- [ ] **Arceuus spellbook** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
+- [ ] **Camulet** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
+- [ ] **Collection bag** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
+- [ ] **Fairy ring** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
+- [ ] **Fremennik sea boots 4** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
+- [ ] **Fur pouch** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
+- [ ] **Gem containers** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
+- [ ] **Gnome glider** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
+- [ ] **Kourend castle teleport** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
+- [ ] **Large pouch** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
+- [ ] **Lunar spellbook** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
+- [ ] **Master scroll book** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
+- [ ] **Quetzal whistle** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
+- [ ] **Rogue equipment** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
+- [ ] **Spirit tree** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
+
+## training
+
+- [ ] **Attack** — methods: no method sections with parseable xp/hr on Pay-to-play Melee training — needs manual extraction
+- [ ] **Defence** — methods: no method sections with parseable xp/hr on Defence training — needs manual extraction
+- [ ] **Fletching** — methods: no method sections with parseable xp/hr on Fletching training — needs manual extraction
+- [ ] **Herblore** — methods: no method sections with parseable xp/hr on Herblore training — needs manual extraction
+- [ ] **Hitpoints** — methods: no method sections with parseable xp/hr on Hitpoints training — needs manual extraction
+- [ ] **Slayer** — methods: no method sections with parseable xp/hr on Slayer training — needs manual extraction
+- [ ] **Strength** — methods: no method sections with parseable xp/hr on Pay-to-play Melee training — needs manual extraction
 
 
-_160 open gaps · generated from knowledge.db_
+_192 open gaps · generated from knowledge.db_
