@@ -122,6 +122,13 @@ class RunwayTab extends JPanel
 
 		OsrsLabel label = new OsrsLabel(name, low ? UiTokens.STATUS_WARNING : OsrsSkin.VALUE, OsrsSkin.font());
 		String tip = name + " — " + hours + " of stock at your usage rate";
+		// a LOW row's hover answers the next question: where to restock from
+		String sources = low && module.itemSources() != null
+			? module.itemSources().sourceLine(runway.itemId) : null;
+		if (sources != null)
+		{
+			tip = "<html>" + tip + "<br>" + sources + "</html>";
+		}
 		label.setToolTipText(tip);
 		row.setToolTipText(tip);
 		row.add(label.leftAligned().squeezable());

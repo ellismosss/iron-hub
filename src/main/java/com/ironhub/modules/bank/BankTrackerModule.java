@@ -253,7 +253,8 @@ public class BankTrackerModule implements IronHubModule
 				this::setBankDisplay,
 				dataPack.load("banked-xp", BankedXpPack.class),
 				dataPack.load("xp-actions", com.ironhub.data.XpActionsPack.class),
-				config.osrsTheme(), this::plannedTargetFor);
+				config.osrsTheme(), this::plannedTargetFor,
+				dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class));
 		}
 		return tab;
 	}

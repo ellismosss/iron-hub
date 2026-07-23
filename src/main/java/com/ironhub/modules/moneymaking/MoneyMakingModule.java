@@ -111,6 +111,14 @@ public class MoneyMakingModule implements IronHubModule
 		});
 	}
 
+	/** Where-from lines for input rows (design/KB-RUNTIME.md); null headless
+	 *  when no DataPack was given. */
+	com.ironhub.data.ItemSourcesPack itemSources()
+	{
+		return dataPack == null ? null
+			: dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class);
+	}
+
 	MoneyMakingPack pack()
 	{
 		if (pack == null)

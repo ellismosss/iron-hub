@@ -154,7 +154,8 @@ public class GearModuleTest
 		GearTab stone = new GearTab(state,
 			progression,
 			new DataPack(new Gson()).load("boosts", com.ironhub.data.BoostsPack.class),
-			null, false, hide -> { }, com.ironhub.ui.osrs.OsrsTheme.STONE, null);
+			null, false, hide -> { }, com.ironhub.ui.osrs.OsrsTheme.STONE, null,
+			new DataPack(new Gson()).load("item-sources", com.ironhub.data.ItemSourcesPack.class));
 		java.awt.image.BufferedImage stoneImage = SwingRender.render(stone);
 		assertTrue(stoneImage.getHeight() > 100);
 		javax.imageio.ImageIO.write(stoneImage, "png",

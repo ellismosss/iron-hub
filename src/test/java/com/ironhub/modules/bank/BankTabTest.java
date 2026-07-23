@@ -33,7 +33,8 @@ public class BankTabTest
 		return new BankTab(state, null, null, null, selection, null,
 			dataPack.load("banked-xp", com.ironhub.data.BankedXpPack.class),
 			dataPack.load("xp-actions", com.ironhub.data.XpActionsPack.class),
-			com.ironhub.ui.osrs.OsrsTheme.STONE, null);
+			com.ironhub.ui.osrs.OsrsTheme.STONE, null,
+			dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class));
 	}
 
 	@Test

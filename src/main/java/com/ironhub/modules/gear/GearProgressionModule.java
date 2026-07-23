@@ -87,7 +87,8 @@ public class GearProgressionModule implements IronHubModule
 					{
 						configManager.setConfiguration(com.ironhub.IronHubConfig.GROUP, "gearHideComplete", hide);
 					}
-				}, config.osrsTheme(), this::planWantsItem);
+				}, config.osrsTheme(), this::planWantsItem,
+				dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class));
 		}
 		return tab;
 	}

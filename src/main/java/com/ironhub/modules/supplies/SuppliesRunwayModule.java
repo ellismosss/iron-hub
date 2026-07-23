@@ -29,14 +29,25 @@ public class SuppliesRunwayModule implements IronHubModule
 	private final AccountState state;
 	private final ItemManager itemManager;
 	private final IronHubConfig config;
+	private final com.ironhub.data.DataPack dataPack;
 	private RunwayTab tab;
 
 	@Inject
-	public SuppliesRunwayModule(AccountState state, ItemManager itemManager, IronHubConfig config)
+	public SuppliesRunwayModule(AccountState state, ItemManager itemManager, IronHubConfig config,
+		com.ironhub.data.DataPack dataPack)
 	{
 		this.state = state;
 		this.itemManager = itemManager;
 		this.config = config;
+		this.dataPack = dataPack;
+	}
+
+	/** Where-from lines for restock rows (design/KB-RUNTIME.md); null in
+	 *  headless tests constructed without a DataPack. */
+	com.ironhub.data.ItemSourcesPack itemSources()
+	{
+		return dataPack == null ? null
+			: dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class);
 	}
 
 	@Override

@@ -117,6 +117,7 @@ public class SlayerOptimizerModule implements IronHubModule
 	private final Notifier notifier;                 // null in unit tests
 
 	private final SlayerTasksPack pack;
+	private final com.ironhub.data.ItemSourcesPack itemSources;
 	private final Map<String, Integer> unlockVarbitIds = new LinkedHashMap<>(); // unlock key -> varbit id
 
 	private final Runnable listener = this::onStateChanged;
@@ -191,6 +192,8 @@ public class SlayerOptimizerModule implements IronHubModule
 				: null;
 		this.pack = dataPack == null ? null
 			: dataPack.load("slayer-tasks", SlayerTasksPack.class);
+		this.itemSources = dataPack == null ? null
+			: dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class);
 		if (pack != null)
 		{
 			for (SlayerTasksPack.Unlock unlock : pack.unlocks)
@@ -335,6 +338,12 @@ public class SlayerOptimizerModule implements IronHubModule
 	SlayerTasksPack pack()
 	{
 		return pack;
+	}
+
+	/** Where-from lines for unowned bring items (design/KB-RUNTIME.md). */
+	com.ironhub.data.ItemSourcesPack itemSources()
+	{
+		return itemSources;
 	}
 
 	int remaining()

@@ -62,11 +62,16 @@ class GearTab extends JPanel
 	/** itemId -> the current goal plan obtains it (null = no planner). */
 	private final java.util.function.IntPredicate plannedItem;
 
+	/** Where-from lines on unobtained tiles (null-tolerant for old tests). */
+	private final com.ironhub.data.ItemSourcesPack itemSources;
+
 	GearTab(AccountState state, GearProgressionPack pack, com.ironhub.data.BoostsPack boostsPack,
 		ItemManager itemManager,
 		boolean hideComplete, java.util.function.Consumer<Boolean> onHideCompleteChange,
-		OsrsTheme theme, java.util.function.IntPredicate plannedItem)
+		OsrsTheme theme, java.util.function.IntPredicate plannedItem,
+		com.ironhub.data.ItemSourcesPack itemSources)
 	{
+		this.itemSources = itemSources;
 		this.plannedItem = plannedItem == null ? id -> false : plannedItem;
 		this.state = state;
 		this.pack = pack;
@@ -320,6 +325,16 @@ class GearTab extends JPanel
 					html.append(" - boostable")
 						.append(sources.isEmpty() ? "" : " with " + String.join(", ", sources));
 				}
+			}
+		}
+		// where the item comes from (the KB projection) — the chart names the
+		// TARGET, this names the road to it
+		if (!obtained && item.getItemId() != null && itemSources != null)
+		{
+			String sources = itemSources.sourceLine(item.getItemId());
+			if (sources != null)
+			{
+				html.append("<br>").append(sources);
 			}
 		}
 		if (!obtained && item.isManual())

@@ -108,6 +108,8 @@ class BankTab extends JPanel
 	/** Pushes (ordered items, readable title) for the collected bank view. */
 	private final java.util.function.BiConsumer<List<Integer>, String> onBankDisplay;
 	private final BankedXpPack bankedXpPack;
+	/** Equip-req lines on the stats tooltip (design/KB-RUNTIME.md). */
+	private final com.ironhub.data.ItemSourcesPack itemSources;
 	private final com.ironhub.data.XpActionsPack xpActionsPack;
 	/** The ids actually rendered by the last addRows (capped) — the SKILL
 	 *  view sends exactly these to the bank. */
@@ -178,8 +180,10 @@ class BankTab extends JPanel
 		net.runelite.client.game.SkillIconManager skillIcons, Set<Integer> selection,
 		java.util.function.BiConsumer<List<Integer>, String> onBankDisplay,
 		BankedXpPack bankedXpPack, com.ironhub.data.XpActionsPack xpActionsPack,
-		OsrsTheme theme, java.util.function.ToIntFunction<String> plannedTarget)
+		OsrsTheme theme, java.util.function.ToIntFunction<String> plannedTarget,
+		com.ironhub.data.ItemSourcesPack itemSources)
 	{
+		this.itemSources = itemSources;
 		this.plannedTarget = plannedTarget;
 		this.state = state;
 		this.itemManager = itemManager;
@@ -1974,6 +1978,25 @@ class BankTab extends JPanel
 				.append(" · Ranged str ").append(sign(e.getRstr()))
 				.append(" · Magic dmg ").append(Math.round(e.getMdmg())).append('%')
 				.append(" · Prayer ").append(sign(e.getPrayer()));
+		}
+		// equip requirements from the KB projection (design/KB-RUNTIME.md):
+		// extracted reqs are the wiki's prose, phrased as such — never a
+		// silent gate
+		java.util.List<String> reqs = itemSources == null ? null : itemSources.reqs(itemId);
+		if (reqs != null && !reqs.isEmpty())
+		{
+			sb.append("<br><br>").append(itemSources.reqsExtracted(itemId)
+				? "The wiki states it requires:" : "Requires:");
+			for (String req : reqs)
+			{
+				com.ironhub.requirements.Requirement parsed =
+					com.ironhub.requirements.Requirements.parse(req);
+				sb.append("<br>- ").append(parsed.describe());
+				if (!parsed.isMet(state))
+				{
+					sb.append(" — not met");
+				}
+			}
 		}
 		return sb.append("</html>").toString();
 	}

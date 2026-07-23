@@ -735,13 +735,21 @@ class GoalsHubTab extends JPanel
 		}
 		// drop rate + source for obtained items (6) — 1/N · Source
 		if (step.action.kind == com.ironhub.engine.Action.Kind.OBTAIN
-			&& step.action.itemId > 0 && module.ratesSource() != null)
+			&& step.action.itemId > 0)
 		{
-			String drop = module.ratesSource().dropLabel(step.action.itemId);
+			String drop = module.ratesSource() == null
+				? null : module.ratesSource().dropLabel(step.action.itemId);
 			if (drop != null)
 			{
 				return drop + (!Double.isNaN(step.spreadHours) && step.spreadHours > step.hours + 0.05
 					? " · up to ~" + compactHours(step.spreadHours) + " unlucky" : "");
+			}
+			// no clog rate — the knowledge base's where-from
+			// (design/KB-RUNTIME.md) beats a bare "Obtain X"
+			String sources = module.itemSources().sourceLine(step.action.itemId);
+			if (sources != null)
+			{
+				return sources;
 			}
 		}
 		if (!Double.isNaN(step.spreadHours) && step.spreadHours > step.hours + 0.05)
@@ -808,7 +816,13 @@ class GoalsHubTab extends JPanel
 			{
 				name = state.itemName(e.getKey());
 			}
-			target.add(materialRow(e.getKey(), e.getValue() + " × " + name));
+			JComponent matRow = materialRow(e.getKey(), e.getValue() + " × " + name);
+			String sources = module.itemSources().sourceLine(e.getKey());
+			if (sources != null)
+			{
+				matRow.setToolTipText(sources);
+			}
+			target.add(matRow);
 			if (++shown >= 12 && mats.size() > shown)
 			{
 				target.add(moreLine("+ " + (mats.size() - shown) + " more"));
@@ -851,6 +865,14 @@ class GoalsHubTab extends JPanel
 			boolean enough = r.missing <= 0;
 			row.add(new OsrsLabel(enough ? "have " + r.needed : "have " + r.banked,
 				enough ? UiTokens.STATUS_OWNED : UiTokens.STATUS_WARNING, OsrsSkin.smallFont()));
+			if (!enough)
+			{
+				String sources = module.itemSources().sourceLine(r.itemId);
+				if (sources != null)
+				{
+					row.setToolTipText(sources);
+				}
+			}
 			cap(row);
 			target.add(row);
 		}

@@ -482,6 +482,14 @@ public class GoalPlannerModule implements IronHubModule
 		return recipesPack;
 	}
 
+	/** The universal item-sources projection (design/KB-RUNTIME.md), for
+	 *  where-from copy on OBTAIN steps + material rows the clog rates can't
+	 *  answer (DataPack.load is memoized — lazy is cheap). */
+	com.ironhub.data.ItemSourcesPack itemSources()
+	{
+		return dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class);
+	}
+
 	/** The boat-upgrades pack (DataPack.load is memoized — lazy is cheap):
 	 *  boat goals resolve their VERIFIED wiki page here, never their display
 	 *  name ("Mithril helm (Sloop)" is not a wiki page — Luke). */

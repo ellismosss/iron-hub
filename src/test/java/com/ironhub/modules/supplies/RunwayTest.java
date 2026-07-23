@@ -114,7 +114,7 @@ public class RunwayTest
 		state.addGoalSeed(com.ironhub.state.GoalSeeds.supply(SHARK, "Shark", 200)); // × glyph
 		SuppliesRunwayModule module = new SuppliesRunwayModule(state, null, new IronHubConfig()
 		{
-		});
+		}, null);
 		module.startUp();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);

@@ -540,6 +540,16 @@ class MoneyMakingTab extends JPanel
 		String text = messy ? in.name : in.qty + "× " + in.name;
 		r.add(OsrsLabel.wrapped(text, 190, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
 		r.add(Box.createHorizontalGlue());
+		// where this input comes from (the KB projection) — the row names
+		// WHAT the method consumes, the hover names where an iron gets it
+		if (in.itemId > 0 && module.itemSources() != null)
+		{
+			String sources = module.itemSources().sourceLine(in.itemId);
+			if (sources != null)
+			{
+				r.setToolTipText(sources);
+			}
+		}
 		cap(r);
 		return r;
 	}

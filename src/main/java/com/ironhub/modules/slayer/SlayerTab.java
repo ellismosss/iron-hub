@@ -389,11 +389,30 @@ class SlayerTab extends JPanel
 		Color color = owned ? OsrsSkin.VALUE
 			: required ? UiTokens.STATUS_WARNING : OsrsSkin.FAINT;
 		OsrsLabel name = new OsrsLabel(label, color, OsrsSkin.font()).leftAligned().squeezable();
-		name.setToolTipText(group.size() > 1
+		String tip = group.size() > 1
 			? (owned ? "Any one of these works — you own one"
 				: "Any one of these works — you own none")
 			: group.get(0).id == null ? label
-			: owned ? "Owned" : required ? "Required — you own none" : "Suggested — you own none");
+			: owned ? "Owned" : required ? "Required — you own none" : "Suggested — you own none";
+		if (!owned)
+		{
+			// where an unowned bring item comes from (the KB projection)
+			String sources = null;
+			for (SlayerTasksPack.BringItem item : group)
+			{
+				sources = item.id == null || module.itemSources() == null
+					? null : module.itemSources().sourceLine(item.id);
+				if (sources != null)
+				{
+					break;
+				}
+			}
+			if (sources != null)
+			{
+				tip = "<html>" + tip + "<br>" + sources + "</html>";
+			}
+		}
+		name.setToolTipText(tip);
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
 		row.add(new OsrsLabel(required ? "required" : "suggested",
