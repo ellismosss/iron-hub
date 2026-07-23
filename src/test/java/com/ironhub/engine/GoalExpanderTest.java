@@ -374,6 +374,31 @@ public class GoalExpanderTest
 		assertEquals("Obtain 100 Golden nuggets", nuggets.name);
 	}
 
+	/**
+	 * A batch recipe scales to the needed count: 75 Mithril arrows from a
+	 * 15-per-batch recipe (15 headless + 15 tips) needs 5 batches = 75 + 75,
+	 * not the raw 15 + 15 (Luke, 2026-07-24). The gather sub-steps must ask
+	 * for the scaled quantities.
+	 */
+	@Test
+	public void batchRecipesScaleToTheNeededCount()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.stat(state, Skill.FLETCHING, 45, Experience.getXpForLevel(45));
+		// choose to MAKE the arrows (shop leads by default) so the recipe
+		// materials expand
+		ActionDag dag = GoalExpander.expand(List.of(
+			goal("g", "item:888:75:Mithril arrow")), state, packs(),
+			java.util.Map.of(888, "make|15 x Headless arrow + 15 x Mithril arrowtips"));
+		// headless arrow id 53, mithril arrowtips id 42 — scaled to 75 each
+		Action headless = dag.get("obtain:item53");
+		Action tips = dag.get("obtain:item42");
+		assertNotNull("headless arrow gather step: " + dag.topological(), headless);
+		assertNotNull("arrowtip gather step", tips);
+		assertEquals("75 headless arrows, not 15", 75, headless.obtainQty);
+		assertEquals("75 arrowtips, not 15", 75, tips.obtainQty);
+	}
+
 	/** Picking one branch of an item's any: gate via a PATH pref steers the
 	 *  plan — choosing Crafting for an Amulet of glory drops Hunter (Luke,
 	 *  2026-07-24: it stayed because the KB-source menu didn't map to the

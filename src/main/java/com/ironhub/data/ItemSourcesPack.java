@@ -53,6 +53,17 @@ public class ItemSourcesPack
 		 *  row each instead of one clumped sentence, and the planner turns
 		 *  them into gather steps. */
 		private List<Material> materials;
+		/** How many the recipe makes per batch (absent = 1). Making N of the
+		 *  item needs ceil(N / outputQty) batches, so the materials scale —
+		 *  15 arrows from 15+15 needs 5 batches for 75 (Luke, 2026-07-24). */
+		private Integer outputQty;
+
+		/** Batches (and thus the material multiplier) to make {@code needed}. */
+		public int batchesFor(int needed)
+		{
+			int batch = outputQty == null || outputQty < 1 ? 1 : outputQty;
+			return Math.max(1, (needed + batch - 1) / batch);
+		}
 
 		/** "Drop: Abyssal demon 1/512" / "Buy: Slayer Rewards (750 points)" /
 		 *  "Make: Amethyst (Crafting 85)" / "Open: Dragon impling jar 1/19". */

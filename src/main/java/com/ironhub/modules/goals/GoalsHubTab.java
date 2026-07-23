@@ -904,7 +904,7 @@ class GoalsHubTab extends JPanel
 				shown == 0 && options.size() > 1, step));
 			// materials always render as their own sprite rows — the recipe
 			// as one sentence was the unreadable clump (Luke)
-			addMaterialRows(s, block);
+			addMaterialRows(s, step, block);
 			if (++shown >= 3)
 			{
 				break;
@@ -973,12 +973,16 @@ class GoalsHubTab extends JPanel
 	}
 
 	/** The materials of a chosen "make" method, one sprite row each. */
-	private void addMaterialRows(com.ironhub.data.ItemSourcesPack.Source s, JPanel block)
+	private void addMaterialRows(com.ironhub.data.ItemSourcesPack.Source s, Plan.Step step, JPanel block)
 	{
 		if (s.getMaterials() == null)
 		{
 			return;
 		}
+		// scale a batch recipe to the count the step needs: making 75 arrows
+		// from a 15-per-batch recipe needs 75 headless + 75 tips, not 15 + 15
+		// (Luke, 2026-07-24)
+		int batches = s.batchesFor(Math.max(1, step.action.obtainQty));
 		int rows = 0;
 		for (com.ironhub.data.ItemSourcesPack.Material m : s.getMaterials())
 		{
@@ -987,6 +991,7 @@ class GoalsHubTab extends JPanel
 				block.add(moreLine("+ " + (s.getMaterials().size() - 6) + " more materials"));
 				break;
 			}
+			int need = m.getQty() * batches;
 			JPanel r = row();
 			int indent = UiTokens.STATUS_GLYPH_SIZE + UiTokens.PAD_TIGHT * 2;
 			r.setBorder(new EmptyBorder(0, indent, 0, 0));
@@ -1000,13 +1005,13 @@ class GoalsHubTab extends JPanel
 				}
 			}
 			int owned = m.getItemId() > 0 ? state.canonicalStock(m.getItemId()) : -1;
-			boolean enough = owned >= m.getQty();
-			r.add(new OsrsLabel((m.getQty() > 1 ? m.getQty() + " × " : "") + m.getName(),
+			boolean enough = owned >= need;
+			r.add(new OsrsLabel((need > 1 ? need + " × " : "") + m.getName(),
 				OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned().squeezable());
 			r.add(Box.createHorizontalGlue());
 			if (owned >= 0)
 			{
-				r.add(new OsrsLabel(enough ? "have " + m.getQty() : owned + "/" + m.getQty(),
+				r.add(new OsrsLabel(enough ? "have " + need : owned + "/" + need,
 					enough ? UiTokens.STATUS_OWNED : UiTokens.STATUS_WARNING,
 					OsrsSkin.smallFont()));
 			}

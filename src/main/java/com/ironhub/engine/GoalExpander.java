@@ -171,7 +171,7 @@ public class GoalExpander
 				// currency/material sub-steps.
 				String obtainLabel = nm == null ? null
 					: qty > 1 ? "Obtain " + String.format(Locale.ROOT, "%,d", qty) + " " + nm : nm;
-				addObtain(Integer.parseInt(parts[1]), obtainLabel, goalId, out);
+				addObtain(Integer.parseInt(parts[1]), qty, obtainLabel, goalId, out);
 				break;
 			}
 			case "varbit":
@@ -333,18 +333,25 @@ public class GoalExpander
 
 	private void addObtain(int itemId, String label, String goalId, Set<String> out)
 	{
+		addObtain(itemId, 1, label, goalId, out);
+	}
+
+	private void addObtain(int itemId, int qty, String label, String goalId, Set<String> out)
+	{
 		GearProgressionPack.Item gearItem = packs.gearItem(itemId);
 		String id = gearItem != null ? "obtain:" + gearItem.slug() : "obtain:item" + itemId;
 		Action existing = dag.get(id);
 		if (existing != null)
 		{
 			existing.neededBy.add(goalId);
+			existing.obtainQty = Math.max(existing.obtainQty, qty);
 			out.add(id);
 			return;
 		}
 		Action node = dag.getOrAdd(new Action(id, Action.Kind.OBTAIN,
 			gearItem != null ? gearItem.getName() : obtainName(itemId, label)));
 		node.itemId = itemId;
+		node.obtainQty = Math.max(1, qty);
 		if (gearItem != null)
 		{
 			node.materials = gearItem.getMaterials();
@@ -365,7 +372,7 @@ public class GoalExpander
 		// recipe alongside it demanded both routes at once. There, the KB
 		// contributes only the orthogonal part: what the purchase costs.
 		boolean curatedChoice = gearOffersChoice(gearItem);
-		for (String req : kbObtainReqs(itemId, gearItem == null, curatedChoice))
+		for (String req : kbObtainReqs(itemId, node.obtainQty, gearItem == null, curatedChoice))
 		{
 			for (String dep : expandRequirement(req, goalId, null, itemId))
 			{
@@ -556,7 +563,8 @@ public class GoalExpander
 		return false;
 	}
 
-	private List<String> kbObtainReqs(int itemId, boolean includeEquipReqs, boolean currencyOnly)
+	private List<String> kbObtainReqs(int itemId, int neededQty, boolean includeEquipReqs,
+		boolean currencyOnly)
 	{
 		com.ironhub.data.ItemSourcesPack pack = packs.itemSources;
 		com.ironhub.data.ItemSourcesPack.Entry entry = pack == null ? null : pack.entry(itemId);
@@ -616,11 +624,16 @@ public class GoalExpander
 		}
 		if (chosen.getMaterials() != null)
 		{
+			// scale a batch recipe to the needed count: 75 arrows from a
+			// 15-per-batch recipe needs 5 batches = 75 headless + 75 tips
+			// (Luke, 2026-07-24), not the raw 15 + 15
+			int batches = chosen.batchesFor(neededQty);
 			for (com.ironhub.data.ItemSourcesPack.Material m : chosen.getMaterials())
 			{
-				if (m.req() != null && m.getItemId() != itemId)
+				if (m.getItemId() > 0 && m.getItemId() != itemId)
 				{
-					reqs.add(m.req());
+					reqs.add("item:" + m.getItemId() + ":" + (m.getQty() * batches)
+						+ ":" + m.getName());
 				}
 			}
 		}

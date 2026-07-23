@@ -39,6 +39,9 @@ public class Action
 
 	// OBTAIN / MANUAL
 	public int itemId;
+	/** How many of the item this OBTAIN needs (default 1) — scales a make
+	 *  recipe's materials to the required count (Luke, 2026-07-24). */
+	public int obtainQty = 1;
 	/** Unlock flag that proves a manual step done (goalstep/diary/gear key). */
 	public String unlockKey;
 	/** Free-text for manual steps (the plan shows a tick-box). */

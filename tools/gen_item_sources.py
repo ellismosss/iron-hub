@@ -211,7 +211,9 @@ def make_rows(rows, name, ids_by_name=None):
     bare '(see recipe)'. Imbue-style recipes (no skill gate, point-cost
     materials) surface as their own honest options."""
     variants = []
-    for materials_json, skills_json in rows:
+    for row in rows:
+        materials_json, skills_json = row[0], row[1]
+        output_qty = row[2] if len(row) > 2 else None
         try:
             materials = json.loads(materials_json) if materials_json else []
         except ValueError:
@@ -257,6 +259,16 @@ def make_rows(rows, name, ids_by_name=None):
             entry["detail"] = " + ".join(parts)
         if mats:
             entry["materials"] = mats
+        # the batch OUTPUT count: the materials make this many at once, so a
+        # step needing N scales the materials by ceil(N / outputQty) — a
+        # recipe of 15 arrows from 15+15 needs 5 batches for 75 (Luke,
+        # 2026-07-24). Only recorded when > 1 (1 is the harmless default).
+        try:
+            oq = int(str(output_qty).replace(",", "")) if output_qty else 1
+        except (TypeError, ValueError):
+            oq = 1
+        if oq > 1:
+            entry["outputQty"] = oq
         detail = entry.get("detail")
         # note↔item conversions are bank mechanics, not recipes
         if detail in (name, name + " note"):
@@ -360,9 +372,9 @@ def main():
             continue
         shops.setdefault(item, []).append((shop, price, currency))
     recipes = {}
-    for output, materials, skills in conn.execute(
-            "SELECT output, materials, skills FROM recipes"):
-        recipes.setdefault(output, []).append((materials, skills))
+    for output, output_qty, materials, skills in conn.execute(
+            "SELECT output, output_qty, materials, skills FROM recipes"):
+        recipes.setdefault(output, []).append((materials, skills, output_qty))
     rewards = {}
     for item, source in conn.execute("SELECT item, source FROM rewards"):
         rewards.setdefault(item, []).append(source)
