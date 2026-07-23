@@ -748,3 +748,45 @@ autocast, is WRONG (it is a 5-entry item map, unrelated).
 Attack-type icons: the wiki's own equipment-infobox set (White dagger /
 White scimitar / White warhammer / Ranged icon / Magic icon), fetched by
 the generator into data/icons/osrs/styles/.
+
+## The wiki as a data source (tools/knowledge/, all gen_* wiki generators)
+
+Hard-won source knowledge for ANY feature that harvests the OSRS wiki:
+
+- **The Bucket API is the structured ground truth** (`action=bucket`, the
+  same store the wiki's own tables render from — query syntax
+  `bucket('name').select(...).offset(N).limit(5000).run()`). 46 buckets
+  exist; the load-bearing ones: `dropsline` (every drop line in the game),
+  `storeline` (every shop), `collection_log_source` (per-slot sources +
+  rates), `infobox_item` (every item: ids, examine, quest flag,
+  removal_date), `infobox_monster` (full bestiary incl. elemental weakness
+  %), `recipe` (every production, materials + quantities in
+  `production_json`), `combat_achievement`, `couriertaskline`/
+  `bountytaskline` (Sailing port tasks — keyed by the SLOT-VARBIT id space,
+  NOT the DBRow ids), `varbit` (the wiki's varbit documentation). Each
+  bucket's schema is its `Bucket:<Name>` page (JSON). `mine` and
+  `ge_index_header` are defined but EMPTY. Prefer buckets over wikitext
+  parsing — migrating recipes.json fixed three real errors the template
+  parse had invented. Gaps in bucket coverage exist though: POH
+  furniture/flatpack recipes are NOT in the recipe bucket (parse those
+  pages' {{Recipe}} directly).
+- **Bulk page fetches**: `generator=categorymembers` with
+  `prop=revisions&rvprop=content` returns 50 FULL pages per request — a
+  4,000-page category is ~80 requests. Loop until an EMPTY batch (advance
+  by actual batch size) so server-side caps can never silently truncate.
+- **Equip requirements have no structured field anywhere** — not in
+  infoboxes (zero `|req=` across all 4,242 equipment pages), not in any
+  bucket, not in the game cache (wear reqs are server-side). They live in
+  patterned lead-sentence PROSE ("requires 75 Attack and 90 Strength to
+  wield") — `tools/knowledge/extract_equip_reqs.py` extracts them,
+  validation-gated (≥90% agreement vs the audited gear-progression chains
+  required before it writes; scores 97.9%).
+- **Potion doses**: mixing yields a (3); Amulet of chemistry = 5% chance of
+  a (4), charged Alchemist's amulet = 15%; Sanfew serum is the exception
+  (the dose carries from the input super restore). Partial doses have no
+  obtainment "source" — never model drink-down as one (Luke).
+- **Generator hygiene** (bitten three times): cache keys MUST encode the
+  query/caller, not just a batch index — a changed query reading a stale
+  cache silently returns the wrong pages. And rerunnable joins must strip
+  their OWN stale flags before re-judging.
+

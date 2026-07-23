@@ -35,6 +35,7 @@ flags/gaps before re-judging (a re-detected gap reopens; `wont-fix` sticks).
 |---|---|---|
 | `import_packs.py` | the plugin's own data packs | seeds tables with provenance `pack:*` |
 | `harvest_equipment.py` | 12 wiki equipment-slot categories (bulk API) | every wearable: full versioned stats, ids, examine, effects prose, recipes |
+| `extract_equip_reqs.py` | equipment page PROSE (requirement sentences) | equip reqs for 1,135 items — validated 97.9% against the 189 audited chains before writing |
 | `harvest_poh.py` | Category:Furniture | level, room, xp, {{Recipe}} materials, flatpack |
 | `harvest_boosts.py` | Temporary skill boost + 24 subpages | every boost: amount, visibility, circumstances |
 | `harvest_ca.py` | `combat_achievement` bucket + tier pages | all CA tasks + per-tier Items/Skills/Quests reqs |
@@ -48,16 +49,23 @@ flags/gaps before re-judging (a re-detected gap reopens; `wont-fix` sticks).
 | `harvest_recipes.py` | `recipe` bucket | 7.4k productions + the derived **materials** table (obtained-from / used-in with quantities; dose, degraded and quest-internal variants classified on-row) |
 | `harvest_buckets.py` | 17 raw buckets, schema-driven | `bucket_*` tables: monsters, scenery, loclines, spells, shops, exchange, varbits, sea charts, port tasks, recommended equipment, … |
 | `join_obtainment.py` / `join_effects.py` | (joins) | attaches drops/shops/recipes/rewards + clog what-it-does |
+| `apply_curated.py` | curated-sources.json (Luke's verified answer key) | clog holdouts, named materials, pattern classes, spell joins, wont-fixes |
 | `verify_packs.py` / `verify_port_tasks.py` | (verification) | pack-vs-wiki drift, flagged never overwritten |
 | `report.py` | (derives) | html/ dashboard + GAPS.md |
 
-## Packs generated FROM these sources (Luke-approved, 2026-07-21)
+## Packs generated FROM these sources (Luke-approved)
+
+- **recipes.json** — `tools/gen_recipes.py` reads the **recipe bucket**
+  (2026-07-22; was Template:Recipe wikitext crawling — the migration fixed
+  3 real errors and dropped 5 parse artifacts). Flatpacks supplement from
+  the Furniture/Flatpacks category pages; untradeable unf-potions
+  chain-collapse to raw materials.
 
 - **boosts.json** — `tools/gen_boosts.py`: 194 boost sources (was 10) from the
   wiki subpages; 10 hand-audited gates kept verbatim, harvested rows gate on
   owning the source item; non-item boosts (areas, percent-of-level specials,
   minigame-internal potions) are skipped with a log line and stay KB-side.
-- **qol.json** — `tools/gen_qol.py`: 92 unlocks (was 9); the original 9 kept
+- **qol.json** — `tools/gen_qol.py`: 98 unlocks (was 9); the original 9 kept
   verbatim (ids are load-bearing for saved goals); non-item unlocks (fairy
   rings, spirit trees) stay KB-side.
 - **port-tasks.json** — `tools/gen_port_tasks.py` now cross-corrects the
@@ -74,9 +82,14 @@ flags/gaps before re-judging (a re-detected gap reopens; `wont-fix` sticks).
   5% chance of a (4), a charged Alchemist's amulet 15%; other doses come from
   use or decanting. The materials rows carry this note; partial doses are
   never treated as having an obtainment "source" of their own.
-- **Equip requirements are not machine-readable on the wiki** — the 189
-  gear-progression items carry audited req chains; the rest are flagged
-  `reqs-unverified` until curated.
+- **Equip requirements have NO structured wiki field** (all 4,242 pages
+  surveyed: zero `|req=` params, zero templates, no bucket field) — but the
+  prose is patterned, so `extract_equip_reqs.py` machine-extracts them from
+  requirement sentences, gated on ≥90% validation against the 189 audited
+  chains (currently 97.9%). Flags: `reqs-extracted` (prose-sourced),
+  `reqs-none-stated` (cosmetics — genuinely none), `req-conflict` gaps where
+  extraction disagrees with the audited pack (several look like audit
+  coarseness — review before trusting either).
 - `mine` and `ge_index_header` buckets exist wiki-side but are EMPTY —
   rechecked on every rebuild.
 - Player-specific state (what YOU own/built) stays live in the plugin via
