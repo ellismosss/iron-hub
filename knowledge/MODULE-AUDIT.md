@@ -70,3 +70,56 @@ regenerations). Ordered by how badly the module under-covers.
   No UI consumer wired yet — say where you want it surfaced.
 - **`mine` and `ge_index_header` are EMPTY wiki-side** (defined, unpopulated)
   — gaps recorded; recheck on future rebuilds.
+
+## Pack provenance audit — bucket-first (Luke's directive, 2026-07-22)
+
+Every pack reviewed for whether it can generate from the wiki's structured
+bucket stores instead of fragile wikitext/reference parsing.
+
+**Migrated / already bucket-sourced:**
+- **recipes.json** — MIGRATED to the recipe bucket this pass (was
+  Template:Recipe wikitext crawling). The diff proved the point: 3 real
+  errors fixed ("Runite bar from Rune platelegs" was a smithing-table
+  misparse; Weapon poison was missing its dragon scale dust; Mithril
+  crossbow now assembles from (u)+string), 36 recipes gained, and the only
+  5 "losses" were old parse artifacts (Bucket made from Clay!). Untradeable
+  intermediates (coconut-milk unf potions) chain-collapse to raw materials;
+  flatpacks supplement from the Furniture/Flatpacks category pages (the
+  bucket does not cover them).
+- **slayer-tasks.json** monster stats — infobox_monster bucket (since gen).
+- **port-tasks.json** XP — cross-corrected from the courier/bounty buckets.
+- **recommended-equipment.json** — generated from its bucket.
+- **KB-side**: drops (dropsline), shops (storeline), clog sources
+  (collection_log_source), items (infobox_item), CA (combat_achievement).
+
+**Evaluated, migration declined (reasons):**
+- **money-making.json** — the mmg bucket carries only value/recurring + a
+  json blob; the current generator already reads the same wiki tables the
+  bucket feeds and is verified complete against it (0 methods missing).
+  Nothing to gain; kept, with the bucket as the freshness verifier.
+- **boat-upgrades.json** — reference-source parse, wiki-verified at 0 drift
+  (tool-tolerant); the ship-part bucket is thin (ids/images only).
+- **boosts.json / qol.json** — no bucket exists for boost tables or QoL;
+  they generate from the wiki's own pages (last pass).
+- **quests.json** — OQG ordering is curated (not wiki data); the quest
+  bucket's requirements/ironman_concerns noted as an enrichment candidate.
+
+**Cannot be bucket-sourced (detection/cache/reference data):**
+diaries (QuestHelper varp joins), weapon-styles (clientscript literals),
+xp-actions (calculator Lua), banked-xp/clog activity rates/bank-storage/
+farm-runs/dailies/hunter-rumours (ported reference plugins + varbits),
+gear-progression (a curated LADDER by design), item-names (constants).
+
+## Equip requirements — machine-sourced (Luke's directive, 2026-07-22)
+
+CONFIRMED not machine-readable as structured data: all 4,242 equipment
+pages surveyed — zero |req= params, zero requirement templates, no bucket
+field. BUT 1,000+ pages state them in patterned prose, so
+tools/knowledge/extract_equip_reqs.py extracts them from requirement
+sentences in each page's lead (skills + validated quest links),
+**validated at 97.9% agreement against the 189 hand-audited chains**
+before landing. Result: 189 audited + 1,135 prose-extracted
+(reqs-extracted flag) + 2,968 stating none (cosmetics). The 10
+validation conflicts are gap-listed as req-conflict — several look like
+the AUDITED pack being coarse (Eternal boots 60 vs the wiki's 75), worth
+your eye before I fix gear-progression.

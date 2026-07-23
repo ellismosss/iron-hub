@@ -13,6 +13,7 @@ import kb
 STEPS = [
     "import_packs.py",
     "harvest_equipment.py",
+    "extract_equip_reqs.py",
     "harvest_poh.py",
     "harvest_boosts.py",
     "harvest_ca.py",

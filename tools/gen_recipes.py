@@ -3,8 +3,9 @@
 supply-goal component-material breakdown (a supply Route decomposes to its raw
 materials in the Goals hub).
 
-Source: the OSRS wiki's {{Recipe}} templates (every mainspace page that
-transcludes Template:Recipe), joined to the official GE price-guide item
+Source: the OSRS wiki's RECIPE BUCKET (action=bucket, the structured store
+the {{Recipe}} templates feed — Luke's 2026-07-22 directive: prefer bucket
+sources over wikitext parsing), joined to the official GE price-guide item
 mapping (https://prices.runescape.wiki/api/v1/osrs/mapping) for display
 name -> item id. Recipes whose output or any material is not a tradeable
 mapped item are skipped (logged) — the decomposer treats an item with no
@@ -64,28 +65,57 @@ def ge_mapping():
     return by_name
 
 
-def all_recipe_pages():
-    pages, cont = [], None
+def bucket_productions():
+    """Every production in the wiki's recipe bucket as
+    (output_name, output_qty, [(material, qty)]) tuples — the same shape
+    parse_recipes produced from wikitext."""
+    rows, offset = [], 0
     while True:
-        url = (WIKI + "?action=query&list=embeddedin&eititle=Template:Recipe"
-               "&eilimit=500&einamespace=0&format=json")
-        if cont:
-            url += "&eicontinue=" + urllib.parse.quote(cont)
-        d = json.loads(http(url, f"pages_{cont or 'start'}.json"))
-        pages += [e["title"] for e in d["query"]["embeddedin"]]
-        cont = d.get("continue", {}).get("eicontinue")
-        if not cont:
+        q = ("bucket('recipe').select('page_name','production_json')"
+             f".offset({offset}).limit(5000).run()")
+        url = WIKI + "?action=bucket&format=json&query=" + urllib.parse.quote(q)
+        d = json.loads(http(url, f"bucket_{offset}.json"))
+        batch = d.get("bucket", [])
+        rows.extend(batch)
+        if not batch:
             break
-    return pages
+        offset += len(batch)
+    if len(rows) < 5000:
+        raise SystemExit(f"suspiciously few bucket recipes: {len(rows)}")
+    out = []
+    for row in rows:
+        try:
+            prod = json.loads(row.get("production_json") or "{}")
+        except json.JSONDecodeError:
+            continue
+        mats = []
+        for m in prod.get("materials") or []:
+            name = clean_name(m.get("name") or "")
+            if not name or name in SKIP_MATERIALS:
+                continue
+            mats.append((name, parse_int(m.get("quantity"))))
+        if not mats:
+            continue
+        output = prod.get("output") or {}
+        if isinstance(output, str):
+            output = {"name": output}
+        oname = clean_name(output.get("name") or "")
+        if not oname:
+            continue
+        out.append((oname, parse_int(output.get("quantity")), mats))
+    return out
 
 
-def fetch_wikitext(titles):
+def fetch_wikitext(titles, prefix="wt"):
+    # prefix keys the cache per CALLER — reusing "wt_00000" across different
+    # title sets silently returns the wrong pages (the flatpack supplement
+    # fetched the old crawl's batches before this)
     out = {}
     for i in range(0, len(titles), 50):
         batch = titles[i:i + 50]
         url = (WIKI + "?action=query&prop=revisions&rvprop=content&rvslots=main"
                "&format=json&titles=" + urllib.parse.quote("|".join(batch)))
-        d = json.loads(http(url, f"wt_{i:05d}.json"))
+        d = json.loads(http(url, f"{prefix}_{i:05d}.json"))
         for pg in d.get("query", {}).get("pages", {}).values():
             if "revisions" in pg:
                 out[pg["title"]] = pg["revisions"][0]["slots"]["main"]["*"]
@@ -164,7 +194,9 @@ def parse_int(raw, default=1):
     if raw is None:
         return default
     m = re.match(r"\s*([0-9][0-9,]*)", str(raw))
-    return int(m.group(1).replace(",", "")) if m else default
+    # clamp: a handful of bucket rows carry quantity "0" (cost rows) — the
+    # schema demands >=1 and zero-quantity materials are meaningless here
+    return max(1, int(m.group(1).replace(",", ""))) if m else default
 
 
 def parse_recipes(block):
@@ -203,23 +235,69 @@ def parse_recipes(block):
 
 
 def main():
-    print("Fetching Template:Recipe transclusions…", file=sys.stderr)
-    pages = all_recipe_pages()
-    print(f"  {len(pages)} pages", file=sys.stderr)
-    print("Fetching wikitext…", file=sys.stderr)
-    wt = fetch_wikitext(pages)
-    print(f"  {len(wt)} pages with content", file=sys.stderr)
+    print("Fetching the wiki recipe bucket…", file=sys.stderr)
+    productions = bucket_productions()
+    print(f"  {len(productions)} productions", file=sys.stderr)
     mapping = ge_mapping()
     print(f"  {len(mapping)} mapped tradeable items", file=sys.stderr)
 
+    # flatpack supplement: the bucket does NOT cover POH furniture pages —
+    # a flatpack is built from the same materials as its furniture, so the
+    # furniture-page recipes emit "<name> (flatpack)" productions wherever
+    # that flatpack is a real (mapped) item
+    flat_n = 0
+    furniture_titles = []
+    for category in ("Furniture", "Flatpacks"):
+        cont = None
+        while True:
+            url = (WIKI + "?action=query&list=categorymembers&cmtitle=Category:"
+                   + category + "&cmnamespace=0&cmlimit=500&format=json")
+            if cont:
+                url += "&cmcontinue=" + urllib.parse.quote(cont)
+            d = json.loads(http(url, f"cat_{category}_{cont or 'start'}.json"))
+            furniture_titles += [m["title"] for m in d["query"]["categorymembers"]]
+            cont = d.get("continue", {}).get("cmcontinue")
+            if not cont:
+                break
+    for title, text in fetch_wikitext(furniture_titles, prefix="furn").items():
+        for block in find_templates(text, "Recipe"):
+            for oname, oqty, mats in parse_recipes(block):
+                # furniture recipes list the flatpack as its OWN output row
+                # (output2 = "Bookcase (flatpack)") — feed every output
+                # through; the mapping filter below drops the unbuyable
+                # furniture outputs themselves
+                productions.append((oname, oqty, mats))
+                flat_n += 1
+    print(f"  +{flat_n} furniture-page productions (flatpacks ride output2)",
+          file=sys.stderr)
+
+    # chain-collapse: untradeable intermediates (coconut-milk unf potions)
+    # are unmapped and would drop the whole chain — substitute their own
+    # bucket materials instead (bounded depth), keeping raw-leaf honesty
+    by_output = {}
+    for oname, oqty, mats in productions:
+        by_output.setdefault(oname, (oqty, mats))
+
+    def collapse(mats, depth=0):
+        out = []
+        for name, qty in mats:
+            if name in mapping or depth >= 3 or name not in by_output:
+                out.append((name, qty))
+                continue
+            sub_qty, sub_mats = by_output[name]
+            for sub_name, sq in collapse(sub_mats, depth + 1):
+                out.append((sub_name, sq * qty))
+        return out
+
+    productions = [(oname, oqty, collapse(mats)) for oname, oqty, mats in productions]
+
     # output id -> list of candidate recipes (materials resolved to ids)
     candidates = {}
-    stats = {"blocks": 0, "recipes": 0, "skipped_unresolved": 0, "self_loop": 0}
+    stats = {"blocks": len(productions), "recipes": 0, "skipped_unresolved": 0, "self_loop": 0}
     unresolved = {}
-    for title, text in wt.items():
-        for block in find_templates(text, "Recipe"):
-            stats["blocks"] += 1
-            for oname, oqty, mats in parse_recipes(block):
+    if True:
+        if True:
+            for oname, oqty, mats in productions:
                 stats["recipes"] += 1
                 oid = mapping.get(oname)
                 if oid is None:
@@ -254,7 +332,7 @@ def main():
 
     out = {
         "$schema": "./schemas/recipes.schema.json",
-        "source": "OSRS wiki Template:Recipe + prices.runescape.wiki GE mapping",
+        "source": "OSRS wiki recipe bucket + prices.runescape.wiki GE mapping",
         "generated": time.strftime("%Y-%m-%d", time.gmtime()),
         "version": 1,
         "recipes": recipes,

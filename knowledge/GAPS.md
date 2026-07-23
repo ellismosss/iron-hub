@@ -97,6 +97,17 @@ move out on the next harvest.
 - [ ] **Voice potion** — obtain: no recipe, drop tag or store line found on the page
 - [ ] **Xochipaltic rosé** — obtain: no recipe, drop tag or store line found on the page
 
+## equipment
+
+- [ ] **Adamant scimitar** — req-conflict: prose extraction disagrees with the audited gear pack: Adamant scimitar: extracted extra Attack 30
+- [ ] **Ancient staff** — req-conflict: prose extraction disagrees with the audited gear pack: Ancient staff: extracted extra Strength 50
+- [ ] **Dragon scimitar** — req-conflict: prose extraction disagrees with the audited gear pack: Dragon scimitar: extracted extra Magic 64
+- [ ] **Eternal boots** — req-conflict: prose extraction disagrees with the audited gear pack: Eternal boots: Magic audited 60 vs extracted 75
+- [ ] **Hunters' sunlight crossbow** — req-conflict: prose extraction disagrees with the audited gear pack: Hunters' sunlight crossbow: Hunter audited 72 vs extracted 50
+- [ ] **Mystic robe top** — req-conflict: prose extraction disagrees with the audited gear pack: Mystic robe top: Magic audited 66 vs extracted 40
+- [ ] **Pharaoh's sceptre** — req-conflict: prose extraction disagrees with the audited gear pack: Pharaoh's sceptre: extracted extra Magic 30
+- [ ] **Snakeskin body** — req-conflict: prose extraction disagrees with the audited gear pack: Snakeskin body: extracted extra Defence 30
+
 ## materials
 
 - [ ] **Amulet of glory(4)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
@@ -292,4 +303,4 @@ move out on the next harvest.
 - [ ] **(coverage)** — catalog: qol.json holds only 9 unlocks; full QoL catalog needs harvesting (sacks, jewellery, graceful, teleports, tool upgrades, ...)
 
 
-_262 open gaps · generated from knowledge.db_
+_270 open gaps · generated from knowledge.db_
