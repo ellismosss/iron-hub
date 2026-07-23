@@ -361,7 +361,12 @@ public class RouterTest
 		StateFixture.bank(state, java.util.Map.of(
 			net.runelite.api.gameval.ItemID.PLANK_TEAK, 300));
 
-		Plan plan = plan(state, PlanConstraints.none(), goal("g", "skillb:Construction:72"));
+		// pin the method under test: the wiki-merged ladder (2026-07-23) has
+		// faster Construction methods (hull parts) without modeled materials
+		// — this test is about RESOURCE counting, which needs teak benches
+		PlanConstraints constraints = PlanConstraints.none();
+		constraints.preferredMethods.put("Construction", "construction_teak_benches");
+		Plan plan = plan(state, constraints, goal("g", "skillb:Construction:72"));
 		Plan.Step step = plan.steps.get(indexOf(plan, "train:Construction:72"));
 		assertEquals("Teak benches + demon butler", step.methodName);
 		assertEquals(1, step.resources.size());

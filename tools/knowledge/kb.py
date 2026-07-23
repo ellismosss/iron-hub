@@ -374,9 +374,13 @@ CREATE TABLE IF NOT EXISTS qol_items(
 );
 CREATE TABLE IF NOT EXISTS training_methods(
     skill TEXT, method TEXT,
-    xp_hr TEXT, reqs TEXT, inputs TEXT, outputs TEXT, notes TEXT,
+    level INTEGER DEFAULT 0,    -- start level (0 = unstated)
+    level_end INTEGER,          -- prose sections: the heading's range end
+    xp_hr TEXT,                 -- the wiki's own rate string, verbatim
+    rate INTEGER,               -- parsed xp/hr (ranges -> midpoint; null = none)
+    reqs TEXT, inputs TEXT, outputs TEXT, notes TEXT,
     src TEXT, flags TEXT,
-    PRIMARY KEY(skill, method)
+    PRIMARY KEY(skill, method, level)
 );
 CREATE TABLE IF NOT EXISTS money_methods(
     method TEXT PRIMARY KEY,

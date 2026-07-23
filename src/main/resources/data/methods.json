@@ -1,6 +1,6 @@
 {
- "source": "curated ironman method seed per ENGINE-DESIGN.md Appendix A (OSRS wiki Ironman_Guide pages); PRACTICAL rates, not WOM max-efficiency EHP (Luke, Goals v2 G4). Cross-validated against WOM ironman EHP envelope (commit 1afcf8c).",
- "generated": "2026-07-18",
+ "source": "curated ironman seed (ENGINE-DESIGN.md Appendix A) merged with the knowledge base's wiki training-guide tables — WIKI rates preferred over curated where both speak (Luke, 2026-07-23); player-measured rates override at runtime. Cross-validated vs WOM ironman EHP envelope (commit 1afcf8c).",
+ "generated": "2026-07-23",
  "skills": [
   {
    "skill": "Attack",
@@ -12,6 +12,7 @@
      "rate": 25000,
      "style": "semi",
      "source": "oldschool.runescape.wiki/w/Gemstone_crab",
+     "origin": "curated",
      "req": "quest:Children of the Sun"
     },
     {
@@ -20,7 +21,8 @@
      "startXp": 0,
      "rate": 20000,
      "style": "semi",
-     "source": "oldschool.runescape.wiki/w/Sand_Crab"
+     "source": "oldschool.runescape.wiki/w/Sand_Crab",
+     "origin": "curated"
     },
     {
      "id": "attack_slayer_melee",
@@ -28,16 +30,8 @@
      "startXp": 37209,
      "rate": 35000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer"
-    },
-    {
-     "id": "attack_nmz",
-     "name": "Nightmare Zone",
-     "startXp": 737600,
-     "rate": 78000,
-     "style": "afk",
-     "source": "oldschool.runescape.wiki/w/Nightmare_Zone",
-     "req": "qp:100"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "curated"
     },
     {
      "id": "attack_sulphur_naguas",
@@ -46,7 +40,18 @@
      "rate": 130000,
      "style": "afk",
      "source": "oldschool.runescape.wiki/w/Sulphur_Nagua",
+     "origin": "curated",
      "req": "quest:Perilous Moons"
+    },
+    {
+     "id": "attack_nmz",
+     "name": "Nightmare Zone",
+     "startXp": 737600,
+     "rate": 78000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Nightmare_Zone",
+     "origin": "curated",
+     "req": "qp:100"
     }
    ],
    "bonuses": [
@@ -69,6 +74,7 @@
      "rate": 25000,
      "style": "semi",
      "source": "oldschool.runescape.wiki/w/Gemstone_crab",
+     "origin": "curated",
      "req": "quest:Children of the Sun"
     },
     {
@@ -77,7 +83,8 @@
      "startXp": 0,
      "rate": 20000,
      "style": "semi",
-     "source": "oldschool.runescape.wiki/w/Sand_Crab"
+     "source": "oldschool.runescape.wiki/w/Sand_Crab",
+     "origin": "curated"
     },
     {
      "id": "strength_slayer_melee",
@@ -85,16 +92,8 @@
      "startXp": 37209,
      "rate": 35000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer"
-    },
-    {
-     "id": "strength_nmz",
-     "name": "Nightmare Zone",
-     "startXp": 737600,
-     "rate": 82000,
-     "style": "afk",
-     "source": "oldschool.runescape.wiki/w/Nightmare_Zone",
-     "req": "qp:100"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "curated"
     },
     {
      "id": "strength_sulphur_naguas",
@@ -103,7 +102,18 @@
      "rate": 135000,
      "style": "afk",
      "source": "oldschool.runescape.wiki/w/Sulphur_Nagua",
+     "origin": "curated",
      "req": "quest:Perilous Moons"
+    },
+    {
+     "id": "strength_nmz",
+     "name": "Nightmare Zone",
+     "startXp": 737600,
+     "rate": 82000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Nightmare_Zone",
+     "origin": "curated",
+     "req": "qp:100"
     }
    ],
    "bonuses": [
@@ -126,6 +136,7 @@
      "rate": 25000,
      "style": "semi",
      "source": "oldschool.runescape.wiki/w/Gemstone_crab",
+     "origin": "curated",
      "req": "quest:Children of the Sun"
     },
     {
@@ -134,7 +145,8 @@
      "startXp": 37209,
      "rate": 30000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "curated"
     },
     {
      "id": "defence_nmz",
@@ -143,6 +155,7 @@
      "rate": 75000,
      "style": "afk",
      "source": "oldschool.runescape.wiki/w/Nightmare_Zone",
+     "origin": "curated",
      "req": "qp:100"
     }
    ],
@@ -165,7 +178,8 @@
      "startXp": 0,
      "rate": 9000,
      "style": "semi",
-     "source": "oldschool.runescape.wiki/w/Hitpoints"
+     "source": "oldschool.runescape.wiki/w/Hitpoints",
+     "origin": "curated"
     },
     {
      "id": "hitpoints_via_combat_late",
@@ -173,7 +187,8 @@
      "startXp": 737600,
      "rate": 30000,
      "style": "semi",
-     "source": "oldschool.runescape.wiki/w/Hitpoints"
+     "source": "oldschool.runescape.wiki/w/Hitpoints",
+     "origin": "curated"
     }
    ]
   },
@@ -186,7 +201,8 @@
      "startXp": 0,
      "rate": 15000,
      "style": "semi",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Ranged"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Ranged",
+     "origin": "curated"
     },
     {
      "id": "ranged_dorgeshuun_crabs",
@@ -195,7 +211,26 @@
      "rate": 22000,
      "style": "semi",
      "source": "oldschool.runescape.wiki/w/Ironman_Guide/Ranged",
+     "origin": "curated",
      "req": "quest:The Lost Tribe"
+    },
+    {
+     "id": "ranged_wiki_chinning_maniacal_monkeys_45",
+     "name": "Chinning maniacal monkeys",
+     "startXp": 61495,
+     "rate": 290000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "ranged_wiki_chinning_maniacal_monkeys_55",
+     "name": "Chinning maniacal monkeys",
+     "startXp": 166614,
+     "rate": 360000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
     },
     {
      "id": "ranged_red_chins",
@@ -204,7 +239,17 @@
      "rate": 90000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Ironman_Guide/Ranged",
+     "origin": "curated",
      "req": "skillb:Hunter:63"
+    },
+    {
+     "id": "ranged_wiki_chinning_maniacal_monkeys_65",
+     "name": "Chinning maniacal monkeys",
+     "startXp": 449403,
+     "rate": 470000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
     },
     {
      "id": "ranged_black_chins",
@@ -213,7 +258,17 @@
      "rate": 150000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Ironman_Guide/Ranged",
+     "origin": "curated",
      "req": "skillb:Hunter:73"
+    },
+    {
+     "id": "ranged_wiki_pest_control_70",
+     "name": "Pest Control",
+     "startXp": 737600,
+     "rate": 76600,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
     },
     {
      "id": "ranged_nmz_ranged",
@@ -222,7 +277,125 @@
      "rate": 60000,
      "style": "afk",
      "source": "oldschool.runescape.wiki/w/Nightmare_Zone",
+     "origin": "curated",
      "req": "qp:100"
+    },
+    {
+     "id": "ranged_wiki_pest_control_74",
+     "name": "Pest Control",
+     "startXp": 1096249,
+     "rate": 81200,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "ranged_wiki_chinning_maniacal_monkeys_75",
+     "name": "Chinning maniacal monkeys",
+     "startXp": 1210391,
+     "rate": 570000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "ranged_wiki_pest_control_78",
+     "name": "Pest Control",
+     "startXp": 1629170,
+     "rate": 85800,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "ranged_wiki_monkeys_with_venator_bow_80",
+     "name": "Monkeys with Venator bow",
+     "startXp": 1986037,
+     "rate": 270000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "ranged_wiki_pest_control_82",
+     "name": "Pest Control",
+     "startXp": 2421055,
+     "rate": 90300,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "ranged_wiki_chinning_maniacal_monkeys_85",
+     "name": "Chinning maniacal monkeys",
+     "startXp": 3258562,
+     "rate": 640000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "ranged_wiki_pest_control_85",
+     "name": "Pest Control",
+     "startXp": 3258562,
+     "rate": 94900,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "ranged_wiki_pest_control_89",
+     "name": "Pest Control",
+     "startXp": 4842262,
+     "rate": 99500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "ranged_wiki_pest_control_92",
+     "name": "Pest Control",
+     "startXp": 6517219,
+     "rate": 104100,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "ranged_wiki_chinning_maniacal_monkeys_95",
+     "name": "Chinning maniacal monkeys",
+     "startXp": 8771523,
+     "rate": 710000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "ranged_wiki_pest_control_95",
+     "name": "Pest Control",
+     "startXp": 8771523,
+     "rate": 108600,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "ranged_wiki_pest_control_98",
+     "name": "Pest Control",
+     "startXp": 11805570,
+     "rate": 113200,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "ranged_wiki_chinning_maniacal_monkeys_99",
+     "name": "Chinning maniacal monkeys",
+     "startXp": 13034394,
+     "rate": 740000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Ranged_training",
+     "origin": "wiki"
     }
    ],
    "bonuses": [
@@ -245,15 +418,62 @@
      "rate": 15000,
      "style": "afk",
      "source": "oldschool.runescape.wiki/w/Ironman_Guide/Magic",
+     "origin": "curated",
      "req": "quest:Children of the Sun"
+    },
+    {
+     "id": "magic_wiki_lvl_1_enchant_7",
+     "name": "Lvl-1 Enchant",
+     "startXp": 648,
+     "rate": 28000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "magic_wiki_lvl_2_enchant_27",
+     "name": "Lvl-2 Enchant",
+     "startXp": 9720,
+     "rate": 59200,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "magic_wiki_camelot_teleport_45",
+     "name": "Camelot Teleport",
+     "startXp": 61495,
+     "rate": 80000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "magic_wiki_lvl_3_enchant_49",
+     "name": "Lvl-3 Enchant",
+     "startXp": 91702,
+     "rate": 94400,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "magic_wiki_tele_alching_55",
+     "name": "Tele-alching",
+     "startXp": 166614,
+     "rate": 144600,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
     },
     {
      "id": "magic_high_alch",
      "name": "High Level Alchemy + misc casts",
      "startXp": 166614,
-     "rate": 65000,
+     "rate": 78000,
      "style": "semi",
-     "source": "oldschool.runescape.wiki/w/High_Level_Alchemy",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki",
      "xpEach": 65.0,
      "inputs": [
       {
@@ -264,13 +484,140 @@
      ]
     },
     {
+     "id": "magic_wiki_some_players_decide_to_keep_doing_high_l_55",
+     "name": "Some players decide to keep doing high level alchemy all the",
+     "startXp": 166614,
+     "rate": 78000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "magic_wiki_charge_water_orb_56",
+     "name": "Charge Water Orb",
+     "startXp": 184017,
+     "rate": 33300,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "magic_wiki_lvl_4_enchant_57",
+     "name": "Lvl-4 Enchant",
+     "startXp": 203231,
+     "rate": 111300,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "magic_wiki_charge_earth_orb_60",
+     "name": "Charge Earth Orb",
+     "startXp": 273718,
+     "rate": 36500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "magic_wiki_charge_fire_orb_63",
+     "name": "Charge Fire Orb",
+     "startXp": 368575,
+     "rate": 38000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "magic_wiki_charge_air_orb_66",
+     "name": "Charge Air Orb",
+     "startXp": 496229,
+     "rate": 40000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "magic_wiki_lvl_5_enchant_68",
+     "name": "Lvl-5 Enchant",
+     "startXp": 605006,
+     "rate": 124800,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
      "id": "magic_bursting",
      "name": "Bursting slayer tasks",
      "startXp": 737600,
      "rate": 85000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Ironman_Guide/Magic",
+     "origin": "curated",
      "req": "quest:Desert Treasure I"
+    },
+    {
+     "id": "magic_wiki_hunter_kit_spell_71",
+     "name": "Hunter Kit (spell)",
+     "startXp": 814417,
+     "rate": 52000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "magic_wiki_spin_flax_76",
+     "name": "Spin Flax",
+     "startXp": 1336413,
+     "rate": 77600,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "magic_wiki_superglass_make_77",
+     "name": "Superglass Make",
+     "startXp": 1475551,
+     "rate": 46800,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "magic_wiki_tan_leather_78",
+     "name": "Tan leather",
+     "startXp": 1629170,
+     "rate": 132000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "magic_wiki_string_jewellery_80",
+     "name": "String Jewellery",
+     "startXp": 1986037,
+     "rate": 150000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "magic_wiki_plank_make_86",
+     "name": "Plank Make",
+     "startXp": 3597759,
+     "rate": 166000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "magic_wiki_recharge_dragonstone_89",
+     "name": "Recharge Dragonstone",
+     "startXp": 4842262,
+     "rate": 35100,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
+     "origin": "wiki"
     }
    ]
   },
@@ -278,30 +625,23 @@
    "skill": "Prayer",
    "methods": [
     {
-     "id": "prayer_bury_bones",
-     "name": "Buried bones from combat",
-     "startXp": 0,
-     "rate": 30000,
-     "style": "active",
-     "source": "oldschool.runescape.wiki/w/Prayer_training"
-    },
-    {
      "id": "prayer_ensouled_heads",
      "name": "Ensouled heads (Arceuus)",
      "startXp": 0,
      "rate": 90000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Ensouled_head",
+     "origin": "curated",
      "req": "skillb:Magic:16"
     },
     {
-     "id": "prayer_bone_shards",
-     "name": "Blessed bone shards (libation bowl)",
-     "startXp": 13352,
-     "rate": 130000,
-     "style": "semi",
-     "source": "oldschool.runescape.wiki/w/Blessed_bone_shards",
-     "req": "quest:Children of the Sun"
+     "id": "prayer_bury_bones",
+     "name": "Buried bones from combat",
+     "startXp": 0,
+     "rate": 30000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Prayer_training",
+     "origin": "curated"
     },
     {
      "id": "prayer_chaos_altar",
@@ -310,6 +650,7 @@
      "rate": 250000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Chaos_temple_(hut)",
+     "origin": "curated",
      "xpEach": 252.0,
      "inputs": [
       {
@@ -318,6 +659,16 @@
        "name": "Dragon bones"
       }
      ]
+    },
+    {
+     "id": "prayer_bone_shards",
+     "name": "Blessed bone shards (libation bowl)",
+     "startXp": 13352,
+     "rate": 130000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Blessed_bone_shards",
+     "origin": "curated",
+     "req": "quest:Children of the Sun"
     }
    ]
   },
@@ -330,16 +681,56 @@
      "startXp": 0,
      "rate": 8000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Runecraft_training"
+     "source": "oldschool.runescape.wiki/w/Runecraft_training",
+     "origin": "curated"
     },
     {
      "id": "runecraft_gotr",
      "name": "Guardians of the Rift",
      "startXp": 1151,
-     "rate": 35000,
+     "rate": 25000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Guardians_of_the_Rift",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Runecraft",
+     "origin": "wiki",
      "req": "quest:Temple of the Eye"
+    },
+    {
+     "id": "runecraft_wiki_guardians_of_the_rift_50",
+     "name": "Guardians of the Rift",
+     "startXp": 101314,
+     "rate": 40000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Runecraft",
+     "origin": "wiki",
+     "req": "quest:Temple of the Eye"
+    },
+    {
+     "id": "runecraft_wiki_double_cosmic_runes_59",
+     "name": "Double cosmic runes",
+     "startXp": 247862,
+     "rate": 15480,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Runecraft_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "runecraft_wiki_guardians_of_the_rift_75",
+     "name": "Guardians of the Rift",
+     "startXp": 1210391,
+     "rate": 50000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Runecraft",
+     "origin": "wiki",
+     "req": "quest:Temple of the Eye"
+    },
+    {
+     "id": "runecraft_wiki_double_cosmic_runes_75",
+     "name": "Double cosmic runes",
+     "startXp": 1210391,
+     "rate": 19440,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Runecraft_training",
+     "origin": "wiki"
     },
     {
      "id": "runecraft_blood_runes",
@@ -347,15 +738,145 @@
      "startXp": 1475551,
      "rate": 38000,
      "style": "afk",
-     "source": "oldschool.runescape.wiki/w/Blood_rune"
+     "source": "oldschool.runescape.wiki/w/Blood_rune",
+     "origin": "curated"
+    },
+    {
+     "id": "runecraft_wiki_blood_runecrafting_77",
+     "name": "Blood runecrafting",
+     "startXp": 1475551,
+     "rate": 37000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Runecraft",
+     "origin": "wiki"
+    },
+    {
+     "id": "runecraft_wiki_crafting_blood_soul_runes_in_arceuus_77",
+     "name": "Crafting blood/soul runes in Arceuus",
+     "startXp": 1475551,
+     "rate": 34500,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Runecraft_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "runecraft_wiki_double_astral_runes_82",
+     "name": "Double astral runes",
+     "startXp": 2421055,
+     "rate": 42000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Runecraft_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "runecraft_wiki_guardians_of_the_rift_85",
+     "name": "Guardians of the Rift",
+     "startXp": 3258562,
+     "rate": 65000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Runecraft",
+     "origin": "wiki",
+     "req": "quest:Temple of the Eye"
+    },
+    {
+     "id": "runecraft_wiki_double_astral_runes_85",
+     "name": "Double astral runes",
+     "startXp": 3258562,
+     "rate": 53000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Runecraft_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "runecraft_wiki_double_cosmic_runes_85",
+     "name": "Double cosmic runes",
+     "startXp": 3258562,
+     "rate": 24120,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Runecraft_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "runecraft_wiki_aether_runes_90",
+     "name": "Aether runes",
+     "startXp": 5346298,
+     "rate": 99000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Runecraft_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "runecraft_wiki_soul_runecrafting_90",
+     "name": "Soul runecrafting",
+     "startXp": 5346298,
+     "rate": 45000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Runecraft",
+     "origin": "wiki"
     },
     {
      "id": "runecraft_soul_runes",
      "name": "Soul runes (Arceuus)",
      "startXp": 5346298,
-     "rate": 45000,
+     "rate": 44000,
      "style": "afk",
-     "source": "oldschool.runescape.wiki/w/Soul_rune"
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Runecraft_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "runecraft_wiki_double_nature_runes_91",
+     "name": "Double nature runes",
+     "startXp": 5902797,
+     "rate": 31680,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Runecraft_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "runecraft_wiki_wrath_runes_95",
+     "name": "Wrath runes",
+     "startXp": 8771523,
+     "rate": 39600,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Runecraft_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "runecraft_wiki_double_law_runes_95",
+     "name": "Double law runes",
+     "startXp": 8771523,
+     "rate": 28642,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Runecraft_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "runecraft_wiki_aether_runes_99",
+     "name": "Aether runes",
+     "startXp": 13034394,
+     "rate": 102000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Runecraft_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "runecraft_wiki_guardians_of_the_rift_99",
+     "name": "Guardians of the Rift",
+     "startXp": 13034394,
+     "rate": 70000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Runecraft",
+     "origin": "wiki",
+     "req": "quest:Temple of the Eye"
+    },
+    {
+     "id": "runecraft_wiki_double_astral_runes_99",
+     "name": "Double astral runes",
+     "startXp": 13034394,
+     "rate": 55000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Runecraft_training",
+     "origin": "wiki"
     }
    ]
   },
@@ -363,12 +884,67 @@
    "skill": "Construction",
    "methods": [
     {
+     "id": "construction_wiki_hull_parts_1",
+     "name": "Hull parts",
+     "startXp": 0,
+     "rate": 72500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Construction_training",
+     "origin": "wiki"
+    },
+    {
      "id": "construction_mahogany_homes",
      "name": "Mahogany Homes",
      "startXp": 0,
      "rate": 60000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Mahogany_Homes"
+     "source": "oldschool.runescape.wiki/w/Mahogany_Homes",
+     "origin": "curated"
+    },
+    {
+     "id": "construction_wiki_repair_kits_1",
+     "name": "Repair kits",
+     "startXp": 0,
+     "rate": 52200,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Construction_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "construction_wiki_hull_parts_8",
+     "name": "Hull parts",
+     "startXp": 799,
+     "rate": 150000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Construction_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "construction_wiki_repair_kits_19",
+     "name": "Repair kits",
+     "startXp": 3967,
+     "rate": 108000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Construction_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "construction_wiki_hull_parts_23",
+     "name": "Hull parts",
+     "startXp": 6283,
+     "rate": 225000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Construction_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "construction_wiki_repair_kits_30",
+     "name": "Repair kits",
+     "startXp": 13352,
+     "rate": 162000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Construction_training",
+     "origin": "wiki"
     },
     {
      "id": "construction_oak_larders",
@@ -377,6 +953,7 @@
      "rate": 150000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Ironman_Guide/Construction",
+     "origin": "curated",
      "xpEach": 480.0,
      "inputs": [
       {
@@ -387,12 +964,31 @@
      ]
     },
     {
+     "id": "construction_wiki_hull_parts_41",
+     "name": "Hull parts",
+     "startXp": 41156,
+     "rate": 350000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Construction_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "construction_wiki_repair_kits_47",
+     "name": "Repair kits",
+     "startXp": 75110,
+     "rate": 252000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Construction_training",
+     "origin": "wiki"
+    },
+    {
      "id": "construction_teak_benches",
      "name": "Teak benches + demon butler",
      "startXp": 123640,
      "rate": 300000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Ironman_Guide/Construction",
+     "origin": "curated",
      "req": "skillb:Magic:45",
      "xpEach": 90.0,
      "inputs": [
@@ -402,6 +998,42 @@
        "name": "Teak plank"
       }
      ]
+    },
+    {
+     "id": "construction_wiki_hull_parts_53",
+     "name": "Hull parts",
+     "startXp": 136573,
+     "rate": 400000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Construction_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "construction_wiki_repair_kits_66",
+     "name": "Repair kits",
+     "startXp": 496229,
+     "rate": 306000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Construction_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "construction_wiki_repair_kits_80",
+     "name": "Repair kits",
+     "startXp": 1986037,
+     "rate": 360000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Construction_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "construction_wiki_repair_kits_92",
+     "name": "Repair kits",
+     "startXp": 6517219,
+     "rate": 396000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Construction_training",
+     "origin": "wiki"
     }
    ]
   },
@@ -414,7 +1046,98 @@
      "startXp": 0,
      "rate": 42000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Agility"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Agility",
+     "origin": "curated"
+    },
+    {
+     "id": "agility_wiki_draynor_village_rooftop_course_1",
+     "name": "Draynor Village Rooftop Course",
+     "startXp": 0,
+     "rate": 9500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "agility_wiki_edgeville_dungeon_monkeybars_15",
+     "name": "Edgeville Dungeon monkeybars",
+     "startXp": 2406,
+     "rate": 13200,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "agility_wiki_brimhaven_agility_arena_20",
+     "name": "Brimhaven Agility Arena",
+     "startXp": 4463,
+     "rate": 30000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "agility_wiki_al_kharid_rooftop_course_20",
+     "name": "Al Kharid Rooftop Course",
+     "startXp": 4463,
+     "rate": 11500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "agility_wiki_varrock_rooftop_course_30",
+     "name": "Varrock Rooftop Course",
+     "startXp": 13352,
+     "rate": 12500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "agility_wiki_brimhaven_agility_arena_40",
+     "name": "Brimhaven Agility Arena",
+     "startXp": 37209,
+     "rate": 28000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "agility_wiki_canifis_rooftop_course_40",
+     "name": "Canifis Rooftop Course",
+     "startXp": 37209,
+     "rate": 15500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "agility_wiki_shayzien_advanced_agility_course_45",
+     "name": "Shayzien Advanced Agility Course",
+     "startXp": 61495,
+     "rate": 35000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "agility_wiki_wilderness_agility_course_47",
+     "name": "Wilderness Agility Course",
+     "startXp": 75110,
+     "rate": 55000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "agility_wiki_ape_atoll_agility_course_48",
+     "name": "Ape Atoll Agility Course",
+     "startXp": 82996,
+     "rate": 32500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
     },
     {
      "id": "agility_colossal_wyrm",
@@ -423,15 +1146,82 @@
      "rate": 38000,
      "style": "semi",
      "source": "oldschool.runescape.wiki/w/Colossal_Wyrm_Agility_Course",
+     "origin": "curated",
      "req": "quest:Children of the Sun"
+    },
+    {
+     "id": "agility_wiki_falador_rooftop_course_50",
+     "name": "Falador Rooftop Course",
+     "startXp": 101314,
+     "rate": 31500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "agility_wiki_colossal_wyrm_agility_course_50",
+     "name": "Colossal Wyrm Agility Course",
+     "startXp": 101314,
+     "rate": 31000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "agility_wiki_hallowed_sepulchre_52",
+     "name": "Hallowed Sepulchre",
+     "startXp": 123640,
+     "rate": 45000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki",
+     "req": "quest:Sins of the Father"
+    },
+    {
+     "id": "agility_wiki_seers_village_rooftop_course_60",
+     "name": "Seers' Village Rooftop Course",
+     "startXp": 273718,
+     "rate": 53000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "agility_wiki_werewolf_agility_course_60",
+     "name": "Werewolf Agility Course",
+     "startXp": 273718,
+     "rate": 52500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "agility_wiki_hallowed_sepulchre_62",
+     "name": "Hallowed Sepulchre",
+     "startXp": 333780,
+     "rate": 56300,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki",
+     "req": "quest:Sins of the Father"
+    },
+    {
+     "id": "agility_wiki_pollnivneach_rooftop_course_70",
+     "name": "Pollnivneach Rooftop Course",
+     "startXp": 737600,
+     "rate": 55500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
     },
     {
      "id": "agility_sepulchre",
      "name": "Hallowed Sepulchre",
      "startXp": 899228,
-     "rate": 75000,
+     "rate": 68900,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Hallowed_Sepulchre",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki",
      "req": "quest:Sins of the Father"
     },
     {
@@ -441,7 +1231,55 @@
      "rate": 62000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Prifddinas_Agility_Course",
+     "origin": "curated",
      "req": "quest:Song of the Elves"
+    },
+    {
+     "id": "agility_wiki_prifddinas_agility_course_75",
+     "name": "Prifddinas Agility Course",
+     "startXp": 1210391,
+     "rate": 60000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "agility_wiki_rellekka_rooftop_course_80",
+     "name": "Rellekka Rooftop Course",
+     "startXp": 1986037,
+     "rate": 61000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "agility_wiki_hallowed_sepulchre_82",
+     "name": "Hallowed Sepulchre",
+     "startXp": 2421055,
+     "rate": 79700,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki",
+     "req": "quest:Sins of the Father"
+    },
+    {
+     "id": "agility_wiki_ardougne_rooftop_course_90",
+     "name": "Ardougne Rooftop Course",
+     "startXp": 5346298,
+     "rate": 68000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "agility_wiki_hallowed_sepulchre_92",
+     "name": "Hallowed Sepulchre",
+     "startXp": 6517219,
+     "rate": 98500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Agility_training",
+     "origin": "wiki",
+     "req": "quest:Sins of the Father"
     }
    ]
   },
@@ -452,10 +1290,29 @@
      "id": "herblore_attack_potions",
      "name": "Attack potions",
      "startXp": 174,
-     "rate": 20000,
+     "rate": 62500,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Herblore",
+     "source": "oldschool.runescape.wiki/w/Herblore_training",
+     "origin": "wiki",
      "req": "quest:Druidic Ritual"
+    },
+    {
+     "id": "herblore_wiki_antipoison_5",
+     "name": "Antipoison",
+     "startXp": 387,
+     "rate": 93750,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Herblore_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "herblore_wiki_guam_tar_19",
+     "name": "Guam tar",
+     "startXp": 3967,
+     "rate": 61000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Herblore_training",
+     "origin": "wiki"
     },
     {
      "id": "herblore_potions",
@@ -463,15 +1320,44 @@
      "startXp": 8730,
      "rate": 60000,
      "style": "semi",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Herblore"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Herblore",
+     "origin": "curated"
+    },
+    {
+     "id": "herblore_wiki_marrentill_tar_31",
+     "name": "Marrentill tar",
+     "startXp": 14822,
+     "rate": 86000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Herblore_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "herblore_wiki_tarromin_tar_39",
+     "name": "Tarromin tar",
+     "startXp": 33633,
+     "rate": 110000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Herblore_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "herblore_wiki_haemostatic_poultice_56",
+     "name": "Haemostatic poultice",
+     "startXp": 184017,
+     "rate": 67500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Herblore_training",
+     "origin": "wiki"
     },
     {
      "id": "herblore_mixology",
      "name": "Mastering Mixology",
      "startXp": 273718,
-     "rate": 70000,
+     "rate": 105000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Mastering_Mixology",
+     "source": "oldschool.runescape.wiki/w/Herblore_training",
+     "origin": "wiki",
      "req": "quest:Children of the Sun"
     }
    ]
@@ -485,32 +1371,276 @@
      "startXp": 0,
      "rate": 10000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Thieving"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Thieving",
+     "origin": "curated"
+    },
+    {
+     "id": "thieving_wiki_bakery_stalls_5",
+     "name": "Bakery stalls",
+     "startXp": 387,
+     "rate": 19200,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_stealing_from_port_roberts_stalls_20",
+     "name": "Stealing from Port Roberts stalls",
+     "startXp": 4463,
+     "rate": 6015,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
     },
     {
      "id": "thieving_fruit_stalls",
      "name": "Fruit stalls (Hosidius)",
      "startXp": 7833,
-     "rate": 35000,
+     "rate": 42750,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Thieving"
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_stealing_from_port_roberts_stalls_35",
+     "name": "Stealing from Port Roberts stalls",
+     "startXp": 22394,
+     "rate": 40501,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_chests_in_aldarin_villas_36",
+     "name": "Chests in Aldarin Villas",
+     "startXp": 24802,
+     "rate": 60000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_stealing_from_port_roberts_stalls_42",
+     "name": "Stealing from Port Roberts stalls",
+     "startXp": 45513,
+     "rate": 54736,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
     },
     {
      "id": "thieving_blackjacking",
      "name": "Blackjacking",
      "startXp": 61495,
+     "rate": 99000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki",
+     "req": "quest:The Feud"
+    },
+    {
+     "id": "thieving_wiki_stealing_artefacts_49",
+     "name": "Stealing artefacts",
+     "startXp": 91702,
      "rate": 150000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Blackjacking",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_blackjacking_50",
+     "name": "Blackjacking",
+     "startXp": 101314,
+     "rate": 103000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki",
+     "req": "quest:The Feud"
+    },
+    {
+     "id": "thieving_wiki_stealing_from_port_roberts_stalls_50",
+     "name": "Stealing from Port Roberts stalls",
+     "startXp": 101314,
+     "rate": 83809,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_stealing_valuables_in_varlamore_50",
+     "name": "Stealing valuables in Varlamore",
+     "startXp": 101314,
+     "rate": 72000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_stealing_artefacts_55",
+     "name": "Stealing artefacts",
+     "startXp": 166614,
+     "rate": 163000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_blackjacking_55",
+     "name": "Blackjacking",
+     "startXp": 166614,
+     "rate": 136000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki",
      "req": "quest:The Feud"
     },
     {
      "id": "thieving_ardy_knights",
      "name": "Ardougne knights",
      "startXp": 166614,
-     "rate": 80000,
+     "rate": 86000,
      "style": "semi",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Thieving"
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_stealing_artefacts_60",
+     "name": "Stealing artefacts",
+     "startXp": 273718,
+     "rate": 174000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_blackjacking_60",
+     "name": "Blackjacking",
+     "startXp": 273718,
+     "rate": 140000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki",
+     "req": "quest:The Feud"
+    },
+    {
+     "id": "thieving_wiki_knights_of_ardougne_60",
+     "name": "Knights of Ardougne",
+     "startXp": 273718,
+     "rate": 98000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_stealing_valuables_in_varlamore_60",
+     "name": "Stealing valuables in Varlamore",
+     "startXp": 273718,
+     "rate": 80000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_blackjacking_65",
+     "name": "Blackjacking",
+     "startXp": 449403,
+     "rate": 230000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki",
+     "req": "quest:The Feud"
+    },
+    {
+     "id": "thieving_wiki_stealing_artefacts_65",
+     "name": "Stealing artefacts",
+     "startXp": 449403,
+     "rate": 186000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_stealing_from_port_roberts_stalls_65",
+     "name": "Stealing from Port Roberts stalls",
+     "startXp": 449403,
+     "rate": 120300,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_knights_of_ardougne_65",
+     "name": "Knights of Ardougne",
+     "startXp": 449403,
+     "rate": 109000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_blackjacking_70",
+     "name": "Blackjacking",
+     "startXp": 737600,
+     "rate": 236000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki",
+     "req": "quest:The Feud"
+    },
+    {
+     "id": "thieving_wiki_stealing_artefacts_70",
+     "name": "Stealing artefacts",
+     "startXp": 737600,
+     "rate": 197000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_knights_of_ardougne_70",
+     "name": "Knights of Ardougne",
+     "startXp": 737600,
+     "rate": 124000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_stealing_valuables_in_varlamore_70",
+     "name": "Stealing valuables in Varlamore",
+     "startXp": 737600,
+     "rate": 93000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_pyramid_plunder_71",
+     "name": "Pyramid Plunder",
+     "startXp": 814417,
+     "rate": 125000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_blackjacking_75",
+     "name": "Blackjacking",
+     "startXp": 1210391,
+     "rate": 242000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki",
+     "req": "quest:The Feud"
+    },
+    {
+     "id": "thieving_wiki_stealing_artefacts_75",
+     "name": "Stealing artefacts",
+     "startXp": 1210391,
+     "rate": 208000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
     },
     {
      "id": "thieving_gem_stalls",
@@ -519,7 +1649,265 @@
      "rate": 160000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Ironman_Guide/Thieving",
+     "origin": "curated",
      "req": "quest:Children of the Sun"
+    },
+    {
+     "id": "thieving_wiki_stealing_from_port_roberts_stalls_75",
+     "name": "Stealing from Port Roberts stalls",
+     "startXp": 1210391,
+     "rate": 148370,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_knights_of_ardougne_75",
+     "name": "Knights of Ardougne",
+     "startXp": 1210391,
+     "rate": 141000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_dorgesh_kaan_rich_chests_78",
+     "name": "Dorgesh-Kaan rich chests",
+     "startXp": 1629170,
+     "rate": 220000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_blackjacking_80",
+     "name": "Blackjacking",
+     "startXp": 1986037,
+     "rate": 247000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki",
+     "req": "quest:The Feud"
+    },
+    {
+     "id": "thieving_wiki_stealing_artefacts_80",
+     "name": "Stealing artefacts",
+     "startXp": 1986037,
+     "rate": 219000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_knights_of_ardougne_80",
+     "name": "Knights of Ardougne",
+     "startXp": 1986037,
+     "rate": 159000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_stealing_valuables_in_varlamore_80",
+     "name": "Stealing valuables in Varlamore",
+     "startXp": 1986037,
+     "rate": 95000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_pyramid_plunder_81",
+     "name": "Pyramid Plunder",
+     "startXp": 2192787,
+     "rate": 190000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_stealing_from_port_roberts_stalls_82",
+     "name": "Stealing from Port Roberts stalls",
+     "startXp": 2421055,
+     "rate": 205312,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_pickpocketing_vyres_82",
+     "name": "Pickpocketing vyres",
+     "startXp": 2421055,
+     "rate": 150000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_stealing_from_rogues_castle_chests_84",
+     "name": "Stealing from Rogues' Castle chests",
+     "startXp": 2951341,
+     "rate": 285000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_blackjacking_85",
+     "name": "Blackjacking",
+     "startXp": 3258562,
+     "rate": 252000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki",
+     "req": "quest:The Feud"
+    },
+    {
+     "id": "thieving_wiki_stealing_artefacts_85",
+     "name": "Stealing artefacts",
+     "startXp": 3258562,
+     "rate": 230000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_knights_of_ardougne_85",
+     "name": "Knights of Ardougne",
+     "startXp": 3258562,
+     "rate": 182000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_pickpocketing_elves_85",
+     "name": "Pickpocketing elves",
+     "startXp": 3258562,
+     "rate": 150000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_stealing_from_port_roberts_stalls_87",
+     "name": "Stealing from Port Roberts stalls",
+     "startXp": 3972261,
+     "rate": 255437,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_blackjacking_90",
+     "name": "Blackjacking",
+     "startXp": 5346298,
+     "rate": 257000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki",
+     "req": "quest:The Feud"
+    },
+    {
+     "id": "thieving_wiki_stealing_artefacts_90",
+     "name": "Stealing artefacts",
+     "startXp": 5346298,
+     "rate": 241000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_knights_of_ardougne_90",
+     "name": "Knights of Ardougne",
+     "startXp": 5346298,
+     "rate": 209000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_stealing_valuables_in_varlamore_90",
+     "name": "Stealing valuables in Varlamore",
+     "startXp": 5346298,
+     "rate": 100000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_pyramid_plunder_91",
+     "name": "Pyramid Plunder",
+     "startXp": 5902797,
+     "rate": 270000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_master_farmers_94",
+     "name": "Master Farmers",
+     "startXp": 7944579,
+     "rate": 117500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_blackjacking_95",
+     "name": "Blackjacking",
+     "startXp": 8771523,
+     "rate": 261000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki",
+     "req": "quest:The Feud"
+    },
+    {
+     "id": "thieving_wiki_stealing_artefacts_95",
+     "name": "Stealing artefacts",
+     "startXp": 8771523,
+     "rate": 252000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_knights_of_ardougne_95",
+     "name": "Knights of Ardougne",
+     "startXp": 8771523,
+     "rate": 240000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_blackjacking_99",
+     "name": "Blackjacking",
+     "startXp": 13034394,
+     "rate": 265000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki",
+     "req": "quest:The Feud"
+    },
+    {
+     "id": "thieving_wiki_stealing_artefacts_99",
+     "name": "Stealing artefacts",
+     "startXp": 13034394,
+     "rate": 261000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "thieving_wiki_stealing_valuables_in_varlamore_99",
+     "name": "Stealing valuables in Varlamore",
+     "startXp": 13034394,
+     "rate": 105000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Thieving_training",
+     "origin": "wiki"
     }
    ]
   },
@@ -527,12 +1915,49 @@
    "skill": "Crafting",
    "methods": [
     {
+     "id": "crafting_wiki_beer_glass_1",
+     "name": "Beer glass",
+     "startXp": 0,
+     "rate": 30625,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Crafting_training",
+     "origin": "wiki"
+    },
+    {
      "id": "crafting_leather_glass",
      "name": "Leather and molten glass",
      "startXp": 0,
      "rate": 20000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Crafting"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Crafting",
+     "origin": "curated"
+    },
+    {
+     "id": "crafting_wiki_empty_candle_lantern_4",
+     "name": "Empty candle lantern",
+     "startXp": 275,
+     "rate": 33250,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Crafting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "crafting_wiki_empty_oil_lamp_12",
+     "name": "Empty oil lamp",
+     "startXp": 1580,
+     "rate": 43750,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Crafting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "crafting_wiki_vial_33",
+     "name": "Vial",
+     "startXp": 18235,
+     "rate": 61250,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Crafting_training",
+     "origin": "wiki"
     },
     {
      "id": "crafting_gem_cutting",
@@ -540,16 +1965,36 @@
      "startXp": 20212,
      "rate": 40000,
      "style": "afk",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Crafting"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Crafting",
+     "origin": "curated"
+    },
+    {
+     "id": "crafting_wiki_empty_fishbowl_42",
+     "name": "Empty fishbowl",
+     "startXp": 45513,
+     "rate": 74375,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Crafting_training",
+     "origin": "wiki"
     },
     {
      "id": "crafting_glassblowing",
      "name": "Superglass Make + lantern lenses",
      "startXp": 67966,
-     "rate": 75000,
+     "rate": 96250,
      "style": "semi",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Crafting",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Crafting_training",
+     "origin": "wiki",
      "req": "any:skillb:Magic:77&quest:Lunar Diplomacy"
+    },
+    {
+     "id": "crafting_wiki_unpowered_orb_46",
+     "name": "Unpowered orb",
+     "startXp": 67966,
+     "rate": 91875,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Crafting_training",
+     "origin": "wiki"
     },
     {
      "id": "crafting_battlestaves",
@@ -558,7 +2003,53 @@
      "rate": 50000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Ironman_Guide/Crafting",
+     "origin": "curated",
      "req": "skillb:Magic:66"
+    },
+    {
+     "id": "crafting_wiki_cutting_amethyst_83",
+     "name": "Cutting amethyst",
+     "startXp": 2673082,
+     "rate": 165000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Crafting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "crafting_wiki_cutting_amethyst_85",
+     "name": "Cutting amethyst",
+     "startXp": 3258562,
+     "rate": 165000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Crafting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "crafting_wiki_cutting_amethyst_87",
+     "name": "Cutting amethyst",
+     "startXp": 3972261,
+     "rate": 165000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Crafting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "crafting_wiki_empty_light_orb_87",
+     "name": "Empty light orb",
+     "startXp": 3972261,
+     "rate": 122500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Crafting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "crafting_wiki_cutting_amethyst_89",
+     "name": "Cutting amethyst",
+     "startXp": 4842262,
+     "rate": 165000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Crafting_training",
+     "origin": "wiki"
     }
    ]
   },
@@ -569,9 +2060,28 @@
      "id": "fletching_headless_arrows",
      "name": "Headless arrows / darts",
      "startXp": 0,
-     "rate": 50000,
+     "rate": 58500,
      "style": "afk",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fletching"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fletching",
+     "origin": "wiki"
+    },
+    {
+     "id": "fletching_wiki_arrow_shafts_1",
+     "name": "Arrow shafts",
+     "startXp": 0,
+     "rate": 10000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Fletching_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fletching_wiki_arrows_15",
+     "name": "Arrows",
+     "startXp": 2406,
+     "rate": 112500,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fletching",
+     "origin": "wiki"
     },
     {
      "id": "fletching_vale_totems",
@@ -580,7 +2090,35 @@
      "rate": 60000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Vale_Totems",
+     "origin": "curated",
      "req": "quest:Children of the Sun"
+    },
+    {
+     "id": "fletching_wiki_arrows_30",
+     "name": "Arrows",
+     "startXp": 13352,
+     "rate": 225000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fletching",
+     "origin": "wiki"
+    },
+    {
+     "id": "fletching_wiki_battlestaves_40",
+     "name": "Battlestaves",
+     "startXp": 37209,
+     "rate": 110000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Fletching_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fletching_wiki_arrows_45",
+     "name": "Arrows",
+     "startXp": 61495,
+     "rate": 337500,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fletching",
+     "origin": "wiki"
     },
     {
      "id": "fletching_vale_totems_yew",
@@ -589,6 +2127,7 @@
      "rate": 250000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Vale_Totems",
+     "origin": "curated",
      "req": "any:quest:Children of the Sun&skillb:Woodcutting:60"
     },
     {
@@ -598,7 +2137,17 @@
      "rate": 400000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Vale_Totems",
+     "origin": "curated",
      "req": "any:quest:Children of the Sun&skillb:Woodcutting:75"
+    },
+    {
+     "id": "fletching_wiki_redwood_shields_92",
+     "name": "Redwood shields",
+     "startXp": 6517219,
+     "rate": 168000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Fletching_training",
+     "origin": "wiki"
     }
    ]
   },
@@ -606,12 +2155,58 @@
    "skill": "Slayer",
    "methods": [
     {
+     "id": "slayer_wiki_ankou_1",
+     "name": "Ankou",
+     "startXp": 0,
+     "rate": 55000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "wiki"
+    },
+    {
+     "id": "slayer_wiki_waterfiend_1",
+     "name": "Waterfiend",
+     "startXp": 0,
+     "rate": 35000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "wiki"
+    },
+    {
+     "id": "slayer_wiki_dagannoth_1",
+     "name": "Dagannoth",
+     "startXp": 0,
+     "rate": 30000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "wiki"
+    },
+    {
+     "id": "slayer_wiki_spiritual_creature_1",
+     "name": "Spiritual creature",
+     "startXp": 0,
+     "rate": 25000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "wiki"
+    },
+    {
+     "id": "slayer_wiki_blue_dragon_1",
+     "name": "Blue dragon",
+     "startXp": 0,
+     "rate": 20000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "wiki"
+    },
+    {
      "id": "slayer_early_tasks",
      "name": "Turael/Mazchna tasks",
      "startXp": 0,
      "rate": 15000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "curated"
     },
     {
      "id": "slayer_mid_tasks",
@@ -619,7 +2214,44 @@
      "startXp": 37209,
      "rate": 30000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "curated"
+    },
+    {
+     "id": "slayer_wiki_bloodveld_50",
+     "name": "Bloodveld",
+     "startXp": 101314,
+     "rate": 30000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "wiki"
+    },
+    {
+     "id": "slayer_wiki_cave_horror_58",
+     "name": "Cave horror",
+     "startXp": 224443,
+     "rate": 22000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "wiki"
+    },
+    {
+     "id": "slayer_wiki_aberrant_spectre_60",
+     "name": "Aberrant spectre",
+     "startXp": 273718,
+     "rate": 35000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "wiki"
+    },
+    {
+     "id": "slayer_wiki_dust_devil_65",
+     "name": "Dust devil",
+     "startXp": 449403,
+     "rate": 68000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "wiki"
     },
     {
      "id": "slayer_high_tasks",
@@ -627,7 +2259,35 @@
      "startXp": 737600,
      "rate": 55000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "curated"
+    },
+    {
+     "id": "slayer_wiki_skeletal_wyvern_72",
+     "name": "Skeletal Wyvern",
+     "startXp": 899228,
+     "rate": 10000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "wiki"
+    },
+    {
+     "id": "slayer_wiki_gargoyle_75",
+     "name": "Gargoyle",
+     "startXp": 1210391,
+     "rate": 31000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "wiki"
+    },
+    {
+     "id": "slayer_wiki_nechryael_80",
+     "name": "Nechryael",
+     "startXp": 1986037,
+     "rate": 31000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "wiki"
     },
     {
      "id": "slayer_elite_tasks",
@@ -635,7 +2295,44 @@
      "startXp": 3258562,
      "rate": 70000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "curated"
+    },
+    {
+     "id": "slayer_wiki_abyssal_demon_85",
+     "name": "Abyssal demon",
+     "startXp": 3258562,
+     "rate": 31000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "wiki"
+    },
+    {
+     "id": "slayer_wiki_cave_kraken_87",
+     "name": "Cave kraken",
+     "startXp": 3972261,
+     "rate": 15000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "wiki"
+    },
+    {
+     "id": "slayer_wiki_dark_beast_90",
+     "name": "Dark beast",
+     "startXp": 5346298,
+     "rate": 30000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "wiki"
+    },
+    {
+     "id": "slayer_wiki_smoke_devil_93",
+     "name": "Smoke devil",
+     "startXp": 7195594,
+     "rate": 95000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Slayer",
+     "origin": "wiki"
     }
    ],
    "bonuses": [
@@ -657,7 +2354,8 @@
      "startXp": 0,
      "rate": 12000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Hunter"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Hunter",
+     "origin": "curated"
     },
     {
      "id": "hunter_birdhouses",
@@ -666,7 +2364,44 @@
      "rate": 300000,
      "style": "daily",
      "source": "oldschool.runescape.wiki/w/Birdhouse_trapping",
+     "origin": "curated",
      "req": "quest:Bone Voyage"
+    },
+    {
+     "id": "hunter_wiki_feldip_weasels_9",
+     "name": "Feldip weasels",
+     "startXp": 966,
+     "rate": 13000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_ruby_harvests_15",
+     "name": "Ruby harvests",
+     "startXp": 2406,
+     "rate": 20000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_red_crabs_21",
+     "name": "Red crabs",
+     "startXp": 5011,
+     "rate": 31000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_sapphire_glacialis_25",
+     "name": "Sapphire glacialis",
+     "startXp": 7833,
+     "rate": 28500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
     },
     {
      "id": "hunter_salamanders",
@@ -674,7 +2409,26 @@
      "startXp": 12020,
      "rate": 45000,
      "style": "semi",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Hunter"
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_swamp_lizards_29",
+     "name": "Swamp lizards",
+     "startXp": 12020,
+     "rate": 24000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_embertailed_jerboas_39",
+     "name": "Embertailed jerboas",
+     "startXp": 33633,
+     "rate": 50000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
     },
     {
      "id": "hunter_rumours",
@@ -683,7 +2437,35 @@
      "rate": 60000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Hunter_Guild",
+     "origin": "curated",
      "req": "quest:Children of the Sun"
+    },
+    {
+     "id": "hunter_wiki_razor_backed_kebbits_49",
+     "name": "Razor-backed kebbits",
+     "startXp": 91702,
+     "rate": 130000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_red_salamanders_60",
+     "name": "Red salamanders",
+     "startXp": 273718,
+     "rate": 82500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_maniacal_monkeys_60",
+     "name": "Maniacal monkeys",
+     "startXp": 273718,
+     "rate": 51000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
     },
     {
      "id": "hunter_red_chins_hunt",
@@ -691,16 +2473,184 @@
      "startXp": 368575,
      "rate": 90000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Hunter"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Hunter",
+     "origin": "curated"
+    },
+    {
+     "id": "hunter_wiki_maniacal_monkeys_65",
+     "name": "Maniacal monkeys",
+     "startXp": 449403,
+     "rate": 59000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_black_salamanders_67",
+     "name": "Black salamanders",
+     "startXp": 547928,
+     "rate": 102500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_maniacal_monkeys_70",
+     "name": "Maniacal monkeys",
+     "startXp": 737600,
+     "rate": 66000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_hunters_rumours_72",
+     "name": "Hunters' Rumours",
+     "startXp": 899228,
+     "rate": 160000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_black_chinchompas_73",
+     "name": "Black chinchompas",
+     "startXp": 992866,
+     "rate": 300000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_maniacal_monkeys_75",
+     "name": "Maniacal monkeys",
+     "startXp": 1210391,
+     "rate": 74000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_rainbow_crabs_77",
+     "name": "Rainbow crabs",
+     "startXp": 1475551,
+     "rate": 122000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
     },
     {
      "id": "hunter_herbiboar",
      "name": "Herbiboar",
      "startXp": 1986037,
-     "rate": 120000,
+     "rate": 137000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Herbiboar",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki",
      "req": "any:quest:Bone Voyage&skillb:Herblore:31"
+    },
+    {
+     "id": "hunter_wiki_maniacal_monkeys_80",
+     "name": "Maniacal monkeys",
+     "startXp": 1986037,
+     "rate": 82000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_herbiboar_85",
+     "name": "Herbiboar",
+     "startXp": 3258562,
+     "rate": 147000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki",
+     "req": "any:quest:Bone Voyage&skillb:Herblore:31"
+    },
+    {
+     "id": "hunter_wiki_maniacal_monkeys_85",
+     "name": "Maniacal monkeys",
+     "startXp": 3258562,
+     "rate": 89000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_herbiboar_90",
+     "name": "Herbiboar",
+     "startXp": 5346298,
+     "rate": 157000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki",
+     "req": "any:quest:Bone Voyage&skillb:Herblore:31"
+    },
+    {
+     "id": "hunter_wiki_maniacal_monkeys_90",
+     "name": "Maniacal monkeys",
+     "startXp": 5346298,
+     "rate": 96000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_hunters_rumours_91",
+     "name": "Hunters' Rumours",
+     "startXp": 5902797,
+     "rate": 195000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_herbiboar_95",
+     "name": "Herbiboar",
+     "startXp": 8771523,
+     "rate": 166000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki",
+     "req": "any:quest:Bone Voyage&skillb:Herblore:31"
+    },
+    {
+     "id": "hunter_wiki_maniacal_monkeys_95",
+     "name": "Maniacal monkeys",
+     "startXp": 8771523,
+     "rate": 104000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_hunters_rumours_99",
+     "name": "Hunters' Rumours",
+     "startXp": 13034394,
+     "rate": 250000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "hunter_wiki_herbiboar_99",
+     "name": "Herbiboar",
+     "startXp": 13034394,
+     "rate": 171000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki",
+     "req": "any:quest:Bone Voyage&skillb:Herblore:31"
+    },
+    {
+     "id": "hunter_wiki_maniacal_monkeys_99",
+     "name": "Maniacal monkeys",
+     "startXp": 13034394,
+     "rate": 110000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Hunter_training",
+     "origin": "wiki"
     }
    ]
   },
@@ -713,7 +2663,8 @@
      "startXp": 0,
      "rate": 8000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Mining"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Mining",
+     "origin": "curated"
     },
     {
      "id": "mining_iron_ore",
@@ -721,7 +2672,8 @@
      "startXp": 2406,
      "rate": 35000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Mining"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Mining",
+     "origin": "curated"
     },
     {
      "id": "mining_motherlode",
@@ -729,33 +2681,291 @@
      "startXp": 13352,
      "rate": 40000,
      "style": "semi",
-     "source": "oldschool.runescape.wiki/w/Motherlode_Mine"
+     "source": "oldschool.runescape.wiki/w/Motherlode_Mine",
+     "origin": "curated"
     },
     {
      "id": "mining_calcified",
      "name": "Calcified rocks (+prayer shards)",
      "startXp": 41156,
-     "rate": 45000,
+     "rate": 23500,
      "style": "afk",
-     "source": "oldschool.runescape.wiki/w/Calcified_rocks",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki",
      "req": "quest:Perilous Moons"
     },
     {
      "id": "mining_granite_3t",
      "name": "3-tick granite",
      "startXp": 61495,
+     "rate": 87000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "mining_wiki_gem_rocks_50",
+     "name": "Gem rocks",
+     "startXp": 101314,
+     "rate": 93000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "mining_wiki_granite_55",
+     "name": "Granite",
+     "startXp": 166614,
      "rate": 95000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Mining"
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "mining_wiki_gem_rocks_60",
+     "name": "Gem rocks",
+     "startXp": 273718,
+     "rate": 97000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "mining_wiki_calcified_rocks_60",
+     "name": "Calcified rocks",
+     "startXp": 273718,
+     "rate": 27000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki",
+     "req": "quest:Perilous Moons"
+    },
+    {
+     "id": "mining_wiki_granite_65",
+     "name": "Granite",
+     "startXp": 449403,
+     "rate": 103000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "mining_wiki_gem_rocks_70",
+     "name": "Gem rocks",
+     "startXp": 737600,
+     "rate": 101000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "mining_wiki_zalcano_70",
+     "name": "Zalcano",
+     "startXp": 737600,
+     "rate": 90000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
     },
     {
      "id": "mining_volcanic_mine",
      "name": "Volcanic Mine",
      "startXp": 737600,
-     "rate": 80000,
+     "rate": 64200,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Volcanic_Mine",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki",
      "req": "quest:Bone Voyage"
+    },
+    {
+     "id": "mining_wiki_calcified_rocks_70",
+     "name": "Calcified rocks",
+     "startXp": 737600,
+     "rate": 34000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki",
+     "req": "quest:Perilous Moons"
+    },
+    {
+     "id": "mining_wiki_granite_75",
+     "name": "Granite",
+     "startXp": 1210391,
+     "rate": 109000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "mining_wiki_blast_mine_75",
+     "name": "Blast Mine",
+     "startXp": 1210391,
+     "rate": 70500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "mining_wiki_volcanic_mine_75",
+     "name": "Volcanic Mine",
+     "startXp": 1210391,
+     "rate": 65200,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki",
+     "req": "quest:Bone Voyage"
+    },
+    {
+     "id": "mining_wiki_infernal_shale_78",
+     "name": "Infernal shale",
+     "startXp": 1629170,
+     "rate": 73500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "mining_wiki_gem_rocks_80",
+     "name": "Gem rocks",
+     "startXp": 1986037,
+     "rate": 105000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "mining_wiki_volcanic_mine_80",
+     "name": "Volcanic Mine",
+     "startXp": 1986037,
+     "rate": 68000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki",
+     "req": "quest:Bone Voyage"
+    },
+    {
+     "id": "mining_wiki_calcified_rocks_80",
+     "name": "Calcified rocks",
+     "startXp": 1986037,
+     "rate": 39000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki",
+     "req": "quest:Perilous Moons"
+    },
+    {
+     "id": "mining_wiki_granite_85",
+     "name": "Granite",
+     "startXp": 3258562,
+     "rate": 114000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "mining_wiki_volcanic_mine_85",
+     "name": "Volcanic Mine",
+     "startXp": 3258562,
+     "rate": 71800,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki",
+     "req": "quest:Bone Voyage"
+    },
+    {
+     "id": "mining_wiki_gem_rocks_90",
+     "name": "Gem rocks",
+     "startXp": 5346298,
+     "rate": 107000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "mining_wiki_volcanic_mine_90",
+     "name": "Volcanic Mine",
+     "startXp": 5346298,
+     "rate": 74700,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki",
+     "req": "quest:Bone Voyage"
+    },
+    {
+     "id": "mining_wiki_calcified_rocks_90",
+     "name": "Calcified rocks",
+     "startXp": 5346298,
+     "rate": 44000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki",
+     "req": "quest:Perilous Moons"
+    },
+    {
+     "id": "mining_wiki_amethyst_92",
+     "name": "Amethyst",
+     "startXp": 6517219,
+     "rate": 22500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "mining_wiki_granite_95",
+     "name": "Granite",
+     "startXp": 8771523,
+     "rate": 119000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "mining_wiki_volcanic_mine_95",
+     "name": "Volcanic Mine",
+     "startXp": 8771523,
+     "rate": 76500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki",
+     "req": "quest:Bone Voyage"
+    },
+    {
+     "id": "mining_wiki_granite_99",
+     "name": "Granite",
+     "startXp": 13034394,
+     "rate": 126000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "mining_wiki_gem_rocks_99",
+     "name": "Gem rocks",
+     "startXp": 13034394,
+     "rate": 110000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "mining_wiki_volcanic_mine_99",
+     "name": "Volcanic Mine",
+     "startXp": 13034394,
+     "rate": 79300,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki",
+     "req": "quest:Bone Voyage"
+    },
+    {
+     "id": "mining_wiki_calcified_rocks_99",
+     "name": "Calcified rocks",
+     "startXp": 13034394,
+     "rate": 49000,
+     "style": "afk",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Mining_training",
+     "origin": "wiki",
+     "req": "quest:Perilous Moons"
     }
    ]
   },
@@ -763,12 +2973,40 @@
    "skill": "Smithing",
    "methods": [
     {
+     "id": "smithing_wiki_bronze_dagger_1",
+     "name": "Bronze dagger",
+     "startXp": 0,
+     "rate": 13900,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Smithing_training",
+     "origin": "wiki"
+    },
+    {
      "id": "smithing_bronze_iron",
      "name": "Bronze/iron smithing",
      "startXp": 0,
      "rate": 8000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Smithing"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Smithing",
+     "origin": "curated"
+    },
+    {
+     "id": "smithing_wiki_bronze_scimitar_5",
+     "name": "Bronze scimitar",
+     "startXp": 387,
+     "rate": 25700,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Smithing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "smithing_wiki_bronze_warhammer_9",
+     "name": "Bronze warhammer",
+     "startXp": 966,
+     "rate": 36200,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Smithing_training",
+     "origin": "wiki"
     },
     {
      "id": "smithing_foundry",
@@ -777,15 +3015,53 @@
      "rate": 80000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Giants'_Foundry",
+     "origin": "curated",
      "req": "skillb:Smithing:15"
     },
     {
-     "id": "smithing_foundry_high",
-     "name": "Giants' Foundry (high tiers)",
-     "startXp": 273718,
-     "rate": 180000,
+     "id": "smithing_wiki_bronze_platebody_18",
+     "name": "Bronze platebody",
+     "startXp": 3517,
+     "rate": 52100,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Giants'_Foundry"
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Smithing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "smithing_wiki_iron_warhammer_24",
+     "name": "Iron warhammer",
+     "startXp": 7020,
+     "rate": 72300,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Smithing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "smithing_wiki_iron_platebody_33",
+     "name": "Iron platebody",
+     "startXp": 18235,
+     "rate": 104200,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Smithing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "smithing_wiki_smithing_steel_cannonballs_35",
+     "name": "Smithing steel cannonballs",
+     "startXp": 22394,
+     "rate": 27648,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Smithing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "smithing_wiki_steel_warhammer_39",
+     "name": "Steel warhammer",
+     "startXp": 33633,
+     "rate": 108500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Smithing_training",
+     "origin": "wiki"
     },
     {
      "id": "smithing_blast_furnace_gold",
@@ -794,6 +3070,7 @@
      "rate": 250000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Blast_Furnace",
+     "origin": "curated",
      "req": "quest:Family Crest",
      "xpEach": 56.2,
      "inputs": [
@@ -803,6 +3080,51 @@
        "name": "Gold ore"
       }
      ]
+    },
+    {
+     "id": "smithing_wiki_steel_platebody_48",
+     "name": "Steel platebody",
+     "startXp": 82996,
+     "rate": 144000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Smithing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "smithing_foundry_high",
+     "name": "Giants' Foundry (high tiers)",
+     "startXp": 273718,
+     "rate": 180000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Giants'_Foundry",
+     "origin": "curated"
+    },
+    {
+     "id": "smithing_wiki_mithril_platelegs_66",
+     "name": "Mithril platelegs",
+     "startXp": 496229,
+     "rate": 140000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Smithing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "smithing_wiki_mithril_plateskirt_66",
+     "name": "Mithril plateskirt",
+     "startXp": 496229,
+     "rate": 140000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Smithing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "smithing_wiki_mithril_platebody_68",
+     "name": "Mithril platebody",
+     "startXp": 605006,
+     "rate": 200000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Smithing_training",
+     "origin": "wiki"
     }
    ]
   },
@@ -815,41 +3137,526 @@
      "startXp": 0,
      "rate": 8000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing",
+     "origin": "curated"
     },
     {
      "id": "fishing_fly_fishing",
      "name": "Fly fishing (powerfish)",
      "startXp": 4463,
-     "rate": 28000,
+     "rate": 13000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing"
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_fly_fishing_30",
+     "name": "Fly fishing",
+     "startXp": 13352,
+     "rate": 25000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_2_tick_harpooning_swordfish_tuna_35",
+     "name": "2-tick harpooning swordfish/tuna",
+     "startXp": 22394,
+     "rate": 25400,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_fly_fishing_40",
+     "name": "Fly fishing",
+     "startXp": 37209,
+     "rate": 30000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_barbarian_fishing_48",
+     "name": "Barbarian Fishing",
+     "startXp": 82996,
+     "rate": 23000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki",
+     "req": "any:skillb:Agility:30&skillb:Strength:30"
+    },
+    {
+     "id": "fishing_wiki_2_tick_harpooning_swordfish_tuna_50",
+     "name": "2-tick harpooning swordfish/tuna",
+     "startXp": 101314,
+     "rate": 60700,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_fly_fishing_50",
+     "name": "Fly fishing",
+     "startXp": 101314,
+     "rate": 34000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
     },
     {
      "id": "fishing_barbarian",
      "name": "Barbarian fishing",
      "startXp": 224443,
-     "rate": 68000,
+     "rate": 37000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Barbarian_Fishing",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki",
      "req": "any:skillb:Agility:30&skillb:Strength:30"
+    },
+    {
+     "id": "fishing_wiki_fly_fishing_60",
+     "name": "Fly fishing",
+     "startXp": 273718,
+     "rate": 37000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_2_tick_harpooning_swordfish_tuna_61",
+     "name": "2-tick harpooning swordfish/tuna",
+     "startXp": 302264,
+     "rate": 69600,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_monkfish_62",
+     "name": "Monkfish",
+     "startXp": 333780,
+     "rate": 35800,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
     },
     {
      "id": "fishing_karambwans",
      "name": "Karambwans (banked cooking)",
      "startXp": 449403,
-     "rate": 30000,
+     "rate": 29000,
      "style": "semi",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki",
      "req": "quest:Tai Bwo Wannai Trio"
+    },
+    {
+     "id": "fishing_wiki_karambwans_65",
+     "name": "Karambwans",
+     "startXp": 449403,
+     "rate": 22500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_barbarian_fishing_70",
+     "name": "Barbarian Fishing",
+     "startXp": 737600,
+     "rate": 48000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki",
+     "req": "any:skillb:Agility:30&skillb:Strength:30"
+    },
+    {
+     "id": "fishing_wiki_fly_fishing_70",
+     "name": "Fly fishing",
+     "startXp": 737600,
+     "rate": 41000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_monkfish_70",
+     "name": "Monkfish",
+     "startXp": 737600,
+     "rate": 37000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_karambwan_70",
+     "name": "Karambwan",
+     "startXp": 737600,
+     "rate": 31000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki",
+     "req": "quest:Tai Bwo Wannai Trio"
+    },
+    {
+     "id": "fishing_wiki_karambwans_70",
+     "name": "Karambwans",
+     "startXp": 737600,
+     "rate": 24200,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_2_tick_harpooning_swordfish_tuna_71",
+     "name": "2-tick harpooning swordfish/tuna",
+     "startXp": 814417,
+     "rate": 78400,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_karambwan_75",
+     "name": "Karambwan",
+     "startXp": 1210391,
+     "rate": 32900,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki",
+     "req": "quest:Tai Bwo Wannai Trio"
+    },
+    {
+     "id": "fishing_wiki_leechfin_fishing_78",
+     "name": "Leechfin Fishing",
+     "startXp": 1629170,
+     "rate": 109000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_barbarian_fishing_80",
+     "name": "Barbarian Fishing",
+     "startXp": 1986037,
+     "rate": 52000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki",
+     "req": "any:skillb:Agility:30&skillb:Strength:30"
+    },
+    {
+     "id": "fishing_wiki_fly_fishing_80",
+     "name": "Fly fishing",
+     "startXp": 1986037,
+     "rate": 44000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_monkfish_80",
+     "name": "Monkfish",
+     "startXp": 1986037,
+     "rate": 38500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_karambwan_80",
+     "name": "Karambwan",
+     "startXp": 1986037,
+     "rate": 34900,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki",
+     "req": "quest:Tai Bwo Wannai Trio"
+    },
+    {
+     "id": "fishing_wiki_infernal_eel_80",
+     "name": "Infernal eel",
+     "startXp": 1986037,
+     "rate": 29700,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_karambwans_80",
+     "name": "Karambwans",
+     "startXp": 1986037,
+     "rate": 27550,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing",
+     "origin": "wiki"
     },
     {
      "id": "fishing_minnows",
      "name": "Minnows",
      "startXp": 2421055,
+     "rate": 40000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_anglerfish_82",
+     "name": "Anglerfish",
+     "startXp": 2421055,
+     "rate": 15000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_leechfin_fishing_85",
+     "name": "Leechfin Fishing",
+     "startXp": 3258562,
+     "rate": 116000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_2_tick_harpooning_swordfish_tuna_85",
+     "name": "2-tick harpooning swordfish/tuna",
+     "startXp": 3258562,
+     "rate": 90200,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_minnows_85",
+     "name": "Minnows",
+     "startXp": 3258562,
+     "rate": 43000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_dark_crabs_85",
+     "name": "Dark crabs",
+     "startXp": 3258562,
+     "rate": 40000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_karambwan_85",
+     "name": "Karambwan",
+     "startXp": 3258562,
+     "rate": 36800,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki",
+     "req": "quest:Tai Bwo Wannai Trio"
+    },
+    {
+     "id": "fishing_wiki_sacred_eel_87",
+     "name": "Sacred eel",
+     "startXp": 3972261,
+     "rate": 20000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_leechfin_fishing_90",
+     "name": "Leechfin Fishing",
+     "startXp": 5346298,
+     "rate": 122000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_barbarian_fishing_90",
+     "name": "Barbarian Fishing",
+     "startXp": 5346298,
+     "rate": 54000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki",
+     "req": "any:skillb:Agility:30&skillb:Strength:30"
+    },
+    {
+     "id": "fishing_wiki_fly_fishing_90",
+     "name": "Fly fishing",
+     "startXp": 5346298,
+     "rate": 47000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_minnows_90",
+     "name": "Minnows",
+     "startXp": 5346298,
+     "rate": 45000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_monkfish_90",
+     "name": "Monkfish",
+     "startXp": 5346298,
+     "rate": 40000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_karambwan_90",
+     "name": "Karambwan",
+     "startXp": 5346298,
+     "rate": 38700,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki",
+     "req": "quest:Tai Bwo Wannai Trio"
+    },
+    {
+     "id": "fishing_wiki_infernal_eel_90",
+     "name": "Infernal eel",
+     "startXp": 5346298,
+     "rate": 31800,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_karambwans_90",
+     "name": "Karambwans",
+     "startXp": 5346298,
+     "rate": 30900,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_leechfin_fishing_95",
+     "name": "Leechfin Fishing",
+     "startXp": 8771523,
+     "rate": 127000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_minnows_95",
+     "name": "Minnows",
+     "startXp": 8771523,
      "rate": 48000,
      "style": "semi",
-     "source": "oldschool.runescape.wiki/w/Minnow"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_karambwan_95",
+     "name": "Karambwan",
+     "startXp": 8771523,
+     "rate": 40600,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki",
+     "req": "quest:Tai Bwo Wannai Trio"
+    },
+    {
+     "id": "fishing_wiki_leechfin_fishing_99",
+     "name": "Leechfin Fishing",
+     "startXp": 13034394,
+     "rate": 130000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_2_tick_harpooning_swordfish_tuna_99",
+     "name": "2-tick harpooning swordfish/tuna",
+     "startXp": 13034394,
+     "rate": 103400,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_barbarian_fishing_99",
+     "name": "Barbarian Fishing",
+     "startXp": 13034394,
+     "rate": 57000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki",
+     "req": "any:skillb:Agility:30&skillb:Strength:30"
+    },
+    {
+     "id": "fishing_wiki_minnows_99",
+     "name": "Minnows",
+     "startXp": 13034394,
+     "rate": 56000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_fly_fishing_99",
+     "name": "Fly fishing",
+     "startXp": 13034394,
+     "rate": 50000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_karambwan_99",
+     "name": "Karambwan",
+     "startXp": 13034394,
+     "rate": 42000,
+     "style": "semi",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki",
+     "req": "quest:Tai Bwo Wannai Trio"
+    },
+    {
+     "id": "fishing_wiki_monkfish_99",
+     "name": "Monkfish",
+     "startXp": 13034394,
+     "rate": 42000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_infernal_eel_99",
+     "name": "Infernal eel",
+     "startXp": 13034394,
+     "rate": 34000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_karambwans_99",
+     "name": "Karambwans",
+     "startXp": 13034394,
+     "rate": 33850,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Fishing",
+     "origin": "wiki"
+    },
+    {
+     "id": "fishing_wiki_sacred_eel_99",
+     "name": "Sacred eel",
+     "startXp": 13034394,
+     "rate": 23000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Fishing_training",
+     "origin": "wiki"
     }
    ],
    "bonuses": [
@@ -878,7 +3685,17 @@
      "startXp": 0,
      "rate": 15000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Cooking"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Cooking",
+     "origin": "curated"
+    },
+    {
+     "id": "cooking_wiki_redberry_pie_10",
+     "name": "Redberry pie",
+     "startXp": 1151,
+     "rate": 147000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
     },
     {
      "id": "cooking_trout_salmon",
@@ -886,7 +3703,116 @@
      "startXp": 2406,
      "rate": 45000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Cooking"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Cooking",
+     "origin": "curated"
+    },
+    {
+     "id": "cooking_wiki_meat_pie_20",
+     "name": "Meat pie",
+     "startXp": 4463,
+     "rate": 207000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_mud_pie_29",
+     "name": "Mud pie",
+     "startXp": 12020,
+     "rate": 241000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_cooked_karambwan_30",
+     "name": "Cooked karambwan",
+     "startXp": 13352,
+     "rate": 464000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_apple_pie_30",
+     "name": "Apple pie",
+     "startXp": 13352,
+     "rate": 245000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_tuna_30",
+     "name": "Tuna",
+     "startXp": 13352,
+     "rate": 92500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_garden_pie_34",
+     "name": "Garden pie",
+     "startXp": 20212,
+     "rate": 260000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_cooked_karambwan_40",
+     "name": "Cooked karambwan",
+     "startXp": 37209,
+     "rate": 534000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_lobster_40",
+     "name": "Lobster",
+     "startXp": 37209,
+     "rate": 142500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_fish_pie_47",
+     "name": "Fish pie",
+     "startXp": 75110,
+     "rate": 309000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_cooked_karambwan_50",
+     "name": "Cooked karambwan",
+     "startXp": 101314,
+     "rate": 605000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_botanical_pie_52",
+     "name": "Botanical pie",
+     "startXp": 123640,
+     "rate": 339000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_mushroom_pie_60",
+     "name": "Mushroom pie",
+     "startXp": 273718,
+     "rate": 377000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
     },
     {
      "id": "cooking_karambwans_cook",
@@ -895,6 +3821,7 @@
      "rate": 130000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Ironman_Guide/Cooking",
+     "origin": "curated",
      "req": "quest:Tai Bwo Wannai Trio",
      "xpEach": 190.0,
      "inputs": [
@@ -912,6 +3839,7 @@
      "rate": 300000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Ironman_Guide/Cooking",
+     "origin": "curated",
      "xpEach": 200.0,
      "inputs": [
       {
@@ -925,6 +3853,87 @@
        "name": "Jug of water"
       }
      ]
+    },
+    {
+     "id": "cooking_wiki_swordfish_68",
+     "name": "Swordfish",
+     "startXp": 605006,
+     "rate": 182500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_monkfish_68",
+     "name": "Monkfish",
+     "startXp": 605006,
+     "rate": 182500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_admiral_pie_70",
+     "name": "Admiral pie",
+     "startXp": 737600,
+     "rate": 396000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_dragonfruit_pie_73",
+     "name": "Dragonfruit pie",
+     "startXp": 992866,
+     "rate": 415000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_shark_80",
+     "name": "Shark",
+     "startXp": 1986037,
+     "rate": 280000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_anglerfish_84",
+     "name": "Anglerfish",
+     "startXp": 2951341,
+     "rate": 317500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_wild_pie_85",
+     "name": "Wild pie",
+     "startXp": 3258562,
+     "rate": 452000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_manta_ray_91",
+     "name": "Manta ray",
+     "startXp": 5902797,
+     "rate": 292500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "cooking_wiki_summer_pie_95",
+     "name": "Summer pie",
+     "startXp": 8771523,
+     "rate": 490000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Cooking_training",
+     "origin": "wiki"
     }
    ]
   },
@@ -932,20 +3941,175 @@
    "skill": "Firemaking",
    "methods": [
     {
+     "id": "firemaking_wiki_explode_var_firelighter_item_1",
+     "name": "{{#explode:{{#var:firelighter_item",
+     "startXp": 0,
+     "rate": 74250,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
+    },
+    {
      "id": "firemaking_burn_logs",
      "name": "Log burning ladder",
      "startXp": 0,
      "rate": 40000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Firemaking"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Firemaking",
+     "origin": "curated"
+    },
+    {
+     "id": "firemaking_wiki_logs_1",
+     "name": "Logs",
+     "startXp": 0,
+     "rate": 39000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "firemaking_wiki_oak_logs_15",
+     "name": "Oak logs",
+     "startXp": 2406,
+     "rate": 58500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "firemaking_wiki_willow_logs_30",
+     "name": "Willow logs",
+     "startXp": 13352,
+     "rate": 87750,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "firemaking_wiki_teak_logs_35",
+     "name": "Teak logs",
+     "startXp": 22394,
+     "rate": 102375,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "firemaking_wiki_arctic_pine_logs_42",
+     "name": "Arctic pine logs",
+     "startXp": 45513,
+     "rate": 121875,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "firemaking_wiki_maple_logs_45",
+     "name": "Maple logs",
+     "startXp": 61495,
+     "rate": 131625,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
     },
     {
      "id": "firemaking_wintertodt",
      "name": "Wintertodt",
      "startXp": 101314,
-     "rate": 200000,
+     "rate": 161000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Wintertodt"
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "firemaking_wiki_mahogany_logs_50",
+     "name": "Mahogany logs",
+     "startXp": 101314,
+     "rate": 153562,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "firemaking_wiki_yew_logs_60",
+     "name": "Yew logs",
+     "startXp": 273718,
+     "rate": 197437,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "firemaking_wiki_wintertodt_60",
+     "name": "Wintertodt",
+     "startXp": 273718,
+     "rate": 193000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "firemaking_wiki_wintertodt_70",
+     "name": "Wintertodt",
+     "startXp": 737600,
+     "rate": 226000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "firemaking_wiki_magic_logs_75",
+     "name": "Magic logs",
+     "startXp": 1210391,
+     "rate": 296205,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "firemaking_wiki_wintertodt_80",
+     "name": "Wintertodt",
+     "startXp": 1986037,
+     "rate": 258000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "firemaking_wiki_ironwood_logs_80",
+     "name": "Ironwood logs",
+     "startXp": 1986037,
+     "rate": 214987,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "firemaking_wiki_redwood_logs_90",
+     "name": "Redwood logs",
+     "startXp": 5346298,
+     "rate": 341250,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "firemaking_wiki_wintertodt_90",
+     "name": "Wintertodt",
+     "startXp": 5346298,
+     "rate": 290000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "firemaking_wiki_wintertodt_99",
+     "name": "Wintertodt",
+     "startXp": 13034394,
+     "rate": 320000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
+     "origin": "wiki"
     }
    ]
   },
@@ -958,7 +4122,53 @@
      "startXp": 0,
      "rate": 30000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Woodcutting"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Woodcutting",
+     "origin": "curated"
+    },
+    {
+     "id": "woodcutting_wiki_achey_tree_logs_1",
+     "name": "Achey tree logs",
+     "startXp": 0,
+     "rate": 17000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_logs_1",
+     "name": "Logs",
+     "startXp": 0,
+     "rate": 15625,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_oak_logs_15",
+     "name": "Oak logs",
+     "startXp": 2406,
+     "rate": 40000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_willow_logs_30",
+     "name": "Willow logs",
+     "startXp": 13352,
+     "rate": 74000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_teak_logs_35",
+     "name": "Teak logs",
+     "startXp": 22394,
+     "rate": 172500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
     },
     {
      "id": "woodcutting_teaks_2t",
@@ -966,16 +4176,237 @@
      "startXp": 22394,
      "rate": 120000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Woodcutting"
+     "source": "oldschool.runescape.wiki/w/Ironman_Guide/Woodcutting",
+     "origin": "curated"
+    },
+    {
+     "id": "woodcutting_wiki_teak_trees_35",
+     "name": "Teak trees",
+     "startXp": 22394,
+     "rate": 34000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_teak_trees_41",
+     "name": "Teak trees",
+     "startXp": 41156,
+     "rate": 42000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_bark_45",
+     "name": "Bark",
+     "startXp": 61495,
+     "rate": 70000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_maple_logs_45",
+     "name": "Maple logs",
+     "startXp": 61495,
+     "rate": 50400,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_mahogany_logs_50",
+     "name": "Mahogany logs",
+     "startXp": 101314,
+     "rate": 46500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_teak_trees_50",
+     "name": "Teak trees",
+     "startXp": 101314,
+     "rate": 46000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_arctic_pine_logs_54",
+     "name": "Arctic pine logs",
+     "startXp": 150851,
+     "rate": 20000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_yew_logs_60",
+     "name": "Yew logs",
+     "startXp": 273718,
+     "rate": 47000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_teak_trees_61",
+     "name": "Teak trees",
+     "startXp": 302264,
+     "rate": 65000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_blisterwood_logs_62",
+     "name": "Blisterwood logs",
+     "startXp": 333780,
+     "rate": 85000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_blisterwood_tree_62",
+     "name": "Blisterwood tree",
+     "startXp": 333780,
+     "rate": 69000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
     },
     {
      "id": "woodcutting_sulliusceps",
      "name": "Sulliusceps",
      "startXp": 449403,
-     "rate": 105000,
+     "rate": 82700,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Sulliuscep",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki",
      "req": "quest:Bone Voyage"
+    },
+    {
+     "id": "woodcutting_wiki_camphor_logs_66",
+     "name": "Camphor logs",
+     "startXp": 496229,
+     "rate": 70000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_sulliuscep_71",
+     "name": "Sulliuscep",
+     "startXp": 814417,
+     "rate": 86300,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki",
+     "req": "quest:Bone Voyage"
+    },
+    {
+     "id": "woodcutting_wiki_teak_trees_71",
+     "name": "Teak trees",
+     "startXp": 814417,
+     "rate": 74000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_magic_logs_75",
+     "name": "Magic logs",
+     "startXp": 1210391,
+     "rate": 27500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_bloodwood_trees_77",
+     "name": "Bloodwood trees",
+     "startXp": 1475551,
+     "rate": 170000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_ironwood_logs_80",
+     "name": "Ironwood logs",
+     "startXp": 1986037,
+     "rate": 95000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_sulliuscep_80",
+     "name": "Sulliuscep",
+     "startXp": 1986037,
+     "rate": 91600,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki",
+     "req": "quest:Bone Voyage"
+    },
+    {
+     "id": "woodcutting_wiki_ironwood_trees_80",
+     "name": "Ironwood trees",
+     "startXp": 1986037,
+     "rate": 90000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_teak_trees_80",
+     "name": "Teak trees",
+     "startXp": 1986037,
+     "rate": 80000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_redwood_trees_88",
+     "name": "Redwood trees",
+     "startXp": 4385743,
+     "rate": 57500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_sulliuscep_90",
+     "name": "Sulliuscep",
+     "startXp": 5346298,
+     "rate": 97400,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki",
+     "req": "quest:Bone Voyage"
+    },
+    {
+     "id": "woodcutting_wiki_teak_trees_90",
+     "name": "Teak trees",
+     "startXp": 5346298,
+     "rate": 87000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_redwood_logs_90",
+     "name": "Redwood logs",
+     "startXp": 5346298,
+     "rate": 77500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
     },
     {
      "id": "woodcutting_redwoods",
@@ -983,7 +4414,45 @@
      "startXp": 5346298,
      "rate": 60000,
      "style": "afk",
-     "source": "oldschool.runescape.wiki/w/Redwood_tree"
+     "source": "oldschool.runescape.wiki/w/Redwood_tree",
+     "origin": "curated"
+    },
+    {
+     "id": "woodcutting_wiki_rosewood_trees_92",
+     "name": "Rosewood trees",
+     "startXp": 6517219,
+     "rate": 87500,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_rosewood_logs_92",
+     "name": "Rosewood logs",
+     "startXp": 6517219,
+     "rate": 85000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
+    },
+    {
+     "id": "woodcutting_wiki_sulliuscep_99",
+     "name": "Sulliuscep",
+     "startXp": 13034394,
+     "rate": 101900,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki",
+     "req": "quest:Bone Voyage"
+    },
+    {
+     "id": "woodcutting_wiki_teak_trees_99",
+     "name": "Teak trees",
+     "startXp": 13034394,
+     "rate": 93000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Pay-to-play_Woodcutting_training",
+     "origin": "wiki"
     }
    ]
   },
@@ -996,23 +4465,8 @@
      "startXp": 0,
      "rate": 15000,
      "style": "semi",
-     "source": "oldschool.runescape.wiki/w/Farming_training"
-    },
-    {
-     "id": "farming_tithe_farm",
-     "name": "Tithe Farm",
-     "startXp": 20212,
-     "rate": 40000,
-     "style": "active",
-     "source": "oldschool.runescape.wiki/w/Tithe_Farm"
-    },
-    {
-     "id": "farming_herb_runs",
-     "name": "Herb runs",
-     "startXp": 16444,
-     "rate": 500000,
-     "style": "daily",
-     "source": "oldschool.runescape.wiki/w/Farming_training"
+     "source": "oldschool.runescape.wiki/w/Farming_training",
+     "origin": "curated"
     },
     {
      "id": "farming_tree_runs",
@@ -1020,7 +4474,26 @@
      "startXp": 2406,
      "rate": 900000,
      "style": "daily",
-     "source": "oldschool.runescape.wiki/w/Farming_training"
+     "source": "oldschool.runescape.wiki/w/Farming_training",
+     "origin": "curated"
+    },
+    {
+     "id": "farming_herb_runs",
+     "name": "Herb runs",
+     "startXp": 16444,
+     "rate": 500000,
+     "style": "daily",
+     "source": "oldschool.runescape.wiki/w/Farming_training",
+     "origin": "curated"
+    },
+    {
+     "id": "farming_tithe_farm",
+     "name": "Tithe Farm",
+     "startXp": 20212,
+     "rate": 40000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Tithe_Farm",
+     "origin": "curated"
     }
    ]
   },
@@ -1034,6 +4507,7 @@
      "rate": 10000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Sailing_training",
+     "origin": "curated",
      "req": "quest:Pandemonium"
     },
     {
@@ -1043,7 +4517,17 @@
      "rate": 22000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Sailing_training",
+     "origin": "curated",
      "req": "quest:Pandemonium"
+    },
+    {
+     "id": "sailing_wiki_summer_shore_46",
+     "name": "Summer Shore",
+     "startXp": 67966,
+     "rate": 30000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Sailing_training",
+     "origin": "wiki"
     },
     {
      "id": "sailing_barracuda_t2",
@@ -1052,6 +4536,7 @@
      "rate": 75000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Sailing_training",
+     "origin": "curated",
      "req": "quest:Pandemonium"
     },
     {
@@ -1061,6 +4546,7 @@
      "rate": 140000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Sailing_training",
+     "origin": "curated",
      "req": "any:quest:Pandemonium&quest:Regicide"
     }
    ]

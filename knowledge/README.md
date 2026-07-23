@@ -76,6 +76,13 @@ flags/gaps before re-judging (a re-detected gap reopens; `wont-fix` sticks).
   wiki's own gear tables for 452 activities, offline (the old per-page
   wiki-strategy fetch path's data, bundled). Consumed by the Gear & Combat
   "Wiki gear" fold (2026-07-23, design/KB-RUNTIME.md).
+- **methods.json** — `tools/gen_methods.py` merges the curated ironman seed
+  with **knowledge.db's** table-derived wiki training tiers (2026-07-23;
+  468 methods, wiki rates preferred over curated where both speak — Luke's
+  call; player-measured rates still override at runtime). The WOM ironman
+  envelope drops unsustainable wiki tiers (gilded-altar Prayer, bankstand
+  Herblore) with a log line; prose-derived rates join only from narrow
+  level ranges.
 - **item-sources.json** — `tools/gen_item_sources.py` reads **knowledge.db
   directly** (run `tools/knowledge/rebuild.py` first): the universal per-item
   obtainment + equip-req projection — 6,870 items, best source per how

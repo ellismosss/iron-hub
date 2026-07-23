@@ -26,12 +26,15 @@ regenerations). Ordered by how badly the module under-covers.
    pack's framing stands; the verifier now accepts tool-augmented recipes
    (0 drift).
 
-4. **methods.json holds 97 methods; the wiki guides yield 225+** (KB
-   `training_methods`, wiki rows flagged prose-derived). Rates stay yours to
-   gate — but the LADDER breadth (methods the planner can even consider) is
-   under-covered, e.g. whole skills lean on 3-4 rungs. **AWAITING YOUR PICKS** (by its own design): the wiki-derived methods sit
-   in the KB browser flagged rates-need-review; name the ones to promote
-   and I'll fold them into methods.json with your rates.
+4. **methods.json — ENACTED 2026-07-23** (Luke: "refresh and expand from the
+   KB. Pull all methods. Always prefer Wiki-sourced rates over curated rates,
+   until live player-specific data is harvested"): 468 methods (was 97) —
+   the curated seed merged with the KB's table-derived wiki tiers (harvest
+   v2 parses tables header-aware under their sections), wiki rates override
+   22 curated figures, 286 wiki methods added. Guardrails kept: WOM ironman
+   envelope drops unsustainable tiers (gilded-altar Prayer, bankstand
+   Herblore potions, multi-runner RC), prose-derived rates only join from
+   narrow level ranges, player-measured rates override at runtime.
 
 ## Verified clean (no action)
 

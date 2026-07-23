@@ -2,22 +2,34 @@
 """Generate data/methods.json — the training-method ladders for the goal
 engine (WOM-shape {startXp, rate} tiers + requirement overlay).
 
-The SEED table below encodes the practical ironman method ladder researched
-in ENGINE-DESIGN.md Appendix A (OSRS wiki Ironman_Guide pages, July 2026),
-with per-entry provenance. Rates are the wiki's PRACTICAL numbers,
-deliberately NOT Wise Old Man's max-efficiency EHP rates (2-alt tick-perfect
-assumptions) — plan hours stay honest for a typical ironman, not a
-tick-perfect one (Luke's call, Goals v2 G4, 2026-07-18). Levels are written
-as levels here and compiled to exact xp thresholds by this script.
+Since 2026-07-23 (Luke: "refresh and expand methods.json from the KB. Pull
+all methods. Always prefer Wiki-sourced rates over curated rates, until
+live player-specific data is harvested") the ladders MERGE two sources:
 
-The MACHINERY (G4): this script fetches WOM's open-source ironman EHP
-configs at a PINNED commit and cross-validates every curated rate against
-that max-efficiency ENVELOPE — a practical rate must never exceed WOM's
-tick-perfect ceiling (with slack), so a future rate typo (an extra zero)
-fails the regeneration loudly. WOM is the envelope, never the plan rate.
+1. The KB's TABLE-DERIVED wiki tiers (knowledge.db training_methods, the
+   v2 header-mapped parse of every skill's training guide + ironman guide
+   — run `python3 tools/knowledge/rebuild.py` or
+   `tools/knowledge/harvest_training.py` first). Where a wiki tier matches
+   a curated method, the WIKI rate wins; unmatched wiki methods join the
+   ladder as new entries. Slayer's per-monster rows take their level from
+   slayer-tasks.json's task reqs. PROSE-derived KB rows are deliberately
+   excluded: their level↔rate pairing is a section summary, not a ladder
+   tier — costing on them would invent numbers.
+2. The curated SEED below (ENGINE-DESIGN.md Appendix A) survives as the
+   requirement/style/consumables overlay, the floor guarantee, and the
+   rate of record wherever the wiki tables have no figure.
+
+At runtime, a player's own measured rates (StateView.measuredRate) still
+override everything after 1.0 observed hours — the wiki rate is the prior,
+never the last word.
+
+The WOM MACHINERY (G4) stands: every rate — curated or wiki — must sit
+under WOM's max-efficiency ironman envelope × slack; wiki tiers above it
+are dropped with a log line, a curated violation still fails the build.
 
 Styles: active | semi | afk | daily. `daily` methods are background-lane
-content — the cost model never spends active hours on them.
+content — the cost model never spends active hours on them. Wiki-added
+methods default to `active` (the guides don't state intensity).
 
 Usage: python3 tools/gen_methods.py
 
@@ -27,6 +39,7 @@ import datetime
 import json
 import os
 import re
+import sqlite3
 import urllib.request
 
 OUT = "src/main/resources/data/methods.json"
@@ -289,9 +302,190 @@ def validate_envelope(skills, peaks):
           f"(commit {WOM_COMMIT[:7]}); Sailing has no WOM config, skipped")
 
 
+DB = os.path.join(HERE, "..", "knowledge", "knowledge.db")
+# generic section headings that are not method names
+NAME_BLACKLIST = {"other methods", "notes", "summary", "training", "methods",
+                  "experience", "quests", "money making", "recommended"}
+
+
+def norm_name(name):
+    return re.sub(r"[^a-z0-9 ]", "", re.sub(r"\([^)]*\)", "", name.lower())).strip()
+
+
+STOPWORDS = {"of", "the", "and", "at", "in", "from", "with", "a", "an"}
+
+
+def tokens(name):
+    return {w for w in norm_name(name).split() if w not in STOPWORDS}
+
+
+def names_match(a, b):
+    """Containment either way, or equal token sets minus stopwords
+    ("Knights of Ardougne" == "Ardougne knights")."""
+    na, nb = norm_name(a), norm_name(b)
+    if not na or not nb:
+        return False
+    if na in nb or nb in na:
+        return True
+    ta, tb = tokens(a), tokens(b)
+    return bool(ta) and ta == tb
+
+
+def name_variants(base):
+    v = {base}
+    if base.endswith("ies"):
+        v.add(base[:-3] + "y")
+    if base.endswith("es"):
+        v.add(base[:-2])
+    if base.endswith("s"):
+        v.add(base[:-1])
+    v.add(base + "s")
+    v.add(base + "es")
+    return v
+
+
+def slayer_levels():
+    """Monster name (normalized, singular+plural) → slayer level, from the
+    slayer pack's own task stats."""
+    with open("src/main/resources/data/slayer-tasks.json", encoding="utf-8") as f:
+        pack = json.load(f)
+    out = {}
+    for task in pack.get("tasks", []):
+        level = (task.get("stats") or {}).get("slayerLevel")
+        if not level:
+            level = 1
+        for variant in name_variants(norm_name(task["name"])):
+            out.setdefault(variant, level)
+    return out
+
+
+def kb_tiers(peaks):
+    """skill → {method name → [(level, rate, source page)]} from the KB's
+    table-derived rows, envelope-filtered."""
+    if not os.path.exists(DB):
+        raise SystemExit(f"{DB} missing — run python3 tools/knowledge/rebuild.py"
+                         " (or tools/knowledge/harvest_training.py) first")
+    conn = sqlite3.connect(DB)
+    rows = conn.execute(
+        "SELECT skill, method, level, rate, src FROM training_methods"
+        " WHERE flags='table-derived' AND rate >= 1000").fetchall()
+    # prose sections pair a rate with their heading's level range — honest
+    # only when the range is NARROW ("Levels 25-39: Fruit stalls"); a
+    # whole-skill span ("Levels 1-99: Sorceress's Garden") summarizes the
+    # END-game rate at the START level and would corrupt the ladder
+    rows += conn.execute(
+        "SELECT skill, method, level, rate, src FROM training_methods"
+        " WHERE flags LIKE 'prose-derived%' AND rate >= 1000"
+        " AND level >= 5 AND level_end IS NOT NULL"
+        " AND level_end - level <= 30").fetchall()
+    conn.close()
+    slayer = slayer_levels()
+    tiers = {}
+    skipped_level = skipped_envelope = 0
+    for skill, method, level, rate, src in rows:
+        if norm_name(method) in NAME_BLACKLIST or len(method.strip()) < 3:
+            continue
+        if skill == "Slayer" and not level:
+            level = slayer.get(norm_name(method))
+            if level is None:
+                skipped_level += 1
+                continue
+        if not level:
+            skipped_level += 1
+            continue
+        ceiling = peaks.get(skill)
+        if ceiling is not None and rate > ceiling * ENVELOPE_SLACK:
+            skipped_envelope += 1
+            continue
+        page = src.replace("wiki:", "").replace(" ", "_")
+        # case-fold the group key ("Barbarian Fishing" vs "Barbarian
+        # fishing" are one method) — first-seen casing is the display name
+        skill_methods = tiers.setdefault(skill, {})
+        key = next((k for k in skill_methods if k.lower() == method.strip().lower()),
+                   method.strip())
+        skill_methods.setdefault(key, []).append((int(level), int(rate), page))
+    for methods in tiers.values():
+        for tier_list in methods.values():
+            tier_list.sort()
+            # one tier per level (two pages can rate the same level) — keep
+            # the first (sorted = lowest rate: never overpromise)
+            seen = set()
+            tier_list[:] = [t for t in tier_list
+                            if t[0] not in seen and not seen.add(t[0])]
+    n = sum(len(t) for m in tiers.values() for t in m.values())
+    print(f"KB tiers: {n} usable across {len(tiers)} skills"
+          f" ({skipped_level} skipped level-less, {skipped_envelope} over the"
+          " WOM envelope)")
+    return tiers
+
+
+def slug(name):
+    return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")[:40]
+
+
+def merge_wiki(skill, methods, wiki_methods, report):
+    """Wiki rates override matched curated methods; remaining tiers join
+    as new ladder entries (curated req/style propagate to matched groups)."""
+    consumed = set()
+    for method in methods:
+        match = next((w for w in wiki_methods
+                      if names_match(w, method["name"])), None)
+        if match is None:
+            continue
+        tier_list = wiki_methods[match]
+        cur_level = next((l for l in range(1, 100)
+                          if xp_for_level(l) >= method["startXp"]), 1)
+        at_or_below = [t for t in tier_list if t[0] <= cur_level]
+        level, rate, page = at_or_below[-1] if at_or_below else tier_list[0]
+        if rate != method["rate"]:
+            report.append(f"  {skill}/{method['name']}: {method['rate']:,}"
+                          f" -> {rate:,} (wiki, level {level} tier)")
+        method["rate"] = rate
+        method["origin"] = "wiki"
+        method["source"] = WIKI + page
+        consumed.add((match, level))
+        # the group's OTHER tiers join the ladder under the curated gate
+        for t_level, t_rate, t_page in tier_list:
+            if (match, t_level) in consumed or t_level == cur_level:
+                continue
+            consumed.add((match, t_level))
+            extra = {
+                "id": f"{skill.lower()}_wiki_{slug(match)}_{t_level}",
+                "name": match,
+                "startXp": xp_for_level(t_level),
+                "rate": t_rate,
+                "style": method["style"],
+                "source": WIKI + t_page,
+                "origin": "wiki",
+            }
+            if method.get("req"):
+                extra["req"] = method["req"]
+            methods.append(extra)
+    added = 0
+    for name, tier_list in wiki_methods.items():
+        for level, rate, page in tier_list:
+            if (name, level) in consumed:
+                continue
+            methods.append({
+                "id": f"{skill.lower()}_wiki_{slug(name)}_{level}",
+                "name": name,
+                "startXp": xp_for_level(level),
+                "rate": rate,
+                "style": "active",
+                "source": WIKI + page,
+                "origin": "wiki",
+            })
+            added += 1
+    methods.sort(key=lambda m: (m["startXp"], -m["rate"]))
+    return added
+
+
 def main():
     peaks = wom_envelope()
+    wiki_tiers = kb_tiers(peaks)
     skills = []
+    report = []
+    total_added = 0
     for skill, rows in SEED.items():
         methods = []
         for mid, name, level, rate, req, style, page in rows:
@@ -302,6 +496,7 @@ def main():
                 "rate": rate,
                 "style": style,
                 "source": WIKI + page,
+                "origin": "curated",
             }
             if req:
                 method["req"] = req
@@ -313,6 +508,8 @@ def main():
                     for item, qty, name in consumes[1]
                 ]
             methods.append(method)
+        added = merge_wiki(skill, methods, wiki_tiers.get(skill, {}), report)
+        total_added += added
         ladder = {"skill": skill, "methods": methods}
         if BONUSES.get(skill):
             ladder["bonuses"] = BONUSES[skill]
@@ -321,10 +518,12 @@ def main():
     validate_envelope(skills, peaks)
 
     pack = {
-        "source": "curated ironman method seed per ENGINE-DESIGN.md Appendix A "
-                  "(OSRS wiki Ironman_Guide pages); PRACTICAL rates, not WOM "
-                  "max-efficiency EHP (Luke, Goals v2 G4). Cross-validated "
-                  f"against WOM ironman EHP envelope (commit {WOM_COMMIT[:7]}).",
+        "source": "curated ironman seed (ENGINE-DESIGN.md Appendix A) merged "
+                  "with the knowledge base's wiki training-guide tables — "
+                  "WIKI rates preferred over curated where both speak (Luke, "
+                  "2026-07-23); player-measured rates override at runtime. "
+                  f"Cross-validated vs WOM ironman EHP envelope "
+                  f"(commit {WOM_COMMIT[:7]}).",
         "generated": datetime.date.today().isoformat(),
         "skills": skills,
     }
@@ -332,7 +531,11 @@ def main():
         json.dump(pack, f, indent=1, ensure_ascii=False)
         f.write("\n")
     count = sum(len(l["methods"]) for l in skills)
-    print(f"wrote {OUT}: {len(skills)} skills, {count} methods")
+    print(f"wrote {OUT}: {len(skills)} skills, {count} methods"
+          f" ({total_added} wiki-added)")
+    print("curated rates overridden by wiki tables:")
+    for line in report:
+        print(line)
 
 
 if __name__ == "__main__":

@@ -229,7 +229,16 @@ public class GoalExpanderTest
 	public void anyPathsPickTheCheapestDeterministically()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
-		// Herblore 70 is far cheaper than Slayer 85 from scratch
+		// Herblore 70 (~700k xp) is far cheaper than Slayer 85 (~3.3M) —
+		// with Druidic Ritual done the Herblore ladder costs honestly from
+		// level 3 (before the 2026-07-23 wiki-rate merge this leaned on
+		// quickCost's flat pessimism for the quest-gated floor, and faster
+		// wiki Slayer tiers flipped the comparison)
+		StateFixture.quest(state, Quest.DRUIDIC_RITUAL, QuestState.FINISHED);
+		// the quest grants the xp to level 3 — the ladder's floor; without it
+		// the 0->174xp stretch has no method and Herblore costs NaN
+		StateFixture.stat(state, net.runelite.api.Skill.HERBLORE, 3,
+			net.runelite.api.Experience.getXpForLevel(3));
 		ActionDag dag = GoalExpander.expand(List.of(
 			goal("g", "any:skillb:Slayer:85|skillb:Herblore:70")), state, packs());
 		assertNotNull(dag.get("train:Herblore:70"));
