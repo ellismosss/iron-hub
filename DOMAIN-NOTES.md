@@ -138,6 +138,34 @@ Mechanics that matter:
   you've completed … combat task"; varps update the same tick, so a reload
   on the next tick reads fresh state.
 
+### The interface's own shape (2026-07-24, from its cs2)
+
+Decoded from RuneStar/cs2-scripts@7da6c1f `[proc,ca_*]` so the sidebar can
+mirror the in-game screens rather than approximate them:
+
+- **Boss grid** (`[proc,ca_bosses_draw_list]`): enum **3987** keys 1..N to a
+  boss struct carrying **1313** name, **1314** combat level (0 → the game
+  prints "Level: N/A") and **1315** the boss index a task's param 1312
+  holds. Three tiles across. Enum **3972** gives each index its category —
+  1 boss, 2 skilling boss, 3 raid.
+- **Tier tiles** count tasks, not points: `ca_tasks_completed_tier`
+  (varbits 12885–12890) over `enum_getoutputcount` of the tier's task enum.
+  Tier COMPLETION for rewards is still points (CA_THRESHOLD_*), which is
+  what the reward ladder — Ghommal's hilt 1–6, one per tier — is gated on.
+- **Combat Profile** (`[proc,ca_overview_create_personal]`): seven rows —
+  Tasks Completed, Boss Kill Count, Skilling Boss Kill Count, Raid
+  Completions, Top Boss, Top Skilling Boss, Top Raid. Every one is a sum
+  or a max over player vars the game HARDCODES in script (no enum names
+  them), so `tools/gen_ca_profile.py` parses them out of the dump into
+  `data/ca-profile.json`: per-index kill varps (one index sums six),
+  the three total lists, and the tier task varbits. `[proc,script4777]`
+  skips **index 37** in its Top-X scan — that index's varp is a second
+  counter for content already totalled elsewhere, so counting it would
+  name the same completions twice. A boss index the dump does not map (one
+  added since the pin) has NO kill count and renders none.
+- Page/task colours are the game's: green once a page or tier is finished,
+  orange while it is not.
+
 ## Achievement diary task tracking
 
 - Per-task completion is **varplayer bitfields**, two 32-bit varps per

@@ -149,6 +149,88 @@ public class CombatAchievementsModuleTest
 		assertEquals(1, stats.get("Hespori")[0]);
 	}
 
+	/**
+	 * The Combat Profile is the interface's own arithmetic: sums over the
+	 * vars the game hardcodes, and a "Top X" scan that skips one index. A
+	 * boss the pinned dump never mapped has NO kill count — the panel must
+	 * not read that as zero kills.
+	 */
+	@Test
+	public void combatProfileSumsTheGamesOwnVars()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		com.ironhub.data.CaProfilePack pack = new DataPack(new Gson())
+			.load("ca-profile", com.ironhub.data.CaProfilePack.class);
+
+		StateFixture.varbit(state, pack.tasksCompletedVarbits.get(0), 40);
+		StateFixture.varbit(state, pack.tasksCompletedVarbits.get(5), 2);
+		StateFixture.varp(state, 1502, 500);  // Abyssal Sire
+		StateFixture.varp(state, 1503, 900);  // a bigger boss
+		StateFixture.varp(state, 1528, 260);  // Wintertodt (skilling)
+		StateFixture.varp(state, 1532, 74);   // Chambers of Xeric (raid)
+
+		List<CaBoss> bosses = List.of(
+			new CaBoss(3, "Abyssal Sire", 350, CaBoss.CATEGORY_BOSS),
+			new CaBoss(27, "Bigger Boss", 400, CaBoss.CATEGORY_BOSS),
+			new CaBoss(10, "Chambers of Xeric", 0, CaBoss.CATEGORY_RAID),
+			new CaBoss(9_999, "Brand New Boss", 500, CaBoss.CATEGORY_BOSS));
+		Map<String, String> rows = new java.util.LinkedHashMap<>();
+		for (CaProfile.Row row : CaProfile.rows(state, pack, bosses))
+		{
+			rows.put(row.label, row.value);
+		}
+		assertEquals("42", rows.get("Tasks Completed"));
+		assertEquals("1,400", rows.get("Boss Kill Count"));
+		assertEquals("260", rows.get("Skilling Boss Kill Count"));
+		assertEquals("74", rows.get("Raid Completions"));
+		assertEquals("Bigger Boss (900)", rows.get("Top Boss"));
+		assertEquals("Chambers of Xeric (74)", rows.get("Top Raid"));
+		// nothing in that category has a kill: the game's own wording
+		assertEquals("Nothing!", rows.get("Top Skilling Boss"));
+
+		// a boss the dump never mapped is unknown, never zero
+		assertEquals(-1, CaProfile.killCount(state, pack, 9_999));
+		assertEquals(500, CaProfile.killCount(state, pack, 3));
+	}
+
+	/** The "Top X" scan skips one index in game, and so must ours: without
+	 *  it the same completions are counted twice under two names. */
+	@Test
+	public void topScanSkipsTheIndexTheGameSkips()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		com.ironhub.data.CaProfilePack pack = new DataPack(new Gson())
+			.load("ca-profile", com.ironhub.data.CaProfilePack.class);
+		int excluded = pack.excludedTopIndex;
+		for (int varp : pack.killVarpsFor(excluded))
+		{
+			StateFixture.varp(state, varp, 5_000);
+		}
+		List<CaBoss> bosses = List.of(
+			new CaBoss(excluded, "Excluded", 0, CaBoss.CATEGORY_RAID));
+		Map<String, String> rows = new java.util.LinkedHashMap<>();
+		for (CaProfile.Row row : CaProfile.rows(state, pack, bosses))
+		{
+			rows.put(row.label, row.value);
+		}
+		assertEquals("Nothing!", rows.get("Top Raid"));
+	}
+
+	/** Tier tiles count the loaded catalog, not a table of our own. */
+	@Test
+	public void tierStatsCountTheCatalog()
+	{
+		List<CaTask> tasks = List.of(
+			new CaTask(0, "A", "", CaTier.EASY, "Kill Count", "Zulrah", true),
+			new CaTask(1, "B", "", CaTier.EASY, "Perfection", "Zulrah", false),
+			new CaTask(2, "C", "", CaTier.MASTER, "Kill Count", "", true));
+		Map<CaTier, int[]> stats = CombatAchievementsTab.tierStats(tasks);
+		assertEquals(1, stats.get(CaTier.EASY)[0]);
+		assertEquals(2, stats.get(CaTier.EASY)[1]);
+		assertEquals(1, stats.get(CaTier.MASTER)[0]);
+		assertNull(stats.get(CaTier.ELITE));
+	}
+
 	@Test
 	public void tabRendersHeadless() throws Exception
 	{
