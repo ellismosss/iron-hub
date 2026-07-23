@@ -27,6 +27,7 @@ STEPS = [
     "harvest_buckets.py",
     "join_obtainment.py",
     "join_effects.py",
+    "apply_curated.py",
     "verify_packs.py",
     "report.py",
 ]

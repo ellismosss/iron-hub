@@ -72,6 +72,14 @@
    ]
   },
   {
+   "id": "basic_quetzal_whistle",
+   "name": "Basic quetzal whistle",
+   "itemIds": [
+    29271
+   ],
+   "requirements": []
+  },
+  {
    "id": "basket",
    "name": "Basket",
    "itemIds": [
@@ -146,14 +154,6 @@
    "requirements": [
     "100 golden nuggets (Motherlode Mine)"
    ]
-  },
-  {
-   "id": "collection_bag",
-   "name": "Collection bag",
-   "itemIds": [
-    10521
-   ],
-   "requirements": []
   },
   {
    "id": "colossal_pouch",
@@ -267,6 +267,14 @@
    "requirements": [
     "Make: Crafting 21"
    ]
+  },
+  {
+   "id": "enhanced_quetzal_whistle",
+   "name": "Enhanced quetzal whistle",
+   "itemIds": [
+    29273
+   ],
+   "requirements": []
   },
   {
    "id": "explorer_s_ring_2",
@@ -647,18 +655,19 @@
    "requirements": []
   },
   {
-   "id": "plank_sack",
-   "name": "Plank sack",
+   "id": "perfected_quetzal_whistle",
+   "name": "Perfected quetzal whistle",
    "itemIds": [
-    24882
+    29275,
+    33120
    ],
    "requirements": []
   },
   {
-   "id": "quetzal_whistle",
-   "name": "Quetzal whistle",
+   "id": "plank_sack",
+   "name": "Plank sack",
    "itemIds": [
-    29271
+    24882
    ],
    "requirements": []
   },
@@ -675,6 +684,46 @@
    "name": "Reagent pouch",
    "itemIds": [
     29996
+   ],
+   "requirements": []
+  },
+  {
+   "id": "rogue_boots",
+   "name": "Rogue boots",
+   "itemIds": [
+    5557
+   ],
+   "requirements": []
+  },
+  {
+   "id": "rogue_gloves",
+   "name": "Rogue gloves",
+   "itemIds": [
+    5556
+   ],
+   "requirements": []
+  },
+  {
+   "id": "rogue_mask",
+   "name": "Rogue mask",
+   "itemIds": [
+    5554
+   ],
+   "requirements": []
+  },
+  {
+   "id": "rogue_top",
+   "name": "Rogue top",
+   "itemIds": [
+    5553
+   ],
+   "requirements": []
+  },
+  {
+   "id": "rogue_trousers",
+   "name": "Rogue trousers",
+   "itemIds": [
+    5555
    ],
    "requirements": []
   },

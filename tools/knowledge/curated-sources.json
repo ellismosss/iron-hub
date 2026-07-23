@@ -1,0 +1,238 @@
+{
+ "provenance": "Luke's 2026-07-22 answer key; every entry verified against the cited wiki page",
+ "clog": {
+  "25641": {
+   "source": "Ruins of Camdozaal: assembled at the sacred forge from barronite handle + barronite guard (golem drops) + barronite head (crushed barronite deposits); requires Below Ice Mountain",
+   "page": "Barronite_mace"
+  },
+  "21439": {
+   "source": "Larxus in the Champions' Guild basement, after defeating every champion in the Champions' Challenge",
+   "page": "Champion's_cape"
+  },
+  "24868": {
+   "what": "Golden Armadyl godsword special attack recolour — 75 Last Man Standing points; toggle at Justine's stuff for the Last Shopper Standing",
+   "page": "Armadyl_godsword"
+  },
+  "24869": {
+   "what": "Golden Bandos godsword special attack recolour — 75 Last Man Standing points; toggle at Justine's stuff for the Last Shopper Standing",
+   "page": "Bandos_godsword"
+  },
+  "24870": {
+   "what": "Golden Saradomin godsword special attack recolour — 75 Last Man Standing points; toggle at Justine's stuff for the Last Shopper Standing",
+   "page": "Saradomin_godsword"
+  },
+  "24871": {
+   "what": "Golden Zamorak godsword special attack recolour — 75 Last Man Standing points; toggle at Justine's stuff for the Last Shopper Standing",
+   "page": "Zamorak_godsword"
+  },
+  "32110": {
+   "source": "Trader Stan, in exchange for all 5 different tradeable boat paints at once (min ~73 Sailing for ironmen — Salvor's paint needs mercenary shipwrecks)",
+   "page": "Merchant's_paint"
+  }
+ },
+ "materials": {
+  "Amulet of the eye": {
+   "how": "quest",
+   "detail": "Inspect the tarnished locket, then show it to Phileas the Lumbridge Guide (Temple of the Eye); unlimited Temple of the Eye teleports",
+   "page": "Amulet_of_the_eye"
+  },
+  "Antipoison": {
+   "how": "make",
+   "detail": "Herblore 5: marrentill potion (unf) + unicorn horn dust -> antipoison(3)",
+   "page": "Antipoison"
+  },
+  "Basic quetzal whistle blueprint": {
+   "how": "note",
+   "detail": "Varlamore: used with willow logs + a knife to craft the basic quetzal whistle (see the Hunter Guild's quetzal content)",
+   "page": "Basic_quetzal_whistle_blueprint"
+  },
+  "Black mask": {
+   "how": "drop",
+   "detail": "Cave horrors drop it as Black mask (10) — the charged name is why the drop join missed; requires Cabin Fever + witchwood icon",
+   "page": "Black_mask"
+  },
+  "Cave nightshade": {
+   "how": "gather",
+   "detail": "Picked in the Skavid caves; used for weapon poison(++) and poison dynamite",
+   "page": "Cave_nightshade"
+  },
+  "Celestial ring": {
+   "how": "shop",
+   "detail": "Dusuri's Star Shop — 2,000 stardust (Shooting Stars)",
+   "page": "Celestial_ring"
+  },
+  "Daeyalt essence": {
+   "how": "note",
+   "detail": "Trade daeyalt shards to Noranna Tytanin in the daeyalt essence mine (Darkmeyer); shards mined there",
+   "page": "Daeyalt_essence"
+  },
+  "Fighter torso": {
+   "how": "reward",
+   "detail": "Barbarian Assault: Commander Connad — 375 honour points in all roles",
+   "page": "Fighter_torso"
+  },
+  "Fire cape": {
+   "how": "reward",
+   "detail": "TzHaar Fight Cave completion",
+   "page": "Fire_cape"
+  },
+  "Giant squirrel": {
+   "how": "note",
+   "detail": "Skilling pet: chance after completing Agility courses, or from marked ticket dispensers in the Brimhaven Agility Arena",
+   "page": "Giant_squirrel"
+  },
+  "Infernal cape": {
+   "how": "reward",
+   "detail": "The Inferno: defeat TzKal-Zuk",
+   "page": "Infernal_cape"
+  },
+  "Large fossil": {
+   "how": "note",
+   "detail": "Fossil Island activities (several sources — see the wiki's Large fossil disambiguation)",
+   "page": "Large_fossil"
+  },
+  "Marrentill tar": {
+   "how": "make",
+   "detail": "Herblore 39: marrentill + 15 swamp tar; salamander ammunition/bait",
+   "page": "Marrentill_tar"
+  },
+  "Medallion fragment": {
+   "how": "note",
+   "detail": "Found on Sailing islands via various activities; the 8 fragments assemble the Medallion of the Deep (underwater breathing)",
+   "page": "Medallion_fragment"
+  },
+  "Nightmare Zone points": {
+   "how": "note",
+   "detail": "Reward currency from the Nightmare Zone minigame (north-west of Yanille)",
+   "page": "Nightmare_Zone"
+  },
+  "Prospector kit": {
+   "how": "shop",
+   "detail": "Prospector Percy's Nugget Shop (Motherlode Mine) — 180 golden nuggets for the set",
+   "page": "Prospector_kit"
+  },
+  "Raw meat": {
+   "how": "note",
+   "detail": "Generic uncooked meat — any of several kinds (beef, bear, rat...); dropped by the matching animals",
+   "page": "Raw_meat"
+  },
+  "Ring of wealth (5)": {
+   "how": "make",
+   "detail": "Lvl-5 Enchant on a dragonstone ring, then charged at the Fountain of Rune (wilderness) to (5)",
+   "page": "Ring_of_wealth"
+  },
+  "Sanfew serum(4)": {
+   "how": "make",
+   "detail": "Herblore 65 + Zogre Flesh Eaters: super restore(4) + unicorn horn dust + clean snake weed + nail beast nails — the dose carries from the super restore, so (4) is directly makeable",
+   "page": "Sanfew_serum"
+  },
+  "Swamp toad": {
+   "how": "gather",
+   "detail": "Ground spawns near the swamp south of the Castle Wars arena",
+   "page": "Swamp_Toad"
+  },
+  "Swamp Toad": {
+   "how": "gather",
+   "detail": "Ground spawns near the swamp south of the Castle Wars arena",
+   "page": "Swamp_Toad"
+  },
+  "Wool": {
+   "how": "gather",
+   "detail": "Sheared from sheep and alpacas; spun into balls of wool at a spinning wheel",
+   "page": "Wool"
+  },
+  "Zeal Tokens": {
+   "how": "note",
+   "detail": "Reward currency from Soul Wars (up to 60 zeal per win)",
+   "page": "Zeal_Tokens"
+  },
+  "Acetic acid": {
+   "how": "quest",
+   "detail": "Quest item, Recruitment Drive only — found in a bookcase in Miss Cheevers's trial",
+   "page": "Acetic_acid"
+  }
+ },
+ "material_patterns": [
+  {
+   "match": "^Adventurer's ",
+   "how": "reward",
+   "detail": "Speedrunning Reward Shop — Quest Speedrunning reward points",
+   "page": "Adventurer's_boots_(t2)"
+  },
+  {
+   "match": "impling jar$",
+   "how": "note",
+   "detail": "Catch the impling with an empty impling jar (Hunter); jars are butterfly jars treated with imp repellent",
+   "page": "Impling_jar"
+  },
+  {
+   "match": " paint$",
+   "how": "note",
+   "detail": "Sailing boat paint (Barracuda Trials ranks and other Sailing activities); recolours skiff/sloop trim at the Shipyard schematics board",
+   "page": "Boat_paint"
+  },
+  {
+   "match": "\\(flatpack\\)$",
+   "how": "make",
+   "detail": "Built as a flatpack on a Construction workbench in the POH Workshop",
+   "page": "Flatpack"
+  },
+  {
+   "match": "seedling \\(w\\)$",
+   "how": "make",
+   "detail": "Watered seedling: use a watering can on the seedling; it grows into a sapling",
+   "page": "Seedling"
+  },
+  {
+   "match": "seedling$",
+   "how": "make",
+   "detail": "Tree seed planted in a filled plant pot (gardening trowel in inventory)",
+   "page": "Seedling"
+  },
+  {
+   "match": "^Infinity ",
+   "how": "reward",
+   "detail": "Mage Training Arena reward shop (pizazz points)",
+   "page": "Infinity_boots"
+  },
+  {
+   "match": "^Shayzien .*\\(tier 5\\)|^Shayzien .*\\(5\\)",
+   "how": "drop",
+   "detail": "Tier 5 soldier at the Shayzien Combat Ring (defeat 5 times for the set)",
+   "page": "Shayzien_armour_(tier_5)"
+  },
+  {
+   "match": "^Lvl-(\\d) Enchant$",
+   "how": "spell",
+   "detail": "SPELL_JOIN",
+   "page": "Enchantment_spells"
+  }
+ ],
+ "not_materials": {
+  "Toxic staff of the dead#Charged": "a weapon (charged toxic staff of the dead), not a material",
+  "Toxic staff of the dead": "a weapon, not a material",
+  "Trident of the seas#Charged": "a weapon (charged trident of the seas), not a material",
+  "Trident of the swamp#Charged": "a weapon (charged trident of the swamp), not a material",
+  "Venator bow#Charged": "a weapon (charged venator bow), not a material"
+ },
+ "wont_fix": {
+  "(degraded/versioned variants)": "Luke: degraded barrows pieces are never desired — no need to source them; see wiki Degradation for the general mechanic"
+ },
+ "qol_sources": {
+  "Collection bag": "NOT an account QoL unlock — the Barbarian Assault Collector role's in-minigame egg bag (excluded from qol.json)",
+  "Fur pouch": "Three variants (small/medium/large) crafted from hunter furs — small: Crafting 35, 4 larupia fur",
+  "Gem containers": "Five distinct items: gem bag, gem pouch, gem satchel, gem tote, gem sack",
+  "Large pouch": "Runecraft essence pouch (RC 50 to use) — dropped by Abyss monsters; also Guardians of the Rift rewards",
+  "Master scroll book": "Any Treasure Trail except beginner: 1/23 chance replacing a teleport-scroll reward",
+  "Quetzal whistle": "Four variants: basic (crafted from blueprint + willow logs), enhanced, perfected, perfected (i)",
+  "Rogue equipment": "Rogue's equipment crates from the Rogues' Den wall safes (Thieving 50 + Agility 50 effectively)",
+  "Lunar spellbook": "Unlocked by Lunar Diplomacy (swap at the Astral altar)",
+  "Arceuus spellbook": "Unlocked via Arceuus favour (speak to Tyss by the Dark altar)",
+  "Fairy ring": "Network unlocked during Fairytale II - Cure a Queen (started); dramen/lunar staff to use (elite Lumbridge diary removes the staff need)",
+  "Spirit tree": "Network unlocked by Tree Gnome Village",
+  "Gnome glider": "Network unlocked by The Grand Tree",
+  "Kourend castle teleport": "Unlocked by reading the transportation incantation from Kharedst's memoirs quest series",
+  "Camulet": "Reward from Enakhra's Lament",
+  "Fremennik sea boots 4": "Fremennik elite diary reward"
+ }
+}

@@ -63,10 +63,74 @@ def guide_page(skill):
     return title, kb.page_text(title)
 
 
+def ironman_guide(skill):
+    """The wiki's Ironman Guide/<Skill> page, or None (Luke, 2026-07-22:
+    also read the ironman guides for the gap skills)."""
+    try:
+        return f"Ironman Guide/{skill}", kb.page_text(f"Ironman Guide/{skill}")
+    except SystemExit:
+        return None, None
+
+
+def table_methods(conn, skill, title, text):
+    """Rate TABLES (Luke's table-parse pass): wikitables whose header names
+    an xp/hour column — each row a method (first linked cell) with the rate
+    from that column. Herblore/Fletching keep their rates this way."""
+    n = 0
+    for table in kb.wikitables(text):
+        if not table or len(table) < 2:
+            continue
+        header = [kb.strip_markup(c).lower() for c in table[0]]
+        rate_idx = next((i for i, h in enumerate(header)
+                         if re.search(r"(xp|exp(erience)?).{0,12}(hour|hr|/h)", h)
+                         or re.search(r"(hour|hr)\b.{0,12}(xp|exp)", h)), None)
+        if rate_idx is None:
+            continue
+        for cells in table[1:]:
+            if len(cells) <= rate_idx:
+                continue
+            name = None
+            m = re.search(r"\{\{plinkt?\|([^|}]+)", cells[0]) \
+                or re.search(r"\[\[([^\]|#]+)", cells[0])
+            if m:
+                name = m.group(1).strip()
+            if not name:
+                name = kb.strip_markup(cells[0])[:60]
+            rate = kb.strip_markup(cells[rate_idx])
+            if not name or not re.search(r"\d", rate):
+                continue
+            conn.execute(
+                "INSERT OR REPLACE INTO training_methods(skill,method,xp_hr,reqs,"
+                "inputs,outputs,notes,src,flags) VALUES(?,?,?,?,?,?,?,?,?)",
+                (skill, name, rate[:60], None, None, None,
+                 f"table-derived from {title}", "wiki:" + title,
+                 "table-derived,rates-need-review"))
+            n += 1
+    return n
+
+
 def harvest_wiki(conn):
     total = 0
+    conn.execute("UPDATE gaps SET status='resolved' WHERE category='training'"
+                 " AND status='open'")  # retire-then-rejudge (stale skill gaps
+                 # survived earlier parser widenings)
     for skill in SKILLS:
         title, text = guide_page(skill)
+        # Defence's own page is prose ("train via Melee/Ranged/Magic");
+        # Hitpoints' is a disambiguation — both train through the combat
+        # guides (Luke, 2026-07-22)
+        if skill in ("Defence", "Hitpoints"):
+            conn.execute(
+                "INSERT OR REPLACE INTO training_methods(skill,method,xp_hr,reqs,"
+                "inputs,outputs,notes,src,flags) VALUES(?,?,?,?,?,?,?,?,?)",
+                (skill, "Combat training (shared)", None, None, None, None,
+                 "Trains through any combat method — see the Attack/Strength"
+                 " (melee), Ranged and Magic ladders"
+                 + ("; Hitpoints accrues passively from all combat damage"
+                    if skill == "Hitpoints" else ""),
+                 "wiki:Pay-to-play Melee training", None))
+            title, text = "Pay-to-play Melee training", \
+                kb.page_text("Pay-to-play Melee training")
         if not text:
             kb.add_gap(conn, "training", skill, "guide-page",
                        f"no '{skill} training' wiki page resolved")
@@ -105,11 +169,17 @@ def harvest_wiki(conn):
                  else "prose-derived,rate-not-stated"))
             n += 1
             total += 1
+        extra = table_methods(conn, skill, title, text)
+        im_title, im_text = ironman_guide(skill)
+        if im_text:
+            extra += table_methods(conn, skill, im_title, im_text)
+        n += extra
+        total += extra
         if n == 0:
             kb.add_gap(conn, "training", skill, "methods",
-                       f"no method sections with parseable xp/hr on {title}"
+                       f"no method sections or rate tables parsed on {title}"
                        " — needs manual extraction")
-        print(f"{skill}: {n} wiki method sections")
+        print(f"{skill}: {n} wiki method rows")
     return total
 
 

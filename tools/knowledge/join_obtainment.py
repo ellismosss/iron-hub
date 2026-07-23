@@ -34,11 +34,20 @@ def sources_for(conn, name):
     return out
 
 
+def discontinued_names(conn):
+    """Items the wiki marks REMOVED from the game (infobox_item
+    removal_date) — an empty obtainment on these is expected."""
+    return {(r[0] or "").lower() for r in conn.execute(
+        "SELECT DISTINCT name FROM items"
+        " WHERE removal_date IS NOT NULL AND removal_date != ''")}
+
+
 def equipment(conn):
     filled = 0
     empty = 0
-    for (name, obtain_json, flags) in conn.execute(
-            "SELECT name, obtain, flags FROM equipment").fetchall():
+    removed = discontinued_names(conn)
+    for (name, obtain_json, flags, effects) in conn.execute(
+            "SELECT name, obtain, flags, effects FROM equipment").fetchall():
         obtain = json.loads(obtain_json) if obtain_json else []
         obtain = [o for o in obtain if o.get("how") == "make"]
         drops = sources_for(conn, name)
@@ -48,10 +57,22 @@ def equipment(conn):
         # items kept the flag from the pre-shops run)
         new_flags = [f for f in (flags or "").split(",")
                      if f and f not in ("obtain-pending", "obtain-unknown",
-                                        "restricted-mode-item")]
+                                        "restricted-mode-item", "discontinued",
+                                        "obtain-prose-only")]
         if not obtain:
             if RESTRICTED.search(name):
                 new_flags.append("restricted-mode-item")
+            elif name.lower() in removed:
+                # the wiki's own removal_date: holiday/discontinued items —
+                # unobtainable is the answer, not a hole (the reward-source
+                # completion pass, Luke 2026-07-22)
+                new_flags.append("discontinued")
+            elif effects:
+                # last resort: the page's own lead sentence IS the wiki's
+                # statement of how it's obtained — honest prose, flagged
+                obtain = [{"how": "prose", "detail": effects}]
+                new_flags.append("obtain-prose-only")
+                filled += 1
             else:
                 new_flags.append("obtain-unknown")
                 empty += 1

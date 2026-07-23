@@ -66,7 +66,17 @@ def main():
                 continue  # a 2h weapon is in Weapon + Two-handed; first wins
             seen.add(title)
             bonuses = kb.templates(text, "Infobox Bonuses")
-            item_box = (kb.templates(text, "Infobox Item") or [{}])[0]
+            item_boxes = kb.templates(text, "Infobox Item")
+            item_box = (item_boxes or [{}])[0]
+            if not bonuses and not item_boxes:
+                # an overview/list page living in the slot category ("Hat",
+                # "Regular cape") — not an item at all (Luke's question,
+                # 2026-07-22); never a data hole
+                conn.execute("DELETE FROM equipment WHERE name = ?", (title,))
+                conn.execute("UPDATE gaps SET status='wont-fix',"
+                             " notes='overview/list page, not an item'"
+                             " WHERE category='equipment' AND subject = ?", (title,))
+                continue
             if not bonuses:
                 kb.add_gap(conn, "equipment", title, "stats",
                            f"page in Category:{category} has no Infobox Bonuses"

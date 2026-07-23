@@ -14,6 +14,33 @@ import kb
 CATEGORIES = {"Food": "food", "Potions": "potion", "Drinks": "drink"}
 
 
+def ale_names():
+    """The Ale page's own list — the authoritative ale set (Luke: ales come
+    from bars/pubs or player brewing)."""
+    text = kb.page_text("Ale")
+    return {m.group(1).strip().lower()
+            for m in re.finditer(r"\{\{plinkt?\|([^|}]+)", text)}
+
+
+def class_rule(title: str, ales):
+    """Luke's 2026-07-22 classification rules for whole consumable classes."""
+    if title.startswith("Bottle of"):
+        return {"how": "note",
+                "detail": "Sealed crate (Sailing sea charting) — pried open with"
+                          " a crowbar after Prying Times; many bottles give"
+                          " stat boosts or drains"}
+    if title.endswith("(Player-owned house)"):
+        return {"how": "note",
+                "detail": "POH storage variant — identical to the regular item,"
+                          " kept in the player-owned house for easy retrieval"}
+    base = re.sub(r"\s*\(m\)$", "", title).lower()
+    if base in ales or re.search(r"\b(ale|stout|bitter)(\s*\(m\))?$", title, re.I):
+        return {"how": "note",
+                "detail": "Ale — bought at bars/pubs and inns across the world,"
+                          " or brewed by players (Cooking); (m) = mature brew"}
+    return None
+
+
 def recipe(text: str):
     boxes = kb.templates(text, "Recipe")
     if not boxes:
@@ -39,6 +66,9 @@ def recipe(text: str):
 
 def main():
     conn = kb.db()
+    conn.execute("UPDATE gaps SET status='resolved' WHERE category='consumables'"
+                 " AND status='open'")  # retire-then-rejudge (rerunnable)
+    ales = ale_names()
     total = 0
     seen = set()
     for category, kind in CATEGORIES.items():
@@ -82,9 +112,14 @@ def main():
                 effects.append(lead)
             flags = []
             if not obtain:
-                flags.append("obtain-unknown")
-                kb.add_gap(conn, "consumables", title, "obtain",
-                           "no recipe, drop tag or store line found on the page")
+                rule = class_rule(title, ales)
+                if rule:
+                    obtain.append(dict(rule, src="luke:2026-07-22"))
+                    flags.append("class-sourced")
+                else:
+                    flags.append("obtain-unknown")
+                    kb.add_gap(conn, "consumables", title, "obtain",
+                               "no recipe, drop tag or store line found on the page")
             if not effects:
                 flags.append("effects-missing")
             conn.execute(

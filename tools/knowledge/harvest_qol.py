@@ -30,6 +30,12 @@ CURATED = [
     "Kourend castle teleport", "Royal seed pod", "Ectophial", "Camulet",
     "Fairy ring", "Spirit tree", "Gnome glider", "Quetzal whistle",
     "Steel key ring", "Master scroll book", "Rune pouch", "Looting bag",
+    "Basic quetzal whistle", "Enhanced quetzal whistle", "Perfected quetzal whistle",
+    "Small fur pouch", "Medium fur pouch", "Large fur pouch",
+    "Gem pouch", "Gem satchel", "Gem tote", "Gem sack",
+    "Small pouch", "Medium pouch", "Large pouch", "Giant pouch", "Colossal pouch",
+    "Rogue mask", "Rogue top", "Rogue trousers", "Rogue gloves", "Rogue boots",
+    "Plank sack", "Log basket", "Forestry kit",
 ]
 
 

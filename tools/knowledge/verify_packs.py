@@ -119,6 +119,8 @@ def diaries(conn):
     false-flagged 209 tasks. A changed COUNT is the real drift signal
     (tasks added/removed by an update)."""
     drift = 0
+    conn.execute("UPDATE gaps SET status='resolved' WHERE category='diary'"
+                 " AND status='open'")  # retire-then-rejudge
     for region, page in DIARY_PAGES.items():
         try:
             text = kb.page_text(page)
@@ -129,8 +131,10 @@ def diaries(conn):
         wiki_counts = {}
         for i in range(1, len(tiers) - 1, 2):
             body = tiers[i + 1]
+            # Karamja writes "| 1. Pick..." with a space after the pipe —
+            # the tolerant form covers both spacings (Luke's link, 2026-07-22)
             nums = [int(m.group(1)) for m in
-                    re.finditer(r"(?:desc:|^\|)(\d+)\.\s", body, re.M)]
+                    re.finditer(r"(?:desc:|^\|\s*)(\d+)\.\s", body, re.M)]
             if nums:
                 wiki_counts[tiers[i]] = max(nums)
         for tier, wiki_n in wiki_counts.items():

@@ -67,8 +67,17 @@ CURATED = [
     "Achievement diary cape", "Crystal saw", "Amy's saw", "Imcando hammer",
     "Bruma torch", "Infernal axe", "Infernal pickaxe", "Infernal harpoon",
     "Crystal harpoon", "Crystal axe", "Crystal pickaxe", "Dragon harpoon",
-    "Royal seed pod", "Ectophial", "Camulet", "Quetzal whistle",
+    "Royal seed pod", "Ectophial", "Camulet",
     "Steel key ring", "Master scroll book", "Rune pouch", "Looting bag",
+    # Luke's 2026-07-22 answer key: named variants replace the umbrella
+    # names ("Quetzal whistle" x4, "Fur pouch" x3, "Gem containers" x5,
+    # "Rogue equipment" = the 5 Rogues' Den pieces)
+    "Basic quetzal whistle", "Enhanced quetzal whistle", "Perfected quetzal whistle",
+    "Small fur pouch", "Medium fur pouch", "Large fur pouch",
+    "Gem pouch", "Gem satchel", "Gem tote", "Gem sack",
+    "Small pouch", "Medium pouch", "Large pouch", "Giant pouch", "Colossal pouch",
+    "Rogue mask", "Rogue top", "Rogue trousers", "Rogue gloves", "Rogue boots",
+    "Plank sack", "Log basket", "Forestry kit", "Herb sack",
 ]
 
 
@@ -152,7 +161,8 @@ def main():
         if name.lower() in seen:
             continue
         seen.add(name.lower())
-        if name in ("Gem containers",):  # a disambiguation page, not an item
+        if name in ("Gem containers",   # a disambiguation page
+                    "Collection bag"):  # BA Collector role tool, not an unlock
             continue
         item_id = resolve_item(index, name)
         if item_id is None:
@@ -160,10 +170,12 @@ def main():
             continue
         prose = recipe_prose(name)
         reqs = [prose] if prose else []
+        # Luke 2026-07-22: the imbued whistle counts as owning the perfected
+        extra = {"Perfected quetzal whistle": [33120]}.get(name, [])
         unlocks.append({
             "id": re.sub(r"^_+|_+$", "", re.sub(r"[^a-z0-9]+", "_", name.lower())),
             "name": name,
-            "itemIds": [item_id],
+            "itemIds": [item_id] + extra,
             "requirements": reqs,
         })
     if skipped:

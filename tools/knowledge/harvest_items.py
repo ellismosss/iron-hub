@@ -20,6 +20,7 @@ def main():
             quest_item TEXT,
             tradeable TEXT,
             members TEXT,
+            removal_date TEXT,
             src TEXT,
             flags TEXT,
             PRIMARY KEY(item_id, name))""")
@@ -29,9 +30,9 @@ def main():
     n = 0
     while True:
         q = ("bucket('infobox_item').select('item_id','item_name','version_anchor',"
-             "'examine','quest','tradeable','is_members_only')"
+             "'examine','quest','tradeable','is_members_only','removal_date')"
              f".offset({offset}).limit(5000).run()")
-        data = kb.api({"action": "bucket", "query": q}, f"bucket-items-{offset}.json")
+        data = kb.api({"action": "bucket", "query": q}, f"bucket-items-v2-{offset}.json")
         batch = data.get("bucket", [])
         rows = []
         for r in batch:
@@ -50,10 +51,11 @@ def main():
                     kb.strip_markup(str(r.get("quest") or "")) or None,
                     str(r.get("tradeable") or "") or None,
                     str(r.get("is_members_only") or "") or None,
+                    str(r.get("removal_date") or "") or None,
                     "wiki:bucket infobox_item"))
         conn.executemany(
             "INSERT OR IGNORE INTO items(item_id,name,version,examine,quest_item,"
-            "tradeable,members,src) VALUES(?,?,?,?,?,?,?,?)", rows)
+            "tradeable,members,removal_date,src) VALUES(?,?,?,?,?,?,?,?,?)", rows)
         n += len(batch)
         conn.commit()
         if len(batch) < 5000:
