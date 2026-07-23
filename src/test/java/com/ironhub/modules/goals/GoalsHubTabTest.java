@@ -100,7 +100,7 @@ public class GoalsHubTabTest
 				holder[0].expandRoute("custom:skill:agility:70");
 			});
 			javax.swing.SwingUtilities.invokeAndWait(() -> { }); // drain queued rebuilds
-			BufferedImage main = SwingRender.render(holder[0]);
+			BufferedImage main = renderOnEdt(holder[0]);
 			assertEquals(UiTokens.PANEL_WIDTH, main.getWidth());
 			assertTrue("the hub should be tall", main.getHeight() > 300);
 			write(main, "goals-hub-tab-" + theme.name().toLowerCase());
@@ -108,22 +108,22 @@ public class GoalsHubTabTest
 			// a clog Route expanded: its obtain Task shows the 1/400 drop rate
 			javax.swing.SwingUtilities.invokeAndWait(() -> holder[0].expandRoute("clog:25580"));
 			javax.swing.SwingUtilities.invokeAndWait(() -> { });
-			write(SwingRender.render(holder[0]), "goals-hub-drops-" + theme.name().toLowerCase());
+			write(renderOnEdt(holder[0]), "goals-hub-drops-" + theme.name().toLowerCase());
 
 			// a quest Route expanded: the target quest's own Task reads "Complete the quest"
 			javax.swing.SwingUtilities.invokeAndWait(() -> holder[0].expandRoute("custom:quest:dragon-slayer-i"));
 			javax.swing.SwingUtilities.invokeAndWait(() -> { });
-			write(SwingRender.render(holder[0]), "goals-hub-quest-" + theme.name().toLowerCase());
+			write(renderOnEdt(holder[0]), "goals-hub-quest-" + theme.name().toLowerCase());
 
 			// a Supplies Route expanded: its Task notes the resource required
 			javax.swing.SwingUtilities.invokeAndWait(() -> holder[0].expandRoute("supply:21183"));
 			javax.swing.SwingUtilities.invokeAndWait(() -> { });
-			write(SwingRender.render(holder[0]), "goals-hub-supply-" + theme.name().toLowerCase());
+			write(renderOnEdt(holder[0]), "goals-hub-supply-" + theme.name().toLowerCase());
 
 			// the completed archive (depth 2)
 			javax.swing.SwingUtilities.invokeAndWait(holder[0]::openArchive);
 			javax.swing.SwingUtilities.invokeAndWait(() -> { });
-			write(SwingRender.render(holder[0]), "goals-hub-archive-" + theme.name().toLowerCase());
+			write(renderOnEdt(holder[0]), "goals-hub-archive-" + theme.name().toLowerCase());
 			module.shutDown();
 		}
 	}
@@ -244,10 +244,25 @@ public class GoalsHubTabTest
 
 	private static void waitForPlan(GoalPlannerModule module) throws InterruptedException
 	{
-		for (int i = 0; i < 50 && module.currentPlan() == null; i++)
+		// generous under full-suite load, and LOUD on failure — a silent
+		// give-up used to surface as a baffling "hub should be tall"
+		for (int i = 0; i < 200 && module.currentPlan() == null; i++)
 		{
 			Thread.sleep(100);
 		}
+		assertTrue("the planner never published a plan", module.currentPlan() != null);
+	}
+
+	/** Render ON the EDT: the suggester finishing late fires a tab rebuild
+	 *  via invokeLater, and a test-thread render races that removeAll (the
+	 *  mutate-then-render race, 7th appearance, 2026-07-23 — only under
+	 *  full-suite load). EDT rendering serialises with listener rebuilds
+	 *  by construction. */
+	private static BufferedImage renderOnEdt(GoalsHubTab tab) throws Exception
+	{
+		BufferedImage[] out = new BufferedImage[1];
+		javax.swing.SwingUtilities.invokeAndWait(() -> out[0] = SwingRender.render(tab));
+		return out[0];
 	}
 
 	private static void layoutOnce(Component c)
