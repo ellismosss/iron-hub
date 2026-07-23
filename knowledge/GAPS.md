@@ -202,21 +202,13 @@ move out on the next harvest.
 
 - [ ] **(catalog definition)** — scope: QoL is a plugin concept: current catalog = Category:Storage items + a curated utility list. Review what belongs — additions are one line in harvest_qol.py CURATED
 - [ ] **(coverage)** — catalog: qol.json holds only 9 unlocks; full QoL catalog needs harvesting (sacks, jewellery, graceful, teleports, tool upgrades, ...)
-- [ ] **Arceuus spellbook** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
-- [ ] **Camulet** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
 - [ ] **Collection bag** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
-- [ ] **Fairy ring** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
-- [ ] **Fremennik sea boots 4** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
 - [ ] **Fur pouch** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
 - [ ] **Gem containers** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
-- [ ] **Gnome glider** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
-- [ ] **Kourend castle teleport** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
 - [ ] **Large pouch** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
-- [ ] **Lunar spellbook** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
 - [ ] **Master scroll book** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
 - [ ] **Quetzal whistle** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
 - [ ] **Rogue equipment** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
-- [ ] **Spirit tree** — sources: no recipe/drop/shop found — likely a quest/diary/minigame reward; needs the reward-source pass
 
 ## training
 
@@ -230,4 +222,4 @@ move out on the next harvest.
 - [ ] **Strength** — methods: no method sections with parseable xp/hr on Pay-to-play Melee training — needs manual extraction
 
 
-_194 open gaps · generated from knowledge.db_
+_186 open gaps · generated from knowledge.db_

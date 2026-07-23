@@ -22,6 +22,7 @@ STEPS = [
     "harvest_items.py",
     "harvest_qol.py",
     "harvest_training.py",
+    "harvest_rewards.py",
     "join_obtainment.py",
     "join_effects.py",
     "verify_packs.py",
