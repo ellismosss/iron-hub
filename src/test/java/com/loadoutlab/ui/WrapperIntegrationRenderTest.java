@@ -115,6 +115,24 @@ public class WrapperIntegrationRenderTest
 			Assert.assertTrue(image[0].getHeight() > 400);
 			write(image[0], "loadout-integrated-dps.png");
 
+			// the Wiki gear fold (KB-runtime slice 3): the selected monster is
+			// the dust devil, whose "Slayer task/Dust devils" wiki gear table
+			// renders under the monster card — ownership-tinted rows, "+"
+			// goal affordances on unowned top picks; expanding must grow the
+			// tab by the slot rows
+			int collapsedHeight = image[0].getHeight();
+			javax.swing.SwingUtilities.invokeAndWait(() ->
+				module.setWikiGearExpandedForTest(true));
+			java.awt.image.BufferedImage[] wiki = new java.awt.image.BufferedImage[1];
+			javax.swing.SwingUtilities.invokeAndWait(() ->
+				wiki[0] = com.ironhub.ui.SwingRender.render((javax.swing.JPanel) tab[0]));
+			Assert.assertTrue("expanding the Wiki gear fold must add slot rows",
+				wiki[0].getHeight() > collapsedHeight + 100);
+			write(wiki[0], "loadout-wiki-gear.png");
+			// collapse again so the later reference renders stay as they were
+			javax.swing.SwingUtilities.invokeAndWait(() ->
+				module.setWikiGearExpandedForTest(false));
+
 			// the × on the monster clears the calc — the viewer reverts to live,
 			// whose tile evaluates the worn gear vs the last monster attacked
 			javax.swing.SwingUtilities.invokeAndWait(() ->

@@ -145,6 +145,13 @@ public class LoadoutLabModule implements IronHubModule
 	private com.loadoutlab.data.MonsterStats dpsMonster;
 	private com.loadoutlab.engine.CombatStyle dpsStyle = com.loadoutlab.engine.CombatStyle.MELEE;
 	private boolean namesOpen;
+	// ── Wiki gear (design/KB-RUNTIME.md): the wiki's own recommended-gear
+	// tables for the selected monster / current task, ownership-tinted,
+	// unowned picks routable into the Goal planner. Collapsed by default. ──
+	private boolean wikiGearCollapsed = true;
+	private int wikiStyleIndex;
+	private com.ironhub.data.RecommendedEquipmentPack recEquipPack; // lazy
+	private com.ironhub.ui.components.SpriteCache wikiSprites;      // lazy
 	/** Lazy + volatile: read from the EDT (render) and the client thread
 	 *  (cache cross-check); DataPack.load is memoized so double-init is
 	 *  the same instance. */
@@ -708,7 +715,10 @@ public class LoadoutLabModule implements IronHubModule
 			dpsStyle,
 			System.identityHashCode(dpsResults),
 			state.getSlayerTask(),
-			System.identityHashCode(slayerSetup()));
+			System.identityHashCode(slayerSetup()),
+			wikiGearCollapsed,
+			wikiStyleIndex,
+			dpsMonster != null ? dpsMonster.getName() : null);
 		if (fp == lastViewFp)
 		{
 			return;
@@ -915,6 +925,14 @@ public class LoadoutLabModule implements IronHubModule
 			monster.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 			setupView.add(monster);
+			// the wiki's own recommended gear for this monster/task
+			// (design/KB-RUNTIME.md) — collapsed until asked for
+			javax.swing.JComponent wikiGear = wikiGearSection();
+			if (wikiGear != null)
+			{
+				setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+				setupView.add(wikiGear);
+			}
 			if (tileStats != null)
 			{
 				javax.swing.JComponent bonuses = lab.getPanel().bonusesTile(tileStats);
@@ -1541,6 +1559,263 @@ public class LoadoutLabModule implements IronHubModule
 		return row;
 	}
 
+	// ── Wiki gear (design/KB-RUNTIME.md): recommended-equipment.json's
+	// per-activity gear tables, joined to the selected monster / current
+	// slayer task, ownership-tinted, unowned top picks routable into the
+	// Goal planner as one-shot stock goals. ──
+
+	/** The activity the fold describes: the selected monster wins, else the
+	 *  current slayer task; null hides the fold entirely. */
+	private String wikiGearActivity()
+	{
+		if (dpsMonster != null)
+		{
+			return dpsMonster.getName();
+		}
+		String task = state.getSlayerTask();
+		return task == null || task.isEmpty() ? null : task;
+	}
+
+	private com.ironhub.data.RecommendedEquipmentPack recEquipPack()
+	{
+		com.ironhub.data.RecommendedEquipmentPack pack = recEquipPack;
+		if (pack == null)
+		{
+			// lazy — DataPack.load is memoized centrally
+			pack = new com.ironhub.data.DataPack(gson)
+				.load("recommended-equipment", com.ironhub.data.RecommendedEquipmentPack.class);
+			recEquipPack = pack;
+		}
+		return pack;
+	}
+
+	private com.ironhub.data.ItemSourcesPack itemSourcesPack()
+	{
+		return new com.ironhub.data.DataPack(gson)
+			.load("item-sources", com.ironhub.data.ItemSourcesPack.class);
+	}
+
+	private com.ironhub.ui.components.SpriteCache wikiSprites()
+	{
+		if (wikiSprites == null)
+		{
+			wikiSprites = new com.ironhub.ui.components.SpriteCache(itemManager, () ->
+				javax.swing.SwingUtilities.invokeLater(() ->
+				{
+					lastViewFp = 0;
+					renderView();
+				}));
+		}
+		return wikiSprites;
+	}
+
+	/** The collapsible "Wiki gear" slab, or null when no wiki table matches
+	 *  the current monster/task — absence is honest, never an empty shell. */
+	private javax.swing.JComponent wikiGearSection()
+	{
+		String activity = wikiGearActivity();
+		if (activity == null)
+		{
+			return null;
+		}
+		java.util.List<com.ironhub.data.RecommendedEquipmentPack.Activity> entries =
+			recEquipPack().match(activity);
+		if (entries.isEmpty())
+		{
+			return null;
+		}
+		com.ironhub.ui.osrs.StonePanel slab = new com.ironhub.ui.osrs.StonePanel(theme);
+		slab.setLayout(new BoxLayout(slab, BoxLayout.Y_AXIS));
+		slab.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		slab.add(sectionToggle("Wiki gear", wikiGearCollapsed, () ->
+		{
+			wikiGearCollapsed = !wikiGearCollapsed;
+			lastViewFp = 0;
+			renderView();
+		}));
+		if (!wikiGearCollapsed)
+		{
+			int idx = Math.min(Math.max(wikiStyleIndex, 0), entries.size() - 1);
+			if (entries.size() > 1)
+			{
+				String[] labels = entries.stream().limit(4)
+					.map(a -> a.getStyle() == null || a.getStyle().isBlank()
+						? "Setup" : clip(a.getStyle(), 14))
+					.toArray(String[]::new);
+				idx = Math.min(idx, labels.length - 1);
+				com.ironhub.ui.osrs.StoneChipRow chips =
+					new com.ironhub.ui.osrs.StoneChipRow(theme, false, labels);
+				chips.setSelected(idx);
+				chips.onChange(i ->
+				{
+					wikiStyleIndex = i;
+					lastViewFp = 0;
+					renderView();
+				});
+				chips.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+				slab.add(Box.createVerticalStrut(2));
+				slab.add(chips);
+			}
+			slab.add(Box.createVerticalStrut(2));
+			com.ironhub.data.RecommendedEquipmentPack.Activity entry = entries.get(idx);
+			for (String slot : com.ironhub.data.RecommendedEquipmentPack.SLOT_ORDER)
+			{
+				java.util.List<com.ironhub.data.RecommendedEquipmentPack.Rec> recs =
+					entry.getSlots() == null ? null : entry.getSlots().get(slot);
+				if (recs != null && !recs.isEmpty())
+				{
+					slab.add(wikiGearRow(slot, recs));
+				}
+			}
+			com.ironhub.ui.osrs.OsrsLabel provenance = new com.ironhub.ui.osrs.OsrsLabel(
+				"From the wiki: " + entry.getPage(),
+				com.ironhub.ui.osrs.OsrsSkin.FAINT, com.ironhub.ui.osrs.OsrsSkin.smallFont())
+				.leftAligned().squeezable();
+			JPanel provRow = new JPanel();
+			provRow.setLayout(new BoxLayout(provRow, BoxLayout.X_AXIS));
+			provRow.setOpaque(false);
+			provRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+			provRow.add(provenance);
+			provRow.add(Box.createHorizontalGlue());
+			provRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, provRow.getPreferredSize().height));
+			slab.add(Box.createVerticalStrut(2));
+			slab.add(provRow);
+		}
+		slab.setMaximumSize(new Dimension(Integer.MAX_VALUE, slab.getPreferredSize().height));
+		return slab;
+	}
+
+	/** One slot row: sprite + faint slot label + the wiki's TOP pick, green
+	 *  when you own it (variants count); when you own a lower-ranked
+	 *  alternative the hover says which; an unowned top pick offers "+"
+	 *  (a one-shot stock goal — the planner routes the obtainment). */
+	private javax.swing.JComponent wikiGearRow(String slot,
+		java.util.List<com.ironhub.data.RecommendedEquipmentPack.Rec> recs)
+	{
+		com.ironhub.data.RecommendedEquipmentPack.Rec top = recs.get(0);
+		com.ironhub.data.RecommendedEquipmentPack.Rec ownedBest = null;
+		int ownedRank = 0;
+		for (int i = 0; i < recs.size(); i++)
+		{
+			com.ironhub.data.RecommendedEquipmentPack.Rec r = recs.get(i);
+			if (r.getItemId() != null && state.canonicalStock(r.getItemId()) > 0)
+			{
+				ownedBest = r;
+				ownedRank = i + 1;
+				break; // rank order — the first owned is your best
+			}
+		}
+		boolean topOwned = ownedBest == top;
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		row.setBorder(new javax.swing.border.EmptyBorder(1, 4, 1, 4));
+		if (itemManager != null && top.getItemId() != null)
+		{
+			java.awt.Image sprite = wikiSprites().getBox(top.getItemId(), 16);
+			if (sprite != null)
+			{
+				row.add(new JLabel(new javax.swing.ImageIcon(sprite)));
+				row.add(Box.createHorizontalStrut(4));
+			}
+		}
+		com.ironhub.ui.osrs.OsrsLabel slotLabel = new com.ironhub.ui.osrs.OsrsLabel(
+			slot, com.ironhub.ui.osrs.OsrsSkin.FAINT, com.ironhub.ui.osrs.OsrsSkin.smallFont())
+			.leftAligned();
+		row.add(slotLabel);
+		row.add(Box.createHorizontalStrut(4));
+		java.awt.Color color = topOwned ? com.ironhub.ui.osrs.OsrsSkin.VALUE
+			: top.getItemId() == null ? com.ironhub.ui.osrs.OsrsSkin.FAINT
+			: com.ironhub.ui.osrs.OsrsSkin.MUTED;
+		com.ironhub.ui.osrs.OsrsLabel name = new com.ironhub.ui.osrs.OsrsLabel(
+			top.displayName(), color, com.ironhub.ui.osrs.OsrsSkin.smallFont())
+			.leftAligned().squeezable();
+		StringBuilder tip = new StringBuilder("<html><b>").append(top.displayName()).append("</b>");
+		if (topOwned)
+		{
+			tip.append("<br>You own this");
+		}
+		else if (ownedBest != null)
+		{
+			tip.append("<br>You own: ").append(ownedBest.displayName())
+				.append(" (the wiki's #").append(ownedRank).append(" pick)");
+		}
+		else if (top.getItemId() != null)
+		{
+			String sources = itemSourcesPack().sourceLine(top.getItemId());
+			if (sources != null)
+			{
+				tip.append("<br>").append(sources);
+			}
+		}
+		else
+		{
+			tip.append("<br>Ownership not detectable for this family");
+		}
+		if (recs.size() > 1)
+		{
+			tip.append("<br>Alternatives: ").append(recs.stream().skip(1).limit(3)
+				.map(com.ironhub.data.RecommendedEquipmentPack.Rec::displayName)
+				.collect(java.util.stream.Collectors.joining(", ")));
+		}
+		tip.append("</html>");
+		name.setToolTipText(tip.toString());
+		row.setToolTipText(tip.toString());
+		row.add(name);
+		row.add(Box.createHorizontalGlue());
+		if (!topOwned && top.getItemId() != null)
+		{
+			int itemId = top.getItemId();
+			String goalId = "supply:" + itemId;
+			boolean isGoal = state.goalSeedIds("supply").contains(goalId);
+			JLabel glyph = new JLabel(isGoal ? "×" : "+");
+			com.ironhub.ui.osrs.OsrsSkin.crisp(glyph);
+			glyph.setFont(com.ironhub.ui.osrs.OsrsSkin.font());
+			glyph.setForeground(com.ironhub.ui.osrs.OsrsSkin.FAINT);
+			glyph.setToolTipText(isGoal ? "Remove from Goal planner" : "Add to Goal planner");
+			glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			glyph.addMouseListener(new java.awt.event.MouseAdapter()
+			{
+				@Override
+				public void mouseEntered(java.awt.event.MouseEvent e)
+				{
+					glyph.setForeground(com.ironhub.ui.osrs.OsrsSkin.TITLE);
+				}
+
+				@Override
+				public void mouseExited(java.awt.event.MouseEvent e)
+				{
+					glyph.setForeground(com.ironhub.ui.osrs.OsrsSkin.FAINT);
+				}
+
+				@Override
+				public void mousePressed(java.awt.event.MouseEvent e)
+				{
+					if (state.goalSeedIds("supply").contains(goalId))
+					{
+						state.removeGoalSeed(goalId);
+					}
+					else
+					{
+						state.addGoalSeed(com.ironhub.state.GoalSeeds.supply(
+							itemId, top.displayName(), 1));
+					}
+					lastViewFp = 0;
+					renderView();
+				}
+			});
+			row.add(glyph);
+		}
+		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+		return row;
+	}
+
+	private static String clip(String s, int max)
+	{
+		return s.length() <= max ? s : s.substring(0, max - 1) + "…";
+	}
+
 	/** The lab panel arrives async (its ~3MB dataset parses off-thread). */
 	private void mountPanel()
 	{
@@ -2008,6 +2283,14 @@ public class LoadoutLabModule implements IronHubModule
 	{
 		viewSource = index == 2 ? ViewSource.DPS
 			: index == 1 ? ViewSource.SLAYER : ViewSource.LIVE;
+		lastViewFp = 0;
+		renderView();
+	}
+
+	/** Test seam: expand the Wiki gear fold (mirrors the toggle click). */
+	public void setWikiGearExpandedForTest(boolean expanded)
+	{
+		wikiGearCollapsed = !expanded;
 		lastViewFp = 0;
 		renderView();
 	}
