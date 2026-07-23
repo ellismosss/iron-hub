@@ -51,3 +51,18 @@ regenerations). Ordered by how badly the module under-covers.
   suspected.
 - Player-state (obtained/built/unlocked) stays in AccountState — the KB is
   game knowledge only.
+
+## Raw-bucket harvest follow-ups (2026-07-21, slice 6)
+
+- **Port tasks**: `bucket_couriertaskline`/`bucket_bountytaskline` carry every
+  task with xp/item/qty/ports — keyed by the SLOT-VARBIT task id (1..439),
+  not the DBRow ids port-tasks.json keys rewards by (the two id spaces the
+  module already distinguishes). A mapping pass (join on item+ports+label)
+  would let the pack's hand-transcribed XP table be generated instead —
+  needs your word as a pack regen.
+- **`bucket_quest.ironman_concerns`** — per-quest ironman notes; a natural
+  QuestsTab tooltip/KB surface when wanted.
+- **`bucket_recommended_equipment`** (452 activity gear tables) — offline
+  replacement candidate for the wiki-strategy fetch path.
+- **`mine` and `ge_index_header` are EMPTY wiki-side** (defined, unpopulated)
+  — gaps recorded; recheck on future rebuilds.

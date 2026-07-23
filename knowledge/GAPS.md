@@ -16,6 +16,11 @@ move out on the next harvest.
 
 - [ ] **(coverage)** — catalog: boosts.json holds 10 boost sources; the wiki Temporary skill boost tables list far more — full harvest required
 
+## buckets
+
+- [ ] **ge_index_header** — empty: bucket exists wiki-side but holds zero rows — recheck on a future rebuild
+- [ ] **mine** — empty: bucket exists wiki-side but holds zero rows — recheck on a future rebuild
+
 ## ca
 
 - [ ] **(per-task reqs)** — granularity: the wiki states gear/skill requirements PER TIER (harvested); finer per-task gear judgments are community lore — flag any specific task you want itemised
@@ -446,4 +451,4 @@ move out on the next harvest.
 - [ ] **Strength** — methods: no method sections with parseable xp/hr on Pay-to-play Melee training — needs manual extraction
 
 
-_407 open gaps · generated from knowledge.db_
+_409 open gaps · generated from knowledge.db_

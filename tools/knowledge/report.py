@@ -90,7 +90,11 @@ def cell(value):
 
 
 def table_page(conn, table, title, cols):
-    rows = conn.execute(f"SELECT {', '.join(cols)} FROM {table}").fetchall()
+    # quoted identifiers: bucket fields include SQL keywords (exchange has
+    # "limit", varbit has "index")
+    rows = conn.execute(
+        f"SELECT {', '.join(chr(34) + c + chr(34) for c in cols)}"
+        f' FROM "{table}"').fetchall()
     parts = [f"<html><head><meta charset='utf-8'><title>{title}</title>",
              f"<style>{STYLE}</style></head><body>",
              f"<h1>{title}</h1><p><a href='index.html'>&larr; dashboard</a></p>",
@@ -113,12 +117,28 @@ def table_page(conn, table, title, cols):
     return len(rows)
 
 
+def bucket_tables(conn):
+    """Auto-discover the raw bucket_* tables (harvest_buckets.py) with
+    their columns — new buckets appear on the dashboard without edits."""
+    out = {}
+    for (name,) in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+            " AND name LIKE 'bucket_%' ORDER BY name").fetchall():
+        cols = [r[1] for r in conn.execute(f'PRAGMA table_info("{name}")').fetchall()
+                if r[1] != "src"]
+        out[name] = (name.replace("bucket_", "raw: "), cols)
+    return out
+
+
 def main():
     os.makedirs(HTML_OUT, exist_ok=True)
     conn = kb.db()
 
     counts = {}
     for table, (title, cols) in TABLES.items():
+        counts[table] = table_page(conn, table, title, cols)
+    raw = bucket_tables(conn)
+    for table, (title, cols) in raw.items():
         counts[table] = table_page(conn, table, title, cols)
 
     progress = conn.execute(
@@ -150,6 +170,11 @@ def main():
     for table, (title, _) in TABLES.items():
         parts.append(f"<li><a href='{table}.html'>{title}</a> "
                      f"<span class='count'>({counts[table]} rows)</span></li>")
+    parts.append("</ul><h2>Raw wiki buckets</h2><p class='count'>Unprocessed"
+                 " bucket stores the derived tables join from — harvested whole.</p><ul>")
+    for table, (title, _) in raw.items():
+        parts.append(f"<li><a href='{table}.html'>{title}</a> "
+                     f"<span class='count'>({counts[table]} rows)</span></li>")
     parts.append("</ul></body></html>")
     with open(os.path.join(HTML_OUT, "index.html"), "w", encoding="utf-8") as f:
         f.write("".join(parts))
@@ -176,7 +201,8 @@ def main():
         f.write("\n".join(lines))
 
     conn.close()
-    print(f"dashboard + {len(TABLES)} table pages + GAPS.md ({open_gaps} open gaps)")
+    print(f"dashboard + {len(TABLES)} table pages + {len(raw)} raw bucket pages"
+          f" + GAPS.md ({open_gaps} open gaps)")
 
 
 if __name__ == "__main__":

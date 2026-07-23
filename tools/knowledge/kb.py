@@ -397,9 +397,12 @@ def db() -> sqlite3.Connection:
 def set_progress(conn, category, expected, table, source, notes=""):
     harvested = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] \
         if " " not in table else int(table)
-    flagged = conn.execute(
-        f"SELECT COUNT(*) FROM {table} WHERE flags IS NOT NULL AND flags != ''"
-    ).fetchone()[0] if " " not in table else 0
+    try:
+        flagged = conn.execute(
+            f"SELECT COUNT(*) FROM {table} WHERE flags IS NOT NULL AND flags != ''"
+        ).fetchone()[0] if " " not in table else 0
+    except sqlite3.OperationalError:
+        flagged = 0  # raw tables carry no flags column
     conn.execute(
         "INSERT INTO progress(category, expected, harvested, flagged, source, updated_at, notes)"
         " VALUES(?,?,?,?,?,datetime('now'),?)"
