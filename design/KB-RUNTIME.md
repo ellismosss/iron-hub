@@ -92,10 +92,19 @@ The last row closes the recommended-equipment gap: wiki gear tables become
 *routable goals* — pick a monster, see what the wiki recommends, click + on what
 you lack and the engine costs the grind via the gear/clog projections.
 
-## Slices
+## Slices (all LANDED 2026-07-23)
 
 1. This doc + `gen_item_sources.py` + schema + pack + `ItemSourcesPack` + tests.
 2. Where-from wiring: goals sub-line/resources, gear tiles, slayer bring,
-   money-making inputs, bank reqs tooltip.
-3. Wiki-gear fold on the monster card + goal wiring.
-4. Docs (CLAUDE.md/README/DOMAIN-NOTES) in the same arc.
+   money-making inputs, supplies-runway LOW rows, bank reqs tooltip.
+3. The "Wiki gear" fold on the Gear & Combat monster card
+   (`RecommendedEquipmentPack` + `LoadoutLabModule.wikiGearSection`):
+   collapsed by default, style chips, per-slot top picks ownership-tinted,
+   "+" seeds one-shot supply goals, wiki-page provenance line. Render:
+   build/reports/loadout-wiki-gear.png.
+4. Docs (CLAUDE.md / knowledge README / MODULE-AUDIT) in the same arc.
+
+Generator lessons recorded in gen_item_sources.py: `removal_date` filters at
+the ID level (LMS/holiday duplicates share real items' names — a name-level
+filter deleted Eternal boots and Bandos godsword), reward labels normalize at
+generation, same-`from` sources dedupe across hows.

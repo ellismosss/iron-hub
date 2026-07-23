@@ -74,7 +74,14 @@ flags/gaps before re-judging (a re-detected gap reopens; `wont-fix` sticks).
   in GAPS.md).
 - **recommended-equipment.json** — `tools/gen_recommended_equipment.py`: the
   wiki's own gear tables for 452 activities, offline (the old per-page
-  wiki-strategy fetch path's data, bundled). No UI consumer yet.
+  wiki-strategy fetch path's data, bundled). Consumed by the Gear & Combat
+  "Wiki gear" fold (2026-07-23, design/KB-RUNTIME.md).
+- **item-sources.json** — `tools/gen_item_sources.py` reads **knowledge.db
+  directly** (run `tools/knowledge/rebuild.py` first): the universal per-item
+  obtainment + equip-req projection — 6,870 items, best source per how
+  (drop/shop/make/reward), reqs with audited/extracted origin. Every
+  "where does this come from" surface in the plugin renders through it
+  (design/KB-RUNTIME.md).
 
 ## Domain notes worth remembering
 

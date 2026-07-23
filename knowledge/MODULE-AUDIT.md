@@ -67,7 +67,8 @@ regenerations). Ordered by how badly the module under-covers.
   QuestsTab tooltip/KB surface when wanted.
 - **`bucket_recommended_equipment`** — **DONE**: data/recommended-equipment.json
   (452 activities, 13,446 id-resolved entries) via gen_recommended_equipment.py.
-  No UI consumer wired yet — say where you want it surfaced.
+  Consumer wired 2026-07-23: the Gear & Combat "Wiki gear" fold under the
+  monster card (design/KB-RUNTIME.md slice 3) — movable on your word.
 - **`mine` and `ge_index_header` are EMPTY wiki-side** (defined, unpopulated)
   — gaps recorded; recheck on future rebuilds.
 
