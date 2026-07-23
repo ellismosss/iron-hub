@@ -340,7 +340,9 @@ public class CollectionLogModule implements IronHubModule
 			return;
 		}
 		String page = Text.removeTags(lines[0].getText() == null ? "" : lines[0].getText()).trim();
-		if (page.isEmpty())
+		// only a name the catalog knows: if the header's layout ever moves,
+		// this reads some other label and must store nothing rather than junk
+		if (page.isEmpty() || !isKnownPage(page))
 		{
 			return;
 		}
@@ -360,6 +362,21 @@ public class CollectionLogModule implements IronHubModule
 			}
 		}
 		state.recordClogPageCounts(page, counts);
+	}
+
+	private boolean isKnownPage(String name)
+	{
+		for (com.ironhub.state.PersistedState.ClogTab tab : state.getClogCatalog())
+		{
+			for (com.ironhub.state.PersistedState.ClogPage page : tab.pages)
+			{
+				if (page.name.equals(name))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	/** Press the game's own Search and run the enumerate script; the

@@ -234,6 +234,48 @@ open — it is the only game-truth source for the TOTAL slot count (the
 varp only gives the obtained count, and the pack's slot list drifts from
 the live game between regenerations).
 
+### The log's own structure, from the cache (2026-07-24)
+
+The browser needs tabs → pages → slots, and that is game data, so it comes
+from the game. Decoded from the log's cs2
+(RuneStar/cs2-scripts@7da6c1f, `[proc,collection_*]`):
+
+- `[proc,collection_draw_tabs_all]` names the five tab structs in the order
+  the interface draws them: **471 Bosses, 472 Raids, 473 Clues,
+  474 Minigames, 475 Other**. `param_682` = the tab's label, `param_684` =
+  its index.
+- `[proc,collection_draw_list]` walks `struct_param(tab, param_683)` — an
+  `enum(int, struct)` of that tab's PAGE structs, in list order — and reads
+  `param_689` for each page's name. It colours a page **green** when
+  complete and **orange** otherwise; the browser copies that.
+- `[proc,collection_draw_log]` walks `struct_param(page, param_690)` — an
+  `enum(int, namedobj)` of the page's slot item ids — and draws
+  "Obtained: n/N" in green when full, yellow when partial, **red when
+  zero**. It dims an unobtained sprite to `trans 175` rather than hiding
+  it. `enum_3721` maps an item onto its canonical display variant, and
+  `enum_2108` swaps in the "other" variant when `varbit 6907` is set.
+- Slot COUNTS come from `inv_total(inv_620, item)` — the log is an
+  inventory. We never read inv 620 directly: script **4100**
+  (`collection_delayed_transmit(obj, count, ...)`) already carries the
+  count as its second argument, and the full-sync harvest fires it for
+  every obtained slot. Counts only climb, so the highest seen wins.
+- Kill/completion counters (`[proc,collection_category_count]`: "Barbarian
+  Assault" → "High-level Gambles: N") come from per-draw scratch varps
+  (2048/2941/2942) the game fills only while that page is on screen.
+  There is no way to read them for a page you have not opened, so Iron Hub
+  keeps the lines it watched the game draw in the header container
+  (`InterfaceID.Collection.HEADER`, dynamic child 0 = the page name) and
+  says so on pages it has never seen.
+
+A read that comes back short of five tabs or 1,000 slots is treated as
+cache-layout drift: it returns empty and the persisted snapshot stands.
+The snapshot is what makes the browser work logged out.
+
+**Ranks** (data/clog-ranks.json, wiki-sourced): Bronze 100 → Dragon 1,200,
+then Gilded at 90% of the log's total rounded down to 25. The overview's
+"Collections Logged: 1,190/1,200" denominator is the NEXT RANK, not the
+log's size — the two staves flanking it are the ranks either side.
+
 ## Farming time-tracking (module: farming, vendored engine: rl/)
 
 Iron Hub does NOT track patches itself — the core **Time Tracking**
