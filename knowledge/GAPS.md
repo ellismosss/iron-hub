@@ -302,5 +302,32 @@ move out on the next harvest.
 - [ ] **(catalog definition)** — scope: QoL is a plugin concept: current catalog = Category:Storage items + a curated utility list. Review what belongs — additions are one line in harvest_qol.py CURATED
 - [ ] **(coverage)** — catalog: qol.json holds only 9 unlocks; full QoL catalog needs harvesting (sacks, jewellery, graceful, teleports, tool upgrades, ...)
 
+## shops
 
-_270 open gaps · generated from knowledge.db_
+- [ ] **Agility Arena Store** — point-prices: page 'Agility Arena Store' fetched but no point costs parsed
+- [ ] **Alry the Angler's Angling Accessories** — point-prices: page 'Alry the Angler's Angling Accessories' fetched but no point costs parsed
+- [ ] **Apprentice Felix** — point-prices: page 'Apprentice Felix' fetched but no point costs parsed
+- [ ] **Bounty Hunter Store** — point-prices: page 'Bounty Hunter Store' fetched but no point costs parsed
+- [ ] **Forestry Shop** — point-prices: page 'Forestry Shop' fetched but no point costs parsed
+- [ ] **Giants' Foundry Reward Shop** — point-prices: page 'Giants' Foundry Reward Shop' fetched but no point costs parsed
+- [ ] **Honest Jimmy** — point-prices: page 'Honest Jimmy' fetched but no point costs parsed
+- [ ] **Honest Jimmy's House of Stuff** — point-prices: page 'Trouble Brewing' fetched but no point costs parsed
+- [ ] **Kylie Minnow** — point-prices: page 'Kylie Minnow' fetched but no point costs parsed
+- [ ] **Mahogany Homes Reward Shop** — point-prices: page 'Mahogany Homes Reward Shop' fetched but no point costs parsed
+- [ ] **Mairin's Market** — point-prices: page 'Mairin's Market' fetched but no point costs parsed
+- [ ] **Metarialus** — point-prices: page 'Metarialus' fetched but no point costs parsed
+- [ ] **Mysterious Hallowed Goods** — point-prices: page 'Mysterious Hallowed Goods' fetched but no point costs parsed
+- [ ] **Nigel** — point-prices: page 'Nigel' fetched but no point costs parsed
+- [ ] **Petrified Pete's Ore Shop** — point-prices: page 'Petrified Pete's Ore Shop' fetched but no point costs parsed
+- [ ] **PvP Arena Rewards** — point-prices: page 'PvP Arena Rewards' fetched but no point costs parsed
+- [ ] **Ranging Guild Ticket Exchange** — point-prices: page 'Ranging Guild Ticket Exchange' fetched but no point costs parsed
+- [ ] **Slayer Rewards** — point-prices: page 'Slayer Rewards' fetched but no point costs parsed
+- [ ] **Soul Wars Reward Shop** — point-prices: page 'Soul Wars Reward Shop' fetched but no point costs parsed
+- [ ] **Speedrunning Reward Shop** — point-prices: page 'Speedrunning Reward Shop' fetched but no point costs parsed
+- [ ] **Thessalia** — point-prices: page 'Thessalia' fetched but no point costs parsed
+- [ ] **Vale Research Exchange** — point-prices: page 'Vale Research Exchange' fetched but no point costs parsed
+- [ ] **Void Knights' Reward Options** — point-prices: page 'Pest Control' fetched but no point costs parsed
+- [ ] **Worm Tongue's Wares** — point-prices: page 'Worm Tongue's Wares' fetched but no point costs parsed
+
+
+_294 open gaps · generated from knowledge.db_

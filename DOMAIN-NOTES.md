@@ -801,4 +801,24 @@ Hard-won source knowledge for ANY feature that harvests the OSRS wiki:
   query/caller, not just a batch index — a changed query reading a stale
   cache silently returns the wrong pages. And rerunnable joins must strip
   their OWN stale flags before re-judging.
+- **Obtainment classification traps** (Luke's 2026-07-23 data report, all
+  class-wide): the storeline bucket includes RECLAIM shops (Lost Property
+  — 27 items' "source" was buying back their own untradeables) and carries
+  NO price for point-currency shops (`store_buy_price` is literally "N/A"
+  wiki-side — the costs live only in each shop page's `{{StoreLine
+  |sell=N}}` templates or plink tables; harvest_shops.point_prices parses
+  those, pinned against hand-verified costs). Diary "Rewards" sections
+  link every item their PROSE mentions (Pharaoh's sceptre ≠ a Desert Diary
+  reward — only the 12 region-item families are), quest-page harvesting
+  must include Category:Miniquests (Mage Arena II), and a "drop" whose
+  source is an ITEM is a container you open, never a kill. The wiki can
+  disagree with itself: the gem bag's bucket says 80 nuggets, its page
+  prose (and the game) say 100 — page prose won, curated.
+- **Entering a POH fires LOADING → furniture spawns DURING the load →
+  LOGGED_IN → the "Welcome to your house." chat** — any buffer-and-confirm
+  detection must NOT reset on LOGGED_IN, which lands between the spawns
+  and the confirmation (the PoH module cleared there and never marked a
+  single build until 2026-07-23). Kingdom of Miscellania: approval varbit
+  72 (0..127, 127 = 100%) and coffer varp 74 are both synced at login —
+  and 100% approval is NOT "daily done"; collecting from Ghrim is.
 
