@@ -90,6 +90,39 @@ first if absent) and emits one entry per obtainable item:
 - Wiki-vs-itself conflicts (gem bag: bucket 80, prose 100) resolve via
   curated `shop_prices` in curated-sources.json.
 
+**v2.1 (2026-07-24, Luke's source-quality + scaling report):**
+- **Sensible source ORDER** (`HOW_ORDER`): shop → make → reward → spell →
+  drop → open → other. Buy/make lead a commodity; a drop-only unique still
+  leads with its drop (it is the only option). Mithril arrow led with a
+  4/101 Catablepon drop over the shop and its Fletching recipe until this.
+- **A `make` row must consume MATERIALS** — a skill-only recipe with none
+  is the wiki listing an ALTAR-OFFERING as a craft ("Vorkath's head · Make:
+  Prayer 1"). Dropping those (plus joke/holiday containers) removed 31
+  items whose ONLY source was spurious; `sourceLine` returns null (honestly
+  unknown) > nonsense.
+- **`HOLIDAY_CONTAINERS`** (Christmas cracker et al.) are never a source —
+  "open a Christmas cracker for silk" is absurd advice; discontinued rares
+  (partyhats) whose only "source" was the cracker become sourceless.
+- **Currency metadata** on shop prices (`Source.currency` → `currencyReq()`):
+  item currencies (nuggets, marks of grace, coins) count from bank+inv; the
+  three readable point varbits (Tithe 4893 / NMZ 3949 / slayer 4068) via the
+  `varbit:<id>:<value>:<label>` graph leaf; an unreadable currency → an
+  honest "Earn N X" step, never a pretend progress figure.
+- **Batch recipes SCALE** (`Source.outputQty` = the recipe's per-batch
+  output, recorded only when >1; `Source.batchesFor(n)` = ceil(n/outputQty)).
+  A material list is per-BATCH; making N needs ceil(N/outputQty) batches, so
+  75 Mithril arrows from a 15-per-batch recipe (15 headless + 15 tips) needs
+  5 batches = 75 + 75. `Action.obtainQty` carries the required count (from
+  the requirement); both the GoalExpander gather sub-steps and the sidebar
+  material rows scale by it.
+
+The **method-choice** flow (v2) has a hard rule when a gear item has a
+curated `any:` gate ("Crafting 80 OR Hunter 83"): the choose-method menu
+offers ONLY those PATHS (a `path|<req>` pref), because the KB sources there
+are display-only (the expander's `currencyOnly` suppresses them). Offering
+both let the player pick a KB "Make" that never steered the `any:`, so the
+other skill stayed in the plan.
+
 ### 2. `ItemSourcesPack` — one query + display seam
 
 `com.ironhub.data.ItemSourcesPack`: lazy id- and name-indexed;

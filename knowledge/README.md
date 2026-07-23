@@ -97,6 +97,12 @@ flags/gaps before re-judging (a re-detected gap reopens; `wont-fix` sticks).
   shops excluded, point prices real, diary rewards restricted to the 12
   genuine reward families — and the player's chosen obtainment method
   (right-click an Obtain task in Goals) persists and leads the line.
+  **v2.1 (2026-07-24)**: sources rank shop→make→reward→drop→open→other (buy/
+  make lead a commodity; a drop-only unique still shows its drop); a make row
+  must consume materials (a skill-only recipe is the wiki's altar-offering,
+  dropped); holiday joke containers (Christmas cracker) are never a source;
+  make sources carry `outputQty` (per-batch output) so a recipe scales to the
+  count a step needs (75 arrows from a 15/batch recipe → 75 + 75 materials).
 
 ## Domain notes worth remembering
 
