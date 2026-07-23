@@ -547,6 +547,14 @@ class PlannerOverlay extends OverlayPanel
 			if (name != null)
 			{
 				int more = head.action.neededBy.size() - 1;
+				// when the Task IS the Goal (an OBTAIN step named after the
+				// goal item), the head line already shows it — drop the
+				// redundant "Goal · X" (Luke, 2026-07-24). Only for a single
+				// goal; a "+N" shared step still earns the line.
+				if (more == 0 && name.equalsIgnoreCase(head.action.name))
+				{
+					return null;
+				}
 				return "Goal · " + name + (more > 0 ? " +" + more : "");
 			}
 		}

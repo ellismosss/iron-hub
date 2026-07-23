@@ -398,7 +398,7 @@ class GoalsHubTab extends JPanel
 		// number-left first, time last (the benefits-first rule)
 		JPanel stats = row();
 		String left = step.trainXpRemaining > 0 ? compactXp(step.trainXpRemaining) + " xp left"
-			: timeText(step).equals("?") ? "" : "in progress";
+			: timeText(step).isEmpty() ? "" : "in progress";
 		stats.add(new OsrsLabel(left, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned().squeezable());
 		stats.add(Box.createHorizontalGlue());
 		OsrsLabel pace = new OsrsLabel(timeText(step), OsrsSkin.FAINT, OsrsSkin.smallFont());
@@ -876,6 +876,11 @@ class GoalsHubTab extends JPanel
 		int itemId = step.action.itemId;
 		List<com.ironhub.data.ItemSourcesPack.Source> options = sourceOptions(itemId);
 		String pref = state.getItemSourcePref(itemId);
+		// a PATH pref ("path|skillb:Crafting:80") selects a gear any: branch,
+		// not a KB source — it must not blank the KB detail rows (Luke,
+		// 2026-07-24). Only a KB-source pref filters the source list.
+		String kbPref = pref != null
+			&& !pref.startsWith(com.ironhub.engine.GoalExpander.PATH_PREF) ? pref : null;
 		// the clog drop rate stays the headline for a genuine drop with no
 		// chosen method — it is the number that matters
 		String drop = pref != null || purchased(options) || module.ratesSource() == null
@@ -889,8 +894,8 @@ class GoalsHubTab extends JPanel
 		int shown = 0;
 		for (com.ironhub.data.ItemSourcesPack.Source s : options)
 		{
-			boolean chosen = com.ironhub.data.ItemSourcesPack.key(s).equals(pref);
-			if (pref != null && !chosen)
+			boolean chosen = com.ironhub.data.ItemSourcesPack.key(s).equals(kbPref);
+			if (kbPref != null && !chosen)
 			{
 				continue; // the player picked one — show only that
 			}
@@ -1049,33 +1054,43 @@ class GoalsHubTab extends JPanel
 			return;
 		}
 		int itemId = step.action.itemId;
+		String pref = state.getItemSourcePref(itemId);
+		List<String> paths = requirementPaths(itemId);
+		// When the gear chart expresses a CHOICE of routes ("Crafting 80 OR
+		// Hunter 83"), THAT any: is what drives the plan — the KB sources are
+		// display-only there (currencyOnly in the expander). Offering both
+		// let the player pick a KB "Make" that never steered the any:, so
+		// Hunter stayed in the plan (Luke, 2026-07-24). Offer ONLY the paths.
+		if (!paths.isEmpty())
+		{
+			if (paths.size() < 2)
+			{
+				return;
+			}
+			menu.addSeparator();
+			for (String path : paths)
+			{
+				String key = com.ironhub.engine.GoalExpander.PATH_PREF + path;
+				boolean chosen = key.equals(pref);
+				menu.add(item((chosen ? "· " : "") + "Get it via " + describePath(path),
+					() -> state.setItemSourcePref(itemId, chosen ? null : key)));
+			}
+			return;
+		}
 		com.ironhub.data.ItemSourcesPack.Entry kb = module.itemSources().entry(itemId);
 		List<com.ironhub.data.ItemSourcesPack.Source> sources = kb == null
 			|| kb.getSources() == null ? List.of() : kb.getSources();
-		List<String> paths = requirementPaths(itemId);
-		if (sources.size() + paths.size() < 2)
+		if (sources.size() < 2)
 		{
 			return;
 		}
 		menu.addSeparator();
-		String pref = state.getItemSourcePref(itemId);
 		for (com.ironhub.data.ItemSourcesPack.Source s : sources)
 		{
 			String key = com.ironhub.data.ItemSourcesPack.key(s);
 			boolean chosen = key.equals(pref);
 			menu.add(item((chosen ? "· " : "") + "Get it via "
 					+ com.ironhub.data.ItemSourcesPack.label(s, state),
-				() -> state.setItemSourcePref(itemId, chosen ? null : key)));
-		}
-		// the gear chart's alternative ROUTES to the same item ("Crafting 80
-		// OR Hunter 83") — picking one re-plans, so the other skill's grind
-		// leaves the plan entirely (Luke, 2026-07-23)
-		for (String path : paths)
-		{
-			String key = com.ironhub.engine.GoalExpander.PATH_PREF + path;
-			boolean chosen = key.equals(pref);
-			String label = describePath(path);
-			menu.add(item((chosen ? "· " : "") + "Get it via " + label,
 				() -> state.setItemSourcePref(itemId, chosen ? null : key)));
 		}
 	}
@@ -1897,7 +1912,8 @@ class GoalsHubTab extends JPanel
 				return "~" + (long) Math.ceil(step.trainXpRemaining / perRun) + " runs";
 			}
 		}
-		return Double.isNaN(step.hours) ? "?" : "~" + compactHours(step.hours);
+		// unknown time renders as NOTHING, never "?" (Luke, 2026-07-24)
+		return Double.isNaN(step.hours) ? "" : "~" + compactHours(step.hours);
 	}
 
 	/**
@@ -2176,7 +2192,8 @@ class GoalsHubTab extends JPanel
 
 	private static String compactHours(double hours)
 	{
-		return PlannerOverlay.compactHours(hours); // one format — see PlannerOverlay
+		// the sidebar never prints "?" (Luke, 2026-07-24) — unknown = ""
+		return Double.isNaN(hours) ? "" : PlannerOverlay.compactHours(hours);
 	}
 
 	private static String compactXp(long xp)
