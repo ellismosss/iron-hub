@@ -135,6 +135,11 @@ Actions come from four places:
    requirement strings, and consumed/produced items. TRAIN actions are
    *generated* from ladders at plan time ("train Fishing to 81 using best
    unlocked methods"), not enumerated statically.
+   *(2026-07-23 update, superseding the Appendix-A-only sourcing and the
+   G4 keep-curated-rates decision: on Luke's word the ladders now MERGE
+   the knowledge base's wiki training-guide tables — 468 methods, wiki
+   rates preferred over the curated seed, player-measured rates above
+   both at runtime. See tools/gen_methods.py's header and CLAUDE.md.)*
 2. **Existing packs, reinterpreted**: gear-progression entries (OBTAIN),
    goals.json steps, qol.json unlocks, dailies.json (RECURRING),
    banked-xp.json (a *discount* on TRAIN, not an action).

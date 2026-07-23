@@ -135,6 +135,12 @@ is the point; eyeball the diffs, don't just re-record).
 
 ## G4 — methods.json v2 generator + freshness (GATED)
 
+*(Historical note, 2026-07-23: G4 landed with rates UNCHANGED per Luke's
+keep-practical-rates call; that decision was later superseded by his
+methods-regen directive — the pack now merges the knowledge base's wiki
+tables with wiki rates preferred. The WOM envelope + freshness machinery
+below remain live.)*
+
 Follow ENGINE-DESIGN §11's methods.json row exactly:
 
 - `tools/gen_methods.py`: WOM's open-source ironman EHP configs at a

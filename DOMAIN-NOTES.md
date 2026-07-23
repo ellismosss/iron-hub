@@ -785,6 +785,18 @@ Hard-won source knowledge for ANY feature that harvests the OSRS wiki:
   a (4), charged Alchemist's amulet = 15%; Sanfew serum is the exception
   (the dose carries from the input super restore). Partial doses have no
   obtainment "source" — never model drink-down as one (Luke).
+- **Training-guide tables come in two shapes** (the methods-regen lesson,
+  2026-07-23): tables WITH a name column (`levels | course | xp/h`,
+  `level | potion | ... | xp/hour`) and name-less per-level progressions
+  (`level | xp/hour`) whose method name is the ENCLOSING SECTION heading —
+  so the parse must be section-aware and map columns BY HEADER, never by
+  position (a first-cell-is-the-name parse put level ranges in the name
+  column and lost every actual method). Header cells carry attributes
+  (`colspan=2 |Potion`) — strip up to the last `|` first. Rate strings use
+  em/en dashes and `to` in ranges. PROSE sections pair one rate with a
+  "Levels X–Y:" heading — trust that pairing only when the range is
+  NARROW (≤30 levels); "Levels 1–99" sections state the endgame rate at
+  the start level and would corrupt a cost ladder.
 - **Generator hygiene** (bitten three times): cache keys MUST encode the
   query/caller, not just a batch index — a changed query reading a stale
   cache silently returns the wrong pages. And rerunnable joins must strip
