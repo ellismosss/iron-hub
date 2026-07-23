@@ -352,7 +352,23 @@ public class DiariesModule implements IronHubModule
 	 */
 	void markDiaryGoalProofs()
 	{
-		var goalSlugs = state.goalSeedIds("diary");
+		var goalSlugs = new java.util.HashSet<>(state.goalSeedIds("diary"));
+		// whole-tier goals share the per-task proof keys — their steps name
+		// the slugs they need marked (2026-07-23)
+		for (com.ironhub.state.PersistedState.GoalSeed seed : state.getGoalSeeds().values())
+		{
+			if (!"diarytier".equals(seed.family))
+			{
+				continue;
+			}
+			for (com.ironhub.state.PersistedState.SeedStep step : seed.steps)
+			{
+				if (step.requirement != null && step.requirement.startsWith("unlock:diarytask_"))
+				{
+					goalSlugs.add(step.requirement.substring("unlock:diarytask_".length()));
+				}
+			}
+		}
 		if (goalSlugs.isEmpty() || markingProofs || pack == null)
 		{
 			return;

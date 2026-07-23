@@ -160,6 +160,36 @@ public class DiariesModuleTest
 		assertFalse(module.taskDoable(ardougne, 0, essMine));
 	}
 
+	/** A whole-tier goal shares the per-task proof keys — the module's
+	 *  marker serves both families (2026-07-23, Luke's tier-goal ask). */
+	@Test
+	public void tierGoalsShareTaskProofs()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		DiariesModule module = module(state);
+		DiariesPack pack = module.pack();
+		DiariesPack.Region ardougne = pack.regions.get(0);
+		DiariesPack.Tier easy = ardougne.tiers.get(0);
+		DiariesPack.Task essMine = easy.tasks.get(0);
+
+		java.util.List<String> slugs = new java.util.ArrayList<>();
+		java.util.List<String> texts = new java.util.ArrayList<>();
+		for (DiariesPack.Task t : easy.tasks)
+		{
+			slugs.add(DiariesModule.slug(t));
+			texts.add(t.task);
+		}
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.diaryTier(
+			ardougne.name, easy.tier, slugs, texts));
+
+		String proof = "diarytask_" + DiariesModule.slug(essMine);
+		assertFalse(state.isUnlocked(proof));
+		StateFixture.varp(state, essMine.varp, 1 << essMine.bit);
+		module.markDiaryGoalProofs();
+		assertTrue("a tier goal's step must prove like a task goal's",
+			state.isUnlocked(proof));
+	}
+
 	/** Boostable gates count usable temporary boosts (2026-07-23): a level
 	 *  just short reads doable through the boost-aware overload while the
 	 *  plain check stays honest, and a boost never revives a quest gate. */

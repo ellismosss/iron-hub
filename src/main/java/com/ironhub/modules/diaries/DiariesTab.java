@@ -316,8 +316,49 @@ class DiariesTab extends JPanel
 		row.add(new OsrsLabel(tier.tier.toUpperCase(), color, OsrsSkin.font()).leftAligned());
 		row.add(Box.createHorizontalGlue());
 		row.add(new OsrsLabel(done + "/" + total, color, OsrsSkin.font()));
+		// track the WHOLE tier as one goal (Luke, 2026-07-23) — one step per
+		// task, sharing the per-task proof keys
+		if (done < total)
+		{
+			row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+			String goalId = "diarytier:" + region.name.toLowerCase()
+				.replaceAll("[^a-z0-9]+", "_") + "_"
+				+ tier.tier.toLowerCase().replaceAll("[^a-z0-9]+", "_");
+			boolean isGoal = state.getGoalSeeds().containsKey(goalId);
+			row.add(goalGlyph(isGoal,
+				isGoal ? region.name + " " + tier.tier + " — tracked; click to untrack"
+					: "Track the whole " + region.name + " " + tier.tier
+						+ " tier in Goals",
+				() -> toggleTierGoal(region, tierIndex)));
+		}
 		cap(row);
 		return row;
+	}
+
+	/** The tier-level +/×: every task becomes a step; already-complete tasks
+	 *  prove on the next state pass (the module marks the shared
+	 *  {@code diarytask_} unlocks for tier goals too). */
+	private void toggleTierGoal(DiariesPack.Region region, int tierIndex)
+	{
+		DiariesPack.Tier tier = region.tiers.get(tierIndex);
+		String goalId = "diarytier:" + region.name.toLowerCase()
+			.replaceAll("[^a-z0-9]+", "_") + "_"
+			+ tier.tier.toLowerCase().replaceAll("[^a-z0-9]+", "_");
+		if (state.getGoalSeeds().containsKey(goalId))
+		{
+			state.removeGoalSeed(goalId);
+			return;
+		}
+		java.util.List<String> slugs = new java.util.ArrayList<>();
+		java.util.List<String> texts = new java.util.ArrayList<>();
+		for (DiariesPack.Task task : tier.tasks)
+		{
+			slugs.add(DiariesModule.slug(task));
+			texts.add(task.task);
+		}
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.diaryTier(
+			region.name, tier.tier, slugs, texts));
+		module.markDiaryGoalProofs(); // already-done tasks prove immediately
 	}
 
 	private JComponent taskEntry(DiariesPack.Region region, int tierIndex, DiariesPack.Task task)
