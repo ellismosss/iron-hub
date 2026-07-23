@@ -7,6 +7,7 @@ import com.ironhub.modules.IronHubModule;
 import com.ironhub.requirements.Requirement;
 import com.ironhub.requirements.Requirements;
 import com.ironhub.state.AccountState;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.inject.Inject;
@@ -69,6 +70,7 @@ public class DiariesModule implements IronHubModule
 	private final AccountState state;
 	private final IronHubConfig config;
 	private final DataPack dataPack;
+	private final com.ironhub.data.BoostsPack boostsPack;
 	private DiariesPack pack;
 	private DiariesTab tab;
 	/** Parsed requirement per pack string — parse once, shared across tasks. */
@@ -79,6 +81,8 @@ public class DiariesModule implements IronHubModule
 		this.state = state;
 		this.config = config;
 		this.dataPack = dataPack;
+		this.boostsPack = dataPack == null ? null
+			: dataPack.load("boosts", com.ironhub.data.BoostsPack.class);
 	}
 
 	@Override
@@ -239,10 +243,63 @@ public class DiariesModule implements IronHubModule
 		return true;
 	}
 
+	/** taskDoable, counting usable temporary boosts toward boostable gates. */
+	boolean taskDoable(DiariesPack.Region region, int tierIndex, DiariesPack.Task task,
+		java.util.Map<net.runelite.api.Skill, Integer> boosts)
+	{
+		if (taskComplete(region, tierIndex, task))
+		{
+			return false;
+		}
+		for (DiariesPack.Req req : task.reqs)
+		{
+			if (req.req != null && !parsed(req.req).isMetWithBoosts(state, boosts))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/** Usable boost headroom per skill — computed ONCE per tab rebuild
+	 *  (492 task rows read it; resolving it per row would sweep the
+	 *  194-source boosts pack half a million times). */
+	java.util.Map<net.runelite.api.Skill, Integer> availableBoosts()
+	{
+		return boostsPack == null ? java.util.Map.of()
+			: com.ironhub.requirements.Boosts.available(boostsPack, state);
+	}
+
 	/** Met state for one requirement line; null when display-only. */
 	Boolean reqMet(DiariesPack.Req req)
 	{
 		return req.req == null ? null : parsed(req.req).isMet(state);
+	}
+
+	/** "boostable with Spicy stew, +5 tea" when boosts close this line's gap, else null. */
+	String reqBoostNote(DiariesPack.Req req, java.util.Map<net.runelite.api.Skill, Integer> boosts)
+	{
+		if (req.req == null || boostsPack == null)
+		{
+			return null;
+		}
+		Requirement parsed = parsed(req.req);
+		if (parsed.isMet(state) || !parsed.isMetWithBoosts(state, boosts))
+		{
+			return null;
+		}
+		List<String> parts = new ArrayList<>();
+		for (Requirement leaf : parsed.missing(state))
+		{
+			net.runelite.api.Skill skill = leaf.boostableSkill();
+			if (skill != null && leaf.isMetWithBoosts(state, boosts))
+			{
+				List<String> sources = com.ironhub.requirements.Boosts.describe(boostsPack, state, skill);
+				parts.add(sources.isEmpty() ? leaf.describe() + " boostable"
+					: leaf.describe() + " boostable with " + String.join(", ", sources));
+			}
+		}
+		return parts.isEmpty() ? null : String.join("; ", parts);
 	}
 
 	private Requirement parsed(String s)

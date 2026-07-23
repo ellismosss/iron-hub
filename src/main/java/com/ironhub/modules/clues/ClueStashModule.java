@@ -49,6 +49,7 @@ public class ClueStashModule implements IronHubModule
 	private final AccountState state;
 	private final IronHubConfig config;
 	private final ClueStepsPack pack;
+	private final com.ironhub.data.ItemSourcesPack itemSources;
 	private final EventBus eventBus; // null in unit tests
 	private final Client client;     // null in unit tests
 
@@ -65,6 +66,8 @@ public class ClueStashModule implements IronHubModule
 		this.state = state;
 		this.config = config;
 		this.pack = dataPack == null ? null : dataPack.load("clue-steps", ClueStepsPack.class);
+		this.itemSources = dataPack == null ? null
+			: dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class);
 		this.eventBus = eventBus;
 		this.client = client;
 	}
@@ -155,6 +158,25 @@ public class ClueStashModule implements IronHubModule
 	{
 		List<Requirement> missing = requirement(clue).missing(state);
 		return missing.isEmpty() ? null : missing.get(0).describe();
+	}
+
+	/** Where the blocking item comes from (the KB projection), or null. */
+	String blockingSource(ClueStepsPack.Clue clue)
+	{
+		if (itemSources == null)
+		{
+			return null;
+		}
+		for (Requirement leaf : requirement(clue).missing(state))
+		{
+			Integer itemId = leaf.itemId();
+			String line = itemId == null ? null : itemSources.sourceLine(itemId);
+			if (line != null)
+			{
+				return line;
+			}
+		}
+		return null;
 	}
 
 	static long doableCount(List<ClueStepsPack.Clue> clues, AccountState state)

@@ -46,6 +46,8 @@ class PohTab extends JPanel
 
 	private final JPanel content = new JPanel();
 	private String expanded;
+	/** Usable temporary-boost headroom per skill, refreshed each rebuild. */
+	private java.util.Map<net.runelite.api.Skill, Integer> boosts = java.util.Map.of();
 
 	PohTab(AccountState state, PohModule module, OsrsTheme theme)
 	{
@@ -97,6 +99,9 @@ class PohTab extends JPanel
 			content.repaint();
 			return;
 		}
+
+		boosts = module.boostsPack() == null ? java.util.Map.of()
+			: com.ironhub.requirements.Boosts.available(module.boostsPack(), state);
 
 		int maxed = 0;
 		for (PohPack.Space space : pack.spaces)
@@ -163,6 +168,11 @@ class PohTab extends JPanel
 		{
 			bevel = ColorScheme.PROGRESS_INPROGRESS_COLOR;
 			status = "Buildable now: " + next.name + " (Construction " + next.level + ")";
+		}
+		else if (boostMet(next.reqs))
+		{
+			bevel = ColorScheme.PROGRESS_INPROGRESS_COLOR;
+			status = "Buildable with a boost: " + next.name + " — " + boostDetail(next.reqs);
 		}
 		else if (built != null)
 		{
@@ -238,7 +248,8 @@ class PohTab extends JPanel
 		top.setOpaque(false);
 		top.setAlignmentX(LEFT_ALIGNMENT);
 		Color color = built ? OsrsSkin.VALUE
-			: isNext ? (met(tier.reqs) ? ColorScheme.PROGRESS_INPROGRESS_COLOR : OsrsSkin.MUTED)
+			: isNext ? (met(tier.reqs) || boostMet(tier.reqs)
+				? ColorScheme.PROGRESS_INPROGRESS_COLOR : OsrsSkin.MUTED)
 			: OsrsSkin.FAINT;
 		OsrsLabel name = new OsrsLabel(tier.name, color, OsrsSkin.font()).leftAligned().squeezable();
 		name.setToolTipText(built ? tier.name + " — built (click to unmark)"
@@ -260,10 +271,18 @@ class PohTab extends JPanel
 		if (!built && isNext)
 		{
 			String missing = missingText(tier.reqs);
-			row.add(new OsrsLabel(missing == null
-					? "Buildable now" : "Needs: " + missing,
-				missing == null ? OsrsSkin.VALUE : OsrsSkin.FAINT, OsrsSkin.smallFont())
-				.leftAligned().squeezable());
+			boolean boostable = missing != null && boostMet(tier.reqs);
+			OsrsLabel needs = new OsrsLabel(missing == null ? "Buildable now"
+					: boostable ? "Buildable with a boost"
+					: "Needs: " + missing,
+				missing == null || boostable ? OsrsSkin.VALUE : OsrsSkin.FAINT,
+				OsrsSkin.smallFont()).leftAligned().squeezable();
+			if (boostable)
+			{
+				needs.setToolTipText("<html><div style='width:200px'>"
+					+ boostDetail(tier.reqs) + "</div></html>");
+			}
+			row.add(needs);
 		}
 		row.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
 		row.addMouseListener(new java.awt.event.MouseAdapter()
@@ -313,7 +332,51 @@ class PohTab extends JPanel
 	private String nextLine(PohPack.Tier next)
 	{
 		String missing = missingText(next.reqs);
+		if (missing != null && boostMet(next.reqs))
+		{
+			return next.name + " (buildable with a boost — " + boostDetail(next.reqs) + ")";
+		}
 		return next.name + (missing == null ? " (buildable now)" : " — needs " + missing);
+	}
+
+	/** Every requirement met once usable temporary boosts are counted. */
+	private boolean boostMet(List<String> reqs)
+	{
+		for (String req : reqs)
+		{
+			if (!Requirements.parse(req).isMetWithBoosts(state, boosts))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/** "Construction 78 — boostable with Spicy stew, Crystal saw" per closed gap. */
+	private String boostDetail(List<String> reqs)
+	{
+		List<String> parts = new ArrayList<>();
+		for (String req : reqs)
+		{
+			Requirement parsed = Requirements.parse(req);
+			if (parsed.isMet(state))
+			{
+				continue;
+			}
+			for (Requirement leaf : parsed.missing(state))
+			{
+				net.runelite.api.Skill skill = leaf.boostableSkill();
+				if (skill == null || !leaf.isMetWithBoosts(state, boosts))
+				{
+					continue;
+				}
+				List<String> sources = module.boostsPack() == null ? List.of()
+					: com.ironhub.requirements.Boosts.describe(module.boostsPack(), state, skill);
+				parts.add(leaf.describe() + (sources.isEmpty() ? " boostable"
+					: " boostable with " + String.join(", ", sources)));
+			}
+		}
+		return parts.isEmpty() ? null : String.join("; ", parts);
 	}
 
 	// ── shared bits ───────────────────────────────────────────────────

@@ -436,6 +436,50 @@ public class DailiesModule implements IronHubModule
 		return DailyTracker.missing(state, daily);
 	}
 
+	/** missing() with a where-from line per short item (the KB projection)
+	 *  — SHORT row hovers answer the next question. Alternatives (Robin's
+	 *  34 bone types) use the first sourced member, like the slayer bring rows. */
+	String missingTooltip(DailiesPack.Daily daily)
+	{
+		java.util.List<String> lines = new java.util.ArrayList<>();
+		com.ironhub.data.ItemSourcesPack sources = dataPack == null ? null
+			: dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class);
+		int units = Math.max(1, DailyTracker.quantity(state, daily));
+		for (DailiesPack.Bring bring : daily.bring == null ? java.util.List.<DailiesPack.Bring>of() : daily.bring)
+		{
+			if (bring.itemIds == null)
+			{
+				continue; // told, not gated
+			}
+			int needed = bring.per * units;
+			int owned = 0;
+			for (int itemId : bring.itemIds)
+			{
+				owned += state.ownedCount(itemId);
+			}
+			if (owned >= needed)
+			{
+				continue;
+			}
+			String line = needed + " " + bring.label + " (have " + owned + ")";
+			if (sources != null)
+			{
+				for (int itemId : bring.itemIds)
+				{
+					String from = sources.sourceLine(itemId);
+					if (from != null)
+					{
+						line += "<br>" + from;
+						break;
+					}
+				}
+			}
+			lines.add(line);
+		}
+		return lines.isEmpty() ? null
+			: "<html>" + daily.name + " — need:<br>" + String.join("<br>", lines) + "</html>";
+	}
+
 	/** Claimable now and selected for the run. UNKNOWN (Tears of Guthix before
 	 *  we have seen a visit) does not count — we never guess it either way.
 	 *  Time-quantized live (the infobox polls it up to twice per rendered

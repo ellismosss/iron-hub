@@ -274,7 +274,9 @@ class DailiesNewTab extends JPanel
 		{
 			return daily.name;
 		}
-		return daily.name + " — need " + String.join(", ", module.missing(daily));
+		String rich = module.missingTooltip(daily);
+		return rich != null ? rich
+			: daily.name + " — need " + String.join(", ", module.missing(daily));
 	}
 
 	/** The old tab's scale, in skin colours (see DailiesTab.statusColor). */

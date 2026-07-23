@@ -1140,12 +1140,15 @@ class FarmingTab extends JPanel
 		}
 		// what the ticked runs are short on — compost, seeds, saplings — so a
 		// shortage is a warning you read, never a stop that silently vanishes
-		for (String warning : module.supplyWarnings())
+		for (java.util.Map.Entry<String, String> warning : module.supplyWarningDetails().entrySet())
 		{
 			runs.add(Box.createVerticalStrut(2));
-			JComponent line = hint(warning, UiTokens.STATUS_WARNING);
-			line.setToolTipText("The ticked runs need more than you own "
-				+ "(bank + inventory + worn)");
+			JComponent line = hint(warning.getKey(), UiTokens.STATUS_WARNING);
+			// the hover answers the next question: where to restock from
+			line.setToolTipText("<html>The ticked runs need more than you own "
+				+ "(bank + inventory + worn)"
+				+ (warning.getValue() == null ? "" : "<br>" + warning.getValue())
+				+ "</html>");
 			runs.add(pad(line));
 		}
 		runs.add(Box.createVerticalStrut(UiTokens.PAD));

@@ -29,6 +29,13 @@ public interface Requirement
 		return null;
 	}
 
+	/** The required item's id, for item leaves only — the join key
+	 *  "needs:" surfaces use to answer where-from (item-sources pack). */
+	default Integer itemId()
+	{
+		return null;
+	}
+
 	/** Short human line, e.g. "70 Agility", "Song of the Elves". */
 	String describe();
 

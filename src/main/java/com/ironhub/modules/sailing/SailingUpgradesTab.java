@@ -48,6 +48,8 @@ class SailingUpgradesTab extends JPanel
 
 	private final JPanel content = new JPanel();
 	private String expanded; // "<boatType>:<part key>"
+	/** Usable temporary-boost headroom per skill, refreshed each rebuild. */
+	private java.util.Map<net.runelite.api.Skill, Integer> boosts = java.util.Map.of();
 
 	SailingUpgradesTab(AccountState state, SailingUpgradesModule module,
 		OsrsTheme theme, ItemManager itemManager)
@@ -94,6 +96,8 @@ class SailingUpgradesTab extends JPanel
 			finish();
 			return;
 		}
+		boosts = module.boostsPack() == null ? java.util.Map.of()
+			: com.ironhub.requirements.Boosts.available(module.boostsPack(), state);
 		List<Integer> boats = module.knownBoats();
 		if (boats.isEmpty())
 		{
@@ -130,7 +134,7 @@ class SailingUpgradesTab extends JPanel
 			{
 				complete.add(part);
 			}
-			else if (met(next.reqs))
+			else if (met(next.reqs) || boostMet(next.reqs))
 			{
 				available.add(part);
 			}
@@ -256,7 +260,11 @@ class SailingUpgradesTab extends JPanel
 		row.add(detail("Sailing " + next.sailing + " · Construction "
 			+ next.construction, OsrsSkin.MUTED));
 		String missing = missingText(next.reqs);
-		if (missing != null)
+		if (missing != null && boostMet(next.reqs))
+		{
+			row.add(detail("Needs a boost: " + boostDetail(next.reqs), OsrsSkin.VALUE));
+		}
+		else if (missing != null)
 		{
 			row.add(detail("Needs: " + missing, OsrsSkin.FAINT));
 		}
@@ -294,8 +302,17 @@ class SailingUpgradesTab extends JPanel
 		}
 		int owned = state.canonicalStock(m.itemId);
 		boolean enough = owned >= m.qty;
-		r.add(new OsrsLabel(m.qty + " x " + m.name, OsrsSkin.MUTED,
-			OsrsSkin.smallFont()).leftAligned().squeezable());
+		OsrsLabel matName = new OsrsLabel(m.qty + " x " + m.name, OsrsSkin.MUTED,
+			OsrsSkin.smallFont()).leftAligned().squeezable();
+		// a short material's hover answers the next question: where from
+		String sources = !enough && module.itemSources() != null
+			? module.itemSources().sourceLine(m.itemId) : null;
+		if (sources != null)
+		{
+			matName.setToolTipText("<html>" + m.name + "<br>" + sources + "</html>");
+			r.setToolTipText(matName.getToolTipText());
+		}
+		r.add(matName);
 		r.add(Box.createHorizontalGlue());
 		r.add(new OsrsLabel(enough ? "have " + m.qty : owned + "/" + m.qty,
 			enough ? OsrsSkin.VALUE : UiTokens.STATUS_WARNING, OsrsSkin.smallFont()));
@@ -327,6 +344,46 @@ class SailingUpgradesTab extends JPanel
 			}
 		}
 		return true;
+	}
+
+	/** Every requirement met once usable temporary boosts are counted. */
+	private boolean boostMet(List<String> reqs)
+	{
+		for (String req : reqs)
+		{
+			if (!Requirements.parse(req).isMetWithBoosts(state, boosts))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/** "Construction 78 boostable with Spicy stew, Crystal saw" per closed gap. */
+	private String boostDetail(List<String> reqs)
+	{
+		List<String> parts = new ArrayList<>();
+		for (String req : reqs)
+		{
+			Requirement parsed = Requirements.parse(req);
+			if (parsed.isMet(state))
+			{
+				continue;
+			}
+			for (Requirement leaf : parsed.missing(state))
+			{
+				net.runelite.api.Skill skill = leaf.boostableSkill();
+				if (skill == null || !leaf.isMetWithBoosts(state, boosts))
+				{
+					continue;
+				}
+				List<String> sources = module.boostsPack() == null ? List.of()
+					: com.ironhub.requirements.Boosts.describe(module.boostsPack(), state, skill);
+				parts.add(leaf.describe() + (sources.isEmpty() ? " boostable"
+					: " boostable with " + String.join(", ", sources)));
+			}
+		}
+		return parts.isEmpty() ? null : String.join("; ", parts);
 	}
 
 	private String missingText(List<String> reqs)

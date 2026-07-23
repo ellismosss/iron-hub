@@ -318,8 +318,16 @@ class BankSpaceTab extends JPanel
 		String text = entry.name + (restoring
 			? " · " + module.locationNameOf(entry.id)
 			: entry.bis ? " · bis" : "");
-		r.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.smallFont())
-			.leftAligned().squeezable());
+		OsrsLabel name = new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.smallFont())
+			.leftAligned().squeezable();
+		// the hover answers the real question here: how re-obtainable is it?
+		String source = module.itemSources() == null ? null
+			: module.itemSources().sourceLine(entry.id);
+		if (source != null)
+		{
+			name.setToolTipText("<html>" + entry.name + "<br>" + source + "</html>");
+		}
+		r.add(name);
 		r.add(Box.createHorizontalGlue());
 		r.add(glyph(restoring ? "+" : "×", restoring
 				? "Flag " + entry.name + " again"

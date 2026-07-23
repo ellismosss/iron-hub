@@ -43,6 +43,7 @@ public class PohModule implements IronHubModule
 	private final AccountState state;
 	private final IronHubConfig config;
 	private final PohPack pack;
+	private final com.ironhub.data.BoostsPack boostsPack;
 	private final EventBus eventBus; // null in unit tests
 	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
 	private PohTab tab;
@@ -60,6 +61,8 @@ public class PohModule implements IronHubModule
 		this.state = state;
 		this.config = config;
 		this.pack = dataPack == null ? null : dataPack.load("poh", PohPack.class);
+		this.boostsPack = dataPack == null ? null
+			: dataPack.load("boosts", com.ironhub.data.BoostsPack.class);
 		this.eventBus = eventBus;
 		this.itemManager = itemManager;
 	}
@@ -129,6 +132,11 @@ public class PohModule implements IronHubModule
 	PohPack pack()
 	{
 		return pack;
+	}
+
+	com.ironhub.data.BoostsPack boostsPack()
+	{
+		return boostsPack;
 	}
 
 	// ── detection ─────────────────────────────────────────────────────

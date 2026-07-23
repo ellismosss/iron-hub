@@ -48,6 +48,7 @@ public class BankSpaceModule implements IronHubModule
 	private final AccountState state;
 	private final IronHubConfig config;
 	private final BankStoragePack pack;
+	private final com.ironhub.data.ItemSourcesPack itemSources;
 	private final EventBus eventBus;             // null in unit tests
 	private final Client client;                 // null in unit tests
 	private final OverlayManager overlayManager; // null in unit tests
@@ -66,6 +67,8 @@ public class BankSpaceModule implements IronHubModule
 		this.state = state;
 		this.config = config;
 		this.pack = dataPack == null ? null : dataPack.load("bank-storage", BankStoragePack.class);
+		this.itemSources = dataPack == null ? null
+			: dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class);
 		this.eventBus = eventBus;
 		this.client = client;
 		this.overlayManager = overlayManager;
@@ -232,6 +235,11 @@ public class BankSpaceModule implements IronHubModule
 	}
 
 	/** The (first) storage location a pack item belongs to, for labels. */
+	com.ironhub.data.ItemSourcesPack itemSources()
+	{
+		return itemSources;
+	}
+
 	String locationNameOf(int itemId)
 	{
 		if (locationNameByItem == null)

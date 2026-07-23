@@ -160,6 +160,31 @@ public class DiariesModuleTest
 		assertFalse(module.taskDoable(ardougne, 0, essMine));
 	}
 
+	/** Boostable gates count usable temporary boosts (2026-07-23): a level
+	 *  just short reads doable through the boost-aware overload while the
+	 *  plain check stays honest, and a boost never revives a quest gate. */
+	@Test
+	public void boostAwareDoableClosesSkillGapsOnly()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		DiariesModule module = module(state);
+		DiariesPack pack = module.pack();
+
+		// Ardougne easy task 2 needs 5 Thieving (skillb: — an action gate)
+		DiariesPack.Region ardougne = pack.regions.get(0);
+		DiariesPack.Task stealCake = ardougne.tiers.get(0).tasks.get(1);
+		StateFixture.stat(state, Skill.THIEVING, 3, 200);
+		assertFalse(module.taskDoable(ardougne, 0, stealCake));
+		assertFalse(module.taskDoable(ardougne, 0, stealCake, java.util.Map.of()));
+		assertTrue(module.taskDoable(ardougne, 0, stealCake,
+			java.util.Map.of(Skill.THIEVING, 2)));
+
+		// a quest gate is never boostable
+		DiariesPack.Task essMine = ardougne.tiers.get(0).tasks.get(0);
+		assertFalse(module.taskDoable(ardougne, 0, essMine,
+			java.util.Map.of(Skill.THIEVING, 99)));
+	}
+
 	@Test
 	public void tierCountAndClaimVarbitsCoverIronmanAlternateFlags()
 	{

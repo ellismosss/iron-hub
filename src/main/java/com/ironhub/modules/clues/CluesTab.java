@@ -227,7 +227,10 @@ class CluesTab extends JPanel
 			String needs = "needs: " + ClueStashModule.blocking(clue, state);
 			OsrsLabel blocker = new OsrsLabel(needs, OsrsSkin.FAINT, OsrsSkin.smallFont())
 				.leftAligned().squeezable();
-			blocker.setToolTipText(needs);
+			// the hover answers the next question: where the item comes from
+			String source = module.blockingSource(clue);
+			blocker.setToolTipText(source == null ? needs
+				: "<html>" + needs + "<br>" + source + "</html>");
 			blocker.setBorder(new EmptyBorder(0, 8, 0, 0));
 			row.add(blocker);
 		}

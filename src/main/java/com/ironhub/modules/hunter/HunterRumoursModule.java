@@ -57,6 +57,7 @@ public class HunterRumoursModule implements IronHubModule
 	private final AccountState state;
 	private final IronHubConfig config;
 	private final HunterRumoursPack pack;
+	private final com.ironhub.data.ItemSourcesPack itemSources;
 	private final Client client;             // null in unit tests
 	private final ClientThread clientThread; // null in unit tests
 	private final EventBus eventBus;         // null in unit tests
@@ -96,6 +97,8 @@ public class HunterRumoursModule implements IronHubModule
 		this.state = state;
 		this.config = config;
 		this.pack = dataPack == null ? null : dataPack.load("hunter-rumours", HunterRumoursPack.class);
+		this.itemSources = dataPack == null ? null
+			: dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class);
 		this.client = client;
 		this.clientThread = clientThread;
 		this.eventBus = eventBus;
@@ -205,6 +208,11 @@ public class HunterRumoursModule implements IronHubModule
 	HunterRumoursPack pack()
 	{
 		return pack;
+	}
+
+	com.ironhub.data.ItemSourcesPack itemSources()
+	{
+		return itemSources;
 	}
 
 	net.runelite.client.game.ItemManager itemManager()

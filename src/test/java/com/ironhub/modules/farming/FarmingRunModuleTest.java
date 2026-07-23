@@ -1482,6 +1482,15 @@ public class FarmingRunModuleTest
 		assertTrue(warnings.toString(),
 			warnings.contains("Ultracompost 2/4 — a Supercompost run makes more"));
 
+		// where-from hovers ride the same pass (the KB projection): the
+		// ultracompost line names its source, seed shortages an example seed
+		java.util.LinkedHashMap<String, String> details = module.supplyWarningDetails();
+		assertEquals(warnings, new java.util.ArrayList<>(details.keySet()));
+		assertNotNull(details.get("Ultracompost 2/4 — a Supercompost run makes more"));
+		String seedSource = details.get("Herb seeds 2/4");
+		assertTrue(String.valueOf(seedSource),
+			seedSource == null || seedSource.startsWith("e.g. "));
+
 		// fully stocked: silence
 		StateFixture.bank(state, Map.of(
 			net.runelite.api.gameval.ItemID.RANARR_SEED, 4,

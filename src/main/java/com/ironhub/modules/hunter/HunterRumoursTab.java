@@ -162,7 +162,13 @@ class HunterRumoursTab extends JPanel
 		content.add(hero);
 		content.add(Box.createVerticalStrut(4));
 
-		content.add(statRow("Trap", rumour.trap));
+		// an unowned trap item's hover answers the next question: where from
+		String trapSource = rumour.trapItemId > 0
+			&& state.canonicalStock(rumour.trapItemId) < 1
+			&& module.itemSources() != null
+			? module.itemSources().sourceLine(rumour.trapItemId) : null;
+		content.add(statRow("Trap", rumour.trap, trapSource == null ? null
+			: "<html>" + rumour.trapItemName + " — not owned<br>" + trapSource + "</html>"));
 		content.add(Box.createVerticalStrut(4));
 		content.add(statRow("Hunter level", String.valueOf(rumour.level)));
 		HunterRumoursPack.Hunter hunter = active == null ? null
@@ -413,12 +419,26 @@ class HunterRumoursTab extends JPanel
 
 	private JComponent statRow(String label, String value)
 	{
+		return statRow(label, value, null);
+	}
+
+	private JComponent statRow(String label, String value, String tooltip)
+	{
 		StonePanel row = new StonePanel(theme);
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.add(new OsrsLabel(label, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+		OsrsLabel key = new OsrsLabel(label, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned();
+		OsrsLabel val = OsrsLabel.value(value);
+		if (tooltip != null)
+		{
+			// tooltips don't inherit from parents — set on row AND labels
+			row.setToolTipText(tooltip);
+			key.setToolTipText(tooltip);
+			val.setToolTipText(tooltip);
+		}
+		row.add(key);
 		row.add(Box.createHorizontalGlue());
-		row.add(OsrsLabel.value(value));
+		row.add(val);
 		cap(row);
 		return row;
 	}

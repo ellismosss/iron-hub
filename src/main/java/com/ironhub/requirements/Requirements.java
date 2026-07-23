@@ -442,6 +442,12 @@ public final class Requirements
 			return (name != null ? name : "item " + itemId)
 				+ (quantity > 1 ? " ×" + quantity : "");
 		}
+
+		@Override
+		public Integer itemId()
+		{
+			return itemId;
+		}
 	}
 
 	private static class UnlockRequirement implements Requirement

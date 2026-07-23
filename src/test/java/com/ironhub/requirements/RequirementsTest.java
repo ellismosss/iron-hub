@@ -13,6 +13,7 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class RequirementsTest
@@ -103,6 +104,17 @@ public class RequirementsTest
 		StateFixture.equipment(state, Map.of(4151, 1));
 		assertTrue(Requirements.item(4151, 3).isMet(state));
 		assertFalse(Requirements.item(4151, 4).isMet(state));
+	}
+
+	/** Item leaves expose their id — the join key where-from hovers use
+	 *  against the item-sources pack; every other leaf answers null. */
+	@Test
+	public void itemLeavesExposeTheirIdForWhereFromJoins()
+	{
+		assertEquals((Integer) 4151, Requirements.parse("item:4151:1:Abyssal whip").itemId());
+		assertEquals((Integer) 11832, Requirements.parse("itemx:11832").itemId());
+		assertNull(Requirements.parse("skill:Agility:70").itemId());
+		assertNull(Requirements.parse("quest:Dragon Slayer").itemId());
 	}
 
 	@Test

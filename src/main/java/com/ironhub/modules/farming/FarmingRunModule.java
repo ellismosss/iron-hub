@@ -1212,6 +1212,14 @@ public class FarmingRunModule implements IronHubModule
 	 */
 	List<String> supplyWarnings()
 	{
+		return new java.util.ArrayList<>(supplyWarningDetails().keySet());
+	}
+
+	/** Warning line → where-from hover (nullable) — one pass builds both.
+	 *  Seed/sapling shortages are category-wide, so the hover names an
+	 *  example member ("e.g. Oak sapling — Make: ..."), never a promise. */
+	java.util.LinkedHashMap<String, String> supplyWarningDetails()
+	{
 		List<FarmRunsPack.Location> stops = new java.util.ArrayList<>();
 		for (FarmRunsPack.Location location : selectedRunLocations())
 		{
@@ -1228,7 +1236,9 @@ public class FarmingRunModule implements IronHubModule
 			}
 			stops.add(location);
 		}
-		List<String> warnings = new java.util.ArrayList<>();
+		java.util.LinkedHashMap<String, String> warnings = new java.util.LinkedHashMap<>();
+		com.ironhub.data.ItemSourcesPack itemSources = dataPack == null ? null
+			: dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class);
 		int compostable = 0;
 		java.util.LinkedHashMap<String, Integer> byCategory = new java.util.LinkedHashMap<>();
 		for (FarmRunsPack.Location location : stops)
@@ -1245,8 +1255,10 @@ public class FarmingRunModule implements IronHubModule
 			int ultra = state.ownedCount(net.runelite.api.gameval.ItemID.BUCKET_ULTRACOMPOST);
 			if (ultra < compostable)
 			{
-				warnings.add("Ultracompost " + ultra + "/" + compostable
-					+ " — a Supercompost run makes more");
+				warnings.put("Ultracompost " + ultra + "/" + compostable
+						+ " — a Supercompost run makes more",
+					itemSources == null ? null : itemSources.sourceLine(
+						net.runelite.api.gameval.ItemID.BUCKET_ULTRACOMPOST));
 			}
 		}
 		for (java.util.Map.Entry<String, Integer> entry : byCategory.entrySet())
@@ -1260,9 +1272,25 @@ public class FarmingRunModule implements IronHubModule
 			int owned = ownedSaplings(plantables);
 			if (owned < entry.getValue())
 			{
-				warnings.add(categoryLabel(entry.getKey())
+				String source = null;
+				if (itemSources != null)
+				{
+					for (int itemId : plantables)
+					{
+						String line = itemSources.sourceLine(itemId);
+						if (line != null)
+						{
+							// the pack knows the name; state.itemName only knows seen items
+							com.ironhub.data.ItemSourcesPack.Entry e = itemSources.entry(itemId);
+							source = "e.g. " + (e != null && e.getName() != null
+								? e.getName() + " — " : "") + line;
+							break;
+						}
+					}
+				}
+				warnings.put(categoryLabel(entry.getKey())
 					+ (saplingIds != null ? " saplings " : " seeds ")
-					+ owned + "/" + entry.getValue());
+					+ owned + "/" + entry.getValue(), source);
 			}
 		}
 		return warnings;

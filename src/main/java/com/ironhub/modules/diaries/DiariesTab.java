@@ -57,6 +57,8 @@ class DiariesTab extends JPanel
 	private boolean showAllTasks;
 	/** Regions whose Rewards section is open. */
 	private final Set<String> rewardsOpen = new HashSet<>();
+	/** Usable temporary-boost headroom per skill, refreshed each rebuild. */
+	private java.util.Map<net.runelite.api.Skill, Integer> boosts = java.util.Map.of();
 
 	DiariesTab(DiariesModule module, AccountState state, OsrsTheme theme)
 	{
@@ -101,6 +103,7 @@ class DiariesTab extends JPanel
 
 	private void rebuild()
 	{
+		boosts = module.availableBoosts();
 		DiariesPack pack = module.pack();
 		int total = 0;
 		int done = 0;
@@ -320,7 +323,9 @@ class DiariesTab extends JPanel
 	private JComponent taskEntry(DiariesPack.Region region, int tierIndex, DiariesPack.Task task)
 	{
 		boolean complete = module.taskComplete(region, tierIndex, task);
-		boolean doable = !complete && module.taskDoable(region, tierIndex, task);
+		boolean doable = !complete && module.taskDoable(region, tierIndex, task, boosts);
+		// only doable once temporary boosts are counted — same amber, honest tooltip
+		boolean boostOnly = doable && !module.taskDoable(region, tierIndex, task);
 		// the classic scale in skin colours: green done, orange doable now,
 		// muted otherwise (the status glyph dropped in favour of row colour)
 		Color textColor = complete ? OsrsSkin.VALUE
@@ -348,6 +353,7 @@ class DiariesTab extends JPanel
 		text.setToolTipText(task.note != null && !task.note.isEmpty()
 			? "<html><body style='width:200px'>" + task.note + "</body></html>"
 			: complete ? "Complete"
+			: boostOnly ? "Incomplete — doable with a temporary boost"
 			: doable ? "Incomplete — requirements met, doable now" : "Incomplete");
 		column.add(text);
 
@@ -356,11 +362,13 @@ class DiariesTab extends JPanel
 			for (DiariesPack.Req req : task.reqs)
 			{
 				Boolean met = module.reqMet(req);
+				String boostNote = met != null && !met ? module.reqBoostNote(req, boosts) : null;
 				OsrsLabel line = new OsrsLabel("· " + req.text,
 					met == null ? OsrsSkin.FAINT : met ? OsrsSkin.VALUE : OsrsSkin.MUTED,
 					OsrsSkin.smallFont()).leftAligned().squeezable();
 				line.setToolTipText(req.text + (met == null ? ""
-					: met ? " — met" : " — not met"));
+					: met ? " — met"
+					: boostNote != null ? " — not met · " + boostNote : " — not met"));
 				column.add(line);
 			}
 		}

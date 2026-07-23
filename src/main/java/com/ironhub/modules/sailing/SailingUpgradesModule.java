@@ -58,6 +58,8 @@ public class SailingUpgradesModule implements IronHubModule
 	private final AccountState state;
 	private final IronHubConfig config;
 	private final BoatUpgradesPack pack;
+	private final com.ironhub.data.BoostsPack boostsPack;
+	private final com.ironhub.data.ItemSourcesPack itemSources;
 	private final EventBus eventBus;   // null in unit tests
 	private final Client client;       // null in unit tests
 	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
@@ -77,6 +79,10 @@ public class SailingUpgradesModule implements IronHubModule
 		this.state = state;
 		this.config = config;
 		this.pack = dataPack == null ? null : dataPack.load("boat-upgrades", BoatUpgradesPack.class);
+		this.boostsPack = dataPack == null ? null
+			: dataPack.load("boosts", com.ironhub.data.BoostsPack.class);
+		this.itemSources = dataPack == null ? null
+			: dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class);
 		this.eventBus = eventBus;
 		this.client = client;
 		this.itemManager = itemManager;
@@ -146,6 +152,16 @@ public class SailingUpgradesModule implements IronHubModule
 	BoatUpgradesPack pack()
 	{
 		return pack;
+	}
+
+	com.ironhub.data.BoostsPack boostsPack()
+	{
+		return boostsPack;
+	}
+
+	com.ironhub.data.ItemSourcesPack itemSources()
+	{
+		return itemSources;
 	}
 
 	// ── detection ─────────────────────────────────────────────────────
