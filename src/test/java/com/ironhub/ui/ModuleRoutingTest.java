@@ -28,7 +28,7 @@ public class ModuleRoutingTest
 		IronHubConfig config = new IronHubConfig()
 		{
 		};
-		QolModule qol = new QolModule(state, config, new DataPack(new Gson()));
+		QolModule qol = new QolModule(state, config, new DataPack(new Gson()), null);
 		assertTrue(qol.enabled());
 		assertNotNull(qol.buildTab());
 

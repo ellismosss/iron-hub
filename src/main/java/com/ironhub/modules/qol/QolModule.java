@@ -26,14 +26,36 @@ public class QolModule implements IronHubModule
 	private final AccountState state;
 	private final IronHubConfig config;
 	private final DataPack dataPack;
+	private final javax.inject.Provider<com.ironhub.modules.goals.GoalPlannerModule> planner; // null in tests
 	private QolTab tab;
 
 	@Inject
-	public QolModule(AccountState state, IronHubConfig config, DataPack dataPack)
+	public QolModule(AccountState state, IronHubConfig config, DataPack dataPack,
+		javax.inject.Provider<com.ironhub.modules.goals.GoalPlannerModule> planner)
 	{
 		this.state = state;
 		this.config = config;
 		this.dataPack = dataPack;
+		this.planner = planner;
+	}
+
+	/** The current plan already obtains this item under some OTHER goal
+	 *  (gear chart, supplies …) — the affordance says so instead of
+	 *  offering a duplicate (Luke: Ava's assembler was offered twice). */
+	boolean planWantsItem(int itemId)
+	{
+		if (planner == null)
+		{
+			return false;
+		}
+		try
+		{
+			return planner.get().planWantsItem(itemId);
+		}
+		catch (RuntimeException e)
+		{
+			return false; // provider may fail in odd lifecycles — never block the tab
+		}
 	}
 
 	@Override
@@ -68,7 +90,8 @@ public class QolModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new QolTab(state, dataPack.load("qol", QolPack.class), config.osrsTheme());
+			tab = new QolTab(state, dataPack.load("qol", QolPack.class),
+				config.osrsTheme(), this::planWantsItem);
 		}
 		return tab;
 	}

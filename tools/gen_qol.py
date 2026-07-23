@@ -16,10 +16,12 @@ Usage: python3 tools/gen_qol.py
 import json
 import os
 import re
+import sqlite3
 import urllib.parse
 import urllib.request
 
 UA = "iron-hub-pack-generator (github.com/ellismosss/iron-hub; info@ellismoss.co.uk)"
+DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "knowledge", "knowledge.db")
 HERE = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(HERE, ".cache-qol")
 OUT = os.path.join(HERE, "..", "src", "main", "resources", "data", "qol.json")
@@ -152,8 +154,49 @@ def resolve_item(index, name: str):
     return None
 
 
+def benefits():
+    """name(lower) → cleaned one-liner from the KB's qol_items.effect —
+    what the unlock actually DOES (the hover Luke asked for)."""
+    if not os.path.exists(DB):
+        raise SystemExit(f"{DB} missing — run: python3 tools/knowledge/rebuild.py")
+    conn = sqlite3.connect(DB)
+    out = {}
+    for name, effect in conn.execute("SELECT name, effect FROM qol_items"):
+        if not effect:
+            continue
+        text = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", r"\1", effect)
+        text = re.sub(r"'{2,}", "", re.sub(r"\{\{[^}]*\}\}", "", text)).strip()
+        if len(text) > 300:
+            text = text[:297].rstrip() + "..."
+        if text:
+            out[name.lower()] = text
+    conn.close()
+    return out
+
+
+def add_tier_implications(unlocks):
+    """Owning a HIGHER tier of a numbered family proves the lower — an
+    Ardougne cloak 3 covers everything cloak 2 does (Luke's report: cloak 2
+    read 'not obtained' beside an owned cloak 3)."""
+    families = {}
+    for u in unlocks:
+        m = re.fullmatch(r"(.+?) (\d)", u["name"])
+        if m:
+            families.setdefault(m.group(1), []).append((int(m.group(2)), u))
+    added = 0
+    for members in families.values():
+        members.sort(key=lambda p: p[0])
+        for num, u in members:
+            for higher_num, higher in members:
+                if higher_num > num and higher["itemIds"][0] not in u["itemIds"]:
+                    u["itemIds"].append(higher["itemIds"][0])
+                    added += 1
+    print(f"  tier implications: {added} higher-tier ids added")
+
+
 def main():
     index = item_index()
+    benefit_by_name = benefits()
     unlocks = list(LEGACY)
     seen = {u["name"].lower() for u in LEGACY}
     skipped = []
@@ -181,6 +224,18 @@ def main():
     if skipped:
         print(f"  skipped (no item id — stays knowledge-base side): "
               + ", ".join(skipped))
+    add_tier_implications(unlocks)
+    n_benefits = 0
+    for u in unlocks:
+        text = benefit_by_name.get(u["name"].lower())
+        if text:
+            u["benefit"] = text
+            n_benefits += 1
+    print(f"  benefits: {n_benefits}/{len(unlocks)} from the KB's effect column")
+    assert n_benefits >= 40, f"suspiciously few benefits: {n_benefits}"
+    # the reported case stays fixed: cloak 3 (13123) proves cloak 2
+    cloak2 = next(u for u in unlocks if u["name"] == "Ardougne cloak 2")
+    assert 13123 in cloak2["itemIds"] and 13124 in cloak2["itemIds"], cloak2
     assert len(unlocks) >= 70, f"suspiciously few qol unlocks: {len(unlocks)}"
     ids = [u["id"] for u in unlocks]
     assert len(ids) == len(set(ids)), "duplicate qol ids"

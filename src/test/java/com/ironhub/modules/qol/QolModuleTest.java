@@ -63,6 +63,22 @@ public class QolModuleTest
 		assertEquals("250 Tithe Farm points", QolModule.blockingLine(state, byId("herb_sack")));
 	}
 
+	/** Owning a HIGHER diary-reward tier proves the lower — an Ardougne
+	 *  cloak 3 covers everything cloak 2 does (Luke's report: cloak 2 read
+	 *  "not obtained" beside an owned cloak 3). The generator bakes the
+	 *  higher tiers' ids into each lower tier's ownership list. */
+	@Test
+	public void higherTierProvesLower()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		assertEquals(Status.AVAILABLE, QolModule.status(state, byId("ardougne_cloak_2")));
+		StateFixture.bank(state, Map.of(13123, 1)); // Ardougne cloak 3
+		assertEquals(Status.OWNED, QolModule.status(state, byId("ardougne_cloak_2")));
+		assertEquals(Status.OWNED, QolModule.status(state, byId("ardougne_cloak_1")));
+		// never the other way: cloak 4 stays unowned
+		assertEquals(Status.AVAILABLE, QolModule.status(state, byId("ardougne_cloak_4")));
+	}
+
 	/** A QoL goal is achieved by OWNING the unlock (the module's OWNED
 	 *  signal), with the prerequisites as steps — not merely "reqs met". */
 	@Test
@@ -112,7 +128,7 @@ public class QolModuleTest
 
 		QolModule module = new QolModule(state, new IronHubConfig()
 		{
-		}, new DataPack(new Gson()));
+		}, new DataPack(new Gson()), null);
 		module.startUp();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);

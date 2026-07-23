@@ -35,15 +35,27 @@ class QolTab extends JPanel
 	private final AccountState state;
 	private final QolPack pack;
 	private final OsrsTheme theme;
+	private final java.util.function.IntPredicate planWantsItem;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 
 	private final JPanel frame = new JPanel();
+	/** Obtained rows hide by default (Luke) — the toggle shows them. */
+	private boolean showObtained;
+	/** Single expanded unlock (click a row) — its benefit + requirement lines. */
+	private String expandedId;
 
 	QolTab(AccountState state, QolPack pack, OsrsTheme theme)
+	{
+		this(state, pack, theme, id -> false);
+	}
+
+	QolTab(AccountState state, QolPack pack, OsrsTheme theme,
+		java.util.function.IntPredicate planWantsItem)
 	{
 		this.state = state;
 		this.pack = pack;
 		this.theme = theme;
+		this.planWantsItem = planWantsItem;
 		// frameless: the host's stone header plate names the module
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
@@ -86,15 +98,81 @@ class QolTab extends JPanel
 		int corner = theme.cornerStamp.length;
 		group.setBorder(new StoneBorder(theme, theme.background,
 			new Insets(corner, corner, corner, corner)));
+		int hidden = 0;
 		for (QolPack.Unlock unlock : pack.getUnlocks())
 		{
+			if (!showObtained && QolModule.status(state, unlock) == Status.OWNED)
+			{
+				hidden++;
+				continue;
+			}
 			group.add(unlockRow(unlock));
+			if (unlock.getId().equals(expandedId))
+			{
+				group.add(expansion(unlock));
+			}
 		}
 		cap(group);
 		frame.add(pad(group));
+		// obtained items hide by default — the small-font toggle (the
+		// diaries Show-completed grammar)
+		if (hidden > 0 || showObtained)
+		{
+			OsrsLabel toggle = new OsrsLabel(showObtained ? "Hide obtained"
+				: "Show obtained (" + hidden + ")", OsrsSkin.FAINT, OsrsSkin.smallFont())
+				.leftAligned();
+			toggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			toggle.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					showObtained = !showObtained;
+					SwingUtilities.invokeLater(QolTab.this::rebuild);
+				}
+			});
+			frame.add(pad(toggle));
+		}
 		frame.add(strut(4));
 		revalidate();
 		repaint();
+	}
+
+	/** The expanded card under a clicked row: what the unlock DOES (the
+	 *  KB's benefit prose) and its requirement lines, met-coloured like a
+	 *  Task's steps (prose lines stay display-only faint). */
+	private JComponent expansion(QolPack.Unlock unlock)
+	{
+		JPanel card = new JPanel();
+		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+		card.setOpaque(false);
+		card.setAlignmentX(LEFT_ALIGNMENT);
+		card.setBorder(new EmptyBorder(1, 10, 3, 2));
+		if (unlock.getBenefit() != null)
+		{
+			card.add(OsrsLabel.wrapped(unlock.getBenefit(), 190,
+				OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+		}
+		for (String req : unlock.getRequirements())
+		{
+			com.ironhub.requirements.Requirement parsed =
+				com.ironhub.requirements.Requirements.parse(req);
+			boolean manual = com.ironhub.requirements.Requirements.isManual(parsed);
+			boolean met = !manual && parsed.isMet(state);
+			OsrsLabel line = new OsrsLabel("· " + parsed.describe(),
+				manual ? OsrsSkin.FAINT : met ? OsrsSkin.VALUE : OsrsSkin.MUTED,
+				OsrsSkin.smallFont()).leftAligned().squeezable();
+			line.setToolTipText(manual ? parsed.describe()
+				: parsed.describe() + (met ? " — met" : " — not met"));
+			card.add(line);
+		}
+		if (unlock.getBenefit() == null && unlock.getRequirements().isEmpty())
+		{
+			card.add(new OsrsLabel("No further detail known", OsrsSkin.FAINT,
+				OsrsSkin.smallFont()).leftAligned());
+		}
+		cap(card);
+		return card;
 	}
 
 	/** One unlock: name coloured by status, blocking requirement in the
@@ -112,25 +190,63 @@ class QolTab extends JPanel
 		Status status = QolModule.status(state, unlock);
 		Color color = status == Status.OWNED ? OsrsSkin.VALUE
 			: status == Status.AVAILABLE ? OsrsSkin.TITLE : OsrsSkin.FAINT;
+		// the hover leads with what the unlock DOES (Luke's ask)
 		String tooltip = unlock.getName();
+		if (unlock.getBenefit() != null)
+		{
+			tooltip = "<html><div style='width:220px'>" + unlock.getName()
+				+ "<br>" + unlock.getBenefit();
+		}
 		if (status == Status.LOCKED)
 		{
 			String blocking = QolModule.blockingLine(state, unlock);
 			if (blocking != null)
 			{
-				tooltip += " — needs " + blocking;
+				tooltip += (unlock.getBenefit() != null ? "<br>" : " — ")
+					+ "needs " + blocking;
 			}
+		}
+		if (unlock.getBenefit() != null)
+		{
+			tooltip += "</div></html>";
 		}
 		OsrsLabel name = new OsrsLabel(unlock.getName(), color, OsrsSkin.font())
 			.leftAligned().squeezable();
 		name.setToolTipText(tooltip);
 		row.setToolTipText(tooltip);
+		// click the row to expand its detail (requirements like a Task)
+		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		row.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				expandedId = unlock.getId().equals(expandedId) ? null : unlock.getId();
+				SwingUtilities.invokeLater(QolTab.this::rebuild);
+			}
+		});
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
 		boolean isGoal = state.getGoalSeeds().containsKey("qol:" + unlock.getId());
-		row.add(goalGlyph(isGoal, isGoal ? unlock.getName() + " — tracked; click to untrack"
-			: "Track unlocking " + unlock.getName() + " in Goals",
-			() -> toggleGoal(unlock)));
+		boolean planned = !isGoal && !unlock.getItemIds().isEmpty()
+			&& planWantsItem.test(unlock.getItemIds().get(0));
+		if (planned)
+		{
+			// already routed by ANOTHER goal (gear chart etc.) — say so
+			// instead of offering a duplicate goal
+			JLabel mark = new JLabel("·");
+			OsrsSkin.crisp(mark);
+			mark.setFont(OsrsSkin.font());
+			mark.setForeground(OsrsSkin.VALUE);
+			mark.setToolTipText(unlock.getName() + " — already in your current plan");
+			row.add(mark);
+		}
+		else
+		{
+			row.add(goalGlyph(isGoal, isGoal ? unlock.getName() + " — tracked; click to untrack"
+				: "Track unlocking " + unlock.getName() + " in Goals",
+				() -> toggleGoal(unlock)));
+		}
 		row.add(Box.createHorizontalStrut(4));
 		row.add(wikiGlyph(unlock.getName()));
 		cap(row);

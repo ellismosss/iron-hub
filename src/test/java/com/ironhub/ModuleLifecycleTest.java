@@ -53,7 +53,7 @@ public class ModuleLifecycleTest
 			new CombatAchievementsModule(state, config, null,
 				new net.runelite.client.eventbus.EventBus(),
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
-			new QolModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
+			new QolModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
 			new LootModule(state, null, config),
 			new BankTrackerModule(state, null, null, null, null, null, null, null, null, null, config,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null),

@@ -8,7 +8,8 @@
    "itemIds": [
     19476
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The achievement diary cape can be obtained by players who have completed all Achievement Diaries. It can be purchased along with its hood for 99,000 coins, from Twiggy O'Korn in Draynor Village. The cape becomes trimmed after completion of all quests, as do the quest cape and music cape after com..."
   },
   {
    "id": "amy_s_saw",
@@ -16,13 +17,17 @@
    "itemIds": [
     24880
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "Amy's saw is an equipable saw that can be bought from the Mahogany Homes Reward Shop for 500 Carpenter points. Unlike the crystal saw, it does not provide any Construction level boost."
   },
   {
    "id": "ardougne_cloak_1",
    "name": "Ardougne cloak 1",
    "itemIds": [
-    13121
+    13121,
+    13122,
+    13123,
+    13124
    ],
    "requirements": []
   },
@@ -30,7 +35,9 @@
    "id": "ardougne_cloak_2",
    "name": "Ardougne cloak 2",
    "itemIds": [
-    13122
+    13122,
+    13123,
+    13124
    ],
    "requirements": []
   },
@@ -38,7 +45,8 @@
    "id": "ardougne_cloak_3",
    "name": "Ardougne cloak 3",
    "itemIds": [
-    13123
+    13123,
+    13124
    ],
    "requirements": []
   },
@@ -59,7 +67,8 @@
    "requirements": [
     "skill:Ranged:50",
     "quest:Animal Magnetism"
-   ]
+   ],
+   "benefit": "Ava's accumulator is an item awarded to the player by completing the quest Animal Magnetism if the player is level 50 Ranged or above (players below 50 Ranged will instead receive Ava's attractor). It is equipped in the cape slot, can pick up a player's ranged ammunition after they fire it, and e..."
   },
   {
    "id": "ava_assembler",
@@ -69,7 +78,8 @@
    ],
    "requirements": [
     "quest:Dragon Slayer II"
-   ]
+   ],
+   "benefit": "Ava's assembler is the upgraded version of Ava's accumulator that requires level 70 Ranged to equip. The assembler gives the second best Ranged attack bonus for the cape slot and is one of the few cape slot items that provides a Ranged Strength bonus. To obtain the assembler, players must take 75..."
   },
   {
    "id": "basic_quetzal_whistle",
@@ -77,7 +87,8 @@
    "itemIds": [
     29271
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "A basic quetzal whistle is a teleportation item that takes players to any built Quetzal Transport System landing site. When the teleport function is clicked, it will open the transport interface. It cannot be used beyond level 20 Wilderness."
   },
   {
    "id": "basket",
@@ -87,7 +98,8 @@
    ],
    "requirements": [
     "Make: Crafting 36"
-   ]
+   ],
+   "benefit": "A basket can be used to carry up to five pieces of fruit. This can be created by using a loom."
   },
   {
    "id": "black_coffin",
@@ -95,7 +107,8 @@
    "itemIds": [
     25463
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The black coffin is an item that can store up to 14 shade remains of any different type. It is obtained by bringing black locks and a broken coffin to Dampe by the entrance to the Shade Catacombs. Shade remains cannot be burnt directly from the coffin and must be removed prior to constructing the..."
   },
   {
    "id": "bolt_pouch",
@@ -103,7 +116,8 @@
    "itemIds": [
     9433
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "A bolt pouch allows a player to carry multiple kinds of bolts in one inventory slot, including bolt racks, as well as mith grapples, and swap between two types of bolts mid-combat. It can be purchased for from Hirko, who runs the crossbow shop in Keldagrim on the east side of the river. Players m..."
   },
   {
    "id": "book_of_the_dead",
@@ -111,7 +125,8 @@
    "itemIds": [
     25818
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The book of the dead is an equipable book obtained as a reward from completing A Kingdom Divided. Having it equipped or in the player's inventory is required when casting resurrection spells."
   },
   {
    "id": "bottomless_compost_bucket",
@@ -119,7 +134,8 @@
    "itemIds": [
     22994
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "A bottomless compost bucket is a drop from the Hespori, which can be filled with compost, supercompost, or ultracompost. Tool Leprechauns will store one of them in its own slot."
   },
   {
    "id": "bronze_coffin",
@@ -127,7 +143,8 @@
    "itemIds": [
     25459
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The bronze coffin is an item that can store up to 3 shade remains of any different type. It is obtained by bringing bronze locks and a broken coffin to Dampe by the entrance to the Shade Catacombs. Shade remains cannot be burnt directly from the coffin and must be removed prior to constructing th..."
   },
   {
    "id": "bruma_torch",
@@ -135,7 +152,8 @@
    "itemIds": [
     20720
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "}}left|150px"
   },
   {
    "id": "camulet",
@@ -143,7 +161,8 @@
    "itemIds": [
     6707
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "Camulet is a reward from Enakhra's Lament. When equipped, its wearer can speak to certain camels found in Al Kharid and throughout the Kharidian desert."
   },
   {
    "id": "coal_bag",
@@ -153,7 +172,8 @@
    ],
    "requirements": [
     "100 golden nuggets (Motherlode Mine)"
-   ]
+   ],
+   "benefit": "The coal bag is a reward purchasable from Prospector Percy's Nugget Shop for 100 golden nuggets. The coal bag holds up to 27 pieces of coal (36 if a Smithing cape is equipped). When smelting or superheating, coal in the bag will be used after the coal in the inventory. It is refillable just like..."
   },
   {
    "id": "colossal_pouch",
@@ -163,7 +183,8 @@
    ],
    "requirements": [
     "Make: Runecraft 25, Crafting 56"
-   ]
+   ],
+   "benefit": "The colossal pouch is the largest of the five essence pouches and can hold up to 40 rune, pure, daeyalt, or guardian essence for use in the Runecraft skill. The pouch is made by using an abyssal needle to stitch together a small, medium, large, and giant pouch, which requires the unboosted levels..."
   },
   {
    "id": "crystal_axe",
@@ -173,7 +194,8 @@
    ],
    "requirements": [
     "Make: Smithing 76, Crafting 76"
-   ]
+   ],
+   "benefit": "The crystal axe is an item used in Woodcutting. It requires level 71 Woodcutting and Song of the Elves to create and use, with 50 Agility and 70 Attack required to wield it. It possesses the same special attack as the dragon axe, and gives the player a 15% increase in efficiency chopping logs ove..."
   },
   {
    "id": "crystal_harpoon",
@@ -183,7 +205,8 @@
    ],
    "requirements": [
     "Make: Smithing 76, Crafting 76"
-   ]
+   ],
+   "benefit": "The crystal harpoon is an untradeable harpoon created via crystal singing after finishing Song of the Elves. It requires 71 Fishing, 70 Attack, and 50 Agility to wield and degrades during use like other crystal equipment. It can be stored in a tackle box."
   },
   {
    "id": "crystal_pickaxe",
@@ -193,7 +216,8 @@
    ],
    "requirements": [
     "Make: Smithing 76, Crafting 76"
-   ]
+   ],
+   "benefit": "The crystal pickaxe is a pickaxe used in Mining. It requires 71 Mining and Song of the Elves to create and use, with 50 Agility and 70 Attack required to wield it. It possesses the same special attack as the dragon pickaxe. A charged crystal pickaxe provides a chance to mine an ore every three ti..."
   },
   {
    "id": "crystal_saw",
@@ -201,7 +225,8 @@
    "itemIds": [
     9625
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "A crystal saw is an item made from a crystal saw seed by invoking a singing bowl in either Brimstail's cave or Prifddinas. The seed is awarded to players who complete The Eyes of Glouphrie quest."
   },
   {
    "id": "desert_amulet_4",
@@ -219,7 +244,8 @@
    ],
    "requirements": [
     "Make: Crafting 75"
-   ]
+   ],
+   "benefit": "The divine rune pouch is an upgraded variant of the rune pouch, which holds four types of runes instead of three. Each rune can be stacked up to 16,000, the same as a normal rune pouch. The pouch is made by using a needle or costume needle to stitch together a thread of Elidinis and the rune pouc..."
   },
   {
    "id": "dragon_defender",
@@ -238,7 +264,8 @@
    "itemIds": [
     21028
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The dragon harpoon is a wieldable harpoon that requires 61 Fishing to use and 60 Attack to wield. The harpoon gives the player a 20% increased catch rate compared to the regular harpoon, reduced to 5% at Tempoross. Its combat stats are comparable to the dragon dagger, but it is 1 tick slower. It..."
   },
   {
    "id": "dramen_staff",
@@ -248,7 +275,8 @@
    ],
    "requirements": [
     "Make: Crafting 31"
-   ]
+   ],
+   "benefit": "The dramen staff allows players to enter Zanaris from the shed in the Lumbridge Swamp after completion of the Lost City quest. Players can obtain the staff by using a knife on a dramen branch, which requires a Crafting level of 31. It is possible to return to Entrana and cut more branches from th..."
   },
   {
    "id": "ectophial",
@@ -256,7 +284,8 @@
    "itemIds": [
     4251
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The ectophial is a reward for completing the Ghosts Ahoy quest. Players can empty it, causing them to be teleported to the Ectofuntus outside Port Phasmatys. Once the player teleports, they will automatically refill it. The player cannot interrupt the refilling animation themselves, and is immune..."
   },
   {
    "id": "empty_sack",
@@ -266,7 +295,8 @@
    ],
    "requirements": [
     "Make: Crafting 21"
-   ]
+   ],
+   "benefit": "Empty sacks are used to store potatoes, onions, and cabbages (10 per sack). Players can make a sack using a loom."
   },
   {
    "id": "enhanced_quetzal_whistle",
@@ -274,13 +304,16 @@
    "itemIds": [
     29273
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "An enhanced quetzal whistle is a teleportation item that takes players to any built Quetzal Transport System landing site. When the teleport function is clicked, it will open the transport interface. It cannot be used beyond level 20 Wilderness."
   },
   {
    "id": "explorer_s_ring_2",
    "name": "Explorer's ring 2",
    "itemIds": [
-    13126
+    13126,
+    13127,
+    13128
    ],
    "requirements": []
   },
@@ -288,7 +321,8 @@
    "id": "explorer_s_ring_3",
    "name": "Explorer's ring 3",
    "itemIds": [
-    13127
+    13127,
+    13128
    ],
    "requirements": []
   },
@@ -314,7 +348,8 @@
    "itemIds": [
     9810
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The Farming cape can be purchased for 99,000 coins alongside the Farming hood from Martin the Master Gardener at Draynor Village by players who have achieved skill mastery (level 99) in Farming. It is the Cape of Accomplishment for the Farming skill."
   },
   {
    "id": "fish_barrel",
@@ -322,7 +357,8 @@
    "itemIds": [
     25582
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The fish barrel is an item that can be obtained from the reward pool in the Ruins of Unkah after defeating Tempoross. The barrel is able to store a combined total of 28 raw fish of any type except for harpoonfish (from Tempoross), stackable fish, trophy fish, and fish caught in the Chambers of Xe..."
   },
   {
    "id": "fish_sack_barrel",
@@ -330,7 +366,8 @@
    "itemIds": [
     25585
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The fish sack barrel is made by using a fish sack on a fish barrel. It is an equipable version of the fish barrel and has the same functions; players can use the right-click options \"Open\" and \"Close\" to open and close the barrel, respectively. When opened, any raw fish that the player picks up o..."
   },
   {
    "id": "flamtaer_bag",
@@ -338,7 +375,8 @@
    "itemIds": [
     12854
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The Flamtaer bag is a bag that can store supplies used in the Shades of Mort'ton minigame. It is obtained from any chest (except bronze) in the Shade Catacombs. Players can only own one Flamtaer bag at any given time."
   },
   {
    "id": "forestry_basket",
@@ -346,7 +384,8 @@
    "itemIds": [
     28143
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The Forestry basket is an upgraded variant of the Forestry kit with the functionality of the log basket added to it. Creating it requires the Forestry kit, log basket, and the sturdy harness (the harness requires level 75 Smithing and Woodcutting to create; however, these levels are not required..."
   },
   {
    "id": "forestry_kit",
@@ -354,7 +393,8 @@
    "itemIds": [
     28136
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The Forestry kit is an item worn in the cape slot used to store a variety of Forestry-related items, such as anima-infused bark and tree leaves. It can be obtained for free from the Forestry Shop in Draynor Village, Prifddinas, Seers' Village, or Nemus Retreat. The Forestry kit is required for pl..."
   },
   {
    "id": "fremennik_sea_boots_4",
@@ -362,7 +402,8 @@
    "itemIds": [
     13132
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The Fremennik sea boots 4 is a reward from completing the elite Fremennik Diary tasks given to you by Thorodin in Rellekka and can be retrieved from him for free if lost. Multiple pairs of boots can be obtained for free. Their bonuses are equivalent to Adamant boots, with the exception of the Fre..."
   },
   {
    "id": "gem_bag",
@@ -372,7 +413,8 @@
    ],
    "requirements": [
     "100 golden nuggets (Motherlode Mine)"
-   ]
+   ],
+   "benefit": "The gem bag is a gem container purchasable from Prospector Percy's Nugget Shop for 100 golden nuggets. It can hold 60 of each (300 total) uncut gems of the following types:"
   },
   {
    "id": "gem_pouch",
@@ -382,7 +424,8 @@
    ],
    "requirements": [
     "Make: Crafting 12"
-   ]
+   ],
+   "benefit": "The gem pouch is a gem container created with level 12 Crafting by combining a bolt of linen with silk using a needle and thread. It can hold 5 of each (15 total) uncut gems of the following types:"
   },
   {
    "id": "gem_sack",
@@ -392,7 +435,8 @@
    ],
    "requirements": [
     "Make: Crafting 81"
-   ]
+   ],
+   "benefit": "The gem sack is a gem container created with level 81 Crafting by combining a gem tote, gem bag, and immaculate mole skin using a needle and thread. It can hold 60 of each (480 total) uncut gems of the following types:"
   },
   {
    "id": "gem_satchel",
@@ -402,7 +446,8 @@
    ],
    "requirements": [
     "Make: Crafting 39"
-   ]
+   ],
+   "benefit": "The gem satchel is a gem container created with level 39 Crafting by combining a gem pouch, bolt of canvas, and silk using a needle and thread, or just the costume needle. It can hold 10 of each (30 total) uncut gems of the following types:"
   },
   {
    "id": "gem_tote",
@@ -412,7 +457,8 @@
    ],
    "requirements": [
     "Make: Crafting 81"
-   ]
+   ],
+   "benefit": "The gem tote is a gem container created with level 81 Crafting by combining a gem satchel, bolt of cotton, and silk using a needle and thread. It can hold 20 of each (60 total) uncut gems of the following types:"
   },
   {
    "id": "giant_pouch",
@@ -420,7 +466,8 @@
    "itemIds": [
     5514
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "Giant pouches are the second best essence pouches and can hold 12 rune, pure, daeyalt, or guardian essence for use in the Runecraft skill. This item requires level 75 Runecraft to use, and it is not possible to boost your Runecrafting level in order to use it at lower levels. This item is dropped..."
   },
   {
    "id": "gnomish_firelighter",
@@ -428,7 +475,8 @@
    "itemIds": [
     20275
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The gnomish firelighter is an item obtainable by completing medium Treasure Trails. It may be charged with any one colour of gnomish firelighters at a time. Like other firelighters, it also increases the chance of a log to be successfully burned, additionally giving an extra 10 Firemaking experie..."
   },
   {
    "id": "gold_coffin",
@@ -436,7 +484,8 @@
    "itemIds": [
     25467
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The gold coffin is an item that can store up to 28 shade remains of any different type. It is obtained by bringing gold locks and a broken coffin to Dampe by the entrance to the Shade Catacombs. Shade remains cannot be burnt directly from the coffin and must be removed prior to constructing the p..."
   },
   {
    "id": "graceful_boots",
@@ -496,7 +545,8 @@
    ],
    "requirements": [
     "250 Tithe Farm points"
-   ]
+   ],
+   "benefit": "A herb sack is an item that can be bought from Slayer masters for 750 Slayer reward points or from Farmer Gricoller's Rewards for 250 Tithe Farm points."
   },
   {
    "id": "huntsman_s_kit",
@@ -504,7 +554,8 @@
    "itemIds": [
     29309
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The huntsman's kit can be obtained from hunters' loot sacks, which are received as rewards upon completing Hunters' Rumours. The huntsman's kit can be used to store various hunting equipment, though they cannot be used whilst stored."
   },
   {
    "id": "imcando_hammer",
@@ -512,7 +563,8 @@
    "itemIds": [
     25644
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The Imcando hammer is a wieldable variant of a hammer mostly used for Smithing, Crafting, or Construction. It can be obtained through smashing barronite deposits on the barronite crusher in the Ruins of Camdozaal after completing the Below Ice Mountain quest."
   },
   {
    "id": "infernal_axe",
@@ -522,7 +574,8 @@
    ],
    "requirements": [
     "Make: Woodcutting 61, Firemaking 85"
-   ]
+   ],
+   "benefit": "The infernal axe is a special type of axe that is created by using a smouldering stone on a dragon axe, requiring 61 Woodcutting and 85 Firemaking to create. Creating the axe grants 350 Firemaking and 200 Woodcutting experience."
   },
   {
    "id": "infernal_harpoon",
@@ -532,7 +585,8 @@
    ],
    "requirements": [
     "Make: Fishing 75, Cooking 85"
-   ]
+   ],
+   "benefit": "The infernal harpoon is a special non-tradeable harpoon created by using a smouldering stone on a dragon harpoon, requiring 75 Fishing and 85 Cooking to craft. This cannot be boosted. It is non-reversible and grants 350 Cooking and 200 Fishing experience. It can be stored in a tackle box."
   },
   {
    "id": "infernal_pickaxe",
@@ -542,7 +596,8 @@
    ],
    "requirements": [
     "Make: Mining 61, Smithing 85"
-   ]
+   ],
+   "benefit": "The infernal pickaxe is a special pickaxe that requires level 61 Mining to use and 60 Attack to wield. It is created by using a smouldering stone on a dragon pickaxe, requiring level 85 Smithing to create, and starts with 5,000 charges. Doing so grants 200 Mining experience and 350 Smithing exper..."
   },
   {
    "id": "kandarin_headgear_4",
@@ -556,7 +611,8 @@
    "id": "karamja_gloves_3",
    "name": "Karamja gloves 3",
    "itemIds": [
-    11140
+    11140,
+    13103
    ],
    "requirements": []
   },
@@ -576,7 +632,8 @@
    ],
    "requirements": [
     "Make: Crafting 65"
-   ]
+   ],
+   "benefit": "Large fur pouches are an item that can store up to 28 furs acquired from hunter creatures; non-hunter furs such as Grey wolf fur and bear fur cannot be stored in the pouch. They are made with level 65 Crafting by upgrading a medium fur pouch with 3 kyatt fur as well as a needle and thread, granti..."
   },
   {
    "id": "large_meat_pouch",
@@ -586,7 +643,8 @@
    ],
    "requirements": [
     "Make: Crafting 65"
-   ]
+   ],
+   "benefit": "The large meat pouch is an item that can store up to 28 pieces of hunter meat. It is made with level 65 Crafting by upgrading a small meat pouch with 3 sunlight antelope fur as well as a needle and thread, granting 60 Crafting experience. A costume needle can also be used in place of the regular..."
   },
   {
    "id": "large_pouch",
@@ -594,7 +652,8 @@
    "itemIds": [
     5512
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "Large pouches are bags that can hold 9 rune, pure, daeyalt, or guardian essence for use in the Runecraft skill. This item requires level 50 Runecraft to use, and it is not possible to boost your Runecrafting level in order to use it at lower levels. This item is dropped by monsters within the Aby..."
   },
   {
    "id": "log_basket",
@@ -602,7 +661,8 @@
    "itemIds": [
     28140
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "A log basket is an item that allows players to store a combined total of 28 logs of any type. The basket can be purchased from the Forestry Shop for 300 noted oak logs, 300 noted willow logs, and 5,000 anima-infused bark. Players (excluding Ultimate Ironmen) can sell the basket back to the reward..."
   },
   {
    "id": "looting_bag",
@@ -610,7 +670,8 @@
    "itemIds": [
     11941
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The looting bag is a storage bag that can hold up to 28 stacks of any item. Only one looting bag can be in a player's possession at a time."
   },
   {
    "id": "magic_secateurs",
@@ -618,7 +679,8 @@
    "itemIds": [
     7409
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "Magic secateurs are obtained during the quest Fairytale I - Growing Pains from Malignius Mortifer, south of Falador."
   },
   {
    "id": "master_scroll_book",
@@ -626,7 +688,8 @@
    "itemIds": [
     21389
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "A master scroll book is an item obtainable from any level Treasure Trail except beginner. If a reward casket would reward any type of teleport scroll, there is a 1/23 chance for it to reward a master scroll book instead."
   },
   {
    "id": "medium_fur_pouch",
@@ -636,7 +699,8 @@
    ],
    "requirements": [
     "Make: Crafting 50"
-   ]
+   ],
+   "benefit": "Medium fur pouches are an item that can store up to 21 furs acquired from hunter creatures. They are made with level 50 Crafting by upgrading a small fur pouch with 3 graahk fur as well as a needle and thread, granting 40 Crafting experience. A costume needle can also be used in place of the regu..."
   },
   {
    "id": "medium_pouch",
@@ -644,7 +708,8 @@
    "itemIds": [
     5510
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "Medium pouches are bags that can hold 6 rune, pure, daeyalt, or guardian essence for use in the Runecraft skill. This item requires level 25 Runecraft to use, and it is not possible to boost your Runecrafting level in order to use it at lower levels. This item is dropped by Abyssal monsters. It i..."
   },
   {
    "id": "morytania_legs_3",
@@ -661,7 +726,8 @@
     29275,
     33120
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "A perfected quetzal whistle is a teleportation item that takes players to any built Quetzal Transport System landing site. When the teleport function is clicked, it will open the transport interface. It cannot be used beyond level 20 Wilderness."
   },
   {
    "id": "plank_sack",
@@ -669,7 +735,8 @@
    "itemIds": [
     24882
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The plank sack is an item that can be bought from the Mahogany Homes Reward Shop for 350 carpenter points. Only one plank sack may be owned at a time."
   },
   {
    "id": "rada_s_blessing_4",
@@ -685,7 +752,8 @@
    "itemIds": [
     29996
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The reagent pouch is a storage item purchased from the Mixology Rewards shop with 13,800 Mox resin, 11,200 Aga resin, and 15,100 Lye resin, which are earned from participating in the Mastering Mixology minigame."
   },
   {
    "id": "rogue_boots",
@@ -693,7 +761,8 @@
    "itemIds": [
     5557
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "Rogue boots are part of the rogue equipment set, and provide +2 bonuses to all Defence types. The boots cannot be crafted, and are untradeable."
   },
   {
    "id": "rogue_gloves",
@@ -701,7 +770,8 @@
    "itemIds": [
     5556
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "Rogue gloves are part of the rogue equipment set, and provide +2 bonuses to all Defence types. The gloves cannot be crafted, and are untradeable."
   },
   {
    "id": "rogue_mask",
@@ -709,7 +779,8 @@
    "itemIds": [
     5554
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The rogue mask is a piece of rogue equipment, which provides +5 bonuses to all Defence types. The mask is similar in design to a balaclava. The mask cannot be crafted, and are untradeable."
   },
   {
    "id": "rogue_top",
@@ -717,7 +788,8 @@
    "itemIds": [
     5553
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The rogue top is part of the rogue equipment set, and provides +10 bonuses to all Defence types. The top cannot be crafted, and are untradeable."
   },
   {
    "id": "rogue_trousers",
@@ -725,7 +797,8 @@
    "itemIds": [
     5555
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "Rogue trousers are part of the rogue equipment set, and provide +7 bonuses to all Defence types. The trousers cannot be crafted, and are untradeable."
   },
   {
    "id": "royal_seed_pod",
@@ -733,7 +806,8 @@
    "itemIds": [
     19564
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The royal seed pod is rewarded to the player by King Narnode Shareen after completing Monkey Madness II. Like the grand seed pod, this item can be used to teleport the player to the Grand Tree. Unlike the grand seed pod, the royal seed pod is not consumed upon use and never runs out of charges. W..."
   },
   {
    "id": "rune_pouch",
@@ -743,7 +817,8 @@
    ],
    "requirements": [
     "750 Slayer reward points"
-   ]
+   ],
+   "benefit": "The rune pouch is an item that can store 16,000 of three types of runes (except runes found in the Nightmare Zone). Players can cast spells using the runes stored in the pouch, so a rune pouch saves inventory space. Using a needle, the rune pouch can be upgraded to a divine rune pouch with a thre..."
   },
   {
    "id": "seed_box",
@@ -753,7 +828,8 @@
    ],
    "requirements": [
     "250 Tithe Farm points"
-   ]
+   ],
+   "benefit": "The seed box is an item that can store up to 2,147,483,647 seeds of six different types. It is purchased from Farmer Gricoller at the Tithe Farm for 250 points. This item can be used directly on a farming patch. Using the box on a patch will automatically plant the first applicable seed of that p..."
   },
   {
    "id": "silklined_herb_sack",
@@ -761,7 +837,8 @@
    "itemIds": [
     33135
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "A silklined herb sack is an upgraded variant of the herb sack, made by using a pristine spider silk on it. It will store up to 100 of each of the grimy normal herbs instead of 30, for a total of 1,500 stored. A full herb sack is worth ."
   },
   {
    "id": "silver_coffin",
@@ -769,7 +846,8 @@
    "itemIds": [
     25465
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The silver coffin is an item that can store up to 20 shade remains of any different type. It is obtained by bringing silver locks and a broken coffin to Dampe by the entrance to the Shade Catacombs. Shade remains cannot be burnt directly from the coffin and must be removed prior to constructing t..."
   },
   {
    "id": "small_fur_pouch",
@@ -779,7 +857,8 @@
    ],
    "requirements": [
     "Make: Crafting 35"
-   ]
+   ],
+   "benefit": "Small fur pouches are an item that can store up to 14 furs acquired from hunter creatures. They are made with level 35 Crafting from 4 larupia fur, as well as a needle and thread, granting 20 Crafting experience. A costume needle can also be used in place of the regular needle and thread."
   },
   {
    "id": "small_meat_pouch",
@@ -789,7 +868,8 @@
    ],
    "requirements": [
     "Make: Crafting 35"
-   ]
+   ],
+   "benefit": "The small meat pouch is an item that can store up to 14 pieces of hunter meat. It is made with level 35 Crafting from 4 fox fur, as well as a needle and thread; doing so grants 30 Crafting experience."
   },
   {
    "id": "small_pouch",
@@ -797,7 +877,8 @@
    "itemIds": [
     5509
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "Small pouches are bags that can hold 3 rune, pure, daeyalt, or guardian essence for use in the Runecraft skill. This item may be initially obtained from the Mage of Zamorak, who provides one free small pouch upon completion of the Enter the Abyss miniquest. If lost, the Mage of Zamorak will not p..."
   },
   {
    "id": "steel_coffin",
@@ -805,7 +886,8 @@
    "itemIds": [
     25461
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The steel coffin is an item that can store up to 8 shade remains of any different type. It is obtained by bringing steel locks and a broken coffin to Dampe by the entrance to the Shade Catacombs. Shade remains cannot be burnt directly from the coffin and must be removed prior to constructing the..."
   },
   {
    "id": "steel_key_ring",
@@ -813,7 +895,8 @@
    "itemIds": [
     4446
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The steel key ring is a reward for completing One Small Favour. It stores certain re-usable keys to save bank space. Using a key on the key ring adds it on, and clicking the key ring opens an interface that shows which keys are on it where they can also be removed. Keys do not need to be removed..."
   },
   {
    "id": "tackle_box",
@@ -821,7 +904,8 @@
    "itemIds": [
     25580
    ],
-   "requirements": []
+   "requirements": [],
+   "benefit": "The tackle box can be obtained from fishing at the reward pool with the reward permits gained from subduing Tempoross. The tackle box can be used to store various fishing equipment. It is not possible to use the items whilst they are in the tackle box; for example, players must still have a fishi..."
   },
   {
    "id": "varrock_armour_3",

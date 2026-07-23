@@ -21,5 +21,6 @@ public class QolPack
 		private String name;
 		private List<Integer> itemIds;      // owning any counts as unlocked
 		private List<String> requirements;  // Requirements.parse() string form
+		private String benefit;             // what it DOES (KB effect prose), nullable
 	}
 }
