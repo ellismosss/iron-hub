@@ -100,10 +100,26 @@ public class ItemSourcesPackTest
 		String cape = pack.sourceLine(21791);
 		assertNotNull(cape);
 		assertTrue(cape, cape.contains("Mage Arena II"));
-		// Pharaoh's sceptre 9044: activity-contextualised chest, no diary claim
+		// Pharaoh's sceptre 9044: activity-contextualised chest, no diary
+		// claim AND no Beneath Cursed Sands reward (only a teleport mention)
 		String scep = pack.sourceLine(9044);
 		assertTrue(scep, scep.contains("Pyramid Plunder"));
 		assertFalse(scep, scep.contains("Diary"));
+		assertFalse(scep, scep.contains("Beneath Cursed Sands"));
+		// point/currency purchases carry a machine-readable balance to gate
+		// on: Amy's saw 24880 = 500 Mahogany Homes points (unreadable, but
+		// named), Herb sack 13226 = a readable slayer-point OR Tithe balance
+		ItemSourcesPack.Entry amy = pack.entry(24880);
+		assertNotNull(amy);
+		assertNotNull("Amy's saw price carries a currency", amy.getSources().get(0).getCurrency());
+		ItemSourcesPack.Entry herb = pack.entry(13226);
+		boolean readable = herb.getSources().stream().anyMatch(s -> s.currencyReq() != null);
+		assertTrue("herb sack has a readable point balance", readable);
+		// make rows carry STRUCTURED materials, not just a sentence
+		ItemSourcesPack.Entry ava = pack.entry(22109);
+		boolean hasMats = ava.getSources().stream()
+			.anyMatch(s -> s.getMaterials() != null && !s.getMaterials().isEmpty());
+		assertTrue("Ava's assembler make row has structured materials", hasMats);
 		// Seed box 13639 / Gem bag 12020: real point prices
 		assertTrue(pack.sourceLine(13639), pack.sourceLine(13639).contains("250 Tithe Farm points"));
 		assertTrue(pack.sourceLine(12020), pack.sourceLine(12020).contains("100 Golden nuggets"));

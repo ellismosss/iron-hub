@@ -297,5 +297,17 @@ public class GoalExpanderTest
 		ActionDag cape = GoalExpander.expand(List.of(
 			goal("c", "item:19476:1:Achievement diary cape")), state, packs());
 		assertNotNull("the coin cost must become a step", cape.get("obtain:item995"));
+
+		// Amy's saw: 500 Mahogany Homes points — a currency with NO readable
+		// balance anywhere in the API. It still has to say what to go and
+		// earn (a tickable manual step), never a silent dead end and never a
+		// pretend progress figure.
+		ActionDag saw = GoalExpander.expand(List.of(
+			goal("s", "item:24880:1:Amy's saw")), state, packs());
+		Action earn = saw.topological().stream()
+			.filter(a -> a.name != null && a.name.startsWith("Earn 500 Mahogany Homes points"))
+			.findFirst().orElse(null);
+		assertNotNull("unreadable currencies still name the work: " + saw.topological(), earn);
+		assertNotNull("and it is tickable", earn.unlockKey);
 	}
 }

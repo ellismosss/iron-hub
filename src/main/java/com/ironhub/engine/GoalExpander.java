@@ -497,10 +497,13 @@ public class GoalExpander
 		}
 		if (chosen == null)
 		{
-			// no choice made: prefer a source we can actually plan against
+			// no choice made: prefer a source with SOMETHING to plan — a
+			// countable currency, a priced shop (even an unreadable one still
+			// names the work), a quest reward, or a recipe with a gate
 			for (com.ironhub.data.ItemSourcesPack.Source s : entry.getSources())
 			{
-				if (s.currencyReq() != null || "reward".equals(s.getHow())
+				if (s.currencyReq() != null || s.getCurrency() != null
+					|| "reward".equals(s.getHow())
 					|| ("make".equals(s.getHow()) && s.getSkill() != null))
 				{
 					chosen = s;
@@ -517,6 +520,16 @@ public class GoalExpander
 		if (currency != null)
 		{
 			reqs.add(currency);
+		}
+		else if (chosen.getCurrency() != null)
+		{
+			// the balance is not readable anywhere in the API (Mahogany
+			// Homes points) — say what to go and earn as a tickable step
+			// rather than showing a dead-end "Buy: ..." line, and never
+			// pretend to track a number we cannot see
+			reqs.add("Earn " + chosen.getCurrency().getQty() + " "
+				+ chosen.getCurrency().getName()
+				+ (chosen.getFrom() != null ? " (" + chosen.getFrom() + ")" : ""));
 		}
 		if (currencyOnly)
 		{
