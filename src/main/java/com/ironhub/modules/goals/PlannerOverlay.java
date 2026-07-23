@@ -314,8 +314,7 @@ class PlannerOverlay extends OverlayPanel
 				displayFraction = fraction;
 			}
 		}
-		panelComponent.getChildren().add(new LabeledBar(displayFraction,
-			String.format(Locale.ROOT, "%.2f%%", fraction * 100)));
+		panelComponent.getChildren().add(new LabeledBar(displayFraction, config.osrsTheme()));
 	}
 
 	/** First live xp seen for a step this session — the bar's stable floor. */
@@ -857,36 +856,39 @@ class PlannerOverlay extends OverlayPanel
 		}
 	}
 
-	/** A thin progress bar (the smaller variant, Luke 2026-07-24): a 6px
-	 * accent fill over the standard trough, no in-bar label — the numeric
-	 * progress lives on the "xp left" / "KC" line. */
+	/** The Design-lab StoneMeter, drawn on the canvas: a 5px recess trough
+	 * with a 1px-inset semantic fill and a 1px dark outline — the exact thin
+	 * bar the sidebar uses (Luke, 2026-07-24: the overlay's bar was too
+	 * thick). Theme-matched so it tracks the player's skin. */
 	private static final class LabeledBar implements LayoutableRenderableEntity
 	{
-		private static final int HEIGHT = 6;
+		private static final int HEIGHT = 5;
 
 		private final Rectangle bounds = new Rectangle();
 		private final double fraction;
+		private final com.ironhub.ui.osrs.OsrsTheme theme;
 		private Point location = new Point();
 		private int width = WIDTH - 8;
 
-		LabeledBar(double fraction, String label)
+		LabeledBar(double fraction, com.ironhub.ui.osrs.OsrsTheme theme)
 		{
 			this.fraction = Math.min(1, Math.max(0, fraction));
+			this.theme = theme;
 		}
 
 		@Override
 		public Dimension render(Graphics2D graphics)
 		{
-			graphics.setColor(UiTokens.OVERLAY_BAR_TROUGH);
-			graphics.fillRect(location.x, location.y + 2, width, HEIGHT);
-			Object oldAa = graphics.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
-			graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				RenderingHints.VALUE_ANTIALIAS_ON);
-			graphics.setColor(UiTokens.ACCENT);
-			graphics.fill(new Rectangle2D.Double(
-				location.x, location.y + 2, width * fraction, HEIGHT));
-			graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				oldAa == null ? RenderingHints.VALUE_ANTIALIAS_DEFAULT : oldAa);
+			int y = location.y + 2;
+			// StoneMeter.paintComponent, pixel-for-pixel: recess fill, the
+			// semantic fill inset 1px (crisp, no AA), then the dark outline
+			graphics.setColor(theme.recess);
+			graphics.fillRect(location.x, y, width, HEIGHT);
+			graphics.setColor(com.ironhub.ui.osrs.OsrsSkin.PROGRESS_BLUE);
+			graphics.fillRect(location.x + 1, y + 1,
+				(int) Math.round((width - 2) * fraction), HEIGHT - 2);
+			graphics.setColor(theme.edgeDark);
+			graphics.drawRect(location.x, y, width - 1, HEIGHT - 1);
 
 			Dimension dimension = new Dimension(width, HEIGHT + 4);
 			bounds.setLocation(location);
