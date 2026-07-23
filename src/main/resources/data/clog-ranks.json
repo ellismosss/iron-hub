@@ -1,0 +1,54 @@
+{
+  "source": "oldschool.runescape.wiki Collection log#Ranks + each staff's infobox",
+  "generated": "2026-07-23",
+  "totalSlots": 1911,
+  "ranks": [
+    {
+      "name": "Bronze",
+      "itemId": 30597,
+      "slots": 100
+    },
+    {
+      "name": "Iron",
+      "itemId": 30599,
+      "slots": 300
+    },
+    {
+      "name": "Steel",
+      "itemId": 30601,
+      "slots": 500
+    },
+    {
+      "name": "Black",
+      "itemId": 30603,
+      "slots": 700
+    },
+    {
+      "name": "Mithril",
+      "itemId": 30605,
+      "slots": 900
+    },
+    {
+      "name": "Adamant",
+      "itemId": 30607,
+      "slots": 1000
+    },
+    {
+      "name": "Rune",
+      "itemId": 30609,
+      "slots": 1100
+    },
+    {
+      "name": "Dragon",
+      "itemId": 30611,
+      "slots": 1200
+    },
+    {
+      "name": "Gilded",
+      "itemId": 30613,
+      "percentOfTotal": 0.9,
+      "roundDown": 25,
+      "slots": 1700
+    }
+  ]
+}

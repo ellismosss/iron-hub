@@ -281,12 +281,39 @@ public class PersistedState
 	int clogBaseline = -1;   // player's COLLECTION_COUNT at the last full sync (-1 = never synced)
 	long clogSyncedMs;       // when the last full sync completed
 	Map<String, ClogGoal> clogGoals = new HashMap<>(); // legacy: slot item id -> seed
+	/**
+	 * The game's own collection-log structure, as last read from the cache
+	 * (tabs -> pages -> slot item ids). Snapshotted so the browser renders
+	 * logged out — the sailing-boat rule: what we last saw, never invented.
+	 */
+	java.util.List<ClogTab> clogCatalog = new ArrayList<>();
+	/** Canonical slot item id -> how many of it the log has counted. */
+	Map<Integer, Integer> clogQuantities = new HashMap<>();
+	/** Canonical slot item id -> when WE first saw it obtained (epoch ms).
+	 *  Only slots filled while the plugin watched carry a date; the rest
+	 *  are honestly undated ("Latest collections" shows the dated ones). */
+	Map<Integer, Long> clogObtainedAt = new HashMap<>();
+	/** Page name -> the kill/completion lines the game drew on that page
+	 *  ("Barbarian Assault" -> ["High-level Gambles: 2,733"]). */
+	Map<String, java.util.List<String>> clogPageCounts = new HashMap<>();
 
 	public static class ClogGoal
 	{
 		public String name;
 		public String activity;
 		public java.util.List<String> reqs = new ArrayList<>();
+	}
+
+	public static class ClogTab
+	{
+		public String name = "";
+		public java.util.List<ClogPage> pages = new ArrayList<>();
+	}
+
+	public static class ClogPage
+	{
+		public String name = "";
+		public int[] items = new int[0];
 	}
 	Set<String> selectedGoals = new HashSet<>();
 	String activeGoal = "";

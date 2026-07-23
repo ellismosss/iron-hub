@@ -79,9 +79,12 @@ public class CollectionLogModule implements IronHubModule
 	private CollectionLogTab tab;
 
 	private final LogSyncButton syncButton = new LogSyncButton();
-	// Full-sync harvest state (client thread only).
-	private final Set<Integer> harvest = new HashSet<>();
+	// Full-sync harvest state (client thread only): canonical id -> the
+	// count the log carries for it (the game draws it on the sprite).
+	private final java.util.Map<Integer, Integer> harvest = new java.util.LinkedHashMap<>();
 	private Integer syncAtTick;
+	// The cache catalog is game data, not account data: one read per session.
+	private boolean catalogRead;
 	// True only between a Sync click and the harvest being consumed — gates
 	// the "Syncing..." label and the baseline re-pin (passive 4100s from
 	// just browsing still merge, but must not claim a full sync).
@@ -207,6 +210,8 @@ public class CollectionLogModule implements IronHubModule
 		// The unlock advanced the player's true count by one — keep the
 		// baseline in lockstep so this doesn't read as drift.
 		state.bumpClogBaseline();
+		// a live drop is the ONE moment we can honestly date a slot
+		state.markClogObtained(java.util.Map.of(pack.canonical(id), 1), true);
 		markObtained(List.of(pack.canonical(id)));
 	}
 
@@ -225,9 +230,12 @@ public class CollectionLogModule implements IronHubModule
 			return;
 		}
 		int itemId = (int) args[1];
+		// collection_delayed_transmit(obj, count, ...): the second argument is
+		// the log's running count for the slot ("79 x Ranger boots")
+		int count = args.length > 2 && args[2] instanceof Integer ? (int) args[2] : 1;
 		if (itemId > 0)
 		{
-			harvest.add(pack.canonical(itemId));
+			harvest.merge(pack.canonical(itemId), Math.max(1, count), Math::max);
 		}
 		// Push the consume out to a few ticks after the LAST item so a
 		// large log finishes streaming before we read it.
@@ -256,6 +264,8 @@ public class CollectionLogModule implements IronHubModule
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
+		readCatalogOnce();
+		readOpenPageHeader();
 		// Self-heal: re-create the button if another plugin wiped it.
 		// attach() no-ops when the log is closed or the button is present.
 		syncButton.attach(client, this::triggerFullSync);
@@ -277,7 +287,63 @@ public class CollectionLogModule implements IronHubModule
 		if (event.getGameState() == GameState.LOGIN_SCREEN)
 		{
 			syncButton.reset();
+			catalogRead = false;
 		}
+	}
+
+	/**
+	 * Read the log's structure out of the game cache, once per session: it
+	 * is game data (the same for every account) and only moves on a game
+	 * update. A read that comes back short leaves the stored snapshot alone,
+	 * so a cache-layout change degrades to "as of last login", never to an
+	 * empty log.
+	 */
+	private void readCatalogOnce()
+	{
+		if (catalogRead || client.getGameState() != GameState.LOGGED_IN)
+		{
+			return;
+		}
+		catalogRead = true;
+		state.setClogCatalog(ClogCatalog.load(client));
+	}
+
+	/**
+	 * While a log page is open, the game draws its name and its kill /
+	 * completion counters into the header ("Barbarian Assault", "Obtained:
+	 * 11/11", "High-level Gambles: 2,733"). Those counters live nowhere we
+	 * can read directly, so we keep what the player has actually looked at —
+	 * and the sidebar says so.
+	 */
+	private void readOpenPageHeader()
+	{
+		Widget header = client.getWidget(InterfaceID.Collection.HEADER);
+		Widget[] lines = header == null ? null : header.getDynamicChildren();
+		if (lines == null || lines.length < 2)
+		{
+			return;
+		}
+		String page = Text.removeTags(lines[0].getText() == null ? "" : lines[0].getText()).trim();
+		if (page.isEmpty())
+		{
+			return;
+		}
+		List<String> counts = new ArrayList<>();
+		for (int i = 1; i < lines.length; i++)
+		{
+			String text = lines[i].getText();
+			if (text == null)
+			{
+				continue;
+			}
+			String clean = Text.removeTags(text).trim();
+			// "Obtained: n/N" is ours to compute — the counters are not
+			if (!clean.isEmpty() && !clean.startsWith("Obtained:"))
+			{
+				counts.add(clean);
+			}
+		}
+		state.recordClogPageCounts(page, counts);
 	}
 
 	/** Press the game's own Search and run the enumerate script; the
@@ -300,10 +366,13 @@ public class CollectionLogModule implements IronHubModule
 	 *  the baseline to the player's true count. Client thread. */
 	private void consumeHarvest()
 	{
-		List<Integer> ids = new ArrayList<>(harvest);
+		java.util.Map<Integer, Integer> counts = new java.util.LinkedHashMap<>(harvest);
 		harvest.clear();
 		syncAtTick = null;
-		markObtained(ids);
+		// an import learns WHAT you own, never when: only a live drop dates a
+		// slot, so "Latest collections" can never invent an order
+		state.markClogObtained(counts, false);
+		markObtained(counts.keySet());
 		if (fullSyncRequested)
 		{
 			fullSyncRequested = false;

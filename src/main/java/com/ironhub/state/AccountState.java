@@ -154,6 +154,11 @@ public class AccountState implements StateView
 	// collection log (persisted): obtained slots, ranking skips, sync baseline
 	private final Set<Integer> clogObtained = ConcurrentHashMap.newKeySet();
 	private final Set<Integer> clogSkipped = ConcurrentHashMap.newKeySet();
+	private final Map<Integer, Integer> clogQuantities = new ConcurrentHashMap<>();
+	private final Map<Integer, Long> clogObtainedAt = new ConcurrentHashMap<>();
+	private final Map<String, java.util.List<String>> clogPageCounts = new ConcurrentHashMap<>();
+	private final java.util.List<PersistedState.ClogTab> clogCatalog =
+		java.util.Collections.synchronizedList(new java.util.ArrayList<>());
 	private volatile int clogBaseline = -1;
 	private volatile long clogSyncedMs;
 	private final Set<String> plannerPins = ConcurrentHashMap.newKeySet();
@@ -1544,6 +1549,126 @@ public class AccountState implements StateView
 		}
 	}
 
+	/**
+	 * Record newly obtained slots WITH the counts the log carries and the
+	 * moment we saw them. A slot dated here is one filled while the plugin
+	 * watched — the "Latest collections" grid shows those and nothing else,
+	 * because an import can tell us WHAT you own but never WHEN.
+	 *
+	 * @param quantities canonical item id -> the log's count for it
+	 * @param dateNew    stamp slots that are new to us (a live drop), vs a
+	 *                   bulk import which learns the set but not the order
+	 */
+	public void markClogObtained(Map<Integer, Integer> quantities, boolean dateNew)
+	{
+		boolean changed = false;
+		long now = System.currentTimeMillis();
+		for (Map.Entry<Integer, Integer> entry : quantities.entrySet())
+		{
+			int id = entry.getKey();
+			if (clogObtained.add(id))
+			{
+				changed = true;
+				if (dateNew)
+				{
+					clogObtainedAt.put(id, now);
+				}
+			}
+			// the log's counts only ever climb, so the highest we have seen is
+			// the truth — a live drop tells us nothing about the running total
+			int count = Math.max(1, entry.getValue() == null ? 1 : entry.getValue());
+			Integer known = clogQuantities.get(id);
+			if (known == null || known < count)
+			{
+				clogQuantities.put(id, count);
+				changed = true;
+			}
+		}
+		if (changed)
+		{
+			persist();
+			notifyListeners(Topic.LOOT);
+		}
+	}
+
+	/** How many of a slot the log has counted; 0 = unknown (never harvested). */
+	public int clogQuantity(int canonicalId)
+	{
+		return clogQuantities.getOrDefault(canonicalId, 0);
+	}
+
+	/** When we saw a slot fill; 0 = before we watched (honestly undated). */
+	public long clogObtainedAt(int canonicalId)
+	{
+		return clogObtainedAt.getOrDefault(canonicalId, 0L);
+	}
+
+	/** The game's own log structure as last read from the cache. */
+	public java.util.List<PersistedState.ClogTab> getClogCatalog()
+	{
+		return java.util.Collections.unmodifiableList(clogCatalog);
+	}
+
+	/** A fresh cache read replaced the structure (client thread). No-op when
+	 *  it matches what we already hold — the catalog moves on game updates,
+	 *  not on logins. */
+	public void setClogCatalog(java.util.List<PersistedState.ClogTab> tabs)
+	{
+		if (tabs == null || tabs.isEmpty() || sameCatalog(tabs))
+		{
+			return;
+		}
+		clogCatalog.clear();
+		clogCatalog.addAll(tabs);
+		persist();
+		notifyListeners();
+	}
+
+	private boolean sameCatalog(java.util.List<PersistedState.ClogTab> tabs)
+	{
+		if (tabs.size() != clogCatalog.size())
+		{
+			return false;
+		}
+		for (int i = 0; i < tabs.size(); i++)
+		{
+			PersistedState.ClogTab fresh = tabs.get(i);
+			PersistedState.ClogTab held = clogCatalog.get(i);
+			if (!fresh.name.equals(held.name) || fresh.pages.size() != held.pages.size())
+			{
+				return false;
+			}
+			for (int p = 0; p < fresh.pages.size(); p++)
+			{
+				if (!fresh.pages.get(p).name.equals(held.pages.get(p).name)
+					|| !java.util.Arrays.equals(fresh.pages.get(p).items, held.pages.get(p).items))
+				{
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	/** The kill/completion lines the game drew on a page, as last seen while
+	 *  browsing; empty when we have never watched that page open. */
+	public java.util.List<String> clogPageCounts(String pageName)
+	{
+		return clogPageCounts.getOrDefault(pageName, java.util.List.of());
+	}
+
+	/** Record a page's header lines, seen while the log was open. */
+	public void recordClogPageCounts(String pageName, java.util.List<String> lines)
+	{
+		if (pageName == null || pageName.isEmpty()
+			|| lines.equals(clogPageCounts.get(pageName)))
+		{
+			return;
+		}
+		clogPageCounts.put(pageName, java.util.List.copyOf(lines));
+		persist();
+	}
+
 	/** Activity indices hidden from the TTNS ranking. */
 	public Set<Integer> getClogSkipped()
 	{
@@ -2527,6 +2652,14 @@ public class AccountState implements StateView
 		clogSkipped.addAll(persisted.clogSkipped);
 		clogBaseline = persisted.clogBaseline;
 		clogSyncedMs = persisted.clogSyncedMs;
+		clogQuantities.clear();
+		clogQuantities.putAll(persisted.clogQuantities);
+		clogObtainedAt.clear();
+		clogObtainedAt.putAll(persisted.clogObtainedAt);
+		clogPageCounts.clear();
+		clogPageCounts.putAll(persisted.clogPageCounts);
+		clogCatalog.clear();
+		clogCatalog.addAll(persisted.clogCatalog);
 		plannerPins.clear();
 		plannerPins.addAll(persisted.plannerPins);
 		plannerSnoozes.clear();
@@ -2680,6 +2813,14 @@ public class AccountState implements StateView
 		state.clogSkipped = new HashSet<>(clogSkipped);
 		state.clogBaseline = clogBaseline;
 		state.clogSyncedMs = clogSyncedMs;
+		state.clogQuantities = new HashMap<>(clogQuantities);
+		state.clogObtainedAt = new HashMap<>(clogObtainedAt);
+		clogPageCounts.forEach((page, lines) ->
+			state.clogPageCounts.put(page, new java.util.ArrayList<>(lines)));
+		synchronized (clogCatalog)
+		{
+			state.clogCatalog = new java.util.ArrayList<>(clogCatalog);
+		}
 		state.plannerPins = new HashSet<>(plannerPins);
 		state.plannerSnoozes = new HashSet<>(plannerSnoozes);
 		state.plannerBans = new HashSet<>(plannerBans);
