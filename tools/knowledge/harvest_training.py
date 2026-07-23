@@ -27,9 +27,11 @@ SKILLS = [
     "Farming", "Sailing",
 ]
 
-XP_HR = re.compile(r"([\d,]+(?:\.\d+)?)\s*(?:–|-|to)?\s*([\d,]+(?:\.\d+)?)?\s*"
-                   r"(?:\[\[)?(?:xp|experience)(?:\]\])?(?:\s*(?:per|/|an)\s*h(?:ou)?r)",
+XP_HR = re.compile(r"([\d,]+(?:\.\d+)?\s*[km]?)\s*(?:–|-|to)?\s*([\d,]+(?:\.\d+)?\s*[km]?)?\s*"
+                   r"(?:\[\[)?(?:xp|exp|experience)(?:\]\])?(?:\s*(?:per|/|an)\s*h(?:ou)?r)",
                    re.I)
+# "Levels 30 to 50: Crabs" — the combat guides' method-section headings
+LEVELS_HEADING = re.compile(r"^levels?\s+\d", re.I)
 
 
 def import_pack(conn):
@@ -79,10 +81,15 @@ def harvest_wiki(conn):
                     "contents", "see also", "references", "trivia",
                     "useful equipment", "equipment", "quests", "temporary boosts"):
                 continue
-            rates = ["{}{}".format(m.group(1), "-" + m.group(2) if m.group(2) else "")
+            rates = ["{}{}".format(m.group(1).strip(),
+                                   "-" + m.group(2).strip() if m.group(2) else "")
                      for m in XP_HR.finditer(body)][:4]
-            if not rates:
-                continue  # prose section without a rate = not a method row
+            # a rate-less section still counts as a METHOD when its heading
+            # reads like one ("Levels 70-99: Slayer") — the combat guides
+            # rarely state xp/hr in prose, but the method list is the point
+            is_method = bool(rates) or LEVELS_HEADING.match(heading)
+            if not is_method:
+                continue
             levels = sorted({f"{m.group(1)} {m.group(2)}" for m in re.finditer(
                 r"\{\{SCP\|([A-Za-z]+)\|(\d+)", body)})[:6]
             items = sorted({m.group(1) for m in re.finditer(
@@ -90,11 +97,12 @@ def harvest_wiki(conn):
             conn.execute(
                 "INSERT OR REPLACE INTO training_methods(skill,method,xp_hr,reqs,"
                 "inputs,outputs,notes,src,flags) VALUES(?,?,?,?,?,?,?,?,?)",
-                (skill, heading, "; ".join(rates),
+                (skill, heading, "; ".join(rates) or None,
                  json.dumps(levels) if levels else None,
                  json.dumps(items) if items else None, None,
                  f"prose-derived from {title}", "wiki:" + title,
-                 "prose-derived,rates-need-review"))
+                 "prose-derived,rates-need-review" if rates
+                 else "prose-derived,rate-not-stated"))
             n += 1
             total += 1
         if n == 0:

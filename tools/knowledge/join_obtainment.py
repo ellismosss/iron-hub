@@ -5,8 +5,16 @@ rate). Items with a recipe keep their make entry first. Rows that end up
 with NO obtainment at all are flagged and land in gaps — never guessed."""
 
 import json
+import re
 
 import kb
+
+# game-mode/beta/discontinued variants that are NOT obtainable in the main
+# game — an empty obtainment on these is expected, not a data hole
+RESTRICTED = re.compile(
+    r"\((?:beta|Last Man Standing|Deadman(?: Mode)?|historical|"
+    r"Trailblazer|Shattered Relics|Twisted League|Leagues)\b|^Dni\d|^Team-\d",
+    re.I)
 
 
 def sources_for(conn, name):
@@ -35,11 +43,18 @@ def equipment(conn):
         obtain = [o for o in obtain if o.get("how") == "make"]
         drops = sources_for(conn, name)
         obtain.extend(drops)
+        # strip BOTH obtainment flags before re-judging — a rerun after a
+        # new source harvest must clear a stale obtain-unknown (722 shop
+        # items kept the flag from the pre-shops run)
         new_flags = [f for f in (flags or "").split(",")
-                     if f and f != "obtain-pending"]
+                     if f and f not in ("obtain-pending", "obtain-unknown",
+                                        "restricted-mode-item")]
         if not obtain:
-            new_flags.append("obtain-unknown")
-            empty += 1
+            if RESTRICTED.search(name):
+                new_flags.append("restricted-mode-item")
+            else:
+                new_flags.append("obtain-unknown")
+                empty += 1
         else:
             filled += 1
         conn.execute("UPDATE equipment SET obtain = ?, flags = ? WHERE name = ?",

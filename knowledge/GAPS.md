@@ -189,6 +189,7 @@ move out on the next harvest.
 
 ## equipment
 
+- [ ] **(reward-source items)** — obtain: 965 items have no recipe/drop/shop source — mostly quest, diary and minigame REWARDS plus holiday/discontinued cosmetics; a reward-source pass (quest/diary page Rewards sections) is the next harvest
 - [ ] **Hat** — stats: page in Category:Head slot items has no Infobox Bonuses — stats unknown
 - [ ] **Regular cape** — stats: page in Category:Cape slot items has no Infobox Bonuses — stats unknown
 
@@ -219,6 +220,7 @@ move out on the next harvest.
 
 ## training
 
+- [ ] **(rates in tables)** — xp_hr: Defence (shares the melee guide), Hitpoints (passive), Slayer and Herblore keep rates in wikitables/shared pages — needs a table-parse pass or curation; method lists otherwise harvested
 - [ ] **Attack** — methods: no method sections with parseable xp/hr on Pay-to-play Melee training — needs manual extraction
 - [ ] **Defence** — methods: no method sections with parseable xp/hr on Defence training — needs manual extraction
 - [ ] **Fletching** — methods: no method sections with parseable xp/hr on Fletching training — needs manual extraction
@@ -228,4 +230,4 @@ move out on the next harvest.
 - [ ] **Strength** — methods: no method sections with parseable xp/hr on Pay-to-play Melee training — needs manual extraction
 
 
-_192 open gaps · generated from knowledge.db_
+_194 open gaps · generated from knowledge.db_
