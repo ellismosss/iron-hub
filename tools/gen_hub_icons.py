@@ -75,6 +75,18 @@ def fetch(file_name: str) -> bytes:
     return data
 
 
+# The Combat Achievements reward ladder: each tier hands over the next
+# Ghommal's hilt, which is what the surface's hero banner counts between.
+HILT_ICONS = {
+    "hilt1": "Ghommal's hilt 1.png",
+    "hilt2": "Ghommal's hilt 2.png",
+    "hilt3": "Ghommal's hilt 3.png",
+    "hilt4": "Ghommal's hilt 4.png",
+    "hilt5": "Ghommal's hilt 5.png",
+    "hilt6": "Ghommal's hilt 6.png",
+}
+
+
 def bundle(icons: dict, out_dir: str):
     os.makedirs(out_dir, exist_ok=True)
     for slug, file_name in icons.items():
@@ -93,7 +105,9 @@ def bundle(icons: dict, out_dir: str):
 def main():
     bundle(ICONS, OUT)
     bundle(CLOG_ICONS, os.path.join(ICON_ROOT, "clog"))
-    print(f"wrote {len(ICONS)} hub tile icons, {len(CLOG_ICONS)} collection log tabs")
+    bundle(HILT_ICONS, os.path.join(ICON_ROOT, "cahilt"))
+    print(f"wrote {len(ICONS)} hub tile icons, {len(CLOG_ICONS)} collection log tabs, "
+          f"{len(HILT_ICONS)} combat achievement hilts")
 
 
 if __name__ == "__main__":

@@ -50,6 +50,8 @@ public class CombatAchievementsModule implements IronHubModule
 
 	private CombatAchievementsTab tab;
 	private volatile List<CaTask> tasks = List.of();
+	private volatile List<CaBoss> bosses = List.of();
+	private com.ironhub.data.CaProfilePack profilePack;
 	private Map<Integer, Double> pctById = Map.of();
 	private Map<String, Double> pctByName = Map.of();
 	private boolean loadedThisSession;
@@ -88,10 +90,24 @@ public class CombatAchievementsModule implements IronHubModule
 		CaCompletionPack pack = dataPack.load("ca-completion", CaCompletionPack.class);
 		pctById = pack.byId();
 		pctByName = pack.byName();
+		profilePack = dataPack.load("ca-profile", com.ironhub.data.CaProfilePack.class);
 		state.watchVarbits(VarbitID.CA_POINTS);
 		for (CaTier tier : TIERS)
 		{
 			state.watchVarbits(tier.thresholdVarbit, tier.completedCountVarbit, tier.statusVarbit);
+		}
+		// the Combat Profile's own arithmetic: the tier task counts and every
+		// kill-count var the interface sums
+		for (int varbit : profilePack.tasksCompletedVarbits)
+		{
+			state.watchVarbits(varbit);
+		}
+		for (List<Integer> varps : profilePack.killVarps.values())
+		{
+			for (int varp : varps)
+			{
+				state.watchVarps(varp);
+			}
 		}
 		eventBus.register(this);
 	}
@@ -138,6 +154,23 @@ public class CombatAchievementsModule implements IronHubModule
 	List<CaTask> tasks()
 	{
 		return tasks;
+	}
+
+	/** The interface's boss grid, in its own order (empty until loaded). */
+	List<CaBoss> bosses()
+	{
+		return bosses;
+	}
+
+	com.ironhub.data.CaProfilePack profilePack()
+	{
+		return profilePack;
+	}
+
+	/** The Combat Profile's seven rows, as the interface computes them. */
+	List<CaProfile.Row> profileRows()
+	{
+		return CaProfile.rows(state, profilePack, bosses);
 	}
 
 	/** Re-read the catalog from the client on the next game tick. */
@@ -197,7 +230,12 @@ public class CombatAchievementsModule implements IronHubModule
 			task.communityPct = pct;
 		}
 		tasks = List.copyOf(loaded);
-		log.debug("CA catalog loaded: {} tasks", loaded.size());
+		List<CaBoss> loadedBosses = CaCatalog.loadBosses(client);
+		if (!loadedBosses.isEmpty())
+		{
+			bosses = List.copyOf(loadedBosses);
+		}
+		log.debug("CA catalog loaded: {} tasks, {} bosses", loaded.size(), bosses.size());
 		markCompletedGoalTasks(loaded);
 		if (announceAfterReload)
 		{

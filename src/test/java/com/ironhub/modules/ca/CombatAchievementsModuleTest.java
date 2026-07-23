@@ -154,7 +154,16 @@ public class CombatAchievementsModuleTest
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.varbit(state, VarbitID.CA_POINTS, 214);
+		StateFixture.varbit(state, VarbitID.CA_THRESHOLD_EASY, 33);
+		StateFixture.varbit(state, VarbitID.CA_THRESHOLD_MEDIUM, 115);
 		StateFixture.varbit(state, VarbitID.CA_THRESHOLD_HARD, 304);
+		// the Combat Profile reads the game's own vars: a couple of kills and
+		// a raid so the rows say something real
+		StateFixture.varbit(state, 12885, 42);
+		StateFixture.varbit(state, 12886, 18);
+		StateFixture.varp(state, 1502, 512);   // Abyssal Sire
+		StateFixture.varp(state, 1532, 74);    // Chambers of Xeric
+		StateFixture.varp(state, 1528, 260);   // Wintertodt (skilling)
 
 		CombatAchievementsModule module = module(state, new IronHubConfig()
 		{
@@ -164,7 +173,7 @@ public class CombatAchievementsModuleTest
 		assertNotNull(tab);
 
 		// no client in tests: reflection stands in for loadCatalog so the
-		// render shows real rows, an expanded card and the boss grid
+		// grids, pages and profile all render off real objects
 		List<CaTask> tasks = List.of(
 			new CaTask(0, "Noxious Foe", "Kill an Aberrant Spectre.",
 				CaTier.EASY, "Kill Count", "Aberrant Spectre", true),
@@ -176,19 +185,19 @@ public class CombatAchievementsModuleTest
 			new CaTask(3, "Hespori Speed-Chaser", "Kill the Hespori in less than 48 seconds.",
 				CaTier.MEDIUM, "Speed", "Hespori", true));
 		tasks.get(1).communityPct = 12.6;
-		java.lang.reflect.Field field = CombatAchievementsModule.class.getDeclaredField("tasks");
-		field.setAccessible(true);
-		field.set(module, tasks);
+		set(module, "tasks", tasks);
+		set(module, "bosses", List.of(
+			new CaBoss(3, "Abyssal Sire", 350, CaBoss.CATEGORY_BOSS),
+			new CaBoss(10, "Chambers of Xeric", 0, CaBoss.CATEGORY_RAID),
+			new CaBoss(20, "Zulrah", 725, CaBoss.CATEGORY_BOSS),
+			new CaBoss(48, "Wintertodt", 0, CaBoss.CATEGORY_SKILLING),
+			new CaBoss(27, "Hespori", 284, CaBoss.CATEGORY_BOSS)));
 		CombatAchievementsTab caTab = (CombatAchievementsTab) tab;
 		caTab.onTasksUpdated();
-		caTab.expandForTest(2);
 
 		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
 		assertTrue(image.getHeight() > 150);
 		write(image, "ca-tab.png");
-
-		caTab.expandFiltersForTest();
-		write(SwingRender.render((JPanel) tab), "ca-tab-filters.png");
 
 		caTab.showBossesForTest();
 		java.awt.image.BufferedImage bosses = SwingRender.render((JPanel) tab);
@@ -196,8 +205,26 @@ public class CombatAchievementsModuleTest
 		write(bosses, "ca-tab-bosses.png");
 
 		caTab.drillForTest("Zulrah");
-		write(SwingRender.render((JPanel) tab), "ca-tab-boss-drilldown.png");
+		write(SwingRender.render((JPanel) tab), "ca-tab-boss-page.png");
+
+		caTab.openTierForTest(CaTier.ELITE);
+		write(SwingRender.render((JPanel) tab), "ca-tab-tier-page.png");
+
+		// the old module, folded away at the foot
+		caTab.showBossesForTest();
+		caTab.expandBrowserForTest();
+		caTab.browserForTest().expandForTest(2);
+		caTab.browserForTest().expandFiltersForTest();
+		write(SwingRender.render((JPanel) tab), "ca-tab-browser.png");
 		module.shutDown();
+	}
+
+	private static void set(CombatAchievementsModule module, String field, Object value)
+		throws Exception
+	{
+		java.lang.reflect.Field handle = CombatAchievementsModule.class.getDeclaredField(field);
+		handle.setAccessible(true);
+		handle.set(module, value);
 	}
 
 	private static void write(java.awt.image.BufferedImage image, String name)

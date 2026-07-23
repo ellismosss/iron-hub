@@ -4,100 +4,88 @@ import com.ironhub.IronHubConfig;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.components.PaintedIcon;
+import com.ironhub.ui.components.RebuildGate;
+import com.ironhub.ui.osrs.OsrsIcons;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneButton;
 import com.ironhub.ui.osrs.StoneChipRow;
-import com.ironhub.ui.osrs.StoneComboBoxUI;
-import com.ironhub.ui.osrs.StoneMeter;
 import com.ironhub.ui.osrs.StonePanel;
 import com.ironhub.ui.osrs.StoneProgressBar;
-import com.ironhub.ui.osrs.StoneTextField;
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
-import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import net.runelite.client.util.LinkBrowser;
 
 /**
- * Combat achievements tab in the OSRS stonework skin: goal-aware stats card,
- * All/Goals/Bosses views, search, collapsible filters (tier toggles, status,
- * type, sort), flat hoverable task rows that expand into stone cards with
- * per-task tracking, and a two-column boss grid that drills into each boss's
- * tasks. Feature parity with the Combat Achievements Tracker hub plugin —
- * only the clothing changed. Frameless: the hub host provides the frame.
+ * Combat achievements, in the shape of the game's own interface (Luke,
+ * 2026-07-24):
+ *
+ * <ul>
+ * <li>a hero banner counting points between the Ghommal's hilt you have
+ *     earned and the one the next tier hands over — the collection log
+ *     surface's banner, with the reward ladder swapped in;
+ * <li>the interface's "Combat Profile" panel, computed exactly as the game
+ *     computes it ({@link CaProfile}): tasks completed, boss and skilling
+ *     kill counts, raid completions, and your top three;
+ * <li>two views behind tile buttons — Difficulty (the six tiers with their
+ *     fill bars) and Bosses (the interface's own grid, three across, in its
+ *     own order) — each tile opening a page listing every combat achievement
+ *     under it;
+ * <li>and the searchable task list ({@link CaTaskBrowser}) folded into a
+ *     collapsible section at the foot.
+ * </ul>
+ *
+ * Frameless: the hub host provides the frame.
  */
 class CombatAchievementsTab extends JPanel
 {
-	private static final String[] STATUS_OPTIONS = {"All", "Completed", "Incomplete"};
-	private static final String[] TYPE_OPTIONS = {"All types", "Stamina", "Perfection",
-		"Kill Count", "Mechanical", "Restriction", "Speed"};
-	private static final String[] SORT_OPTIONS = {"Tier", "Name", "Completion", "Community %"};
-	/** Wrap widths: free-standing notes vs text inside a stone card. */
-	private static final int NOTE_WIDTH = 195;
-	private static final int CARD_TEXT_WIDTH = 180;
-	/** Marks a child with its own action so a row click never steals it. */
-	private static final String OWN_ACTION = "ironhub.ca.ownAction";
+	/** Grid geometry, measured against the 225px panel's 217px of content. */
+	private static final int TIER_COLUMNS = 2;
+	private static final int TIER_WIDTH = 107;
+	private static final int TIER_HEIGHT = 40;
+	private static final int BOSS_COLUMNS = 3;
+	private static final int BOSS_WIDTH = 69;
+	private static final int BOSS_HEIGHT = 48;
+	private static final int GRID_GAP = 3;
+	/** Row ceiling for a page's task list (the Bank tab's grammar). */
+	private static final int MAX_TASKS = 50;
+	private static final int WRAP = 185;
 
 	private final CombatAchievementsModule module;
 	private final AccountState state;
 	private final OsrsTheme theme;
-	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::onStateChanged);
+	private final Runnable listener = RebuildGate.install(this, this::onStateChanged);
 
-	// stats card (OsrsLabel text is immutable — refreshStats refills the card)
-	private final StonePanel statsCard;
-	private final StoneProgressBar goalBar;
-
-	// controls
+	private final StonePanel hero;
+	private final StoneProgressBar heroBar;
+	private final StonePanel profile;
 	private final StoneChipRow views;
-	private final StoneTextField search;
-	private final JLabel filtersTriangle = triangle();
-	private final JPanel filtersPanel = new JPanel();
-	private final Map<CaTier, Boolean> tierEnabled = new EnumMap<>(CaTier.class);
-	private final JComboBox<String> statusFilter = new JComboBox<>(STATUS_OPTIONS);
-	private final JComboBox<String> typeFilter = new JComboBox<>(TYPE_OPTIONS);
-	private final JComboBox<String> sortFilter = new JComboBox<>(SORT_OPTIONS);
-	private final JLabel sortDirection;
-	private boolean filtersExpanded;
-	private boolean sortAscending = true;
-
-	// content
 	private final JPanel content = new JPanel();
-	private String selectedBoss; // non-null = boss drill-down
-	private final Set<Integer> expanded = new HashSet<>();
-	private Set<String> lastCaGoals;
-	private int lastPoints = -1;
+	private final JPanel browserSlot = new JPanel();
+	private final JLabel browserTriangle;
+	private final CaTaskBrowser browser;
 
-	private static final Map<CaTier, ImageIcon> TIER_ICONS = loadTierIcons();
+	/** null = the grid; otherwise the tier or boss whose page is open. */
+	private CaTier openTier;
+	private String openBoss;
+	private boolean browserExpanded;
+	private List<Object> lastPrint = List.of();
 
 	CombatAchievementsTab(CombatAchievementsModule module, AccountState state,
 		IronHubConfig config, OsrsTheme theme)
@@ -105,343 +93,230 @@ class CombatAchievementsTab extends JPanel
 		this.module = module;
 		this.state = state;
 		this.theme = theme;
-		for (CaTier tier : CaTier.values())
-		{
-			tierEnabled.put(tier, true);
-		}
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		add(section("Progress"));
-		statsCard = new StonePanel(theme);
-		statsCard.setLayout(new BoxLayout(statsCard, BoxLayout.Y_AXIS));
-		statsCard.setAlignmentX(LEFT_ALIGNMENT);
-		goalBar = new StoneProgressBar(theme, OsrsSkin.PROGRESS_BLUE, 0);
-		goalBar.setAlignmentX(LEFT_ALIGNMENT);
-		add(pad(statsCard));
-		add(strut(6));
+		hero = new StonePanel(theme);
+		hero.setLayout(new BoxLayout(hero, BoxLayout.Y_AXIS));
+		hero.setAlignmentX(LEFT_ALIGNMENT);
+		heroBar = new StoneProgressBar(theme, OsrsSkin.PROGRESS_BLUE, 0);
+		add(hero);
+		add(Box.createVerticalStrut(4));
 
-		views = new StoneChipRow(theme, true, "All", "Goals", "Bosses");
+		profile = new StonePanel(theme);
+		profile.setLayout(new BoxLayout(profile, BoxLayout.Y_AXIS));
+		profile.setAlignmentX(LEFT_ALIGNMENT);
+		add(profile);
+		add(Box.createVerticalStrut(4));
+
+		views = new StoneChipRow(theme, true, "Difficulty", "Bosses");
 		views.onChange(i ->
 		{
-			selectedBoss = null;
+			openTier = null;
+			openBoss = null;
 			rebuildContent();
 		});
-		add(pad(views));
-		add(strut(4));
-
-		search = new StoneTextField(theme, "Search tasks…");
-		add(pad(search));
-		search.getDocument().addDocumentListener(new DocumentListener()
-		{
-			public void insertUpdate(DocumentEvent e)
-			{
-				rebuildContent();
-			}
-
-			public void removeUpdate(DocumentEvent e)
-			{
-				rebuildContent();
-			}
-
-			public void changedUpdate(DocumentEvent e)
-			{
-				rebuildContent();
-			}
-		});
-		add(strut(4));
-
-		sortDirection = glyph(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_UP, 10),
-			"Flip sort direction", this::flipSortDirection);
-		add(buildFiltersSection());
-		add(strut(4));
+		add(views);
+		add(Box.createVerticalStrut(4));
 
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 		content.setOpaque(false);
 		content.setAlignmentX(LEFT_ALIGNMENT);
-		content.setBorder(new EmptyBorder(0, 4, 0, 4));
 		add(content);
-		add(Box.createVerticalGlue());
 
-		lastCaGoals = selectedCaGoals();
+		browserTriangle = new JLabel(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+		browserTriangle.setForeground(OsrsSkin.MUTED);
+		add(Box.createVerticalStrut(6));
+		add(browserHeader());
+		browserSlot.setLayout(new BoxLayout(browserSlot, BoxLayout.Y_AXIS));
+		browserSlot.setOpaque(false);
+		browserSlot.setAlignmentX(LEFT_ALIGNMENT);
+		add(browserSlot);
+		add(Box.createVerticalGlue());
+		browser = new CaTaskBrowser(module, state, config, theme);
+		browser.onShowBoss(boss ->
+		{
+			views.setSelected(1);
+			openTier = null;
+			openBoss = boss;
+			rebuildContent();
+		});
+
 		state.addListener(listener);
-		refreshStats();
-		rebuildContent();
+		rebuildAll();
 	}
 
 	void dispose()
 	{
+		browser.dispose();
 		state.removeListener(listener);
 	}
 
 	/** Module callback after the catalog (re)loads on the client thread. */
 	void onTasksUpdated()
 	{
-		refreshStats();
-		rebuildContent();
+		browser.onTasksUpdated();
+		rebuildAll();
 	}
 
-	/** Test seam: switch to the Bosses grid without a mouse. */
-	void showBossesForTest()
-	{
-		views.setSelected(2);
-		selectedBoss = null;
-		rebuildContent();
-	}
-
-	/** Test seam: expand a task's card. */
-	void expandForTest(int taskId)
-	{
-		expanded.add(taskId);
-		rebuildContent();
-	}
-
-	/** Test seam: open the filters section. */
-	void expandFiltersForTest()
-	{
-		filtersExpanded = true;
-		filtersTriangle.setIcon(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_DOWN, 10));
-		filtersPanel.setVisible(true);
-	}
-
-	/** Test seam: drill into a boss's tasks. */
-	void drillForTest(String boss)
-	{
-		views.setSelected(2);
-		selectedBoss = boss;
-		rebuildContent();
-	}
-
-	/** Cheap path for AccountState notifications: stats always, rows only
-	 * when points or the set of CA goals actually changed. */
 	private void onStateChanged()
 	{
-		// only rebuild when something CA-relevant moved — refreshStats alone
-		// is three full ~637-task passes, and it ran on EVERY coalesced
-		// state change (2026-07-20 audit)
-		Set<String> caGoals = selectedCaGoals();
-		int points = module.points();
-		if (!caGoals.equals(lastCaGoals) || points != lastPoints)
+		List<Object> print = fingerprint();
+		if (!print.equals(lastPrint))
 		{
-			lastCaGoals = caGoals;
-			lastPoints = points;
-			refreshStats();
-			rebuildContent();
+			rebuildAll();
 		}
 	}
 
-	/** The "ca:" goal ids currently selected in the goal planner. */
-	private Set<String> selectedCaGoals()
+	private List<Object> fingerprint()
 	{
-		Set<String> ids = new HashSet<>();
-		for (String goalId : state.getSelectedGoals())
-		{
-			if (goalId.startsWith("ca:"))
-			{
-				ids.add(goalId);
-			}
-		}
-		return ids;
+		List<Object> print = new ArrayList<>();
+		print.add(module.points());
+		print.add(module.tasks().size());
+		print.add(module.bosses().size());
+		print.add(module.tasks().stream().filter(t -> t.completed).count());
+		print.add(openTier);
+		print.add(openBoss);
+		print.add(browserExpanded);
+		return print;
 	}
 
-	private boolean isGoal(CaTask task)
+	private void rebuildAll()
 	{
-		return state.getSelectedGoals().contains("ca:" + task.id);
-	}
-
-	// ── stats card ────────────────────────────────────────────────────
-
-	private void refreshStats()
-	{
-		List<CaTask> tasks = module.tasks();
-		int points = module.points();
-		int totalPoints = tasks.stream().mapToInt(t -> t.tier.points).sum();
-		long done = tasks.stream().filter(t -> t.completed).count();
-		String pointsText = tasks.isEmpty()
-			? points + " pts"
-			: points + "/" + totalPoints + " pts · " + done + "/" + tasks.size() + " tasks";
-
-		CaTier goal = module.goalTier();
-		int threshold = module.goalThreshold();
-		String goalText;
-		Color goalColor;
-		if (goal == null)
-		{
-			goalText = "All tiers complete!";
-			goalColor = OsrsSkin.VALUE;
-			goalBar.setFraction(1);
-		}
-		else if (points >= threshold && threshold > 0)
-		{
-			goalText = goal.display + " complete! (" + points + " pts)";
-			goalColor = OsrsSkin.VALUE;
-			goalBar.setFraction(1);
-		}
-		else
-		{
-			goalText = threshold > 0
-				? (threshold - points) + " pts to " + goal.display
-				: "Goal: " + goal.display;
-			goalColor = OsrsSkin.TITLE;
-			goalBar.setFraction(threshold == 0 ? 0 : (double) points / threshold);
-		}
-
-		String trackedText;
-		if (selectedCaGoals().isEmpty())
-		{
-			trackedText = "No CA goals yet";
-		}
-		else
-		{
-			int goalPts = 0;
-			int goalDonePts = 0;
-			int found = 0;
-			for (CaTask task : tasks)
-			{
-				if (isGoal(task))
-				{
-					found++;
-					goalPts += task.tier.points;
-					if (task.completed)
-					{
-						goalDonePts += task.tier.points;
-					}
-				}
-			}
-			trackedText = "Goals: " + goalDonePts + "/" + goalPts + " pts (" + found + " tasks)";
-		}
-
-		statsCard.removeAll();
-		statsCard.add(new OsrsLabel(pointsText, OsrsSkin.TITLE, OsrsSkin.boldFont())
-			.leftAligned().squeezable());
-		statsCard.add(strut(3));
-		statsCard.add(goalBar);
-		statsCard.add(strut(3));
-		OsrsLabel goalLine = new OsrsLabel(goalText, goalColor, OsrsSkin.font())
-			.leftAligned().squeezable();
-		goalLine.setToolTipText("Tier goal - set it under Iron Hub settings (Auto advances tier by tier)");
-		statsCard.add(goalLine);
-		statsCard.add(new OsrsLabel(trackedText, OsrsSkin.MUTED, OsrsSkin.font())
-			.leftAligned().squeezable());
-		cap(statsCard);
-		statsCard.revalidate();
-		statsCard.repaint();
-	}
-
-	// ── filters ───────────────────────────────────────────────────────
-
-	private JPanel buildFiltersSection()
-	{
-		JPanel section = new JPanel();
-		section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
-		section.setOpaque(false);
-		section.setAlignmentX(LEFT_ALIGNMENT);
-
-		section.add(collapsibleHeader(filtersTriangle, "Filters",
-			"Show or hide the tier, status, type and sort filters", () ->
-		{
-			filtersExpanded = !filtersExpanded;
-			filtersTriangle.setIcon(new PaintedIcon(filtersExpanded
-				? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
-			filtersPanel.setVisible(filtersExpanded);
-			revalidate();
-			repaint();
-		}));
-
-		filtersPanel.setLayout(new BoxLayout(filtersPanel, BoxLayout.Y_AXIS));
-		filtersPanel.setOpaque(false);
-		filtersPanel.setAlignmentX(LEFT_ALIGNMENT);
-		filtersPanel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 4, 0, 4));
-		filtersPanel.setVisible(false);
-
-		JPanel tierRow = new JPanel(new GridLayout(1, CaTier.values().length, 2, 0));
-		tierRow.setOpaque(false);
-		tierRow.setAlignmentX(LEFT_ALIGNMENT);
-		tierRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ICON_CELL_SIZE));
-		for (CaTier tier : CaTier.values())
-		{
-			tierRow.add(tierToggle(tier));
-		}
-		filtersPanel.add(tierRow);
-		filtersPanel.add(strut(UiTokens.PAD_TIGHT));
-
-		filtersPanel.add(filterRow("Status", combo(statusFilter)));
-		filtersPanel.add(strut(UiTokens.PAD_TIGHT));
-		filtersPanel.add(filterRow("Type", combo(typeFilter)));
-		filtersPanel.add(strut(UiTokens.PAD_TIGHT));
-		JPanel sortControls = new JPanel(new BorderLayout(UiTokens.PAD_TIGHT, 0));
-		sortControls.setOpaque(false);
-		sortControls.add(combo(sortFilter), BorderLayout.CENTER);
-		sortControls.add(sortDirection, BorderLayout.EAST);
-		filtersPanel.add(filterRow("Sort", sortControls));
-		section.add(filtersPanel);
-		return section;
-	}
-
-	/** Wiki tier icon toggle; select fill + bevel = tier shown. */
-	private JLabel tierToggle(CaTier tier)
-	{
-		JLabel toggle = new JLabel(TIER_ICONS.get(tier));
-		toggle.setOpaque(true);
-		toggle.setHorizontalAlignment(JLabel.CENTER);
-		toggle.setToolTipText(tier.display + " tier (click to show/hide)");
-		toggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		Runnable style = () ->
-		{
-			boolean on = tierEnabled.get(tier);
-			toggle.setBackground(on ? theme.selectFill : theme.recess);
-			// MatteBorder fills strips — a drawRect border halves on Retina
-			toggle.setBorder(new MatteBorder(1, 1, 1, 1, on ? theme.selectEdge : theme.edgeDark));
-		};
-		style.run();
-		toggle.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				tierEnabled.put(tier, !tierEnabled.get(tier));
-				style.run();
-				rebuildContent();
-			}
-		});
-		return toggle;
-	}
-
-	private JComboBox<String> combo(JComboBox<String> box)
-	{
-		StoneComboBoxUI.skin(box, theme);
-		box.addActionListener(e -> rebuildContent());
-		return box;
-	}
-
-	private JPanel filterRow(String label, Component control)
-	{
-		JPanel row = new JPanel(new BorderLayout(UiTokens.ROW_GAP, 0));
-		row.setOpaque(false);
-		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
-		JPanel nameHolder = new JPanel(new BorderLayout());
-		nameHolder.setOpaque(false);
-		nameHolder.setPreferredSize(new Dimension(48, 22));
-		nameHolder.add(new OsrsLabel(label, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned(),
-			BorderLayout.CENTER);
-		row.add(nameHolder, BorderLayout.WEST);
-		row.add(control, BorderLayout.CENTER);
-		return row;
-	}
-
-	private void flipSortDirection()
-	{
-		sortAscending = !sortAscending;
-		sortDirection.setIcon(new PaintedIcon(sortAscending
-			? PaintedIcon.Shape.TRIANGLE_UP : PaintedIcon.Shape.TRIANGLE_DOWN, 10));
+		lastPrint = fingerprint();
+		rebuildHero();
+		rebuildProfile();
 		rebuildContent();
 	}
 
-	// ── content ───────────────────────────────────────────────────────
+	// ── hero ──────────────────────────────────────────────────────────
+
+	/**
+	 * Points between the reward you have and the one you are working toward.
+	 * The thresholds are the game's own CA_THRESHOLD varbits, so a tier that
+	 * has never been seen reads as unknown rather than as zero.
+	 */
+	private void rebuildHero()
+	{
+		int points = module.points();
+		CaTier next = CombatAchievementsModule.nextTier(state);
+		CaTier reached = previousTier(next);
+		int floor = reached == null ? 0 : state.getVarbit(reached.thresholdVarbit);
+		int ceiling = next == null ? Math.max(points, floor)
+			: state.getVarbit(next.thresholdVarbit);
+
+		hero.removeAll();
+		JPanel top = row();
+		top.add(hilt(reached));
+		top.add(Box.createHorizontalGlue());
+		JPanel middle = new JPanel();
+		middle.setLayout(new BoxLayout(middle, BoxLayout.Y_AXIS));
+		middle.setOpaque(false);
+		middle.add(new OsrsLabel("Combat Task Points", OsrsSkin.TITLE, OsrsSkin.font()));
+		middle.add(new OsrsLabel(ceiling > 0
+			? String.format(Locale.ROOT, "%,d / %,d", points, ceiling)
+			: String.format(Locale.ROOT, "%,d", points),
+			OsrsSkin.VALUE, OsrsSkin.boldFont()));
+		top.add(middle);
+		top.add(Box.createHorizontalGlue());
+		top.add(hilt(next));
+		cap(top);
+		hero.add(top);
+
+		hero.add(Box.createVerticalStrut(3));
+		heroBar.setFraction(ceiling > floor ? (double) (points - floor) / (ceiling - floor) : 1);
+		heroBar.setAlignmentX(LEFT_ALIGNMENT);
+		hero.add(heroBar);
+
+		JPanel labels = row();
+		labels.add(new OsrsLabel(reached == null ? "No tier yet" : rewardLabel(reached),
+			OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		labels.add(Box.createHorizontalGlue());
+		labels.add(new OsrsLabel(next == null ? "Every tier complete" : rewardLabel(next),
+			OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		cap(labels);
+		hero.add(labels);
+		cap(hero);
+		hero.revalidate();
+		hero.repaint();
+	}
+
+	/** The tier below the one being worked toward — the reward in hand. */
+	private static CaTier previousTier(CaTier next)
+	{
+		if (next == null)
+		{
+			return CaTier.GRANDMASTER;
+		}
+		int ordinal = next.ordinal();
+		return ordinal == 0 ? null : CaTier.values()[ordinal - 1];
+	}
+
+	private static String rewardLabel(CaTier tier)
+	{
+		return tier.display + " · hilt " + (tier.ordinal() + 1);
+	}
+
+	/** A tier's Ghommal's hilt, the reward it hands over. */
+	private JComponent hilt(CaTier tier)
+	{
+		JLabel icon = new JLabel();
+		if (tier == null)
+		{
+			icon.setPreferredSize(new Dimension(24, 30));
+			icon.setToolTipText("The Easy tier hands over Ghommal's hilt 1");
+			return icon;
+		}
+		Image sprite = OsrsIcons.image(theme, "cahilt/hilt" + (tier.ordinal() + 1));
+		if (sprite != null)
+		{
+			icon.setIcon(new javax.swing.ImageIcon(sprite));
+		}
+		else
+		{
+			icon.setPreferredSize(new Dimension(24, 30));
+		}
+		icon.setToolTipText("Ghommal's hilt " + (tier.ordinal() + 1)
+			+ " — the " + tier.display + " tier reward");
+		return icon;
+	}
+
+	// ── the Combat Profile ────────────────────────────────────────────
+
+	/** The interface's own seven rows, under the player's name. */
+	private void rebuildProfile()
+	{
+		profile.removeAll();
+		String player = state.playerName();
+		profile.add(new OsrsLabel("Combat Profile" + (player == null || player.isEmpty()
+			? "" : " - " + player), OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
+		profile.add(Box.createVerticalStrut(2));
+		List<CaProfile.Row> rows = module.profileRows();
+		if (rows.isEmpty())
+		{
+			profile.add(new OsrsLabel("Log in to read your combat stats",
+				OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+		}
+		for (CaProfile.Row entry : rows)
+		{
+			JPanel line = row();
+			line.add(new OsrsLabel(entry.label, OsrsSkin.MUTED, OsrsSkin.smallFont())
+				.leftAligned().squeezable());
+			line.add(Box.createHorizontalGlue());
+			line.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+			line.add(new OsrsLabel(entry.value, OsrsSkin.BAR_TEXT, OsrsSkin.smallFont()));
+			cap(line);
+			profile.add(line);
+		}
+		cap(profile);
+		profile.revalidate();
+		profile.repaint();
+	}
+
+	// ── the two views ─────────────────────────────────────────────────
 
 	private void rebuildContent()
 	{
@@ -451,296 +326,344 @@ class CombatAchievementsTab extends JPanel
 		{
 			content.add(note("Log in to load your combat tasks."));
 		}
-		else if (views.getSelected() == 2)
+		else if (openTier != null)
 		{
-			if (selectedBoss == null)
-			{
-				buildBossGrid(tasks);
-			}
-			else
-			{
-				buildBossDrilldown(tasks);
-			}
+			tierPage(tasks);
+		}
+		else if (openBoss != null)
+		{
+			bossPage(tasks);
+		}
+		else if (views.getSelected() == 1)
+		{
+			bossGrid(tasks);
 		}
 		else
 		{
-			List<CaTask> visible = filteredSorted(tasks, views.getSelected() == 1, selectedBoss);
-			if (visible.isEmpty())
-			{
-				content.add(note(views.getSelected() == 1
-					? "No CA goals match the filters. The + on any row adds that task to Goals."
-					: "No tasks match the filters."));
-			}
-			addTaskRows(visible);
+			tierGrid(tasks);
 		}
 		content.revalidate();
 		content.repaint();
 	}
 
-	List<CaTask> filteredSorted(List<CaTask> tasks, boolean goalsOnly, String boss)
+	/** The six tiers, two across, each with its fill bar. */
+	private void tierGrid(List<CaTask> tasks)
 	{
-		String term = search.getText().trim();
-		String status = (String) statusFilter.getSelectedItem();
-		String type = (String) typeFilter.getSelectedItem();
-		List<CaTask> visible = new ArrayList<>();
+		Map<CaTier, int[]> counts = tierStats(tasks);
+		List<JComponent> tiles = new ArrayList<>();
+		for (CaTier tier : CaTier.values())
+		{
+			int[] stat = counts.getOrDefault(tier, new int[2]);
+			tiles.add(new CaProgressTile(theme, tierIcon(tier), tier.display,
+				stat[0] + "/" + stat[1], stat[0], stat[1], TIER_WIDTH, TIER_HEIGHT,
+				tier.display + " · " + stat[0] + "/" + stat[1] + " tasks · "
+					+ tier.points + " points each",
+				() ->
+				{
+					openTier = tier;
+					rebuildContent();
+				}));
+		}
+		addGrid(tiles, TIER_COLUMNS);
+	}
+
+	/** The interface's boss grid: three across, in the game's own order. */
+	private void bossGrid(List<CaTask> tasks)
+	{
+		Map<String, int[]> stats = bossStats(tasks);
+		List<CaBoss> bosses = module.bosses();
+		List<JComponent> tiles = new ArrayList<>();
+		if (bosses.isEmpty())
+		{
+			// no cache read yet: fall back to the bosses the tasks name, so
+			// the grid is never empty when we plainly have tasks
+			for (Map.Entry<String, int[]> entry : stats.entrySet())
+			{
+				tiles.add(bossTile(entry.getKey(), 0, -1, entry.getValue()));
+			}
+		}
+		else
+		{
+			for (CaBoss boss : bosses)
+			{
+				int[] stat = stats.getOrDefault(boss.name, new int[2]);
+				tiles.add(bossTile(boss.name, boss.level,
+					CaProfile.killCount(state, module.profilePack(), boss.index), stat));
+			}
+		}
+		if (tiles.isEmpty())
+		{
+			content.add(note("No bosses to show yet."));
+			return;
+		}
+		addGrid(tiles, BOSS_COLUMNS);
+	}
+
+	private JComponent bossTile(String name, int level, int kills, int[] stat)
+	{
+		StringBuilder tip = new StringBuilder(name);
+		tip.append(" · ").append(stat[0]).append('/').append(stat[1]).append(" tasks");
+		if (level > 0)
+		{
+			tip.append(" · combat level ").append(level);
+		}
+		if (kills > 0)
+		{
+			tip.append(" · ").append(CaProfile.count(kills)).append(" kills");
+		}
+		return new CaProgressTile(theme, null, name,
+			level > 0 ? "Level: " + level : "Level: N/A", stat[0], stat[1],
+			BOSS_WIDTH, BOSS_HEIGHT, tip.toString(),
+			() ->
+			{
+				openBoss = name;
+				rebuildContent();
+			});
+	}
+
+	private void addGrid(List<JComponent> tiles, int columns)
+	{
+		for (int i = 0; i < tiles.size(); i += columns)
+		{
+			JPanel line = row();
+			for (int column = 0; column < columns && i + column < tiles.size(); column++)
+			{
+				if (column > 0)
+				{
+					line.add(Box.createHorizontalStrut(GRID_GAP));
+				}
+				line.add(tiles.get(i + column));
+			}
+			line.add(Box.createHorizontalGlue());
+			cap(line);
+			content.add(line);
+			content.add(Box.createVerticalStrut(GRID_GAP));
+		}
+	}
+
+	// ── the pages a tile opens ────────────────────────────────────────
+
+	private void tierPage(List<CaTask> tasks)
+	{
+		List<CaTask> mine = new ArrayList<>();
 		for (CaTask task : tasks)
 		{
-			if (goalsOnly && !isGoal(task))
+			if (task.tier == openTier)
 			{
-				continue;
+				mine.add(task);
 			}
-			if (boss != null && !boss.equals(task.boss))
-			{
-				continue;
-			}
-			if (!tierEnabled.get(task.tier) || !task.matches(term))
-			{
-				continue;
-			}
-			if ("Completed".equals(status) && !task.completed
-				|| "Incomplete".equals(status) && task.completed)
-			{
-				continue;
-			}
-			if (!"All types".equals(type) && !type.equals(task.type))
-			{
-				continue;
-			}
-			visible.add(task);
 		}
-		visible.sort(comparator());
-		return visible;
+		content.add(backRow("Difficulty", () -> openTier = null));
+		content.add(pageHeader(openTier.display, mine,
+			openTier.points + " points per task"));
+		addTaskRows(mine);
 	}
 
-	private Comparator<CaTask> comparator()
+	private void bossPage(List<CaTask> tasks)
 	{
-		String sort = (String) sortFilter.getSelectedItem();
-		Comparator<CaTask> byTierThenName = Comparator
-			.<CaTask>comparingInt(t -> t.tier.ordinal())
-			.thenComparing(t -> t.name);
-		Comparator<CaTask> order;
-		switch (sort == null ? "Tier" : sort)
+		List<CaTask> mine = new ArrayList<>();
+		for (CaTask task : tasks)
 		{
-			case "Name":
-				order = Comparator.comparing(t -> t.name);
-				break;
-			case "Completion":
-				order = Comparator.<CaTask, Boolean>comparing(t -> t.completed)
-					.thenComparing(byTierThenName);
-				break;
-			case "Community %":
-				// most-completed-by-the-community first when "ascending":
-				// that ordering is the useful "easiest next" reading
-				order = Comparator.comparingDouble(
-					(CaTask t) -> t.communityPct == null ? -1 : t.communityPct).reversed();
-				break;
-			default:
-				order = byTierThenName;
+			if (openBoss.equals(task.boss))
+			{
+				mine.add(task);
+			}
 		}
-		return sortAscending ? order : order.reversed();
+		content.add(backRow("Bosses", () -> openBoss = null));
+		CaBoss boss = bossByName(openBoss);
+		StringBuilder sub = new StringBuilder();
+		if (boss != null && boss.level > 0)
+		{
+			sub.append("Combat level ").append(boss.level);
+		}
+		int kills = boss == null ? -1
+			: CaProfile.killCount(state, module.profilePack(), boss.index);
+		if (kills >= 0)
+		{
+			if (sub.length() > 0)
+			{
+				sub.append(" · ");
+			}
+			sub.append(CaProfile.count(kills)).append(" kills");
+		}
+		content.add(pageHeader(openBoss, mine, sub.toString()));
+		addTaskRows(mine);
 	}
 
-	// ── task rows ─────────────────────────────────────────────────────
-
-	/** Collapsed = flat hoverable row; expanded = stone card. Row click
-	 *  toggles; the +/× tracking affordance keeps its own action. */
-	private JPanel taskRow(CaTask task)
+	/** Name, "Tasks Completed: n/N" in the game's colour scale, and a line
+	 *  of context beneath. */
+	private JComponent pageHeader(String name, List<CaTask> tasks, String sub)
 	{
-		boolean goal = isGoal(task);
-		boolean open = expanded.contains(task.id);
+		int done = (int) tasks.stream().filter(t -> t.completed).count();
+		StonePanel card = new StonePanel(theme);
+		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+		card.setAlignmentX(LEFT_ALIGNMENT);
+		OsrsLabel title = new OsrsLabel(name, OsrsSkin.TITLE, OsrsSkin.boldFont())
+			.leftAligned().squeezable();
+		title.setToolTipText(name);
+		card.add(title);
+		Color colour = tasks.isEmpty() || done == 0 ? OsrsSkin.FAINT
+			: done >= tasks.size() ? OsrsSkin.VALUE : OsrsSkin.TITLE;
+		card.add(new OsrsLabel("Tasks Completed: " + done + "/" + tasks.size(),
+			colour, OsrsSkin.font()).leftAligned());
+		if (sub != null && !sub.isEmpty())
+		{
+			card.add(new OsrsLabel(sub, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+		}
+		cap(card);
+		return card;
+	}
 
-		JPanel row;
-		if (open)
-		{
-			row = new StonePanel(theme);
-		}
-		else
-		{
-			row = new JPanel();
-			row.setOpaque(true);
-			row.setBackground(theme.background);
-			row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP));
-		}
-		row.setLayout(new BoxLayout(row, BoxLayout.Y_AXIS));
-		row.setAlignmentX(LEFT_ALIGNMENT);
+	private JComponent backRow(String target, Runnable close)
+	{
+		JPanel row = row();
+		row.setBorder(new EmptyBorder(0, UiTokens.ROW_GAP, 3, UiTokens.ROW_GAP));
+		JLabel arrow = new JLabel(new PaintedIcon(PaintedIcon.Shape.CHEVRON_LEFT, 10));
+		arrow.setForeground(OsrsSkin.MUTED);
+		row.add(arrow);
+		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		row.add(new OsrsLabel(target, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+		row.add(Box.createHorizontalGlue());
 		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-		row.add(titleLine(task, goal));
-
-		String context = task.boss.isEmpty() ? task.type
-			: task.type.isEmpty() ? task.boss : task.boss + " · " + task.type;
-		if (!context.isEmpty())
+		cap(row);
+		clickAnywhere(row, new MouseAdapter()
 		{
-			row.add(new OsrsLabel(context, OsrsSkin.FAINT, OsrsSkin.font())
-				.leftAligned().squeezable());
-		}
-
-		if (open)
-		{
-			OsrsLabel description = OsrsLabel.wrapped(task.description, CARD_TEXT_WIDTH,
-				OsrsSkin.MUTED, OsrsSkin.font()).leftAligned();
-			row.add(description);
-
-			String pct = task.communityPct == null ? "unknown"
-				: String.format("%.1f%% of players", task.communityPct);
-			OsrsLabel details = new OsrsLabel(task.tier.display + " · "
-				+ task.tier.points + (task.tier.points == 1 ? " pt" : " pts") + " · " + pct,
-				OsrsSkin.FAINT, OsrsSkin.font()).leftAligned().squeezable();
-			details.setToolTipText("Community completion rate from the wiki's task table (bundled snapshot)");
-			row.add(details);
-		}
-		else
-		{
-			OsrsLabel description = new OsrsLabel(task.description, OsrsSkin.MUTED, OsrsSkin.font())
-				.leftAligned().squeezable();
-			description.setToolTipText(task.description);
-			row.add(description);
-		}
-
-		MouseAdapter interaction = new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				if (!open)
-				{
-					row.setBackground(theme.hoverFill);
-				}
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				if (!open)
-				{
-					row.setBackground(theme.background);
-				}
-			}
-
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
-				if (e.isPopupTrigger())
-				{
-					taskMenu(task, e);
-				}
-				else if (SwingUtilities.isLeftMouseButton(e))
-				{
-					if (!expanded.remove(task.id))
-					{
-						expanded.add(task.id);
-					}
-					rebuildContent();
-				}
+				close.run();
+				rebuildContent();
 			}
-
-			@Override
-			public void mouseReleased(MouseEvent e)
-			{
-				if (e.isPopupTrigger())
-				{
-					taskMenu(task, e);
-				}
-			}
-		};
-		clickAnywhere(row, interaction);
-
-		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+		});
 		return row;
 	}
 
-	/** Tier icon + name + the dedicated +/× planner affordance. */
-	private JPanel titleLine(CaTask task, boolean goal)
+	/** Every achievement under the open tile: tier icon, name, description. */
+	private void addTaskRows(List<CaTask> tasks)
 	{
-		JPanel titleLine = new JPanel();
-		titleLine.setLayout(new BoxLayout(titleLine, BoxLayout.X_AXIS));
-		titleLine.setOpaque(false);
-		titleLine.setAlignmentX(LEFT_ALIGNMENT);
-		JLabel icon = new JLabel(TIER_ICONS.get(task.tier));
-		icon.setToolTipText(task.tier.display + " · " + task.tier.points
-			+ (task.tier.points == 1 ? " pt" : " pts"));
-		titleLine.add(icon);
-		titleLine.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		OsrsLabel name = new OsrsLabel(task.name,
-			task.completed ? OsrsSkin.VALUE : goal ? OsrsSkin.TITLE : OsrsSkin.MUTED,
-			OsrsSkin.boldFont()).leftAligned().squeezable();
-		name.setToolTipText(task.name + (goal ? " - in your Goals" : ""));
-		titleLine.add(name);
-		titleLine.add(Box.createHorizontalGlue());
-		titleLine.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		if (tasks.isEmpty())
+		{
+			content.add(note("No combat tasks here yet."));
+			return;
+		}
+		List<CaTask> sorted = new ArrayList<>(tasks);
+		sorted.sort(Comparator.<CaTask>comparingInt(t -> t.tier.ordinal())
+			.thenComparing(t -> t.name));
+		int limit = Math.min(MAX_TASKS, sorted.size());
+		for (int i = 0; i < limit; i++)
+		{
+			content.add(taskRow(sorted.get(i)));
+		}
+		if (limit < sorted.size())
+		{
+			content.add(note("+ " + (sorted.size() - limit)
+				+ " more — the task list below searches them all"));
+		}
+	}
 
-		OsrsLabel track = new OsrsLabel(goal ? "×" : "+", OsrsSkin.FAINT, OsrsSkin.boldFont());
-		track.setToolTipText(goal ? "Remove this task from Goals"
-			: "Add this task as a goal in Goals");
-		track.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		track.putClientProperty(OWN_ACTION, Boolean.TRUE);
-		track.addMouseListener(new MouseAdapter()
+	private JComponent taskRow(CaTask task)
+	{
+		JPanel card = new JPanel();
+		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+		card.setOpaque(true);
+		card.setBackground(theme.background);
+		card.setAlignmentX(LEFT_ALIGNMENT);
+		card.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 3, UiTokens.ROW_GAP));
+
+		JPanel head = row();
+		Image icon = tierIcon(task.tier);
+		if (icon != null)
+		{
+			JLabel holder = new JLabel(new javax.swing.ImageIcon(icon));
+			holder.setToolTipText(task.tier.display);
+			head.add(holder);
+			head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		}
+		OsrsLabel name = new OsrsLabel(task.name,
+			task.completed ? OsrsSkin.VALUE : OsrsSkin.TITLE, OsrsSkin.boldFont())
+			.leftAligned().squeezable();
+		name.setToolTipText(task.name + " · " + task.tier.display + " · " + task.type);
+		head.add(name);
+		head.add(Box.createHorizontalGlue());
+		cap(head);
+		card.add(head);
+		card.add(OsrsLabel.wrapped(task.description, WRAP,
+			task.completed ? OsrsSkin.FAINT : OsrsSkin.MUTED, OsrsSkin.smallFont())
+			.leftAligned());
+
+		card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		card.setToolTipText("Open the wiki page for " + task.name);
+		clickAnywhere(card, new MouseAdapter()
 		{
 			@Override
 			public void mouseEntered(MouseEvent e)
 			{
-				track.setColor(OsrsSkin.LABEL);
+				card.setBackground(theme.hoverFill);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent e)
 			{
-				track.setColor(OsrsSkin.FAINT);
+				card.setBackground(theme.background);
 			}
 
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
-				toggleGoal(task);
+				LinkBrowser.browse(task.wikiUrl());
 			}
 		});
-		titleLine.add(track);
-		return titleLine;
+		cap(card);
+		return card;
 	}
 
-	/** The '+' action: the task joins the Goal planner as a "ca:" goal. */
-	private void toggleGoal(CaTask task)
+	// ── the task browser, folded away at the foot ─────────────────────
+
+	private JComponent browserHeader()
 	{
-		if (isGoal(task))
+		StonePanel plate = new StonePanel(theme);
+		plate.setLayout(new BoxLayout(plate, BoxLayout.X_AXIS));
+		plate.add(browserTriangle);
+		plate.add(Box.createHorizontalGlue());
+		plate.add(new OsrsLabel("All tasks", OsrsSkin.TITLE, OsrsSkin.boldFont()));
+		plate.add(Box.createHorizontalGlue());
+		plate.add(Box.createHorizontalStrut(10));
+		plate.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		plate.setToolTipText("Search, filter and track every combat task");
+		plate.addMouseListener(new MouseAdapter()
 		{
-			state.removeGoalSeed("ca:" + task.id);
-		}
-		else
-		{
-			state.addGoalSeed(com.ironhub.state.GoalSeeds.ca(task.id, task.name, task.description, task.tier.display));
-			if (task.completed)
+			@Override
+			public void mousePressed(MouseEvent e)
 			{
-				// already done in-game: prove the goal immediately
-				state.setUnlocked("catask_" + task.id, true);
+				toggleBrowser();
 			}
-		}
+		});
+		JPanel holder = new JPanel();
+		holder.setLayout(new BoxLayout(holder, BoxLayout.X_AXIS));
+		holder.setOpaque(false);
+		holder.setAlignmentX(LEFT_ALIGNMENT);
+		holder.add(plate);
+		cap(holder);
+		return holder;
 	}
 
-	private void taskMenu(CaTask task, MouseEvent e)
+	private void toggleBrowser()
 	{
-		JPopupMenu menu = new JPopupMenu();
-		JMenuItem wiki = new JMenuItem("Open wiki page");
-		wiki.addActionListener(a -> LinkBrowser.browse(task.wikiUrl()));
-		menu.add(wiki);
-		JMenuItem trackItem = new JMenuItem(isGoal(task)
-			? "Remove from Goals" : "Add as goal in Goals");
-		trackItem.addActionListener(a -> toggleGoal(task));
-		menu.add(trackItem);
-		if (!task.boss.isEmpty())
+		browserExpanded = !browserExpanded;
+		browserTriangle.setIcon(new PaintedIcon(browserExpanded
+			? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+		browserSlot.removeAll();
+		if (browserExpanded)
 		{
-			JMenuItem bossItem = new JMenuItem("Show all " + task.boss + " tasks");
-			bossItem.addActionListener(a ->
-			{
-				views.setSelected(2);
-				selectedBoss = task.boss;
-				rebuildContent();
-			});
-			menu.add(bossItem);
+			browserSlot.add(browser);
 		}
-		menu.show(e.getComponent(), e.getX(), e.getY());
+		browserSlot.revalidate();
+		browserSlot.repaint();
+		revalidate();
+		repaint();
 	}
 
-	// ── boss views ────────────────────────────────────────────────────
+	// ── stats ─────────────────────────────────────────────────────────
 
 	/** Boss → [completed, total], insertion-ordered by boss name. */
 	static Map<String, int[]> bossStats(List<CaTask> tasks)
@@ -764,334 +687,115 @@ class CombatAchievementsTab extends JPanel
 		return stats;
 	}
 
-	private void buildBossGrid(List<CaTask> tasks)
+	/** Tier → [completed, total] over the loaded catalog. */
+	static Map<CaTier, int[]> tierStats(List<CaTask> tasks)
 	{
-		// the boss grid respects search + tier/status/type filters: a boss
-		// shows while any of its tasks would show in the All view
-		List<CaTask> visible = filteredSorted(tasks, false, null);
-		Map<String, int[]> stats = bossStats(visible);
-		Map<String, int[]> totals = bossStats(tasks);
-		if (stats.isEmpty())
+		Map<CaTier, int[]> stats = new java.util.EnumMap<>(CaTier.class);
+		for (CaTask task : tasks)
 		{
-			content.add(note("No bosses match the filters."));
-			return;
-		}
-		long complete = totals.values().stream().filter(c -> c[0] == c[1]).count();
-		JPanel summary = new JPanel();
-		summary.setLayout(new BoxLayout(summary, BoxLayout.X_AXIS));
-		summary.setOpaque(false);
-		summary.setAlignmentX(LEFT_ALIGNMENT);
-		summary.setBorder(new EmptyBorder(0, 0, UiTokens.PAD_TIGHT, 0));
-		summary.add(new OsrsLabel(complete + "/" + totals.size() + " bosses fully complete",
-			OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
-		summary.add(Box.createHorizontalGlue());
-		cap(summary);
-		content.add(summary);
-
-		List<String> bosses = new ArrayList<>(stats.keySet());
-		for (int i = 0; i < bosses.size(); i += 2)
-		{
-			JPanel gridRow = new JPanel(new GridLayout(1, 2, UiTokens.PAD_TIGHT, 0));
-			gridRow.setOpaque(false);
-			gridRow.setAlignmentX(LEFT_ALIGNMENT);
-			gridRow.add(bossCard(bosses.get(i), totals.get(bosses.get(i))));
-			if (i + 1 < bosses.size())
+			int[] counts = stats.computeIfAbsent(task.tier, k -> new int[2]);
+			counts[1]++;
+			if (task.completed)
 			{
-				gridRow.add(bossCard(bosses.get(i + 1), totals.get(bosses.get(i + 1))));
+				counts[0]++;
 			}
-			else
-			{
-				JPanel spacer = new JPanel();
-				spacer.setOpaque(false);
-				gridRow.add(spacer);
-			}
-			gridRow.setMaximumSize(new Dimension(Integer.MAX_VALUE,
-				gridRow.getPreferredSize().height));
-			content.add(gridRow);
-			content.add(strut(UiTokens.PAD_TIGHT));
 		}
+		return stats;
 	}
 
-	/** A boss as a stone tile: engraved box, hover fill, click drills in. */
-	private JPanel bossCard(String boss, int[] counts)
+	private CaBoss bossByName(String name)
 	{
-		StonePanel card = new StonePanel(theme);
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		card.setToolTipText(boss + ": " + counts[0] + "/" + counts[1] + " tasks done");
-
-		OsrsLabel name = new OsrsLabel(boss,
-			counts[0] == counts[1] ? OsrsSkin.VALUE : OsrsSkin.MUTED, OsrsSkin.boldFont())
-			.leftAligned().squeezable();
-		card.add(name);
-		card.add(new OsrsLabel(counts[0] + "/" + counts[1], OsrsSkin.FAINT, OsrsSkin.font())
-			.leftAligned());
-		card.add(strut(UiTokens.PAD_TIGHT));
-		StoneMeter meter = new StoneMeter(theme, OsrsSkin.PROGRESS_BLUE,
-			(double) counts[0] / Math.max(1, counts[1]));
-		meter.setAlignmentX(LEFT_ALIGNMENT);
-		card.add(meter);
-
-		MouseAdapter interaction = new MouseAdapter()
+		for (CaBoss boss : module.bosses())
 		{
-			@Override
-			public void mouseEntered(MouseEvent e)
+			if (boss.name.equals(name))
 			{
-				card.setBackground(theme.hoverFill);
+				return boss;
 			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				card.setBackground(theme.boxFill);
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				if (e.isPopupTrigger())
-				{
-					bossMenu(boss, e);
-				}
-				else if (SwingUtilities.isLeftMouseButton(e))
-				{
-					selectedBoss = boss;
-					rebuildContent();
-				}
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e)
-			{
-				if (e.isPopupTrigger())
-				{
-					bossMenu(boss, e);
-				}
-			}
-		};
-		clickAnywhere(card, interaction);
-		return card;
-	}
-
-	private void bossMenu(String boss, MouseEvent e)
-	{
-		JPopupMenu menu = new JPopupMenu();
-		JMenuItem wiki = new JMenuItem("Open wiki page");
-		wiki.addActionListener(a -> LinkBrowser.browse(
-			"https://oldschool.runescape.wiki/w/" + boss.replace(" ", "_").replace("'", "%27")));
-		menu.add(wiki);
-		menu.show(e.getComponent(), e.getX(), e.getY());
-	}
-
-	private void buildBossDrilldown(List<CaTask> tasks)
-	{
-		JPanel header = new JPanel();
-		header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
-		header.setOpaque(false);
-		header.setAlignmentX(LEFT_ALIGNMENT);
-		StoneButton back = new StoneButton(theme, theme.background, "Back", () ->
-		{
-			selectedBoss = null;
-			rebuildContent();
-		});
-		back.setToolTipText("Back to all bosses");
-		back.setMaximumSize(back.getPreferredSize());
-		header.add(back);
-		header.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		header.add(new OsrsLabel(selectedBoss, OsrsSkin.TITLE, OsrsSkin.boldFont())
-			.leftAligned().squeezable());
-		header.add(Box.createHorizontalGlue());
-		cap(header);
-		content.add(header);
-		content.add(strut(UiTokens.PAD_TIGHT));
-
-		List<CaTask> visible = filteredSorted(tasks, false, selectedBoss);
-		if (visible.isEmpty())
-		{
-			content.add(note("No " + selectedBoss + " tasks match the filters."));
 		}
-		addTaskRows(visible);
+		return null;
 	}
 
-	/** Hard row ceiling (the Bank tab's grammar, Luke 2026-07-17): the full
-	 *  catalog is ~500+ tasks and rendering it per rebuild was a measured
-	 *  freeze contributor — cap and say so, never render hundreds of rows. */
-	private static final int MAX_ROWS = 50;
-
-	private void addTaskRows(List<CaTask> visible)
+	private static Image tierIcon(CaTier tier)
 	{
-		int limit = Math.min(MAX_ROWS, visible.size());
-		for (int i = 0; i < limit; i++)
+		javax.swing.ImageIcon icon = CaTaskBrowser.tierIcon(tier);
+		return icon == null ? null : icon.getImage();
+	}
+
+	// ── test seams ────────────────────────────────────────────────────
+
+	void showBossesForTest()
+	{
+		views.setSelected(1);
+		openTier = null;
+		openBoss = null;
+		rebuildContent();
+	}
+
+	void drillForTest(String boss)
+	{
+		views.setSelected(1);
+		openBoss = boss;
+		openTier = null;
+		rebuildContent();
+	}
+
+	void openTierForTest(CaTier tier)
+	{
+		views.setSelected(0);
+		openTier = tier;
+		openBoss = null;
+		rebuildContent();
+	}
+
+	void expandBrowserForTest()
+	{
+		if (!browserExpanded)
 		{
-			content.add(taskRow(visible.get(i)));
-			content.add(strut(UiTokens.PAD_TIGHT));
-		}
-		if (limit < visible.size())
-		{
-			content.add(note("+ " + (visible.size() - limit)
-				+ " more — refine your search or filters"));
+			toggleBrowser();
 		}
 	}
 
-	private static Map<CaTier, ImageIcon> loadTierIcons()
+	CaTaskBrowser browserForTest()
 	{
-		Map<CaTier, ImageIcon> icons = new EnumMap<>(CaTier.class);
-		for (CaTier tier : CaTier.values())
-		{
-			try (java.io.InputStream in =
-				CombatAchievementsTab.class.getResourceAsStream(tier.iconResource()))
-			{
-				if (in != null)
-				{
-					icons.put(tier, new ImageIcon(ImageIO.read(in)
-						.getScaledInstance(-1, 16, Image.SCALE_SMOOTH)));
-				}
-			}
-			catch (java.io.IOException ignored)
-			{
-			}
-		}
-		return icons;
+		return browser;
 	}
 
-	// ── layout helpers (the DailiesNewTab/FarmingTab grammar) ─────────
+	// ── layout helpers ────────────────────────────────────────────────
 
-	/** Attach a click to a container AND its passive children — labels with
-	 * tooltips register their own listeners and would swallow clicks. Skips
-	 * anything marked as carrying its own action. */
-	private static void clickAnywhere(JComponent container, MouseAdapter click)
-	{
-		container.addMouseListener(click);
-		for (Component child : container.getComponents())
-		{
-			if (child instanceof JComponent
-				&& Boolean.TRUE.equals(((JComponent) child).getClientProperty(OWN_ACTION)))
-			{
-				continue;
-			}
-			if (child instanceof JPanel)
-			{
-				clickAnywhere((JComponent) child, click);
-			}
-			else
-			{
-				child.addMouseListener(click);
-			}
-		}
-	}
-
-	private JComponent section(String text)
+	private static JPanel row()
 	{
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setBorder(new EmptyBorder(8, 4, 3, 4));
-		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font()));
-		row.add(Box.createHorizontalGlue());
-		cap(row);
 		return row;
 	}
 
-	private static JLabel triangle()
+	private static JComponent note(String text)
 	{
-		JLabel label = new JLabel(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
-		label.setForeground(OsrsSkin.MUTED);
-		return label;
-	}
-
-	/** Collapsible section header: triangle + skin label, whole row toggles. */
-	private JComponent collapsibleHeader(JLabel triangleLabel, String title, String tooltip,
-		Runnable onToggle)
-	{
-		JPanel header = new JPanel();
-		header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
-		header.setOpaque(false);
-		header.setAlignmentX(LEFT_ALIGNMENT);
-		header.setBorder(new EmptyBorder(8, 4, 3, 4));
-		header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		OsrsLabel label = new OsrsLabel(title, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned();
-		header.add(triangleLabel);
-		header.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		header.add(label);
-		header.add(Box.createHorizontalGlue());
-		cap(header);
-		MouseAdapter press = new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				onToggle.run();
-			}
-		};
-		header.addMouseListener(press);
-		// a tooltip registers the label's own mouse listeners, which would
-		// swallow the row's — so the children carry the press listener too
-		header.setToolTipText(tooltip);
-		label.setToolTipText(tooltip);
-		label.addMouseListener(press);
-		triangleLabel.addMouseListener(press);
-		return header;
-	}
-
-	/** A small hoverable glyph control — faint until hovered. */
-	private static JLabel glyph(javax.swing.Icon icon, String tooltip, Runnable onPress)
-	{
-		JLabel label = new JLabel(icon);
-		label.setForeground(OsrsSkin.FAINT);
-		label.setToolTipText(tooltip);
-		label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		label.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				label.setForeground(OsrsSkin.LABEL);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				label.setForeground(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				onPress.run();
-			}
-		});
-		return label;
-	}
-
-	/** Wrapped muted note — never html (the pixel font disagrees with it). */
-	private JComponent note(String text)
-	{
-		JPanel holder = new JPanel();
-		holder.setLayout(new BoxLayout(holder, BoxLayout.X_AXIS));
-		holder.setOpaque(false);
-		holder.setAlignmentX(LEFT_ALIGNMENT);
-		holder.setBorder(new EmptyBorder(6, 0, 6, 0));
-		holder.add(OsrsLabel.wrapped(text, NOTE_WIDTH, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+		JPanel holder = row();
+		holder.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP));
+		holder.add(OsrsLabel.wrapped(text, WRAP, OsrsSkin.MUTED, OsrsSkin.smallFont())
+			.leftAligned());
 		holder.add(Box.createHorizontalGlue());
 		cap(holder);
 		return holder;
 	}
 
-	private JComponent pad(JComponent inner)
+	private static void clickAnywhere(JComponent container, MouseAdapter click)
 	{
-		JPanel holder = new JPanel(new BorderLayout());
-		holder.setOpaque(false);
-		holder.setAlignmentX(LEFT_ALIGNMENT);
-		holder.setBorder(new EmptyBorder(0, 4, 0, 4));
-		holder.add(inner);
-		cap(holder);
-		return holder;
-	}
-
-	private JComponent strut(int height)
-	{
-		return (JComponent) Box.createVerticalStrut(height);
+		container.addMouseListener(click);
+		for (java.awt.Component child : container.getComponents())
+		{
+			child.addMouseListener(click);
+			if (child instanceof JComponent)
+			{
+				for (java.awt.Component inner : ((JComponent) child).getComponents())
+				{
+					inner.addMouseListener(click);
+				}
+			}
+		}
 	}
 
 	private static void cap(JComponent c)

@@ -33,6 +33,14 @@ final class CaCatalog
 	static final int PARAM_BOSS = 1312;
 	/** Boss id → display name enum (game cache). */
 	static final int BOSS_NAMES_ENUM = 3971;
+	/** Boss id → category: 1 boss, 2 skilling boss, 3 raid (the profile's
+	 *  "Top X" scan filters on this). */
+	static final int BOSS_CATEGORY_ENUM = 3972;
+	/** The grid's own order: key → a boss struct ([proc,ca_bosses_draw_list]). */
+	static final int BOSS_GRID_ENUM = 3987;
+	static final int PARAM_BOSS_NAME = 1313;
+	static final int PARAM_BOSS_LEVEL = 1314;
+	static final int PARAM_BOSS_INDEX = 1315;
 
 	static final Map<Integer, String> TYPES = Map.of(
 		1, "Stamina",
@@ -114,6 +122,51 @@ final class CaCatalog
 			log.warn("CA catalog loaded only {} tasks - cache layout may have changed", tasks.size());
 		}
 		return tasks;
+	}
+
+	/**
+	 * The interface's own boss grid, in its own order: enum 3987 lists a
+	 * struct per boss carrying its name (param 1313), combat level
+	 * (param 1314, 0 = none) and the boss index tasks are tagged with
+	 * (param 1315 — the same value a task's param 1312 holds). The
+	 * category (boss / skilling boss / raid) is enum 3972, which is what
+	 * the profile's "Top Boss" scan filters on.
+	 *
+	 * <p>Client thread only; empty on cache-layout drift.
+	 */
+	static List<CaBoss> loadBosses(Client client)
+	{
+		EnumComposition grid = client.getEnum(BOSS_GRID_ENUM);
+		if (grid == null)
+		{
+			return List.of();
+		}
+		EnumComposition categories = client.getEnum(BOSS_CATEGORY_ENUM);
+		List<CaBoss> bosses = new ArrayList<>();
+		int[] keys = grid.getKeys();
+		java.util.Arrays.sort(keys);
+		for (int key : keys)
+		{
+			StructComposition struct = client.getStructComposition(grid.getIntValue(key));
+			if (struct == null)
+			{
+				continue;
+			}
+			String name = struct.getStringValue(PARAM_BOSS_NAME);
+			int index = struct.getIntValue(PARAM_BOSS_INDEX);
+			if (name == null || name.isEmpty() || index <= 0)
+			{
+				continue;
+			}
+			bosses.add(new CaBoss(index, name, struct.getIntValue(PARAM_BOSS_LEVEL),
+				categories == null ? 0 : categories.getIntValue(index)));
+		}
+		if (bosses.isEmpty())
+		{
+			log.warn("CA boss grid enum {} read empty - cache layout may have changed",
+				BOSS_GRID_ENUM);
+		}
+		return bosses;
 	}
 
 	private static String bossName(EnumComposition bossNames, int bossId)
