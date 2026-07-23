@@ -47,6 +47,48 @@ public class IronHubPanel extends PluginPanel
 	 * The classic Dailies tab left the nav — its module keeps the brain
 	 * (detection, runs, overlays) that Dailies (New) renders.
 	 */
+	/**
+	 * One tile of a tiled hub page: an emblem, a caption that fits a 52px
+	 * tile, and the module tabs it leads to (more than one = a chip row
+	 * picks between them, which is how PoH and Sailing upgrades share a
+	 * tile — Luke, 2026-07-24: eight tiles, 4x2).
+	 */
+	static final class Section
+	{
+		final String caption;
+		final String icon;
+		final List<String> modules;
+
+		Section(String caption, String icon, String... modules)
+		{
+			this.caption = caption;
+			this.icon = icon;
+			this.modules = List.of(modules);
+		}
+
+		String tooltip()
+		{
+			return String.join(" · ", modules);
+		}
+	}
+
+	/**
+	 * Hub name → its tile grid, replacing the stack of collapsible name
+	 * plates. Progression's nine modules read as nine disconnected pages
+	 * stacked in one scroll; as eight tiles they read as one section with
+	 * eight rooms (Luke's brief).
+	 */
+	static final Map<String, List<Section>> TILED = Map.of(
+		"Progression", List.of(
+			new Section("Log", "collection_log", "Collection log"),
+			new Section("Combat", "combat_tasks", "Combat achievements"),
+			new Section("Gear", "gear", "Gear progression"),
+			new Section("Build", "build", "PoH", "Sailing upgrades"),
+			new Section("Diaries", "diaries", "Achievement diaries"),
+			new Section("Quests", "quests", "Quests"),
+			new Section("Clues", "clues", "Clues & STASH"),
+			new Section("QoL", "qol", "QoL checklist")));
+
 	private static final Map<String, List<String>> BLOCKS = Map.of(
 		"Goals", List.of("Goals"),
 		"Gear & Combat", List.of("Gear & Combat", "Slayer", "Loot & supplies"),
@@ -63,6 +105,15 @@ public class IronHubPanel extends PluginPanel
 	private final Map<String, Map<String, JPanel>> hubSlots = new HashMap<>();
 	private final Map<String, Map<String, JLabel>> hubTriangles = new HashMap<>();
 	private final Map<String, JComponent> hubPages = new HashMap<>();
+	/** Tiled hubs: the section grid's tiles, and the head that names the
+	 *  open section (a plate, or a chip row for a two-module section). */
+	private final Map<String, List<com.ironhub.ui.osrs.StoneHubTile>> hubTiles = new HashMap<>();
+	private final Map<String, JPanel> hubHeads = new HashMap<>();
+	/** Grid geometry: four 52px tiles plus three 3px gaps fill the 225px
+	 *  panel's 217px of content. */
+	private static final int TILE_COLUMNS = 4;
+	private static final int TILE_GAP = 3;
+	private static final int TILE_PAD = 4;
 	/**
 	 * Hub name → the modules whose tabs are built and shown (Luke,
 	 * 2026-07-17: sections are collapsible and EXCLUSIVE — building a
@@ -133,6 +184,8 @@ public class IronHubPanel extends PluginPanel
 			hubPages.clear();
 			hubSlots.clear();
 			hubTriangles.clear();
+			hubTiles.clear();
+			hubHeads.clear();
 			// expandedModules survives: the rebuilt page reopens where the
 			// player was
 			mountHome();
@@ -187,6 +240,15 @@ public class IronHubPanel extends PluginPanel
 	{
 		java.util.LinkedHashSet<String> open =
 			expandedModules.computeIfAbsent(hub, k -> new java.util.LinkedHashSet<>());
+		if (TILED.containsKey(hub))
+		{
+			// a tile grid selects, never collapses — there is no plate to
+			// close and an empty page under a grid reads as broken
+			open.clear();
+			open.add(module);
+			refreshHub(hub);
+			return;
+		}
 		if (open.contains(module))
 		{
 			open.remove(module);
@@ -209,6 +271,10 @@ public class IronHubPanel extends PluginPanel
 	 *  by default so a hub never lands empty. */
 	private JComponent hubPage(String name)
 	{
+		if (TILED.containsKey(name))
+		{
+			return tiledPage(name);
+		}
 		JPanel stack = new JPanel();
 		stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
 		stack.setOpaque(false);
@@ -227,6 +293,185 @@ public class IronHubPanel extends PluginPanel
 		expandedModules.putIfAbsent(name,
 			new java.util.LinkedHashSet<>(List.of(BLOCKS.get(name).get(0))));
 		return stack;
+	}
+
+	/**
+	 * A tiled hub page: the section grid, the selected section's name (a
+	 * plate, or a chip row when the section holds more than one module —
+	 * both name the tab below, which carries no title of its own), and one
+	 * shared slot holding the selected module's tab.
+	 */
+	private JComponent tiledPage(String hub)
+	{
+		List<Section> sections = TILED.get(hub);
+		expandedModules.putIfAbsent(hub,
+			new java.util.LinkedHashSet<>(List.of(sections.get(0).modules.get(0))));
+
+		JPanel stack = new JPanel();
+		stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
+		stack.setOpaque(false);
+
+		List<com.ironhub.ui.osrs.StoneHubTile> tiles = new java.util.ArrayList<>();
+		JPanel grid = new JPanel();
+		grid.setLayout(new BoxLayout(grid, BoxLayout.Y_AXIS));
+		grid.setOpaque(false);
+		grid.setAlignmentX(Component.LEFT_ALIGNMENT);
+		grid.setBorder(new javax.swing.border.EmptyBorder(0, TILE_PAD, 0, TILE_PAD));
+		for (int i = 0; i < sections.size(); i += TILE_COLUMNS)
+		{
+			JPanel line = new JPanel();
+			line.setLayout(new BoxLayout(line, BoxLayout.X_AXIS));
+			line.setOpaque(false);
+			line.setAlignmentX(Component.LEFT_ALIGNMENT);
+			for (int col = 0; col < TILE_COLUMNS && i + col < sections.size(); col++)
+			{
+				Section section = sections.get(i + col);
+				if (col > 0)
+				{
+					line.add(Box.createHorizontalStrut(TILE_GAP));
+				}
+				com.ironhub.ui.osrs.StoneHubTile tile = new com.ironhub.ui.osrs.StoneHubTile(
+					config.osrsTheme(),
+					com.ironhub.ui.osrs.OsrsIcons.hubTile(config.osrsTheme(), section.icon),
+					section.caption, section.tooltip(), false,
+					() -> selectSection(hub, section));
+				tiles.add(tile);
+				line.add(tile);
+			}
+			line.add(Box.createHorizontalGlue());
+			line.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE,
+				com.ironhub.ui.osrs.StoneHubTile.HEIGHT));
+			grid.add(line);
+			grid.add(Box.createVerticalStrut(TILE_GAP));
+		}
+		stack.add(grid);
+		hubTiles.put(hub, tiles);
+
+		JPanel head = new JPanel(new BorderLayout());
+		head.setOpaque(false);
+		head.setAlignmentX(Component.LEFT_ALIGNMENT);
+		stack.add(head);
+		hubHeads.put(hub, head);
+
+		JPanel slot = slot();
+		stack.add(slot);
+		stack.add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
+		// every module shares the one slot: only the selected section's tab
+		// is mounted, so there is nothing for the others to hold
+		Map<String, JPanel> slots = new HashMap<>();
+		for (String module : BLOCKS.get(hub))
+		{
+			slots.put(module, slot);
+		}
+		hubSlots.put(hub, slots);
+		hubTriangles.put(hub, new HashMap<>());
+		return stack;
+	}
+
+	/** A tile was pressed: show that section, keeping the module the player
+	 *  last read inside it (the two-module section remembers its chip). */
+	private void selectSection(String hub, Section section)
+	{
+		java.util.LinkedHashSet<String> open =
+			expandedModules.computeIfAbsent(hub, k -> new java.util.LinkedHashSet<>());
+		if (section.modules.stream().anyMatch(open::contains))
+		{
+			return; // already the open section — tiles never collapse to nothing
+		}
+		open.clear();
+		open.add(section.modules.get(0));
+		refreshHub(hub);
+	}
+
+	/** The section a tiled hub is showing, or its first. */
+	private Section openSection(String hub)
+	{
+		java.util.Set<String> open = expandedModules.getOrDefault(hub, new java.util.LinkedHashSet<>());
+		for (Section section : TILED.get(hub))
+		{
+			if (section.modules.stream().anyMatch(open::contains))
+			{
+				return section;
+			}
+		}
+		return TILED.get(hub).get(0);
+	}
+
+	/** Restyle the tiles and refill the section head for a tiled hub. */
+	private void refreshTiles(String hub)
+	{
+		List<Section> sections = TILED.get(hub);
+		Section open = openSection(hub);
+		List<com.ironhub.ui.osrs.StoneHubTile> tiles = hubTiles.get(hub);
+		if (tiles != null)
+		{
+			for (int i = 0; i < tiles.size() && i < sections.size(); i++)
+			{
+				tiles.get(i).setSelected(sections.get(i) == open);
+			}
+		}
+		JPanel head = hubHeads.get(hub);
+		if (head == null)
+		{
+			return;
+		}
+		head.removeAll();
+		if (open.modules.size() > 1)
+		{
+			java.util.Set<String> shown = expandedModules.getOrDefault(hub,
+				new java.util.LinkedHashSet<>());
+			int selected = 0;
+			for (int i = 0; i < open.modules.size(); i++)
+			{
+				if (shown.contains(open.modules.get(i)))
+				{
+					selected = i;
+				}
+			}
+			com.ironhub.ui.osrs.StoneChipRow chips = new com.ironhub.ui.osrs.StoneChipRow(
+				config.osrsTheme(), true, open.modules.toArray(new String[0]));
+			chips.setSelected(selected);
+			chips.onChange(index ->
+			{
+				java.util.LinkedHashSet<String> set = expandedModules
+					.computeIfAbsent(hub, k -> new java.util.LinkedHashSet<>());
+				set.clear();
+				set.add(open.modules.get(index));
+				refreshHub(hub);
+			});
+			JPanel pad = new JPanel(new BorderLayout());
+			pad.setOpaque(false);
+			pad.setBorder(new javax.swing.border.EmptyBorder(0, TILE_PAD, 3, TILE_PAD));
+			pad.add(chips, BorderLayout.CENTER);
+			head.add(pad, BorderLayout.CENTER);
+		}
+		else
+		{
+			head.add(sectionPlate(open.modules.get(0)), BorderLayout.CENTER);
+		}
+		head.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE,
+			head.getPreferredSize().height));
+		head.revalidate();
+		head.repaint();
+	}
+
+	/** The selected section's name plate — the module header's look without
+	 *  the collapse affordance (the grid is the navigation now). */
+	private JComponent sectionPlate(String name)
+	{
+		com.ironhub.ui.osrs.StonePanel plate =
+			new com.ironhub.ui.osrs.StonePanel(config.osrsTheme());
+		plate.setLayout(new BoxLayout(plate, BoxLayout.X_AXIS));
+		plate.add(Box.createHorizontalGlue());
+		plate.add(new com.ironhub.ui.osrs.OsrsLabel(name,
+			com.ironhub.ui.osrs.OsrsSkin.TITLE, com.ironhub.ui.osrs.OsrsSkin.boldFont()));
+		plate.add(Box.createHorizontalGlue());
+		JPanel pad = new JPanel(new BorderLayout());
+		pad.setOpaque(false);
+		pad.setAlignmentX(Component.LEFT_ALIGNMENT);
+		pad.setBorder(new javax.swing.border.EmptyBorder(0, 4, 3, 4));
+		pad.add(plate, BorderLayout.CENTER);
+		return pad;
 	}
 
 	/**
@@ -293,6 +538,17 @@ public class IronHubPanel extends PluginPanel
 			return;
 		}
 		java.util.Set<String> open = expandedModules.getOrDefault(name, new java.util.LinkedHashSet<>());
+		if (TILED.containsKey(name))
+		{
+			// one shared slot: mount the open module and stop — the collapse
+			// branch below would wipe it again on the next (same) slot
+			refreshTiles(name);
+			Section section = openSection(name);
+			String module = section.modules.stream().filter(open::contains).findFirst()
+				.orElse(section.modules.get(0));
+			mount(module, slots.get(module));
+			return;
+		}
 		Map<String, JLabel> triangles = hubTriangles.get(name);
 		for (Map.Entry<String, JPanel> entry : slots.entrySet())
 		{

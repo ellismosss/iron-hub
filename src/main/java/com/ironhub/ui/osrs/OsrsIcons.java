@@ -50,6 +50,16 @@ public final class OsrsIcons
 	}
 
 	/**
+	 * A hub tile's emblem — the game's own inventory sprite for the system
+	 * the tile leads to (tools/gen_hub_icons.py). Raw image: the tile paints
+	 * it itself, at native size.
+	 */
+	public static java.awt.image.BufferedImage hubTile(OsrsTheme theme, String name)
+	{
+		return image(theme, "progression/" + name);
+	}
+
+	/**
 	 * A themed sprite as a raw image, for custom painting (equipment slot
 	 * tiles, panel backings). Same mystic-falls-back-to-vanilla rule; null
 	 * when neither theme ships the file — callers render the absence

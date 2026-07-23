@@ -139,6 +139,59 @@ public class NavBlocksTest
 		}
 	}
 
+	/**
+	 * The Progression hub is a tile grid (Luke, 2026-07-24), so every module
+	 * the block lists must sit on exactly one tile — a module missing from
+	 * TILED would simply be unreachable, with nothing to click.
+	 */
+	@Test
+	public void everyTiledHubCoversItsModulesExactlyOnce()
+	{
+		for (java.util.Map.Entry<String, java.util.List<IronHubPanel.Section>> hub
+			: IronHubPanel.TILED.entrySet())
+		{
+			java.util.List<String> tiled = new java.util.ArrayList<>();
+			for (IronHubPanel.Section section : hub.getValue())
+			{
+				tiled.addAll(section.modules);
+			}
+			assertEquals("a module appears on two tiles in " + hub.getKey(),
+				tiled.size(), new java.util.HashSet<>(tiled).size());
+			assertEquals("tiles and hub contents disagree in " + hub.getKey(),
+				new java.util.HashSet<>(IronHubPanel.blockContents().get(hub.getKey())),
+				new java.util.HashSet<>(tiled));
+		}
+		assertEquals("Luke's grid is 4x2", 8, IronHubPanel.TILED.get("Progression").size());
+	}
+
+	/**
+	 * Tiles SELECT (they never collapse to an empty page under a grid), and
+	 * the two-module tile's chip row switches inside the section — one slot
+	 * serves the whole hub, so only the chosen module is ever mounted.
+	 */
+	@Test
+	public void progressionTilesSelectSectionsAndTheirChips() throws Exception
+	{
+		build();
+		javax.swing.SwingUtilities.invokeAndWait(() -> home.pressBlock("Progression"));
+		assertEquals("the first tile opens by default",
+			java.util.List.of("Collection log"), enableNotes());
+
+		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Progression", "PoH"));
+		assertEquals(java.util.List.of("PoH"), enableNotes());
+		// the chip row inside the Build tile switches to its second module
+		com.ironhub.ui.osrs.StoneChipRow chips =
+			find(panel, com.ironhub.ui.osrs.StoneChipRow.class);
+		assertNotNull("a two-module tile must offer chips", chips);
+		javax.swing.SwingUtilities.invokeAndWait(() -> chips.pick(1));
+		assertEquals(java.util.List.of("Sailing upgrades"), enableNotes());
+
+		// pressing the open tile again keeps it open (no empty page)
+		javax.swing.SwingUtilities.invokeAndWait(() ->
+			panel.toggleModule("Progression", "Sailing upgrades"));
+		assertEquals(java.util.List.of("Sailing upgrades"), enableNotes());
+	}
+
 	@Test
 	public void blocksToggleLikeTheGamesOwnTabs() throws Exception
 	{

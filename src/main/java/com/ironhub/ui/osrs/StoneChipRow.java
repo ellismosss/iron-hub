@@ -69,6 +69,12 @@ public class StoneChipRow extends JPanel
 		select(index, false);
 	}
 
+	/** Pick a chip exactly as a click does, onChange included (test seam). */
+	public void pick(int index)
+	{
+		select(index, true);
+	}
+
 	private void select(int index, boolean fire)
 	{
 		selected = index;
