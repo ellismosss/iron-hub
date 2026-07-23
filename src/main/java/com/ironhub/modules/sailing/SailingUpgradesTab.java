@@ -306,7 +306,8 @@ class SailingUpgradesTab extends JPanel
 			OsrsSkin.smallFont()).leftAligned().squeezable();
 		// a short material's hover answers the next question: where from
 		String sources = !enough && module.itemSources() != null
-			? module.itemSources().sourceLine(m.itemId) : null;
+			? module.itemSources().sourceLine(m.itemId, state,
+				state.getItemSourcePref(m.itemId)) : null;
 		if (sources != null)
 		{
 			matName.setToolTipText("<html>" + m.name + "<br>" + sources + "</html>");

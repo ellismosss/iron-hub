@@ -154,6 +154,8 @@ public class DailiesModule implements IronHubModule
 			.mapToInt(d -> d.detection.varbit)
 			.toArray();
 		state.watchVarbits(watched);
+		// the kingdom coffer (varp) rides along for the approval tooltip
+		state.watchVarps(DailyTracker.KINGDOM_COFFER_VARP);
 		watchedVarbits = java.util.Arrays.stream(watched).boxed()
 			.collect(java.util.stream.Collectors.toUnmodifiableSet());
 		notifiedForDay = DailyTracker.startOfUtcDay(System.currentTimeMillis());
@@ -466,7 +468,7 @@ public class DailiesModule implements IronHubModule
 			{
 				for (int itemId : bring.itemIds)
 				{
-					String from = sources.sourceLine(itemId);
+					String from = sources.sourceLine(itemId, state, state.getItemSourcePref(itemId));
 					if (from != null)
 					{
 						line += "<br>" + from;

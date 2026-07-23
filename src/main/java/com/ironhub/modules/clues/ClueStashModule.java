@@ -170,7 +170,8 @@ public class ClueStashModule implements IronHubModule
 		for (Requirement leaf : requirement(clue).missing(state))
 		{
 			Integer itemId = leaf.itemId();
-			String line = itemId == null ? null : itemSources.sourceLine(itemId);
+			String line = itemId == null ? null
+				: itemSources.sourceLine(itemId, state, state.getItemSourcePref(itemId));
 			if (line != null)
 			{
 				return line;

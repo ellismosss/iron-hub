@@ -5,8 +5,108 @@ wiki's OWN per-slot item_id -> sources/rates/kinds mapping — the exact
 coverage Luke asked for on the collection log)."""
 
 import json
+import re
 
 import kb
+
+# ── point-shop prices ─────────────────────────────────────────────────
+# The storeline bucket carries NO price for point-currency shops (verified
+# against the live bucket 2026-07-23: store_buy_price is literally "N/A") —
+# the costs live only in each shop's own wiki page table. The page fetch is
+# keyed by the shop name itself, with aliases where the table lives on an
+# activity page instead. None = skip whole shop (restricted modes, or the
+# "shop" is really a drop table).
+POINT_PAGE_ALIASES = {
+    "Farmer Gricoller's Rewards": "Tithe Farm",
+    "Dom Onion's Reward Shop": "Nightmare Zone",
+    "Soul Wars Reward Shop": "Soul Wars/Rewards",
+    "Mahogany Homes Reward Shop": "Mahogany Homes",
+    "Chest (Theatre of Blood)": None,   # ToB uniques are drops, not purchases
+    "Justine's stuff for the Last Shopper Standing": None,  # LMS
+    "Leagues Reward Shop": None,        # leagues-restricted
+    "Events Reward Shop": None,         # holiday events
+    "Speedrunning Reward Shop": None,   # speedrun worlds
+    "PvP Arena Rewards": None,          # PvP Arena points
+}
+# spot checks against hand-verified wiki prices — a parser drifting onto the
+# wrong column must FAIL, never ship a wrong number
+POINT_PRICE_PINS = {
+    ("Farmer Gricoller's Rewards", "Seed box"): "250",
+    ("Farmer Gricoller's Rewards", "Herb sack"): "250",
+    ("Slayer Rewards", "Herb sack"): "750",
+}
+
+
+def point_prices(conn):
+    """Fill N/A prices for point-currency shops from their wiki page tables.
+    Only fills EXISTING holes (join on the bucket's own item rows) and only
+    from a numeric-only cell within two cells of the item's {{plink}} row —
+    an unparseable shop keeps its honest N/A and gets a gap."""
+    holes = {}
+    for item, shop in conn.execute(
+            "SELECT item, shop FROM shop_stock WHERE (price IS NULL OR price=''"
+            " OR price='N/A') AND currency NOT IN ('Coins','')"):
+        holes.setdefault(shop, []).append(item)
+    filled = 0
+    for shop, items in sorted(holes.items()):
+        page = POINT_PAGE_ALIASES.get(shop, shop)
+        if page is None:
+            continue
+        try:
+            text = kb.page_text(page)
+            m = re.match(r"#REDIRECT\s*\[\[([^\]|#]+)", text or "", re.I)
+            if m:
+                text = kb.page_text(m.group(1).strip())
+        except Exception:
+            kb.add_gap(conn, "shops", shop, "point-prices",
+                       f"no readable wiki page ('{page}') to parse point costs from")
+            continue
+        # format A: {{StoreLine|name=Herb sack|...|sell=750|...}} — sell= is
+        # what the PLAYER pays at this shop (the bucket's store_buy_price is
+        # the other direction, hence its N/A on point shops)
+        storeline = {}
+        for sm in re.finditer(r"\{\{StoreLine\s*\|([^{}]*)\}\}", text):
+            params = dict(p.split("=", 1) for p in sm.group(1).split("|") if "=" in p)
+            name = (params.get("name") or "").strip()
+            sell = (params.get("sell") or "").strip().replace(",", "")
+            if name and re.fullmatch(r"\d+", sell):
+                storeline[name] = sell
+        hits = 0
+        for item in items:
+            price = storeline.get(item)
+            if price is None:
+                # format B: a plink table row — cost = a numeric-ONLY cell
+                # within the next two cells (time columns never match)
+                m = re.search(r"\{\{plinkt?\|" + re.escape(item) + r"[|}]", text)
+                if not m:
+                    continue
+                tail = text[m.end():m.end() + 400]
+                cells = re.findall(r"\n\|\s*([^\n|]*)", tail)[:2]
+                for cell in cells:
+                    cm = re.fullmatch(r"([\d,]+)", cell.strip())
+                    if cm:
+                        price = cm.group(1).replace(",", "")
+                        break
+            if price is None:
+                continue
+            pin = POINT_PRICE_PINS.get((shop, item))
+            assert pin is None or pin == price, \
+                f"point-price parser drifted: {shop}/{item} = {price}, pinned {pin}"
+            conn.execute("UPDATE shop_stock SET price = ?,"
+                         " src = src || '+wiki:shop page' WHERE item = ?"
+                         " AND shop = ?", (price, item, shop))
+            hits += 1
+        filled += hits
+        if hits == 0:
+            kb.add_gap(conn, "shops", shop, "point-prices",
+                       f"page '{page}' fetched but no point costs parsed")
+        print(f"  point prices: {shop} — {hits}/{len(items)} filled")
+    for (shop, item), pin in POINT_PRICE_PINS.items():
+        row = conn.execute("SELECT price FROM shop_stock WHERE shop=? AND item=?",
+                           (shop, item)).fetchone()
+        assert row and row[0] == pin, f"pinned point price missing: {shop}/{item}"
+    conn.commit()
+    print("point-shop prices filled:", filled)
 
 
 def shops(conn):
@@ -100,6 +200,7 @@ def clog_sources(conn):
 def main():
     conn = kb.db()
     shops(conn)
+    point_prices(conn)
     clog_sources(conn)
     conn.commit()
     conn.close()

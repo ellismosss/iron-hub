@@ -322,7 +322,7 @@ class BankSpaceTab extends JPanel
 			.leftAligned().squeezable();
 		// the hover answers the real question here: how re-obtainable is it?
 		String source = module.itemSources() == null ? null
-			: module.itemSources().sourceLine(entry.id);
+			: module.itemSources().sourceLine(entry.id, state, state.getItemSourcePref(entry.id));
 		if (source != null)
 		{
 			name.setToolTipText("<html>" + entry.name + "<br>" + source + "</html>");

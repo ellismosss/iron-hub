@@ -62,7 +62,13 @@ def main():
     print(f"Category:Quests: {len(quests)} pages")
     if len(quests) < 150:
         raise SystemExit("suspiciously few quest pages")
-    for title, text in quests:
+    # miniquests reward real items too (imbued god capes = Mage Arena II) —
+    # they live in their own category, missed until 2026-07-23
+    miniquests = kb.category_pages("Miniquests")
+    print(f"Category:Miniquests: {len(miniquests)} pages")
+    if len(miniquests) < 10:
+        raise SystemExit("suspiciously few miniquest pages")
+    for title, text in list(quests) + list(miniquests):
         for heading, body in rewards_sections(text):
             for item in plinks(body):
                 conn.execute("INSERT OR IGNORE INTO rewards(item,source,src)"

@@ -401,7 +401,8 @@ class SlayerTab extends JPanel
 			for (SlayerTasksPack.BringItem item : group)
 			{
 				sources = item.id == null || module.itemSources() == null
-					? null : module.itemSources().sourceLine(item.id);
+					? null : module.itemSources().sourceLine(item.id, state,
+						state.getItemSourcePref(item.id));
 				if (sources != null)
 				{
 					break;

@@ -32,6 +32,48 @@ RESTRICTED = re.compile(
     r"Trailblazer|Shattered Relics|Twisted League|Leagues)\b|^Dni\d|^Team-\d",
     re.I)
 
+# reclaim shops sell BACK what the player already earned — never a way of
+# obtaining anything (2026-07-23: 27 items incl. the imbued god capes had
+# "Lost Property shop" as their only source)
+RECLAIM_SHOPS = ("Lost Property",)
+
+# the 12 diaries' actual reward item families — anything ELSE a diary
+# Rewards section links is benefit prose, not a reward (Pharaoh's sceptre
+# was labelled "Reward: Desert Diary" because the diary improves it)
+DIARY_REWARD_FAMILIES = (
+    "Karamja gloves", "Ardougne cloak", "Desert amulet", "Explorer's ring",
+    "Falador shield", "Fremennik sea boots", "Kandarin headgear",
+    "Morytania legs", "Varrock armour", "Western banner", "Wilderness sword",
+    "Rada's blessing", "Antique lamp")
+
+# famous non-monster drop containers → the activity that owns them, for
+# display context ("Grand Gold Chest" means nothing without Pyramid Plunder)
+CONTAINER_ACTIVITY = {
+    "Grand Gold Chest": "Pyramid Plunder",
+    "Golden Chest": "Pyramid Plunder",
+}
+
+# storeline currency values → display copy
+CURRENCY_DISPLAY = {
+    "Tithe": "Tithe Farm points",
+    "NMZ": "Nightmare Zone points",
+    "Points": "points",
+}
+
+
+def price_text(price, currency):
+    """'250' + 'Tithe' → '250 Tithe Farm points'; no digits → None (honest)."""
+    if not price or not re.search(r"\d", price):
+        return None
+    p = price.strip()
+    cur = (currency or "Coins").strip()
+    if cur.lower() in ("coins", ""):
+        return p + " gp"
+    disp = CURRENCY_DISPLAY.get(cur, cur)
+    if not disp.endswith("s") and p not in ("1",):
+        disp += "s"
+    return p + " " + disp
+
 TIER_PROB = {"always": 1.0, "common": 1 / 20, "uncommon": 1 / 60,
              "rare": 1 / 500, "very rare": 1 / 5000}
 
@@ -68,7 +110,10 @@ def best_drop(rows):
     return out
 
 
-def best_shop(rows):
+def shop_rows(rows):
+    """Up to 2 shop options: the cheapest coin shop, and the best point shop
+    (both when they coexist — herb sack is 250 Tithe points OR 750 slayer
+    points; the player picks). Reclaim shops are excluded at load."""
     priced = []
     for shop, price, currency in rows:
         try:
@@ -78,20 +123,30 @@ def best_shop(rows):
         coins = (currency or "Coins").strip().lower() in ("coins", "")
         priced.append((not coins, p, shop, price, currency))
     priced.sort()
-    coins_last, p, shop, price, currency = priced[0]
-    out = {"how": "shop", "from": display_from(shop).rstrip(".")}
-    if price:
-        out["price"] = price.strip() + (
-            "" if not coins_last else " " + (currency or "").strip().lower())
-        if not coins_last:
-            out["price"] += " gp"
+    out = []
+    for coins_last, p, shop, price, currency in priced:
+        entry = {"how": "shop", "from": display_from(shop).rstrip(".")}
+        text = price_text(price, currency)
+        if text:
+            entry["price"] = text
+        if any(o["from"] == entry["from"] for o in out):
+            continue
+        out.append(entry)
+        if len(out) == 2:
+            break
     return out
 
 
-def best_make(rows):
-    """Lowest-gating-level recipe → 'Make: Herblore 25'."""
-    ranked = []
-    for skills_json in rows:
+def make_rows(rows, name):
+    """Up to 3 recipe variants, each with its actual materials — never a
+    bare '(see recipe)'. Imbue-style recipes (no skill gate, point-cost
+    materials) surface as their own honest options."""
+    variants = []
+    for materials_json, skills_json in rows:
+        try:
+            materials = json.loads(materials_json) if materials_json else []
+        except ValueError:
+            materials = []
         try:
             skills = json.loads(skills_json) if skills_json else []
         except ValueError:
@@ -104,24 +159,62 @@ def best_make(rows):
                 lvl = 0
             if lvl and (gate is None or lvl > gate[1]):
                 gate = (s.get("name"), lvl)
-        ranked.append((gate[1] if gate else 0, gate))
-    ranked.sort(key=lambda r: r[0])
-    gate = ranked[0][1]
-    out = {"how": "make"}
-    if gate and gate[0]:
-        out["skill"] = f"{gate[0]} {gate[1]}"
-    return out
+        parts = []
+        for m in materials:
+            mat = (m.get("name") or "").strip()
+            if not mat:
+                continue
+            qty = str(m.get("quantity") or "").strip()
+            try:
+                q = int(qty.replace(",", ""))
+            except ValueError:
+                q = 1
+            parts.append((f"{q:,} x " if q > 1 else "") + mat)
+        entry = {"how": "make"}
+        if gate and gate[0]:
+            entry["skill"] = f"{gate[0]} {gate[1]}"
+        if parts:
+            entry["detail"] = " + ".join(parts)
+        detail = entry.get("detail")
+        # note↔item conversions are bank mechanics, not recipes
+        if detail in (name, name + " note"):
+            continue
+        # a skill-only row ("Make: Crafting 85") is still honest; only a row
+        # with NEITHER skill nor materials — the old "(see recipe)" — dies
+        if not detail and not entry.get("skill"):
+            continue
+        key = (entry.get("skill"), detail)
+        if key not in {(v.get("skill"), v.get("detail")) for v in variants}:
+            variants.append(entry)
+    # cheapest gate first; detail-less recipes never made the list
+    variants.sort(key=lambda v: int((v.get("skill") or "x 0").rsplit(" ", 1)[1]))
+    return variants[:3]
 
 
 def reward_label(source):
     """'quest: Cook's Assistant' → 'Cook's Assistant (quest)';
+    'miniquest: Mage Arena II' → 'Mage Arena II (miniquest)';
     'diary: Ardougne Diary — Rewards' → 'Ardougne Diary'."""
     s = display_from(source)
     if s.startswith("quest: "):
         return s[7:] + " (quest)"
+    if s.startswith("miniquest: "):
+        return s[11:] + " (miniquest)"
     if s.startswith("diary: "):
         return s[7:].split(" — ")[0].split(" - ")[0]
     return s
+
+
+def best_reward(name, sources):
+    """Quest rewards outrank diary rows, and a diary row only counts for the
+    12 diaries' actual reward items — everything else a diary Rewards
+    section mentions is benefit prose."""
+    quests = [s for s in sources if s.startswith(("quest: ", "miniquest: "))]
+    if quests:
+        return quests[0]
+    diaries = [s for s in sources if s.startswith("diary: ")
+               and name.startswith(DIARY_REWARD_FAMILIES)]
+    return diaries[0] if diaries else None
 
 
 def curated_sources(obtain_json):
@@ -133,7 +226,7 @@ def curated_sources(obtain_json):
     by_how = {}
     for r in rows:
         how = {"combat": "drop"}.get(r.get("how"), r.get("how"))
-        if how not in ("drop", "shop", "make", "reward", "spell"):
+        if how not in ("drop", "shop", "make", "reward", "spell", "open"):
             how = "other"
         frm = display_from(r.get("from") or "")
         if not frm or RESTRICTED.search(frm):
@@ -179,10 +272,13 @@ def main():
     shops = {}
     for item, shop, price, currency in conn.execute(
             "SELECT item, shop, price, currency FROM shop_stock"):
+        if any(r in (shop or "") for r in RECLAIM_SHOPS):
+            continue
         shops.setdefault(item, []).append((shop, price, currency))
     recipes = {}
-    for output, skills in conn.execute("SELECT output, skills FROM recipes"):
-        recipes.setdefault(output, []).append(skills)
+    for output, materials, skills in conn.execute(
+            "SELECT output, materials, skills FROM recipes"):
+        recipes.setdefault(output, []).append((materials, skills))
     rewards = {}
     for item, source in conn.execute("SELECT item, source FROM rewards"):
         rewards.setdefault(item, []).append(source)
@@ -200,25 +296,47 @@ def main():
             sources = curated_sources(equip[0])
         else:
             sources = []
+        # curated equipment rows predate the reclaim/reward fixes — same
+        # filters; their shop/make rows are dropped whole (the enriched
+        # shop_stock + recipes tables rebuild them with prices and details
+        # the old join never had)
+        sources = [s for s in sources if s["how"] not in ("shop", "make")]
+        sources = [s for s in sources
+                   if not any(r in (s.get("from") or "") for r in RECLAIM_SHOPS)]
+        sources = [s for s in sources
+                   if not (s["how"] == "reward"
+                           and s.get("from", "").endswith("Diary")
+                           and not name.startswith(DIARY_REWARD_FAMILIES))]
         have = {s["how"] for s in sources}
         if "drop" not in have and name in drops:
             d = best_drop(drops[name])
             if d:
                 sources.append(d)
         if "shop" not in have and name in shops:
-            sources.append(best_shop(shops[name]))
+            sources.extend(shop_rows(shops[name]))
         if "make" not in have and name in recipes:
-            sources.append(best_make(recipes[name]))
+            sources.extend(make_rows(recipes[name], name))
         if "reward" not in have and name in rewards:
-            sources.append({"how": "reward", "from": reward_label(rewards[name][0])})
+            r = best_reward(name, rewards[name])
+            if r:
+                sources.append({"how": "reward", "from": reward_label(r)})
+        for s in sources:
+            frm = s.get("from")
+            # a "drop" whose source is an ITEM is a container you open
+            # (impling jars, caskets) — never a kill and never a "reward"
+            if frm in ids_by_name and s["how"] in ("drop", "reward", "other"):
+                s["how"] = "open"
+            # famous activity containers carry their activity for context
+            if frm in CONTAINER_ACTIVITY:
+                s["from"] = CONTAINER_ACTIVITY[frm] + " — " + frm
         seen_from = set()
         deduped = []
         for s in sources:
-            key = s.get("from", s["how"])
+            key = s.get("from", s.get("detail", s["how"]))
             if key not in seen_from:
                 seen_from.add(key)
                 deduped.append(s)
-        sources = deduped[:4]
+        sources = deduped[:5]
 
         reqs = []
         origin = None
@@ -238,9 +356,11 @@ def main():
         entries.append(entry)
 
     conn.close()
-    pack = {"version": 1,
+    pack = {"version": 2,
             "provenance": "knowledge.db (wiki Bucket API dropsline/storeline/recipe"
-                          " buckets, slot categories, prose req extraction)",
+                          " buckets, slot categories, prose req extraction;"
+                          " v2: recipe details, point prices, open/container"
+                          " classification, reclaim shops excluded)",
             "items": entries}
 
     # ── validation BEFORE the write (a mid-write exit must never truncate) ──
@@ -253,6 +373,40 @@ def main():
     rope = by_name.get("Rope")
     assert rope and any(s["how"] == "shop" for s in rope["sources"]), "Rope shop missing"
     assert "Ranarr weed" in by_name, "Ranarr weed missing"
+
+    # ── the 2026-07-23 data-quality fixes stay fixed ──────────────────
+    for e in entries:
+        for s in e.get("sources", []):
+            assert "Lost Property" not in (s.get("from") or ""), \
+                f"reclaim shop leaked: {e['name']}"
+    scep = by_name["Pharaoh's sceptre"]
+    assert not any("Diary" in (s.get("from") or "") for s in scep["sources"]), \
+        f"sceptre still credits a diary: {scep['sources']}"
+    assert any("Pyramid Plunder" in (s.get("from") or "") for s in scep["sources"]), \
+        f"sceptre lost its activity context: {scep['sources']}"
+    salve = by_name["Salve amulet(ei)"]
+    assert any(s["how"] == "make" and "Nightmare Zone points" in s.get("detail", "")
+               for s in salve["sources"]), f"salve(ei) imbue recipe missing: {salve['sources']}"
+    glory = by_name["Amulet of glory"]
+    assert any(s["how"] == "make" and "Dragonstone amulet" in s.get("detail", "")
+               for s in glory["sources"]), f"glory recipe detail missing: {glory['sources']}"
+    assert any(s["how"] == "open" for s in glory["sources"]), \
+        f"glory impling jar not an open source: {glory['sources']}"
+    seed_box = by_name["Seed box"]
+    assert any("250 Tithe Farm points" in (s.get("price") or "")
+               for s in seed_box["sources"]), f"seed box price: {seed_box['sources']}"
+    gem_bag = by_name["Gem bag"]
+    assert any("100 Golden nuggets" in (s.get("price") or "")
+               for s in gem_bag["sources"]), f"gem bag price: {gem_bag['sources']}"
+    herb_sack = by_name["Herb sack"]
+    assert sum(1 for s in herb_sack["sources"] if s["how"] == "shop") == 2, \
+        f"herb sack should offer both point shops: {herb_sack['sources']}"
+    cape = by_name.get("Imbued saradomin cape")
+    assert cape and any("Mage Arena II" in (s.get("from") or "")
+                        for s in cape["sources"]), f"imbued cape: {cape}"
+    assert not any(s["how"] == "make" and not s.get("detail") and not s.get("skill")
+                   for e in entries for s in e.get("sources", [])), \
+        "a bare '(see recipe)' make row survived"
     n_reqs = sum(1 for e in entries if e.get("reqs"))
     n_sources = sum(1 for e in entries if e.get("sources"))
     assert len(entries) >= 6000, f"suspiciously few entries: {len(entries)}"

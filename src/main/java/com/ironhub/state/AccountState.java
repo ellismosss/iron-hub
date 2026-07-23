@@ -164,6 +164,7 @@ public class AccountState implements StateView
 	private final Map<String, String> goalPriority = new ConcurrentHashMap<>();
 	private final java.util.List<String> pinnedGoals = new CopyOnWriteArrayList<>();
 	private final Map<String, java.util.List<String>> routeTaskOrder = new ConcurrentHashMap<>();
+	private final Map<Integer, String> itemSourcePrefs = new ConcurrentHashMap<>();
 	private volatile double lastPlanHours;
 	private volatile boolean plannerRouteChapters;
 
@@ -1576,6 +1577,27 @@ public class AccountState implements StateView
 		notifyListeners();
 	}
 
+	/** The player's chosen obtainment method for an item (an
+	 *  ItemSourcesPack.key), or null = no preference. */
+	public String getItemSourcePref(int itemId)
+	{
+		return itemSourcePrefs.get(itemId);
+	}
+
+	public void setItemSourcePref(int itemId, String sourceKey)
+	{
+		if (sourceKey == null)
+		{
+			itemSourcePrefs.remove(itemId);
+		}
+		else
+		{
+			itemSourcePrefs.put(itemId, sourceKey);
+		}
+		persist();
+		notifyListeners();
+	}
+
 	/** Pinned goal ids in priority order (first = highest). */
 	public java.util.List<String> getPinnedGoals()
 	{
@@ -2455,6 +2477,8 @@ public class AccountState implements StateView
 		pinnedGoals.addAll(persisted.pinnedGoals);
 		routeTaskOrder.clear();
 		persisted.routeTaskOrder.forEach((k, v) -> routeTaskOrder.put(k, new java.util.ArrayList<>(v)));
+		itemSourcePrefs.clear();
+		itemSourcePrefs.putAll(persisted.itemSourcePrefs);
 		lastPlanHours = persisted.lastPlanHours;
 		measuredRates.clear();
 		measuredRates.putAll(persisted.measuredRates);
@@ -2599,6 +2623,7 @@ public class AccountState implements StateView
 		state.goalPriority = new HashMap<>(goalPriority);
 		state.pinnedGoals = new java.util.ArrayList<>(pinnedGoals);
 		routeTaskOrder.forEach((k, v) -> state.routeTaskOrder.put(k, new java.util.ArrayList<>(v)));
+		state.itemSourcePrefs = new HashMap<>(itemSourcePrefs);
 		state.lastPlanHours = lastPlanHours;
 		state.measuredRates = new HashMap<>(measuredRates);
 		state.measuredRateHours = new HashMap<>(measuredRateHours);

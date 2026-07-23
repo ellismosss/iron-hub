@@ -166,7 +166,8 @@ class HunterRumoursTab extends JPanel
 		String trapSource = rumour.trapItemId > 0
 			&& state.canonicalStock(rumour.trapItemId) < 1
 			&& module.itemSources() != null
-			? module.itemSources().sourceLine(rumour.trapItemId) : null;
+			? module.itemSources().sourceLine(rumour.trapItemId, state,
+				state.getItemSourcePref(rumour.trapItemId)) : null;
 		content.add(statRow("Trap", rumour.trap, trapSource == null ? null
 			: "<html>" + rumour.trapItemName + " — not owned<br>" + trapSource + "</html>"));
 		content.add(Box.createVerticalStrut(4));

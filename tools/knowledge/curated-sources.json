@@ -234,5 +234,22 @@
   "Kourend castle teleport": "Unlocked by reading the transportation incantation from Kharedst's memoirs quest series",
   "Camulet": "Reward from Enakhra's Lament",
   "Fremennik sea boots 4": "Fremennik elite diary reward"
+ },
+ "shop_prices": {
+  "Gem bag|Prospector Percy's Nugget Shop": {
+   "price": "100",
+   "why": "wiki storeline bucket says 80 but the item page prose and the in-game price are 100 golden nuggets (verified 2026-07-23; Luke's report)"
+  }
+ },
+ "rewards": {
+  "Imbued saradomin cape": "miniquest: Mage Arena II",
+  "Imbued guthix cape": "miniquest: Mage Arena II",
+  "Imbued zamorak cape": "miniquest: Mage Arena II",
+  "Saradomin cape": "miniquest: Mage Arena I",
+  "Guthix cape": "miniquest: Mage Arena I",
+  "Zamorak cape": "miniquest: Mage Arena I",
+  "Book of darkness": "quest: Horror from the Deep",
+  "Book of law": "quest: Horror from the Deep",
+  "Book of war": "quest: Horror from the Deep"
  }
 }

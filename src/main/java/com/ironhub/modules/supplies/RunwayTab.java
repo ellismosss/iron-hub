@@ -124,7 +124,8 @@ class RunwayTab extends JPanel
 		String tip = name + " — " + hours + " of stock at your usage rate";
 		// a LOW row's hover answers the next question: where to restock from
 		String sources = low && module.itemSources() != null
-			? module.itemSources().sourceLine(runway.itemId) : null;
+			? module.itemSources().sourceLine(runway.itemId, state,
+			state.getItemSourcePref(runway.itemId)) : null;
 		if (sources != null)
 		{
 			tip = "<html>" + tip + "<br>" + sources + "</html>";

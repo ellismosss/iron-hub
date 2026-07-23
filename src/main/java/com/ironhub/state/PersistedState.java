@@ -310,6 +310,7 @@ public class PersistedState
 	Map<String, String> goalPriority = new HashMap<>();      // goal id -> high|normal|someday (absent = normal)
 	java.util.List<String> pinnedGoals = new ArrayList<>();  // pinned goal ids, priority order
 	Map<String, java.util.List<String>> routeTaskOrder = new HashMap<>(); // goal id -> manual action-id order
+	Map<Integer, String> itemSourcePrefs = new HashMap<>(); // item id -> chosen ItemSourcesPack.key (how the player wants to obtain it)
 	double lastPlanHours;                            // known hours at last replan (session diffs)
 	/** skill name -> measured xp/hr EWMA + total observed active hours —
 	 *  the personal pace CostModel prefers over pack rates (2026-07-20). */

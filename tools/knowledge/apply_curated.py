@@ -108,6 +108,19 @@ def main():
         conn.execute("UPDATE gaps SET status='wont-fix', notes=? WHERE"
                      " category='materials' AND subject = ?", (why, name))
 
+    # ── curated reward rows (prose-only Rewards sections the plink/bullet
+    #    parser can't read — Mage Arena II's imbued capes et al) ──────
+    for item, source in cur.get("rewards", {}).items():
+        conn.execute("INSERT OR IGNORE INTO rewards(item,source,src)"
+                     " VALUES(?,?,'luke:curated')", (item, source))
+
+    # ── shop-price corrections (wiki bucket vs page-prose conflicts) ──
+    for key, entry in cur.get("shop_prices", {}).items():
+        item, shop = key.split("|", 1)
+        conn.execute("UPDATE shop_stock SET price = ?, src = src || '+luke'"
+                     " WHERE item = ? AND shop = ?",
+                     (entry["price"], item, shop))
+
     # ── class-level wont-fixes ────────────────────────────────────────
     for subject, note in cur["wont_fix"].items():
         conn.execute("UPDATE gaps SET status='wont-fix', notes=? WHERE"

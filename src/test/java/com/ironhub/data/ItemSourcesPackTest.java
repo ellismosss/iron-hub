@@ -52,7 +52,7 @@ public class ItemSourcesPackTest
 		// Rope 954: shop-buyable
 		String rope = pack.sourceLine(954);
 		assertNotNull(rope);
-		assertTrue(rope, rope.contains("Shop:"));
+		assertTrue(rope, rope.contains("Buy:"));
 		// Dragon warhammer 13576: the classic no-clog-rate OBTAIN — the whole
 		// point of this pack is that this now answers
 		String dwh = pack.sourceLine(13576);
@@ -83,10 +83,45 @@ public class ItemSourcesPackTest
 		}
 	}
 
+	/** The 2026-07-23 data-quality report (Luke's list) stays fixed. */
+	@Test
+	public void dataQualityFixesHold()
+	{
+		// Salve amulet(ei) 12018: real imbue recipes, never "(see recipe)"
+		String salve = pack.sourceLine(12018);
+		assertNotNull(salve);
+		assertTrue(salve, salve.contains("Nightmare Zone points"));
+		assertFalse(salve, salve.contains("see recipe"));
+		// Amulet of glory 1704: jar is an Open (not a "reward"), recipe named
+		String glory = pack.sourceLine(1704);
+		assertTrue(glory, glory.contains("Open: Dragon impling jar"));
+		assertTrue(glory, glory.contains("Dragonstone amulet"));
+		// Imbued saradomin cape 21791: the miniquest, never the reclaim shop
+		String cape = pack.sourceLine(21791);
+		assertNotNull(cape);
+		assertTrue(cape, cape.contains("Mage Arena II"));
+		// Pharaoh's sceptre 9044: activity-contextualised chest, no diary claim
+		String scep = pack.sourceLine(9044);
+		assertTrue(scep, scep.contains("Pyramid Plunder"));
+		assertFalse(scep, scep.contains("Diary"));
+		// Seed box 13639 / Gem bag 12020: real point prices
+		assertTrue(pack.sourceLine(13639), pack.sourceLine(13639).contains("250 Tithe Farm points"));
+		assertTrue(pack.sourceLine(12020), pack.sourceLine(12020).contains("100 Golden nuggets"));
+		// nothing anywhere credits a reclaim shop
+		for (ItemSourcesPack.Entry e : pack.getItems())
+		{
+			for (ItemSourcesPack.Source s : e.getSources() == null
+				? java.util.List.<ItemSourcesPack.Source>of() : e.getSources())
+			{
+				assertFalse(e.getName(), (s.getFrom() != null ? s.getFrom() : "").contains("Lost Property"));
+			}
+		}
+	}
+
 	@Test
 	public void packShapeSane()
 	{
-		assertEquals(1, pack.getVersion());
+		assertEquals(2, pack.getVersion());
 		assertTrue(pack.getItems().size() >= 6000);
 		int sourced = 0;
 		for (ItemSourcesPack.Entry e : pack.getItems())

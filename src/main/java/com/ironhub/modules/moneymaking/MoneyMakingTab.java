@@ -544,7 +544,8 @@ class MoneyMakingTab extends JPanel
 		// WHAT the method consumes, the hover names where an iron gets it
 		if (in.itemId > 0 && module.itemSources() != null)
 		{
-			String sources = module.itemSources().sourceLine(in.itemId);
+			String sources = module.itemSources().sourceLine(in.itemId, state,
+				state.getItemSourcePref(in.itemId));
 			if (sources != null)
 			{
 				r.setToolTipText(sources);

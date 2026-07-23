@@ -292,6 +292,7 @@ class GoalsHubTab extends JPanel
 				return "Supplies";
 			case "ca":
 			case "diary":
+			case "diarytier":
 			case "qol":
 			case "poh":
 			case "boat":
@@ -714,12 +715,39 @@ class GoalsHubTab extends JPanel
 					{
 						menu.add(item("Open wiki", () -> LinkBrowser.browse(url)));
 					}
+					addSourceChoices(menu, step);
 					menu.show(block, e.getX(), e.getY());
 				}
 			}
 		});
 		cap(block);
 		return block;
+	}
+
+	/** Right-click "Get it via" — every KB-known way to obtain the item; the
+	 *  player's pick becomes the Task's where-from line and persists (Luke:
+	 *  glory/herb sack have several routes, the player chooses). */
+	private void addSourceChoices(JPopupMenu menu, Plan.Step step)
+	{
+		if (step.action.kind != com.ironhub.engine.Action.Kind.OBTAIN
+			|| step.action.itemId <= 0 || module.itemSources() == null)
+		{
+			return;
+		}
+		com.ironhub.data.ItemSourcesPack.Entry kb = module.itemSources().entry(step.action.itemId);
+		if (kb == null || kb.getSources() == null || kb.getSources().size() < 2)
+		{
+			return;
+		}
+		menu.addSeparator();
+		String pref = state.getItemSourcePref(step.action.itemId);
+		for (com.ironhub.data.ItemSourcesPack.Source s : kb.getSources())
+		{
+			String key = com.ironhub.data.ItemSourcesPack.key(s);
+			boolean chosen = key.equals(pref);
+			menu.add(item((chosen ? "· " : "") + "Get it via " + com.ironhub.data.ItemSourcesPack.label(s, state),
+				() -> state.setItemSourcePref(step.action.itemId, chosen ? null : key)));
+		}
 	}
 
 	/** The faint sub-line for a Task: the recommended method + xp/hr (TRAIN),
@@ -737,16 +765,36 @@ class GoalsHubTab extends JPanel
 		if (step.action.kind == com.ironhub.engine.Action.Kind.OBTAIN
 			&& step.action.itemId > 0)
 		{
-			String drop = module.ratesSource() == null
+			// the player's CHOSEN method (right-click → "Get it via") is THE
+			// line — their pick beats both clog and default ordering
+			String pref = state.getItemSourcePref(step.action.itemId);
+			if (pref != null && module.itemSources() != null)
+			{
+				String chosen = module.itemSources().sourceLine(step.action.itemId, state, pref);
+				if (chosen != null)
+				{
+					return chosen;
+				}
+			}
+			// a PURCHASE is not a drop: the clog pack models point-shop slots
+			// as attempt counts ("1/250 · Tithe farm" for a 250-point seed
+			// box) — when the KB knows the item is bought, its line wins
+			com.ironhub.data.ItemSourcesPack.Entry kb = module.itemSources() == null
+				? null : module.itemSources().entry(step.action.itemId);
+			boolean purchased = kb != null && kb.getSources() != null
+				&& !kb.getSources().isEmpty()
+				&& "shop".equals(kb.getSources().get(0).getHow());
+			String drop = purchased || module.ratesSource() == null
 				? null : module.ratesSource().dropLabel(step.action.itemId);
 			if (drop != null)
 			{
 				return drop + (!Double.isNaN(step.spreadHours) && step.spreadHours > step.hours + 0.05
 					? " · up to ~" + compactHours(step.spreadHours) + " unlucky" : "");
 			}
-			// no clog rate — the knowledge base's where-from
-			// (design/KB-RUNTIME.md) beats a bare "Obtain X"
-			String sources = module.itemSources().sourceLine(step.action.itemId);
+			// purchases and no-clog-rate items: the knowledge base's
+			// where-from (design/KB-RUNTIME.md) beats a bare "Obtain X"
+			String sources = module.itemSources() == null
+				? null : module.itemSources().sourceLine(step.action.itemId, state, null);
 			if (sources != null)
 			{
 				return sources;
@@ -817,7 +865,8 @@ class GoalsHubTab extends JPanel
 				name = state.itemName(e.getKey());
 			}
 			JComponent matRow = materialRow(e.getKey(), e.getValue() + " × " + name);
-			String sources = module.itemSources().sourceLine(e.getKey());
+			String sources = module.itemSources().sourceLine(e.getKey(), state,
+				state.getItemSourcePref(e.getKey()));
 			if (sources != null)
 			{
 				matRow.setToolTipText(sources);
@@ -867,7 +916,8 @@ class GoalsHubTab extends JPanel
 				enough ? UiTokens.STATUS_OWNED : UiTokens.STATUS_WARNING, OsrsSkin.smallFont()));
 			if (!enough)
 			{
-				String sources = module.itemSources().sourceLine(r.itemId);
+				String sources = module.itemSources().sourceLine(r.itemId, state,
+					state.getItemSourcePref(r.itemId));
 				if (sources != null)
 				{
 					row.setToolTipText(sources);

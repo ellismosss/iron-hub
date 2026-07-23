@@ -331,7 +331,8 @@ class GearTab extends JPanel
 		// TARGET, this names the road to it
 		if (!obtained && item.getItemId() != null && itemSources != null)
 		{
-			String sources = itemSources.sourceLine(item.getItemId());
+			String sources = itemSources.sourceLine(item.getItemId(), state,
+				state.getItemSourcePref(item.getItemId()));
 			if (sources != null)
 			{
 				html.append("<br>").append(sources);
