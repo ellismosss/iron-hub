@@ -56,7 +56,7 @@ public class PlannerOverlayTest
 		// no goals selected → empty plan → no overlay
 		PlannerOverlay overlay = new PlannerOverlay(module, state, new IronHubConfig()
 		{
-		});
+		}, null);
 		for (int i = 0; i < 50 && module.currentPlan() == null; i++)
 		{
 			Thread.sleep(100);
@@ -73,7 +73,7 @@ public class PlannerOverlayTest
 			{
 				return false;
 			}
-		});
+		}, null);
 		assertNull(render(off, image));
 		module.shutDown();
 	}
@@ -92,7 +92,7 @@ public class PlannerOverlayTest
 
 		PlannerOverlay overlay = new PlannerOverlay(module, state, new IronHubConfig()
 		{
-		});
+		}, null);
 		BufferedImage image = new BufferedImage(300, 240, BufferedImage.TYPE_INT_ARGB);
 		render(overlay, image); // register the head, first gauge sight
 
@@ -142,7 +142,7 @@ public class PlannerOverlayTest
 
 		PlannerOverlay overlay = new PlannerOverlay(module, state, new IronHubConfig()
 		{
-		});
+		}, null);
 		assertEquals(1, overlay.getMenuEntries().size()); // Snooze always offered
 		String headId = module.currentPlan().head().action.id;
 		overlay.snoozeHead();
@@ -162,7 +162,7 @@ public class PlannerOverlayTest
 
 		PlannerOverlay overlay = new PlannerOverlay(module, state, new IronHubConfig()
 		{
-		});
+		}, null);
 		BufferedImage image = new BufferedImage(300, 240, BufferedImage.TYPE_INT_ARGB);
 		assertNotNull(render(overlay, image)); // head registered
 
@@ -185,7 +185,7 @@ public class PlannerOverlayTest
 
 		PlannerOverlay overlay = new PlannerOverlay(module, state, new IronHubConfig()
 		{
-		});
+		}, null);
 		BufferedImage image = new BufferedImage(300, 240, BufferedImage.TYPE_INT_ARGB);
 		assertNotNull(render(overlay, image)); // head registered
 
@@ -245,7 +245,7 @@ public class PlannerOverlayTest
 	{
 		// banking replans and shifts banked-xp credit, but live xp is
 		// untouched — the anchor is per step id and first-write-wins
-		PlannerOverlay overlay = new PlannerOverlay(null, null, null);
+		PlannerOverlay overlay = new PlannerOverlay(null, null, null, null);
 		assertEquals(1_000_000, overlay.anchorFor("train:Construction:72", 1_000_000));
 		assertEquals(1_000_000, overlay.anchorFor("train:Construction:72", 1_004_500));
 		// same live xp → same fraction no matter what the plan recomputed

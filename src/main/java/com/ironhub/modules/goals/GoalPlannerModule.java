@@ -137,7 +137,7 @@ public class GoalPlannerModule implements IronHubModule
 		engineActive = true;
 		if (overlayManager != null)
 		{
-			overlay = new PlannerOverlay(this, state, config);
+			overlay = new PlannerOverlay(this, state, config, skillIconManager);
 			overlayManager.add(overlay);
 		}
 		requestReplan();

@@ -57,7 +57,7 @@ public final class UiTokens
 
 	// ── Overlay surface ───────────────────────────────────────────────
 	public static final Color OVERLAY_BG = new Color(0, 0, 0, 140);        // rgba(0,0,0,0.55)
-	public static final Color OVERLAY_VALUE = new Color(0xFF, 0xFF, 0x00); // yellow values, shadowed
+	public static final Color OVERLAY_VALUE = Color.WHITE; // values in white (Luke, 2026-07-24 — was yellow)
 	public static final Color OVERLAY_BAR_TROUGH = new Color(255, 255, 255, 38); // rgba(255,255,255,0.15)
 
 	// ── Spacing & metrics (px) ────────────────────────────────────────

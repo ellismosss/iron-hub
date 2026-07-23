@@ -54,7 +54,10 @@ class PlannerOverlay extends OverlayPanel
 	private final GoalPlannerModule module;
 	private final AccountState state;
 	private final IronHubConfig config;
+	private final net.runelite.client.game.SkillIconManager skillIcons; // null in headless tests
 	private final XpGauge gauge = new XpGauge();
+	// cached skill icons (the manager decodes on each call otherwise)
+	private final Map<Skill, java.awt.image.BufferedImage> skillIconCache = new HashMap<>();
 
 	// render-thread bookkeeping (all reads/writes on the client thread)
 	private Action lastHead;
@@ -70,13 +73,24 @@ class PlannerOverlay extends OverlayPanel
 	private List<Object> methodLineKey;
 	private String methodLineLabel;
 
-	PlannerOverlay(GoalPlannerModule module, AccountState state, IronHubConfig config)
+	PlannerOverlay(GoalPlannerModule module, AccountState state, IronHubConfig config,
+		net.runelite.client.game.SkillIconManager skillIcons)
 	{
 		this.module = module;
 		this.state = state;
 		this.config = config;
+		this.skillIcons = skillIcons;
 		setPosition(OverlayPosition.TOP_LEFT);
 		addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Snooze step", MENU_TARGET, e -> snoozeHead());
+	}
+
+	private java.awt.image.BufferedImage skillIcon(Skill skill)
+	{
+		if (skillIcons == null || skill == null)
+		{
+			return null;
+		}
+		return skillIconCache.computeIfAbsent(skill, s -> skillIcons.getSkillImage(s, true));
 	}
 
 	@Override
@@ -98,7 +112,8 @@ class PlannerOverlay extends OverlayPanel
 		}
 
 		panelComponent.getChildren().clear();
-		panelComponent.setBackgroundColor(UiTokens.OVERLAY_BG);
+		// the standard RuneLite overlay background (XP Tracker, built-ins) —
+		// PanelComponent defaults to it, so don't override (Luke, 2026-07-24)
 		panelComponent.setPreferredSize(new Dimension(WIDTH, 0));
 
 		if (flashing)
@@ -121,9 +136,10 @@ class PlannerOverlay extends OverlayPanel
 			default:
 				line(head.action.name, Color.WHITE,
 					timeText(head.hours), UiTokens.OVERLAY_VALUE);
-				if (head.why != null && !head.why.isEmpty())
+				String detail = obtainDetail(head);
+				if (detail != null)
 				{
-					line(head.why, UiTokens.CANVAS_LOCKED, null, null);
+					line(detail, UiTokens.CANVAS_LOCKED, null, null);
 				}
 				if (head.action.unlockKey != null)
 				{
@@ -142,16 +158,19 @@ class PlannerOverlay extends OverlayPanel
 			}
 		}
 
-		Plan.Step next = plan.steps.stream()
-			.filter(s -> !s.snoozed).skip(1).findFirst().orElse(null);
-		if (next != null)
+		// "Step N of T" when the head's goal has more than one stage (replaces
+		// the old "Next · …" row, Luke 2026-07-24)
+		String stage = stageLine(plan, head);
+		if (stage != null)
 		{
-			line("Next · " + next.action.name, UiTokens.CANVAS_LOCKED, null, null);
+			line(stage, UiTokens.CANVAS_LOCKED, null, null);
 		}
 		String goal = goalLine(plan, head);
 		if (goal != null)
 		{
-			line(goal, UiTokens.CANVAS_LOCKED, null, null);
+			// Goal in white (Luke); drop it when it merely repeats the
+			// obtain detail / why already shown
+			line(goal, Color.WHITE, null, null);
 		}
 		return super.render(graphics);
 	}
@@ -166,14 +185,15 @@ class PlannerOverlay extends OverlayPanel
 		gauge.observe(skill, liveXp, now);
 
 		double measured = gauge.xpPerHour();
-		line(head.action.name, Color.WHITE,
+		// the skill icon carries the identity (Luke, 2026-07-24) — the head
+		// line is [icon] method-or-target … time(white)
+		iconLine(skillIcon(skill), head.action.name, Color.WHITE,
 			timeText(ttlHours(head, xpLeft, measured)), UiTokens.OVERLAY_VALUE);
 
 		long anchor = anchorFor(head.action.id, liveXp);
 		bar(head.action.id, stepFraction(anchor, liveXp, targetXp));
 
-		line("Lv " + state.getRealLevel(skill) + " of " + head.action.trainToLevel,
-			UiTokens.CANVAS_LOCKED,
+		line("Current Lvl: " + state.getRealLevel(skill), UiTokens.CANVAS_LOCKED,
 			compactXp(xpLeft) + " xp left", UiTokens.OVERLAY_VALUE);
 
 		if (gauge.gained() > 0)
@@ -193,7 +213,39 @@ class PlannerOverlay extends OverlayPanel
 			timeText(head.hours), UiTokens.OVERLAY_VALUE);
 		bar(head.action.id, head.action.kcTarget > 0 ? kc / (double) head.action.kcTarget : 0);
 		line("KC", UiTokens.CANVAS_LOCKED,
-			kc + " of " + head.action.kcTarget, UiTokens.OVERLAY_VALUE);
+			kc + " / " + head.action.kcTarget, UiTokens.OVERLAY_VALUE);
+	}
+
+	/**
+	 * The obtain detail line for a non-train/kill head. For an item, the
+	 * knowledge-base where-from — HONOURING a chosen method, so a curated
+	 * "250 Tithe Farm points (or 750 slayer points)" collapses to just the
+	 * player's pick (Luke, 2026-07-24). Otherwise the step's own "why",
+	 * minus the obvious "Completes automatically…" boilerplate and any
+	 * "Serves X" that just repeats the Goal line.
+	 */
+	private String obtainDetail(Plan.Step head)
+	{
+		if (head.action.kind == Action.Kind.OBTAIN && head.action.itemId > 0
+			&& module.itemSources() != null)
+		{
+			String pref = state.getItemSourcePref(head.action.itemId);
+			String line = module.itemSources().sourceLine(head.action.itemId, state, pref);
+			if (line != null)
+			{
+				return line;
+			}
+		}
+		String why = head.why;
+		if (why == null || why.isEmpty() || why.startsWith("Completes automatically"))
+		{
+			return null;
+		}
+		// the "Goal · X" line already says what this serves, so strip a
+		// trailing "Serves X" clause; if that was the whole note, show
+		// nothing (Luke, 2026-07-24: don't duplicate Serves and Goal)
+		why = why.replaceAll("(?i)\\.?\\s*Serves .*$", "").trim();
+		return why.isEmpty() ? null : why;
 	}
 
 	/**
@@ -501,6 +553,41 @@ class PlannerOverlay extends OverlayPanel
 		return null;
 	}
 
+	/** "Step N of T" for the head's primary goal, when that goal has more
+	 *  than one stage in the plan; null for a single-stage goal (Luke,
+	 *  2026-07-24 — replaces the "Next · …" row). */
+	private String stageLine(Plan plan, Plan.Step head)
+	{
+		String goalId = null;
+		for (String id : head.action.neededBy)
+		{
+			if (plan.goalNames.get(id) != null)
+			{
+				goalId = id;
+				break;
+			}
+		}
+		if (goalId == null)
+		{
+			return null;
+		}
+		int total = 0;
+		int index = 0;
+		for (Plan.Step step : plan.steps)
+		{
+			if (step.snoozed || !step.action.neededBy.contains(goalId))
+			{
+				continue;
+			}
+			total++;
+			if (step.action.id.equals(head.action.id))
+			{
+				index = total;
+			}
+		}
+		return total > 1 && index > 0 ? "Step " + index + " of " + total : null;
+	}
+
 	private void line(String left, Color leftColor, String right, Color rightColor)
 	{
 		LineComponent.LineComponentBuilder builder =
@@ -510,6 +597,20 @@ class PlannerOverlay extends OverlayPanel
 			builder.right(right).rightColor(rightColor);
 		}
 		panelComponent.getChildren().add(builder.build());
+	}
+
+	/** A row led by a small icon (the skill, for a TRAIN head — Luke wants
+	 *  skill icons, 2026-07-24), then left text and a right-aligned value.
+	 *  Falls back to a plain line when there is no icon (headless tests). */
+	private void iconLine(java.awt.image.BufferedImage icon, String left, Color leftColor,
+		String right, Color rightColor)
+	{
+		if (icon == null)
+		{
+			line(left, leftColor, right, rightColor);
+			return;
+		}
+		panelComponent.getChildren().add(new IconLine(icon, left, leftColor, right, rightColor));
 	}
 
 	/**
@@ -653,22 +754,116 @@ class PlannerOverlay extends OverlayPanel
 		}
 	}
 
-	/** A 14px progress bar: sub-pixel accent fill over the standard trough,
-	 * centered percent label in shadowed white. */
+	/** A line led by a 16px icon: icon, shadowed left text, right-aligned
+	 *  value — the RuneLite LineComponent look with a skill icon in front. */
+	private static final class IconLine implements LayoutableRenderableEntity
+	{
+		private static final int ICON = 16;
+		private static final int GAP = 4;
+
+		private final java.awt.image.BufferedImage icon;
+		private final String left;
+		private final Color leftColor;
+		private final String right;
+		private final Color rightColor;
+		private final Rectangle bounds = new Rectangle();
+		private Point location = new Point();
+		private int width = WIDTH - 8;
+
+		IconLine(java.awt.image.BufferedImage icon, String left, Color leftColor,
+			String right, Color rightColor)
+		{
+			this.icon = icon;
+			this.left = left == null ? "" : left;
+			this.leftColor = leftColor;
+			this.right = right;
+			this.rightColor = rightColor;
+		}
+
+		@Override
+		public Dimension render(Graphics2D graphics)
+		{
+			FontMetrics metrics = graphics.getFontMetrics();
+			int lineH = Math.max(ICON, metrics.getHeight());
+			int baseline = location.y + (lineH - metrics.getHeight()) / 2 + metrics.getAscent();
+			graphics.drawImage(icon, location.x, location.y + (lineH - ICON) / 2, ICON, ICON, null);
+
+			int textX = location.x + ICON + GAP;
+			// truncate the left text so a right value always fits
+			int rightW = right == null ? 0 : metrics.stringWidth(right) + GAP;
+			String shown = fit(metrics, left, width - (ICON + GAP) - rightW);
+			graphics.setColor(Color.BLACK);
+			graphics.drawString(shown, textX + 1, baseline + 1);
+			graphics.setColor(leftColor);
+			graphics.drawString(shown, textX, baseline);
+
+			if (right != null)
+			{
+				int rx = location.x + width - metrics.stringWidth(right);
+				graphics.setColor(Color.BLACK);
+				graphics.drawString(right, rx + 1, baseline + 1);
+				graphics.setColor(rightColor);
+				graphics.drawString(right, rx, baseline);
+			}
+
+			Dimension dimension = new Dimension(width, lineH);
+			bounds.setLocation(location);
+			bounds.setSize(dimension);
+			return dimension;
+		}
+
+		private static String fit(FontMetrics m, String s, int max)
+		{
+			if (m.stringWidth(s) <= max || s.isEmpty())
+			{
+				return s;
+			}
+			String ell = "…";
+			int i = s.length();
+			while (i > 0 && m.stringWidth(s.substring(0, i) + ell) > max)
+			{
+				i--;
+			}
+			return i <= 0 ? ell : s.substring(0, i) + ell;
+		}
+
+		@Override
+		public Rectangle getBounds()
+		{
+			return bounds;
+		}
+
+		@Override
+		public void setPreferredLocation(Point position)
+		{
+			this.location = position;
+		}
+
+		@Override
+		public void setPreferredSize(Dimension dimension)
+		{
+			if (dimension != null && dimension.width > 0)
+			{
+				this.width = dimension.width;
+			}
+		}
+	}
+
+	/** A thin progress bar (the smaller variant, Luke 2026-07-24): a 6px
+	 * accent fill over the standard trough, no in-bar label — the numeric
+	 * progress lives on the "xp left" / "KC" line. */
 	private static final class LabeledBar implements LayoutableRenderableEntity
 	{
-		private static final int HEIGHT = 14;
+		private static final int HEIGHT = 6;
 
 		private final Rectangle bounds = new Rectangle();
 		private final double fraction;
-		private final String label;
 		private Point location = new Point();
 		private int width = WIDTH - 8;
 
 		LabeledBar(double fraction, String label)
 		{
 			this.fraction = Math.min(1, Math.max(0, fraction));
-			this.label = label;
 		}
 
 		@Override
@@ -684,15 +879,6 @@ class PlannerOverlay extends OverlayPanel
 				location.x, location.y + 2, width * fraction, HEIGHT));
 			graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 				oldAa == null ? RenderingHints.VALUE_ANTIALIAS_DEFAULT : oldAa);
-
-			FontMetrics metrics = graphics.getFontMetrics();
-			int textX = location.x + (width - metrics.stringWidth(label)) / 2;
-			int textY = location.y + 2
-				+ (HEIGHT + metrics.getAscent() - metrics.getDescent()) / 2;
-			graphics.setColor(Color.BLACK);
-			graphics.drawString(label, textX + 1, textY + 1);
-			graphics.setColor(Color.WHITE);
-			graphics.drawString(label, textX, textY);
 
 			Dimension dimension = new Dimension(width, HEIGHT + 4);
 			bounds.setLocation(location);
@@ -724,9 +910,11 @@ class PlannerOverlay extends OverlayPanel
 
 	// ── compact formatters (were shared with the deleted PlannerTab) ──────
 
+	/** Time as "~2.3h", or null when unknown — the overlay shows NOTHING
+	 *  rather than a "?" (Luke, 2026-07-24). */
 	static String timeText(double hours)
 	{
-		return Double.isNaN(hours) ? "?" : "~" + compactHours(hours);
+		return Double.isNaN(hours) ? null : "~" + compactHours(hours);
 	}
 
 	static String formatCount(long count)
