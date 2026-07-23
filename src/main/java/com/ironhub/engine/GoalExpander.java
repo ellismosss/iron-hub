@@ -158,12 +158,42 @@ public class GoalExpander
 				break;
 			case "item":
 			case "itemx":
+			{
 				// prefer the requirement's own display name
 				// ("item:12012:100:Golden nuggets") over a null label so the
 				// step never reads "Obtain item 12012" (Luke, 2026-07-24)
-				addObtain(Integer.parseInt(parts[1]),
-					label != null ? label : parts.length > 3 ? parts[3] : null, goalId, out);
+				String nm = label != null ? label : parts.length > 3 ? parts[3] : null;
+				int qty = parts.length > 2 ? parseIntSafe(parts[2]) : 1;
+				// a quantity sub-step reads "Obtain N X" — the gem sack step
+				// said just "Golden nuggets", losing the count (Luke). A gear
+				// item (the goal's own target) keeps its plain name via the
+				// gear lookup inside addObtain, so this label is only used for
+				// currency/material sub-steps.
+				String obtainLabel = nm == null ? null
+					: qty > 1 ? "Obtain " + String.format(Locale.ROOT, "%,d", qty) + " " + nm : nm;
+				addObtain(Integer.parseInt(parts[1]), obtainLabel, goalId, out);
 				break;
+			}
+			case "varbit":
+			{
+				// a reward-point balance (Tithe/NMZ/slayer points) — auto-
+				// detected (isMet reads the varbit), so it shows as an
+				// "Earn N X" step until reached, with NO manual tick, and
+				// vanishes on the next replan once the balance is met (Luke,
+				// 2026-07-24: it was rendering the raw "varbit:4893:250:…")
+				String earnId = "earn:" + req;
+				Action varbitNode = dag.get(earnId);
+				if (varbitNode == null)
+				{
+					varbitNode = dag.getOrAdd(new Action(earnId, Action.Kind.MANUAL,
+						"Earn " + parsed.describe()));
+					varbitNode.manualText = "Earn " + parsed.describe();
+					// unlockKey stays null → detected, no "mark done" prompt
+				}
+				varbitNode.neededBy.add(goalId);
+				out.add(varbitNode.id);
+				break;
+			}
 			case "kc":
 				addKill(parts[1], Integer.parseInt(parts[2]), goalId, out);
 				break;
@@ -444,6 +474,18 @@ public class GoalExpander
 			}
 			addQuest(entry.name, false, goalId, out);
 			projected += entry.qp;
+		}
+	}
+
+	private static int parseIntSafe(String s)
+	{
+		try
+		{
+			return Integer.parseInt(s.trim());
+		}
+		catch (NumberFormatException e)
+		{
+			return 1;
 		}
 	}
 

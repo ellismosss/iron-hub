@@ -339,4 +339,53 @@ public class GoalExpanderTest
 		assertNotNull("a real KC gate stays", kill);
 		assertEquals(50, kill.kcTarget);
 	}
+
+	/**
+	 * A readable reward-point currency renders as "Earn N X", never the raw
+	 * "varbit:4893:250:Tithe Farm points" (Luke, 2026-07-24), and it is
+	 * detected (no manual-tick unlock key) so it clears on its own.
+	 */
+	@Test
+	public void varbitCurrencyReadsAsEarnNotRawString()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		ActionDag dag = GoalExpander.expand(List.of(
+			goal("g", "varbit:4893:250:Tithe Farm points")), state, packs());
+		Action earn = dag.topological().stream()
+			.filter(a -> a.name != null && a.name.contains("Tithe Farm points"))
+			.findFirst().orElse(null);
+		assertNotNull("a step for the points must exist: " + dag.topological(), earn);
+		assertEquals("Earn 250 Tithe Farm points", earn.name);
+		assertFalse("must never show the raw req string", earn.name.contains("varbit:"));
+		assertNull("readable currency auto-detects, no manual tick", earn.unlockKey);
+	}
+
+	/** A currency/material sub-step reads "Obtain N X" — the gem-bag step
+	 *  said just "Golden nuggets", losing the count (Luke, 2026-07-24). The
+	 *  gem bag buys for 100 golden nuggets; that sub-step must name the 100.*/
+	@Test
+	public void quantitySubStepsNameTheCount()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		ActionDag dag = GoalExpander.expand(List.of(
+			goal("g", "item:12020:1:Gem bag")), state, packs());
+		Action nuggets = dag.get("obtain:item12012");
+		assertNotNull("the 100-nugget cost is a sub-step: " + dag.topological(), nuggets);
+		assertEquals("Obtain 100 Golden nuggets", nuggets.name);
+	}
+
+	/** Picking one branch of an item's any: gate via a PATH pref steers the
+	 *  plan — choosing Crafting for an Amulet of glory drops Hunter (Luke,
+	 *  2026-07-24: it stayed because the KB-source menu didn't map to the
+	 *  gear path). Mirrors what the restricted choose-method menu now sets. */
+	@Test
+	public void gloryPathPrefDropsTheOtherSkill()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		ActionDag crafted = GoalExpander.expand(List.of(
+			goal("g", "item:1704:1:Amulet of glory")), state, packs(),
+			java.util.Map.of(1704, GoalExpander.PATH_PREF + "skillb:Crafting:80"));
+		assertNotNull(crafted.get("train:Crafting:80"));
+		assertNull("Hunter must leave the plan", crafted.get("train:Hunter:83"));
+	}
 }
