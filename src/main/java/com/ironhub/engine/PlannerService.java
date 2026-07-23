@@ -31,7 +31,8 @@ public final class PlannerService
 			BankedXp.compute(state, bankedPack)
 				.forEach((skill, result) -> banked.put(skill, (long) result.xp));
 		}
-		ActionDag dag = GoalExpander.expand(unmetGoals, state, packs);
+		ActionDag dag = GoalExpander.expand(unmetGoals, state, packs,
+			constraints.itemSourcePrefs);
 		return new Router(state, packs, constraints, banked).route(dag);
 	}
 }

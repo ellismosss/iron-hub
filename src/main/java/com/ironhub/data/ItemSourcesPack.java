@@ -46,6 +46,13 @@ public class ItemSourcesPack
 		/** The recipe's actual materials ("Salve amulet + 800,000 x
 		 *  Nightmare Zone points") — pack v2, never "(see recipe)". */
 		private String detail;
+		/** What a shop price is PAID IN, machine-readable (v2) — so "buy it
+		 *  for 500 points" becomes a tracked requirement, not a dead end. */
+		private Currency currency;
+		/** The recipe's materials as DATA (v2) — the UI renders one sprite
+		 *  row each instead of one clumped sentence, and the planner turns
+		 *  them into gather steps. */
+		private List<Material> materials;
 
 		/** "Drop: Abyssal demon 1/512" / "Buy: Slayer Rewards (750 points)" /
 		 *  "Make: Amethyst (Crafting 85)" / "Open: Dragon impling jar 1/19". */
@@ -71,6 +78,45 @@ public class ItemSourcesPack
 					return "From: " + (from != null ? from : "")
 						+ (rate != null ? " " + rate : "");
 			}
+		}
+
+		/** The requirement-graph leaf for this source's price, or null when
+		 *  the currency has no readable balance (honest manual step). */
+		public String currencyReq()
+		{
+			if (currency == null)
+			{
+				return null;
+			}
+			if (currency.itemId > 0)
+			{
+				return "item:" + currency.itemId + ":" + currency.qty + ":" + currency.name;
+			}
+			return currency.varbit > 0
+				? "varbit:" + currency.varbit + ":" + currency.qty + ":" + currency.name : null;
+		}
+	}
+
+	@Data
+	public static class Currency
+	{
+		private String name;
+		private int qty;
+		private int itemId;  // 0 = not an item
+		private int varbit;  // 0 = no readable balance
+	}
+
+	@Data
+	public static class Material
+	{
+		private String name;
+		private int qty;
+		private int itemId;  // 0 = unresolved (renders without a sprite)
+
+		/** The requirement-graph leaf for gathering this material. */
+		public String req()
+		{
+			return itemId > 0 ? "item:" + itemId + ":" + qty + ":" + name : null;
 		}
 	}
 
@@ -163,6 +209,27 @@ public class ItemSourcesPack
 	public static String key(Source s)
 	{
 		return s.how + "|" + (s.from != null ? s.from : s.detail != null ? s.detail : "");
+	}
+
+	/**
+	 * The row HEADER when the materials are rendered separately underneath:
+	 * "Make (Magic 68)" rather than the whole recipe as one sentence, which
+	 * was unreadable at 225px (Luke, 2026-07-23).
+	 */
+	public static String shortLabel(Source s, com.ironhub.state.StateView state)
+	{
+		if (!"make".equals(s.how) || s.materials == null || s.materials.isEmpty())
+		{
+			return label(s, state);
+		}
+		if (s.skill == null)
+		{
+			return "Make it from:";
+		}
+		int cut = s.skill.lastIndexOf(' ');
+		boolean met = cut > 0 && com.ironhub.requirements.Requirements.parse(
+			"skillb:" + s.skill.substring(0, cut) + ":" + s.skill.substring(cut + 1)).isMet(state);
+		return met ? "Make it from:" : "Make it (" + s.skill + ") from:";
 	}
 
 	/** label(), minus a make row's skill gate once the account meets it. */

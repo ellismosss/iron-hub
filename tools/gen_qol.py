@@ -154,6 +154,20 @@ def resolve_item(index, name: str):
     return None
 
 
+# The "complete everything" unlocks whose gate is the whole point of them
+# and which no prose extractor states as a requirement sentence (Luke,
+# 2026-07-23: the diary cape goal said only "Buy: Twiggy O'Korn"). Graph
+# strings, validated by QolPackTest's parse sweep like every other req.
+DIARY_REGIONS = ["Ardougne", "Desert", "Falador", "Fremennik", "Kandarin",
+                 "Karamja", "Kourend & Kebos", "Lumbridge & Draynor",
+                 "Morytania", "Varrock", "Western Provinces", "Wilderness"]
+CURATED_GATES = {
+    "Achievement diary cape": [f"diary:{r}:Elite" for r in DIARY_REGIONS],
+    "Quest point cape": ["qp:300"],
+    "Music cape": ["unlock:allmusictracks"],
+}
+
+
 def benefits():
     """name(lower) → cleaned one-liner from the KB's qol_items.effect —
     what the unlock actually DOES (the hover Luke asked for)."""
@@ -225,6 +239,13 @@ def main():
         print(f"  skipped (no item id — stays knowledge-base side): "
               + ", ".join(skipped))
     add_tier_implications(unlocks)
+    gated = 0
+    for u in unlocks:
+        gate = CURATED_GATES.get(u["name"])
+        if gate and not u["requirements"]:
+            u["requirements"] = list(gate)
+            gated += 1
+    print(f"  curated gates applied: {gated}")
     n_benefits = 0
     for u in unlocks:
         text = benefit_by_name.get(u["name"].lower())

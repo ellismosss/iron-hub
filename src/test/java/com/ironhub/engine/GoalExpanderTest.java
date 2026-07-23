@@ -33,13 +33,16 @@ public class GoalExpanderTest
 	private static EnginePacks packs()
 	{
 		DataPack dataPack = new DataPack(new Gson());
-		return new EnginePacks(
+		EnginePacks packs = new EnginePacks(
 			dataPack.load("quests", QuestsPack.class),
 			dataPack.load("methods", MethodsPack.class),
 			dataPack.load("effects", EffectsPack.class),
 			dataPack.load("gear-progression", GearProgressionPack.class),
 			dataPack.load("boosts", com.ironhub.data.BoostsPack.class),
 			dataPack.load("diaries", com.ironhub.data.DiariesPack.class));
+		packs.itemSources = dataPack.load("item-sources",
+			com.ironhub.data.ItemSourcesPack.class);
+		return packs;
 	}
 
 	private static GoalsPack.Goal goal(String id, String... reqs)
@@ -243,5 +246,56 @@ public class GoalExpanderTest
 			goal("g", "any:skillb:Slayer:85|skillb:Herblore:70")), state, packs());
 		assertNotNull(dag.get("train:Herblore:70"));
 		assertNull(dag.get("train:Slayer:85"));
+	}
+
+	/**
+	 * The player's CHOSEN obtainment method wins over the engine's cheapest
+	 * guess: an Amulet of glory can be crafted (Crafting 80) or hunted from
+	 * dragon implings (Hunter 83), and picking Crafting must take Hunter out
+	 * of the plan entirely (Luke, 2026-07-23 — "my tracker still tells me to
+	 * get 78 Hunter despite me saying I want it via Crafting").
+	 */
+	@Test
+	public void chosenObtainMethodSteersTheAnyPath()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		GoalsPack.Goal glory = goal("g", "item:1704:1:Amulet of glory");
+
+		ActionDag free = GoalExpander.expand(List.of(glory), state, packs());
+		boolean hunterByDefault = free.get("train:Hunter:83") != null;
+		boolean craftingByDefault = free.get("train:Crafting:80") != null;
+		assertTrue("the gear chart offers exactly one of the two paths",
+			hunterByDefault ^ craftingByDefault);
+
+		ActionDag crafted = GoalExpander.expand(List.of(glory), state, packs(),
+			java.util.Map.of(1704, GoalExpander.PATH_PREF + "skillb:Crafting:80"));
+		assertNotNull("the chosen path must be planned", crafted.get("train:Crafting:80"));
+		assertNull("the rejected path must leave the plan", crafted.get("train:Hunter:83"));
+
+		ActionDag hunted = GoalExpander.expand(List.of(glory), state, packs(),
+			java.util.Map.of(1704, GoalExpander.PATH_PREF + "skillb:Hunter:83"));
+		assertNotNull(hunted.get("train:Hunter:83"));
+		assertNull(hunted.get("train:Crafting:80"));
+	}
+
+	/**
+	 * An item outside the curated gear chart still gets REAL sub-steps from
+	 * the knowledge base — a shop item's price becomes a tracked currency
+	 * requirement instead of a dead-end "Buy: ..." line (Luke: the diary
+	 * cape goal said only "Buy: Twiggy O'Korn").
+	 */
+	@Test
+	public void kbObtainmentGivesShopItemsRealSteps()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		// Gem bag: 100 golden nuggets (an ITEM currency — countable)
+		ActionDag dag = GoalExpander.expand(List.of(
+			goal("g", "item:12020:1:Gem bag")), state, packs());
+		assertNotNull("the nugget cost must become a step", dag.get("obtain:item12012"));
+
+		// Achievement diary cape: 99,000 coins AND the 12 elite diaries
+		ActionDag cape = GoalExpander.expand(List.of(
+			goal("c", "item:19476:1:Achievement diary cape")), state, packs());
+		assertNotNull("the coin cost must become a step", cape.get("obtain:item995"));
 	}
 }

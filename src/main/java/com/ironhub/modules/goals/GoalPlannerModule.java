@@ -132,6 +132,7 @@ public class GoalPlannerModule implements IronHubModule
 			dataPack.load("boosts", com.ironhub.data.BoostsPack.class),
 			dataPack.load("diaries", com.ironhub.data.DiariesPack.class),
 			dataPack.load("clog", com.ironhub.data.ClogPack.class));
+		enginePacks.itemSources = itemSources();
 		state.addListener(stateListener);
 		engineActive = true;
 		if (overlayManager != null)

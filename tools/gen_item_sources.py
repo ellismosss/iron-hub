@@ -60,12 +60,61 @@ CURRENCY_DISPLAY = {
     "Points": "points",
 }
 
+# How the RUNTIME reads a currency balance, so "buy it for N" becomes a
+# real, progress-tracked requirement instead of a dead end. itemId =
+# counted from bank+inventory; varbit = the game's own balance counter
+# (gameval VarbitID constants, verified present in the API — never a
+# guessed id). A currency with NEITHER stays an honest manual step.
+CURRENCY_SOURCES = {
+    "Coins": {"itemId": 995, "name": "Coins"},
+    "Golden nugget": {"itemId": 12012, "name": "Golden nuggets"},
+    "Molch pearl": {"itemId": 22820, "name": "Molch pearls"},
+    "Hallowed mark": {"itemId": 24711, "name": "Hallowed marks"},
+    "Abyssal pearls": {"itemId": 26792, "name": "Abyssal pearls"},
+    "Pieces of eight": {"itemId": 8951, "name": "Pieces of eight"},
+    "Mark of grace": {"itemId": 11849, "name": "Marks of grace"},
+    "Tithe": {"varbit": 4893, "name": "Tithe Farm points"},   # HOSIDIUS_TITHE_REWARDPOINTS
+    "NMZ": {"varbit": 3949, "name": "Nightmare Zone points"},  # NZONE_CURRENTPOINTS
+}
+# "Points" means a different currency per shop — resolve by shop, and only
+# where the balance is genuinely readable
+SHOP_CURRENCY = {
+    "Slayer Rewards": {"varbit": 4068, "name": "Slayer reward points"},
+    "Mahogany Homes Reward Shop": {"name": "Mahogany Homes points"},
+    "Void Knights' Reward Options": {"name": "Void Knight commendation points"},
+    "Mairin's Market": {"name": "Tempoross reward permits"},
+}
+
+
+# names with many ids where the lowest is NOT the one the game counts
+CANONICAL_IDS = {"Coins": 995}
+
+
+def currency_meta(shop, currency, price):
+    """The machine-readable side of a price: what to count and how many."""
+    qty = None
+    if price and re.search(r"\d", price):
+        qty = int(re.sub(r"[^\d]", "", price))
+    base = SHOP_CURRENCY.get(shop) if (currency or "").strip() in ("Points", "") \
+        else CURRENCY_SOURCES.get((currency or "Coins").strip())
+    if base is None:
+        base = CURRENCY_SOURCES.get((currency or "Coins").strip())
+    if base is None or not qty:
+        return None  # free (0 gp, Diango's holiday reclaims): nothing to gate on
+    out = dict(base)
+    out["qty"] = qty
+    return out
+
 
 def price_text(price, currency):
     """'250' + 'Tithe' → '250 Tithe Farm points'; no digits → None (honest)."""
     if not price or not re.search(r"\d", price):
         return None
     p = price.strip()
+    if re.fullmatch(r"0+", p):
+        return "free"
+    if re.fullmatch(r"\d+", p):
+        p = f"{int(p):,}"  # 99000 gp reads as 99,000 gp
     cur = (currency or "Coins").strip()
     if cur.lower() in ("coins", ""):
         return p + " gp"
@@ -125,10 +174,14 @@ def shop_rows(rows):
     priced.sort()
     out = []
     for coins_last, p, shop, price, currency in priced:
-        entry = {"how": "shop", "from": display_from(shop).rstrip(".")}
+        shop_name = display_from(shop).rstrip(".")
+        entry = {"how": "shop", "from": shop_name}
         text = price_text(price, currency)
         if text:
             entry["price"] = text
+        meta = currency_meta(shop_name, currency, price)
+        if meta:
+            entry["currency"] = meta
         if any(o["from"] == entry["from"] for o in out):
             continue
         out.append(entry)
@@ -137,7 +190,7 @@ def shop_rows(rows):
     return out
 
 
-def make_rows(rows, name):
+def make_rows(rows, name, ids_by_name=None):
     """Up to 3 recipe variants, each with its actual materials — never a
     bare '(see recipe)'. Imbue-style recipes (no skill gate, point-cost
     materials) surface as their own honest options."""
@@ -160,6 +213,7 @@ def make_rows(rows, name):
             if lvl and (gate is None or lvl > gate[1]):
                 gate = (s.get("name"), lvl)
         parts = []
+        mats = []
         for m in materials:
             mat = (m.get("name") or "").strip()
             if not mat:
@@ -170,11 +224,23 @@ def make_rows(rows, name):
             except ValueError:
                 q = 1
             parts.append((f"{q:,} x " if q > 1 else "") + mat)
+            # STRUCTURED materials: the UI renders one sprite row per
+            # material instead of one clumped sentence, and the planner
+            # turns them into real gather steps (Luke, 2026-07-23)
+            row = {"name": mat, "qty": q}
+            ids = (ids_by_name or {}).get(mat)
+            if mat in CANONICAL_IDS:
+                row["itemId"] = CANONICAL_IDS[mat]
+            elif ids:
+                row["itemId"] = sorted(ids)[0]
+            mats.append(row)
         entry = {"how": "make"}
         if gate and gate[0]:
             entry["skill"] = f"{gate[0]} {gate[1]}"
         if parts:
             entry["detail"] = " + ".join(parts)
+        if mats:
+            entry["materials"] = mats
         detail = entry.get("detail")
         # note↔item conversions are bank mechanics, not recipes
         if detail in (name, name + " note"):
@@ -315,7 +381,7 @@ def main():
         if "shop" not in have and name in shops:
             sources.extend(shop_rows(shops[name]))
         if "make" not in have and name in recipes:
-            sources.extend(make_rows(recipes[name], name))
+            sources.extend(make_rows(recipes[name], name, ids_by_name))
         if "reward" not in have and name in rewards:
             r = best_reward(name, rewards[name])
             if r:

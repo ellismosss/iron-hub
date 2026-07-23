@@ -35,6 +35,15 @@ public class PlanConstraints
 	 *  router honours it among feasible picks; stale ids are ignored. */
 	public final Map<String, List<String>> routeTaskOrder = new HashMap<>();
 
+	/** item id → the obtainment method the player CHOSE (an
+	 *  {@code ItemSourcesPack.key}, e.g. {@code "make|"} / {@code "open|
+	 *  Dragon impling jar"}). The expander honours it when an item's
+	 *  requirements offer alternative paths — picking "Crafting" for an
+	 *  Amulet of glory must stop the plan demanding Hunter (Luke,
+	 *  2026-07-23) — so it belongs in the plan FINGERPRINT, not just the
+	 *  display layer. */
+	public final Map<Integer, String> itemSourcePrefs = new HashMap<>();
+
 	public static PlanConstraints none()
 	{
 		return new PlanConstraints();

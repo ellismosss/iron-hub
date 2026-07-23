@@ -64,6 +64,10 @@ public class GoalsHubTabTest
 			"Fishing from the reward pool (tempoross)", java.util.List.of("skill:Fishing:35")));
 		// a Supplies Route: it decomposes to its raw component materials
 		state.addGoalSeed(com.ironhub.state.GoalSeeds.supply(21183, "Bracelet of slaughter", 100));
+		// an item with SEVERAL obtainment methods (craft it, or hunt dragon
+		// implings) — the choose-a-method affordance + per-method rows
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.custom(
+			"custom:item:amulet-of-glory", "Amulet of glory", "item:1704:1:Amulet of glory"));
 		state.setGoalPriority("bowfa", "someday"); // dimmed + grey edge (if selected)
 		// one archived (dated) + one detected, so the hero + archive fill
 		PersistedState.GoalRecord dated = new PersistedState.GoalRecord();
@@ -109,6 +113,13 @@ public class GoalsHubTabTest
 			javax.swing.SwingUtilities.invokeAndWait(() -> holder[0].expandRoute("clog:25580"));
 			javax.swing.SwingUtilities.invokeAndWait(() -> { });
 			write(renderOnEdt(holder[0]), "goals-hub-drops-" + theme.name().toLowerCase());
+
+			// an item with several obtainment methods: one row per method,
+			// the chooser affordance, and materials with their sprites
+			javax.swing.SwingUtilities.invokeAndWait(
+				() -> holder[0].expandRoute("custom:item:amulet-of-glory"));
+			javax.swing.SwingUtilities.invokeAndWait(() -> { });
+			write(renderOnEdt(holder[0]), "goals-hub-methods-" + theme.name().toLowerCase());
 
 			// a quest Route expanded: the target quest's own Task reads "Complete the quest"
 			javax.swing.SwingUtilities.invokeAndWait(() -> holder[0].expandRoute("custom:quest:dragon-slayer-i"));

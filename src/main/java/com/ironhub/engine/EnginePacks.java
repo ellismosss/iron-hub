@@ -20,6 +20,10 @@ public class EnginePacks
 	public final com.ironhub.data.ClogPack clog;
 	/** Drop/kill rates for KILL and clog OBTAIN costing (G3); null when no clog pack. */
 	public final RateSource rates;
+	/** The universal where-from projection — lets the expander give an
+	 *  OBTAIN with no gear-chart entry REAL sub-steps (buy it for N points,
+	 *  make it from these materials, finish that quest). Nullable. */
+	public com.ironhub.data.ItemSourcesPack itemSources;
 
 	private final Map<String, QuestsPack.QuestEntry> questByName = new HashMap<>();
 	private final Map<Integer, GearProgressionPack.Item> gearByCanonicalId = new HashMap<>();

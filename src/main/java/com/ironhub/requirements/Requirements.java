@@ -225,6 +225,14 @@ public final class Requirements
 					return diary(parts[1], parts[2]);
 				case "combat": // combat:<level> — derived from the 7 combat skills
 					return combat(Integer.parseInt(parts[1]));
+				case "varbit": // varbit:<id>:<value>[:<label>] — reward-point
+					// balances (slayer/Tithe/NMZ points) the game keeps in a
+					// varbit; the ONLY leaf that reads a raw game value, and
+					// only ever for currencies with a documented constant
+					return new VarbitRequirement(Integer.parseInt(parts[1]),
+						Integer.parseInt(parts[2]),
+						parts.length > 3 ? String.join(":",
+							java.util.Arrays.copyOfRange(parts, 3, parts.length)) : null);
 				default:
 					return text(s);
 			}
@@ -409,6 +417,43 @@ public final class Requirements
 		public String describe()
 		{
 			return "Started " + quest.getName();
+		}
+	}
+
+	/** A reward-currency balance the game keeps in a varbit (slayer points,
+	 *  Tithe Farm points, NMZ points). Progress is honest: gap() is the
+	 *  shortfall, so a "buy X for 500 points" step ranks by how close you
+	 *  are. Currencies with NO documented varbit are never modelled this
+	 *  way — they stay manual steps rather than reading a guessed id. */
+	private static class VarbitRequirement implements Requirement
+	{
+		private final int varbitId;
+		private final int value;
+		private final String label;
+
+		VarbitRequirement(int varbitId, int value, String label)
+		{
+			this.varbitId = varbitId;
+			this.value = value;
+			this.label = label;
+		}
+
+		@Override
+		public boolean isMet(StateView state)
+		{
+			return state.getVarbit(varbitId) >= value;
+		}
+
+		@Override
+		public double gap(StateView state)
+		{
+			return Math.max(0, value - state.getVarbit(varbitId));
+		}
+
+		@Override
+		public String describe()
+		{
+			return value + " " + (label != null ? label : "(varbit " + varbitId + ")");
 		}
 	}
 

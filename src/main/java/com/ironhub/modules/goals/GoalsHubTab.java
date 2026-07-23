@@ -69,6 +69,14 @@ class GoalsHubTab extends JPanel
 	/** Goal/task row icon height — a small, consistent size for every icon
 	 *  (system badges AND item sprites), the tidy small variation Luke prefers. */
 	private static final int BADGE_H = 18;
+	/** The tab's own 4px border, both sides. */
+	private static final int TAB_INSET = 8;
+	/** A category slab's inner padding inside its engraved edge. */
+	private static final int SLAB_PAD = 4;
+	/** A Task block's left indent (ROW_GAP + 6) and right gutter (ROW_GAP). */
+	private static final int TASK_INDENT = UiTokens.ROW_GAP + 6;
+	/** The choose-a-method affordance (design/choose_method.png, Luke). */
+	private static final int CHOOSE_ICON = 14;
 	/** The larger icon in the CURRENT TASK hero tile (Luke). */
 	private static final int CURRENT_ICON_H = 34;
 
@@ -599,6 +607,22 @@ class GoalsHubTab extends JPanel
 		return x;
 	}
 
+	/**
+	 * How wide a Task's own content may be before it spills past the 225px
+	 * panel: the panel minus the tab border, the category slab's engraved
+	 * edge and padding, and the block's indent. Wrapped text used to be
+	 * measured against hardcoded widths that ignored the slab, so long
+	 * lines ran off the right edge (Luke, 2026-07-23).
+	 *
+	 * @param extraIndent additional left inset the row adds itself
+	 */
+	private int taskContentWidth(int extraIndent)
+	{
+		int slabEdge = theme.cornerStamp.length + SLAB_PAD;
+		return Math.max(60, UiTokens.PANEL_WIDTH - TAB_INSET - slabEdge * 2
+			- TASK_INDENT - UiTokens.ROW_GAP - extraIndent);
+	}
+
 	/** This route's slice of the merged plan (the real, costed Tasks with
 	 *  time + method) — in plan order (next-first). Falls back to the goal's
 	 *  own checklist when no plan exists yet. */
@@ -641,11 +665,20 @@ class GoalsHubTab extends JPanel
 			}
 			return;
 		}
+		// a Route whose only Task IS the Route (obtain the very item the goal
+		// names) must not print its own name and icon twice — show just the
+		// detail (Luke, 2026-07-23)
+		boolean echo = slice.size() == 1 && isEcho(slice.get(0), route);
 		int shown = 0;
 		boolean current = true;
 		for (Plan.Step step : slice)
 		{
-			target.add(taskRow(step, current, route));
+			if (shown > 0)
+			{
+				target.add(taskDivider());
+			}
+			target.add(echo ? taskDetailOnly(slice.get(0), route)
+				: taskRow(step, current, route));
 			current = false;
 			if (++shown >= 8 && slice.size() > shown)
 			{
@@ -653,6 +686,29 @@ class GoalsHubTab extends JPanel
 				break;
 			}
 		}
+	}
+
+	/** A single Task that just restates its Route ("Salve amulet (ei)" under
+	 *  the goal "Salve amulet (ei)"). */
+	private boolean isEcho(Plan.Step step, GoalsPack.Goal route)
+	{
+		String name = taskName(step, route);
+		return name != null && route.getName() != null
+			&& name.equalsIgnoreCase(route.getName().trim());
+	}
+
+	/** The 1px hairline between Tasks inside a Route (Luke). */
+	private JComponent taskDivider()
+	{
+		JPanel line = new JPanel();
+		line.setOpaque(true);
+		line.setBackground(theme.edgeDark);
+		line.setAlignmentX(LEFT_ALIGNMENT);
+		line.setBorder(new EmptyBorder(0, 0, 0, 0));
+		line.setPreferredSize(new java.awt.Dimension(UiTokens.PANEL_WIDTH, 1));
+		line.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 1));
+		line.setMinimumSize(new java.awt.Dimension(0, 1));
+		return line;
 	}
 
 	/** One Task from the plan slice: name + time, with the recommended
@@ -675,30 +731,28 @@ class GoalsHubTab extends JPanel
 		}
 		// Task-tile text is the small font (Goal tiles + CURRENT TASK keep the
 		// regular font) — Luke, to fit more in the row. The name WRAPS to the
-		// room left after the time figure — clipping hid the point of a task
-		// (Luke). Wrap width = row width minus icon, time text and gaps.
-		int reserved = UiTokens.ROW_GAP + 6 + UiTokens.ROW_GAP + BADGE_H + UiTokens.PAD_TIGHT * 2 + 12
+		// room left after the icon and the time figure.
+		int reserved = (icon != null ? BADGE_H + UiTokens.PAD_TIGHT : 0) + UiTokens.PAD_TIGHT
 			+ new JLabel(timeText(step)).getFontMetrics(OsrsSkin.smallFont()).stringWidth(timeText(step));
 		OsrsLabel name = OsrsLabel.wrapped(taskName(step, route),
-			Math.max(80, UiTokens.PANEL_WIDTH - reserved),
+			taskContentWidth(reserved),
 			current ? OsrsSkin.TITLE : OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned();
 		line.add(name);
 		line.add(Box.createHorizontalGlue());
 		line.add(new OsrsLabel(timeText(step), OsrsSkin.MUTED, OsrsSkin.smallFont()));
 		block.add(line);
 
-		String sub = taskSubLine(step, route);
-		if (sub != null)
-		{
-			JPanel s = row();
-			s.add(Box.createHorizontalStrut(UiTokens.STATUS_GLYPH_SIZE + UiTokens.PAD_TIGHT));
-			s.add(OsrsLabel.wrapped(sub, 180, OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
-			s.add(Box.createHorizontalGlue());
-			block.add(s);
-		}
-		addResourceRows(step, block);
-		// right-click any task → pin it as the single active thing (the glyph
-		// left the row — chevrons mark Goals only, Luke), or open its wiki
+		addDetailRows(step, route, block);
+		attachTaskMenu(block, step);
+		cap(block);
+		return block;
+	}
+
+	/** Right-click a Task: pin it as the single active thing (2), open its
+	 *  wiki page (quests AND items — Luke, 2026-07-23), or choose how to
+	 *  obtain it. */
+	private void attachTaskMenu(JPanel block, Plan.Step step)
+	{
 		String url = wikiUrl(step);
 		boolean taskPinned = state.isTaskPinned(step.action.id);
 		block.addMouseListener(new MouseAdapter()
@@ -720,8 +774,194 @@ class GoalsHubTab extends JPanel
 				}
 			}
 		});
+	}
+
+	/** A Task rendered WITHOUT its name and icon — used when the only Task
+	 *  restates its Route, so the detail is all that is left to say. */
+	private JComponent taskDetailOnly(Plan.Step step, GoalsPack.Goal route)
+	{
+		JPanel block = new JPanel();
+		block.setLayout(new BoxLayout(block, BoxLayout.Y_AXIS));
+		block.setOpaque(false);
+		block.setAlignmentX(LEFT_ALIGNMENT);
+		block.setBorder(new EmptyBorder(2, TASK_INDENT, 2, UiTokens.ROW_GAP));
+		addDetailRows(step, route, block);
+		if (block.getComponentCount() == 0)
+		{
+			// nothing more to say than the goal's own name — a time figure at
+			// least tells the player what it costs
+			JPanel line = row();
+			line.add(new OsrsLabel(timeText(step), OsrsSkin.FAINT, OsrsSkin.smallFont())
+				.leftAligned());
+			line.add(Box.createHorizontalGlue());
+			block.add(line);
+		}
+		attachTaskMenu(block, step);
 		cap(block);
 		return block;
+	}
+
+	/**
+	 * A Task's detail: the training rate, or — for an item — one row per way
+	 * of obtaining it with the materials underneath, each with its sprite.
+	 * Replaces the old single clumped sentence ("Make: 4,999 x Coins +
+	 * Vorkath's head + 75 x Mithril arrow · Make: ..."), which was
+	 * unreadable at 225px (Luke, 2026-07-23).
+	 */
+	private void addDetailRows(Plan.Step step, GoalsPack.Goal route, JPanel block)
+	{
+		if (step.action.kind != com.ironhub.engine.Action.Kind.OBTAIN
+			|| step.action.itemId <= 0 || module.itemSources() == null)
+		{
+			String sub = taskSubLine(step, route);
+			if (sub != null)
+			{
+				JPanel s = row();
+				s.add(Box.createHorizontalStrut(UiTokens.STATUS_GLYPH_SIZE + UiTokens.PAD_TIGHT));
+				s.add(OsrsLabel.wrapped(sub, taskContentWidth(UiTokens.STATUS_GLYPH_SIZE
+					+ UiTokens.PAD_TIGHT), OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+				s.add(Box.createHorizontalGlue());
+				block.add(s);
+			}
+			addResourceRows(step, block);
+			return;
+		}
+		int itemId = step.action.itemId;
+		List<com.ironhub.data.ItemSourcesPack.Source> options = sourceOptions(itemId);
+		String pref = state.getItemSourcePref(itemId);
+		// the clog drop rate stays the headline for a genuine drop with no
+		// chosen method — it is the number that matters
+		String drop = pref != null || purchased(options) || module.ratesSource() == null
+			? null : module.ratesSource().dropLabel(itemId);
+		if (drop != null)
+		{
+			block.add(detailLine(drop, OsrsSkin.FAINT, options.size() > 1, step));
+			addResourceRows(step, block);
+			return;
+		}
+		int shown = 0;
+		for (com.ironhub.data.ItemSourcesPack.Source s : options)
+		{
+			boolean chosen = com.ironhub.data.ItemSourcesPack.key(s).equals(pref);
+			if (pref != null && !chosen)
+			{
+				continue; // the player picked one — show only that
+			}
+			block.add(detailLine(com.ironhub.data.ItemSourcesPack.shortLabel(s, state),
+				chosen ? OsrsSkin.MUTED : OsrsSkin.FAINT,
+				shown == 0 && options.size() > 1, step));
+			// materials always render as their own sprite rows — the recipe
+			// as one sentence was the unreadable clump (Luke)
+			addMaterialRows(s, block);
+			if (++shown >= 3)
+			{
+				break;
+			}
+		}
+		addResourceRows(step, block);
+	}
+
+	/** Every way the knowledge base knows to obtain this item, plus the
+	 *  alternative branches of its own {@code any:} requirement (the gear
+	 *  chart's "Crafting 80 OR Hunter 83") — the full choice set. */
+	private List<com.ironhub.data.ItemSourcesPack.Source> sourceOptions(int itemId)
+	{
+		com.ironhub.data.ItemSourcesPack.Entry entry = module.itemSources().entry(itemId);
+		return entry == null || entry.getSources() == null
+			? List.of() : entry.getSources();
+	}
+
+	private boolean purchased(List<com.ironhub.data.ItemSourcesPack.Source> options)
+	{
+		return !options.isEmpty() && "shop".equals(options.get(0).getHow());
+	}
+
+	/** One detail line, optionally led by the choose-method affordance. */
+	private JComponent detailLine(String text, java.awt.Color color, boolean choosable,
+		Plan.Step step)
+	{
+		JPanel s = row();
+		int indent = UiTokens.STATUS_GLYPH_SIZE + UiTokens.PAD_TIGHT;
+		if (choosable)
+		{
+			JLabel chooser = new JLabel(chooseMethodIcon());
+			chooser.setToolTipText("Choose how you want to get this");
+			chooser.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			chooser.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					JPopupMenu menu = new JPopupMenu();
+					addSourceChoices(menu, step);
+					if (menu.getComponentCount() > 0)
+					{
+						menu.show(chooser, 0, chooser.getHeight());
+					}
+					e.consume();
+				}
+			});
+			s.add(chooser);
+			s.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+			indent = CHOOSE_ICON + UiTokens.PAD_TIGHT;
+		}
+		else
+		{
+			s.add(Box.createHorizontalStrut(indent));
+		}
+		s.add(OsrsLabel.wrapped(text, taskContentWidth(indent), color,
+			OsrsSkin.smallFont()).leftAligned());
+		s.add(Box.createHorizontalGlue());
+		return s;
+	}
+
+	/** The materials of a chosen "make" method, one sprite row each. */
+	private void addMaterialRows(com.ironhub.data.ItemSourcesPack.Source s, JPanel block)
+	{
+		if (s.getMaterials() == null)
+		{
+			return;
+		}
+		int rows = 0;
+		for (com.ironhub.data.ItemSourcesPack.Material m : s.getMaterials())
+		{
+			if (rows++ >= 6)
+			{
+				block.add(moreLine("+ " + (s.getMaterials().size() - 6) + " more materials"));
+				break;
+			}
+			JPanel r = row();
+			int indent = UiTokens.STATUS_GLYPH_SIZE + UiTokens.PAD_TIGHT * 2;
+			r.setBorder(new EmptyBorder(0, indent, 0, 0));
+			if (itemManager != null && m.getItemId() > 0)
+			{
+				Icon icon = itemIcon(m.getItemId(), 16);
+				if (icon != null)
+				{
+					r.add(new JLabel(icon));
+					r.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+				}
+			}
+			int owned = m.getItemId() > 0 ? state.canonicalStock(m.getItemId()) : -1;
+			boolean enough = owned >= m.getQty();
+			r.add(new OsrsLabel((m.getQty() > 1 ? m.getQty() + " × " : "") + m.getName(),
+				OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned().squeezable());
+			r.add(Box.createHorizontalGlue());
+			if (owned >= 0)
+			{
+				r.add(new OsrsLabel(enough ? "have " + m.getQty() : owned + "/" + m.getQty(),
+					enough ? UiTokens.STATUS_OWNED : UiTokens.STATUS_WARNING,
+					OsrsSkin.smallFont()));
+			}
+			cap(r);
+			block.add(r);
+		}
+	}
+
+	private Icon chooseMethodIcon()
+	{
+		java.awt.image.BufferedImage raw = OsrsIcons.image(theme, "choose_method");
+		return raw == null ? null : sized(raw, CHOOSE_ICON);
 	}
 
 	/** Right-click "Get it via" — every KB-known way to obtain the item; the
@@ -734,20 +974,67 @@ class GoalsHubTab extends JPanel
 		{
 			return;
 		}
-		com.ironhub.data.ItemSourcesPack.Entry kb = module.itemSources().entry(step.action.itemId);
-		if (kb == null || kb.getSources() == null || kb.getSources().size() < 2)
+		int itemId = step.action.itemId;
+		com.ironhub.data.ItemSourcesPack.Entry kb = module.itemSources().entry(itemId);
+		List<com.ironhub.data.ItemSourcesPack.Source> sources = kb == null
+			|| kb.getSources() == null ? List.of() : kb.getSources();
+		List<String> paths = requirementPaths(itemId);
+		if (sources.size() + paths.size() < 2)
 		{
 			return;
 		}
 		menu.addSeparator();
-		String pref = state.getItemSourcePref(step.action.itemId);
-		for (com.ironhub.data.ItemSourcesPack.Source s : kb.getSources())
+		String pref = state.getItemSourcePref(itemId);
+		for (com.ironhub.data.ItemSourcesPack.Source s : sources)
 		{
 			String key = com.ironhub.data.ItemSourcesPack.key(s);
 			boolean chosen = key.equals(pref);
-			menu.add(item((chosen ? "· " : "") + "Get it via " + com.ironhub.data.ItemSourcesPack.label(s, state),
-				() -> state.setItemSourcePref(step.action.itemId, chosen ? null : key)));
+			menu.add(item((chosen ? "· " : "") + "Get it via "
+					+ com.ironhub.data.ItemSourcesPack.label(s, state),
+				() -> state.setItemSourcePref(itemId, chosen ? null : key)));
 		}
+		// the gear chart's alternative ROUTES to the same item ("Crafting 80
+		// OR Hunter 83") — picking one re-plans, so the other skill's grind
+		// leaves the plan entirely (Luke, 2026-07-23)
+		for (String path : paths)
+		{
+			String key = com.ironhub.engine.GoalExpander.PATH_PREF + path;
+			boolean chosen = key.equals(pref);
+			String label = describePath(path);
+			menu.add(item((chosen ? "· " : "") + "Get it via " + label,
+				() -> state.setItemSourcePref(itemId, chosen ? null : key)));
+		}
+	}
+
+	/** The branches of an item's own {@code any:} requirement, if it has one. */
+	private List<String> requirementPaths(int itemId)
+	{
+		GearProgressionPack.Item gearItem = gearItemById(itemId);
+		if (gearItem == null || gearItem.getRequirements() == null)
+		{
+			return List.of();
+		}
+		List<String> paths = new ArrayList<>();
+		for (String req : gearItem.getRequirements())
+		{
+			if (req.toLowerCase(java.util.Locale.ROOT).startsWith("any:"))
+			{
+				paths.addAll(java.util.Arrays.asList(
+					req.substring("any:".length()).split("\\|")));
+			}
+		}
+		return paths;
+	}
+
+	/** "skillb:Crafting:80&item:1:1:X" → "Crafting 80 + X". */
+	private static String describePath(String path)
+	{
+		List<String> parts = new ArrayList<>();
+		for (String leaf : path.split("&"))
+		{
+			parts.add(com.ironhub.requirements.Requirements.parse(leaf).describe());
+		}
+		return String.join(" + ", parts);
 	}
 
 	/** The faint sub-line for a Task: the recommended method + xp/hr (TRAIN),
@@ -1033,11 +1320,15 @@ class GoalsHubTab extends JPanel
 			// the stocked ITEM's page, not the "Stock N × …" goal name
 			page = supplyItemName(route);
 		}
-		else if (route.icon() != null || id.startsWith("gear:") || id.startsWith("clog:"))
+		else if (!isLevelGoal(id) && route.getName() != null && !route.getName().isBlank())
 		{
+			// every other Goal names a real thing — an item, a build, an
+			// unlock — and its name IS the wiki page (Luke, 2026-07-23:
+			// only quests offered "Open wiki"). Skill-level goals are the
+			// one exception: "70" is not a page.
 			page = route.getName();
 		}
-		return page == null ? null : "https://oldschool.runescape.wiki/w/" + page.replace(' ', '_');
+		return page == null ? null : "https://oldschool.runescape.wiki/w/" + page.trim().replace(' ', '_');
 	}
 
 	/** The item a supply Route stocks, from its {@code item:<id>:<qty>:<name>}
@@ -1566,9 +1857,54 @@ class GoalsHubTab extends JPanel
 	{
 		if (step.action.kind == com.ironhub.engine.Action.Kind.QUEST && step.action.questName != null)
 		{
-			return "https://oldschool.runescape.wiki/w/" + step.action.questName.replace(' ', '_');
+			return wikiPage(step.action.questName);
+		}
+		// items/equipment open their own page too (Luke, 2026-07-23 — this
+		// only worked for quests). The gear chart's curated wiki title wins
+		// when it has one (disambiguated pages like "Amulet_of_Glory_(mounted)").
+		if (step.action.itemId > 0)
+		{
+			GearProgressionPack.Item gearItem = gearItemById(step.action.itemId);
+			if (gearItem != null && gearItem.getWiki() != null)
+			{
+				return "https://oldschool.runescape.wiki/w/" + gearItem.getWiki();
+			}
+			com.ironhub.data.ItemSourcesPack.Entry kb = module.itemSources() == null
+				? null : module.itemSources().entry(step.action.itemId);
+			if (kb != null && kb.getName() != null)
+			{
+				return wikiPage(kb.getName());
+			}
+		}
+		return step.action.name != null && !step.action.name.isEmpty()
+			? wikiPage(step.action.name) : null;
+	}
+
+	private GearProgressionPack.Item gearItemById(int itemId)
+	{
+		if (gearPack == null)
+		{
+			return null;
+		}
+		for (GearProgressionPack.Phase phase : gearPack.getPhases())
+		{
+			for (GearProgressionPack.Group group : phase.getGroups())
+			{
+				for (GearProgressionPack.Item item : group.getItems())
+				{
+					if (item.getItemId() != null && item.getItemId() == itemId)
+					{
+						return item;
+					}
+				}
+			}
 		}
 		return null;
+	}
+
+	private static String wikiPage(String title)
+	{
+		return "https://oldschool.runescape.wiki/w/" + title.trim().replace(' ', '_');
 	}
 
 	private Icon stepIcon(Plan.Step step)

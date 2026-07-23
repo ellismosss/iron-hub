@@ -989,6 +989,57 @@ public class AccountState implements StateView
 		}
 	}
 
+	/**
+	 * Re-derive a tracked goal's steps from today's pack data, keeping when
+	 * it was added and what it was estimated at.
+	 *
+	 * <p>Goal seeds are SNAPSHOTS taken when the goal was added — that is
+	 * what makes them render offline — but it also means a goal added before
+	 * its pack learned something keeps the old, thinner steps forever ("Build
+	 * Ancient altar" with no materials, Luke 2026-07-23). Modules that own a
+	 * seed family rebuild their seeds through this on start-up; it is a no-op
+	 * when nothing changed, so it never churns persistence or the planner.
+	 *
+	 * @return true when the seed actually changed
+	 */
+	public boolean refreshGoalSeed(PersistedState.GoalSeed rebuilt)
+	{
+		PersistedState.GoalSeed old = goalSeeds.get(rebuilt.id);
+		if (old == null)
+		{
+			return false; // not tracked — never resurrect a removed goal
+		}
+		if (sameSteps(old, rebuilt))
+		{
+			return false;
+		}
+		rebuilt.addedAt = old.addedAt;
+		rebuilt.estimatedHours = old.estimatedHours;
+		goalSeeds.put(rebuilt.id, rebuilt);
+		persist();
+		notifyListeners();
+		return true;
+	}
+
+	private static boolean sameSteps(PersistedState.GoalSeed a, PersistedState.GoalSeed b)
+	{
+		if (a.steps.size() != b.steps.size() || !a.achieved.equals(b.achieved)
+			|| !java.util.Objects.equals(a.name, b.name))
+		{
+			return false;
+		}
+		for (int i = 0; i < a.steps.size(); i++)
+		{
+			if (!java.util.Objects.equals(a.steps.get(i).label, b.steps.get(i).label)
+				|| !java.util.Objects.equals(a.steps.get(i).requirement,
+					b.steps.get(i).requirement))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
 	/** Record the plan hours a just-added goal contributed (the archive's
 	 *  "est" figure — its only writer left with PlannerTab in G7 part 2,
 	 *  so every record since read "est —"; 2026-07-20 audit). Persist only:
@@ -1552,6 +1603,7 @@ public class AccountState implements StateView
 		constraints.pinnedGoals.addAll(pinnedGoals);
 		routeTaskOrder.forEach((goalId, order) ->
 			constraints.routeTaskOrder.put(goalId, new java.util.ArrayList<>(order)));
+		constraints.itemSourcePrefs.putAll(itemSourcePrefs);
 		return constraints;
 	}
 

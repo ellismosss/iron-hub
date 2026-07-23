@@ -28,6 +28,20 @@ public class QolModule implements IronHubModule
 	private final DataPack dataPack;
 	private final javax.inject.Provider<com.ironhub.modules.goals.GoalPlannerModule> planner; // null in tests
 	private QolTab tab;
+	private int seedProfileGeneration = -1;
+	private final Runnable seedListener = this::onProfileMaybeChanged;
+
+	/** Seeds are per-profile — re-derive them when the profile switches
+	 *  (the profileGeneration seam every module-local cache obeys). */
+	private void onProfileMaybeChanged()
+	{
+		int generation = state.profileGeneration();
+		if (generation != seedProfileGeneration)
+		{
+			seedProfileGeneration = generation;
+			refreshQolSeeds();
+		}
+	}
 
 	@Inject
 	public QolModule(AccountState state, IronHubConfig config, DataPack dataPack,
@@ -73,11 +87,39 @@ public class QolModule implements IronHubModule
 	@Override
 	public void startUp()
 	{
+		refreshQolSeeds();
+		state.addListener(seedListener);
+	}
+
+	/** Re-derive tracked QoL goals from today's pack: a goal added before
+	 *  qol.json learned an unlock's requirements kept its bare "Obtain X"
+	 *  step forever (Luke, 2026-07-23: the diary cape had no gate at all).
+	 *  Seeds are per-profile, so this re-runs when the profile switches. */
+	void refreshQolSeeds()
+	{
+		if (dataPack == null)
+		{
+			return;
+		}
+		QolPack pack = dataPack.load("qol", QolPack.class);
+		for (String id : state.goalSeedIds("qol"))
+		{
+			for (QolPack.Unlock unlock : pack.getUnlocks())
+			{
+				if (unlock.getId().equals(id))
+				{
+					state.refreshGoalSeed(com.ironhub.state.GoalSeeds.qol(unlock.getId(),
+						unlock.getName(), unlock.getItemIds(), unlock.getRequirements()));
+					break;
+				}
+			}
+		}
 	}
 
 	@Override
 	public void shutDown()
 	{
+		state.removeListener(seedListener);
 		if (tab != null)
 		{
 			tab.dispose();

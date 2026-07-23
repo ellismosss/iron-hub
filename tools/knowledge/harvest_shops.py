@@ -34,6 +34,10 @@ POINT_PRICE_PINS = {
     ("Farmer Gricoller's Rewards", "Seed box"): "250",
     ("Farmer Gricoller's Rewards", "Herb sack"): "250",
     ("Slayer Rewards", "Herb sack"): "750",
+    ("Mahogany Homes Reward Shop", "Amy's saw"): "500",
+    # NOTE: Culinaromancer's Chest states no price on ANY of its StoreLines
+    # (Barrows gloves' 130k lives only in item prose) — it stays an honest
+    # no-price row + a gap rather than an invented number.
 }
 
 
@@ -42,10 +46,13 @@ def point_prices(conn):
     Only fills EXISTING holes (join on the bucket's own item rows) and only
     from a numeric-only cell within two cells of the item's {{plink}} row —
     an unparseable shop keeps its honest N/A and gets a gap."""
+    # every missing price, point-currency AND coin (1,169 coin rows were
+    # blank too — Barrows gloves showed "Buy: Culinaromancer's Chest" with
+    # no price at all)
     holes = {}
     for item, shop in conn.execute(
-            "SELECT item, shop FROM shop_stock WHERE (price IS NULL OR price=''"
-            " OR price='N/A') AND currency NOT IN ('Coins','')"):
+            "SELECT item, shop FROM shop_stock WHERE price IS NULL OR price=''"
+            " OR price='N/A'"):
         holes.setdefault(shop, []).append(item)
     filled = 0
     for shop, items in sorted(holes.items()):

@@ -8,7 +8,20 @@
    "itemIds": [
     19476
    ],
-   "requirements": [],
+   "requirements": [
+    "diary:Ardougne:Elite",
+    "diary:Desert:Elite",
+    "diary:Falador:Elite",
+    "diary:Fremennik:Elite",
+    "diary:Kandarin:Elite",
+    "diary:Karamja:Elite",
+    "diary:Kourend & Kebos:Elite",
+    "diary:Lumbridge & Draynor:Elite",
+    "diary:Morytania:Elite",
+    "diary:Varrock:Elite",
+    "diary:Western Provinces:Elite",
+    "diary:Wilderness:Elite"
+   ],
    "benefit": "The achievement diary cape can be obtained by players who have completed all Achievement Diaries. It can be purchased along with its hood for 99,000 coins, from Twiggy O'Korn in Draynor Village. The cape becomes trimmed after completion of all quests, as do the quest cape and music cape after com..."
   },
   {

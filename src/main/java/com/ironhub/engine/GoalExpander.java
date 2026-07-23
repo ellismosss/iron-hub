@@ -31,17 +31,34 @@ public class GoalExpander
 	/** Usable temporary boost headroom per skill (crystal saw, stews…). */
 	private final java.util.Map<Skill, Integer> boosts;
 
-	private GoalExpander(StateView state, EnginePacks packs)
+	/** item id → the obtainment method the player chose; an
+	 *  {@code ItemSourcesPack.key}, or {@code "path|<requirement>"} to pick
+	 *  one branch of an {@code any:} gate (Luke: choosing Crafting for an
+	 *  Amulet of glory must stop the plan demanding Hunter). */
+	private final java.util.Map<Integer, String> sourcePrefs;
+
+	/** Pref-value prefix meaning "expand THIS branch of the any: gate". */
+	public static final String PATH_PREF = "path|";
+
+	private GoalExpander(StateView state, EnginePacks packs,
+		java.util.Map<Integer, String> sourcePrefs)
 	{
 		this.state = state;
 		this.packs = packs;
+		this.sourcePrefs = sourcePrefs == null ? java.util.Map.of() : sourcePrefs;
 		this.boosts = packs.boosts == null ? java.util.Map.of()
 			: com.ironhub.requirements.Boosts.available(packs.boosts, state);
 	}
 
 	public static ActionDag expand(List<GoalsPack.Goal> goals, StateView state, EnginePacks packs)
 	{
-		GoalExpander expander = new GoalExpander(state, packs);
+		return expand(goals, state, packs, java.util.Map.of());
+	}
+
+	public static ActionDag expand(List<GoalsPack.Goal> goals, StateView state,
+		EnginePacks packs, java.util.Map<Integer, String> sourcePrefs)
+	{
+		GoalExpander expander = new GoalExpander(state, packs, sourcePrefs);
 		for (GoalsPack.Goal goal : goals)
 		{
 			expander.dag.goalNames.put(goal.getId(),
@@ -97,6 +114,17 @@ public class GoalExpander
 	/** Expand one requirement string; returns the ids of its direct nodes. */
 	private Set<String> expandRequirement(String req, String goalId, String label)
 	{
+		return expandRequirement(req, goalId, label, null);
+	}
+
+	/**
+	 * @param contextItemId the item this requirement belongs to, when it came
+	 *                      from that item's own obtainment — lets an
+	 *                      {@code any:} gate honour the player's chosen path.
+	 */
+	private Set<String> expandRequirement(String req, String goalId, String label,
+		Integer contextItemId)
+	{
 		Set<String> out = new LinkedHashSet<>();
 		// already satisfied (owned item, claimed diary, boosted level…):
 		// nothing to plan — an owned Arclight must never become a step
@@ -108,7 +136,7 @@ public class GoalExpander
 		String lower = req.toLowerCase(Locale.ROOT);
 		if (lower.startsWith("any:"))
 		{
-			expandCheapestPath(req, goalId, label, out);
+			expandCheapestPath(req, goalId, label, out, contextItemId);
 			return out;
 		}
 		String[] parts = req.split(":");
@@ -290,11 +318,31 @@ public class GoalExpander
 		}
 		node.neededBy.add(goalId);
 		out.add(id);
+		// The knowledge base knows how the item is OBTAINED — buy it for N
+		// points, make it from these materials, finish that quest — which is
+		// what turns a dead-end "Buy: Twiggy O'Korn" into real steps (Luke,
+		// 2026-07-23). It applies to curated chart items too (the gem bag's
+		// 100 nuggets were nowhere), but the audited chain keeps ownership
+		// of the item's own USE gates: only an unaudited item takes its
+		// equip reqs from the wiki extraction.
+		// When the curated chain already expresses a CHOICE of routes
+		// ("any:skillb:Crafting:80|skillb:Hunter:83" for an Amulet of
+		// glory), that any: IS the obtainment model — expanding the KB
+		// recipe alongside it demanded both routes at once. There, the KB
+		// contributes only the orthogonal part: what the purchase costs.
+		boolean curatedChoice = gearOffersChoice(gearItem);
+		for (String req : kbObtainReqs(itemId, gearItem == null, curatedChoice))
+		{
+			for (String dep : expandRequirement(req, goalId, null, itemId))
+			{
+				node.dependsOn.add(dep);
+			}
+		}
 		if (gearItem != null && gearItem.getRequirements() != null)
 		{
 			for (String req : gearItem.getRequirements())
 			{
-				for (String dep : expandRequirement(req, goalId, null))
+				for (String dep : expandRequirement(req, goalId, null, itemId))
 				{
 					node.dependsOn.add(dep);
 				}
@@ -406,10 +454,136 @@ public class GoalExpander
 		return node;
 	}
 
-	/** Pick the cheapest satisfiable any: path (deterministic tiebreak). */
-	private void expandCheapestPath(String req, String goalId, String label, Set<String> out)
+	/**
+	 * What the knowledge base says it takes to obtain an item, as
+	 * requirement-graph strings — the honest sub-steps behind a "Buy: ..."
+	 * or "Make: ..." line. Honours the player's chosen method; otherwise the
+	 * pack's own best-first order. Returns empty when the KB knows a source
+	 * but nothing checkable about it (a drop has no requirement to plan).
+	 */
+	private static boolean gearOffersChoice(com.ironhub.data.GearProgressionPack.Item gearItem)
+	{
+		if (gearItem == null || gearItem.getRequirements() == null)
+		{
+			return false;
+		}
+		for (String req : gearItem.getRequirements())
+		{
+			if (req.toLowerCase(Locale.ROOT).startsWith("any:"))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private List<String> kbObtainReqs(int itemId, boolean includeEquipReqs, boolean currencyOnly)
+	{
+		com.ironhub.data.ItemSourcesPack pack = packs.itemSources;
+		com.ironhub.data.ItemSourcesPack.Entry entry = pack == null ? null : pack.entry(itemId);
+		if (entry == null || entry.getSources() == null || entry.getSources().isEmpty())
+		{
+			return List.of();
+		}
+		String pref = sourcePrefs.get(itemId);
+		com.ironhub.data.ItemSourcesPack.Source chosen = null;
+		for (com.ironhub.data.ItemSourcesPack.Source s : entry.getSources())
+		{
+			if (pref != null && pref.equals(com.ironhub.data.ItemSourcesPack.key(s)))
+			{
+				chosen = s;
+				break;
+			}
+		}
+		if (chosen == null)
+		{
+			// no choice made: prefer a source we can actually plan against
+			for (com.ironhub.data.ItemSourcesPack.Source s : entry.getSources())
+			{
+				if (s.currencyReq() != null || "reward".equals(s.getHow())
+					|| ("make".equals(s.getHow()) && s.getSkill() != null))
+				{
+					chosen = s;
+					break;
+				}
+			}
+		}
+		if (chosen == null)
+		{
+			return List.of();
+		}
+		List<String> reqs = new java.util.ArrayList<>();
+		String currency = chosen.currencyReq();
+		if (currency != null)
+		{
+			reqs.add(currency);
+		}
+		if (currencyOnly)
+		{
+			return reqs;
+		}
+		if (chosen.getMaterials() != null)
+		{
+			for (com.ironhub.data.ItemSourcesPack.Material m : chosen.getMaterials())
+			{
+				if (m.req() != null && m.getItemId() != itemId)
+				{
+					reqs.add(m.req());
+				}
+			}
+		}
+		if ("make".equals(chosen.getHow()) && chosen.getSkill() != null)
+		{
+			int cut = chosen.getSkill().lastIndexOf(' ');
+			if (cut > 0)
+			{
+				// production gates are boostable-action gates
+				reqs.add("skillb:" + chosen.getSkill().substring(0, cut) + ":"
+					+ chosen.getSkill().substring(cut + 1));
+			}
+		}
+		if ("reward".equals(chosen.getHow()) && chosen.getFrom() != null
+			&& chosen.getFrom().endsWith("(quest)"))
+		{
+			String quest = chosen.getFrom().substring(0, chosen.getFrom().length() - 8).trim();
+			if (packs.quest(quest) != null)
+			{
+				reqs.add("quest:" + quest);
+			}
+		}
+		// the item's own use gates ride along only when no audited chain
+		// owns them (the wiki extraction disagrees with the audit on ~10
+		// items — never let it silently tighten a curated gate)
+		if (includeEquipReqs && entry.getReqs() != null)
+		{
+			reqs.addAll(entry.getReqs());
+		}
+		return reqs;
+	}
+
+	/** Pick the cheapest satisfiable any: path (deterministic tiebreak) —
+	 *  unless the player has CHOSEN one for this item, in which case their
+	 *  choice wins outright, however expensive the engine thinks it is. */
+	private void expandCheapestPath(String req, String goalId, String label, Set<String> out,
+		Integer contextItemId)
 	{
 		String[] paths = req.substring("any:".length()).split("\\|");
+		String chosen = contextItemId == null ? null : sourcePrefs.get(contextItemId);
+		if (chosen != null && chosen.startsWith(PATH_PREF))
+		{
+			String wanted = chosen.substring(PATH_PREF.length());
+			for (String path : paths)
+			{
+				if (path.equals(wanted))
+				{
+					for (String leaf : path.split("&"))
+					{
+						out.addAll(expandRequirement(leaf, goalId, label));
+					}
+					return;
+				}
+			}
+		}
 		String best = null;
 		double bestCost = Double.MAX_VALUE;
 		for (String path : paths)
