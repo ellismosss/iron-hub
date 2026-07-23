@@ -53,7 +53,13 @@ public final class CostModel
 		java.util.Set<String> bannedMethods, java.util.Map<String, String> preferredMethods)
 	{
 		long targetXp = Experience.getXpForLevel(Math.min(99, targetLevel));
-		long startXp = Math.min(targetXp, currentXp(skill, view) + Math.max(0, bankedXp));
+		// banked MATERIALS (planks, bones, molten glass) save GATHERING, not
+		// the training action time — you still click through every one at the
+		// method's rate. Crediting them against the xp gap made Superglass
+		// 72→75 read ~1m instead of hours (Luke, 2026-07-24). Time uses the
+		// RAW gap; bankedXp is intentionally ignored here (the resource
+		// display still shows what you have banked).
+		long startXp = currentXp(skill, view);
 		if (startXp >= targetXp)
 		{
 			return 0;

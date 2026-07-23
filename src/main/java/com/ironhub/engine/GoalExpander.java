@@ -158,7 +158,11 @@ public class GoalExpander
 				break;
 			case "item":
 			case "itemx":
-				addObtain(Integer.parseInt(parts[1]), label, goalId, out);
+				// prefer the requirement's own display name
+				// ("item:12012:100:Golden nuggets") over a null label so the
+				// step never reads "Obtain item 12012" (Luke, 2026-07-24)
+				addObtain(Integer.parseInt(parts[1]),
+					label != null ? label : parts.length > 3 ? parts[3] : null, goalId, out);
 				break;
 			case "kc":
 				addKill(parts[1], Integer.parseInt(parts[2]), goalId, out);
@@ -309,7 +313,7 @@ public class GoalExpander
 			return;
 		}
 		Action node = dag.getOrAdd(new Action(id, Action.Kind.OBTAIN,
-			gearItem != null ? gearItem.getName() : (label != null ? label : "Obtain item " + itemId)));
+			gearItem != null ? gearItem.getName() : obtainName(itemId, label)));
 		node.itemId = itemId;
 		if (gearItem != null)
 		{
@@ -340,14 +344,47 @@ public class GoalExpander
 		}
 		if (gearItem != null && gearItem.getRequirements() != null)
 		{
+			boolean dropGated = packs.rates != null && packs.rates.hasDropRate(itemId);
 			for (String req : gearItem.getRequirements())
 			{
+				// A gear item that IS a clog drop carries a phantom
+				// "kc:<source>:1" meaning "drops from X" — but the OBTAIN is
+				// already costed by the drop rate, so expanding it adds a
+				// redundant "kill X once" step and the nonsense "Up to 1
+				// kills" line (Luke, 2026-07-24: Bottomless compost bucket
+				// from Hespori). Drop the kc:X:1 for drop-gated items;
+				// real KC gates (kc:Vorkath:50) and guaranteed-reward kc:1
+				// on NON-drop items (fire cape) are untouched.
+				if (dropGated && req.matches("(?i)kc:[^:]+:1"))
+				{
+					continue;
+				}
 				for (String dep : expandRequirement(req, goalId, null, itemId))
 				{
 					node.dependsOn.add(dep);
 				}
 			}
 		}
+	}
+
+	/** A real display name for an OBTAIN node, never "Obtain item 12012"
+	 *  (Luke, 2026-07-24): the label passed in, else the knowledge base's
+	 *  canonical item name, else the raw id as a last resort. */
+	private String obtainName(int itemId, String label)
+	{
+		if (label != null && !label.isEmpty())
+		{
+			return label;
+		}
+		if (packs.itemSources != null)
+		{
+			com.ironhub.data.ItemSourcesPack.Entry entry = packs.itemSources.entry(itemId);
+			if (entry != null && entry.getName() != null)
+			{
+				return entry.getName();
+			}
+		}
+		return "Obtain item " + itemId;
 	}
 
 	private void addKill(String source, int count, String goalId, Set<String> out)

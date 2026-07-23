@@ -261,22 +261,27 @@ public class RouterTest
 	 *  discount its plan — the same Prayer goal costs MORE for a UIM than for a
 	 *  normal iron holding the same banked bones. */
 	@Test
-	public void ultimateIronmanGetsNoBankedXpDiscount()
+	public void bankedMaterialsNeverDiscountTrainingTime()
 	{
-		AccountState state = StateFixture.state(temp.getRoot());
-		StateFixture.stat(state, Skill.PRAYER, 40, Experience.getXpForLevel(40));
-		StateFixture.bank(state, java.util.Map.of(526, 8000)); // 8k bones = 36k banked Prayer xp
-
-		double normalHours = plan(state, PlanConstraints.none(),
+		// Banked bones save GATHERING, not offer TIME — the plan hours are
+		// the raw xp gap at rate whether or not the bones are banked (Luke,
+		// 2026-07-24: Superglass 72→75 read ~1m off banked glass). This used
+		// to differ between a normal account and a UIM; now nobody is
+		// discounted, so the honesty is uniform.
+		AccountState empty = StateFixture.state(temp.getRoot());
+		StateFixture.stat(empty, Skill.PRAYER, 40, Experience.getXpForLevel(40));
+		double noBones = plan(empty, PlanConstraints.none(),
 			goal("pray", "skill:Prayer:50")).knownHours;
 
-		StateFixture.varbit(state, net.runelite.api.Varbits.ACCOUNT_TYPE, 2); // ULTIMATE_IRONMAN
-		assertTrue("detected as UIM", state.isUltimateIronman());
-		double uimHours = plan(state, PlanConstraints.none(),
+		AccountState banked = StateFixture.state(temp.getRoot());
+		StateFixture.stat(banked, Skill.PRAYER, 40, Experience.getXpForLevel(40));
+		StateFixture.bank(banked, java.util.Map.of(526, 8000)); // 8k bones = 36k banked xp
+		double withBones = plan(banked, PlanConstraints.none(),
 			goal("pray", "skill:Prayer:50")).knownHours;
 
-		assertTrue("banked bones must not discount a UIM plan (" + uimHours + " vs " + normalHours + ")",
-			uimHours > normalHours);
+		assertEquals("banked bones must not shorten training time",
+			noBones, withBones, 1e-9);
+		assertTrue("and there is real training time to show", noBones > 0);
 	}
 
 	/** A step shared with a Someday goal keeps FULL value (max tier wins), so

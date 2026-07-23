@@ -39,7 +39,8 @@ public class GoalExpanderTest
 			dataPack.load("effects", EffectsPack.class),
 			dataPack.load("gear-progression", GearProgressionPack.class),
 			dataPack.load("boosts", com.ironhub.data.BoostsPack.class),
-			dataPack.load("diaries", com.ironhub.data.DiariesPack.class));
+			dataPack.load("diaries", com.ironhub.data.DiariesPack.class),
+			dataPack.load("clog", com.ironhub.data.ClogPack.class)); // drop-rate costing
 		packs.itemSources = dataPack.load("item-sources",
 			com.ironhub.data.ItemSourcesPack.class);
 		return packs;
@@ -297,6 +298,10 @@ public class GoalExpanderTest
 		ActionDag cape = GoalExpander.expand(List.of(
 			goal("c", "item:19476:1:Achievement diary cape")), state, packs());
 		assertNotNull("the coin cost must become a step", cape.get("obtain:item995"));
+		// and the coin step reads by NAME, never "Obtain item 995" (Luke)
+		Action coins = cape.get("obtain:item995");
+		assertFalse("obtain node must not read 'item <id>': " + coins.name,
+			coins.name.matches("(?i).*item \\d+.*"));
 
 		// Amy's saw: 500 Mahogany Homes points — a currency with NO readable
 		// balance anywhere in the API. It still has to say what to go and
@@ -309,5 +314,29 @@ public class GoalExpanderTest
 			.findFirst().orElse(null);
 		assertNotNull("unreadable currencies still name the work: " + saw.topological(), earn);
 		assertNotNull("and it is tickable", earn.unlockKey);
+	}
+
+	/**
+	 * A gear item that IS a clog drop carries a phantom "kc:<source>:1" (=
+	 * "drops from X"). Expanding it added a redundant "kill X once" step and
+	 * the nonsense "Up to 1 kills" line (Luke, 2026-07-24: Bottomless compost
+	 * bucket from Hespori). The OBTAIN is costed by the drop; no KILL node.
+	 */
+	@Test
+	public void dropGatedGearDoesNotSpawnAPhantomKillStep()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.stat(state, Skill.FARMING, 65, Experience.getXpForLevel(65));
+		ActionDag dag = GoalExpander.expand(List.of(
+			goal("g", "item:22994:1:Bottomless compost bucket")), state, packs());
+		assertNull("no phantom 'kill Hespori once' step", dag.get("kill:Hespori"));
+		assertNotNull("the compost bucket is still an OBTAIN", dag.get("obtain:bottomless_compost_bucket"));
+
+		// a REAL kc gate (Ava's assembler needs 50 Vorkath kills) survives
+		ActionDag ava = GoalExpander.expand(List.of(
+			goal("a", "kc:Vorkath:50")), state, packs());
+		Action kill = ava.get("kill:Vorkath");
+		assertNotNull("a real KC gate stays", kill);
+		assertEquals(50, kill.kcTarget);
 	}
 }

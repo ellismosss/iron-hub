@@ -82,20 +82,24 @@ public class CostModelTest
 			CostModel.trainHours(Skill.FISHING, 70, new ProjectedState(state), methods, 0), 1e-9);
 	}
 
+	/** Banked MATERIALS do not shorten training TIME — you still click each
+	 *  one at the method's rate (Luke, 2026-07-24: Superglass 72→75 read
+	 *  ~1m because banked molten glass zeroed the gap). Time = RAW gap. */
 	@Test
-	public void bankedXpShortensTheFront()
+	public void bankedXpDoesNotShortenTrainingTime()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.stat(state, Skill.PRAYER, 43, Experience.getXpForLevel(43));
 		MethodsPack methods = pack("Prayer", method("bones", 0, 100_000, null));
 
 		long remaining = Experience.getXpForLevel(70) - Experience.getXpForLevel(43);
-		assertEquals(remaining / 100_000.0,
+		double raw = remaining / 100_000.0;
+		assertEquals(raw,
 			CostModel.trainHours(Skill.PRAYER, 70, new ProjectedState(state), methods, 0), 1e-9);
-		assertEquals((remaining - 50_000) / 100_000.0,
+		// banked xp is ignored for time — same raw hours regardless
+		assertEquals(raw,
 			CostModel.trainHours(Skill.PRAYER, 70, new ProjectedState(state), methods, 50_000), 1e-9);
-		// banked xp past the target: free
-		assertEquals(0,
+		assertEquals(raw,
 			CostModel.trainHours(Skill.PRAYER, 70, new ProjectedState(state), methods, 99_999_999L), 1e-9);
 	}
 

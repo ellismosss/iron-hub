@@ -630,8 +630,13 @@ public class Router
 			case TRAIN:
 				return "Gates " + goals;
 			case KILL:
-				return "Up to " + node.kcTarget + " kills for " + goals
-					+ " — the drop usually lands sooner";
+				// a KILL node is a hard KC GATE (kc:Vorkath:50) or a
+				// guaranteed-reward completion (kc:TzKal-Zuk:1) — never a drop
+				// (drop items route through OBTAIN now, 2026-07-24), so no
+				// "usually lands sooner"
+				return node.kcTarget <= 1
+					? "Defeat " + node.kcSource + " for " + goals
+					: node.kcTarget + " " + node.kcSource + " kills gate " + goals;
 			case MANUAL:
 				if (node.unlockKey == null)
 				{
@@ -644,13 +649,12 @@ public class Router
 				}
 				if (node.unlockKey.startsWith("catask_"))
 				{
-					return "Completes automatically when the task is done in-game"
-						+ " (Combat achievements tab). Serves " + goals;
+					// "completes automatically" is obvious (Luke, 2026-07-24)
+					return "Serves " + goals;
 				}
 				if (node.unlockKey.startsWith("diarytask_"))
 				{
-					return "Completes automatically when the task is done in-game"
-						+ " (Diaries tab). Serves " + goals;
+					return "Serves " + goals;
 				}
 				return "Can't detect this — right-click to mark done. Serves " + goals;
 			case OBTAIN:
