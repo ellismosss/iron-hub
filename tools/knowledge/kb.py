@@ -414,10 +414,12 @@ def set_progress(conn, category, expected, table, source, notes=""):
 
 
 def add_gap(conn, category, subject, field, why):
+    # a re-detected gap REOPENS (harvests retire-then-rejudge); only a
+    # manual wont-fix is sticky
     conn.execute(
         "INSERT INTO gaps(category, subject, field, why) VALUES(?,?,?,?)"
-        " ON CONFLICT(category, subject, field) DO UPDATE SET why=excluded.why"
-        " WHERE gaps.status = 'open'",
+        " ON CONFLICT(category, subject, field) DO UPDATE SET why=excluded.why,"
+        " status='open' WHERE gaps.status != 'wont-fix'",
         (category, subject, field, why))
 
 

@@ -46,7 +46,11 @@ def boat(conn):
         # one part page carries a Recipe PER BOAT TYPE (skiff 4 bars, sloop
         # 8) — the pack row matches ONE of them; drift only when it matches
         # none (comparing against just the first recipe false-flagged 53
-        # rows as doubled quantities)
+        # rows as doubled quantities). Special items the wiki reclassified
+        # from materials to TOOLS (heart of ithell, captured wind mote,
+        # barrel stand — hand-checked 2026-07-21) still count as qty-1
+        # materials: as tools they remain required-owned, so the pack's
+        # framing is functionally right.
         all_boxes = kb.templates(text, "Recipe")
         wiki_variants = []
         for box in all_boxes:
@@ -56,7 +60,14 @@ def boat(conn):
                 if mat:
                     mats[norm(mat)] = str(box.get(f"mat{i}quantity", "1"))
             if mats:
+                augmented = dict(mats)
+                for tool in re.split(r"[,;]", box.get("tools", "")):
+                    tool = norm(tool)
+                    if tool and tool not in ("saw", "hammer", "chisel", "knife"):
+                        augmented[tool] = "1"
                 wiki_variants.append(mats)
+                if augmented != mats:
+                    wiki_variants.append(augmented)
         pack_mats = {norm(m["name"]): str(m["qty"]) for m in u.get("materials") or []}
         if wiki_variants and pack_mats and pack_mats not in wiki_variants:
             kb.add_gap(conn, "boat", u["name"], "materials-drift",

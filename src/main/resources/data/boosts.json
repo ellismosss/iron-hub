@@ -1,67 +1,1609 @@
 {
-  "$schema": "./schemas/boosts.schema.json",
-  "version": 1,
-  "boosts": [
-    {
-      "name": "Spicy stew (+5)",
-      "skills": ["Construction", "Crafting", "Smithing", "Fletching", "Runecraft", "Cooking", "Firemaking", "Magic", "Ranged", "Attack", "Strength", "Defence", "Agility", "Hunter", "Slayer", "Thieving", "Farming", "Fishing", "Mining", "Woodcutting", "Herblore"],
-      "boost": 5,
-      "gate": "quest:Recipe for Disaster - Evil Dave"
-    },
-    {
-      "name": "Crystal saw (+3)",
-      "skills": ["Construction"],
-      "boost": 3,
-      "invisible": true,
-      "gate": "item:9625"
-    },
-    {
-      "name": "POH tea (+3)",
-      "skills": ["Construction"],
-      "boost": 3,
-      "gate": "unlock:gearmark_teak_shelves_2"
-    },
-    {
-      "name": "Mushroom pie (+4)",
-      "skills": ["Crafting"],
-      "boost": 4,
-      "gate": "any:item:21690|skillb:Cooking:60"
-    },
-    {
-      "name": "Wild pie (+5)",
-      "skills": ["Slayer"],
-      "boost": 5,
-      "gate": "any:item:7208|skillb:Cooking:85"
-    },
-    {
-      "name": "Admiral pie (+5)",
-      "skills": ["Fishing"],
-      "boost": 5,
-      "gate": "any:item:7198|skillb:Cooking:70"
-    },
-    {
-      "name": "Summer pie (+5)",
-      "skills": ["Agility"],
-      "boost": 5,
-      "gate": "any:item:7218|skillb:Cooking:95"
-    },
-    {
-      "name": "Hunter potion (+3)",
-      "skills": ["Hunter"],
-      "boost": 3,
-      "gate": "any:item:9998|skillb:Herblore:58"
-    },
-    {
-      "name": "Magic potion (+4)",
-      "skills": ["Magic"],
-      "boost": 4,
-      "gate": "any:item:3040|skillb:Herblore:76"
-    },
-    {
-      "name": "Dragon pickaxe spec (+3)",
-      "skills": ["Mining"],
-      "boost": 3,
-      "gate": "item:11920"
-    }
-  ]
+ "$schema": "./schemas/boosts.schema.json",
+ "version": 2,
+ "boosts": [
+  {
+   "name": "Spicy stew (+5)",
+   "skills": [
+    "Construction",
+    "Crafting",
+    "Smithing",
+    "Fletching",
+    "Runecraft",
+    "Cooking",
+    "Firemaking",
+    "Magic",
+    "Ranged",
+    "Attack",
+    "Strength",
+    "Defence",
+    "Agility",
+    "Hunter",
+    "Slayer",
+    "Thieving",
+    "Farming",
+    "Fishing",
+    "Mining",
+    "Woodcutting",
+    "Herblore"
+   ],
+   "boost": 5,
+   "gate": "quest:Recipe for Disaster - Evil Dave"
+  },
+  {
+   "name": "Crystal saw (+3)",
+   "skills": [
+    "Construction"
+   ],
+   "boost": 3,
+   "invisible": true,
+   "gate": "item:9625"
+  },
+  {
+   "name": "POH tea (+3)",
+   "skills": [
+    "Construction"
+   ],
+   "boost": 3,
+   "gate": "unlock:gearmark_teak_shelves_2"
+  },
+  {
+   "name": "Mushroom pie (+4)",
+   "skills": [
+    "Crafting"
+   ],
+   "boost": 4,
+   "gate": "any:item:21690|skillb:Cooking:60"
+  },
+  {
+   "name": "Dragon fruit pie (+4)",
+   "skills": [
+    "Fletching"
+   ],
+   "boost": 4,
+   "gate": "any:item:22795|skillb:Cooking:73"
+  },
+  {
+   "name": "Admiral pie (+5)",
+   "skills": [
+    "Fishing"
+   ],
+   "boost": 5,
+   "gate": "any:item:7198|skillb:Cooking:70"
+  },
+  {
+   "name": "Fish pie (+3)",
+   "skills": [
+    "Fishing"
+   ],
+   "boost": 3,
+   "gate": "any:item:7188|skillb:Cooking:47"
+  },
+  {
+   "name": "Agility summer pie (+5)",
+   "skills": [
+    "Agility"
+   ],
+   "boost": 5,
+   "gate": "any:item:7218|skillb:Cooking:95"
+  },
+  {
+   "name": "Stranger plant (+4)",
+   "skills": [
+    "Farming"
+   ],
+   "boost": 4,
+   "gate": "skillb:Farming:76"
+  },
+  {
+   "name": "Garden pie (+3)",
+   "skills": [
+    "Farming"
+   ],
+   "boost": 3,
+   "gate": "any:item:7178|skillb:Cooking:34"
+  },
+  {
+   "name": "3rd age axe (+3)",
+   "skills": [
+    "Woodcutting"
+   ],
+   "boost": 3,
+   "gate": "item:20011"
+  },
+  {
+   "name": "3rd age felling axe (+3)",
+   "skills": [
+    "Woodcutting"
+   ],
+   "boost": 3,
+   "gate": "item:28226"
+  },
+  {
+   "name": "3rd age pickaxe (+3)",
+   "skills": [
+    "Mining"
+   ],
+   "boost": 3,
+   "gate": "item:20014"
+  },
+  {
+   "name": "Abyssal potato (+1)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 1,
+   "gate": "item:33118"
+  },
+  {
+   "name": "Agility cape (+1)",
+   "skills": [
+    "Agility"
+   ],
+   "boost": 1,
+   "gate": "item:9771"
+  },
+  {
+   "name": "Agility mix (+3)",
+   "skills": [
+    "Agility"
+   ],
+   "boost": 3,
+   "gate": "item:11461"
+  },
+  {
+   "name": "Agility potion (+3)",
+   "skills": [
+    "Agility"
+   ],
+   "boost": 3,
+   "gate": "item:3032"
+  },
+  {
+   "name": "Amulet of the damned (+10)",
+   "skills": [
+    "Hitpoints"
+   ],
+   "boost": 10,
+   "gate": "item:12853"
+  },
+  {
+   "name": "Ancient brew (+6)",
+   "skills": [
+    "Magic"
+   ],
+   "boost": 6,
+   "gate": "item:26340"
+  },
+  {
+   "name": "Anglerfish (+22)",
+   "skills": [
+    "Hitpoints"
+   ],
+   "boost": 22,
+   "gate": "item:13441"
+  },
+  {
+   "name": "Armadyl brew (+11)",
+   "skills": [
+    "Hitpoints"
+   ],
+   "boost": 11,
+   "gate": "item:31650"
+  },
+  {
+   "name": "Armadyl brew (+13)",
+   "skills": [
+    "Ranged"
+   ],
+   "boost": 13,
+   "gate": "item:31650"
+  },
+  {
+   "name": "Attack cape (+1)",
+   "skills": [
+    "Attack"
+   ],
+   "boost": 1,
+   "gate": "item:9747"
+  },
+  {
+   "name": "Attack mix (+12)",
+   "skills": [
+    "Attack"
+   ],
+   "boost": 12,
+   "gate": "item:11429"
+  },
+  {
+   "name": "Attack potion (+12)",
+   "skills": [
+    "Attack"
+   ],
+   "boost": 12,
+   "gate": "item:2428"
+  },
+  {
+   "name": "Autumn sq'irkjuice (+2)",
+   "skills": [
+    "Thieving"
+   ],
+   "boost": 2,
+   "gate": "item:10850"
+  },
+  {
+   "name": "Axeman's folly (+1)",
+   "skills": [
+    "Woodcutting"
+   ],
+   "boost": 1,
+   "gate": "item:5751"
+  },
+  {
+   "name": "Axeman's folly(m) (+2)",
+   "skills": [
+    "Woodcutting"
+   ],
+   "boost": 2,
+   "gate": "item:5751"
+  },
+  {
+   "name": "Bandages (Theatre of Blood) (+13)",
+   "skills": [
+    "Ranged"
+   ],
+   "boost": 13,
+   "gate": "item:4049"
+  },
+  {
+   "name": "Bandages (Theatre of Blood) (+18)",
+   "skills": [
+    "Attack",
+    "Defence",
+    "Strength"
+   ],
+   "boost": 18,
+   "gate": "item:4049"
+  },
+  {
+   "name": "Bandages (Theatre of Blood) (+4)",
+   "skills": [
+    "Magic"
+   ],
+   "boost": 4,
+   "gate": "item:4049"
+  },
+  {
+   "name": "Bandit's brew (+1)",
+   "skills": [
+    "Attack",
+    "Thieving"
+   ],
+   "boost": 1,
+   "gate": "item:4627"
+  },
+  {
+   "name": "Barnacle blaster (+1)",
+   "skills": [
+    "Fishing"
+   ],
+   "boost": 1,
+   "gate": "item:31255"
+  },
+  {
+   "name": "Bastion potion (+13)",
+   "skills": [
+    "Ranged"
+   ],
+   "boost": 13,
+   "gate": "item:22461"
+  },
+  {
+   "name": "Bastion potion (+19)",
+   "skills": [
+    "Defence"
+   ],
+   "boost": 19,
+   "gate": "item:22461"
+  },
+  {
+   "name": "Battlemage potion (+19)",
+   "skills": [
+    "Defence"
+   ],
+   "boost": 19,
+   "gate": "item:22449"
+  },
+  {
+   "name": "Battlemage potion (+4)",
+   "skills": [
+    "Magic"
+   ],
+   "boost": 4,
+   "gate": "item:22449"
+  },
+  {
+   "name": "Beer (+3)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 3,
+   "gate": "item:1917"
+  },
+  {
+   "name": "Black warlock (item) (+18)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 18,
+   "gate": "item:10014"
+  },
+  {
+   "name": "Blackbird red (+1)",
+   "skills": [
+    "Hunter"
+   ],
+   "boost": 1,
+   "gate": "item:29944"
+  },
+  {
+   "name": "Blood pint (+5)",
+   "skills": [
+    "Attack",
+    "Strength"
+   ],
+   "boost": 5,
+   "gate": "item:24774"
+  },
+  {
+   "name": "Blurberry special (+6)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 6,
+   "gate": "item:2064"
+  },
+  {
+   "name": "Botanical pie (+4)",
+   "skills": [
+    "Herblore"
+   ],
+   "boost": 4,
+   "gate": "item:19662"
+  },
+  {
+   "name": "Bottle of dognose draught (+3)",
+   "skills": [
+    "Cooking"
+   ],
+   "boost": 3,
+   "gate": "item:31840"
+  },
+  {
+   "name": "Bottle of potterington's marrow wine (+5)",
+   "skills": [
+    "Farming"
+   ],
+   "boost": 5,
+   "gate": "item:31834"
+  },
+  {
+   "name": "Bottle of suqah-free cola (+1)",
+   "skills": [
+    "Agility",
+    "Farming",
+    "Fletching"
+   ],
+   "boost": 1,
+   "gate": "item:31876"
+  },
+  {
+   "name": "Braindeath 'rum' (+1)",
+   "skills": [
+    "Mining"
+   ],
+   "boost": 1,
+   "gate": "item:7157"
+  },
+  {
+   "name": "Braindeath 'rum' (+3)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 3,
+   "gate": "item:7157"
+  },
+  {
+   "name": "Brandy (+5)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 5,
+   "gate": "item:2021"
+  },
+  {
+   "name": "Celestial ring (+4)",
+   "skills": [
+    "Mining"
+   ],
+   "boost": 4,
+   "gate": "item:25541",
+   "invisible": true
+  },
+  {
+   "name": "Celestial signet (+4)",
+   "skills": [
+    "Mining"
+   ],
+   "boost": 4,
+   "gate": "item:25545",
+   "invisible": true
+  },
+  {
+   "name": "Chef's delight (+5)",
+   "skills": [
+    "Cooking"
+   ],
+   "boost": 5,
+   "gate": "item:5755"
+  },
+  {
+   "name": "Chef's delight(m) (+6)",
+   "skills": [
+    "Cooking"
+   ],
+   "boost": 6,
+   "gate": "item:5755"
+  },
+  {
+   "name": "Chichilihui rosé (+1)",
+   "skills": [
+    "Herblore"
+   ],
+   "boost": 1,
+   "gate": "item:29963"
+  },
+  {
+   "name": "Chilhuac red (+1)",
+   "skills": [
+    "Firemaking"
+   ],
+   "boost": 1,
+   "gate": "item:29947"
+  },
+  {
+   "name": "Cider (+1)",
+   "skills": [
+    "Farming"
+   ],
+   "boost": 1,
+   "gate": "item:5763"
+  },
+  {
+   "name": "Combat mix (+12)",
+   "skills": [
+    "Attack",
+    "Strength"
+   ],
+   "boost": 12,
+   "gate": "item:11445"
+  },
+  {
+   "name": "Combat potion (+12)",
+   "skills": [
+    "Attack",
+    "Strength"
+   ],
+   "boost": 12,
+   "gate": "item:9739"
+  },
+  {
+   "name": "Construct. cape (+1)",
+   "skills": [
+    "Construction"
+   ],
+   "boost": 1,
+   "gate": "item:9789"
+  },
+  {
+   "name": "Cooked t-bone steak (+2)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 2,
+   "gate": "item:33109"
+  },
+  {
+   "name": "Cooking cape (+1)",
+   "skills": [
+    "Cooking"
+   ],
+   "boost": 1,
+   "gate": "item:9801"
+  },
+  {
+   "name": "Crafting cape (+1)",
+   "skills": [
+    "Crafting"
+   ],
+   "boost": 1,
+   "gate": "item:9780"
+  },
+  {
+   "name": "Crystal axe (+3)",
+   "skills": [
+    "Woodcutting"
+   ],
+   "boost": 3,
+   "gate": "item:23673"
+  },
+  {
+   "name": "Crystal felling axe (+3)",
+   "skills": [
+    "Woodcutting"
+   ],
+   "boost": 3,
+   "gate": "item:28220"
+  },
+  {
+   "name": "Crystal harpoon (+3)",
+   "skills": [
+    "Fishing"
+   ],
+   "boost": 3,
+   "gate": "item:23762"
+  },
+  {
+   "name": "Crystal pickaxe (+3)",
+   "skills": [
+    "Mining"
+   ],
+   "boost": 3,
+   "gate": "item:23680"
+  },
+  {
+   "name": "Cup of tea (+3)",
+   "skills": [
+    "Attack"
+   ],
+   "boost": 3,
+   "gate": "item:712"
+  },
+  {
+   "name": "Defence cape (+1)",
+   "skills": [
+    "Defence"
+   ],
+   "boost": 1,
+   "gate": "item:9753"
+  },
+  {
+   "name": "Defence mix (+12)",
+   "skills": [
+    "Defence"
+   ],
+   "boost": 12,
+   "gate": "item:11457"
+  },
+  {
+   "name": "Divine bastion potion (+13)",
+   "skills": [
+    "Ranged"
+   ],
+   "boost": 13,
+   "gate": "item:24635"
+  },
+  {
+   "name": "Divine bastion potion (+19)",
+   "skills": [
+    "Defence"
+   ],
+   "boost": 19,
+   "gate": "item:24635"
+  },
+  {
+   "name": "Divine battlemage potion (+19)",
+   "skills": [
+    "Defence"
+   ],
+   "boost": 19,
+   "gate": "item:24623"
+  },
+  {
+   "name": "Divine battlemage potion (+4)",
+   "skills": [
+    "Magic"
+   ],
+   "boost": 4,
+   "gate": "item:24623"
+  },
+  {
+   "name": "Divine magic potion (+4)",
+   "skills": [
+    "Magic"
+   ],
+   "boost": 4,
+   "gate": "item:23745"
+  },
+  {
+   "name": "Divine ranging potion (+13)",
+   "skills": [
+    "Ranged"
+   ],
+   "boost": 13,
+   "gate": "item:23733"
+  },
+  {
+   "name": "Divine super attack potion (+19)",
+   "skills": [
+    "Attack"
+   ],
+   "boost": 19,
+   "gate": "item:23697"
+  },
+  {
+   "name": "Divine super combat potion (+19)",
+   "skills": [
+    "Attack",
+    "Defence",
+    "Strength"
+   ],
+   "boost": 19,
+   "gate": "item:23685"
+  },
+  {
+   "name": "Divine super defence potion (+19)",
+   "skills": [
+    "Defence"
+   ],
+   "boost": 19,
+   "gate": "item:23721"
+  },
+  {
+   "name": "Divine super strength potion (+19)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 19,
+   "gate": "item:23709"
+  },
+  {
+   "name": "Dragon axe (+3)",
+   "skills": [
+    "Woodcutting"
+   ],
+   "boost": 3,
+   "gate": "item:6739"
+  },
+  {
+   "name": "Dragon battleaxe (+21)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 21,
+   "gate": "item:1377"
+  },
+  {
+   "name": "Dragon felling axe (+3)",
+   "skills": [
+    "Woodcutting"
+   ],
+   "boost": 3,
+   "gate": "item:28217"
+  },
+  {
+   "name": "Dragon harpoon (+3)",
+   "skills": [
+    "Fishing"
+   ],
+   "boost": 3,
+   "gate": "item:21028"
+  },
+  {
+   "name": "Dragon pickaxe (+3)",
+   "skills": [
+    "Mining"
+   ],
+   "boost": 3,
+   "gate": "item:11920"
+  },
+  {
+   "name": "Dragonfruit pie (+4)",
+   "skills": [
+    "Fletching"
+   ],
+   "boost": 4,
+   "gate": "item:22795"
+  },
+  {
+   "name": "Drunk dragon (+6)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 6,
+   "gate": "item:2092"
+  },
+  {
+   "name": "Dwarven stout (+1)",
+   "skills": [
+    "Mining",
+    "Smithing"
+   ],
+   "boost": 1,
+   "gate": "item:1913"
+  },
+  {
+   "name": "Dwarven stout(m) (+2)",
+   "skills": [
+    "Mining",
+    "Smithing"
+   ],
+   "boost": 2,
+   "gate": "item:1913"
+  },
+  {
+   "name": "Eclipse red (+1)",
+   "skills": [
+    "Woodcutting"
+   ],
+   "boost": 1,
+   "gate": "item:29415"
+  },
+  {
+   "name": "Eel sushi (+1)",
+   "skills": [
+    "Cooking"
+   ],
+   "boost": 1,
+   "gate": "item:10971"
+  },
+  {
+   "name": "Elven dawn (+1)",
+   "skills": [
+    "Agility"
+   ],
+   "boost": 1,
+   "gate": "item:23948"
+  },
+  {
+   "name": "Excalibur (+8)",
+   "skills": [
+    "Defence"
+   ],
+   "boost": 8,
+   "gate": "item:35"
+  },
+  {
+   "name": "Farming cape (+1)",
+   "skills": [
+    "Farming"
+   ],
+   "boost": 1,
+   "gate": "item:9810"
+  },
+  {
+   "name": "Fillets (+1)",
+   "skills": [
+    "Cooking"
+   ],
+   "boost": 1,
+   "gate": "item:10969"
+  },
+  {
+   "name": "Firemaking cape (+1)",
+   "skills": [
+    "Firemaking"
+   ],
+   "boost": 1,
+   "gate": "item:9804"
+  },
+  {
+   "name": "Fishing cape (+1)",
+   "skills": [
+    "Fishing"
+   ],
+   "boost": 1,
+   "gate": "item:9798"
+  },
+  {
+   "name": "Fishing mix (+3)",
+   "skills": [
+    "Fishing"
+   ],
+   "boost": 3,
+   "gate": "item:11477"
+  },
+  {
+   "name": "Fletching cape (+1)",
+   "skills": [
+    "Fletching"
+   ],
+   "boost": 1,
+   "gate": "item:9783"
+  },
+  {
+   "name": "Forgotten brew (+10)",
+   "skills": [
+    "Magic"
+   ],
+   "boost": 10,
+   "gate": "item:27629"
+  },
+  {
+   "name": "Greenman's ale (+1)",
+   "skills": [
+    "Herblore"
+   ],
+   "boost": 1,
+   "gate": "item:1909"
+  },
+  {
+   "name": "Greenman's ale(m) (+2)",
+   "skills": [
+    "Herblore"
+   ],
+   "boost": 2,
+   "gate": "item:1909"
+  },
+  {
+   "name": "Grog (+5)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 5,
+   "gate": "item:1915"
+  },
+  {
+   "name": "Grubs à la mode (+1)",
+   "skills": [
+    "Cooking"
+   ],
+   "boost": 1,
+   "gate": "item:10966"
+  },
+  {
+   "name": "Haddock (+10)",
+   "skills": [
+    "Hitpoints"
+   ],
+   "boost": 10,
+   "gate": "item:32320"
+  },
+  {
+   "name": "Herblore cape (+1)",
+   "skills": [
+    "Herblore"
+   ],
+   "boost": 1,
+   "gate": "item:9774"
+  },
+  {
+   "name": "Hitpoints cape (+1)",
+   "skills": [
+    "Hitpoints"
+   ],
+   "boost": 1,
+   "gate": "item:9768"
+  },
+  {
+   "name": "Honey locust (+20)",
+   "skills": [
+    "Hitpoints"
+   ],
+   "boost": 20,
+   "gate": "item:27351"
+  },
+  {
+   "name": "Horizon's lure (+4)",
+   "skills": [
+    "Sailing"
+   ],
+   "boost": 4,
+   "gate": "item:31823"
+  },
+  {
+   "name": "Horn of plenty#Empty (+2)",
+   "skills": [
+    "Hunter"
+   ],
+   "boost": 2,
+   "gate": "item:31243",
+   "invisible": true
+  },
+  {
+   "name": "Hunter cape (+1)",
+   "skills": [
+    "Hunter"
+   ],
+   "boost": 1,
+   "gate": "item:9948"
+  },
+  {
+   "name": "Hunter potion (+3)",
+   "skills": [
+    "Hunter"
+   ],
+   "boost": 3,
+   "gate": "item:9998"
+  },
+  {
+   "name": "Hunting mix (+3)",
+   "skills": [
+    "Hunter"
+   ],
+   "boost": 3,
+   "gate": "item:11517"
+  },
+  {
+   "name": "Imbued heart (+10)",
+   "skills": [
+    "Magic"
+   ],
+   "boost": 10,
+   "gate": "item:20724"
+  },
+  {
+   "name": "Imperial rosé (+1)",
+   "skills": [
+    "Slayer"
+   ],
+   "boost": 1,
+   "gate": "item:29966"
+  },
+  {
+   "name": "Infernal axe (+3)",
+   "skills": [
+    "Woodcutting"
+   ],
+   "boost": 3,
+   "gate": "item:13241"
+  },
+  {
+   "name": "Infernal harpoon (+3)",
+   "skills": [
+    "Fishing"
+   ],
+   "boost": 3,
+   "gate": "item:21031"
+  },
+  {
+   "name": "Infernal pickaxe (+3)",
+   "skills": [
+    "Mining"
+   ],
+   "boost": 3,
+   "gate": "item:13243"
+  },
+  {
+   "name": "Ixcoztic white (+1)",
+   "skills": [
+    "Farming"
+   ],
+   "boost": 1,
+   "gate": "item:29952"
+  },
+  {
+   "name": "Jangerberries (+1)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 1,
+   "gate": "item:247"
+  },
+  {
+   "name": "Jangerberries (+2)",
+   "skills": [
+    "Attack"
+   ],
+   "boost": 2,
+   "gate": "item:247"
+  },
+  {
+   "name": "Karamjan rum (+5)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 5,
+   "gate": "item:431"
+  },
+  {
+   "name": "Kebab (+3)",
+   "skills": [
+    "Attack",
+    "Defence",
+    "Strength"
+   ],
+   "boost": 3,
+   "gate": "item:1971"
+  },
+  {
+   "name": "Keg of beer (+11)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 11,
+   "gate": "item:3711"
+  },
+  {
+   "name": "Kovac's grog (+4)",
+   "skills": [
+    "Smithing"
+   ],
+   "boost": 4,
+   "gate": "item:27014"
+  },
+  {
+   "name": "Kraken colada (+1)",
+   "skills": [
+    "Slayer"
+   ],
+   "boost": 1,
+   "gate": "item:31258"
+  },
+  {
+   "name": "Kraken ink stout (+1)",
+   "skills": [
+    "Sailing"
+   ],
+   "boost": 1,
+   "gate": "item:31814"
+  },
+  {
+   "name": "Kraken ink stout (+2)",
+   "skills": [
+    "Magic"
+   ],
+   "boost": 2,
+   "gate": "item:31814"
+  },
+  {
+   "name": "Lizardkicker (+4)",
+   "skills": [
+    "Ranged"
+   ],
+   "boost": 4,
+   "gate": "item:25826"
+  },
+  {
+   "name": "Loach (+1)",
+   "skills": [
+    "Cooking"
+   ],
+   "boost": 1,
+   "gate": "item:10970"
+  },
+  {
+   "name": "Magic cape (+1)",
+   "skills": [
+    "Magic"
+   ],
+   "boost": 1,
+   "gate": "item:9762"
+  },
+  {
+   "name": "Magic essence (+3)",
+   "skills": [
+    "Magic"
+   ],
+   "boost": 3,
+   "gate": "item:9021"
+  },
+  {
+   "name": "Magic essence mix (+3)",
+   "skills": [
+    "Magic"
+   ],
+   "boost": 3,
+   "gate": "item:11489"
+  },
+  {
+   "name": "Magic mix (+4)",
+   "skills": [
+    "Magic"
+   ],
+   "boost": 4,
+   "gate": "item:11513"
+  },
+  {
+   "name": "Magic potion (+4)",
+   "skills": [
+    "Magic"
+   ],
+   "boost": 4,
+   "gate": "item:3040"
+  },
+  {
+   "name": "Mature cider (+2)",
+   "skills": [
+    "Farming"
+   ],
+   "boost": 2,
+   "gate": "item:5765"
+  },
+  {
+   "name": "Metztonalli white (+1)",
+   "skills": [
+    "Runecraft"
+   ],
+   "boost": 1,
+   "gate": "item:29955"
+  },
+  {
+   "name": "Mining cape (+1)",
+   "skills": [
+    "Mining"
+   ],
+   "boost": 1,
+   "gate": "item:9792"
+  },
+  {
+   "name": "Moon-lite (+5)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 5,
+   "gate": "item:29418"
+  },
+  {
+   "name": "Moonlight potion (+19)",
+   "skills": [
+    "Attack",
+    "Strength"
+   ],
+   "boost": 19,
+   "gate": "item:29080"
+  },
+  {
+   "name": "Moonlight potion (+26)",
+   "skills": [
+    "Defence"
+   ],
+   "boost": 26,
+   "gate": "item:29080"
+  },
+  {
+   "name": "Mushrooms (+1)",
+   "skills": [
+    "Cooking"
+   ],
+   "boost": 1,
+   "gate": "item:10968"
+  },
+  {
+   "name": "Perildance bitter (+1)",
+   "skills": [
+    "Sailing"
+   ],
+   "boost": 1,
+   "gate": "item:31817"
+  },
+  {
+   "name": "Perildance bitter (+2)",
+   "skills": [
+    "Ranged",
+    "Strength"
+   ],
+   "boost": 2,
+   "gate": "item:31817"
+  },
+  {
+   "name": "Poison chalice (+1)",
+   "skills": [
+    "Crafting",
+    "Thieving"
+   ],
+   "boost": 1,
+   "gate": "item:197"
+  },
+  {
+   "name": "Poison chalice (+4)",
+   "skills": [
+    "Attack",
+    "Defence",
+    "Strength"
+   ],
+   "boost": 4,
+   "gate": "item:197"
+  },
+  {
+   "name": "Potion of power (+19)",
+   "skills": [
+    "Magic",
+    "Ranged"
+   ],
+   "boost": 19,
+   "gate": "item:25203"
+  },
+  {
+   "name": "Prayer cape (+1)",
+   "skills": [
+    "Prayer"
+   ],
+   "boost": 1,
+   "gate": "item:9759"
+  },
+  {
+   "name": "Ranging cape (+1)",
+   "skills": [
+    "Ranged"
+   ],
+   "boost": 1,
+   "gate": "item:9756"
+  },
+  {
+   "name": "Ranging mix (+13)",
+   "skills": [
+    "Ranged"
+   ],
+   "boost": 13,
+   "gate": "item:11509"
+  },
+  {
+   "name": "Ranging potion (+13)",
+   "skills": [
+    "Ranged"
+   ],
+   "boost": 13,
+   "gate": "item:2444"
+  },
+  {
+   "name": "Roast frog (+1)",
+   "skills": [
+    "Cooking"
+   ],
+   "boost": 1,
+   "gate": "item:10967"
+  },
+  {
+   "name": "Ruby harvest (item) (+18)",
+   "skills": [
+    "Attack"
+   ],
+   "boost": 18,
+   "gate": "item:10020"
+  },
+  {
+   "name": "Runecraft cape (+1)",
+   "skills": [
+    "Runecraft"
+   ],
+   "boost": 1,
+   "gate": "item:9765"
+  },
+  {
+   "name": "Sailing cape (+1)",
+   "skills": [
+    "Sailing"
+   ],
+   "boost": 1,
+   "gate": "item:31288"
+  },
+  {
+   "name": "Sailor's mirage (+1)",
+   "skills": [
+    "Hunter"
+   ],
+   "boost": 1,
+   "gate": "item:31261"
+  },
+  {
+   "name": "Sapphire glacialis (item) (+18)",
+   "skills": [
+    "Defence"
+   ],
+   "boost": 18,
+   "gate": "item:10018"
+  },
+  {
+   "name": "Saradomin brew (+16)",
+   "skills": [
+    "Hitpoints"
+   ],
+   "boost": 16,
+   "gate": "item:6685"
+  },
+  {
+   "name": "Saturated heart (+13)",
+   "skills": [
+    "Magic"
+   ],
+   "boost": 13,
+   "gate": "item:27641"
+  },
+  {
+   "name": "Short green guy (+5)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 5,
+   "gate": "item:2080"
+  },
+  {
+   "name": "Slayer cape (+1)",
+   "skills": [
+    "Slayer"
+   ],
+   "boost": 1,
+   "gate": "item:9786"
+  },
+  {
+   "name": "Slayer's respite (+2)",
+   "skills": [
+    "Slayer"
+   ],
+   "boost": 2,
+   "gate": "item:5759"
+  },
+  {
+   "name": "Slayer's respite(m) (+4)",
+   "skills": [
+    "Slayer"
+   ],
+   "boost": 4,
+   "gate": "item:5759"
+  },
+  {
+   "name": "Smithing cape (+1)",
+   "skills": [
+    "Smithing"
+   ],
+   "boost": 1,
+   "gate": "item:9795"
+  },
+  {
+   "name": "Smouldering heart (+11)",
+   "skills": [
+    "Magic"
+   ],
+   "boost": 11,
+   "gate": "item:29583"
+  },
+  {
+   "name": "Smouldering heart (+14)",
+   "skills": [
+    "Ranged"
+   ],
+   "boost": 14,
+   "gate": "item:29583"
+  },
+  {
+   "name": "Smouldering heart (+20)",
+   "skills": [
+    "Attack",
+    "Defence",
+    "Strength"
+   ],
+   "boost": 20,
+   "gate": "item:29583"
+  },
+  {
+   "name": "Smouldering pile of flesh (+18)",
+   "skills": [
+    "Hitpoints"
+   ],
+   "boost": 18,
+   "gate": "item:29585"
+  },
+  {
+   "name": "Spring sq'irkjuice (+1)",
+   "skills": [
+    "Thieving"
+   ],
+   "boost": 1,
+   "gate": "item:10848"
+  },
+  {
+   "name": "Steamforge brew (+1)",
+   "skills": [
+    "Magic",
+    "Mining"
+   ],
+   "boost": 1,
+   "gate": "item:29412"
+  },
+  {
+   "name": "Strength cape (+1)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 1,
+   "gate": "item:9750"
+  },
+  {
+   "name": "Strength mix (+12)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 12,
+   "gate": "item:11443"
+  },
+  {
+   "name": "Strength potion (+12)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 12,
+   "gate": "item:113"
+  },
+  {
+   "name": "Summer sq'irkjuice (+3)",
+   "skills": [
+    "Thieving"
+   ],
+   "boost": 3,
+   "gate": "item:10849"
+  },
+  {
+   "name": "Sun-shine (+5)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 5,
+   "gate": "item:29421"
+  },
+  {
+   "name": "Sunbeam ale (+1)",
+   "skills": [
+    "Agility",
+    "Strength"
+   ],
+   "boost": 1,
+   "gate": "item:29409"
+  },
+  {
+   "name": "Super attack (+19)",
+   "skills": [
+    "Attack"
+   ],
+   "boost": 19,
+   "gate": "item:2436"
+  },
+  {
+   "name": "Super combat potion (+19)",
+   "skills": [
+    "Attack",
+    "Defence",
+    "Strength"
+   ],
+   "boost": 19,
+   "gate": "item:12695"
+  },
+  {
+   "name": "Super def. mix (+19)",
+   "skills": [
+    "Defence"
+   ],
+   "boost": 19,
+   "gate": "item:11497"
+  },
+  {
+   "name": "Super defence (+19)",
+   "skills": [
+    "Defence"
+   ],
+   "boost": 19,
+   "gate": "item:2442"
+  },
+  {
+   "name": "Super str. mix (+19)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 19,
+   "gate": "item:11485"
+  },
+  {
+   "name": "Super strength (+19)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 19,
+   "gate": "item:2440"
+  },
+  {
+   "name": "Superattack mix (+19)",
+   "skills": [
+    "Attack"
+   ],
+   "boost": 19,
+   "gate": "item:11469"
+  },
+  {
+   "name": "Thieving cape (+1)",
+   "skills": [
+    "Thieving"
+   ],
+   "boost": 1,
+   "gate": "item:9777"
+  },
+  {
+   "name": "Trapper's tipple (+2)",
+   "skills": [
+    "Hunter"
+   ],
+   "boost": 2,
+   "gate": "item:29277"
+  },
+  {
+   "name": "Trawler's trust (+2)",
+   "skills": [
+    "Fishing",
+    "Sailing"
+   ],
+   "boost": 2,
+   "gate": "item:31820"
+  },
+  {
+   "name": "Whirlpool surprise (+2)",
+   "skills": [
+    "Cooking"
+   ],
+   "boost": 2,
+   "gate": "item:31811"
+  },
+  {
+   "name": "Whirlpool surprise (+3)",
+   "skills": [
+    "Sailing"
+   ],
+   "boost": 3,
+   "gate": "item:31811"
+  },
+  {
+   "name": "Wild pie (+4)",
+   "skills": [
+    "Ranged"
+   ],
+   "boost": 4,
+   "gate": "item:7208"
+  },
+  {
+   "name": "Wild pie (+5)",
+   "skills": [
+    "Slayer"
+   ],
+   "boost": 5,
+   "gate": "item:7208"
+  },
+  {
+   "name": "Wizard blizzard (+6)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 6,
+   "gate": "item:2054"
+  },
+  {
+   "name": "Wizard's mind bomb (+3)",
+   "skills": [
+    "Magic"
+   ],
+   "boost": 3,
+   "gate": "item:1907"
+  },
+  {
+   "name": "Woodcutting cape (+1)",
+   "skills": [
+    "Woodcutting"
+   ],
+   "boost": 1,
+   "gate": "item:9807"
+  },
+  {
+   "name": "Zamorak brew (+13)",
+   "skills": [
+    "Strength"
+   ],
+   "boost": 13,
+   "gate": "item:2450"
+  },
+  {
+   "name": "Zamorak brew (+21)",
+   "skills": [
+    "Attack"
+   ],
+   "boost": 21,
+   "gate": "item:2450"
+  }
+ ]
 }

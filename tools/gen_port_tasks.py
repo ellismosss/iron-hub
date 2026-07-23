@@ -29,6 +29,7 @@ import json
 import math
 import os
 import re
+import urllib.parse
 import urllib.request
 
 COMMIT = "8004542e56b7420578f0602cdae642486e3131d2"
@@ -94,6 +95,98 @@ def parse_rewards(java: str):
     return rewards
 
 
+# ── wiki XP cross-correction (Luke's word, 2026-07-21) ───────────────────
+# The DBTable exposes no XP; the reference authors transcribed it by hand.
+# The wiki's courier/bounty task buckets (the store its own tables render
+# from) carry per-task XP — where a reward label joins UNAMBIGUOUSLY to a
+# wiki row (destination/board + item/monster stems) and the figures differ,
+# the wiki wins. Ambiguous joins and wiki rows without XP keep the
+# transcription (they stay flagged in knowledge/GAPS.md).
+
+WIKI_API = "https://oldschool.runescape.wiki/api.php"
+
+
+def fetch_url(url: str, cache_name: str) -> str:
+    cached = os.path.join(CACHE, cache_name)
+    os.makedirs(CACHE, exist_ok=True)
+    if os.path.exists(cached):
+        with open(cached, encoding="utf-8") as f:
+            return f.read()
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    with urllib.request.urlopen(req) as resp:
+        text = resp.read().decode("utf-8")
+    with open(cached, "w", encoding="utf-8") as f:
+        f.write(text)
+    return text
+
+
+def wiki_bucket(name: str, fields):
+    rows, offset = [], 0
+    while True:
+        q = ("bucket('{}').select({}).offset({}).limit(5000).run()".format(
+            name, ",".join(f"'{f}'" for f in fields), offset))
+        url = WIKI_API + "?" + urllib.parse.urlencode(
+            {"action": "bucket", "format": "json", "query": q})
+        data = json.loads(fetch_url(url, f"bucket_{name}_{offset}.json"))
+        batch = data.get("bucket", [])
+        rows.extend(batch)
+        if not batch:
+            break
+        offset += len(batch)
+    return rows
+
+
+def _norm(s):
+    return re.sub(r"[^a-z0-9]+", " ", (s or "").lower()).strip()
+
+
+def _stems(text):
+    out = set()
+    for w in _norm(text).split():
+        out.add(w)
+        if w.endswith("ies"):
+            out.add(w[:-3] + "y")
+        if w.endswith("es"):
+            out.add(w[:-2])
+        if w.endswith("s"):
+            out.add(w[:-1])
+    return out
+
+
+_CONTAINERS = {"crate", "of", "barrel", "chest", "sack", "bag", "the"}
+
+
+def wiki_xp_corrections(rewards):
+    couriers = [r for r in wiki_bucket(
+        "couriertaskline", ["xp", "item", "destination"]) if r.get("xp")]
+    bounties = [r for r in wiki_bucket(
+        "bountytaskline", ["xp", "monster", "notice_board"]) if r.get("xp")]
+    assert len(couriers) > 300 and len(bounties) > 100, "wiki task buckets thin"
+    corrected = 0
+    for r in rewards:
+        label_norm = _norm(r["label"])
+        label_stems = _stems(r["label"])
+        hits = set()
+        if r["type"] == "courier":
+            for row in couriers:
+                dest = _norm(row.get("destination")).replace("the ", "")
+                if dest and dest in label_norm \
+                        and (_stems(row.get("item")) - _CONTAINERS) & label_stems:
+                    hits.add(int(float(row["xp"])))
+        else:
+            for row in bounties:
+                board = _norm(row.get("notice_board")).replace("the ", "")
+                if board and board in label_norm \
+                        and _stems(row.get("monster")) & label_stems:
+                    hits.add(int(float(row["xp"])))
+        if len(hits) == 1 and r["xp"] not in hits:
+            wiki_xp = hits.pop()
+            print(f"  xp correction: {r['label']}: {r['xp']} -> {wiki_xp}")
+            r["xp"] = wiki_xp
+            corrected += 1
+    return corrected
+
+
 # ── PortPaths.java ───────────────────────────────────────────────────────
 
 def parse_routes(java: str, ports: dict):
@@ -134,6 +227,9 @@ def main():
     # ── sanity asserts ───────────────────────────────────────────────────
     assert len(ports) == 30, len(ports)
     assert len(rewards) == 271, len(rewards)
+    corrected = wiki_xp_corrections(rewards)
+    print(f"  wiki xp corrections applied: {corrected}")
+    assert corrected >= 30, corrected  # the 2026-07-21 pass fixed 49
     assert len(routes) == 163, len(routes)
     kinds = [r["type"] for r in rewards]
     assert kinds.count("courier") == 211 and kinds.count("bounty") == 60, (

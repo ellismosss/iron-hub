@@ -14,8 +14,23 @@ materials: one row per distinct substance seen as a recipe INPUT or
 
 import html
 import json
+import re
 
 import kb
+
+DOSE = re.compile(r"^(.+?)\s*\((\d)\)$")
+# Herblore mixing yields a (3) by default; the amulets up-dose (Luke,
+# 2026-07-21 — this is the honest source for the other dose variants,
+# replacing the useless "drink down a (4)" framing)
+DOSE_NOTE = ("mixes at (3) doses — an Amulet of chemistry gives a 5% chance"
+             " of a (4), a charged Alchemist's amulet 15%; other doses come"
+             " from use or decanting")
+
+# degraded barrows pieces, charge/anchor variants — their "source" is item
+# degradation/use, never a drop; classified on the row, not gapped
+DEGRADED = re.compile(
+    r"( \d+$)|#|\((?:broken|damaged|inactive|uncharged|empty|used|full|unf\)|u\)|p\)|kp)"
+    r"|^Damaged |^Broken ", re.I)
 
 
 def clean_name(name: str) -> str:
@@ -112,11 +127,30 @@ def main():
     conn.commit()
     print(f"recipes: {n}")
 
+    # potion-dose families: which dose the family actually MIXES at
+    # (the recipe output dose — normally 3)
+    family_mixed = {}
+    for out_name, entries in produced.items():
+        m = DOSE.match(out_name)
+        if m and any(e["how"] == "make" for e in entries):
+            family_mixed[m.group(1)] = int(m.group(2))
+
     # the materials table: every substance seen as input or output
     names = sorted(set(used_in) | set(produced))
     no_source = 0
     for name in names:
         obtained = list(produced.get(name, []))[:8]
+        dose = DOSE.match(name)
+        dose_variant = False
+        if dose and dose.group(1) in family_mixed:
+            mixed = family_mixed[dose.group(1)]
+            if int(dose.group(2)) == mixed:
+                obtained.append({"how": "note", "detail": DOSE_NOTE})
+            else:
+                obtained.insert(0, {"how": "note",
+                                    "detail": f"dose variant of {dose.group(1)}"
+                                              f" ({mixed}) — " + DOSE_NOTE})
+                dose_variant = True
         # anchored version names ("A stone bowl#Empty") fall back to the
         # base page name for the source joins
         candidates = [name] if "#" not in name else [name, name.split("#")[0]]
@@ -137,10 +171,23 @@ def main():
             if obtained:
                 break
         uses = used_in.get(name, [])
-        flags = None
+        flags = "dose-variant" if dose_variant else None
         if not obtained:
-            flags = "obtain-unknown"
-            no_source += 1
+            # classify BEFORE gapping (rerunnable — one-off DB surgery does
+            # not survive a rebuild): quest-internal items via the item
+            # bucket's own quest field, degraded/versioned variants by shape
+            quest = conn.execute(
+                "SELECT quest_item FROM items WHERE name = ? COLLATE NOCASE"
+                " AND quest_item IS NOT NULL AND quest_item != ''"
+                " AND quest_item != 'No' LIMIT 1", (name,)).fetchone()
+            if quest:
+                obtained = [{"how": "quest", "from": quest[0]}]
+                flags = "quest-internal"
+            elif DEGRADED.search(name):
+                flags = "degraded-variant"
+            else:
+                flags = "obtain-unknown"
+                no_source += 1
         conn.execute(
             "INSERT OR REPLACE INTO materials(name,obtained,used_in,makes_count,src,flags)"
             " VALUES(?,?,?,?,?,?)",
@@ -149,15 +196,21 @@ def main():
              "derived: recipes+drops+shops+rewards", flags))
     conn.commit()
     # only gap the SOURCELESS INPUTS (a sourceless output name is usually a
-    # display-name variant; inputs someone must acquire are the real holes)
+    # display-name variant; inputs someone must acquire are the real holes).
+    # Stale gaps from previous runs retire first — classification improved.
+    conn.execute("UPDATE gaps SET status='resolved' WHERE category='materials'"
+                 " AND status='open' AND subject NOT LIKE '(%'")
     for name in names:
         if name in used_in and not produced.get(name):
             row = conn.execute("SELECT flags FROM materials WHERE name=?",
                                (name,)).fetchone()
             if row and row[0] == "obtain-unknown":
-                kb.add_gap(conn, "materials", name, "obtain",
-                           "used as a recipe input but no gathering recipe, drop,"
-                           " shop or reward source found")
+                conn.execute(
+                    "INSERT INTO gaps(category, subject, field, why, status)"
+                    " VALUES('materials', ?, 'obtain', ?, 'open')"
+                    " ON CONFLICT(category, subject, field) DO UPDATE SET status='open'",
+                    (name, "used as a recipe input but no gathering recipe,"
+                           " drop, shop or reward source found"))
     kb.set_progress(conn, "recipes", None, "recipes", "wiki:bucket recipe",
                     f"{n} productions incl. gathering actions")
     kb.set_progress(conn, "materials", len(names), "materials",

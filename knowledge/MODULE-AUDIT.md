@@ -4,30 +4,33 @@ Each plugin module's data source compared against what the KB now knows.
 **Nothing here lands without your sign-off** (the standing gate on pack
 regenerations). Ordered by how badly the module under-covers.
 
-## Proposals needing your word
+## Proposals — ENACTED 2026-07-21 on Luke's word (statuses inline)
 
 1. **boosts.json is 3% of the game's boosts** — 10 sources vs **298** wiki
    boost rows (KB `boosts` table). Everything that consults
    `Boosts.available` (diary doable-checks, CA gating, `skillb:` leaves,
-   PoH buildable-now) under-reports what's boostable. Proposal: regenerate
-   boosts.json from the Temporary-skill-boost subpages (same source the KB
-   used), keeping the pack's per-source obtainment gating. **Biggest win.**
+   PoH buildable-now) under-reports what's boostable. **DONE**: tools/gen_boosts.py regenerates it — 194 sources (10 curated
+   gates kept verbatim + 184 wiki-derived, item-ownership gated); area/
+   percent/minigame boosts skip with a log line and stay KB-side.
 
 2. **qol.json is 9 unlocks; the KB catalog has 90** (Storage items + curated
    utility list — scope itself flagged for your review in GAPS.md). The QoL
-   checklist module shows a tenth of what it could. Proposal: widen the pack
-   after you settle the catalog scope.
+   checklist module shows a tenth of what it could. **DONE**: tools/gen_qol.py — 92 unlocks, the original 9 verbatim (ids
+   are load-bearing); non-item unlocks stay KB-side.
 
 3. **boat-upgrades.json: 4 real material mismatches** vs the current wiki
    pages (Crystal extractor, Gale catcher, Keg, Wind catcher — details in
-   GAPS.md/boat). Sailing is moving; propose a regen of gen_boat_upgrades
-   with these four checked by hand.
+   GAPS.md/boat). **RESOLVED — no pack change**: hand-checked 2026-07-21; all four are the
+   wiki reclassifying the special item (heart of ithell / wind mote /
+   barrel stand) from materials to TOOLS. Still required-owned, so the
+   pack's framing stands; the verifier now accepts tool-augmented recipes
+   (0 drift).
 
 4. **methods.json holds 97 methods; the wiki guides yield 225+** (KB
    `training_methods`, wiki rows flagged prose-derived). Rates stay yours to
    gate — but the LADDER breadth (methods the planner can even consider) is
-   under-covered, e.g. whole skills lean on 3-4 rungs. Proposal: review the
-   wiki-derived list per skill in the KB browser; promote the ones you trust
+   under-covered, e.g. whole skills lean on 3-4 rungs. **AWAITING YOUR PICKS** (by its own design): the wiki-derived methods sit
+   in the KB browser flagged rates-need-review; name the ones to promote
    and I'll fold them into methods.json with your rates.
 
 ## Verified clean (no action)
@@ -57,12 +60,13 @@ regenerations). Ordered by how badly the module under-covers.
 - **Port tasks**: `bucket_couriertaskline`/`bucket_bountytaskline` carry every
   task with xp/item/qty/ports — keyed by the SLOT-VARBIT task id (1..439),
   not the DBRow ids port-tasks.json keys rewards by (the two id spaces the
-  module already distinguishes). A mapping pass (join on item+ports+label)
-  would let the pack's hand-transcribed XP table be generated instead —
-  needs your word as a pack regen.
+  module already distinguishes). **DONE**: gen_port_tasks.py cross-corrects XP against the buckets at
+  generation (49 corrections applied; 242/271 rewards wiki-verified, the
+  22 ambiguous + 7 unmatched keep the transcription and sit in GAPS.md).
 - **`bucket_quest.ironman_concerns`** — per-quest ironman notes; a natural
   QuestsTab tooltip/KB surface when wanted.
-- **`bucket_recommended_equipment`** (452 activity gear tables) — offline
-  replacement candidate for the wiki-strategy fetch path.
+- **`bucket_recommended_equipment`** — **DONE**: data/recommended-equipment.json
+  (452 activities, 13,446 id-resolved entries) via gen_recommended_equipment.py.
+  No UI consumer wired yet — say where you want it surfaced.
 - **`mine` and `ge_index_header` are EMPTY wiki-side** (defined, unpopulated)
   — gaps recorded; recheck on future rebuilds.

@@ -354,7 +354,7 @@
   },
   {
    "dbrow": 8681,
-   "xp": 6525,
+   "xp": 6521,
    "label": "Rellekka pie delivery",
    "type": "courier"
   },
@@ -408,7 +408,7 @@
   },
   {
    "dbrow": 8693,
-   "xp": 591,
+   "xp": 592,
    "label": "Pandemonium arrowtip delivery",
    "type": "courier"
   },
@@ -684,7 +684,7 @@
   },
   {
    "dbrow": 8789,
-   "xp": 944,
+   "xp": 945,
    "label": "Civitas illa Fortis pineapple delivery",
    "type": "courier"
   },
@@ -696,13 +696,13 @@
   },
   {
    "dbrow": 8794,
-   "xp": 976,
+   "xp": 977,
    "label": "Port Piscarilius platebody delivery",
    "type": "courier"
   },
   {
    "dbrow": 8797,
-   "xp": 514,
+   "xp": 468,
    "label": "Port Khazard scimitar delivery",
    "type": "courier"
   },
@@ -732,13 +732,13 @@
   },
   {
    "dbrow": 8812,
-   "xp": 720,
+   "xp": 655,
    "label": "Pandemonium spice delivery",
    "type": "courier"
   },
   {
    "dbrow": 8813,
-   "xp": 1440,
+   "xp": 1309,
    "label": "Corsair Cove ship part delivery",
    "type": "courier"
   },
@@ -774,7 +774,7 @@
   },
   {
    "dbrow": 8823,
-   "xp": 1506,
+   "xp": 1509,
    "label": "Summer Shore cacti delivery",
    "type": "courier"
   },
@@ -786,7 +786,7 @@
   },
   {
    "dbrow": 8831,
-   "xp": 1296,
+   "xp": 1295,
    "label": "Brimhaven sandstone delivery",
    "type": "courier"
   },
@@ -822,7 +822,7 @@
   },
   {
    "dbrow": 8856,
-   "xp": 1227,
+   "xp": 1226,
    "label": "Void Knights' Outpost coral delivery",
    "type": "courier"
   },
@@ -834,7 +834,7 @@
   },
   {
    "dbrow": 8859,
-   "xp": 2002,
+   "xp": 2001,
    "label": "Summer Shore gem delivery",
    "type": "courier"
   },
@@ -846,25 +846,25 @@
   },
   {
    "dbrow": 8863,
-   "xp": 1348,
+   "xp": 1347,
    "label": "Port Sarim camphor delivery",
    "type": "courier"
   },
   {
    "dbrow": 8864,
-   "xp": 2618,
+   "xp": 2616,
    "label": "Summer Shore shield delivery",
    "type": "courier"
   },
   {
    "dbrow": 8865,
-   "xp": 2714,
+   "xp": 2712,
    "label": "Aldarin crab paste delivery",
    "type": "courier"
   },
   {
    "dbrow": 8869,
-   "xp": 4227,
+   "xp": 4230,
    "label": "Deepfin Point camphor delivery",
    "type": "courier"
   },
@@ -936,7 +936,7 @@
   },
   {
    "dbrow": 8909,
-   "xp": 3826,
+   "xp": 3827,
    "label": "Lunar Isle berry delivery",
    "type": "courier"
   },
@@ -978,7 +978,7 @@
   },
   {
    "dbrow": 8926,
-   "xp": 2252,
+   "xp": 2253,
    "label": "Port Tyras fur delivery",
    "type": "courier"
   },
@@ -990,13 +990,13 @@
   },
   {
    "dbrow": 8928,
-   "xp": 2318,
+   "xp": 2316,
    "label": "Rellekka beer delivery",
    "type": "courier"
   },
   {
    "dbrow": 8933,
-   "xp": 907,
+   "xp": 908,
    "label": "Civitas illa Fortis vegetable delivery",
    "type": "courier"
   },
@@ -1026,13 +1026,13 @@
   },
   {
    "dbrow": 8941,
-   "xp": 2076,
+   "xp": 2078,
    "label": "Prifddinas clothes delivery",
    "type": "courier"
   },
   {
    "dbrow": 8946,
-   "xp": 1937,
+   "xp": 2025,
    "label": "Ardougne spice delivery",
    "type": "courier"
   },
@@ -1050,25 +1050,25 @@
   },
   {
    "dbrow": 8951,
-   "xp": 1232,
+   "xp": 1231,
    "label": "Civitas illa Fortis fruit delivery",
    "type": "courier"
   },
   {
    "dbrow": 8952,
-   "xp": 2464,
+   "xp": 2463,
    "label": "Aldarin spear delivery",
    "type": "courier"
   },
   {
    "dbrow": 8953,
-   "xp": 1896,
+   "xp": 1898,
    "label": "Deepfin Point pickaxe delivery",
    "type": "courier"
   },
   {
    "dbrow": 8954,
-   "xp": 3793,
+   "xp": 3795,
    "label": "Aldarin nickel delivery",
    "type": "courier"
   },
@@ -1086,7 +1086,7 @@
   },
   {
    "dbrow": 8964,
-   "xp": 2687,
+   "xp": 2686,
    "label": "Port Tyras shield delivery",
    "type": "courier"
   },
@@ -1128,19 +1128,19 @@
   },
   {
    "dbrow": 8982,
-   "xp": 9913,
+   "xp": 9905,
    "label": "Port Roberts honey delivery",
    "type": "courier"
   },
   {
    "dbrow": 8984,
-   "xp": 2639,
+   "xp": 2636,
    "label": "Rellekka ship part delivery",
    "type": "courier"
   },
   {
    "dbrow": 8985,
-   "xp": 3744,
+   "xp": 3837,
    "label": "Red Rock herb delivery",
    "type": "courier"
   },
@@ -1158,7 +1158,7 @@
   },
   {
    "dbrow": 8989,
-   "xp": 1817,
+   "xp": 1819,
    "label": "Port Tyras mithril delivery",
    "type": "courier"
   },
@@ -1170,19 +1170,19 @@
   },
   {
    "dbrow": 8991,
-   "xp": 1817,
+   "xp": 1819,
    "label": "Aldarin adamantite delivery",
    "type": "courier"
   },
   {
    "dbrow": 8992,
-   "xp": 3793,
+   "xp": 3795,
    "label": "Deepfin Point fruit delivery",
    "type": "courier"
   },
   {
    "dbrow": 8994,
-   "xp": 1872,
+   "xp": 1875,
    "label": "Port Tyras coal delivery",
    "type": "courier"
   },
@@ -1200,7 +1200,7 @@
   },
   {
    "dbrow": 8998,
-   "xp": 3121,
+   "xp": 3123,
    "label": "Port Piscarilius coal delivery",
    "type": "courier"
   },
@@ -1218,7 +1218,7 @@
   },
   {
    "dbrow": 9002,
-   "xp": 4884,
+   "xp": 4889,
    "label": "Rellekka lead delivery",
    "type": "courier"
   },
@@ -1230,7 +1230,7 @@
   },
   {
    "dbrow": 9012,
-   "xp": 1140,
+   "xp": 1141,
    "label": "Prifddinas halberd delivery",
    "type": "courier"
   },
@@ -1242,13 +1242,13 @@
   },
   {
    "dbrow": 9024,
-   "xp": 5531,
+   "xp": 5534,
    "label": "Port Tyras fruit delivery",
    "type": "courier"
   },
   {
    "dbrow": 9025,
-   "xp": 1140,
+   "xp": 1141,
    "label": "Port Tyras fabric delivery",
    "type": "courier"
   },
@@ -1272,13 +1272,13 @@
   },
   {
    "dbrow": 9029,
-   "xp": 4477,
+   "xp": 4482,
    "label": "Ardougne crystal seed delivery",
    "type": "courier"
   },
   {
    "dbrow": 9030,
-   "xp": 8791,
+   "xp": 8801,
    "label": "Prifddinas silk delivery",
    "type": "courier"
   },
@@ -1302,7 +1302,7 @@
   },
   {
    "dbrow": 9036,
-   "xp": 3541,
+   "xp": 3545,
    "label": "Aldarin crystal seed delivery",
    "type": "courier"
   },
@@ -1326,7 +1326,7 @@
   },
   {
    "dbrow": 9044,
-   "xp": 869,
+   "xp": 870,
    "label": "Etceteria fish delivery",
    "type": "courier"
   },
@@ -1344,7 +1344,7 @@
   },
   {
    "dbrow": 9049,
-   "xp": 9556,
+   "xp": 9557,
    "label": "Rellekka fabric delivery",
    "type": "courier"
   },
@@ -1374,7 +1374,7 @@
   },
   {
    "dbrow": 9058,
-   "xp": 4493,
+   "xp": 4494,
    "label": "Rellekka redwood delivery",
    "type": "courier"
   },
@@ -1392,13 +1392,13 @@
   },
   {
    "dbrow": 9064,
-   "xp": 1580,
+   "xp": 1581,
    "label": "Etceteria iron delivery",
    "type": "courier"
   },
   {
    "dbrow": 9067,
-   "xp": 3003,
+   "xp": 3004,
    "label": "Port Roberts teak delivery",
    "type": "courier"
   },
@@ -1422,7 +1422,7 @@
   },
   {
    "dbrow": 9074,
-   "xp": 1422,
+   "xp": 1423,
    "label": "Neitiznot mahogany delivery",
    "type": "courier"
   },
@@ -1434,7 +1434,7 @@
   },
   {
    "dbrow": 9077,
-   "xp": 10588,
+   "xp": 10587,
    "label": "Etceteria sword delivery",
    "type": "courier"
   },
@@ -1524,7 +1524,7 @@
   },
   {
    "dbrow": 9098,
-   "xp": 13142,
+   "xp": 13143,
    "label": "Lunar Isle red coral delivery",
    "type": "courier"
   },

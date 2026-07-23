@@ -1,15 +1,802 @@
 {
-  "$schema": "./schemas/qol.schema.json",
-  "version": 1,
-  "unlocks": [
-    {"id": "herb_sack", "name": "Herb sack", "itemIds": [13226], "requirements": ["250 Tithe Farm points"]},
-    {"id": "seed_box", "name": "Seed box", "itemIds": [13639], "requirements": ["250 Tithe Farm points"]},
-    {"id": "coal_bag", "name": "Coal bag", "itemIds": [12019], "requirements": ["100 golden nuggets (Motherlode Mine)"]},
-    {"id": "gem_bag", "name": "Gem bag", "itemIds": [12020], "requirements": ["100 golden nuggets (Motherlode Mine)"]},
-    {"id": "rune_pouch", "name": "Rune pouch", "itemIds": [12791], "requirements": ["750 Slayer reward points"]},
-    {"id": "graceful_hood", "name": "Graceful hood", "itemIds": [11850], "requirements": ["35 marks of grace"]},
-    {"id": "ava_accumulator", "name": "Ava's accumulator", "itemIds": [10499], "requirements": ["skill:Ranged:50", "quest:Animal Magnetism"]},
-    {"id": "ava_assembler", "name": "Ava's assembler", "itemIds": [22109], "requirements": ["quest:Dragon Slayer II"]},
-    {"id": "dragon_defender", "name": "Dragon defender", "itemIds": [12954], "requirements": ["skill:Attack:60", "skill:Defence:60"]}
-  ]
+ "$schema": "./schemas/qol.schema.json",
+ "version": 2,
+ "unlocks": [
+  {
+   "id": "achievement_diary_cape",
+   "name": "Achievement diary cape",
+   "itemIds": [
+    19476
+   ],
+   "requirements": []
+  },
+  {
+   "id": "amy_s_saw",
+   "name": "Amy's saw",
+   "itemIds": [
+    24880
+   ],
+   "requirements": []
+  },
+  {
+   "id": "ardougne_cloak_1",
+   "name": "Ardougne cloak 1",
+   "itemIds": [
+    13121
+   ],
+   "requirements": []
+  },
+  {
+   "id": "ardougne_cloak_2",
+   "name": "Ardougne cloak 2",
+   "itemIds": [
+    13122
+   ],
+   "requirements": []
+  },
+  {
+   "id": "ardougne_cloak_3",
+   "name": "Ardougne cloak 3",
+   "itemIds": [
+    13123
+   ],
+   "requirements": []
+  },
+  {
+   "id": "ardougne_cloak_4",
+   "name": "Ardougne cloak 4",
+   "itemIds": [
+    13124
+   ],
+   "requirements": []
+  },
+  {
+   "id": "ava_accumulator",
+   "name": "Ava's accumulator",
+   "itemIds": [
+    10499
+   ],
+   "requirements": [
+    "skill:Ranged:50",
+    "quest:Animal Magnetism"
+   ]
+  },
+  {
+   "id": "ava_assembler",
+   "name": "Ava's assembler",
+   "itemIds": [
+    22109
+   ],
+   "requirements": [
+    "quest:Dragon Slayer II"
+   ]
+  },
+  {
+   "id": "basket",
+   "name": "Basket",
+   "itemIds": [
+    5376
+   ],
+   "requirements": [
+    "Make: Crafting 36"
+   ]
+  },
+  {
+   "id": "black_coffin",
+   "name": "Black coffin",
+   "itemIds": [
+    25463
+   ],
+   "requirements": []
+  },
+  {
+   "id": "bolt_pouch",
+   "name": "Bolt pouch",
+   "itemIds": [
+    9433
+   ],
+   "requirements": []
+  },
+  {
+   "id": "book_of_the_dead",
+   "name": "Book of the dead",
+   "itemIds": [
+    25818
+   ],
+   "requirements": []
+  },
+  {
+   "id": "bottomless_compost_bucket",
+   "name": "Bottomless compost bucket",
+   "itemIds": [
+    22994
+   ],
+   "requirements": []
+  },
+  {
+   "id": "bronze_coffin",
+   "name": "Bronze coffin",
+   "itemIds": [
+    25459
+   ],
+   "requirements": []
+  },
+  {
+   "id": "bruma_torch",
+   "name": "Bruma torch",
+   "itemIds": [
+    20720
+   ],
+   "requirements": []
+  },
+  {
+   "id": "camulet",
+   "name": "Camulet",
+   "itemIds": [
+    6707
+   ],
+   "requirements": []
+  },
+  {
+   "id": "coal_bag",
+   "name": "Coal bag",
+   "itemIds": [
+    12019
+   ],
+   "requirements": [
+    "100 golden nuggets (Motherlode Mine)"
+   ]
+  },
+  {
+   "id": "collection_bag",
+   "name": "Collection bag",
+   "itemIds": [
+    10521
+   ],
+   "requirements": []
+  },
+  {
+   "id": "colossal_pouch",
+   "name": "Colossal pouch",
+   "itemIds": [
+    26784
+   ],
+   "requirements": [
+    "Make: Runecraft 25, Crafting 56"
+   ]
+  },
+  {
+   "id": "crystal_axe",
+   "name": "Crystal axe",
+   "itemIds": [
+    23673
+   ],
+   "requirements": [
+    "Make: Smithing 76, Crafting 76"
+   ]
+  },
+  {
+   "id": "crystal_harpoon",
+   "name": "Crystal harpoon",
+   "itemIds": [
+    23762
+   ],
+   "requirements": [
+    "Make: Smithing 76, Crafting 76"
+   ]
+  },
+  {
+   "id": "crystal_pickaxe",
+   "name": "Crystal pickaxe",
+   "itemIds": [
+    23680
+   ],
+   "requirements": [
+    "Make: Smithing 76, Crafting 76"
+   ]
+  },
+  {
+   "id": "crystal_saw",
+   "name": "Crystal saw",
+   "itemIds": [
+    9625
+   ],
+   "requirements": []
+  },
+  {
+   "id": "desert_amulet_4",
+   "name": "Desert amulet 4",
+   "itemIds": [
+    13136
+   ],
+   "requirements": []
+  },
+  {
+   "id": "divine_rune_pouch",
+   "name": "Divine rune pouch",
+   "itemIds": [
+    27281
+   ],
+   "requirements": [
+    "Make: Crafting 75"
+   ]
+  },
+  {
+   "id": "dragon_defender",
+   "name": "Dragon defender",
+   "itemIds": [
+    12954
+   ],
+   "requirements": [
+    "skill:Attack:60",
+    "skill:Defence:60"
+   ]
+  },
+  {
+   "id": "dragon_harpoon",
+   "name": "Dragon harpoon",
+   "itemIds": [
+    21028
+   ],
+   "requirements": []
+  },
+  {
+   "id": "dramen_staff",
+   "name": "Dramen staff",
+   "itemIds": [
+    772
+   ],
+   "requirements": [
+    "Make: Crafting 31"
+   ]
+  },
+  {
+   "id": "ectophial",
+   "name": "Ectophial",
+   "itemIds": [
+    4251
+   ],
+   "requirements": []
+  },
+  {
+   "id": "empty_sack",
+   "name": "Empty sack",
+   "itemIds": [
+    5418
+   ],
+   "requirements": [
+    "Make: Crafting 21"
+   ]
+  },
+  {
+   "id": "explorer_s_ring_2",
+   "name": "Explorer's ring 2",
+   "itemIds": [
+    13126
+   ],
+   "requirements": []
+  },
+  {
+   "id": "explorer_s_ring_3",
+   "name": "Explorer's ring 3",
+   "itemIds": [
+    13127
+   ],
+   "requirements": []
+  },
+  {
+   "id": "explorer_s_ring_4",
+   "name": "Explorer's ring 4",
+   "itemIds": [
+    13128
+   ],
+   "requirements": []
+  },
+  {
+   "id": "falador_shield_3",
+   "name": "Falador shield 3",
+   "itemIds": [
+    13119
+   ],
+   "requirements": []
+  },
+  {
+   "id": "farming_cape",
+   "name": "Farming cape",
+   "itemIds": [
+    9810
+   ],
+   "requirements": []
+  },
+  {
+   "id": "fish_barrel",
+   "name": "Fish barrel",
+   "itemIds": [
+    25582
+   ],
+   "requirements": []
+  },
+  {
+   "id": "fish_sack_barrel",
+   "name": "Fish sack barrel",
+   "itemIds": [
+    25585
+   ],
+   "requirements": []
+  },
+  {
+   "id": "flamtaer_bag",
+   "name": "Flamtaer bag",
+   "itemIds": [
+    12854
+   ],
+   "requirements": []
+  },
+  {
+   "id": "forestry_basket",
+   "name": "Forestry basket",
+   "itemIds": [
+    28143
+   ],
+   "requirements": []
+  },
+  {
+   "id": "forestry_kit",
+   "name": "Forestry kit",
+   "itemIds": [
+    28136
+   ],
+   "requirements": []
+  },
+  {
+   "id": "fremennik_sea_boots_4",
+   "name": "Fremennik sea boots 4",
+   "itemIds": [
+    13132
+   ],
+   "requirements": []
+  },
+  {
+   "id": "gem_bag",
+   "name": "Gem bag",
+   "itemIds": [
+    12020
+   ],
+   "requirements": [
+    "100 golden nuggets (Motherlode Mine)"
+   ]
+  },
+  {
+   "id": "gem_pouch",
+   "name": "Gem pouch",
+   "itemIds": [
+    33384
+   ],
+   "requirements": [
+    "Make: Crafting 12"
+   ]
+  },
+  {
+   "id": "gem_sack",
+   "name": "Gem sack",
+   "itemIds": [
+    33393
+   ],
+   "requirements": [
+    "Make: Crafting 81"
+   ]
+  },
+  {
+   "id": "gem_satchel",
+   "name": "Gem satchel",
+   "itemIds": [
+    33387
+   ],
+   "requirements": [
+    "Make: Crafting 39"
+   ]
+  },
+  {
+   "id": "gem_tote",
+   "name": "Gem tote",
+   "itemIds": [
+    33390
+   ],
+   "requirements": [
+    "Make: Crafting 81"
+   ]
+  },
+  {
+   "id": "giant_pouch",
+   "name": "Giant pouch",
+   "itemIds": [
+    5514
+   ],
+   "requirements": []
+  },
+  {
+   "id": "gnomish_firelighter",
+   "name": "Gnomish firelighter",
+   "itemIds": [
+    20275
+   ],
+   "requirements": []
+  },
+  {
+   "id": "gold_coffin",
+   "name": "Gold coffin",
+   "itemIds": [
+    25467
+   ],
+   "requirements": []
+  },
+  {
+   "id": "graceful_boots",
+   "name": "Graceful boots",
+   "itemIds": [
+    11860
+   ],
+   "requirements": []
+  },
+  {
+   "id": "graceful_cape",
+   "name": "Graceful cape",
+   "itemIds": [
+    11852
+   ],
+   "requirements": []
+  },
+  {
+   "id": "graceful_gloves",
+   "name": "Graceful gloves",
+   "itemIds": [
+    11858
+   ],
+   "requirements": []
+  },
+  {
+   "id": "graceful_hood",
+   "name": "Graceful hood",
+   "itemIds": [
+    11850
+   ],
+   "requirements": [
+    "35 marks of grace"
+   ]
+  },
+  {
+   "id": "graceful_legs",
+   "name": "Graceful legs",
+   "itemIds": [
+    11856
+   ],
+   "requirements": []
+  },
+  {
+   "id": "graceful_top",
+   "name": "Graceful top",
+   "itemIds": [
+    11854
+   ],
+   "requirements": []
+  },
+  {
+   "id": "herb_sack",
+   "name": "Herb sack",
+   "itemIds": [
+    13226
+   ],
+   "requirements": [
+    "250 Tithe Farm points"
+   ]
+  },
+  {
+   "id": "huntsman_s_kit",
+   "name": "Huntsman's kit",
+   "itemIds": [
+    29309
+   ],
+   "requirements": []
+  },
+  {
+   "id": "imcando_hammer",
+   "name": "Imcando hammer",
+   "itemIds": [
+    25644
+   ],
+   "requirements": []
+  },
+  {
+   "id": "infernal_axe",
+   "name": "Infernal axe",
+   "itemIds": [
+    13241
+   ],
+   "requirements": [
+    "Make: Woodcutting 61, Firemaking 85"
+   ]
+  },
+  {
+   "id": "infernal_harpoon",
+   "name": "Infernal harpoon",
+   "itemIds": [
+    21031
+   ],
+   "requirements": [
+    "Make: Fishing 75, Cooking 85"
+   ]
+  },
+  {
+   "id": "infernal_pickaxe",
+   "name": "Infernal pickaxe",
+   "itemIds": [
+    13243
+   ],
+   "requirements": [
+    "Make: Mining 61, Smithing 85"
+   ]
+  },
+  {
+   "id": "kandarin_headgear_4",
+   "name": "Kandarin headgear 4",
+   "itemIds": [
+    13140
+   ],
+   "requirements": []
+  },
+  {
+   "id": "karamja_gloves_3",
+   "name": "Karamja gloves 3",
+   "itemIds": [
+    11140
+   ],
+   "requirements": []
+  },
+  {
+   "id": "karamja_gloves_4",
+   "name": "Karamja gloves 4",
+   "itemIds": [
+    13103
+   ],
+   "requirements": []
+  },
+  {
+   "id": "large_fur_pouch",
+   "name": "Large fur pouch",
+   "itemIds": [
+    29303
+   ],
+   "requirements": [
+    "Make: Crafting 65"
+   ]
+  },
+  {
+   "id": "large_meat_pouch",
+   "name": "Large meat pouch",
+   "itemIds": [
+    29297
+   ],
+   "requirements": [
+    "Make: Crafting 65"
+   ]
+  },
+  {
+   "id": "large_pouch",
+   "name": "Large pouch",
+   "itemIds": [
+    5512
+   ],
+   "requirements": []
+  },
+  {
+   "id": "log_basket",
+   "name": "Log basket",
+   "itemIds": [
+    28140
+   ],
+   "requirements": []
+  },
+  {
+   "id": "looting_bag",
+   "name": "Looting bag",
+   "itemIds": [
+    11941
+   ],
+   "requirements": []
+  },
+  {
+   "id": "magic_secateurs",
+   "name": "Magic secateurs",
+   "itemIds": [
+    7409
+   ],
+   "requirements": []
+  },
+  {
+   "id": "master_scroll_book",
+   "name": "Master scroll book",
+   "itemIds": [
+    21389
+   ],
+   "requirements": []
+  },
+  {
+   "id": "medium_fur_pouch",
+   "name": "Medium fur pouch",
+   "itemIds": [
+    29301
+   ],
+   "requirements": [
+    "Make: Crafting 50"
+   ]
+  },
+  {
+   "id": "medium_pouch",
+   "name": "Medium pouch",
+   "itemIds": [
+    5510
+   ],
+   "requirements": []
+  },
+  {
+   "id": "morytania_legs_3",
+   "name": "Morytania legs 3",
+   "itemIds": [
+    13114
+   ],
+   "requirements": []
+  },
+  {
+   "id": "plank_sack",
+   "name": "Plank sack",
+   "itemIds": [
+    24882
+   ],
+   "requirements": []
+  },
+  {
+   "id": "quetzal_whistle",
+   "name": "Quetzal whistle",
+   "itemIds": [
+    29271
+   ],
+   "requirements": []
+  },
+  {
+   "id": "rada_s_blessing_4",
+   "name": "Rada's blessing 4",
+   "itemIds": [
+    22947
+   ],
+   "requirements": []
+  },
+  {
+   "id": "reagent_pouch",
+   "name": "Reagent pouch",
+   "itemIds": [
+    29996
+   ],
+   "requirements": []
+  },
+  {
+   "id": "royal_seed_pod",
+   "name": "Royal seed pod",
+   "itemIds": [
+    19564
+   ],
+   "requirements": []
+  },
+  {
+   "id": "rune_pouch",
+   "name": "Rune pouch",
+   "itemIds": [
+    12791
+   ],
+   "requirements": [
+    "750 Slayer reward points"
+   ]
+  },
+  {
+   "id": "seed_box",
+   "name": "Seed box",
+   "itemIds": [
+    13639
+   ],
+   "requirements": [
+    "250 Tithe Farm points"
+   ]
+  },
+  {
+   "id": "silklined_herb_sack",
+   "name": "Silklined herb sack",
+   "itemIds": [
+    33135
+   ],
+   "requirements": []
+  },
+  {
+   "id": "silver_coffin",
+   "name": "Silver coffin",
+   "itemIds": [
+    25465
+   ],
+   "requirements": []
+  },
+  {
+   "id": "small_fur_pouch",
+   "name": "Small fur pouch",
+   "itemIds": [
+    29299
+   ],
+   "requirements": [
+    "Make: Crafting 35"
+   ]
+  },
+  {
+   "id": "small_meat_pouch",
+   "name": "Small meat pouch",
+   "itemIds": [
+    29295
+   ],
+   "requirements": [
+    "Make: Crafting 35"
+   ]
+  },
+  {
+   "id": "small_pouch",
+   "name": "Small pouch",
+   "itemIds": [
+    5509
+   ],
+   "requirements": []
+  },
+  {
+   "id": "steel_coffin",
+   "name": "Steel coffin",
+   "itemIds": [
+    25461
+   ],
+   "requirements": []
+  },
+  {
+   "id": "steel_key_ring",
+   "name": "Steel key ring",
+   "itemIds": [
+    4446
+   ],
+   "requirements": []
+  },
+  {
+   "id": "tackle_box",
+   "name": "Tackle box",
+   "itemIds": [
+    25580
+   ],
+   "requirements": []
+  },
+  {
+   "id": "varrock_armour_3",
+   "name": "Varrock armour 3",
+   "itemIds": [
+    13106
+   ],
+   "requirements": []
+  },
+  {
+   "id": "western_banner_4",
+   "name": "Western banner 4",
+   "itemIds": [
+    13144
+   ],
+   "requirements": []
+  },
+  {
+   "id": "wilderness_sword_4",
+   "name": "Wilderness sword 4",
+   "itemIds": [
+    13111
+   ],
+   "requirements": []
+  }
+ ]
 }

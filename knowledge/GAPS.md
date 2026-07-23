@@ -5,13 +5,6 @@ Notes column (or tell me in chat) and I'll fold it in; resolved rows
 move out on the next harvest.
 
 
-## boat
-
-- [ ] **Crystal extractor** — materials-drift: pack [["cupronickel bar", "5"], ["heart of ithell", "1"], ["ironwood plank", "6"], ["magic stone", "2"]] matches none of the page's 1 recipe versions on 'Crystal extractor'
-- [ ] **Gale catcher** — materials-drift: pack [["adamantite bar", "8"], ["adamantite nails", "16"], ["air rune", "25000"], ["camphor plank", "4"], ["captured wind mote", "1"], ["cupronickel bar", "4"], ["swift albatross feather", "5"]] matches none of the page's 1 recipe versions on 'Gale catcher'
-- [ ] **Keg** — materials-drift: pack [["barrel stand", "1"], ["iron nails", "20"], ["oak plank", "5"]] matches none of the page's 1 recipe versions on 'Keg (facility)'
-- [ ] **Wind catcher** — materials-drift: pack [["air rune", "10000"], ["captured wind mote", "1"], ["lead bar", "4"], ["steel bar", "8"], ["steel nails", "16"], ["teak plank", "4"]] matches none of the page's 1 recipe versions on 'Wind catcher'
-
 ## boosts
 
 - [ ] **(coverage)** — catalog: boosts.json holds 10 boost sources; the wiki Temporary skill boost tables list far more — full harvest required
@@ -201,13 +194,13 @@ move out on the next harvest.
 ## materials
 
 - [ ] **(degraded/versioned variants)** — obtain: degraded barrows pieces, dose/charge variants and #-anchored versions are flagged obtain-unknown on their rows (their 'source' is item degradation/use, not a drop) — individually gapped only where a genuine base item has no source
-- [ ] **(potion doses)** — obtain: partial-dose potions (1)-(3) come from drinking the (4) — flagged dose-variant on their rows, not individual gaps
 - [ ] **Adventurer's boots (t3)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Adventurer's cape** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Adventurer's hood (t3)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Adventurer's top (t3)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Adventurer's trousers (t3)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Adventurer's vambraces** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Amulet of glory(4)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Amulet of the eye** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Ancient shield (The Blood Moon Rises)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Ancient symbol (The Blood Moon Rises)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
@@ -237,6 +230,7 @@ move out on the next harvest.
 - [ ] **Celastrus seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Celestial ring** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Church decoration** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Combat bracelet(4)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Crystal (Song of the Elves)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Curator's medallion** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Curry seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
@@ -319,6 +313,10 @@ move out on the next harvest.
 - [ ] **Marrentil tar** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Master wand** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Max hood** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Medallion fragment (1)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Medallion fragment (2)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Medallion fragment (3)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Medallion fragment (4)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Medallion fragment (5)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Medallion fragment (6)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Medallion fragment (7)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
@@ -371,13 +369,34 @@ move out on the next harvest.
 - [ ] **Servery raw meat** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Servery tomato** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Shark paint** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply boots (1)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply boots (2)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply boots (3)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply boots (4)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Shayzien supply boots (5)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Shayzien supply crate** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply gloves (1)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply gloves (2)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply gloves (3)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply gloves (4)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Shayzien supply gloves (5)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply greaves (1)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply greaves (2)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply greaves (3)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply greaves (4)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Shayzien supply greaves (5)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply helm (1)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply helm (2)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply helm (3)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply helm (4)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Shayzien supply helm (5)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply platebody (1)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply platebody (2)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply platebody (3)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply platebody (4)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Shayzien supply platebody (5)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Short vine** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Skills necklace(4)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Skull (item)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Slayer hood** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
 - [ ] **Small fossilised limbs** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
@@ -427,6 +446,32 @@ move out on the next harvest.
 - [ ] **Decorated Stone fireplace** — level-missing: no parsed level/Recipe materials on the page — check Stone fireplace
 - [ ] **Decorated marble fireplace** — level-missing: no parsed level/Recipe materials on the page — check Marble fireplace
 
+## port-tasks
+
+- [ ] **Civitas illa Fortis ore delivery** — ambiguous-join: pack xp 4188 matches NONE of the wiki candidates [2094, 4191]
+- [ ] **Civitas illa Fortis rune delivery** — ambiguous-join: pack xp 3212 matches NONE of the wiki candidates [3218, 3781]
+- [ ] **Deepfin Point fabric delivery** — ambiguous-join: pack xp 4030 matches NONE of the wiki candidates [4033, 7921]
+- [ ] **Deepfin Point logs delivery** — ambiguous-join: pack xp 3635 matches NONE of the wiki candidates [1954, 1956, 3500, 3637, 4230, 4662]
+- [ ] **Deepfin Point plank delivery** — ambiguous-join: pack xp 2442 matches NONE of the wiki candidates [1819, 2016, 2445, 3319, 6247]
+- [ ] **Deepfin Point wool delivery** — ambiguous-join: pack xp 4346 matches NONE of the wiki candidates [2175, 4349]
+- [ ] **Lunar Isle fur delivery** — ambiguous-join: pack xp 7381 matches NONE of the wiki candidates [3015, 3150, 9337]
+- [ ] **Lunar Isle potion delivery** — ambiguous-join: pack xp 12670 matches NONE of the wiki candidates [5491, 12671]
+- [ ] **Musa Point important delivery** — bucket-join: no wiki courier/bounty row matched this pack label (dest/board + item/monster stems)
+- [ ] **Port Khazard crab paste delivery** — ambiguous-join: pack xp 1463 matches NONE of the wiki candidates [353, 738, 1462]
+- [ ] **Port Piscarilius fur delivery** — ambiguous-join: pack xp 2246 matches NONE of the wiki candidates [317, 2245, 4501]
+- [ ] **Port Piscarilius jewellery delivery** — ambiguous-join: pack xp 1171 matches NONE of the wiki candidates [436, 1628, 1703]
+- [ ] **Port Roberts fish delivery** — ambiguous-join: pack xp 2710 matches NONE of the wiki candidates [810, 2175, 2176, 2708]
+- [ ] **Port Roberts logs delivery** — ambiguous-join: pack xp 1669 matches NONE of the wiki candidates [1671, 3004]
+- [ ] **Port Sarim sword delivery** — ambiguous-join: pack xp 706 matches NONE of the wiki candidates [369, 705]
+- [ ] **Prifddinas potion delivery** — ambiguous-join: pack xp 3541 matches NONE of the wiki candidates [4072, 7082]
+- [ ] **Red Rock spice delivery** — bucket-join: no wiki courier/bounty row matched this pack label (dest/board + item/monster stems)
+- [ ] **Rellekka plank delivery** — ambiguous-join: pack xp 5277 matches NONE of the wiki candidates [3134, 5278]
+- [ ] **Ruin of Unkah cocktail delivery** — bucket-join: no wiki courier/bounty row matched this pack label (dest/board + item/monster stems)
+- [ ] **Ruin of Unkah coral delivery** — bucket-join: no wiki courier/bounty row matched this pack label (dest/board + item/monster stems)
+- [ ] **Ruin of Unkah rune delivery** — bucket-join: no wiki courier/bounty row matched this pack label (dest/board + item/monster stems)
+- [ ] **Ruin of Unkah ship part delivery** — bucket-join: no wiki courier/bounty row matched this pack label (dest/board + item/monster stems)
+- [ ] **Void Knights' Outpost rune delivery** — ambiguous-join: pack xp 669 matches NONE of the wiki candidates [670, 3260]
+
 ## qol
 
 - [ ] **(catalog definition)** — scope: QoL is a plugin concept: current catalog = Category:Storage items + a curated utility list. Review what belongs — additions are one line in harvest_qol.py CURATED
@@ -451,4 +496,4 @@ move out on the next harvest.
 - [ ] **Strength** — methods: no method sections with parseable xp/hr on Pay-to-play Melee training — needs manual extraction
 
 
-_409 open gaps · generated from knowledge.db_
+_454 open gaps · generated from knowledge.db_
