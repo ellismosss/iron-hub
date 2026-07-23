@@ -144,6 +144,23 @@ public class AccountStateTest
 		assertEquals("normal", after.getGoalPriority("bowfa"));
 	}
 
+	/** Pin/snooze reconcile (Luke, 2026-07-24): clearSnoozes lifts a snooze,
+	 *  which is what lets re-pinning a goal bring its snoozed step back. */
+	@Test
+	public void clearSnoozesLiftsSnoozeSoRePinningTakesEffect()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 3L);
+		state.togglePlannerSnooze("obtain:item22994"); // "not right now" on a task
+		assertTrue(state.isPlannerSnoozed("obtain:item22994"));
+		// re-pinning the goal clears the snooze on its steps
+		state.clearSnoozes(java.util.Set.of("obtain:item22994", "unrelated"));
+		assertFalse(state.isPlannerSnoozed("obtain:item22994"));
+		// idempotent: clearing nothing does not error
+		state.clearSnoozes(java.util.Set.of("obtain:item22994"));
+		assertFalse(state.isPlannerSnoozed("obtain:item22994"));
+	}
+
 	/** G8: the ACCOUNT_TYPE varbit maps to the VERIFIED enum ordinal (UIM is 2,
 	 *  not 3 — memory is wrong) and persists so UIM honesty holds before the
 	 *  first login varbit read. */

@@ -1774,6 +1774,18 @@ public class AccountState implements StateView
 		notifyListeners();
 	}
 
+	/** Lift any snooze on these actions — the goal-pin path calls it so
+	 *  re-pinning a goal whose current step was snoozed actually brings that
+	 *  step back (Luke, 2026-07-24: re-pinning was a silent no-op). */
+	public void clearSnoozes(java.util.Collection<String> actionIds)
+	{
+		if (plannerSnoozes.removeAll(actionIds))
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
 	public void togglePlannerBan(String methodId)
 	{
 		if (!plannerBans.remove(methodId))

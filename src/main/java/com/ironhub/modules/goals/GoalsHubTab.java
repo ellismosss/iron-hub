@@ -445,7 +445,7 @@ class GoalsHubTab extends JPanel
 				if (SwingUtilities.isRightMouseButton(e))
 				{
 					JPopupMenu menu = new JPopupMenu();
-					menu.add(item("Not right now", () -> state.togglePlannerSnooze(step.action.id)));
+					menu.add(item("Not right now", () -> snoozeCurrentTask(step)));
 					if (wiki != null)
 					{
 						menu.add(item("Open wiki", () -> LinkBrowser.browse(wiki)));
@@ -456,6 +456,23 @@ class GoalsHubTab extends JPanel
 		});
 		cap(card);
 		return card;
+	}
+
+	/** "Not right now" on the current task: sink it, AND release any goal
+	 *  pin it was satisfying — otherwise the goal keeps its "pinned as
+	 *  active" icon while a different task drives the box (Luke, 2026-07-24).
+	 *  Nothing pinned afterwards is the honest state: you stepped away from
+	 *  your active goal. */
+	private void snoozeCurrentTask(Plan.Step step)
+	{
+		for (String goalId : step.action.neededBy)
+		{
+			if (state.isGoalPinned(goalId))
+			{
+				state.setGoalPinned(goalId, false);
+			}
+		}
+		state.togglePlannerSnooze(step.action.id);
 	}
 
 	private JComponent emptyTask()
@@ -568,11 +585,41 @@ class GoalsHubTab extends JPanel
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
-				state.setGoalPinned(goalId, !pinned);
+				setGoalPinned(goalId, !pinned);
 				e.consume();
 			}
 		});
 		return pin;
+	}
+
+	/** Pin/unpin a goal, keeping the pin and the current-task box consistent:
+	 *  pinning ALSO lifts any snooze on the goal's own plan steps, so a goal
+	 *  whose current step was snoozed comes back to the top (Luke, 2026-07-24
+	 *  — re-pinning was a silent no-op because the snooze still sank it). */
+	private void setGoalPinned(String goalId, boolean pinned)
+	{
+		if (pinned)
+		{
+			state.clearSnoozes(goalStepIds(goalId));
+		}
+		state.setGoalPinned(goalId, pinned);
+	}
+
+	/** The plan-step action ids serving a goal (empty when no plan yet). */
+	private java.util.Set<String> goalStepIds(String goalId)
+	{
+		java.util.Set<String> ids = new java.util.HashSet<>();
+		if (latestPlan != null)
+		{
+			for (Plan.Step step : latestPlan.steps)
+			{
+				if (step.action.neededBy.contains(goalId))
+				{
+					ids.add(step.action.id);
+				}
+			}
+		}
+		return ids;
 	}
 
 	/** A clean red-× to remove a Goal — a painted glyph, brighter on hover
@@ -884,8 +931,13 @@ class GoalsHubTab extends JPanel
 		int indent = UiTokens.STATUS_GLYPH_SIZE + UiTokens.PAD_TIGHT;
 		if (choosable)
 		{
-			JLabel chooser = new JLabel(chooseMethodIcon());
-			chooser.setToolTipText("Choose how you want to get this");
+			// orange while no method is chosen (an invitation), original grey
+			// once the player has picked one (Luke, 2026-07-24)
+			boolean chosen = step.action.itemId > 0
+				&& state.getItemSourcePref(step.action.itemId) != null;
+			JLabel chooser = new JLabel(chooseMethodIcon(!chosen));
+			chooser.setToolTipText(chosen ? "Change how you want to get this"
+				: "Choose how you want to get this");
 			chooser.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			chooser.addMouseListener(new MouseAdapter()
 			{
@@ -958,10 +1010,32 @@ class GoalsHubTab extends JPanel
 		}
 	}
 
-	private Icon chooseMethodIcon()
+	private Icon chooseMethodIcon(boolean highlight)
 	{
 		java.awt.image.BufferedImage raw = OsrsIcons.image(theme, "choose_method");
-		return raw == null ? null : sized(raw, CHOOSE_ICON);
+		if (raw == null)
+		{
+			return null;
+		}
+		return sized(highlight ? tint(raw, OsrsSkin.TITLE) : raw, CHOOSE_ICON);
+	}
+
+	/** Recolour a glyph to a solid colour, keeping its alpha — the accent
+	 *  tint that marks the choose-method affordance as "not yet picked". */
+	private static java.awt.image.BufferedImage tint(java.awt.image.BufferedImage src, Color color)
+	{
+		java.awt.image.BufferedImage out = new java.awt.image.BufferedImage(
+			src.getWidth(), src.getHeight(), java.awt.image.BufferedImage.TYPE_INT_ARGB);
+		int rgb = color.getRGB() & 0x00FFFFFF;
+		for (int y = 0; y < src.getHeight(); y++)
+		{
+			for (int x = 0; x < src.getWidth(); x++)
+			{
+				int a = src.getRGB(x, y) >>> 24;
+				out.setRGB(x, y, (a << 24) | rgb);
+			}
+		}
+		return out;
 	}
 
 	/** Right-click "Get it via" — every KB-known way to obtain the item; the
@@ -1266,7 +1340,7 @@ class GoalsHubTab extends JPanel
 		JPopupMenu menu = new JPopupMenu();
 		String id = route.getId();
 		boolean pinned = state.isGoalPinned(id);
-		menu.add(item(pinned ? "Unpin" : "Pin as active", () -> state.setGoalPinned(id, !pinned)));
+		menu.add(item(pinned ? "Unpin" : "Pin as active", () -> setGoalPinned(id, !pinned)));
 		menu.addSeparator();
 		for (String tier : List.of("high", "medium", "low"))
 		{
@@ -1320,12 +1394,25 @@ class GoalsHubTab extends JPanel
 			// the stocked ITEM's page, not the "Stock N × …" goal name
 			page = supplyItemName(route);
 		}
+		else if (id.startsWith("diarytier:"))
+		{
+			// "Ardougne Hard Diary" → the region page "Ardougne Diary"
+			// (the tier word is not part of the page title)
+			page = route.getName() == null ? null
+				: route.getName().replaceAll("(?i)\\s+(Easy|Medium|Hard|Elite)\\s+Diary$", " Diary");
+		}
+		else if (id.startsWith("diary:") || id.startsWith("ca:") || id.startsWith("clue:"))
+		{
+			// these goals are named by TASK TEXT, not a wiki page — offering
+			// "Open wiki" here opened 404s (Luke, 2026-07-24)
+			page = null;
+		}
 		else if (!isLevelGoal(id) && route.getName() != null && !route.getName().isBlank())
 		{
 			// every other Goal names a real thing — an item, a build, an
-			// unlock — and its name IS the wiki page (Luke, 2026-07-23:
-			// only quests offered "Open wiki"). Skill-level goals are the
-			// one exception: "70" is not a page.
+			// unlock — and its name IS the wiki page (gear/clog/qol/poh/
+			// custom item). Skill-level goals are the one exception: "70"
+			// is not a page.
 			page = route.getName();
 		}
 		return page == null ? null : "https://oldschool.runescape.wiki/w/" + page.trim().replace(' ', '_');
@@ -1871,13 +1958,22 @@ class GoalsHubTab extends JPanel
 			}
 			com.ironhub.data.ItemSourcesPack.Entry kb = module.itemSources() == null
 				? null : module.itemSources().entry(step.action.itemId);
-			if (kb != null && kb.getName() != null)
-			{
-				return wikiPage(kb.getName());
-			}
+			// only the KB's CANONICAL name is a safe page — never the raw
+			// action name (a method or "Obtain item N" 404s, Luke 2026-07-24)
+			return kb != null && kb.getName() != null ? wikiPage(kb.getName()) : null;
 		}
-		return step.action.name != null && !step.action.name.isEmpty()
-			? wikiPage(step.action.name) : null;
+		// a KILL step's source is a monster page; a TRAIN step's skill has a
+		// page — but a method NAME ("Superglass Make + lantern lenses") does
+		// NOT, so those return null rather than a broken link
+		if (step.action.kind == com.ironhub.engine.Action.Kind.KILL && step.action.kcSource != null)
+		{
+			return wikiPage(step.action.kcSource);
+		}
+		if (step.action.kind == com.ironhub.engine.Action.Kind.TRAIN && step.action.trainSkill != null)
+		{
+			return wikiPage(step.action.trainSkill.getName());
+		}
+		return null;
 	}
 
 	private GearProgressionPack.Item gearItemById(int itemId)
