@@ -304,30 +304,67 @@ move out on the next harvest.
 
 ## shops
 
+- [ ] **Aaron's Archery Appendages.** — point-prices: page 'Aaron's Archery Appendages.' fetched but no point costs parsed
 - [ ] **Agility Arena Store** — point-prices: page 'Agility Arena Store' fetched but no point costs parsed
 - [ ] **Alry the Angler's Angling Accessories** — point-prices: page 'Alry the Angler's Angling Accessories' fetched but no point costs parsed
 - [ ] **Apprentice Felix** — point-prices: page 'Apprentice Felix' fetched but no point costs parsed
+- [ ] **Atlazora's Rest** — point-prices: page 'Atlazora's Rest' fetched but no point costs parsed
+- [ ] **Auburn Pub** — point-prices: page 'Auburn Pub' fetched but no point costs parsed
+- [ ] **Aubury's Rune Shop.** — point-prices: page 'Aubury's Rune Shop.' fetched but no point costs parsed
 - [ ] **Bounty Hunter Store** — point-prices: page 'Bounty Hunter Store' fetched but no point costs parsed
+- [ ] **Culinaromancer's Chest** — point-prices: page 'Culinaromancer's Chest' fetched but no point costs parsed
+- [ ] **Darkmeyer General Store** — point-prices: page 'Darkmeyer General Store' fetched but no point costs parsed
+- [ ] **Darkmeyer Seamstress** — point-prices: page 'Darkmeyer Seamstress' fetched but no point costs parsed
+- [ ] **Deepfin Inn** — point-prices: page 'Deepfin Inn' fetched but no point costs parsed
 - [ ] **Forestry Shop** — point-prices: page 'Forestry Shop' fetched but no point costs parsed
 - [ ] **Giants' Foundry Reward Shop** — point-prices: page 'Giants' Foundry Reward Shop' fetched but no point costs parsed
+- [ ] **Hamab's Crafting Emporium** — point-prices: page 'Hamab's Crafting Emporium' fetched but no point costs parsed
+- [ ] **Harpoon Joe's House of 'Rum'.** — point-prices: page 'Harpoon Joe's House of 'Rum'.' fetched but no point costs parsed
+- [ ] **Hefin Inn** — point-prices: page 'Hefin Inn' fetched but no point costs parsed
+- [ ] **Hickton's Archery Emporium.** — point-prices: page 'Hickton's Archery Emporium.' fetched but no point costs parsed
 - [ ] **Honest Jimmy** — point-prices: page 'Honest Jimmy' fetched but no point costs parsed
 - [ ] **Honest Jimmy's House of Stuff** — point-prices: page 'Trouble Brewing' fetched but no point costs parsed
+- [ ] **Karamja Wines, Spirits, and Beers.** — point-prices: page 'Karamja Wines, Spirits, and Beers.' fetched but no point costs parsed
+- [ ] **King Narnode's Royal Seed Pods** — point-prices: page 'King Narnode's Royal Seed Pods' fetched but no point costs parsed
 - [ ] **Kylie Minnow** — point-prices: page 'Kylie Minnow' fetched but no point costs parsed
+- [ ] **Legends Guild Shop of Useful Items.** — point-prices: page 'Legends Guild Shop of Useful Items.' fetched but no point costs parsed
+- [ ] **Lliann's Wares** — point-prices: page 'Lliann's Wares' fetched but no point costs parsed
+- [ ] **Mage Arena Staffs.** — point-prices: page 'Mage Arena Staffs.' fetched but no point costs parsed
+- [ ] **Magic Guild Store (Mystic Robes)** — point-prices: page 'Magic Guild Store (Mystic Robes)' fetched but no point costs parsed
 - [ ] **Mahogany Homes Reward Shop** — point-prices: page 'Mahogany Homes Reward Shop' fetched but no point costs parsed
 - [ ] **Mairin's Market** — point-prices: page 'Mairin's Market' fetched but no point costs parsed
+- [ ] **Martin Thwait's Lost and Found.** — point-prices: page 'Martin Thwait's Lost and Found.' fetched but no point costs parsed
 - [ ] **Metarialus** — point-prices: page 'Metarialus' fetched but no point costs parsed
+- [ ] **Moon Clan Fine Clothes.** — point-prices: page 'Moon Clan Fine Clothes.' fetched but no point costs parsed
 - [ ] **Mysterious Hallowed Goods** — point-prices: page 'Mysterious Hallowed Goods' fetched but no point costs parsed
+- [ ] **Mythical Cape Store** — point-prices: page 'Mythical Cape Store' fetched but no point costs parsed
+- [ ] **Nemus Retreat (pub)** — point-prices: page 'Nemus Retreat (pub)' fetched but no point costs parsed
 - [ ] **Nigel** — point-prices: page 'Nigel' fetched but no point costs parsed
 - [ ] **Petrified Pete's Ore Shop** — point-prices: page 'Petrified Pete's Ore Shop' fetched but no point costs parsed
 - [ ] **PvP Arena Rewards** — point-prices: page 'PvP Arena Rewards' fetched but no point costs parsed
 - [ ] **Ranging Guild Ticket Exchange** — point-prices: page 'Ranging Guild Ticket Exchange' fetched but no point costs parsed
+- [ ] **Rasolo the Wandering Merchant** — point-prices: page 'Rasolo the Wandering Merchant' fetched but no point costs parsed
+- [ ] **Sir Renitee** — point-prices: page 'Sir Renitee' fetched but no point costs parsed
+- [ ] **Slayer Equipment (shop)** — point-prices: page 'Slayer Equipment (shop)' fetched but no point costs parsed
 - [ ] **Slayer Rewards** — point-prices: page 'Slayer Rewards' fetched but no point costs parsed
+- [ ] **Smith** — point-prices: page 'Smith' fetched but no point costs parsed
 - [ ] **Soul Wars Reward Shop** — point-prices: page 'Soul Wars Reward Shop' fetched but no point costs parsed
 - [ ] **Speedrunning Reward Shop** — point-prices: page 'Speedrunning Reward Shop' fetched but no point costs parsed
+- [ ] **Stick Your Ore Inn** — point-prices: page 'Stick Your Ore Inn' fetched but no point costs parsed
+- [ ] **Sunlight's Sanctum** — point-prices: page 'Sunlight's Sanctum' fetched but no point costs parsed
+- [ ] **Tamayu's Spear Stall** — point-prices: page 'Tamayu's Spear Stall' fetched but no point costs parsed
+- [ ] **The Flaming Arrow** — point-prices: page 'The Flaming Arrow' fetched but no point costs parsed
+- [ ] **The King's Inn** — point-prices: page 'The King's Inn' fetched but no point costs parsed
+- [ ] **The Lost Pickaxe** — point-prices: page 'The Lost Pickaxe' fetched but no point costs parsed
+- [ ] **The Other Inn.** — point-prices: page 'The Other Inn.' fetched but no point costs parsed
+- [ ] **The Windbreaker** — point-prices: page 'The Windbreaker' fetched but no point costs parsed
 - [ ] **Thessalia** — point-prices: page 'Thessalia' fetched but no point costs parsed
+- [ ] **Tiadeche's Karambwan Stall** — point-prices: page 'Tiadeche's Karambwan Stall' fetched but no point costs parsed
+- [ ] **Trader Stan's Trading Post** — point-prices: page 'Trader Stan's Trading Post' fetched but no point costs parsed
+- [ ] **Trufitus** — point-prices: page 'Trufitus' fetched but no point costs parsed
 - [ ] **Vale Research Exchange** — point-prices: page 'Vale Research Exchange' fetched but no point costs parsed
 - [ ] **Void Knights' Reward Options** — point-prices: page 'Pest Control' fetched but no point costs parsed
 - [ ] **Worm Tongue's Wares** — point-prices: page 'Worm Tongue's Wares' fetched but no point costs parsed
 
 
-_294 open gaps · generated from knowledge.db_
+_331 open gaps · generated from knowledge.db_

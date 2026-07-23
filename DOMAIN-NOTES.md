@@ -821,4 +821,25 @@ Hard-won source knowledge for ANY feature that harvests the OSRS wiki:
   single build until 2026-07-23). Kingdom of Miscellania: approval varbit
   72 (0..127, 127 = 100%) and coffer varp 74 are both synced at login —
   and 100% approval is NOT "daily done"; collecting from Ghrim is.
+- **Quest-reward parsing counts only the bullet's SUBJECT** (2026-07-23):
+  a {{Quest rewards}} body links every item its prose MENTIONS, not just
+  what the quest gives — "Jaltevas teleport option on the [[Pharaoh's
+  sceptre]]" made the sceptre a Beneath Cursed Sands reward, and "the
+  ability to buy [[Barrows gloves]]" (RFD) made the gloves a quest reward
+  (they are a shop item). A plain [[link]] counts only when it OPENS the
+  bullet (after an optional article/quantity/"you receive" lead-in); an
+  explicit {{plink}} always counts. Pin BOTH directions (a real reward
+  kept, a mention dropped) — and normalise the first letter to upper,
+  because the wiki writes "[[circlet of water]]" lowercase and a
+  lowercase name never joins the items table (real rewards were lost).
+- **Currency balances the game exposes as a varbit** (for "buy it for N
+  points" to become a tracked requirement): `HOSIDIUS_TITHE_REWARDPOINTS`
+  4893, `NZONE_CURRENTPOINTS` 3949, `SLAYER_POINTS` 4068. Many point
+  currencies have NO API-readable balance at all (Mahogany Homes,
+  Void Knight commendation, Tempoross permits — surveyed, absent); those
+  become an honest "Earn N X" manual step, never a pretend progress
+  figure. Item currencies (golden nuggets 12012, marks of grace 11849,
+  coins 995) count from bank+inventory. The `varbit:<id>:<value>:<label>`
+  requirement leaf is the ONLY leaf that reads a raw game value, and only
+  ever for a currency with a documented constant.
 

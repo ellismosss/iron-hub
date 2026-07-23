@@ -102,11 +102,28 @@ state drops MET make-gates from the copy (telling a level-68 mage "needs
 Magic 68" is noise), and `prefKey` (from `ItemSourcesPack.key(source)`) is
 the player's CHOSEN obtainment method: right-click an OBTAIN task in Goals →
 "Get it via ..." persists `AccountState.setItemSourcePref(itemId, key)`, and
-the chosen method becomes THE line on every surface. Choice drives display
-only — the planner's time-costing still uses clog/gear rates (a future arc
-may route the cost through the chosen method). In the Goals sub-line, a KB
-SHOP first-source beats the clog attempt-count label (point purchases
+the chosen method becomes THE line on every surface. In the Goals sub-line,
+a KB SHOP first-source beats the clog attempt-count label (point purchases
 modeled as attempts read as fake drop rates: "1/250 · Tithe farm" seed box).
+
+**v2 round 2 (2026-07-23, the choice now REACHES the planner):** the pref
+is a `PlanConstraints.itemSourcePrefs` entry, in the plan fingerprint, so
+`GoalExpander` honours it — picking "Crafting 80" for an Amulet of glory
+drops Hunter 83 from the plan entirely and the overlay re-routes. Two pref
+forms: an `ItemSourcesPack.key` (choose a KB source) or
+`GoalExpander.PATH_PREF + "<requirement>"` (choose one branch of the
+item's own `any:` gate). And OBTAIN nodes now expand the KB's obtainment
+into REAL sub-steps — `Source.currencyReq()` turns a priced shop into a
+tracked currency requirement (item currencies count from the bank; the
+three readable point varbits via the `varbit:` leaf; unreadable currencies
+become an honest "Earn N X" manual step), `Source.materials` become gather
+steps, and a quest-reward source becomes the quest. This is what closed
+the "Buy: Twiggy O'Korn" / "Buy: Mahogany Homes (500 points)" dead ends.
+MODELLING RULE: when the curated gear chain already offers a choice
+(`any:`), that `any:` is authoritative — the KB then contributes only the
+orthogonal purchase cost, or both routes get demanded at once.
+`Source.materials`/`Source.currency` are pack v2 data (the UI renders one
+sprite row per material, not one clumped sentence).
 
 ### 3. Consumers — every "what/where" surface answers "where from"
 
