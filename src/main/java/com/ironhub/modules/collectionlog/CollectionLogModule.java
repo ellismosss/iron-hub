@@ -76,6 +76,8 @@ public class CollectionLogModule implements IronHubModule
 	private final DataPack dataPack;
 	private final ItemManager itemManager; // null in unit tests
 	private ClogPack pack;
+	private com.ironhub.data.ClogRanksPack ranks;
+	private com.ironhub.data.ItemSourcesPack itemSources;
 	private CollectionLogTab tab;
 
 	private final LogSyncButton syncButton = new LogSyncButton();
@@ -119,6 +121,8 @@ public class CollectionLogModule implements IronHubModule
 	public void startUp()
 	{
 		pack = dataPack.load("clog", ClogPack.class);
+		ranks = dataPack.load("clog-ranks", com.ironhub.data.ClogRanksPack.class);
+		itemSources = dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class);
 		state.watchVarps(VarPlayerID.COLLECTION_COUNT);
 		eventBus.register(this);
 	}
@@ -166,6 +170,18 @@ public class CollectionLogModule implements IronHubModule
 	ClogPack pack()
 	{
 		return pack;
+	}
+
+	com.ironhub.data.ClogRanksPack ranks()
+	{
+		return ranks;
+	}
+
+	/** Names for slots the clog pack does not carry (a page can hold an item
+	 *  newer than the pinned tables) — null-safe, honest when unknown. */
+	com.ironhub.data.ItemSourcesPack itemSources()
+	{
+		return itemSources;
 	}
 
 	/**

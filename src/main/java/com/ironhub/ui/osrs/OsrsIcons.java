@@ -59,6 +59,12 @@ public final class OsrsIcons
 		return image(theme, "progression/" + name);
 	}
 
+	/** A collection log tab's emblem (bosses, raids, clues, ...). */
+	public static java.awt.image.BufferedImage clogTab(OsrsTheme theme, String name)
+	{
+		return image(theme, "clog/" + name);
+	}
+
 	/**
 	 * A themed sprite as a raw image, for custom painting (equipment slot
 	 * tiles, panel backings). Same mystic-falls-back-to-vanilla rule; null

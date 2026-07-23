@@ -19,8 +19,8 @@ import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(HERE, ".cache-hub-icons")
-OUT = os.path.join(HERE, "..", "src", "main", "resources", "data", "icons",
-                   "osrs", "progression")
+ICON_ROOT = os.path.join(HERE, "..", "src", "main", "resources", "data", "icons", "osrs")
+OUT = os.path.join(ICON_ROOT, "progression")
 UA = "iron-hub-datagen/1.0 (github.com/ellismosss/iron-hub; info@ellismoss.co.uk)"
 
 # tile slug -> the wiki File: name of the item's inventory sprite
@@ -33,6 +33,18 @@ ICONS = {
     "quests": "Quest point cape.png",
     "clues": "Clue scroll (master).png",
     "qol": "Herb sack.png",                       # the archetypal QoL unlock
+}
+
+# The collection log's own five tabs, for the browser's category row. The
+# game's overview screen uses a sprite per tab too; these are OUR picks (the
+# tab's name and count ride in the tile's tooltip, so the emblem only has to
+# be recognisable at a glance).
+CLOG_ICONS = {
+    "bosses": "Baby mole.png",              # a boss pet — the log's signature
+    "raids": "Twisted bow.png",
+    "clues": "Clue scroll (master).png",
+    "minigames": "Fighter torso.png",
+    "other": "Bird nest.png",
 }
 
 
@@ -63,9 +75,9 @@ def fetch(file_name: str) -> bytes:
     return data
 
 
-def main():
-    os.makedirs(OUT, exist_ok=True)
-    for slug, file_name in ICONS.items():
+def bundle(icons: dict, out_dir: str):
+    os.makedirs(out_dir, exist_ok=True)
+    for slug, file_name in icons.items():
         data = fetch(file_name)
         # native size sanity: inventory sprites are at most 36x32
         width = int.from_bytes(data[16:20], "big")
@@ -73,10 +85,15 @@ def main():
         if not (8 <= width <= 36 and 8 <= height <= 36):
             raise SystemExit(f"{file_name}: {width}x{height} is not an "
                              "inventory sprite (wrong wiki file?)")
-        with open(os.path.join(OUT, slug + ".png"), "wb") as f:
+        with open(os.path.join(out_dir, slug + ".png"), "wb") as f:
             f.write(data)
         print(f"{slug:16s} {file_name:28s} {width}x{height}")
-    print(f"wrote {len(ICONS)} hub tile icons")
+
+
+def main():
+    bundle(ICONS, OUT)
+    bundle(CLOG_ICONS, os.path.join(ICON_ROOT, "clog"))
+    print(f"wrote {len(ICONS)} hub tile icons, {len(CLOG_ICONS)} collection log tabs")
 
 
 if __name__ == "__main__":

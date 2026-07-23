@@ -217,34 +217,191 @@ public class CollectionLogTest
 		assertFalse(state.getSelectedGoals().contains("clog:" + ABYSSAL_ORPHAN));
 	}
 
+	/**
+	 * The catalog comes out of the game's own cache: five tab structs, each
+	 * naming an enum of page structs, each page naming an enum of slot ids.
+	 * This pins the param ids the log's cs2 uses — get one wrong and the
+	 * browser is silently empty in the client, where no test can see it.
+	 */
+	@Test
+	public void catalogReadsTheGamesOwnStructs()
+	{
+		Client client = Mockito.mock(Client.class);
+		int[] tabStructs = {471, 472, 473, 474, 475};
+		String[] tabNames = {"Bosses", "Raids", "Clues", "Minigames", "Other"};
+		for (int i = 0; i < tabStructs.length; i++)
+		{
+			// one page per tab, wide enough that the five clear the slot floor
+			int pageStruct = 5000 + i;
+			int pageEnum = 6000 + i;
+			int itemEnum = 7000 + i;
+			net.runelite.api.StructComposition tab =
+				Mockito.mock(net.runelite.api.StructComposition.class);
+			when(tab.getStringValue(682)).thenReturn(tabNames[i]);
+			when(tab.getIntValue(683)).thenReturn(pageEnum);
+			when(client.getStructComposition(tabStructs[i])).thenReturn(tab);
+
+			net.runelite.api.EnumComposition pages =
+				Mockito.mock(net.runelite.api.EnumComposition.class);
+			when(pages.getIntVals()).thenReturn(new int[]{pageStruct});
+			when(client.getEnum(pageEnum)).thenReturn(pages);
+
+			net.runelite.api.StructComposition page =
+				Mockito.mock(net.runelite.api.StructComposition.class);
+			when(page.getStringValue(689)).thenReturn(tabNames[i] + " page");
+			when(page.getIntValue(690)).thenReturn(itemEnum);
+			when(client.getStructComposition(pageStruct)).thenReturn(page);
+
+			int[] items = new int[250];
+			for (int slot = 0; slot < items.length; slot++)
+			{
+				items[slot] = 100 + i * 1000 + slot;
+			}
+			net.runelite.api.EnumComposition itemList =
+				Mockito.mock(net.runelite.api.EnumComposition.class);
+			when(itemList.getIntVals()).thenReturn(items);
+			when(client.getEnum(itemEnum)).thenReturn(itemList);
+		}
+
+		List<PersistedState.ClogTab> catalog = ClogCatalog.load(client);
+		assertEquals(5, catalog.size());
+		assertEquals("Bosses", catalog.get(0).name);
+		assertEquals("Bosses page", catalog.get(0).pages.get(0).name);
+		assertEquals(250, catalog.get(0).pages.get(0).items.length);
+
+		// a cache-layout change reads short: return nothing rather than
+		// replace a good snapshot with a broken one
+		Client drifted = Mockito.mock(Client.class);
+		assertTrue(ClogCatalog.load(drifted).isEmpty());
+	}
+
+	/** The grid is the log's own: five to a row, 42x36 cells, and every slot
+	 *  present whether you own it or not (the game ghosts, never hides). */
+	@Test
+	public void theItemGridLaysOutLikeTheInterface()
+	{
+		List<ClogItemGrid.Cell> cells = new java.util.ArrayList<>();
+		for (int i = 0; i < 11; i++)
+		{
+			cells.add(new ClogItemGrid.Cell(100 + i, "Slot " + i, i % 2 == 0, i));
+		}
+		ClogItemGrid grid = new ClogItemGrid(cells, new com.ironhub.ui.components.SpriteCache(
+			null, () -> { }));
+		assertEquals(ClogItemGrid.COLUMNS * ClogItemGrid.CELL_WIDTH,
+			grid.getPreferredSize().width);
+		assertEquals(3 * ClogItemGrid.CELL_HEIGHT, grid.getPreferredSize().height);
+		assertEquals(cells.get(0), grid.cellAt(new java.awt.Point(4, 4)));
+		assertEquals(cells.get(6), grid.cellAt(new java.awt.Point(
+			ClogItemGrid.CELL_WIDTH + 4, ClogItemGrid.CELL_HEIGHT + 4)));
+		assertNull("past the last cell is empty space",
+			grid.cellAt(new java.awt.Point(4 * ClogItemGrid.CELL_WIDTH,
+				2 * ClogItemGrid.CELL_HEIGHT)));
+		// the game's own abbreviations
+		assertEquals("999", ClogItemGrid.count(999));
+		assertEquals("65535", ClogItemGrid.count(65_535)); // exact below 100K
+		assertEquals("100K", ClogItemGrid.count(100_000));
+		assertEquals("10M", ClogItemGrid.count(10_000_000));
+	}
+
+	/** Only a live drop dates a slot: an import learns WHAT you own, never
+	 *  when, so "Latest collections" can never invent an order. */
+	@Test
+	public void onlyLiveDropsAreDated()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 21L);
+		CollectionLogModule module = module(state, null);
+
+		state.markClogObtained(java.util.Map.of(2577, 3), false); // imported
+		assertEquals(0, state.clogObtainedAt(2577));
+		assertEquals(3, state.clogQuantity(2577));
+
+		module.onChatMessage(chat("New item added to your collection log: Abyssal orphan"));
+		assertTrue(state.clogObtainedAt(ABYSSAL_ORPHAN) > 0);
+
+		// counts only climb: a live drop knows nothing about the running total
+		state.markClogObtained(java.util.Map.of(2577, 1), true);
+		assertEquals(3, state.clogQuantity(2577));
+	}
+
 	@Test
 	public void tabRendersHeadless() throws Exception
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 21L);
-		state.recordCollectionLog(246, 1568);
-		StateFixture.varp(state, VarPlayerID.COLLECTION_COUNT, 246);
-		state.recordClogFullSync(246);
+		state.recordCollectionLog(1190, 1706);
+		StateFixture.varp(state, VarPlayerID.COLLECTION_COUNT, 1190);
+		state.recordClogFullSync(1190);
 		CollectionLogModule module = module(state, null);
-		ClogPack pack = module.pack();
-		// own a few slots and skip an activity so every row state renders
-		state.markClogObtained(List.of(
-			pack.activities.get(0).items.get(0).itemId,
-			pack.activities.get(1).items.get(0).itemId));
-		state.setClogSkipped(pack.activities.get(5).index, true);
+		state.setClogCatalog(catalogFixture(module.pack()));
+
+		// own most of the first pages, with counts and a couple of dated
+		// slots so the hero, the tiles and Latest collections all say
+		// something real
+		java.util.Map<Integer, Integer> owned = new java.util.LinkedHashMap<>();
+		for (PersistedState.ClogTab tab : state.getClogCatalog())
+		{
+			for (PersistedState.ClogPage page : tab.pages)
+			{
+				for (int i = 0; i < page.items.length; i += 2)
+				{
+					owned.put(page.items[i], i == 0 ? 79 : 1);
+				}
+			}
+		}
+		state.markClogObtained(owned, false);
+		PersistedState.ClogPage first = state.getClogCatalog().get(0).pages.get(0);
+		state.markClogObtained(java.util.Map.of(first.items[1], 2), true);
+		state.markClogObtained(java.util.Map.of(first.items[3], 1), true);
+		state.recordClogPageCounts(first.name, List.of("High-level Gambles: 2,733"));
 		state.addGoalSeed(com.ironhub.state.GoalSeeds.clog(ABYSSAL_ORPHAN, "Abyssal orphan",
 			"Killing abyssal sire (on task)", List.of("skill:Slayer:85")));
 
-		JComponent tab = module.buildTab();
+		CollectionLogTab tab = (CollectionLogTab) module.buildTab();
 		assertNotNull(tab);
-		// open the top activity's slot card + the skipped sink so the
-		// expansion surfaces render too
-		((CollectionLogTab) tab).expandTopForRender();
+		render(tab, "collectionlog-overview");
+
+		String firstTab = state.getClogCatalog().get(0).name;
+		tab.showForRender(firstTab, null);
+		render(tab, "collectionlog-category");
+
+		tab.showForRender(firstTab, first.name);
+		java.awt.image.BufferedImage page = render(tab, "collectionlog-page");
+		assertTrue(page.getHeight() > 300);
+		module.shutDown();
+	}
+
+	private static java.awt.image.BufferedImage render(JComponent tab, String name)
+		throws Exception
+	{
 		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
-		assertTrue(image.getHeight() > 300);
-		java.io.File out = new java.io.File("build/reports/collectionlog-tab.png");
+		java.io.File out = new java.io.File("build/reports/" + name + ".png");
 		out.getParentFile().mkdirs();
 		javax.imageio.ImageIO.write(image, "png", out);
-		module.shutDown();
+		return image;
+	}
+
+	/** A stand-in for the game's catalog, built from the ranking pack so the
+	 *  page names, slot ids and sizes are real. */
+	private static List<PersistedState.ClogTab> catalogFixture(ClogPack pack)
+	{
+		String[] names = {"Bosses", "Raids", "Clues", "Minigames", "Other"};
+		List<PersistedState.ClogTab> tabs = new java.util.ArrayList<>();
+		int activity = 0;
+		for (String name : names)
+		{
+			PersistedState.ClogTab tab = new PersistedState.ClogTab();
+			tab.name = name;
+			for (int i = 0; i < 8 && activity < pack.activities.size(); i++, activity++)
+			{
+				ClogPack.Activity source = pack.activities.get(activity);
+				PersistedState.ClogPage page = new PersistedState.ClogPage();
+				page.name = source.name;
+				page.items = source.items.stream().mapToInt(item -> item.itemId).toArray();
+				tab.pages.add(page);
+			}
+			tabs.add(tab);
+		}
+		return tabs;
 	}
 }
