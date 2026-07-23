@@ -41,15 +41,15 @@ flags/gaps before re-judging (a re-detected gap reopens; `wont-fix` sticks).
 | `harvest_ca.py` | `combat_achievement` bucket + tier pages | all CA tasks + per-tier Items/Skills/Quests reqs |
 | `harvest_consumables.py` | Food/Potions/Drinks categories | effects, recipes, obtainment |
 | `harvest_drops.py` | `dropsline` bucket | every drop line in the game (39k): source, rate, qty |
-| `harvest_shops.py` | `storeline` + `collection_log_source` buckets | every shop's stock; the wiki's own clog slot→sources map |
+| `harvest_shops.py` | `storeline` + `collection_log_source` buckets + point-shop pages | every shop's stock; point-currency prices parsed from each shop's own page ({{StoreLine sell=}} / plink tables, pinned) — the bucket carries none; the wiki's own clog slot→sources map |
 | `harvest_items.py` | `infobox_item` bucket | 16.5k items: ids, examine, quest flags — the universal join |
 | `harvest_qol.py` | Storage items + curated list | the QoL catalog with effects + sources |
 | `harvest_training.py` | wiki training guides | per-method sections: rates where stated, flagged prose-derived |
-| `harvest_rewards.py` | quest pages + diary Rewards sections | reward-source obtainment lines |
+| `harvest_rewards.py` | quest + miniquest pages + diary Rewards sections | reward-source obtainment lines (miniquests added 2026-07-23 — Mage Arena II's imbued capes were invisible before) |
 | `harvest_recipes.py` | `recipe` bucket | 7.4k productions + the derived **materials** table (obtained-from / used-in with quantities; dose, degraded and quest-internal variants classified on-row) |
 | `harvest_buckets.py` | 17 raw buckets, schema-driven | `bucket_*` tables: monsters, scenery, loclines, spells, shops, exchange, varbits, sea charts, port tasks, recommended equipment, … |
 | `join_obtainment.py` / `join_effects.py` | (joins) | attaches drops/shops/recipes/rewards + clog what-it-does |
-| `apply_curated.py` | curated-sources.json (Luke's verified answer key) | clog holdouts, named materials, pattern classes, spell joins, wont-fixes |
+| `apply_curated.py` | curated-sources.json (Luke's verified answer key) | clog holdouts, named materials, pattern classes, spell joins, wont-fixes, prose-only reward rows (MA2 capes, god books), shop-price corrections where the wiki disagrees with itself (gem bag 100) |
 | `verify_packs.py` / `verify_port_tasks.py` | (verification) | pack-vs-wiki drift, flagged never overwritten |
 | `report.py` | (derives) | html/ dashboard + GAPS.md |
 
@@ -67,7 +67,11 @@ flags/gaps before re-judging (a re-detected gap reopens; `wont-fix` sticks).
   minigame-internal potions) are skipped with a log line and stay KB-side.
 - **qol.json** — `tools/gen_qol.py`: 98 unlocks (was 9); the original 9 kept
   verbatim (ids are load-bearing for saved goals); non-item unlocks (fairy
-  rings, spirit trees) stay KB-side.
+  rings, spirit trees) stay KB-side. Since 2026-07-23 it also reads
+  **knowledge.db** (rebuild first): per-unlock `benefit` prose from the
+  qol_items effect column, and numbered tier families bake higher tiers'
+  ids into each lower tier's ownership list (an Ardougne cloak 3 proves
+  cloak 2).
 - **port-tasks.json** — `tools/gen_port_tasks.py` now cross-corrects the
   hand-transcribed XP table against the wiki's courier/bounty task buckets
   (49 corrections applied; ambiguous joins keep the transcription and stay
@@ -85,10 +89,14 @@ flags/gaps before re-judging (a re-detected gap reopens; `wont-fix` sticks).
   level ranges.
 - **item-sources.json** — `tools/gen_item_sources.py` reads **knowledge.db
   directly** (run `tools/knowledge/rebuild.py` first): the universal per-item
-  obtainment + equip-req projection — 6,870 items, best source per how
-  (drop/shop/make/reward), reqs with audited/extracted origin. Every
+  obtainment + equip-req projection — ~6,900 items, best source per how
+  (drop/shop/make/reward/open), reqs with audited/extracted origin. Every
   "where does this come from" surface in the plugin renders through it
-  (design/KB-RUNTIME.md).
+  (design/KB-RUNTIME.md). **v2 (2026-07-23)**: make rows carry actual recipe
+  materials (never "(see recipe)"), container items are `Open:` rows, reclaim
+  shops excluded, point prices real, diary rewards restricted to the 12
+  genuine reward families — and the player's chosen obtainment method
+  (right-click an Obtain task in Goals) persists and leads the line.
 
 ## Domain notes worth remembering
 
@@ -104,6 +112,12 @@ flags/gaps before re-judging (a re-detected gap reopens; `wont-fix` sticks).
   `reqs-none-stated` (cosmetics — genuinely none), `req-conflict` gaps where
   extraction disagrees with the audited pack (several look like audit
   coarseness — review before trusting either).
+- **Obtainment classification traps** (2026-07-23, Luke's data report): the
+  storeline bucket includes RECLAIM shops (Lost Property — never a source)
+  and carries NO point-currency prices; diary Rewards sections link every
+  item their prose mentions (only the 12 region reward families are real
+  rewards); a "drop" from an ITEM source is a container you open. Full
+  detail in DOMAIN-NOTES "The wiki as a data source".
 - `mine` and `ge_index_header` buckets exist wiki-side but are EMPTY —
   rechecked on every rebuild.
 - Player-specific state (what YOU own/built) stays live in the plugin via

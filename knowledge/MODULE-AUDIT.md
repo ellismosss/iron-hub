@@ -104,7 +104,10 @@ bucket stores instead of fragile wikitext/reference parsing.
 - **boat-upgrades.json** — reference-source parse, wiki-verified at 0 drift
   (tool-tolerant); the ship-part bucket is thin (ids/images only).
 - **boosts.json / qol.json** — no bucket exists for boost tables or QoL;
-  they generate from the wiki's own pages (last pass).
+  they generate from the wiki's own pages (last pass). gen_qol.py also
+  reads knowledge.db since 2026-07-23 (benefit prose + tier implications).
+- **poh.json** — tier materials parse each furniture page's {{Recipe}}
+  directly (2026-07-23); the recipe bucket does not cover POH furniture.
 - **quests.json** — OQG ordering is curated (not wiki data); the quest
   bucket's requirements/ironman_concerns noted as an enrichment candidate.
 

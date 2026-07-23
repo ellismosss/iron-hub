@@ -61,20 +61,52 @@ first if absent) and emits one entry per obtainable item:
  "reqs": ["skillb:Slayer:85", "skill:Attack:70"], "reqsOrigin": "audited"}
 ```
 
-- **Best source per `how`** (drop / shop / make / reward), max 4 — compact and
-  maximally informative; rates/prices kept as the wiki's own strings.
+- **Best source per `how`** (drop / shop / make / reward / open), max 5 —
+  compact and maximally informative; rates/prices kept as the wiki's own
+  strings.
 - Discontinued (`removal_date`) and restricted-mode rows excluded; `#Version`
   suffixes stripped for display.
 - `reqs` are requirement-graph strings (pack test asserts every one parses
   non-manual); `reqsOrigin` = `audited` | `extracted` | absent — surfaces may
   phrase extracted reqs as "the wiki states", never silently gate on them.
 
+**v2 (2026-07-23, Luke's data report — every symptom was a class):**
+- `make` rows carry `detail` = the recipe's actual materials (imbue point
+  costs included: "Salve amulet + 800,000 x Nightmare Zone points", up to 3
+  variants) — the empty "(see recipe)" row was imbue recipes (no skill gate)
+  WINNING the lowest-gate ranking.
+- `open` how: a "drop" whose source is an ITEM is a container you open
+  (impling jars, caskets) — never a kill, never a "reward".
+- Reclaim shops (Lost Property) excluded — they sell BACK what you earned
+  (27 items incl. the imbued god capes had them as their only "source").
+- Point-shop prices harvested from each shop page's `{{StoreLine|sell=}}`/
+  plink tables (the storeline bucket carries NONE — verified live), pinned
+  against hand-verified costs so parser drift fails the build.
+- Diary reward rows only for the 12 diaries' actual reward-item families
+  (Rewards sections link every item their prose mentions); quest rewards
+  outrank diary rows; miniquests harvested (Category:Miniquests — Mage
+  Arena II); famous containers carry activity context ("Pyramid Plunder —
+  Grand Gold Chest").
+- Wiki-vs-itself conflicts (gem bag: bucket 80, prose 100) resolve via
+  curated `shop_prices` in curated-sources.json.
+
 ### 2. `ItemSourcesPack` — one query + display seam
 
 `com.ironhub.data.ItemSourcesPack`: lazy id- and name-indexed;
 `entry(itemId)`, `sourceLine(itemId)` (the compact one-liner:
-"Drop: Abyssal demon 1/512 · Reward: Unsired"), `reqs(itemId)`. All consumers go
-through it — no surface hand-rolls obtainment copy.
+"Drop: Abyssal demon 1/512 · Open: Unsired 12/128"), `reqs(itemId)`. All
+consumers go through it — no surface hand-rolls obtainment copy.
+
+**v2: `sourceLine(itemId, state, prefKey)` is the seam everywhere now** —
+state drops MET make-gates from the copy (telling a level-68 mage "needs
+Magic 68" is noise), and `prefKey` (from `ItemSourcesPack.key(source)`) is
+the player's CHOSEN obtainment method: right-click an OBTAIN task in Goals →
+"Get it via ..." persists `AccountState.setItemSourcePref(itemId, key)`, and
+the chosen method becomes THE line on every surface. Choice drives display
+only — the planner's time-costing still uses clog/gear rates (a future arc
+may route the cost through the chosen method). In the Goals sub-line, a KB
+SHOP first-source beats the clog attempt-count label (point purchases
+modeled as attempts read as fake drop rates: "1/250 · Tithe farm" seed box).
 
 ### 3. Consumers — every "what/where" surface answers "where from"
 
@@ -103,8 +135,17 @@ you lack and the engine costs the grind via the gear/clog projections.
    "+" seeds one-shot supply goals, wiki-page provenance line. Render:
    build/reports/loadout-wiki-gear.png.
 4. Docs (CLAUDE.md / knowledge README / MODULE-AUDIT) in the same arc.
+5. **v2 round (2026-07-23 evening, Luke's 17-item data report)** — the
+   classification fixes above, the method-choice seam, boost-aware doable
+   checks reaching PoH/Sailing/Diaries, where-from on every remaining
+   missing-item surface, poh.json materials, and the PoH/Miscellania
+   detection fixes (commits 4b4abcd..e17f12f).
 
 Generator lessons recorded in gen_item_sources.py: `removal_date` filters at
 the ID level (LMS/holiday duplicates share real items' names — a name-level
 filter deleted Eternal boots and Bandos godsword), reward labels normalize at
-generation, same-`from` sources dedupe across hows.
+generation, same-`from` sources dedupe across hows. **And from v2: always
+DIFF a regenerated pack's entry names against the committed baseline before
+accepting it** — a loop variable shadowing the `name` parameter silently
+dropped 499 single-material-recipe items, invisible to every count floor,
+caught only by the name diff.
