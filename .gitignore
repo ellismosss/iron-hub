@@ -8,3 +8,8 @@ out/
 tools/.cache-*/
 tools/.cache-methods/
 tools/__pycache__/
+
+# knowledge base — regenerable artifacts (tools/knowledge/rebuild.py)
+knowledge/knowledge.db
+knowledge/html/
+tools/knowledge/__pycache__/
