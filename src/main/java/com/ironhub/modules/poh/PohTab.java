@@ -283,6 +283,10 @@ class PohTab extends JPanel
 					+ boostDetail(tier.reqs) + "</div></html>");
 			}
 			row.add(needs);
+			for (PohPack.Material m : tier.materials)
+			{
+				row.add(materialRow(m));
+			}
 		}
 		row.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
 		row.addMouseListener(new java.awt.event.MouseAdapter()
@@ -295,6 +299,45 @@ class PohTab extends JPanel
 		});
 		cap(row);
 		return row;
+	}
+
+	/** One build-material line (the sailing-tab grammar): sprite, "qty x
+	 *  name", owned count green when covered, red shortfall — with a
+	 *  where-from hover when short. */
+	private JComponent materialRow(PohPack.Material m)
+	{
+		JPanel r = new JPanel();
+		r.setLayout(new BoxLayout(r, BoxLayout.X_AXIS));
+		r.setOpaque(false);
+		r.setAlignmentX(LEFT_ALIGNMENT);
+		r.setBorder(new EmptyBorder(1, UiTokens.PAD, 1, 0));
+		if (itemManager != null)
+		{
+			java.awt.Image sprite = sprites.getBox(m.itemId, 16);
+			if (sprite != null)
+			{
+				r.add(new JLabel(new javax.swing.ImageIcon(sprite)));
+				r.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+			}
+		}
+		int owned = state.canonicalStock(m.itemId);
+		boolean enough = owned >= m.qty;
+		OsrsLabel matName = new OsrsLabel(m.qty + " x " + m.name, OsrsSkin.MUTED,
+			OsrsSkin.smallFont()).leftAligned().squeezable();
+		String sources = !enough && module.itemSources() != null
+			? module.itemSources().sourceLine(m.itemId, state,
+				state.getItemSourcePref(m.itemId)) : null;
+		if (sources != null)
+		{
+			matName.setToolTipText("<html>" + m.name + "<br>" + sources + "</html>");
+			r.setToolTipText(matName.getToolTipText());
+		}
+		r.add(matName);
+		r.add(Box.createHorizontalGlue());
+		r.add(new OsrsLabel(enough ? "have " + m.qty : owned + "/" + m.qty,
+			enough ? OsrsSkin.VALUE : UiTokens.STATUS_WARNING, OsrsSkin.smallFont()));
+		cap(r);
+		return r;
 	}
 
 	// ── requirement helpers ───────────────────────────────────────────

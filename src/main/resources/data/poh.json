@@ -19,7 +19,29 @@
      "objectIds": [
       29237
      ],
-     "icon": 20639
+     "icon": 20639,
+     "materials": [
+      {
+       "itemId": 3420,
+       "name": "Limestone brick",
+       "qty": 5
+      },
+      {
+       "itemId": 1929,
+       "name": "Bucket of water",
+       "qty": 5
+      },
+      {
+       "itemId": 566,
+       "name": "Soul rune",
+       "qty": 1000
+      },
+      {
+       "itemId": 559,
+       "name": "Body rune",
+       "qty": 1000
+      }
+     ]
     },
     {
      "id": "pool:revitalisation_pool",
@@ -32,7 +54,19 @@
      "objectIds": [
       29238
      ],
-     "icon": 20640
+     "icon": 20640,
+     "materials": [
+      {
+       "itemId": 20639,
+       "name": "Restoration pool",
+       "qty": 1
+      },
+      {
+       "itemId": 12625,
+       "name": "Stamina potion(4)",
+       "qty": 10
+      }
+     ]
     },
     {
      "id": "pool:rejuvenation_pool",
@@ -45,7 +79,19 @@
      "objectIds": [
       29239
      ],
-     "icon": 20641
+     "icon": 20641,
+     "materials": [
+      {
+       "itemId": 20640,
+       "name": "Revitalisation pool",
+       "qty": 1
+      },
+      {
+       "itemId": 2434,
+       "name": "Prayer potion(4)",
+       "qty": 10
+      }
+     ]
     },
     {
      "id": "pool:fancy_rejuvenation_pool",
@@ -58,7 +104,24 @@
      "objectIds": [
       29240
      ],
-     "icon": 20642
+     "icon": 20642,
+     "materials": [
+      {
+       "itemId": 20641,
+       "name": "Rejuvenation pool",
+       "qty": 1
+      },
+      {
+       "itemId": 8786,
+       "name": "Marble block",
+       "qty": 2
+      },
+      {
+       "itemId": 3024,
+       "name": "Super restore(4)",
+       "qty": 10
+      }
+     ]
     },
     {
      "id": "pool:ornate_rejuvenation_pool",
@@ -71,7 +134,29 @@
      "objectIds": [
       29241
      ],
-     "icon": 20643
+     "icon": 20643,
+     "materials": [
+      {
+       "itemId": 20642,
+       "name": "Fancy rejuvenation pool",
+       "qty": 1
+      },
+      {
+       "itemId": 4692,
+       "name": "Gold leaf",
+       "qty": 5
+      },
+      {
+       "itemId": 12905,
+       "name": "Anti-venom(4)",
+       "qty": 10
+      },
+      {
+       "itemId": 565,
+       "name": "Blood rune",
+       "qty": 1000
+      }
+     ]
     }
    ],
    "room": "Superior garden",
@@ -101,7 +186,29 @@
       37500,
       50710
      ],
-     "icon": 20626
+     "icon": 20626,
+     "materials": [
+      {
+       "itemId": 8790,
+       "name": "Bolt of cloth",
+       "qty": 1
+      },
+      {
+       "itemId": 2353,
+       "name": "Steel bar",
+       "qty": 1
+      },
+      {
+       "itemId": 2552,
+       "name": "Ring of dueling(8)",
+       "qty": 3
+      },
+      {
+       "itemId": 3853,
+       "name": "Games necklace(8)",
+       "qty": 3
+      }
+     ]
     },
     {
      "id": "jewellery_box:fancy_jewellery_box",
@@ -133,7 +240,29 @@
       37519,
       50711
      ],
-     "icon": 20627
+     "icon": 20627,
+     "materials": [
+      {
+       "itemId": 20626,
+       "name": "Basic jewellery box",
+       "qty": 1
+      },
+      {
+       "itemId": 4692,
+       "name": "Gold leaf",
+       "qty": 1
+      },
+      {
+       "itemId": 11118,
+       "name": "Combat bracelet(4)",
+       "qty": 5
+      },
+      {
+       "itemId": 11105,
+       "name": "Skills necklace(4)",
+       "qty": 5
+      }
+     ]
     },
     {
      "id": "jewellery_box:ornate_jewellery_box",
@@ -173,7 +302,29 @@
       37546,
       50712
      ],
-     "icon": 20628
+     "icon": 20628,
+     "materials": [
+      {
+       "itemId": 20627,
+       "name": "Fancy jewellery box",
+       "qty": 1
+      },
+      {
+       "itemId": 4692,
+       "name": "Gold leaf",
+       "qty": 2
+      },
+      {
+       "itemId": 11980,
+       "name": "Ring of wealth (5)",
+       "qty": 8
+      },
+      {
+       "itemId": 1712,
+       "name": "Amulet of glory(4)",
+       "qty": 8
+      }
+     ]
     }
    ],
    "room": "Achievement Gallery",
@@ -196,7 +347,14 @@
       13180,
       13181
      ],
-     "icon": 8062
+     "icon": 8062,
+     "materials": [
+      {
+       "itemId": 8778,
+       "name": "Oak plank",
+       "qty": 4
+      }
+     ]
     },
     {
      "id": "altar:teak_altar",
@@ -211,7 +369,14 @@
       13183,
       13184
      ],
-     "icon": 8063
+     "icon": 8063,
+     "materials": [
+      {
+       "itemId": 8780,
+       "name": "Teak plank",
+       "qty": 4
+      }
+     ]
     },
     {
      "id": "altar:cloth_covered_altar",
@@ -226,7 +391,19 @@
       13186,
       13187
      ],
-     "icon": 8064
+     "icon": 8064,
+     "materials": [
+      {
+       "itemId": 8780,
+       "name": "Teak plank",
+       "qty": 4
+      },
+      {
+       "itemId": 8790,
+       "name": "Bolt of cloth",
+       "qty": 2
+      }
+     ]
     },
     {
      "id": "altar:mahogany_altar",
@@ -241,7 +418,19 @@
       13189,
       13190
      ],
-     "icon": 8065
+     "icon": 8065,
+     "materials": [
+      {
+       "itemId": 8782,
+       "name": "Mahogany plank",
+       "qty": 4
+      },
+      {
+       "itemId": 8790,
+       "name": "Bolt of cloth",
+       "qty": 2
+      }
+     ]
     },
     {
      "id": "altar:limestone_altar",
@@ -256,7 +445,24 @@
       13192,
       13193
      ],
-     "icon": 8066
+     "icon": 8066,
+     "materials": [
+      {
+       "itemId": 8782,
+       "name": "Mahogany plank",
+       "qty": 6
+      },
+      {
+       "itemId": 8790,
+       "name": "Bolt of cloth",
+       "qty": 2
+      },
+      {
+       "itemId": 3420,
+       "name": "Limestone brick",
+       "qty": 2
+      }
+     ]
     },
     {
      "id": "altar:marble_altar",
@@ -271,7 +477,19 @@
       13195,
       13196
      ],
-     "icon": 8067
+     "icon": 8067,
+     "materials": [
+      {
+       "itemId": 8786,
+       "name": "Marble block",
+       "qty": 2
+      },
+      {
+       "itemId": 8790,
+       "name": "Bolt of cloth",
+       "qty": 2
+      }
+     ]
     },
     {
      "id": "altar:gilded_altar",
@@ -286,7 +504,24 @@
       13198,
       13199
      ],
-     "icon": 8068
+     "icon": 8068,
+     "materials": [
+      {
+       "itemId": 8786,
+       "name": "Marble block",
+       "qty": 2
+      },
+      {
+       "itemId": 8790,
+       "name": "Bolt of cloth",
+       "qty": 2
+      },
+      {
+       "itemId": 4692,
+       "name": "Gold leaf",
+       "qty": 4
+      }
+     ]
     }
    ],
    "room": "Chapel",
@@ -307,7 +542,29 @@
      "objectIds": [
       29147
      ],
-     "icon": 20617
+     "icon": 20617,
+     "materials": [
+      {
+       "itemId": 3420,
+       "name": "Limestone brick",
+       "qty": 10
+      },
+      {
+       "itemId": 4703,
+       "name": "Magic stone",
+       "qty": 1
+      },
+      {
+       "itemId": 26945,
+       "name": "Pharaoh's sceptre (uncharged)",
+       "qty": 1
+      },
+      {
+       "itemId": 20611,
+       "name": "Ancient signet",
+       "qty": 1
+      }
+     ]
     },
     {
      "id": "spellbook_altar:lunar_altar",
@@ -321,7 +578,29 @@
      "objectIds": [
       29148
      ],
-     "icon": 20618
+     "icon": 20618,
+     "materials": [
+      {
+       "itemId": 3420,
+       "name": "Limestone brick",
+       "qty": 10
+      },
+      {
+       "itemId": 4703,
+       "name": "Magic stone",
+       "qty": 1
+      },
+      {
+       "itemId": 9075,
+       "name": "Astral rune",
+       "qty": 10000
+      },
+      {
+       "itemId": 20613,
+       "name": "Lunar signet",
+       "qty": 1
+      }
+     ]
     },
     {
      "id": "spellbook_altar:dark_altar_construction",
@@ -334,7 +613,34 @@
      "objectIds": [
       29149
      ],
-     "icon": 20619
+     "icon": 20619,
+     "materials": [
+      {
+       "itemId": 3420,
+       "name": "Limestone brick",
+       "qty": 10
+      },
+      {
+       "itemId": 4703,
+       "name": "Magic stone",
+       "qty": 1
+      },
+      {
+       "itemId": 565,
+       "name": "Blood rune",
+       "qty": 5000
+      },
+      {
+       "itemId": 566,
+       "name": "Soul rune",
+       "qty": 5000
+      },
+      {
+       "itemId": 20615,
+       "name": "Arceuus signet",
+       "qty": 1
+      }
+     ]
     },
     {
      "id": "spellbook_altar:occult_altar",
@@ -351,7 +657,39 @@
       31860,
       31861
      ],
-     "icon": 20620
+     "icon": 20620,
+     "materials": [
+      {
+       "itemId": 20617,
+       "name": "Ancient altar",
+       "qty": 1
+      },
+      {
+       "itemId": 565,
+       "name": "Blood rune",
+       "qty": 5000
+      },
+      {
+       "itemId": 566,
+       "name": "Soul rune",
+       "qty": 5000
+      },
+      {
+       "itemId": 9075,
+       "name": "Astral rune",
+       "qty": 10000
+      },
+      {
+       "itemId": 20615,
+       "name": "Arceuus signet",
+       "qty": 1
+      },
+      {
+       "itemId": 20613,
+       "name": "Lunar signet",
+       "qty": 1
+      }
+     ]
     }
    ],
    "room": "Achievement Gallery",
@@ -372,7 +710,14 @@
      "objectIds": [
       33408
      ],
-     "icon": 22705
+     "icon": 22705,
+     "materials": [
+      {
+       "itemId": 8786,
+       "name": "Marble block",
+       "qty": 4
+      }
+     ]
     },
     {
      "id": "portal_nexus:gilded_portal_nexus",
@@ -385,7 +730,24 @@
      "objectIds": [
       33409
      ],
-     "icon": 22706
+     "icon": 22706,
+     "materials": [
+      {
+       "itemId": 22705,
+       "name": "Marble portal nexus",
+       "qty": 1
+      },
+      {
+       "itemId": 8786,
+       "name": "Marble block",
+       "qty": 4
+      },
+      {
+       "itemId": 4692,
+       "name": "Gold leaf",
+       "qty": 2
+      }
+     ]
     },
     {
      "id": "portal_nexus:crystalline_portal_nexus",
@@ -397,6 +759,23 @@
      ],
      "objectIds": [
       33410
+     ],
+     "materials": [
+      {
+       "itemId": 22706,
+       "name": "Gilded portal nexus",
+       "qty": 1
+      },
+      {
+       "itemId": 4703,
+       "name": "Magic stone",
+       "qty": 2
+      },
+      {
+       "itemId": 4692,
+       "name": "Gold leaf",
+       "qty": 2
+      }
      ]
     }
    ],
@@ -418,6 +797,13 @@
      ],
      "objectIds": [
       29227
+     ],
+     "materials": [
+      {
+       "itemId": 5375,
+       "name": "Spirit sapling",
+       "qty": 1
+      }
      ]
     },
     {
@@ -432,7 +818,19 @@
      "objectIds": [
       29228
      ],
-     "icon": 20636
+     "icon": 20636,
+     "materials": [
+      {
+       "itemId": 6004,
+       "name": "Mushroom",
+       "qty": 10
+      },
+      {
+       "itemId": 20609,
+       "name": "Fairy enchantment",
+       "qty": 1
+      }
+     ]
     },
     {
      "id": "teleport_space:spirit_tree_fairy_ring",
@@ -446,6 +844,23 @@
      ],
      "objectIds": [
       29229
+     ],
+     "materials": [
+      {
+       "itemId": 5375,
+       "name": "Spirit sapling",
+       "qty": 1
+      },
+      {
+       "itemId": 6004,
+       "name": "Mushroom",
+       "qty": 10
+      },
+      {
+       "itemId": 20609,
+       "name": "Fairy enchantment",
+       "qty": 1
+      }
      ]
     }
    ],
@@ -468,7 +883,19 @@
      "objectIds": [
       13523
      ],
-     "icon": 8283
+     "icon": 8283,
+     "materials": [
+      {
+       "itemId": 8780,
+       "name": "Teak plank",
+       "qty": 3
+      },
+      {
+       "itemId": 1704,
+       "name": "Amulet of glory",
+       "qty": 1
+      }
+     ]
     }
    ],
    "room": "Quest Hall",
@@ -490,7 +917,19 @@
      "objectIds": [
       31986
      ],
-     "icon": 21913
+     "icon": 21913,
+     "materials": [
+      {
+       "itemId": 8780,
+       "name": "Teak plank",
+       "qty": 3
+      },
+      {
+       "itemId": 21913,
+       "name": "Mythical cape",
+       "qty": 1
+      }
+     ]
     }
    ],
    "room": "Quest hall",
@@ -517,7 +956,29 @@
       33415,
       33419
      ],
-     "icon": 22708
+     "icon": 22708,
+     "materials": [
+      {
+       "itemId": 8782,
+       "name": "Mahogany plank",
+       "qty": 1
+      },
+      {
+       "itemId": 4692,
+       "name": "Gold leaf",
+       "qty": 1
+      },
+      {
+       "itemId": 13391,
+       "name": "Lizardman fang",
+       "qty": 5000
+      },
+      {
+       "itemId": 13392,
+       "name": "Xeric's talisman (inert)",
+       "qty": 1
+      }
+     ]
     }
    ],
    "room": "Portal Nexus",
@@ -542,7 +1003,24 @@
       33418,
       33420
      ],
-     "icon": 22709
+     "icon": 22709,
+     "materials": [
+      {
+       "itemId": 8782,
+       "name": "Mahogany plank",
+       "qty": 1
+      },
+      {
+       "itemId": 4692,
+       "name": "Gold leaf",
+       "qty": 1
+      },
+      {
+       "itemId": 22710,
+       "name": "Curator's medallion",
+       "qty": 1
+      }
+     ]
     }
    ],
    "room": "Portal nexus",
@@ -563,7 +1041,19 @@
      "objectIds": [
       29166
      ],
-     "icon": 20632
+     "icon": 20632,
+     "materials": [
+      {
+       "itemId": 8786,
+       "name": "Marble block",
+       "qty": 1
+      },
+      {
+       "itemId": 4692,
+       "name": "Gold leaf",
+       "qty": 1
+      }
+     ]
     }
    ],
    "room": "Achievement gallery",
@@ -584,7 +1074,14 @@
      "objectIds": [
       13642
      ],
-     "icon": 8334
+     "icon": 8334,
+     "materials": [
+      {
+       "itemId": 8778,
+       "name": "Oak plank",
+       "qty": 1
+      }
+     ]
     },
     {
      "id": "lectern:eagle_lectern",
@@ -597,7 +1094,14 @@
      "objectIds": [
       13643
      ],
-     "icon": 8335
+     "icon": 8335,
+     "materials": [
+      {
+       "itemId": 8778,
+       "name": "Oak plank",
+       "qty": 2
+      }
+     ]
     },
     {
      "id": "lectern:demon_lectern",
@@ -610,7 +1114,14 @@
      "objectIds": [
       13644
      ],
-     "icon": 8336
+     "icon": 8336,
+     "materials": [
+      {
+       "itemId": 8778,
+       "name": "Oak plank",
+       "qty": 2
+      }
+     ]
     },
     {
      "id": "lectern:teak_eagle_lectern",
@@ -623,7 +1134,14 @@
      "objectIds": [
       13645
      ],
-     "icon": 8337
+     "icon": 8337,
+     "materials": [
+      {
+       "itemId": 8780,
+       "name": "Teak plank",
+       "qty": 2
+      }
+     ]
     },
     {
      "id": "lectern:teak_demon_lectern",
@@ -636,7 +1154,14 @@
      "objectIds": [
       13646
      ],
-     "icon": 8338
+     "icon": 8338,
+     "materials": [
+      {
+       "itemId": 8780,
+       "name": "Teak plank",
+       "qty": 2
+      }
+     ]
     },
     {
      "id": "lectern:mahogany_eagle_lectern",
@@ -649,7 +1174,19 @@
      "objectIds": [
       13647
      ],
-     "icon": 8339
+     "icon": 8339,
+     "materials": [
+      {
+       "itemId": 8782,
+       "name": "Mahogany plank",
+       "qty": 2
+      },
+      {
+       "itemId": 4692,
+       "name": "Gold leaf",
+       "qty": 1
+      }
+     ]
     },
     {
      "id": "lectern:mahogany_demon_lectern",
@@ -662,7 +1199,19 @@
      "objectIds": [
       13648
      ],
-     "icon": 8340
+     "icon": 8340,
+     "materials": [
+      {
+       "itemId": 8782,
+       "name": "Mahogany plank",
+       "qty": 2
+      },
+      {
+       "itemId": 4692,
+       "name": "Gold leaf",
+       "qty": 1
+      }
+     ]
     },
     {
      "id": "lectern:marble_lectern",
@@ -675,7 +1224,24 @@
      "objectIds": [
       37349
      ],
-     "icon": 24132
+     "icon": 24132,
+     "materials": [
+      {
+       "itemId": 8786,
+       "name": "Marble block",
+       "qty": 1
+      },
+      {
+       "itemId": 4703,
+       "name": "Magic stone",
+       "qty": 1
+      },
+      {
+       "itemId": 4692,
+       "name": "Gold leaf",
+       "qty": 1
+      }
+     ]
     }
    ],
    "room": "Study",
@@ -696,7 +1262,19 @@
      "objectIds": [
       6802
      ],
-     "icon": 8391
+     "icon": 8391,
+     "materials": [
+      {
+       "itemId": 8778,
+       "name": "Oak plank",
+       "qty": 8
+      },
+      {
+       "itemId": 3420,
+       "name": "Limestone brick",
+       "qty": 1
+      }
+     ]
     }
    ],
    "room": "Workshop",

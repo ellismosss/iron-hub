@@ -44,6 +44,7 @@ public class PohModule implements IronHubModule
 	private final IronHubConfig config;
 	private final PohPack pack;
 	private final com.ironhub.data.BoostsPack boostsPack;
+	private final com.ironhub.data.ItemSourcesPack itemSources;
 	private final EventBus eventBus; // null in unit tests
 	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
 	private PohTab tab;
@@ -63,6 +64,8 @@ public class PohModule implements IronHubModule
 		this.pack = dataPack == null ? null : dataPack.load("poh", PohPack.class);
 		this.boostsPack = dataPack == null ? null
 			: dataPack.load("boosts", com.ironhub.data.BoostsPack.class);
+		this.itemSources = dataPack == null ? null
+			: dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class);
 		this.eventBus = eventBus;
 		this.itemManager = itemManager;
 	}
@@ -139,14 +142,24 @@ public class PohModule implements IronHubModule
 		return boostsPack;
 	}
 
+	com.ironhub.data.ItemSourcesPack itemSources()
+	{
+		return itemSources;
+	}
+
 	// ── detection ─────────────────────────────────────────────────────
 
 	/** Every scene load resets the own-house confirmation and the buffer. */
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged event)
 	{
+		// LOADING only: the scene's furniture spawns DURING the load and
+		// LOGGED_IN fires right AFTER it — clearing there wiped the whole
+		// buffer moments before the welcome message could commit it (the
+		// "detection never marks anything" bug, fixed 2026-07-23)
 		if (event.getGameState() == GameState.LOADING
-			|| event.getGameState() == GameState.LOGGED_IN)
+			|| event.getGameState() == GameState.LOGIN_SCREEN
+			|| event.getGameState() == GameState.HOPPING)
 		{
 			inOwnHouse = false;
 			pendingTiers.clear();
@@ -213,8 +226,13 @@ public class PohModule implements IronHubModule
 			state.removeGoalSeed(goalId);
 			return;
 		}
+		java.util.List<String> materialReqs = new java.util.ArrayList<>();
+		for (PohPack.Material m : tier.materials)
+		{
+			materialReqs.add("item:" + m.itemId + ":" + m.qty + ":" + m.name);
+		}
 		state.addGoalSeed(com.ironhub.state.GoalSeeds.poh(tier.id, tier.name,
-			tier.icon == null ? 0 : tier.icon, tier.reqs));
+			tier.icon == null ? 0 : tier.icon, tier.reqs, materialReqs));
 		if (state.isPohBuilt(tier.id))
 		{
 			// already built: prove now

@@ -60,5 +60,14 @@ public class PohPack
 		public List<String> reqs;
 		public List<Integer> objectIds;
 		public Integer icon;
+		/** The tier's {{Recipe}} build materials (v2) — may be empty. */
+		public List<Material> materials = List.of();
+	}
+
+	public static class Material
+	{
+		public int itemId;
+		public String name;
+		public int qty;
 	}
 }

@@ -21,8 +21,12 @@ Usage: python3 tools/gen_poh.py
 import json
 import os
 import re
+import sys
 import urllib.parse
 import urllib.request
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "knowledge"))
+import kb  # noqa: E402 — the shared {{Recipe}} parser (pure functions only)
 
 UA = "iron-hub-pack-generator (github.com/ellismosss/iron-hub; info@ellismoss.co.uk)"
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -179,6 +183,66 @@ def infobox(page: str):
     return box
 
 
+def load_item_ids():
+    """tools/itemids.txt — the UNFILTERED constant→id dump (the bank-storage
+    lesson: never resolve by suffix pattern). Returns (exact, collapsed) maps
+    — collapsed keys drop underscores for hyphenated names (ANTIVENOM4)."""
+    ids = {}
+    collapsed = {}
+    with open(os.path.join(HERE, "itemids.txt"), encoding="utf-8") as f:
+        for line in f:
+            parts = line.split()
+            if len(parts) == 2 and parts[1].lstrip("-").isdigit():
+                ids.setdefault(parts[0], int(parts[1]))
+                collapsed.setdefault(parts[0].replace("_", ""), int(parts[1]))
+    return ids, collapsed
+
+
+# display-name → constant spellings the naive normalisation can't guess
+MATERIAL_ALIASES = {
+    "Steel nails": "NAILS_STEEL",
+}
+
+
+def resolve_material(item_ids, name):
+    """Display name → item id, failing FAST — a silently dropped material
+    shipped the ornate box without its 8 glories (the gear-pack lesson)."""
+    exact, collapsed = item_ids
+    if name in MATERIAL_ALIASES:
+        key = MATERIAL_ALIASES[name]
+    else:
+        key = re.sub(r"[^A-Z0-9]+", "_", name.upper()).strip("_")
+    if key in exact:
+        return exact[key]
+    # potion doses join their constant without the underscore
+    # ("Stamina potion(4)" → STAMINA_POTION4 — the gen_boat lesson)
+    dosed = re.sub(r"_(\d)$", r"\1", key)
+    if dosed in exact:
+        return exact[dosed]
+    # hyphenated names collapse entirely ("Anti-venom(4)" → ANTIVENOM4)
+    if key.replace("_", "") in collapsed:
+        return collapsed[key.replace("_", "")]
+    raise SystemExit(f"unresolved POH material: {name!r} (tried {key})")
+
+
+def materials_of(page: str, item_ids):
+    """The tier page's {{Recipe}} materials as [{itemId,name,qty}] — the
+    infobox has no materials param (the KB harvest's own lesson)."""
+    data = fetch(PAGE_FIXES.get(page, page))
+    text = data["parse"]["wikitext"]
+    made = kb.recipe(text)
+    if not made or not made["materials"]:
+        return []
+    out = []
+    for m in made["materials"]:
+        name = m["name"]
+        qty_match = re.search(r"\d+", str(m.get("qty") or "1"))
+        out.append({"itemId": resolve_material(item_ids, name),
+                    "name": name,
+                    "qty": int(qty_match.group()) if qty_match else 1})
+    return out
+
+
 def main():
     guide = fetch(GUIDE_PAGE)
     guide_text = guide.get("parse", {}).get("wikitext", "")
@@ -186,6 +250,7 @@ def main():
         raise SystemExit("guide page fetch looks wrong")
 
     object_constants = gameval_object_ids()
+    item_ids = load_item_ids()
     spaces_out = []
     missing_from_guide = []
     for space_id, name, tiers in SPACES:
@@ -220,6 +285,9 @@ def main():
                 m = re.search(r"\d+", box["itemid"])
                 if m:
                     tier["icon"] = int(m.group())
+            mats = materials_of(page, item_ids)
+            if mats:
+                tier["materials"] = mats
             tiers_out.append(tier)
             base = tier["name"].split(" (")[0]
             if base.lower() not in guide_text.lower():

@@ -39,6 +39,30 @@ public final class GoalSeeds
 		return seed;
 	}
 
+	/** A whole diary tier ("Ardougne Hard Diary"): one step per task, each
+	 *  proven by the SAME {@code diarytask_<slug>} unlocks the per-task
+	 *  goals use — the diaries module's proof marker serves both. Achieved
+	 *  when every task's proof holds. */
+	public static PersistedState.GoalSeed diaryTier(String region, String tier,
+		java.util.List<String> slugs, java.util.List<String> taskTexts)
+	{
+		String id = "diarytier:" + sanitize(region) + "_" + sanitize(tier);
+		PersistedState.GoalSeed seed = base("diarytier", id,
+			region + " " + tier + " Diary");
+		for (int i = 0; i < slugs.size(); i++)
+		{
+			String proof = "unlock:diarytask_" + slugs.get(i);
+			seed.steps.add(step(taskTexts.get(i), proof));
+			seed.achieved.add(proof);
+		}
+		return seed;
+	}
+
+	private static String sanitize(String s)
+	{
+		return s.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]+", "_");
+	}
+
 	/** A clue step: its item requirements become planner steps, proven by
 	 *  the {@code cluestep_<id>} unlock the clues module marks. */
 	public static PersistedState.GoalSeed clue(String id, String text, String tier, List<String> reqs)
@@ -89,12 +113,25 @@ public final class GoalSeeds
 	 *  its own set, invisible to the requirement graph). */
 	public static PersistedState.GoalSeed poh(String tierId, String tierName, int icon, List<String> reqs)
 	{
+		return poh(tierId, tierName, icon, reqs, List.of());
+	}
+
+	/** materialReqs = {@code item:<id>:<qty>:<name>} gather steps (the
+	 *  boatUpgrade grammar) — the tier's actual build materials, so a
+	 *  "Build ancient altar" goal routes its bricks, stone and sceptre. */
+	public static PersistedState.GoalSeed poh(String tierId, String tierName, int icon,
+		List<String> reqs, List<String> materialReqs)
+	{
 		String proof = "unlock:" + pohProofKey(tierId);
 		PersistedState.GoalSeed seed = base("poh", "poh:" + tierId, tierName);
 		seed.iconItemId = icon;
 		for (String raw : reqs)
 		{
 			seed.steps.add(step(Requirements.parse(raw).describe(), raw));
+		}
+		for (String raw : materialReqs)
+		{
+			seed.steps.add(step("Gather " + Requirements.parse(raw).describe(), raw));
 		}
 		seed.steps.add(step("Build " + tierName, proof));
 		seed.achieved.add(proof);

@@ -112,6 +112,36 @@ public class PohModuleTest
 		module.shutDown();
 	}
 
+	/** The REAL client sequence entering a house: LOADING → furniture spawns
+	 *  during the load → LOGGED_IN fires after it → THEN the welcome chat.
+	 *  Clearing the buffer on LOGGED_IN wiped every buffered spawn moments
+	 *  before confirmation — detection never marked anything in-client
+	 *  (Luke's report, 2026-07-23). */
+	@Test
+	public void detectionSurvivesTheLoggedInAfterLoading()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		PohModule module = module(state);
+		module.startUp();
+		PohPack.Tier ornate = pack.spaces.stream()
+			.filter(s -> s.id.equals("jewellery_box")).findFirst().orElseThrow()
+			.tiers.get(2);
+
+		module.onGameStateChanged(loading());
+		spawnObject(module, ornate.objectIds.get(0));
+		module.onGameStateChanged(stateChange(net.runelite.api.GameState.LOGGED_IN));
+		assertEquals("LOGGED_IN after a load must not wipe the buffer",
+			1, module.pendingTiers().size());
+		module.onChatMessage(welcome());
+		assertTrue(state.isPohBuilt(ornate.id));
+
+		// logging out fully still resets the confirmation
+		module.onGameStateChanged(stateChange(net.runelite.api.GameState.LOGIN_SCREEN));
+		assertEquals(0, module.pendingTiers().size());
+		module.shutDown();
+	}
+
 	@Test
 	public void ladderStatusAndManualMark()
 	{
@@ -224,8 +254,13 @@ public class PohModuleTest
 
 	private static net.runelite.api.events.GameStateChanged loading()
 	{
+		return stateChange(net.runelite.api.GameState.LOADING);
+	}
+
+	private static net.runelite.api.events.GameStateChanged stateChange(net.runelite.api.GameState gs)
+	{
 		net.runelite.api.events.GameStateChanged event = new net.runelite.api.events.GameStateChanged();
-		event.setGameState(net.runelite.api.GameState.LOADING);
+		event.setGameState(gs);
 		return event;
 	}
 
