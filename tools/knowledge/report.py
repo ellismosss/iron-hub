@@ -33,6 +33,10 @@ TABLES = {
                                               "inputs", "outputs", "notes", "src", "flags"]),
     "money_methods": ("Money making", ["method", "gp_hr", "category", "intensity",
                                        "reqs", "inputs", "outputs", "src", "flags"]),
+    "recipes": ("Recipes / processing", ["page", "output", "output_qty", "materials",
+                                         "skills", "facilities", "tools", "src", "flags"]),
+    "materials": ("Resources & materials", ["name", "obtained", "used_in",
+                                            "makes_count", "src", "flags"]),
     "gaps": ("Gaps (help wanted)", ["category", "subject", "field", "why", "status", "notes"]),
 }
 

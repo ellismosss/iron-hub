@@ -193,6 +193,230 @@ move out on the next harvest.
 - [ ] **Hat** — stats: page in Category:Head slot items has no Infobox Bonuses — stats unknown
 - [ ] **Regular cape** — stats: page in Category:Cape slot items has no Infobox Bonuses — stats unknown
 
+## materials
+
+- [ ] **(degraded/versioned variants)** — obtain: degraded barrows pieces, dose/charge variants and #-anchored versions are flagged obtain-unknown on their rows (their 'source' is item degradation/use, not a drop) — individually gapped only where a genuine base item has no source
+- [ ] **(potion doses)** — obtain: partial-dose potions (1)-(3) come from drinking the (4) — flagged dose-variant on their rows, not individual gaps
+- [ ] **Adventurer's boots (t3)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Adventurer's cape** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Adventurer's hood (t3)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Adventurer's top (t3)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Adventurer's trousers (t3)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Adventurer's vambraces** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Amulet of the eye** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Ancient shield (The Blood Moon Rises)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Ancient symbol (The Blood Moon Rises)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Annihilation exit portal blueprints** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Antipoison** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Armadylean paint** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Artefact (armour)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Artefact (axe)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Artefact (helmet)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Artefact (mace)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Artefact (shield)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Artefact (sword)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Baby impling jar** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Banana seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Barracuda paint** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Basic quetzal whistle blueprint** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Black mask** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Blunt scimitars** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Branch (The Final Dawn)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Bruma herb** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Bucket of freezing milk** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Calquat seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Camphor seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Carved oak magic wardrobe (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Carved teak magic wardrobe (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Cave nightshade** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Celastrus seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Celestial ring** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Church decoration** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Crystal (Song of the Elves)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Curator's medallion** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Curry seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Daeyalt essence** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Dragon key piece (Karamja)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Dragon key piece (Kourend)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Dragon key piece (Morytania)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Dragon key piece (Ungael)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Dragonfruit seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Earth impling jar** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Easter egg half** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Easter spices** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Eclectic impling jar** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Elder (+)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Elder (-)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Empty fish food box** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Empty gourd vial** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Enchanted curtains** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Essence impling jar** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Fancy carrot** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Festive cinnamon stick** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Festive egg** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Festive ginger powder** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Festive pot** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Festive tree branch** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Fighter torso** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Fighter torso (l)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Fire cape** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Giant squirrel** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Gilded cape rack (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Gilded magic wardrobe (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Golden bowl (blessed pure water)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Gourmet impling jar** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Gurtob's fabric roll** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Guthixian paint** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Gwyna's fabric roll** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Hallowed marks (The Blood Moon Rises)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Hot kettle** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Idol of balance** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Idol of chaos** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Idol of light** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Infernal cape** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Infinity boots** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Infinity bottoms** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Infinity hat** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Infinity top** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Ironwood seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Karambwan paste (poison)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Karambwanji paste (cooked)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Karambwanji paste (raw)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Kodai (+)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Kodai (-)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Lamp oil** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Large fossilised limbs** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Large fossilised pelvis** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Large fossilised ribs** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Large fossilised skull** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Large fossilised spine** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Lit candle** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Loop half of key (The Blood Moon Rises)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Lvl-1 Enchant** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Lvl-2 Enchant** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Lvl-3 Enchant** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Lvl-4 Enchant** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Lvl-5 Enchant** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Lvl-6 Enchant** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Lvl-7 Enchant** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **M. treasure chest (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Magic cape rack (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Magic seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Mahogany armour case (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Mahogany cape rack (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Mahogany fancy dress box (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Mahogany magic wardrobe (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Mahogany seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Malformed infernal blend** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Maple seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Marble cape rack (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Marble magic wardrobe (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Marrentil tar** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Master wand** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Max hood** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Medallion fragment (5)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Medallion fragment (6)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Medallion fragment (7)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Medallion fragment (8)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Medium fossilised limbs** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Medium fossilised pelvis** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Medium fossilised ribs** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Medium fossilised skull** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Medium fossilised spine** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Monkey (Trouble Brewing)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Mouldy sawdust** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Mysterious orb (Client of Kourend)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Nature impling jar** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Nightmare Zone points** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Nuggets (2018 Easter event)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Oak seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Orange seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Orb (Devious Minds)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Palm seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Papaya seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Pat of not garlic butter** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Pendant of ates (inert)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Pineapple seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Prospector boots** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Prospector helmet** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Prospector legs** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Raisins** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Rake handle** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Rake head** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Ralph's fabric roll** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Rare fossilised limbs** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Rare fossilised pelvis** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Rare fossilised ribs** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Rare fossilised skull** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Rare fossilised spine** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Rare fossilised tusk** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Raw meat** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Redwood seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Rift guardian** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Ring of wealth (5)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Rosewood seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Rotten meat** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Sanfew serum** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Saradominist paint** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Servery cheese** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Servery dish** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Servery flour** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Servery pineapple** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Servery potato** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Servery raw meat** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Servery tomato** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shark paint** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply boots (5)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply crate** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply gloves (5)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply greaves (5)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply helm (5)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Shayzien supply platebody (5)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Short vine** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Skull (item)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Slayer hood** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Small fossilised limbs** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Small fossilised pelvis** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Small fossilised ribs** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Small fossilised skull** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Small fossilised spine** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Spadeful of coke** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Special egg** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Spirit seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Stale bread** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Swamp Toad** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Tanning wheel** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Teak armour case (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Teak cape rack (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Teak fancy dress box (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Teak magic wardrobe (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Teak seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Teak treasure chest (flatpack)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Tooth half of key (The Blood Moon Rises)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Toxic staff of the dead** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Trident of the seas** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Trident of the seas (e)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Trident of the swamp** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Trident of the swamp (e)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Truth serum (While Guthix Sleeps)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Twisted (+)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Twisted (-)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Unfinished serum (step 1)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Vat (cleaned)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Venator bow** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Vial of blood (A Taste of Hope)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Washing line** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Waste gems** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Willow seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Wooden pole** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Wool** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Yeastier dough** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Yellow egg** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Yew seedling (w)** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Young impling jar** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Zamorakian paint** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+- [ ] **Zeal Tokens** — obtain: used as a recipe input but no gathering recipe, drop, shop or reward source found
+
 ## poh
 
 - [ ] **Decorated Stone fireplace** — level-missing: no parsed level/Recipe materials on the page — check Stone fireplace
@@ -222,4 +446,4 @@ move out on the next harvest.
 - [ ] **Strength** — methods: no method sections with parseable xp/hr on Pay-to-play Melee training — needs manual extraction
 
 
-_186 open gaps · generated from knowledge.db_
+_407 open gaps · generated from knowledge.db_
