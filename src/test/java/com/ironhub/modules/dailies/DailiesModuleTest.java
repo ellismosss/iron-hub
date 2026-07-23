@@ -297,12 +297,14 @@ public class DailiesModuleTest
 	}
 
 	/**
-	 * Miscellania has no "collected today" flag, so the stop is done at 100%
-	 * approval — and the varbit is 0..127 (core's MAX_APPROVAL), not 0..100.
-	 * Reading it as a percentage directly would call 100 "100%" at 78%.
+	 * Miscellania: 100% approval must NOT read as done — collecting from
+	 * Ghrim and topping the coffer is the daily work, so a well-kept kingdom
+	 * stayed greyed out (Luke, 2026-07-23). Approval (0..127, core's
+	 * MAX_APPROVAL — varbit 100 is only 78%) is display data; only the
+	 * manual Skip closes the stop, and it reopens at the daily reset.
 	 */
 	@Test
-	public void miscellaniaProgressesAtFullApprovalNotAtVarbit100()
+	public void miscellaniaStaysActionableAtFullApproval()
 	{
 		AccountState state = state();
 		StateFixture.quest(state, Quest.THRONE_OF_MISCELLANIA, QuestState.FINISHED);
@@ -311,14 +313,15 @@ public class DailiesModuleTest
 		assertEquals(DailyTracker.State.AVAILABLE,
 			DailyTracker.stateOf(state, misc, false, NOON));
 
-		StateFixture.varbit(state, misc.detection.varbit, 100);
-		assertEquals("varbit 100 is only 78% — still work to do", 78,
-			DailyTracker.approvalPercent(100));
-		assertEquals(DailyTracker.State.AVAILABLE,
-			DailyTracker.stateOf(state, misc, false, NOON));
-
+		assertEquals("varbit 100 is only 78%", 78, DailyTracker.approvalPercent(100));
 		StateFixture.varbit(state, misc.detection.varbit, DailyTracker.MAX_APPROVAL);
 		assertEquals(100, DailyTracker.approvalPercent(DailyTracker.MAX_APPROVAL));
+		assertEquals("full approval is not 'done' — the collect remains",
+			DailyTracker.State.AVAILABLE,
+			DailyTracker.stateOf(state, misc, false, NOON));
+
+		// the manual tick is the only close, and it expires at reset
+		state.markDaily(misc.id, true);
 		assertEquals(DailyTracker.State.DONE,
 			DailyTracker.stateOf(state, misc, false, NOON));
 	}

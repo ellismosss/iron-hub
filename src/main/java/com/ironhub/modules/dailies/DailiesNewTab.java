@@ -270,6 +270,20 @@ class DailiesNewTab extends JPanel
 
 	private String rowTooltip(DailiesPack.Daily daily, DailyTracker.State current)
 	{
+		// the kingdom's live numbers (approval varbit + coffer varp, both
+		// synced at login — the same read core's Kingdom plugin announces)
+		if (daily.detection != null && "approval".equals(daily.detection.mode))
+		{
+			int approvalRaw = state.getVarbit(daily.detection.varbit);
+			long coffer = state.getVarp(DailyTracker.KINGDOM_COFFER_VARP);
+			if (approvalRaw > 0 || coffer > 0)
+			{
+				return "<html>" + daily.name + "<br>Approval "
+					+ DailyTracker.approvalPercent(approvalRaw) + "% · Coffer "
+					+ String.format("%,d", coffer) + " gp (as of login)</html>";
+			}
+			return daily.name;
+		}
 		if (current != DailyTracker.State.SHORT)
 		{
 			return daily.name;

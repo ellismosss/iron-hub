@@ -90,11 +90,13 @@ final class DailyTracker
 				return state.getVarbit(detection.varbit) < quantity(state, daily) || crossedReset
 					? State.AVAILABLE : State.DONE;
 			case "approval":
-				// Miscellania has no "collected today" flag — approval is what you
-				// go there to fix, so 100% is what "done" means. The varbit runs
-				// 0..127 (core's KingdomPlugin.MAX_APPROVAL), so 100% is 127.
-				return approvalPercent(state.getVarbit(detection.varbit)) >= 100
-					? State.DONE : State.AVAILABLE;
+				// Miscellania has no "collected today" flag, and 100% approval
+				// does NOT mean the daily is done — collecting from Ghrim and
+				// topping the coffer is the daily work (calling full approval
+				// "done" greyed the kingdom out for well-kept accounts — Luke,
+				// 2026-07-23). The varbit (0..127, core's MAX_APPROVAL) and the
+				// coffer varp are display data; only the manual tick closes it.
+				return manuallyDone(state, daily, now) ? State.DONE : State.AVAILABLE;
 			case "rolling7":
 				return togState(state, daily, now);
 			default:
@@ -183,6 +185,9 @@ final class DailyTracker
 
 	/** core KingdomPlugin.MAX_APPROVAL — the varbit's full scale, not 100. */
 	static final int MAX_APPROVAL = 127;
+
+	/** core VarPlayer.KINGDOM_COFFER — synced at login like the approval varbit. */
+	static final int KINGDOM_COFFER_VARP = 74;
 
 	/**
 	 * How many trips this stop takes at your tier — Robin gives back two
