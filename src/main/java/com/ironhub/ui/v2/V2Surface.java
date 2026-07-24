@@ -111,7 +111,7 @@ public class V2Surface extends JPanel
 	public V2Surface stack(Component child, int gapBelow)
 	{
 		add(child);
-		add(javax.swing.Box.createVerticalStrut(gapBelow));
+		add(V2Layout.gap(gapBelow));
 		return this;
 	}
 

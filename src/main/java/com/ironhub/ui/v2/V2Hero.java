@@ -1,7 +1,6 @@
 package com.ironhub.ui.v2;
 
 import com.ironhub.ui.osrs.OsrsTheme;
-import javax.swing.Box;
 
 /**
  * The block at the top of a tab that says where you are: a title, the number
@@ -35,7 +34,7 @@ public final class V2Hero
 		card.add(new V2ProgressBar(theme).fraction(fraction));
 		if (provenance != null)
 		{
-			card.add(Box.createVerticalStrut(V2Tokens.ROW));
+			card.add(V2Layout.gap(V2Tokens.ROW));
 			card.add(V2Label.faint(provenance));
 		}
 		return card;

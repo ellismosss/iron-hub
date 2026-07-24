@@ -43,6 +43,10 @@ public class DesignLabTab extends JPanel
 
 	private final OsrsTheme theme;
 
+	/** Which gallery is showing — V2 leads, since it is the one awaiting
+	 *  Luke's sign-off before any module migrates. */
+	private final JPanel slot = new JPanel(new java.awt.BorderLayout());
+
 	public DesignLabTab(OsrsTheme theme)
 	{
 		this.theme = theme;
@@ -51,6 +55,31 @@ public class DesignLabTab extends JPanel
 		setBackground(UiTokens.PANEL_BG);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
+		com.ironhub.ui.v2.V2ChipRow views =
+			new com.ironhub.ui.v2.V2ChipRow(theme, true, "Design lab V2", "Atoms (V1)");
+		views.onChange(index -> showGallery(index == 0));
+		add(views);
+		add(Box.createVerticalStrut(com.ironhub.ui.v2.V2Tokens.ROW));
+		slot.setOpaque(false);
+		slot.setAlignmentX(LEFT_ALIGNMENT);
+		add(slot);
+		showGallery(true);
+	}
+
+	/** Test seam: pick a gallery as a chip press would. */
+	public void showGallery(boolean v2)
+	{
+		slot.removeAll();
+		slot.add(v2 ? new DesignLabV2Tab(theme) : v1Gallery(), java.awt.BorderLayout.CENTER);
+		slot.revalidate();
+		slot.repaint();
+	}
+
+	/** The V1 skin's atom gallery, unchanged. It stays until Luke signs off
+	 *  on V2 and the modules migrate — the two systems are judged side by
+	 *  side, not one from memory. */
+	private JComponent v1Gallery()
+	{
 		// the whole skinned surface lives inside the game's thin frame
 		JPanel frame = new JPanel();
 		frame.setLayout(new BoxLayout(frame, BoxLayout.Y_AXIS));
@@ -111,7 +140,7 @@ public class DesignLabTab extends JPanel
 		frame.add(strut(6));
 		frame.add(pad(centered(new OsrsLabel("Static preview · sample data", OsrsSkin.MUTED, OsrsSkin.font()))));
 		frame.add(strut(4));
-		add(frame);
+		return frame;
 	}
 
 	/** One font of the system, labelled by where it's used. */

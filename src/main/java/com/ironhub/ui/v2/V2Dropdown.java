@@ -127,7 +127,7 @@ public class V2Dropdown extends JPanel
 			list.add(holder);
 			if (i < options.length - 1)
 			{
-				list.add(javax.swing.Box.createVerticalStrut(V2Tokens.ROW));
+				list.add(V2Layout.gap(V2Tokens.ROW));
 			}
 		}
 		popup.add(list);

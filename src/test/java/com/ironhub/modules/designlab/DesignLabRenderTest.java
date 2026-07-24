@@ -36,6 +36,9 @@ public class DesignLabRenderTest
 		for (OsrsTheme theme : OsrsTheme.values())
 		{
 			DesignLabTab tab = new DesignLabTab(theme);
+			// the lab opens on Design lab V2 now; this test is about the V1
+			// atoms, so it asks for their gallery explicitly
+			tab.showGallery(false);
 			BufferedImage image = SwingRender.render(tab);
 			assertEquals(UiTokens.PANEL_WIDTH, image.getWidth());
 			assertTrue(image.getHeight() > 400);
@@ -128,6 +131,7 @@ public class DesignLabRenderTest
 	public void everyLabelKeepsItsHeightUnderTheClientMount()
 	{
 		DesignLabTab tab = new DesignLabTab(OsrsTheme.MYSTIC);
+		tab.showGallery(false);
 		com.ironhub.ui.components.HubScrollPane pane = new com.ironhub.ui.components.HubScrollPane(tab);
 		pane.setSize(UiTokens.PANEL_WIDTH, 900);
 		layoutOnce(pane);

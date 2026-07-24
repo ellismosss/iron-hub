@@ -32,6 +32,11 @@ public class V2Tooltip extends JToolTip
 	{
 		this.theme = theme;
 		setOpaque(false);
+		// JToolTip defaults to CENTER_ALIGNMENT, and BoxLayout aligns a
+		// column by making its children's alignment points coincide: this one
+		// centre-aligned component pushed every left-aligned sibling in
+		// Design lab V2 sixty pixels right. Every V2 atom claims LEFT.
+		setAlignmentX(LEFT_ALIGNMENT);
 		setLayout(new java.awt.BorderLayout());
 		int inset = V2Tokens.SLICE_INSET + V2Tokens.PAD;
 		setBorder(new javax.swing.border.EmptyBorder(inset, inset, inset, inset));
