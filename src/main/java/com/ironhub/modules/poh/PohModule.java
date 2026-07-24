@@ -6,8 +6,10 @@ import com.ironhub.data.PohPack;
 import com.ironhub.modules.IronHubModule;
 import com.ironhub.state.AccountState;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -23,16 +25,25 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.util.Text;
 
 /**
- * POH progression (Progression hub, 2026-07-18): the useful house builds
- * per the wiki's POH progression guide as a tile grid — built / next-tier
- * requirements / locked per space.
+ * House (Progression hub, "Build" tile): the complete POH catalog — every
+ * room, its hotspots and each hotspot's furniture ladder, shown as
+ * room → hotspot → tier tiles.
  *
  * <p>Built detection: house furniture object ids from the pack, gated on
  * the game's own "Welcome to your house." message so a friend's house
  * never marks anything. Spawns buffer from the scene load and commit once
  * the welcome message confirms the house is the player's own (spawns and
- * the message race, so neither order is trusted alone). A manual mark on
- * every tier row covers houses built before Iron Hub.</p>
+ * the message race, so neither order is trusted alone).</p>
+ *
+ * <p>The game builds the IDENTICAL object for the same furniture in
+ * different rooms — one brown rug serves the parlour, bedroom, chapel and
+ * portal nexus hotspots — so an object id alone cannot say which hotspot
+ * was built. Spawns are therefore buffered per house ROOM (a POH room is
+ * one 8x8 chunk, so co-located objects share a room) and a room is
+ * identified by the furniture in it that IS unambiguous; shared furniture
+ * is then attributed to that room. A room with nothing unambiguous in it
+ * marks nothing rather than guessing. A manual mark on every tier row is
+ * the escape hatch for that, and for houses built before Iron Hub.</p>
  */
 @Slf4j
 @Singleton
@@ -49,8 +60,9 @@ public class PohModule implements IronHubModule
 	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
 	private PohTab tab;
 
-	/** Tier ids spotted since the last scene load, awaiting confirmation. */
-	private final Set<String> pendingTiers = new HashSet<>();
+	/** Furniture object ids spotted since the last scene load, grouped by the
+	 *  house room they sit in, awaiting the own-house confirmation. */
+	private final Map<Long, Set<Integer>> pendingByRoom = new HashMap<>();
 	private boolean inOwnHouse;
 	private final Runnable goalProofListener = this::onStateChange;
 	/** Seeds are per-profile — re-derive them when the profile switches
@@ -115,7 +127,7 @@ public class PohModule implements IronHubModule
 			eventBus.unregister(this);
 		}
 		state.removeListener(goalProofListener);
-		pendingTiers.clear();
+		pendingByRoom.clear();
 		inOwnHouse = false;
 		if (tab != null)
 		{
@@ -177,7 +189,7 @@ public class PohModule implements IronHubModule
 			|| event.getGameState() == GameState.HOPPING)
 		{
 			inOwnHouse = false;
-			pendingTiers.clear();
+			pendingByRoom.clear();
 		}
 	}
 
@@ -192,11 +204,7 @@ public class PohModule implements IronHubModule
 		if (OWN_HOUSE_MESSAGE.equals(Text.removeTags(event.getMessage())))
 		{
 			inOwnHouse = true;
-			if (!pendingTiers.isEmpty())
-			{
-				state.setPohBuiltBulk(new ArrayList<>(pendingTiers));
-				pendingTiers.clear();
-			}
+			commitPending();
 		}
 	}
 
@@ -207,18 +215,94 @@ public class PohModule implements IronHubModule
 		{
 			return;
 		}
-		PohPack.Tier tier = pack.tierByObjectId(event.getGameObject().getId());
-		if (tier == null || state.isPohBuilt(tier.id))
+		int objectId = event.getGameObject().getId();
+		if (pack.placementsByObjectId(objectId).isEmpty())
 		{
 			return;
 		}
+		pendingByRoom.computeIfAbsent(roomKey(event.getGameObject()), k -> new HashSet<>())
+			.add(objectId);
 		if (inOwnHouse)
 		{
-			state.setPohBuilt(tier.id, true); // building mode swaps commit live
+			commitPending(); // building-mode swaps commit live
 		}
-		else
+	}
+
+	/**
+	 * Which house room an object sits in. A POH room is one 8x8-tile chunk, so
+	 * objects sharing a chunk share a room — that is what tells a Parlour rug
+	 * from a Bedroom rug when the game uses the identical object for both.
+	 * Objects with no readable location share one bucket (attribution then
+	 * only resolves the unambiguous ones).
+	 */
+	private static long roomKey(net.runelite.api.GameObject object)
+	{
+		net.runelite.api.coords.WorldPoint point = object.getWorldLocation();
+		if (point == null)
 		{
-			pendingTiers.add(tier.id); // awaits the own-house welcome message
+			return -1L;
+		}
+		return ((long) (point.getX() >> 3) & 0xFFFF) << 20
+			| ((long) (point.getY() >> 3) & 0xFFFF) << 4
+			| (point.getPlane() & 0xF);
+	}
+
+	/**
+	 * Resolve the buffered spawns to tier ids and mark them built. Per room:
+	 * furniture whose object id has ONE placement identifies the room, and
+	 * anything ambiguous (the same rug in six rooms) is then attributed to
+	 * that room. A room identified by nothing unambiguous leaves its shared
+	 * furniture unmarked rather than guessing — the manual mark covers it.
+	 */
+	private void commitPending()
+	{
+		if (pendingByRoom.isEmpty())
+		{
+			return;
+		}
+		Set<String> built = new HashSet<>();
+		for (Set<Integer> objectIds : pendingByRoom.values())
+		{
+			// 1. the room this chunk is, voted for by unambiguous furniture
+			Map<String, Integer> votes = new HashMap<>();
+			for (Integer objectId : objectIds)
+			{
+				List<PohPack.Placement> places = pack.placementsByObjectId(objectId);
+				if (places.size() == 1 && places.get(0).space.room != null)
+				{
+					votes.merge(places.get(0).space.room, 1, Integer::sum);
+				}
+			}
+			String room = null;
+			int best = 0;
+			for (Map.Entry<String, Integer> vote : votes.entrySet())
+			{
+				// deterministic: highest count, ties broken by name
+				if (vote.getValue() > best
+					|| (vote.getValue() == best && room != null && vote.getKey().compareTo(room) < 0))
+				{
+					room = vote.getKey();
+					best = vote.getValue();
+				}
+			}
+			// 2. mark what we can attribute
+			for (Integer objectId : objectIds)
+			{
+				List<PohPack.Placement> places = pack.placementsByObjectId(objectId);
+				for (PohPack.Placement place : places)
+				{
+					if (places.size() == 1 || place.space.room == null
+						|| place.space.room.equals(room))
+					{
+						built.add(place.tier.id);
+					}
+				}
+			}
+		}
+		built.removeIf(state::isPohBuilt);
+		if (!built.isEmpty())
+		{
+			state.setPohBuiltBulk(new ArrayList<>(built));
 		}
 	}
 
@@ -365,9 +449,14 @@ public class PohModule implements IronHubModule
 		return best;
 	}
 
-	/** Test seam: pending-buffer contents. */
-	List<String> pendingTiers()
+	/** Test seam: buffered object ids awaiting the own-house confirmation. */
+	List<Integer> pendingObjects()
 	{
-		return new ArrayList<>(pendingTiers);
+		List<Integer> out = new ArrayList<>();
+		for (Set<Integer> ids : pendingByRoom.values())
+		{
+			out.addAll(ids);
+		}
+		return out;
 	}
 }

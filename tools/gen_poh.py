@@ -5,13 +5,20 @@ every piece of furniture that can be built there.
 
 Source: the OSRS wiki.
   - The 24 room pages (e.g. Kitchen) give the hotspot structure: each
-    ==section== is a hotspot, and each wikitable row is a furniture option
-    ({{plinkt|Name}} = the furniture, a Construction-level cell orders it).
+    ==section== is a hotspot, and each wikitable row is a furniture option.
+    The furniture is the THUMBNAIL link ({{plinkt}} / {{ilinkt}}); the plain
+    {{plink}} / {{ilink}} in the same row are its materials — that trailing
+    "t" is the only discriminator, and both p- and i- forms occur (the whole
+    Superior garden pool ladder uses ilinkt).
   - Each furniture's own page gives the hard data from its
     {{Infobox Construction}}: Construction level, the BUILT object id(s) (the
     in-house detection signal), the inventory item id used as the tile icon,
     and its {{Recipe}} build materials — plus a benefit sentence lifted from
     the page intro (what the furniture does for the player).
+    Fields are read ONLY from inside that infobox — other infoboxes on the
+    page carry unrelated ids (a pet's NPC id, the cape hanger's scenery list)
+    — and the versioned forms (level1/id1/id2, used when one page covers a
+    plain and a decorated variant) are tolerated.
 
 Material names resolve against knowledge.db's items table (the wiki's own
 names), so run tools/knowledge/rebuild.py first.
@@ -132,6 +139,31 @@ def room_hotspots(room):
     return out
 
 
+def template_block(text, name):
+    """The full source of the first {{name ...}} template, brace-balanced, or
+    None. Scoping matters: a furniture page often carries other infoboxes
+    (a pet's Infobox Monster, a cape hanger's scenery list) whose own id
+    fields would otherwise be scraped as built-object ids."""
+    start = text.find("{{" + name)
+    if start < 0:
+        return None
+    depth = 0
+    i = start
+    while i < len(text):
+        if text.startswith("{{", i):
+            depth += 1
+            i += 2
+            continue
+        if text.startswith("}}", i):
+            depth -= 1
+            i += 2
+            if depth == 0:
+                return text[start:i]
+            continue
+        i += 1
+    return text[start:]
+
+
 def furniture(page):
     """Hard data for one furniture from its page, or None if it 404s / has no
     Construction level. {level, objectIds, icon, materials(raw names), intro}."""
@@ -139,18 +171,30 @@ def furniture(page):
     if "parse" not in data:
         return None
     text = data["parse"]["wikitext"]
-    box = {}
-    for key in ("level", "itemid"):
-        m = re.search(r"^\|\s*" + key + r"\s*=\s*(.+)$", text, re.M)
-        if m:
-            box[key] = m.group(1).strip()
-    if "level" not in box or not re.search(r"\d", box["level"]):
+    box_text = template_block(text, "Infobox Construction")
+    if box_text is None:
         return None
-    level = int(re.search(r"\d+", box["level"]).group())
+    def field(key):
+        """The infobox's value for a field, tolerating the multi-version form
+        (a page covering "Marble fireplace"/"Decorated marble fireplace" writes
+        level1/level2, never a plain level). Takes the first numeric one."""
+        for pattern in (r"^\|\s*" + key + r"\s*=\s*(.+)$",
+                        r"^\|\s*" + key + r"\d+\s*=\s*(.+)$"):
+            for m in re.finditer(pattern, box_text, re.M):
+                if re.search(r"\d", m.group(1)):
+                    return m.group(1).strip()
+        return None
+
+    level_text = field("level")
+    if level_text is None:
+        return None
+    level = int(re.search(r"\d+", level_text).group())
+    box = {"itemid": field("itemid")}
     # the built object id(s) live under id / id1 / id2 / ... (one per lit-burner
-    # or decoration state variant) — collect them all, deduped, in order
+    # or decoration state variant) — collect them all, deduped, in order. ONLY
+    # from inside the construction infobox (see template_block).
     object_ids = []
-    for m in re.finditer(r"^\|\s*id\d*\s*=\s*(.+)$", text, re.M):
+    for m in re.finditer(r"^\|\s*id\d*\s*=\s*(.+)$", box_text, re.M):
         for x in re.findall(r"\d+", m.group(1)):
             if int(x) not in object_ids:
                 object_ids.append(int(x))

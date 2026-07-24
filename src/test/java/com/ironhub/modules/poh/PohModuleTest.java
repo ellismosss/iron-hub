@@ -89,11 +89,11 @@ public class PohModuleTest
 		// spawn seen BEFORE the welcome message buffers, never marks
 		spawnObject(module, ornate.objectIds.get(0));
 		assertFalse(state.isPohBuilt(ornate.id));
-		assertEquals(1, module.pendingTiers().size());
+		assertEquals(1, module.pendingObjects().size());
 
 		// a friend's house: no welcome message, next load clears the buffer
 		module.onGameStateChanged(loading());
-		assertEquals(0, module.pendingTiers().size());
+		assertEquals(0, module.pendingObjects().size());
 		assertFalse(state.isPohBuilt(ornate.id));
 
 		// own house: spawn then the welcome message commits the buffer
@@ -130,14 +130,118 @@ public class PohModuleTest
 		spawnObject(module, ornate.objectIds.get(0));
 		module.onGameStateChanged(stateChange(net.runelite.api.GameState.LOGGED_IN));
 		assertEquals("LOGGED_IN after a load must not wipe the buffer",
-			1, module.pendingTiers().size());
+			1, module.pendingObjects().size());
 		module.onChatMessage(welcome());
 		assertTrue(state.isPohBuilt(ornate.id));
 
 		// logging out fully still resets the confirmation
 		module.onGameStateChanged(stateChange(net.runelite.api.GameState.LOGIN_SCREEN));
-		assertEquals(0, module.pendingTiers().size());
+		assertEquals(0, module.pendingObjects().size());
 		module.shutDown();
+	}
+
+	/**
+	 * The game builds the IDENTICAL object for a rug in a parlour and a rug in
+	 * a bedroom, so the object id alone cannot say which hotspot was built. A
+	 * POH room is one 8x8 chunk, so the furniture a rug shares its room with
+	 * is what attributes it — otherwise one rug marked every room's rug built
+	 * (or, before that, one arbitrary room's).
+	 */
+	@Test
+	public void sharedFurnitureIsAttributedToTheRoomItIsIn()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		PohModule module = module(state);
+		module.startUp();
+
+		int brownRug = 6759;          // buildable in Parlour, Bedroom, Chapel, Portal nexus
+		int crudeChair = 6752;        // Parlour only
+		int woodenBed = 13148;        // Bedroom only
+
+		// room 0 is the parlour (a chair and a rug), room 1 the bedroom (a bed)
+		spawnObject(module, crudeChair, 0);
+		spawnObject(module, brownRug, 0);
+		spawnObject(module, woodenBed, 1);
+		module.onChatMessage(welcome());
+
+		assertTrue(state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
+		assertTrue(state.isPohBuilt("bedroom__bed:wooden_bed"));
+		assertTrue("the rug is in the parlour", state.isPohBuilt("parlour__rug:brown_rug"));
+		assertFalse("the bedroom has no rug — never mark one there",
+			state.isPohBuilt("bedroom__rug:brown_rug"));
+		assertFalse("there is no chapel at all", state.isPohBuilt("chapel__rug:brown_rug"));
+		module.shutDown();
+	}
+
+	/** A room holding nothing but shared furniture cannot be identified, so it
+	 *  marks nothing rather than guessing — the manual mark is the escape
+	 *  hatch (the honesty rule: never invent what we cannot read). */
+	@Test
+	public void unidentifiableRoomMarksNothingRatherThanGuessing()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		PohModule module = module(state);
+		module.startUp();
+
+		spawnObject(module, 6759, 0);   // a brown rug, alone in its room
+		module.onChatMessage(welcome());
+
+		assertFalse(state.isPohBuilt("parlour__rug:brown_rug"));
+		assertFalse(state.isPohBuilt("bedroom__rug:brown_rug"));
+		module.shutDown();
+	}
+
+	/** End to end: walking into your house detects what is built AND the
+	 *  sidebar redraws itself off the state listener (Luke's ask). */
+	@Test
+	public void enteringTheHouseUpdatesTheSidebar() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		StateFixture.stat(state, Skill.CONSTRUCTION, 84, 3_000_000);
+		PohModule module = module(state);
+		module.startUp();
+		PohTab tab = (PohTab) module.buildTab();
+		javax.swing.SwingUtilities.invokeAndWait(() -> tab.expand("parlour__chairs"));
+		javax.swing.SwingUtilities.invokeAndWait(() -> { });
+		BufferedImage before = SwingRender.render(tab);
+
+		// the house loads its furniture, then the game confirms it is ours
+		javax.swing.SwingUtilities.invokeAndWait(() ->
+		{
+			module.onGameStateChanged(loading());
+			spawnObject(module, 6752, 0);    // crude wooden chair, parlour
+			spawnObject(module, 6759, 0);    // brown rug, same room
+			module.onChatMessage(welcome());
+		});
+		javax.swing.SwingUtilities.invokeAndWait(() -> { }); // drain the queued rebuild
+
+		assertTrue(state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
+		BufferedImage after = SwingRender.render(tab);
+		assertFalse("the sidebar must redraw when detection marks something",
+			sameImage(before, after));
+		module.shutDown();
+	}
+
+	private static boolean sameImage(BufferedImage a, BufferedImage b)
+	{
+		if (a.getWidth() != b.getWidth() || a.getHeight() != b.getHeight())
+		{
+			return false;
+		}
+		for (int y = 0; y < a.getHeight(); y++)
+		{
+			for (int x = 0; x < a.getWidth(); x++)
+			{
+				if (a.getRGB(x, y) != b.getRGB(x, y))
+				{
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	@Test
@@ -245,8 +349,17 @@ public class PohModuleTest
 
 	private static void spawnObject(PohModule module, int objectId)
 	{
+		spawnObject(module, objectId, 0);
+	}
+
+	/** Spawn an object in house room {@code room} — a POH room is one 8x8
+	 *  chunk, so the room index just shifts the world coordinates by 8. */
+	private static void spawnObject(PohModule module, int objectId, int room)
+	{
 		net.runelite.api.GameObject object = org.mockito.Mockito.mock(net.runelite.api.GameObject.class);
 		org.mockito.Mockito.when(object.getId()).thenReturn(objectId);
+		org.mockito.Mockito.when(object.getWorldLocation()).thenReturn(
+			new net.runelite.api.coords.WorldPoint(7000 + room * 8, 7000, 0));
 		net.runelite.api.events.GameObjectSpawned event = new net.runelite.api.events.GameObjectSpawned();
 		event.setGameObject(object);
 		module.onGameObjectSpawned(event);

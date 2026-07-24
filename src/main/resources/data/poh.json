@@ -370,52 +370,6 @@
    "room": "Parlour",
    "tiers": [
     {
-     "id": "parlour__fireplace:marble_fireplace",
-     "name": "Marble fireplace",
-     "page": "Marble fireplace",
-     "level": 1,
-     "reqs": [
-      "skillb:Construction:1"
-     ],
-     "objectIds": [
-      6784,
-      6785,
-      40776,
-      40777
-     ],
-     "materials": [
-      {
-       "itemId": 8786,
-       "name": "Marble block",
-       "qty": 1
-      }
-     ],
-     "icon": 8327
-    },
-    {
-     "id": "parlour__fireplace:stone_fireplace",
-     "name": "Stone fireplace",
-     "page": "Stone fireplace",
-     "level": 1,
-     "reqs": [
-      "skillb:Construction:1"
-     ],
-     "objectIds": [
-      6782,
-      6783,
-      40774,
-      40775
-     ],
-     "materials": [
-      {
-       "itemId": 3420,
-       "name": "Limestone brick",
-       "qty": 2
-      }
-     ],
-     "icon": 8326
-    },
-    {
      "id": "parlour__fireplace:clay_fireplace",
      "name": "Clay fireplace",
      "page": "Clay fireplace",
@@ -434,10 +388,56 @@
       }
      ],
      "icon": 8325
+    },
+    {
+     "id": "parlour__fireplace:stone_fireplace",
+     "name": "Stone fireplace",
+     "page": "Stone fireplace",
+     "level": 33,
+     "reqs": [
+      "skillb:Construction:33"
+     ],
+     "objectIds": [
+      6782,
+      6783,
+      40774,
+      40775
+     ],
+     "materials": [
+      {
+       "itemId": 3420,
+       "name": "Limestone brick",
+       "qty": 2
+      }
+     ],
+     "icon": 8326
+    },
+    {
+     "id": "parlour__fireplace:marble_fireplace",
+     "name": "Marble fireplace",
+     "page": "Marble fireplace",
+     "level": 63,
+     "reqs": [
+      "skillb:Construction:63"
+     ],
+     "objectIds": [
+      6784,
+      6785,
+      40776,
+      40777
+     ],
+     "materials": [
+      {
+       "itemId": 8786,
+       "name": "Marble block",
+       "qty": 1
+      }
+     ],
+     "icon": 8327
     }
    ],
-   "icon": 8327,
-   "benefit": "To light a fire in the fireplace, logs and a tinderbox are needed in the inventory. Players who are new to Construction may want to use the mine north of the Rimmington house portal."
+   "icon": 8325,
+   "benefit": "Goblin decorations can be used on the fireplace to make a decorated marble fireplace. To light a fire in the fireplace, logs are needed in the inventory."
   },
   {
    "id": "parlour__rug",
@@ -598,7 +598,8 @@
        "name": "Sturdy beehive parts",
        "qty": 10
       }
-     ]
+     ],
+     "icon": 28676
     },
     {
      "id": "garden__big_plants:beehive_style_2",
@@ -622,7 +623,8 @@
        "name": "Sturdy beehive parts",
        "qty": 10
       }
-     ]
+     ],
+     "icon": 28676
     },
     {
      "id": "garden__big_plants:fern_big_plant",
@@ -789,7 +791,7 @@
      "icon": 8188
     }
    ],
-   "icon": 8186
+   "icon": 28676
   },
   {
    "id": "garden__big_tree_tree",
@@ -2495,52 +2497,6 @@
    "room": "Dining room",
    "tiers": [
     {
-     "id": "dining_room__fireplace:marble_fireplace",
-     "name": "Marble fireplace",
-     "page": "Marble fireplace",
-     "level": 1,
-     "reqs": [
-      "skillb:Construction:1"
-     ],
-     "objectIds": [
-      6784,
-      6785,
-      40776,
-      40777
-     ],
-     "materials": [
-      {
-       "itemId": 8786,
-       "name": "Marble block",
-       "qty": 1
-      }
-     ],
-     "icon": 8327
-    },
-    {
-     "id": "dining_room__fireplace:stone_fireplace",
-     "name": "Stone fireplace",
-     "page": "Stone fireplace",
-     "level": 1,
-     "reqs": [
-      "skillb:Construction:1"
-     ],
-     "objectIds": [
-      6782,
-      6783,
-      40774,
-      40775
-     ],
-     "materials": [
-      {
-       "itemId": 3420,
-       "name": "Limestone brick",
-       "qty": 2
-      }
-     ],
-     "icon": 8326
-    },
-    {
      "id": "dining_room__fireplace:clay_fireplace",
      "name": "Clay fireplace",
      "page": "Clay fireplace",
@@ -2559,9 +2515,55 @@
       }
      ],
      "icon": 8325
+    },
+    {
+     "id": "dining_room__fireplace:stone_fireplace",
+     "name": "Stone fireplace",
+     "page": "Stone fireplace",
+     "level": 33,
+     "reqs": [
+      "skillb:Construction:33"
+     ],
+     "objectIds": [
+      6782,
+      6783,
+      40774,
+      40775
+     ],
+     "materials": [
+      {
+       "itemId": 3420,
+       "name": "Limestone brick",
+       "qty": 2
+      }
+     ],
+     "icon": 8326
+    },
+    {
+     "id": "dining_room__fireplace:marble_fireplace",
+     "name": "Marble fireplace",
+     "page": "Marble fireplace",
+     "level": 63,
+     "reqs": [
+      "skillb:Construction:63"
+     ],
+     "objectIds": [
+      6784,
+      6785,
+      40776,
+      40777
+     ],
+     "materials": [
+      {
+       "itemId": 8786,
+       "name": "Marble block",
+       "qty": 1
+      }
+     ],
+     "icon": 8327
     }
    ],
-   "icon": 8327,
+   "icon": 8325,
    "benefit": "You can only use regular logs to light the fireplace, giving some Firemaking experience."
   },
   {
@@ -4020,52 +4022,6 @@
    "room": "Bedroom",
    "tiers": [
     {
-     "id": "bedroom__fireplace:marble_fireplace",
-     "name": "Marble fireplace",
-     "page": "Marble fireplace",
-     "level": 1,
-     "reqs": [
-      "skillb:Construction:1"
-     ],
-     "objectIds": [
-      6784,
-      6785,
-      40776,
-      40777
-     ],
-     "materials": [
-      {
-       "itemId": 8786,
-       "name": "Marble block",
-       "qty": 1
-      }
-     ],
-     "icon": 8327
-    },
-    {
-     "id": "bedroom__fireplace:stone_fireplace",
-     "name": "Stone fireplace",
-     "page": "Stone fireplace",
-     "level": 1,
-     "reqs": [
-      "skillb:Construction:1"
-     ],
-     "objectIds": [
-      6782,
-      6783,
-      40774,
-      40775
-     ],
-     "materials": [
-      {
-       "itemId": 3420,
-       "name": "Limestone brick",
-       "qty": 2
-      }
-     ],
-     "icon": 8326
-    },
-    {
      "id": "bedroom__fireplace:clay_fireplace",
      "name": "Clay fireplace",
      "page": "Clay fireplace",
@@ -4084,10 +4040,56 @@
       }
      ],
      "icon": 8325
+    },
+    {
+     "id": "bedroom__fireplace:stone_fireplace",
+     "name": "Stone fireplace",
+     "page": "Stone fireplace",
+     "level": 33,
+     "reqs": [
+      "skillb:Construction:33"
+     ],
+     "objectIds": [
+      6782,
+      6783,
+      40774,
+      40775
+     ],
+     "materials": [
+      {
+       "itemId": 3420,
+       "name": "Limestone brick",
+       "qty": 2
+      }
+     ],
+     "icon": 8326
+    },
+    {
+     "id": "bedroom__fireplace:marble_fireplace",
+     "name": "Marble fireplace",
+     "page": "Marble fireplace",
+     "level": 63,
+     "reqs": [
+      "skillb:Construction:63"
+     ],
+     "objectIds": [
+      6784,
+      6785,
+      40776,
+      40777
+     ],
+     "materials": [
+      {
+       "itemId": 8786,
+       "name": "Marble block",
+       "qty": 1
+      }
+     ],
+     "icon": 8327
     }
    ],
-   "icon": 8327,
-   "benefit": "To light a fire in the fireplace, logs and a tinderbox are needed in the inventory. Players who are new to Construction may want to use the mine north of the Rimmington house portal."
+   "icon": 8325,
+   "benefit": "Goblin decorations can be used on the fireplace to make a decorated marble fireplace. To light a fire in the fireplace, logs are needed in the inventory."
   },
   {
    "id": "bedroom__rug",
@@ -6178,8 +6180,7 @@
       "skillb:Construction:54"
      ],
      "objectIds": [
-      13400,
-      13401
+      13400
      ],
      "materials": [
       {
@@ -6308,8 +6309,7 @@
       "skillb:Construction:48"
      ],
      "objectIds": [
-      29336,
-      2668
+      29336
      ],
      "materials": [
       {
@@ -6339,8 +6339,7 @@
       "skillb:Construction:53"
      ],
      "objectIds": [
-      29337,
-      7413
+      29337
      ],
      "materials": [
       {
@@ -6371,14 +6370,7 @@
       9357,
       9358,
       40430,
-      40431,
-      10507,
-      8598,
-      10508,
-      10509,
-      10510,
-      10511,
-      10512
+      40431
      ],
      "materials": [
       {
@@ -10572,7 +10564,8 @@
        "name": "Marble block",
        "qty": 4
       }
-     ]
+     ],
+     "icon": 8333
     }
    ],
    "icon": 8331,
@@ -10641,7 +10634,8 @@
        "name": "Marble block",
        "qty": 3
       }
-     ]
+     ],
+     "icon": 8330
     },
     {
      "id": "portal_chamber__portals:raging_echoes_portal",
@@ -10661,7 +10655,8 @@
        "name": "Marble block",
        "qty": 3
       }
-     ]
+     ],
+     "icon": 8330
     }
    ],
    "icon": 8328,
@@ -10694,7 +10689,8 @@
        "name": "Sturdy beehive parts",
        "qty": 10
       }
-     ]
+     ],
+     "icon": 28676
     },
     {
      "id": "formal_garden__big_plant_small_plant:beehive_style_2",
@@ -10718,7 +10714,8 @@
        "name": "Sturdy beehive parts",
        "qty": 10
       }
-     ]
+     ],
+     "icon": 28676
     },
     {
      "id": "formal_garden__big_plant_small_plant:pumpkin_construction",
@@ -10806,7 +10803,7 @@
      "icon": 8215
     }
    ],
-   "icon": 24979,
+   "icon": 28676,
    "benefit": "Note: As with all plantable items in Construction, the player will receive the same amount of experience for Construction and Farming."
   },
   {
@@ -10836,7 +10833,8 @@
        "name": "Sturdy beehive parts",
        "qty": 10
       }
-     ]
+     ],
+     "icon": 28676
     },
     {
      "id": "formal_garden__big_plant_2_small_plant_2:beehive_style_2",
@@ -10860,7 +10858,8 @@
        "name": "Sturdy beehive parts",
        "qty": 10
       }
-     ]
+     ],
+     "icon": 28676
     },
     {
      "id": "formal_garden__big_plant_2_small_plant_2:pumpkin_construction",
@@ -10948,7 +10947,7 @@
      "icon": 8212
     }
    ],
-   "icon": 24979,
+   "icon": 28676,
    "benefit": "Note: As with all plantable items in Construction, the player will receive the same amount of experience for Construction and Farming."
   },
   {
@@ -12120,7 +12119,8 @@
        "name": "Magic stone",
        "qty": 25
       }
-     ]
+     ],
+     "icon": 8363
     }
    ],
    "icon": 8357,
@@ -12451,7 +12451,8 @@
        "name": "Spirit sapling",
        "qty": 1
       }
-     ]
+     ],
+     "icon": 20635
     },
     {
      "id": "superior_garden__teleport:obelisk_construction",
@@ -12532,10 +12533,11 @@
        "name": "Fairy enchantment",
        "qty": 1
       }
-     ]
+     ],
+     "icon": 20637
     }
    ],
-   "icon": 21788,
+   "icon": 20635,
    "benefit": "The teleport space allows players to plant a fairy ring (code ), spirit tree, or obelisk, allowing quick transportation, provided they have completed the quests required to use them."
   },
   {
@@ -13208,7 +13210,8 @@
        "name": "Gold leaf",
        "qty": 2
       }
-     ]
+     ],
+     "icon": 22707
     }
    ],
    "icon": 22705,
@@ -13526,85 +13529,7 @@
       "skillb:Construction:80"
      ],
      "objectIds": [
-      29166,
-      29169,
-      26713,
-      30403,
-      31983,
-      32537,
-      32538,
-      32539,
-      32540,
-      32541,
-      29180,
-      29182,
-      29184,
-      29186,
-      29188,
-      29190,
-      29192,
-      29194,
-      29196,
-      29198,
-      29200,
-      29202,
-      29204,
-      29206,
-      29208,
-      29210,
-      29212,
-      29214,
-      58664,
-      29216,
-      29218,
-      29220,
-      29222,
-      29224,
-      29178,
-      29176,
-      29167,
-      29181,
-      29183,
-      29185,
-      29187,
-      29189,
-      29191,
-      29193,
-      29195,
-      29197,
-      29199,
-      29201,
-      29203,
-      29205,
-      29207,
-      29209,
-      29211,
-      29213,
-      29215,
-      58665,
-      29217,
-      29219,
-      29221,
-      29223,
-      29225,
-      29179,
-      29177,
-      29168,
-      29170,
-      29171,
-      29172,
-      29173,
-      29174,
-      29175,
-      29625,
-      26714,
-      31979,
-      31980,
-      31981,
-      31982,
-      39621,
-      46226,
-      50706
+      29166
      ],
      "materials": [
       {
@@ -14044,8 +13969,7 @@
       "skillb:Construction:83"
      ],
      "objectIds": [
-      13373,
-      143
+      13373
      ],
      "materials": [
       {
@@ -14074,8 +13998,7 @@
       "skillb:Construction:70"
      ],
      "objectIds": [
-      13366,
-      130
+      13366
      ],
      "materials": [
       {
@@ -14095,8 +14018,7 @@
       "skillb:Construction:74"
      ],
      "objectIds": [
-      13367,
-      131
+      13367
      ],
      "materials": [
       {
@@ -14116,8 +14038,7 @@
       "skillb:Construction:78"
      ],
      "objectIds": [
-      13368,
-      132
+      13368
      ],
      "materials": [
       {
@@ -14137,8 +14058,7 @@
       "skillb:Construction:82"
      ],
      "objectIds": [
-      13372,
-      137
+      13372
      ],
      "materials": [
       {
@@ -14158,8 +14078,7 @@
       "skillb:Construction:86"
      ],
      "objectIds": [
-      13370,
-      134
+      13370
      ],
      "materials": [
       {
@@ -14179,8 +14098,7 @@
       "skillb:Construction:90"
      ],
      "objectIds": [
-      13369,
-      133
+      13369
      ],
      "materials": [
       {
@@ -14200,8 +14118,7 @@
       "skillb:Construction:94"
      ],
      "objectIds": [
-      2715,
-      135
+      2715
      ],
      "materials": [
       {
@@ -14672,8 +14589,7 @@
       "skillb:Construction:70"
      ],
      "objectIds": [
-      13366,
-      130
+      13366
      ],
      "materials": [
       {
@@ -14693,8 +14609,7 @@
       "skillb:Construction:74"
      ],
      "objectIds": [
-      13367,
-      131
+      13367
      ],
      "materials": [
       {
@@ -14714,8 +14629,7 @@
       "skillb:Construction:78"
      ],
      "objectIds": [
-      13368,
-      132
+      13368
      ],
      "materials": [
       {
@@ -14735,8 +14649,7 @@
       "skillb:Construction:82"
      ],
      "objectIds": [
-      13372,
-      137
+      13372
      ],
      "materials": [
       {
@@ -14756,8 +14669,7 @@
       "skillb:Construction:86"
      ],
      "objectIds": [
-      13370,
-      134
+      13370
      ],
      "materials": [
       {
@@ -14777,8 +14689,7 @@
       "skillb:Construction:90"
      ],
      "objectIds": [
-      13369,
-      133
+      13369
      ],
      "materials": [
       {
@@ -14798,8 +14709,7 @@
       "skillb:Construction:94"
      ],
      "objectIds": [
-      2715,
-      135
+      2715
      ],
      "materials": [
       {
@@ -15603,8 +15513,7 @@
       "skillb:Construction:75"
      ],
      "objectIds": [
-      13378,
-      142
+      13378
      ],
      "materials": [
       {
@@ -15624,8 +15533,7 @@
       "skillb:Construction:80"
      ],
      "objectIds": [
-      13374,
-      138
+      13374
      ],
      "materials": [
       {
@@ -15645,8 +15553,7 @@
       "skillb:Construction:85"
      ],
      "objectIds": [
-      13377,
-      141
+      13377
      ],
      "materials": [
       {
@@ -15666,8 +15573,7 @@
       "skillb:Construction:90"
      ],
      "objectIds": [
-      13376,
-      140
+      13376
      ],
      "materials": [
       {
@@ -15687,8 +15593,7 @@
       "skillb:Construction:95"
      ],
      "objectIds": [
-      13375,
-      139
+      13375
      ],
      "materials": [
       {
@@ -15708,8 +15613,7 @@
       "skillb:Construction:99"
      ],
      "objectIds": [
-      31984,
-      8027
+      31984
      ],
      "materials": [
       {

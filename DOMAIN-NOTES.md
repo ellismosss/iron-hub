@@ -1061,3 +1061,42 @@ cleanly; a small blocklist drops the Sailing crates (`Crate of …`) and quest
 tokens (`Alan's …`, `Iban's ashes`, `Grimy note`) they catch. Seeds are
 curated rather than patterned — `% seed`/`% sapling` caught too much quest
 and crystal-token junk.
+
+## POH build detection (module: poh/House, pack: poh.json)
+
+The house catalog is harvested from the wiki's 24 room pages plus each
+furniture's own page (`tools/gen_poh.py`). Four things about that data are
+load-bearing and each one cost a bug:
+
+- **The same furniture in different rooms is the SAME object id.** A brown
+  rug (6759) is the parlour's rug, the bedroom's rug, the chapel's rug and
+  the portal nexus's rug. 154 object ids are shared this way, covering 480
+  placements. So an `objectId -> tier` map is wrong twice over: it can only
+  hold one tier per id (326 placements silently unreachable) and the one it
+  keeps is arbitrary, so a rug spawn marked some other room's rug built.
+  `PohPack.placementsByObjectId` returns them ALL, and the caller must
+  disambiguate.
+- **A POH room is one 8x8 tile chunk**, so objects sharing a chunk share a
+  room. That is the only available discriminator: buffer spawns per chunk,
+  identify the room from the furniture in it whose object id has exactly one
+  placement (every room has at least five such tiers), then attribute the
+  shared furniture to that room. A chunk holding nothing but shared furniture
+  is left unmarked — guessing would invent a room the player may not own.
+- **Furniture vs materials in a room table** is the `{{plinkt}}` / `{{ilinkt}}`
+  (thumbnail link) versus plain `{{plink}}` / `{{ilink}}` distinction, NOT the
+  p-vs-i one. Matching `plinkt?` swept the materials in as furniture; matching
+  only `plinkt` lost every hotspot whose table uses `ilinkt` (the whole
+  Superior garden pool ladder).
+- **Infobox fields must be read from inside the Infobox Construction block,
+  and tolerate the versioned form.** A furniture page often carries other
+  infoboxes whose `id` fields are unrelated (a pet's NPC id, the cape
+  hanger's scenery list) — scraping page-wide injected false detection ids on
+  19 pages. And a page covering two variants ("Marble fireplace" /
+  "Decorated marble fireplace") writes `level1`/`level2` and `id1`/`id2` with
+  no plain `level`, so a strict `level` match silently drops it.
+
+The own-house gate is unchanged and deliberate: furniture only commits once
+the game's own "Welcome to your house." message confirms the house is yours,
+so a friend's house never marks anything. Spawns and that message race, so
+spawns buffer through the scene load and commit on confirmation (and live
+afterwards, for building-mode swaps).
