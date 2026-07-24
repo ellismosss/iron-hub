@@ -99,9 +99,6 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "notifyDailyReset", name = "Daily reset", description = "Notify at the daily reset when dailies are outstanding", section = notificationsSection, position = 4)
 	default boolean notifyDailyReset() { return true; }
 
-	@ConfigItem(keyName = "runwayWarningHours", name = "Runway warning (hours)", description = "Warn when a consumable's runway drops below this many hours", section = notificationsSection, position = 5)
-	default int runwayWarningHours() { return 6; }
-
 	@ConfigItem(keyName = "caTierGoal", name = "CA tier goal", description = "Combat Achievements tier to work toward; Auto advances to the next incomplete tier", section = notificationsSection, position = 6)
 	default CaTierGoal caTierGoal() { return CaTierGoal.AUTO; }
 
