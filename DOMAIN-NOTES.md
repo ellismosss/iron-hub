@@ -1087,6 +1087,28 @@ load-bearing and each one cost a bug:
   p-vs-i one. Matching `plinkt?` swept the materials in as furniture; matching
   only `plinkt` lost every hotspot whose table uses `ilinkt` (the whole
   Superior garden pool ladder).
+- **The wiki lists the UNCONFIGURED object; the game swaps it once the
+  furniture is set up.** A Teak portal is `POH_PORTAL_TEAK_EMPTY` only while it
+  has no destination. Choose one and the game builds
+  `POH_PORTAL_TEAK_VARROCK` — one object per destination, 47 of them, none of
+  which the wiki's infobox mentions. Detection matches on object id, so every
+  portal anyone actually uses was invisible to it. `gen_poh.py` absorbs those
+  variants from the client's own symbol table: an id whose gameval name ends
+  `_EMPTY` is the placeholder, and every id sharing its stem is the same
+  furniture configured (4 families, +276 ids). The rule is deliberately narrow
+  — a looser "strip the last token" stem would be WRONG, because
+  `POH_CURTAINS_1/2/3` are three different tiers of one hotspot and the stem
+  `POH_DISPLAY_` would drag `POH_DISPLAY_CASE_RUNE1_6` (different furniture)
+  into the boss-lair display. Families that don't mark their placeholder stay
+  unexpanded rather than guessed at.
+- **A Leagues reskin must not be claimed by its base furniture.** The wiki
+  gives "Marble portal" and "Raging echoes portal" the same ids, so either one
+  marked BOTH built — and since the tab reports the HIGHEST built tier, an
+  ordinary player with a marble portal was told they had a Raging echoes
+  portal. The client's symbols separate them (`POH_PORTAL_LEAGUE_5_*` vs
+  `POH_PORTAL_MARBLE_*`), and the pack's other league tiers already pair the
+  two (`POH_CURTAINS_LEAGUE5` ↔ "Raging echoes curtains"), so the LEAGUE ids
+  go to the league tier alone — applied only inside a hotspot that has one.
 - **Infobox fields must be read from inside the Infobox Construction block,
   and tolerate the versioned form.** A furniture page often carries other
   infoboxes whose `id` fields are unrelated (a pet's NPC id, the cape
@@ -1120,6 +1142,18 @@ anything anyway, because nothing is read outside building mode.
 Because detection only runs in building mode, the tab SAYS so while nothing is
 marked ("Enter building mode in your house to sync..."). An empty grid with no
 explanation is what read as broken twice.
+
+**A hotspot holds ONE piece of furniture — the ladder is alternatives, not a
+stack.** A Gilded altar REPLACES the Oak altar; only the highest built tier
+exists in the house. "The first unbuilt tier from the bottom" is therefore not
+the next upgrade, and asking for it answered "Oak altar" for a player with a
+Gilded altar — so every hotspot read as incomplete forever, the tab showed
+**0/137 with no green ticks even when detection had marked everything
+correctly**, and that display bug is indistinguishable from detection failing.
+`nextTier` is the tier ABOVE the highest built (null once the top is up),
+`builtTier` is the highest built, and the header counts hotspots with anything
+standing at them — counting fully-upgraded ladders instead reads ~0 for any
+real house, forever.
 
 **SWEEP the scene; do not listen to spawns.** Two blind spots that closes:
 furniture that loaded before the module was listening (you were already

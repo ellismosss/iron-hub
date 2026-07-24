@@ -99,6 +99,7 @@ public class PohModule implements IronHubModule
 	private volatile boolean diagBuildingMode;
 	private volatile int diagSweeps;
 	private volatile int diagTiles;
+	private volatile int diagObjects;
 	private volatile int diagFurniture;
 	private volatile int diagMarked;
 	private final Runnable goalProofListener = this::onStateChange;
@@ -286,6 +287,10 @@ public class PohModule implements IronHubModule
 		boolean building = buildingMode();
 		if (building != diagBuildingMode)
 		{
+			// Entering building mode is itself a reason to sweep. Whether
+			// toggling it reloads the scene (which would reset sweptThisScene)
+			// is not something this can verify, so it must not depend on it.
+			sweptThisScene = !building && sweptThisScene;
 			diagBuildingMode = building;
 			publishDiagnostics();
 		}
@@ -335,6 +340,7 @@ public class PohModule implements IronHubModule
 		}
 		diagSweeps++;
 		diagTiles = 0;
+		diagObjects = 0;
 		diagFurniture = 0;
 		for (net.runelite.api.Tile[][] plane : scene.getTiles())
 		{
@@ -390,6 +396,7 @@ public class PohModule implements IronHubModule
 	/** Buffer one furniture object against the house room it sits in. */
 	private void buffer(int objectId, net.runelite.api.coords.WorldPoint point)
 	{
+		diagObjects++;
 		if (pack.placementsByObjectId(objectId).isEmpty())
 		{
 			return;
@@ -594,17 +601,36 @@ public class PohModule implements IronHubModule
 		}
 	}
 
-	/** The first unbuilt tier of a space, or null when the ladder is done. */
+	/**
+	 * The next UPGRADE for a hotspot — the tier above the highest one built,
+	 * or the first tier when nothing is built. Null once the top tier is up.
+	 *
+	 * <p>A hotspot holds ONE piece of furniture: a Gilded altar REPLACES the
+	 * Oak altar, it does not stack on it, so the ladder is a list of
+	 * alternatives and only the highest built one exists in the house. Asking
+	 * for "the first unbuilt tier from the bottom" therefore answered "Oak
+	 * altar" for a player with a Gilded altar, which made every hotspot read
+	 * as incomplete forever — the tab showed 0/137 and no green ticks even
+	 * when detection had marked everything correctly.</p>
+	 */
 	PohPack.Tier nextTier(PohPack.Space space)
 	{
-		for (PohPack.Tier tier : space.tiers)
+		int highest = -1;
+		for (int i = 0; i < space.tiers.size(); i++)
 		{
-			if (!state.isPohBuilt(tier.id))
+			if (state.isPohBuilt(space.tiers.get(i).id))
 			{
-				return tier;
+				highest = i;
 			}
 		}
-		return null;
+		return highest + 1 < space.tiers.size() ? space.tiers.get(highest + 1) : null;
+	}
+
+	/** Whether anything at all stands at this hotspot — what a player means
+	 *  by "built", and what the tab counts. */
+	boolean isBuilt(PohPack.Space space)
+	{
+		return builtTier(space) != null;
 	}
 
 	/** Highest built tier of a space, or null. */
@@ -653,6 +679,7 @@ public class PohModule implements IronHubModule
 		return "Build mode " + (diagBuildingMode ? "on" : "off")
 			+ " · sweeps " + diagSweeps
 			+ " · tiles " + diagTiles
+			+ " · objects " + diagObjects
 			+ " · furniture found " + diagFurniture
 			+ " · matched " + diagMarked;
 	}

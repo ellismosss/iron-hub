@@ -131,6 +131,35 @@ public class PohModuleTest
 	}
 
 	/**
+	 * A portal only carries POH_PORTAL_&lt;wood&gt;_EMPTY while it has no
+	 * destination set. Choose one and the game swaps in a per-destination
+	 * object (POH_PORTAL_TEAK_VARROCK and 46 others), so every portal anyone
+	 * actually uses was invisible to detection until gen_poh.py absorbed those
+	 * variants from the client's own symbol table.
+	 */
+	@Test
+	public void aConfiguredPortalIsStillARecognisedPortal()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		PohModule module = module(state);
+		module.startUp();
+
+		// 13615 = POH_PORTAL_TEAK_VARROCK: a teak portal set to Varrock
+		module.scanTileForTest(tile(0, new int[]{13615}, 0, 0, 0));
+		module.commitForTest();
+		assertTrue("a teak portal with a destination is a built teak portal",
+			state.isPohBuilt("portal_chamber__portals:teak_portal"));
+
+		// and the Leagues reskin must not be claimed by the base furniture:
+		// the wiki gave Marble and Raging echoes the same ids, so either one
+		// marked BOTH built and the tab reported the reskin to normal players
+		assertFalse("a marble portal is not a Raging echoes portal",
+			state.isPohBuilt("portal_chamber__portals:raging_echoes_portal"));
+		module.shutDown();
+	}
+
+	/**
 	 * The game builds the IDENTICAL object for a rug in a parlour and a rug in
 	 * a bedroom, so the object id alone cannot say which hotspot was built. A
 	 * POH room is one 8x8 chunk, so the furniture a rug shares its room with
@@ -247,6 +276,42 @@ public class PohModuleTest
 
 		module.toggleBuilt(pool.tiers.get(1)); // unmark
 		assertEquals(pool.tiers.get(0), module.builtTier(pool));
+		module.shutDown();
+	}
+
+	/**
+	 * A hotspot holds ONE piece of furniture — a Gilded altar replaces the Oak
+	 * altar rather than stacking on it — so building only the TOP tier is the
+	 * normal case, not an edge case. nextTier used to answer "the first
+	 * unbuilt tier from the bottom", which for a Gilded altar was "Oak altar":
+	 * every hotspot then read as unbuilt forever and the tab showed 0/137 with
+	 * no green ticks even when detection had marked everything correctly.
+	 * ladderStatusAndManualMark missed it by only ever building bottom-up.
+	 */
+	@Test
+	public void onlyTheTopTierBuiltStillReadsAsBuilt()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		PohModule module = module(state);
+		PohPack.Space altar = pack.spaces.stream()
+			.filter(s -> s.id.equals("chapel__altar")).findFirst().orElseThrow();
+		assertTrue("the altar ladder should have several tiers", altar.tiers.size() > 2);
+
+		PohPack.Tier top = altar.tiers.get(altar.tiers.size() - 1);
+		module.toggleBuilt(top);   // a Gilded altar, and nothing below it
+
+		assertTrue("anything standing at the hotspot means built", module.isBuilt(altar));
+		assertEquals("the built tier is the one that exists", top, module.builtTier(altar));
+		assertNull("the top tier is up, so there is nothing to upgrade to",
+			module.nextTier(altar));
+
+		// and one tier down: the next upgrade is the tier ABOVE it, never tier 0
+		module.toggleBuilt(top);
+		PohPack.Tier below = altar.tiers.get(altar.tiers.size() - 2);
+		module.toggleBuilt(below);
+		assertTrue(module.isBuilt(altar));
+		assertEquals(top, module.nextTier(altar));
 		module.shutDown();
 	}
 

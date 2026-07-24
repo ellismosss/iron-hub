@@ -34,10 +34,12 @@ materials go unresolved (a data-quality tripwire).
 Usage: python3 tools/gen_poh.py
 """
 
+import glob
 import json
 import os
 import re
 import sqlite3
+import subprocess
 import sys
 import time
 import urllib.parse
@@ -247,6 +249,97 @@ def slug(text):
     return re.sub(r"[^a-z0-9]+", "_", text.lower()).strip("_")
 
 
+def gameval_object_names():
+    """gameval object id -> its constant NAMES, via javap on the runelite-api
+    jar (the repo's fail-fast idiom — these are the client's own symbols)."""
+    jars = [j for j in glob.glob(os.path.expanduser(
+        "~/.gradle/caches/modules-2/files-2.1/net.runelite/runelite-api/*/*/"
+        "runelite-api-*.jar")) if "sources" not in j and "javadoc" not in j]
+    if not jars:
+        raise SystemExit("no runelite-api jar in the Gradle cache — run a build first")
+    out = {}
+    for cls in ("net.runelite.api.gameval.ObjectID", "net.runelite.api.gameval.ObjectID1"):
+        dump = subprocess.run(
+            ["javap", "-classpath", sorted(jars)[-1], "-constants", cls],
+            capture_output=True, text=True, check=True).stdout
+        for m in re.finditer(r"public static final int (\w+) = (-?\d+);", dump):
+            out.setdefault(int(m.group(2)), []).append(m.group(1))
+    if len(out) < 40000:
+        raise SystemExit(f"only {len(out)} gameval object ids — javap parse broke")
+    return out
+
+
+def expand_configured_variants(spaces, names):
+    """Absorb the object ids the game swaps in once furniture is CONFIGURED.
+
+    The wiki's {{Infobox Construction}} lists the object a hotspot builds, but
+    that is only what stands there while the furniture is unconfigured. Set a
+    destination on a Teak portal and the game replaces
+    POH_PORTAL_TEAK_EMPTY with POH_PORTAL_TEAK_VARROCK — one of 47 per
+    destination, none of which the wiki lists. Detection matches on object id,
+    so before this every portal anyone actually uses was invisible to it.
+
+    The `_EMPTY` suffix is the client's own marker for that placeholder, which
+    is what makes the rule machine-derivable instead of hand-guessed. It is
+    kept deliberately narrow: a looser "strip the last token" stem rule is
+    WRONG, because POH_CURTAINS_1/2/3 are three different tiers of the same
+    hotspot, and the stem POH_DISPLAY_ would drag POH_DISPLAY_CASE_RUNE1_6 (a
+    different furniture entirely) into the boss-lair display. Families that do
+    not mark their placeholder stay unexpanded rather than guessed at.
+    """
+    added = 0
+    families = set()
+    for space in spaces:
+        for tier in space["tiers"]:
+            extra = set()
+            for oid in tier["objectIds"]:
+                for name in names.get(oid, []):
+                    if not name.endswith("_EMPTY"):
+                        continue
+                    stem = name[: -len("EMPTY")]
+                    families.add(stem)
+                    extra |= {j for j, ns in names.items()
+                              if any(x.startswith(stem) for x in ns)}
+            new = extra - set(tier["objectIds"])
+            if new:
+                tier["objectIds"] = sorted(set(tier["objectIds"]) | new)
+                added += len(new)
+    return added, sorted(families)
+
+
+def split_league_collisions(spaces, names):
+    """Stop a Leagues reskin being claimed as built by its base furniture.
+
+    The wiki lists the same object ids on both "Marble portal" and "Raging
+    echoes portal", so either one marked BOTH tiers built — and because the
+    highest built tier is what the tab reports, an ordinary player with a
+    marble portal was told they had a Raging echoes portal. That is an
+    invented claim, which the pack must never make.
+
+    The client's own symbols separate them (POH_PORTAL_LEAGUE_5_* vs
+    POH_PORTAL_MARBLE_*), and the pack's other league tiers already pair the
+    two — "Raging echoes rug" holds POH_LEAGUE5_RUG*, "Raging echoes curtains"
+    holds POH_CURTAINS_LEAGUE5 — so the LEAGUE ids belong to the league tier
+    alone. Applied ONLY inside a hotspot that actually has a league tier, so
+    nothing else loses its reskin ids.
+    """
+    def is_league(oid):
+        return any("LEAGUE" in n for n in names.get(oid, []))
+
+    moved = 0
+    for space in spaces:
+        league = [t for t in space["tiers"] if t["name"].startswith("Raging echoes")]
+        if not league:
+            continue
+        for tier in space["tiers"]:
+            keep = [o for o in tier["objectIds"]
+                    if is_league(o) == (tier in league)]
+            if keep and keep != tier["objectIds"]:
+                moved += len(tier["objectIds"]) - len(keep)
+                tier["objectIds"] = keep
+    return moved
+
+
 def main():
     conn = sqlite3.connect(DB)
     cur = conn.cursor()
@@ -338,6 +431,17 @@ def main():
                 space["benefit"] = benefit
             spaces.append(space)
             space_ids.add(space_id)
+
+    # ── configured-object variants, from the client's own symbol table ────
+    obj_names = gameval_object_names()
+    added, families = expand_configured_variants(spaces, obj_names)
+    print(f"configured variants: +{added} object ids across "
+          f"{len(families)} placeholder families {families}")
+    print(f"league collisions split: {split_league_collisions(spaces, obj_names)} "
+          "ids moved off their base tier")
+    if added < 150:
+        sys.exit(f"only {added} configured variants absorbed — expected ~180; "
+                 "the gameval ObjectID names or the _EMPTY convention moved")
 
     # ── sanity gates ──────────────────────────────────────────────────────
     print(f"rooms={len(ROOMS)} hotspots={len(spaces)} furniture={furn_count}")

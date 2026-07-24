@@ -119,10 +119,14 @@ class PohTab extends JPanel
 		boosts = module.boostsPack() == null ? Map.of()
 			: com.ironhub.requirements.Boosts.available(module.boostsPack(), state);
 
+		// Hotspots with anything standing at them — the number that moves when
+		// detection works. Counting fully-upgraded ladders instead read 0 for
+		// almost any real house (a Gilded altar leaves six cheaper altars
+		// unbuilt, and always will).
 		int complete = 0;
 		for (PohPack.Space space : pack.spaces)
 		{
-			if (module.nextTier(space) == null)
+			if (module.isBuilt(space))
 			{
 				complete++;
 			}
@@ -133,7 +137,7 @@ class PohTab extends JPanel
 		title.setAlignmentX(LEFT_ALIGNMENT);
 		title.add(new OsrsLabel("Rooms", OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
 		title.add(Box.createHorizontalGlue());
-		title.add(new OsrsLabel(complete + "/" + pack.spaces.size() + " builds complete",
+		title.add(new OsrsLabel(complete + "/" + pack.spaces.size() + " hotspots built",
 			OsrsSkin.MUTED, OsrsSkin.smallFont()));
 		cap(title);
 		header.add(title);
@@ -202,7 +206,7 @@ class PohTab extends JPanel
 			room.owned = room.leaves.stream().allMatch(l -> l.owned);
 			room.tracked = room.leaves.stream().anyMatch(l -> l.tracked);
 			int done = (int) room.leaves.stream().filter(l -> l.owned).count();
-			room.tooltip = room.label + " — " + done + "/" + room.leaves.size() + " hotspots complete";
+			room.tooltip = room.label + " — " + done + "/" + room.leaves.size() + " hotspots built";
 		}
 		return rooms;
 	}
@@ -215,8 +219,8 @@ class PohTab extends JPanel
 		leaf.id = space.id;
 		leaf.label = space.name;
 		leaf.icon = space.icon;
-		leaf.owned = next == null;                                   // ladder complete
-		leaf.tracked = next != null && (met(next.reqs) || boostMet(next.reqs)); // buildable now
+		leaf.owned = built != null;                                  // something stands here
+		leaf.tracked = next != null && (met(next.reqs) || boostMet(next.reqs)); // upgradable now
 		leaf.badge = space.tiers.size();
 		leaf.tooltip = "<html><div style='width:200px'>" + space.name + " — "
 			+ hotspotStatus(space, next, built) + "</div></html>";
@@ -228,21 +232,22 @@ class PohTab extends JPanel
 	{
 		if (next == null)
 		{
-			return "complete — " + built.name + " built";
+			return "fully upgraded — " + built.name + " built";
 		}
+		String upgrade;
 		if (met(next.reqs))
 		{
-			return "buildable now: " + next.name + " (Construction " + next.level + ")";
+			upgrade = "next: " + next.name + " (Construction " + next.level + ")";
 		}
-		if (boostMet(next.reqs))
+		else if (boostMet(next.reqs))
 		{
-			return "buildable with a boost: " + next.name;
+			upgrade = "next with a boost: " + next.name;
 		}
-		if (built != null)
+		else
 		{
-			return built.name + " built · next " + nextLine(next);
+			upgrade = "next " + nextLine(next);
 		}
-		return "not built · needs " + nextLine(next);
+		return built == null ? "not built · " + upgrade : built.name + " built · " + upgrade;
 	}
 
 	/** The level-3 detail: the hotspot's tier ladder + a mark/wiki hint. */
