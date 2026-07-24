@@ -3497,7 +3497,8 @@
    "key": "groupstorage",
    "name": "Group Storage",
    "container": "INV_GROUP_TEMP",
-   "containerId": 659
+   "containerId": 659,
+   "mode": "container"
   },
   {
    "id": "world:blastfurnace",
@@ -3736,7 +3737,8 @@
    "key": "seedvault",
    "name": "Seed Vault",
    "container": "SEED_VAULT",
-   "containerId": 626
+   "containerId": 626,
+   "mode": "container"
   },
   {
    "id": "world:annette",

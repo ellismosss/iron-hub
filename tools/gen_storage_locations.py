@@ -335,6 +335,8 @@ CONTAINER_MODE = {
     ("sailing", "boat1"), ("sailing", "boat2"), ("sailing", "boat3"),
     ("sailing", "boat4"), ("sailing", "boat5"),
     ("death", "deathsoffice"),
+    ("world", "groupstorage"),  # INV_GROUP_TEMP — GIM shared storage
+    ("world", "seedvault"),     # SEED_VAULT
 }
 
 # container reads whose container the *StorageType enum leaves at -1 because

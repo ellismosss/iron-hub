@@ -102,12 +102,29 @@ public class WheresMyStuffModule implements IronHubModule
 		return config.wheresMyStuff();
 	}
 
+	/** How the widget/chat/inventory-diff scrapers (isolated in
+	 *  {@link WheresMyStuffScrapers}) hand a storage's contents back: names may
+	 *  be null (resolved from the item id) or supplied (point-icon labels). */
+	@FunctionalInterface
+	public interface Sink
+	{
+		void commit(String storageId, Map<Integer, Integer> items,
+			Map<Integer, String> names, long now);
+	}
+
+	private WheresMyStuffScrapers scrapers;
+
 	@Override
 	public void startUp()
 	{
 		if (eventBus != null)
 		{
 			eventBus.register(this);
+			if (client != null && pack != null)
+			{
+				scrapers = new WheresMyStuffScrapers(client, itemManager, state, pack, this::sink);
+				eventBus.register(scrapers);
+			}
 		}
 		state.addListener(stashListener);
 		syncStash();
@@ -119,12 +136,29 @@ public class WheresMyStuffModule implements IronHubModule
 		if (eventBus != null)
 		{
 			eventBus.unregister(this);
+			if (scrapers != null)
+			{
+				eventBus.unregister(scrapers);
+				scrapers = null;
+			}
 		}
 		state.removeListener(stashListener);
 		if (tab != null)
 		{
 			tab.dispose();
 			tab = null;
+		}
+	}
+
+	/** The scrapers' commit path: resolve the registry def, honour supplied
+	 *  names, and apply the shared never-seen-empty-stays-silent rule. */
+	private void sink(String storageId, Map<Integer, Integer> items,
+		Map<Integer, String> names, long now)
+	{
+		StorageLocationsPack.Storage def = storageById(storageId);
+		if (def != null)
+		{
+			commit(def, items, names, now);
 		}
 	}
 
