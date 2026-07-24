@@ -73,6 +73,33 @@ public class PohModuleTest
 		assertEquals(91, box.tiers.get(2).level);
 	}
 
+	/**
+	 * Building mode is the ownership proof (Luke's call): you can only enter
+	 * it in your OWN house, so a house you are visiting never marks anything.
+	 * Read as non-zero rather than == 1 — the constant's name is authoritative
+	 * but its truthy value is not confirmed anywhere available, and guessing a
+	 * specific value is how the previous gate failed.
+	 */
+	@Test
+	public void buildingModeIsTheOwnershipProof()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+
+		net.runelite.api.Client client = org.mockito.Mockito.mock(net.runelite.api.Client.class);
+		PohModule module = new PohModule(state, config, new DataPack(new Gson()),
+			new EventBus(), client, null);
+
+		org.mockito.Mockito.when(client.getVarbitValue(2176)).thenReturn(0);
+		assertFalse("visiting a house must never count", module.buildingMode());
+
+		org.mockito.Mockito.when(client.getVarbitValue(2176)).thenReturn(1);
+		assertTrue(module.buildingMode());
+
+		// no client at all (headless) must not claim ownership
+		assertFalse(module(state).buildingMode());
+	}
+
 	/** The sweep must read all FOUR object kinds: rugs arrive as ground
 	 *  objects and mounted heads / wall charts as decorative and wall ones, so
 	 *  the GameObject-only reader this replaced could never see them. */
@@ -286,6 +313,13 @@ public class PohModuleTest
 		module.startUp();
 		PohTab tab = (PohTab) module.buildTab();
 		assertNotNull(tab);
+
+		// nothing synced yet: the tab must say how to sync rather than just
+		// showing an empty 0/137 grid (which read as "broken")
+		javax.swing.SwingUtilities.invokeAndWait(() -> { });
+		javax.imageio.ImageIO.write(SwingRender.render(tab), "png",
+			new java.io.File("build/reports/house-unsynced.png"));
+
 		PohPack.Space pool = pack.spaces.stream()
 			.filter(s -> s.id.equals("superior_garden__pool")).findFirst().orElseThrow();
 		javax.swing.SwingUtilities.invokeAndWait(() ->

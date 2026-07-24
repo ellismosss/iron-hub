@@ -69,7 +69,7 @@ class PohTab extends JPanel
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
+		header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
 		header.setOpaque(false);
 		header.setAlignmentX(LEFT_ALIGNMENT);
 		header.setBorder(new EmptyBorder(2, 4, 4, 4));
@@ -127,10 +127,27 @@ class PohTab extends JPanel
 				complete++;
 			}
 		}
-		header.add(new OsrsLabel("Rooms", OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
-		header.add(Box.createHorizontalGlue());
-		header.add(new OsrsLabel(complete + "/" + pack.spaces.size() + " builds complete",
+		JPanel title = new JPanel();
+		title.setLayout(new BoxLayout(title, BoxLayout.X_AXIS));
+		title.setOpaque(false);
+		title.setAlignmentX(LEFT_ALIGNMENT);
+		title.add(new OsrsLabel("Rooms", OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+		title.add(Box.createHorizontalGlue());
+		title.add(new OsrsLabel(complete + "/" + pack.spaces.size() + " builds complete",
 			OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		cap(title);
+		header.add(title);
+
+		// Detection only runs in building mode (it is the only way to know the
+		// house is yours), so say so rather than leaving an empty grid looking
+		// broken — that silence is exactly what read as a bug before.
+		if (!anyBuilt(pack))
+		{
+			header.add(Box.createVerticalStrut(2));
+			header.add(OsrsLabel.wrapped("Enter building mode in your house to sync what "
+					+ "you have built, or click any tier to mark it yourself.",
+				205, OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+		}
 
 		tree.setModel(buildModel(pack));
 		revalidate();
@@ -138,6 +155,22 @@ class PohTab extends JPanel
 	}
 
 	// ── model: rooms -> hotspots -> tier-ladder detail ────────────────────
+
+	/** Whether anything at all is marked built — drives the sync hint. */
+	private boolean anyBuilt(PohPack pack)
+	{
+		for (PohPack.Space space : pack.spaces)
+		{
+			for (PohPack.Tier tier : space.tiers)
+			{
+				if (state.isPohBuilt(tier.id))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	private List<TileTree.Top> buildModel(PohPack pack)
 	{

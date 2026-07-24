@@ -62,6 +62,17 @@ public class PohModule implements IronHubModule
 	private static final Set<Integer> POH_REGIONS =
 		Set.of(7534, 7535, 7790, 7791, 8046, 8047, 8302, 8303);
 
+	/**
+	 * {@code VarbitID.POH_BUILDING_MODE} — the ownership proof, per Luke's
+	 * call: you can only enter building mode in your OWN house, so nothing is
+	 * ever marked from a house you are merely visiting. Read as non-zero
+	 * rather than {@code == 1}: the constant's NAME comes from the game's own
+	 * symbols and is authoritative, but nothing available here confirms which
+	 * truthy value it uses, and guessing a specific one is how the last gate
+	 * failed.
+	 */
+	private static final int POH_BUILDING_MODE = 2176;
+
 	private final AccountState state;
 	private final IronHubConfig config;
 	private final PohPack pack;
@@ -255,12 +266,33 @@ public class PohModule implements IronHubModule
 			return;
 		}
 		sweepQueued = false;
-		if (!inPoh())
+		if (!inPoh() || !buildingMode())
 		{
 			return;
 		}
 		scanHouse();
 		commitPending();
+	}
+
+	/** Entering building mode is the moment to sync — sweep right away rather
+	 *  than waiting for something to spawn. */
+	@Subscribe
+	public void onVarbitChanged(net.runelite.api.events.VarbitChanged event)
+	{
+		if (event.getVarbitId() == POH_BUILDING_MODE)
+		{
+			sweepQueued = true;
+		}
+	}
+
+	/**
+	 * Whether the player is in building mode, which can only be entered in
+	 * your OWN house — so this is what keeps a house you are visiting from
+	 * marking anything.
+	 */
+	boolean buildingMode()
+	{
+		return client != null && client.getVarbitValue(POH_BUILDING_MODE) > 0;
 	}
 
 	/**

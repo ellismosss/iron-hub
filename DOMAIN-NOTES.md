@@ -1095,22 +1095,30 @@ load-bearing and each one cost a bug:
   "Decorated marble fireplace") writes `level1`/`level2` and `id1`/`id2` with
   no plain `level`, so a strict `level` match silently drops it.
 
-**There is no own-house gate, because ownership is not readable.** The
-previous gate compared the chat log against `"Welcome to your house."` — a
-string that **does not exist in OSRS**. It was invented, never verified, and
-because an equality check that misses is invisible, detection silently marked
-nothing at all, forever. Nothing in the client jar, the wiki, or RuneLite's
-own `PohPlugin` exposes who owns the house you are standing in; RuneLite's
-POH plugin does not even try, treating POH object ids as self-identifying.
+**The gate is BUILDING MODE, not a chat message.** The previous gate compared
+the chat log against `"Welcome to your house."` — a string that **does not
+exist in OSRS**. It was invented, never verified, and because an equality check
+that misses is invisible, detection silently marked nothing at all, forever.
+Nothing in the client jar, the wiki, or RuneLite's own `PohPlugin` exposes who
+owns the house you are standing in — core's POH plugin does not even try.
 
-**The gate is the POH REGION** (`{7534, 7535, 7790, 7791, 8046, 8047, 8302,
-8303}`, the same set the storage tracker uses, via
-`WorldPoint.fromLocalInstance` — the POH is instanced, so a plain world
-location reads the instance's own coordinates and the wrong region). That is
-verifiable, and it stops the three furniture whose object id the game reuses
-in the world (a throne-room trapdoor shares 6521 with `DESERTTREASURE_PITFALL`)
-from marking anything outside a house. The honest consequence: standing in
-ANOTHER player's house marks what they built.
+What IS verifiable is `VarbitID.POH_BUILDING_MODE` (2176): you can only enter
+building mode in your OWN house, so it proves ownership and a house you are
+merely visiting never marks anything (Luke's call, 2026-07-24). Read it as
+NON-ZERO rather than `== 1` — the constant's name comes from the game's own
+symbols and is authoritative, but nothing available confirms which truthy value
+it uses, and guessing a specific one is exactly how the last gate failed.
+
+A POH **region** check rides along (`{7534, 7535, 7790, 7791, 8046, 8047, 8302,
+8303}`, the set the storage tracker uses, via `WorldPoint.fromLocalInstance` —
+the POH is instanced, so a plain world location reads the instance's own
+coordinates and the wrong region). That keeps the three furniture whose object
+id the game reuses in the world (a throne-room trapdoor shares 6521 with
+`DESERTTREASURE_PITFALL`) from marking anything outside a house.
+
+Because detection only runs in building mode, the tab SAYS so while nothing is
+marked ("Enter building mode in your house to sync..."). An empty grid with no
+explanation is what read as broken twice.
 
 **SWEEP the scene; do not listen to spawns.** Two blind spots that closes:
 furniture that loaded before the module was listening (you were already
