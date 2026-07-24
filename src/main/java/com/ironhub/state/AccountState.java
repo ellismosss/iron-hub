@@ -78,6 +78,10 @@ public class AccountState implements StateView
 	private static final int EXCLUDED_AT_MANY = Integer.MAX_VALUE;
 	// bank-tab per-skill target levels: skill name -> level (persisted)
 	private final Map<String, Integer> bankSkillTargets = new ConcurrentHashMap<>();
+	// supplies watchlist: diffs against the pack defaults + per-item red thresholds (persisted)
+	private final Set<Integer> supplyAdded = ConcurrentHashMap.newKeySet();
+	private final Set<Integer> supplyRemoved = ConcurrentHashMap.newKeySet();
+	private final Map<Integer, Integer> supplyThresholds = new ConcurrentHashMap<>();
 	/** Dailies the player has explicitly included/excluded from the guided run.
 	 *  Only explicit choices are stored — an absent id falls back to the pack's
 	 *  own default, so a new event opts in and a Wilderness one stays out. */
@@ -2279,6 +2283,74 @@ public class AccountState implements StateView
 		}
 	}
 
+	// ── supplies runway watchlist (persisted) ─────────────────────────────
+	// The watchlist is stored as diffs against the pack's curated defaults:
+	// items the player ADDED beyond the defaults, and default items REMOVED.
+	// The module resolves "is this item on the list" against both plus the
+	// pack's default flag, so a pack update surfaces new defaults unless the
+	// player removed them.
+
+	/** Whether an item is on the watchlist, given whether the pack lists it
+	 *  as a default. */
+	public boolean isSupplyTracked(int itemId, boolean isDefault)
+	{
+		if (supplyAdded.contains(itemId))
+		{
+			return true;
+		}
+		return isDefault && !supplyRemoved.contains(itemId);
+	}
+
+	/** Add an item to the watchlist (clears a prior removal). */
+	public void trackSupply(int itemId, boolean isDefault)
+	{
+		boolean changed = supplyRemoved.remove(itemId);
+		if (!isDefault)
+		{
+			changed |= supplyAdded.add(itemId);
+		}
+		if (changed)
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	/** Remove an item from the watchlist. A removed default is remembered so
+	 *  it stays off; a non-default just drops from the added set. */
+	public void untrackSupply(int itemId, boolean isDefault)
+	{
+		boolean changed = supplyAdded.remove(itemId);
+		if (isDefault)
+		{
+			changed |= supplyRemoved.add(itemId);
+		}
+		if (changed)
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	/** The red-highlight threshold for a supply, or 0 when none is set. */
+	public int getSupplyThreshold(int itemId)
+	{
+		return supplyThresholds.getOrDefault(itemId, 0);
+	}
+
+	/** Set (value > 0) or clear a supply's red-highlight threshold. */
+	public void setSupplyThreshold(int itemId, int value)
+	{
+		Integer previous = value > 0
+			? supplyThresholds.put(itemId, value)
+			: supplyThresholds.remove(itemId);
+		if ((previous == null ? 0 : previous) != Math.max(0, value))
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
 	public void markDaily(String dailyId, boolean done)
 	{
 		if (done)
@@ -2684,6 +2756,12 @@ public class AccountState implements StateView
 		}
 		bankSkillTargets.clear();
 		bankSkillTargets.putAll(persisted.bankSkillTargets);
+		supplyAdded.clear();
+		supplyAdded.addAll(persisted.supplyAdded);
+		supplyRemoved.clear();
+		supplyRemoved.addAll(persisted.supplyRemoved);
+		supplyThresholds.clear();
+		supplyThresholds.putAll(persisted.supplyThresholds);
 		dailiesChoice.clear();
 		dailiesChoice.putAll(persisted.dailiesChoice);
 		lootBySource.clear();
@@ -2870,6 +2948,9 @@ public class AccountState implements StateView
 		state.alchExcluded = new HashSet<>(alchExcludedAtQty.keySet()); // legacy readers
 		state.alchExcludedAtQty = new HashMap<>(alchExcludedAtQty);
 		state.bankSkillTargets = new HashMap<>(bankSkillTargets);
+		state.supplyAdded = new HashSet<>(supplyAdded);
+		state.supplyRemoved = new HashSet<>(supplyRemoved);
+		state.supplyThresholds = new HashMap<>(supplyThresholds);
 		state.dailiesChoice = new HashMap<>(dailiesChoice);
 		lootBySource.forEach((src, items) -> state.lootBySource.put(src, new HashMap<>(items)));
 		suppliesBySource.forEach((src, items) -> state.suppliesBySource.put(src, new HashMap<>(items)));

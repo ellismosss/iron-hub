@@ -143,6 +143,14 @@ public class PersistedState
 	/** Preferred courier-task ports (port-tasks pack dbrows). */
 	java.util.Set<Integer> preferredPorts = new java.util.HashSet<>();
 
+	/** Supplies runway: the player's watchlist as diffs against the pack's
+	 *  curated defaults — items ADDED beyond the defaults and default items
+	 *  REMOVED — so a pack update surfaces new defaults unless removed. Plus
+	 *  the per-item red-highlight threshold (absent = no threshold). */
+	java.util.Set<Integer> supplyAdded = new java.util.HashSet<>();
+	java.util.Set<Integer> supplyRemoved = new java.util.HashSet<>();
+	Map<Integer, Integer> supplyThresholds = new HashMap<>();
+
 	/** Bank space saver: storage locations switched OFF (default all on),
 	 *  item ids the player ignores, and whether best-in-slot gear is
 	 *  flagged too (default no — you keep bis gear banked on purpose). */

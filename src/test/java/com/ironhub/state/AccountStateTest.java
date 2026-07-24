@@ -105,6 +105,37 @@ public class AccountStateTest
 	 *  item was last seen, counts as owned, a live container wins over it, and
 	 *  it all survives a restart. */
 	@Test
+	public void suppliesWatchlistAndThresholdsSurviveRestart()
+	{
+		AccountState before = StateFixture.state(temp.getRoot());
+		StateFixture.profile(before, 77L);
+
+		// a default the player removes stays off; a non-default they add stays on
+		int prayerPot = 2434, cannonball = 2;
+		before.untrackSupply(prayerPot, true);      // remove a default
+		before.trackSupply(cannonball, false);      // add a non-default
+		before.setSupplyThreshold(cannonball, 200); // red under 200
+
+		assertFalse(before.isSupplyTracked(prayerPot, true));   // default now off
+		assertTrue(before.isSupplyTracked(cannonball, false));  // added on
+		assertTrue(before.isSupplyTracked(385, true));          // untouched default stays
+		assertEquals(200, before.getSupplyThreshold(cannonball));
+		assertEquals(0, before.getSupplyThreshold(385));        // no threshold set
+
+		AccountState after = StateFixture.state(temp.getRoot());
+		StateFixture.profile(after, 77L);
+		assertFalse(after.isSupplyTracked(prayerPot, true));
+		assertTrue(after.isSupplyTracked(cannonball, false));
+		assertEquals(200, after.getSupplyThreshold(cannonball));
+
+		// re-adding a removed default clears the removal; clearing a threshold
+		after.trackSupply(prayerPot, true);
+		assertTrue(after.isSupplyTracked(prayerPot, true));
+		after.setSupplyThreshold(cannonball, 0);
+		assertEquals(0, after.getSupplyThreshold(cannonball));
+	}
+
+	@Test
 	public void storageContentsTrackAndSurviveRestart()
 	{
 		AccountState before = StateFixture.state(temp.getRoot());
