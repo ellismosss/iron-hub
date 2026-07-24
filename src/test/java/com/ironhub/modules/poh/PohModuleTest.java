@@ -62,6 +62,24 @@ public class PohModuleTest
 				lastLevel = tier.level;
 			}
 		}
+		// Configured-object variants must survive a regeneration: a portal
+		// carries POH_PORTAL_<wood>_EMPTY only until a destination is set, and
+		// with just that one id every portal in real use is undetectable.
+		PohPack.Space portals = pack.spaces.stream()
+			.filter(s -> s.id.equals("portal_chamber__portals")).findFirst().orElseThrow();
+		PohPack.Tier teak = portals.tiers.stream()
+			.filter(t -> t.name.equals("Teak portal")).findFirst().orElseThrow();
+		assertTrue("teak portal lost its destination variants: " + teak.objectIds.size(),
+			teak.objectIds.size() >= 40);
+		// ...and a Leagues reskin must not be claimed by the base furniture,
+		// or a marble portal reports itself as a Raging echoes portal.
+		PohPack.Tier marble = portals.tiers.stream()
+			.filter(t -> t.name.equals("Marble portal")).findFirst().orElseThrow();
+		PohPack.Tier league = portals.tiers.stream()
+			.filter(t -> t.name.startsWith("Raging echoes")).findFirst().orElseThrow();
+		assertTrue("marble and league portals share ids — either marks both built",
+			java.util.Collections.disjoint(marble.objectIds, league.objectIds));
+
 		// anchors: the famous levels
 		PohPack.Space pool = pack.spaces.stream()
 			.filter(s -> s.id.equals("superior_garden__pool")).findFirst().orElseThrow();
@@ -128,6 +146,72 @@ public class PohModuleTest
 			state.isPohBuilt("parlour__rug:brown_rug"));
 		assertTrue(state.isPohBuilt("bedroom__bed:wooden_bed"));
 		module.shutDown();
+	}
+
+	/**
+	 * The whole runtime path, driven the way the client drives it: a GameTick
+	 * with the build-mode varbit set, reading a real Scene through
+	 * Client -&gt; WorldView -&gt; Scene -&gt; Tile[][][]. Every other test calls
+	 * scanTileForTest and so skips scanHouse entirely — the module is built
+	 * with a null Client, which makes the sweep return immediately — leaving
+	 * the one link that actually runs in-client with no coverage at all.
+	 */
+	@Test
+	public void theTickSweepsTheSceneAndMarksWhatItFinds()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+
+		net.runelite.api.Tile[][][] tiles = new net.runelite.api.Tile[1][2][2];
+		tiles[0][0][0] = tile(0, new int[]{6752}, 6759, 0, 0); // parlour chair + rug
+		tiles[0][0][1] = tile(1, new int[]{13615}, 0, 0, 0);   // teak portal -> Varrock
+		// tiles[0][1][*] stay null: a real scene has empty tiles everywhere
+
+		PohModule module = moduleWithScene(state, tiles, 1);
+		module.startUp();
+		module.onGameTick(new net.runelite.api.events.GameTick());
+
+		assertTrue("a game object on a swept tile", state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
+		assertTrue("a GROUND object on a swept tile", state.isPohBuilt("parlour__rug:brown_rug"));
+		assertTrue("a configured portal on a swept tile",
+			state.isPohBuilt("portal_chamber__portals:teak_portal"));
+		assertTrue(module.diagnostics(), module.diagnostics().startsWith("Build mode on"));
+		assertTrue(module.diagnostics(), module.diagnostics().contains("matched 3"));
+		module.shutDown();
+	}
+
+	/** Out of building mode the same scene marks NOTHING — the house may be
+	 *  someone else's, and that is the only ownership proof available. */
+	@Test
+	public void theSceneIsNotReadOutsideBuildingMode()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		net.runelite.api.Tile[][][] tiles = new net.runelite.api.Tile[1][1][1];
+		tiles[0][0][0] = tile(0, new int[]{6752}, 0, 0, 0);
+
+		PohModule module = moduleWithScene(state, tiles, 0);   // build mode off
+		module.startUp();
+		module.onGameTick(new net.runelite.api.events.GameTick());
+
+		assertFalse(state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
+		assertTrue(module.diagnostics(), module.diagnostics().startsWith("Build mode off"));
+		module.shutDown();
+	}
+
+	private PohModule moduleWithScene(AccountState state,
+		net.runelite.api.Tile[][][] tiles, int buildingMode)
+	{
+		net.runelite.api.Scene scene = org.mockito.Mockito.mock(net.runelite.api.Scene.class);
+		org.mockito.Mockito.when(scene.getTiles()).thenReturn(tiles);
+		net.runelite.api.WorldView view =
+			org.mockito.Mockito.mock(net.runelite.api.WorldView.class);
+		org.mockito.Mockito.when(view.getScene()).thenReturn(scene);
+		net.runelite.api.Client client =
+			org.mockito.Mockito.mock(net.runelite.api.Client.class);
+		org.mockito.Mockito.when(client.getTopLevelWorldView()).thenReturn(view);
+		org.mockito.Mockito.when(client.getVarbitValue(2176)).thenReturn(buildingMode);
+		return new PohModule(state, config, new DataPack(new Gson()), new EventBus(), client, null);
 	}
 
 	/**
