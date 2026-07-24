@@ -38,7 +38,7 @@ public class OsrsLabel extends JComponent
 	private static final int BASELINE = 15;
 	private static final int DESCENT = 5;
 
-	private final String[] lines;
+	private String[] lines;
 	private Color color;
 	private boolean leftAligned;
 
@@ -93,6 +93,18 @@ public class OsrsLabel extends JComponent
 	public String text()
 	{
 		return String.join("\n", lines);
+	}
+
+	/**
+	 * Retext in place — a value that ticks over must not rebuild its row.
+	 * Drops the size cache, since the new text measures differently.
+	 */
+	public void setText(String text)
+	{
+		this.lines = text.split("\n");
+		this.preferredSize = null;
+		revalidate();
+		repaint();
 	}
 
 	/** Recolour in place — status changes must not rebuild the row. */

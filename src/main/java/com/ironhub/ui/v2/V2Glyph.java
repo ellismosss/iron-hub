@@ -67,6 +67,15 @@ public class V2Glyph extends JComponent
 		return "icons/chevron/" + colour + "_" + direction + "_single";
 	}
 
+	/** V2 tooltips wear the Card (§9) — Swing routes them through here. */
+	@Override
+	public javax.swing.JToolTip createToolTip()
+	{
+		V2Tooltip tip = new V2Tooltip(theme);
+		tip.setComponent(this);
+		return tip;
+	}
+
 	@Override
 	protected void paintComponent(Graphics g)
 	{
