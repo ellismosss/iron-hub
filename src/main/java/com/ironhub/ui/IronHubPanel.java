@@ -129,15 +129,19 @@ public class IronHubPanel extends PluginPanel
 	private static final Set<String> MULTI_EXPAND = Set.of("Gear & Combat");
 	private final AccountState state;
 	private final com.ironhub.IronHubConfig config;
+	/** Null headless — the theme switcher renders and simply doesn't write. */
+	private final net.runelite.client.config.ConfigManager configManager;
 	private HomePanel home;
 
 	@Inject
 	public IronHubPanel(Set<IronHubModule> modules, AccountState state,
-		com.ironhub.IronHubConfig config)
+		com.ironhub.IronHubConfig config,
+		net.runelite.client.config.ConfigManager configManager)
 	{
 		super(false);
 		this.state = state;
 		this.config = config;
+		this.configManager = configManager;
 		modulesByName = modules.stream()
 			.collect(Collectors.toMap(IronHubModule::name, Function.identity()));
 
@@ -181,6 +185,7 @@ public class IronHubPanel extends PluginPanel
 	{
 		javax.swing.SwingUtilities.invokeLater(() ->
 		{
+			String open = home == null ? null : home.selectedBlock();
 			hubPages.clear();
 			hubSlots.clear();
 			hubTriangles.clear();
@@ -189,6 +194,12 @@ public class IronHubPanel extends PluginPanel
 			// expandedModules survives: the rebuilt page reopens where the
 			// player was
 			mountHome();
+			if (open != null)
+			{
+				// the switcher lives in a hub page, so a flip that dumped the
+				// player back at home would make comparing the two a chore
+				home.pressBlock(open);
+			}
 		});
 	}
 
@@ -278,6 +289,10 @@ public class IronHubPanel extends PluginPanel
 		JPanel stack = new JPanel();
 		stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
 		stack.setOpaque(false);
+		if ("Settings".equals(name))
+		{
+			stack.add(themeSwitcher());
+		}
 		Map<String, JPanel> slots = new HashMap<>();
 		Map<String, JLabel> triangles = new HashMap<>();
 		for (String moduleName : BLOCKS.get(name))
@@ -293,6 +308,59 @@ public class IronHubPanel extends PluginPanel
 		expandedModules.putIfAbsent(name,
 			new java.util.LinkedHashSet<>(List.of(BLOCKS.get(name).get(0))));
 		return stack;
+	}
+
+	/**
+	 * The skin switcher, at the head of the Settings hub (Luke, 2026-07-24:
+	 * the osrsTheme setting was only reachable from the RuneLite config
+	 * panel). Writes the setting rather than holding its own state, so the
+	 * plugin's ConfigChanged path re-clothes everything exactly as a change
+	 * made in the settings does.
+	 */
+	private JComponent themeSwitcher()
+	{
+		com.ironhub.ui.osrs.OsrsTheme[] themes = com.ironhub.ui.osrs.OsrsTheme.values();
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.Y_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(Component.LEFT_ALIGNMENT);
+		row.setBorder(new javax.swing.border.EmptyBorder(0, 4, UiTokens.PAD_SECTION, 4));
+		row.add(new com.ironhub.ui.osrs.OsrsLabel("Skin theme",
+			com.ironhub.ui.osrs.OsrsSkin.TITLE,
+			com.ironhub.ui.osrs.OsrsSkin.boldFont()).leftAligned());
+		row.add(Box.createVerticalStrut(3));
+		// chip-sized names (the setting's own read "OSRS stone" / "Mystic
+		// (resource pack)"); an unknown future theme keeps its full name
+		// rather than being silently mislabelled
+		String[] labels = new String[themes.length];
+		for (int i = 0; i < themes.length; i++)
+		{
+			labels[i] = themes[i] == com.ironhub.ui.osrs.OsrsTheme.STONE ? "Vanilla"
+				: themes[i] == com.ironhub.ui.osrs.OsrsTheme.MYSTIC ? "Mystic"
+				: themes[i].toString();
+		}
+		com.ironhub.ui.osrs.StoneChipRow chips = new com.ironhub.ui.osrs.StoneChipRow(
+			config.osrsTheme(), true, labels);
+		for (int i = 0; i < themes.length; i++)
+		{
+			if (themes[i] == config.osrsTheme())
+			{
+				chips.setSelected(i);
+			}
+		}
+		chips.setToolTipText(config.osrsTheme().toString());
+		chips.onChange(i ->
+		{
+			if (configManager != null)
+			{
+				configManager.setConfiguration(
+					com.ironhub.IronHubConfig.GROUP, "osrsTheme", themes[i]);
+			}
+		});
+		row.add(chips);
+		row.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE,
+			row.getPreferredSize().height));
+		return row;
 	}
 
 	/**

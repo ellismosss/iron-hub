@@ -41,6 +41,7 @@ public class NavBlocksTest
 	private DailiesNewModule dailiesNew;
 	private FarmingRunModule farming;
 	private HomePanel home;
+	private net.runelite.client.config.ConfigManager configManager;
 
 	private void build() throws Exception
 	{
@@ -57,7 +58,9 @@ public class NavBlocksTest
 			null, null, null, config, null, new DataPack(new Gson()),
 			null, null, null, null, null, null, null);
 		farming.startUp();
-		panel = new IronHubPanel(Set.of((IronHubModule) dailiesNew, farming), state, config);
+		configManager = org.mockito.Mockito.mock(net.runelite.client.config.ConfigManager.class);
+		panel = new IronHubPanel(Set.of((IronHubModule) dailiesNew, farming), state, config,
+			configManager);
 		home = find(panel, HomePanel.class);
 		assertNotNull("the home must be persistent in the panel", home);
 	}
@@ -89,7 +92,9 @@ public class NavBlocksTest
 		javax.swing.SwingUtilities.invokeAndWait(() -> {}); // flush the queued rebuild
 		home = find(panel, HomePanel.class);
 		assertNotNull("theme swap must rebuild the home", home);
-		javax.swing.SwingUtilities.invokeAndWait(() -> home.pressBlock("Dailies"));
+		// the swap REOPENS the block the player was in (the skin switcher
+		// lives in a hub page, so dumping them at home each flip is no good)
+		assertEquals("Dailies", home.selectedBlock());
 		assertNotSame("fresh hub slots must adopt the tab", hubHost, farmingTab.getParent());
 		assertTrue("farming tab lost in the theme swap",
 			javax.swing.SwingUtilities.isDescendingFrom(farmingTab, panel));
@@ -110,6 +115,35 @@ public class NavBlocksTest
 			java.util.List.of("Gear & Combat", "Slayer"), enableNotes());
 		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Gear & Combat", "Gear & Combat"));
 		assertEquals(java.util.List.of("Slayer"), enableNotes());
+	}
+
+	/**
+	 * The Settings hub carries the skin switcher (Luke, 2026-07-24: the
+	 * osrsTheme setting was only reachable from the RuneLite config panel).
+	 * It must show the live theme and WRITE the setting — holding its own
+	 * state would leave the two switches disagreeing.
+	 */
+	@Test
+	public void theSettingsHubSwitchesTheSkin() throws Exception
+	{
+		build();
+		javax.swing.SwingUtilities.invokeAndWait(() -> home.pressBlock("Settings"));
+		com.ironhub.ui.osrs.StoneChipRow chips =
+			find(panel, com.ironhub.ui.osrs.StoneChipRow.class);
+		assertNotNull("no skin switcher in the Settings hub", chips);
+		assertEquals("the switcher must show the live theme",
+			com.ironhub.ui.osrs.OsrsTheme.MYSTIC.ordinal(), chips.getSelected());
+
+		javax.swing.SwingUtilities.invokeAndWait(
+			() -> chips.pick(com.ironhub.ui.osrs.OsrsTheme.STONE.ordinal()));
+		org.mockito.Mockito.verify(configManager).setConfiguration(
+			com.ironhub.IronHubConfig.GROUP, "osrsTheme",
+			com.ironhub.ui.osrs.OsrsTheme.STONE);
+
+		java.awt.image.BufferedImage image = SwingRender.render(panel);
+		java.io.File out = new java.io.File("build/reports/home-settings-hub.png");
+		out.getParentFile().mkdirs();
+		javax.imageio.ImageIO.write(image, "png", out);
 	}
 
 	private java.util.List<String> enableNotes()

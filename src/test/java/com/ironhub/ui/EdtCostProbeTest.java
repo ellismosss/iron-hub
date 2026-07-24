@@ -69,7 +69,7 @@ public class EdtCostProbeTest
 		IronHubPanel[] panel = new IronHubPanel[1];
 		long t0 = System.nanoTime();
 		SwingUtilities.invokeAndWait(() ->
-			panel[0] = new IronHubPanel(modules, state, config));
+			panel[0] = new IronHubPanel(modules, state, config, null));
 		System.out.printf("panel + home build: %d ms%n", ms(t0));
 
 		// open every block once — the tab-construction cost a first click pays
