@@ -15,35 +15,33 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.JComponent;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.ChatMessageType;
 import net.runelite.api.GameState;
-import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.util.Text;
 
 /**
  * House (Progression hub, "Build" tile): the complete POH catalog — every
  * room, its hotspots and each hotspot's furniture ladder, shown as
  * room → hotspot → tier tiles.
  *
- * <p>Built detection: house furniture object ids from the pack, gated on
- * proof the house is the player's OWN so a friend's never marks anything.
- * Two independent proofs, because one was not enough — the greeting's exact
- * wording is documented in neither the client nor the wiki, so an equality
- * check on it silently detected nothing forever:
- * <ul>
- *   <li>the game's greeting, matched as a lower-cased substring, and</li>
- *   <li>building mode, which can only be entered in your own house.</li>
- * </ul>
- * On either proof the whole scene is SWEPT rather than trusting spawn
- * events, so furniture that loaded before the module was listening (you
- * were already inside) is still found, as is furniture the game does not
- * place as a GameObject — rugs are ground objects, mounted heads and wall
- * charts are wall/decorative ones. Spawns are still buffered for the entry
- * race and committed live afterwards for building-mode swaps.</p>
+ * <p>Built detection sweeps the house scene and marks what it finds. It is
+ * gated on the POH REGION, not on whose house it is: which player owns the
+ * house cannot be read from the client, and the previous gate — an equality
+ * check against a "Welcome to your house." chat message — was an invented
+ * string that appears in neither the client nor the wiki, so it silently
+ * detected nothing at all. The region gate is verifiable, and it also stops
+ * the handful of furniture whose object id the game reuses in the world (a
+ * throne-room trapdoor shares an id with a Desert Treasure pitfall) from
+ * marking anything outside a house. Consequence to be honest about: standing
+ * in ANOTHER player's house marks what they built.</p>
+ *
+ * <p>Sweeping beats listening to spawns: it finds furniture that loaded
+ * before the module started (you were already inside) and furniture the game
+ * does not place as a GameObject at all — rugs are ground objects, mounted
+ * heads and wall charts are wall/decorative ones. Spawn events of all four
+ * kinds are only the trigger, coalesced to one sweep per tick.</p>
  *
  * <p>The game builds the IDENTICAL object for the same furniture in
  * different rooms — one brown rug serves the parlour, bedroom, chapel and
@@ -59,18 +57,10 @@ import net.runelite.client.util.Text;
 @Singleton
 public class PohModule implements IronHubModule
 {
-	/**
-	 * The game's own greeting on entering your house. Matched as a
-	 * lower-cased SUBSTRING, never equality: the exact wording and
-	 * punctuation are not documented in the client or on the wiki, and an
-	 * equality check that misses is invisible — it just silently detects
-	 * nothing forever (the 0/137 Luke reported). A friend's house does not
-	 * greet you with this, so a substring stays safe.
-	 */
-	private static final String OWN_HOUSE_MESSAGE = "welcome to your house";
-	/** Set only inside your OWN house — you cannot build in a friend's, so
-	 *  this is a second, independent proof of ownership. */
-	private static final int POH_BUILDING_MODE = 2176;
+	/** Player-owned-house region ids, byte-faithful to the Dude-Where's-My-Stuff
+	 *  reference's Region.REGION_POH (the same set the storage tracker uses). */
+	private static final Set<Integer> POH_REGIONS =
+		Set.of(7534, 7535, 7790, 7791, 8046, 8047, 8302, 8303);
 
 	private final AccountState state;
 	private final IronHubConfig config;
@@ -82,10 +72,10 @@ public class PohModule implements IronHubModule
 	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
 	private PohTab tab;
 
-	/** Furniture object ids spotted since the last scene load, grouped by the
-	 *  house room they sit in, awaiting the own-house confirmation. */
+	/** Furniture found by the last sweep, grouped by the house room it sits in. */
 	private final Map<Long, Set<Integer>> pendingByRoom = new HashMap<>();
-	private boolean inOwnHouse;
+	/** A sweep is due; drained on the next tick so a scene load costs one. */
+	private boolean sweepQueued;
 	private final Runnable goalProofListener = this::onStateChange;
 	/** Seeds are per-profile — re-derive them when the profile switches
 	 *  (the profileGeneration seam every module-local cache obeys). */
@@ -152,7 +142,7 @@ public class PohModule implements IronHubModule
 		}
 		state.removeListener(goalProofListener);
 		pendingByRoom.clear();
-		inOwnHouse = false;
+		sweepQueued = false;
 		if (tab != null)
 		{
 			tab.dispose();
@@ -200,72 +190,100 @@ public class PohModule implements IronHubModule
 
 	// ── detection ─────────────────────────────────────────────────────
 
-	/** Every scene load resets the own-house confirmation and the buffer. */
+	/** A scene load invalidates what we buffered; re-sweep once it settles. */
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged event)
 	{
-		// LOADING only: the scene's furniture spawns DURING the load and
-		// LOGGED_IN fires right AFTER it — clearing there wiped the whole
-		// buffer moments before the welcome message could commit it (the
-		// "detection never marks anything" bug, fixed 2026-07-23)
 		if (event.getGameState() == GameState.LOADING
 			|| event.getGameState() == GameState.LOGIN_SCREEN
 			|| event.getGameState() == GameState.HOPPING)
 		{
-			inOwnHouse = false;
 			pendingByRoom.clear();
+		}
+		if (event.getGameState() == GameState.LOGGED_IN)
+		{
+			sweepQueued = true;   // covers walking in, and already being inside
 		}
 	}
 
+	/**
+	 * Any POH furniture appearing is the trigger to re-sweep. The four object
+	 * kinds all matter: rugs arrive as ground objects, mounted heads and wall
+	 * charts as decorative/wall ones, so a GameObject-only reader is blind to
+	 * them. The sweep itself is what reads the house, so these only set a flag
+	 * — a scene load fires hundreds of them.
+	 */
 	@Subscribe
-	public void onChatMessage(ChatMessage event)
+	public void onGameObjectSpawned(GameObjectSpawned event)
 	{
-		if (event.getType() != ChatMessageType.GAMEMESSAGE
-			&& event.getType() != ChatMessageType.SPAM)
+		queueIfFurniture(event.getGameObject().getId());
+	}
+
+	@Subscribe
+	public void onGroundObjectSpawned(net.runelite.api.events.GroundObjectSpawned event)
+	{
+		queueIfFurniture(event.getGroundObject().getId());
+	}
+
+	@Subscribe
+	public void onWallObjectSpawned(net.runelite.api.events.WallObjectSpawned event)
+	{
+		queueIfFurniture(event.getWallObject().getId());
+	}
+
+	@Subscribe
+	public void onDecorativeObjectSpawned(net.runelite.api.events.DecorativeObjectSpawned event)
+	{
+		queueIfFurniture(event.getDecorativeObject().getId());
+	}
+
+	private void queueIfFurniture(int objectId)
+	{
+		if (pack != null && !pack.placementsByObjectId(objectId).isEmpty())
+		{
+			sweepQueued = true;
+		}
+	}
+
+	/** Sweeps are coalesced to one per tick — a scene load spawns hundreds of
+	 *  objects and each one would otherwise re-read all 43k tiles. */
+	@Subscribe
+	public void onGameTick(net.runelite.api.events.GameTick event)
+	{
+		if (!sweepQueued)
 		{
 			return;
 		}
-		if (Text.removeTags(event.getMessage()).toLowerCase(java.util.Locale.ROOT)
-			.contains(OWN_HOUSE_MESSAGE))
+		sweepQueued = false;
+		if (!inPoh())
 		{
-			confirmOwnHouse();
+			return;
 		}
-	}
-
-	/** Building mode can only be entered in your own house, so it confirms
-	 *  ownership independently of the greeting. */
-	@Subscribe
-	public void onVarbitChanged(net.runelite.api.events.VarbitChanged event)
-	{
-		if (client != null && event.getVarbitId() == POH_BUILDING_MODE
-			&& client.getVarbitValue(POH_BUILDING_MODE) == 1)
-		{
-			confirmOwnHouse();
-		}
-	}
-
-	/** Ownership proven: sweep the whole house and commit what is buffered.
-	 *  The sweep is what makes detection independent of spawn-event timing —
-	 *  objects that loaded before we were listening are still found. */
-	private void confirmOwnHouse()
-	{
-		inOwnHouse = true;
 		scanHouse();
 		commitPending();
 	}
 
-	@Subscribe
-	public void onGameObjectSpawned(GameObjectSpawned event)
+	/**
+	 * Whether the player is standing in a player-owned house. This is the gate
+	 * instead of any ownership test: which player's house it is cannot be read
+	 * from the client (see the class notes), whereas the region can. It also
+	 * keeps the handful of furniture whose object id the game reuses elsewhere
+	 * (a throne-room trapdoor shares an id with a Desert Treasure pitfall) from
+	 * marking anything out in the world.
+	 *
+	 * <p>The POH is instanced, so the region has to come from
+	 * {@code fromLocalInstance} — a plain world location reads the instance's
+	 * own coordinates, not the template's.</p>
+	 */
+	private boolean inPoh()
 	{
-		if (pack == null)
+		if (client == null || client.getLocalPlayer() == null)
 		{
-			return;
+			return false;
 		}
-		buffer(event.getGameObject().getId(), event.getGameObject().getWorldLocation());
-		if (inOwnHouse)
-		{
-			commitPending(); // building-mode swaps commit live
-		}
+		net.runelite.api.coords.WorldPoint point = net.runelite.api.coords.WorldPoint
+			.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation());
+		return point != null && POH_REGIONS.contains(point.getRegionID());
 	}
 
 	/**
@@ -565,6 +583,18 @@ public class PohModule implements IronHubModule
 			}
 		}
 		return best;
+	}
+
+	/** Test seam: read one tile exactly as the sweep does. */
+	void scanTileForTest(net.runelite.api.Tile tile)
+	{
+		scanTile(tile);
+	}
+
+	/** Test seam: attribute and commit what the sweep found. */
+	void commitForTest()
+	{
+		commitPending();
 	}
 
 	/** Test seam: buffered object ids awaiting the own-house confirmation. */

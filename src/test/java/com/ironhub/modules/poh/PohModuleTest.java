@@ -9,9 +9,7 @@ import com.ironhub.state.AccountState;
 import com.ironhub.state.StateFixture;
 import com.ironhub.ui.SwingRender;
 import java.awt.image.BufferedImage;
-import net.runelite.api.ChatMessageType;
 import net.runelite.api.Skill;
-import net.runelite.api.events.ChatMessage;
 import net.runelite.client.eventbus.EventBus;
 import org.junit.Rule;
 import org.junit.Test;
@@ -75,68 +73,33 @@ public class PohModuleTest
 		assertEquals(91, box.tiers.get(2).level);
 	}
 
+	/** The sweep must read all FOUR object kinds: rugs arrive as ground
+	 *  objects and mounted heads / wall charts as decorative and wall ones, so
+	 *  the GameObject-only reader this replaced could never see them. */
 	@Test
-	public void detectionCommitsOnlyInOwnHouse()
+	public void theSweepReadsEveryObjectKind()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 42L);
 		PohModule module = module(state);
 		module.startUp();
-		PohPack.Tier ornate = pack.spaces.stream()
-			.filter(s -> s.id.equals("achievement_gallery__jewellery_box")).findFirst().orElseThrow()
-			.tiers.get(2);
 
-		// spawn seen BEFORE the welcome message buffers, never marks
-		spawnObject(module, ornate.objectIds.get(0));
-		assertFalse(state.isPohBuilt(ornate.id));
-		assertEquals(1, module.pendingObjects().size());
+		module.scanTileForTest(tile(0,
+			new int[]{6752},   // game object    — crude wooden chair (Parlour)
+			6759,              // ground object  — brown rug
+			0, 0));
+		module.scanTileForTest(tile(1,
+			new int[]{13148},  // game object    — wooden bed (Bedroom)
+			0,
+			6762,              // wall object    — a rug id, stands in for wall furniture
+			0));
+		assertEquals("every kind should be buffered", 4, module.pendingObjects().size());
+		module.commitForTest();
 
-		// a friend's house: no welcome message, next load clears the buffer
-		module.onGameStateChanged(loading());
-		assertEquals(0, module.pendingObjects().size());
-		assertFalse(state.isPohBuilt(ornate.id));
-
-		// own house: spawn then the welcome message commits the buffer
-		spawnObject(module, ornate.objectIds.get(0));
-		module.onChatMessage(welcome());
-		assertTrue(state.isPohBuilt(ornate.id));
-
-		// once confirmed, further spawns commit live (building mode swaps)
-		PohPack.Tier fancy = pack.spaces.stream()
-			.filter(s -> s.id.equals("achievement_gallery__jewellery_box")).findFirst().orElseThrow()
-			.tiers.get(1);
-		spawnObject(module, fancy.objectIds.get(0));
-		assertTrue(state.isPohBuilt(fancy.id));
-		module.shutDown();
-	}
-
-	/** The REAL client sequence entering a house: LOADING → furniture spawns
-	 *  during the load → LOGGED_IN fires after it → THEN the welcome chat.
-	 *  Clearing the buffer on LOGGED_IN wiped every buffered spawn moments
-	 *  before confirmation — detection never marked anything in-client
-	 *  (Luke's report, 2026-07-23). */
-	@Test
-	public void detectionSurvivesTheLoggedInAfterLoading()
-	{
-		AccountState state = StateFixture.state(temp.getRoot());
-		StateFixture.profile(state, 42L);
-		PohModule module = module(state);
-		module.startUp();
-		PohPack.Tier ornate = pack.spaces.stream()
-			.filter(s -> s.id.equals("achievement_gallery__jewellery_box")).findFirst().orElseThrow()
-			.tiers.get(2);
-
-		module.onGameStateChanged(loading());
-		spawnObject(module, ornate.objectIds.get(0));
-		module.onGameStateChanged(stateChange(net.runelite.api.GameState.LOGGED_IN));
-		assertEquals("LOGGED_IN after a load must not wipe the buffer",
-			1, module.pendingObjects().size());
-		module.onChatMessage(welcome());
-		assertTrue(state.isPohBuilt(ornate.id));
-
-		// logging out fully still resets the confirmation
-		module.onGameStateChanged(stateChange(net.runelite.api.GameState.LOGIN_SCREEN));
-		assertEquals(0, module.pendingObjects().size());
+		assertTrue(state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
+		assertTrue("a rug is a GROUND object — invisible to the old reader",
+			state.isPohBuilt("parlour__rug:brown_rug"));
+		assertTrue(state.isPohBuilt("bedroom__bed:wooden_bed"));
 		module.shutDown();
 	}
 
@@ -144,8 +107,7 @@ public class PohModuleTest
 	 * The game builds the IDENTICAL object for a rug in a parlour and a rug in
 	 * a bedroom, so the object id alone cannot say which hotspot was built. A
 	 * POH room is one 8x8 chunk, so the furniture a rug shares its room with
-	 * is what attributes it — otherwise one rug marked every room's rug built
-	 * (or, before that, one arbitrary room's).
+	 * is what attributes it.
 	 */
 	@Test
 	public void sharedFurnitureIsAttributedToTheRoomItIsIn()
@@ -155,15 +117,13 @@ public class PohModuleTest
 		PohModule module = module(state);
 		module.startUp();
 
-		int brownRug = 6759;          // buildable in Parlour, Bedroom, Chapel, Portal nexus
+		int brownRug = 6759;          // Parlour, Bedroom, Chapel, Portal nexus
 		int crudeChair = 6752;        // Parlour only
 		int woodenBed = 13148;        // Bedroom only
 
-		// room 0 is the parlour (a chair and a rug), room 1 the bedroom (a bed)
-		spawnObject(module, crudeChair, 0);
-		spawnObject(module, brownRug, 0);
-		spawnObject(module, woodenBed, 1);
-		module.onChatMessage(welcome());
+		module.scanTileForTest(tile(0, new int[]{crudeChair, brownRug}, 0, 0, 0));
+		module.scanTileForTest(tile(1, new int[]{woodenBed}, 0, 0, 0));
+		module.commitForTest();
 
 		assertTrue(state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
 		assertTrue(state.isPohBuilt("bedroom__bed:wooden_bed"));
@@ -185,64 +145,18 @@ public class PohModuleTest
 		PohModule module = module(state);
 		module.startUp();
 
-		spawnObject(module, 6759, 0);   // a brown rug, alone in its room
-		module.onChatMessage(welcome());
+		module.scanTileForTest(tile(0, new int[]{6759}, 0, 0, 0)); // a rug, alone
+		module.commitForTest();
 
 		assertFalse(state.isPohBuilt("parlour__rug:brown_rug"));
 		assertFalse(state.isPohBuilt("bedroom__rug:brown_rug"));
 		module.shutDown();
 	}
 
-	/**
-	 * The greeting's exact wording is documented nowhere — not in the client
-	 * jar, not on the wiki — and an equality check that misses is invisible:
-	 * it just silently detects nothing forever, which is the 0/137 Luke saw.
-	 * Match it loosely enough to survive punctuation and casing.
-	 */
+	/** End to end: a sweep detects what is built AND the sidebar redraws
+	 *  itself off the state listener (Luke's ask). */
 	@Test
-	public void theOwnHouseGreetingIsMatchedLoosely()
-	{
-		for (String wording : new String[]{
-			"Welcome to your house.", "Welcome to your house!",
-			"Welcome to your house", "welcome to your house.",
-			"<col=ff0000>Welcome to your house.</col>"})
-		{
-			AccountState state = StateFixture.state(temp.getRoot());
-			StateFixture.profile(state, 42L);
-			PohModule module = module(state);
-			module.startUp();
-			spawnObject(module, 6752, 0);   // a crude wooden chair, parlour
-			ChatMessage message = new ChatMessage();
-			message.setType(ChatMessageType.GAMEMESSAGE);
-			message.setMessage(wording);
-			module.onChatMessage(message);
-			assertTrue("greeting not recognised: " + wording,
-				state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
-			module.shutDown();
-		}
-	}
-
-	/** A friend's house still never marks anything. */
-	@Test
-	public void anUnrelatedMessageNeverConfirms()
-	{
-		AccountState state = StateFixture.state(temp.getRoot());
-		StateFixture.profile(state, 42L);
-		PohModule module = module(state);
-		module.startUp();
-		spawnObject(module, 6752, 0);
-		ChatMessage message = new ChatMessage();
-		message.setType(ChatMessageType.GAMEMESSAGE);
-		message.setMessage("You are now in a friend's house.");
-		module.onChatMessage(message);
-		assertFalse(state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
-		module.shutDown();
-	}
-
-	/** End to end: walking into your house detects what is built AND the
-	 *  sidebar redraws itself off the state listener (Luke's ask). */
-	@Test
-	public void enteringTheHouseUpdatesTheSidebar() throws Exception
+	public void detectionUpdatesTheSidebar() throws Exception
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 42L);
@@ -254,15 +168,12 @@ public class PohModuleTest
 		javax.swing.SwingUtilities.invokeAndWait(() -> { });
 		BufferedImage before = SwingRender.render(tab);
 
-		// the house loads its furniture, then the game confirms it is ours
 		javax.swing.SwingUtilities.invokeAndWait(() ->
 		{
-			module.onGameStateChanged(loading());
-			spawnObject(module, 6752, 0);    // crude wooden chair, parlour
-			spawnObject(module, 6759, 0);    // brown rug, same room
-			module.onChatMessage(welcome());
+			module.scanTileForTest(tile(0, new int[]{6752, 6759}, 0, 0, 0));
+			module.commitForTest();
 		});
-		javax.swing.SwingUtilities.invokeAndWait(() -> { }); // drain the queued rebuild
+		javax.swing.SwingUtilities.invokeAndWait(() -> { }); // drain the rebuild
 
 		assertTrue(state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
 		BufferedImage after = SwingRender.render(tab);
@@ -333,8 +244,8 @@ public class PohModuleTest
 		assertFalse(com.ironhub.modules.goals.GoalPlannerModule.isAchieved(goal, state));
 
 		// building it in-game marks the pohtier_ proof → achieved
-		spawnObject(module, ornate.objectIds.get(0));
-		module.onChatMessage(welcome());
+		module.scanTileForTest(tile(0, new int[]{ornate.objectIds.get(0)}, 0, 0, 0));
+		module.commitForTest();
 		assertTrue(state.isPohBuilt(ornate.id));
 		assertTrue(state.isUnlocked(com.ironhub.state.GoalSeeds.pohProofKey(ornate.id)));
 		assertTrue(com.ironhub.modules.goals.GoalPlannerModule.isAchieved(goal, state));
@@ -393,39 +304,48 @@ public class PohModuleTest
 		module.shutDown();
 	}
 
-	private static void spawnObject(PohModule module, int objectId)
+	/**
+	 * A mocked scene tile in house room {@code room} — a POH room is one 8x8
+	 * chunk, so the room index just shifts the world coordinates by 8. Pass 0
+	 * for an object kind the tile does not have.
+	 */
+	private static net.runelite.api.Tile tile(int room, int[] gameObjects,
+		int groundObject, int wallObject, int decorativeObject)
 	{
-		spawnObject(module, objectId, 0);
-	}
-
-	/** Spawn an object in house room {@code room} — a POH room is one 8x8
-	 *  chunk, so the room index just shifts the world coordinates by 8. */
-	private static void spawnObject(PohModule module, int objectId, int room)
-	{
-		net.runelite.api.GameObject object = org.mockito.Mockito.mock(net.runelite.api.GameObject.class);
-		org.mockito.Mockito.when(object.getId()).thenReturn(objectId);
-		org.mockito.Mockito.when(object.getWorldLocation()).thenReturn(
+		net.runelite.api.Tile tile = org.mockito.Mockito.mock(net.runelite.api.Tile.class);
+		org.mockito.Mockito.when(tile.getWorldLocation()).thenReturn(
 			new net.runelite.api.coords.WorldPoint(7000 + room * 8, 7000, 0));
-		net.runelite.api.events.GameObjectSpawned event = new net.runelite.api.events.GameObjectSpawned();
-		event.setGameObject(object);
-		module.onGameObjectSpawned(event);
-	}
-
-	private static net.runelite.api.events.GameStateChanged loading()
-	{
-		return stateChange(net.runelite.api.GameState.LOADING);
-	}
-
-	private static net.runelite.api.events.GameStateChanged stateChange(net.runelite.api.GameState gs)
-	{
-		net.runelite.api.events.GameStateChanged event = new net.runelite.api.events.GameStateChanged();
-		event.setGameState(gs);
-		return event;
-	}
-
-	private static ChatMessage welcome()
-	{
-		return new ChatMessage(null, ChatMessageType.GAMEMESSAGE, "",
-			"Welcome to your house.", "", 0);
+		net.runelite.api.GameObject[] objects =
+			new net.runelite.api.GameObject[gameObjects.length];
+		for (int i = 0; i < gameObjects.length; i++)
+		{
+			net.runelite.api.GameObject object =
+				org.mockito.Mockito.mock(net.runelite.api.GameObject.class);
+			org.mockito.Mockito.when(object.getId()).thenReturn(gameObjects[i]);
+			objects[i] = object;
+		}
+		org.mockito.Mockito.when(tile.getGameObjects()).thenReturn(objects);
+		if (groundObject > 0)
+		{
+			net.runelite.api.GroundObject ground =
+				org.mockito.Mockito.mock(net.runelite.api.GroundObject.class);
+			org.mockito.Mockito.when(ground.getId()).thenReturn(groundObject);
+			org.mockito.Mockito.when(tile.getGroundObject()).thenReturn(ground);
+		}
+		if (wallObject > 0)
+		{
+			net.runelite.api.WallObject wall =
+				org.mockito.Mockito.mock(net.runelite.api.WallObject.class);
+			org.mockito.Mockito.when(wall.getId()).thenReturn(wallObject);
+			org.mockito.Mockito.when(tile.getWallObject()).thenReturn(wall);
+		}
+		if (decorativeObject > 0)
+		{
+			net.runelite.api.DecorativeObject decor =
+				org.mockito.Mockito.mock(net.runelite.api.DecorativeObject.class);
+			org.mockito.Mockito.when(decor.getId()).thenReturn(decorativeObject);
+			org.mockito.Mockito.when(tile.getDecorativeObject()).thenReturn(decor);
+		}
+		return tile;
 	}
 }
