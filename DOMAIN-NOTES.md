@@ -1029,3 +1029,35 @@ Hard-won source knowledge for ANY feature that harvests the OSRS wiki:
   requirement leaf is the ONLY leaf that reads a raw game value, and only
   ever for a currency with a documented constant.
 
+
+## Supplies catalog — consumables & resources (module: supplies, pack: supplies.json)
+
+The Supplies runway watchlist is a generated catalog (`tools/gen_supplies.py`
+reads `knowledge/knowledge.db`): 6 categories (Potions, Food, Runes,
+Ammunition, Prayer, Materials), each a curated top-20 default plus a broader
+searchable membership. Two data facts bit during the build and are worth
+recording:
+
+- **The knowledge.db `items` table has TEXT affinity on `item_id`.** Most
+  rows are integers, but beta-mode duplicates store a STRING id like
+  `"beta30922"`. A generator resolving a display name to an id must filter to
+  integer ids (`str(id).isdigit()`) and take the minimum, or Gson blows up
+  parsing `"id": "beta30922"` as an int. canonicalStock() sums variants at
+  runtime, so the lowest real id is the right one (it is also the canonical
+  icon).
+- **Ammunition IS equipment.** Arrows, bolts, darts, javelins, knives and
+  the like are worn in the ammo slot, so they appear in the wiki's equipment
+  categories / the `equipment` KB table. A "supplies are not equipment"
+  exclusion filter therefore wrongly drops the entire Ammunition category.
+  The catalog is POSITIVELY sourced instead (the consumables table + curated
+  resource families + clean name patterns), so a weapon never leaks in
+  without needing an exclusion filter at all — which is the permanent fix for
+  the old module's "Rune longsword shows up as a supply" bug (that list came
+  from the trip-diff consumption log, not a catalog).
+
+Name patterns (`Grimy %`, `Uncut %`, `% bones`, `Ensouled % head`, `%ashes`,
+`% plank`, `% logs`) give broad membership cheaply for families that pattern
+cleanly; a small blocklist drops the Sailing crates (`Crate of …`) and quest
+tokens (`Alan's …`, `Iban's ashes`, `Grimy note`) they catch. Seeds are
+curated rather than patterned — `% seed`/`% sapling` caught too much quest
+and crystal-token junk.
