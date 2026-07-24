@@ -60,13 +60,13 @@ class GearLibraryTab extends JPanel
 	private static final String[] SLOT_KEYS = {null, "head", "cape", "neck", "ammo",
 		"weapon", "2h", "body", "shield", "legs", "hands", "feet", "ring"};
 	/** Row ceiling (the Bank tab's grammar): the library is ~3,900 items. */
-	private static final int MAX_ROWS = 50;
 	private static final int WRAP = 185;
 
 	private final AccountState state;
 	private final EquipmentPack pack;
 	private final EquipmentLibrary library;
 	private final ItemSourcesPack itemSources;
+	private final ItemManager itemManager; // null in headless tests
 	private final OsrsTheme theme;
 	private final SpriteCache sprites;
 	private final Runnable listener = RebuildGate.install(this, this::onStateChanged);
@@ -88,7 +88,13 @@ class GearLibraryTab extends JPanel
 	private boolean ascending;
 	private EquipmentLibrary.Owned owned = EquipmentLibrary.Owned.ALL;
 	private EquipmentLibrary.Access access = EquipmentLibrary.Access.ALL;
-	private final Set<Integer> expanded = new java.util.HashSet<>();
+	/** The item whose detail card is open (its primaryId), or -1. */
+	private int selected = -1;
+	/** 0-based page into the filtered result. */
+	private int page;
+	/** Four across; a page is fifteen rows so a big slot still pages sanely. */
+	private static final int COLUMNS = 4;
+	private static final int PAGE_SIZE = COLUMNS * 15;
 	private boolean chartExpanded;
 	private List<Object> lastPrint = List.of();
 
@@ -98,10 +104,11 @@ class GearLibraryTab extends JPanel
 		this.state = state;
 		this.pack = pack;
 		this.itemSources = itemSources;
+		this.itemManager = itemManager;
 		this.theme = theme;
 		this.chart = chart;
 		this.sprites = new SpriteCache(itemManager, listener);
-		this.library = new EquipmentLibrary(pack, this::owns);
+		this.library = new EquipmentLibrary(pack, this::owns, this::marketValue);
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
@@ -270,14 +277,15 @@ class GearLibraryTab extends JPanel
 	{
 		List<Object> print = new ArrayList<>();
 		// only re-render when something the library reads has moved: what the
-		// player owns, and which items are tracked
+		// player owns, which items are tracked, the page and the selection
 		print.add(trackedGear());
-		for (EquipmentPack.Item item : visible())
+		for (EquipmentPack.Item item : pageItems())
 		{
 			print.add(item.primaryId());
 			print.add(owns(item));
 		}
-		print.add(expanded);
+		print.add(selected);
+		print.add(page);
 		print.add(chartExpanded);
 		return print;
 	}
@@ -287,7 +295,7 @@ class GearLibraryTab extends JPanel
 		Set<String> ids = new java.util.HashSet<>();
 		for (String goalId : state.getSelectedGoals())
 		{
-			if (goalId.startsWith("supply:"))
+			if (goalId.startsWith("gear:"))
 			{
 				ids.add(goalId);
 			}
@@ -295,11 +303,20 @@ class GearLibraryTab extends JPanel
 		return ids;
 	}
 
-	// ── the list ──────────────────────────────────────────────────────
+	// ── the grid ──────────────────────────────────────────────────────
 
 	private List<EquipmentPack.Item> visible()
 	{
 		return library.query(search.getText(), slotKey(), owned, access, sort, ascending);
+	}
+
+	/** The current page's slice of the filtered result. */
+	private List<EquipmentPack.Item> pageItems()
+	{
+		List<EquipmentPack.Item> all = visible();
+		int from = Math.min(page * PAGE_SIZE, all.size());
+		int to = Math.min(from + PAGE_SIZE, all.size());
+		return all.subList(from, to);
 	}
 
 	private String slotKey()
@@ -308,134 +325,190 @@ class GearLibraryTab extends JPanel
 		return index >= 0 && index < SLOT_KEYS.length ? SLOT_KEYS[index] : null;
 	}
 
+	/** Any control change clears the selection and returns to page one. */
 	private void rebuildList()
+	{
+		page = 0;
+		selected = -1;
+		rebuildGrid();
+	}
+
+	private void rebuildGrid()
 	{
 		lastPrint = fingerprint();
 		list.removeAll();
-		List<EquipmentPack.Item> items = visible();
+		List<EquipmentPack.Item> all = visible();
+		int pages = Math.max(1, (all.size() + PAGE_SIZE - 1) / PAGE_SIZE);
+		if (page >= pages)
+		{
+			page = pages - 1;
+		}
 
 		JPanel summary = row();
 		summary.setBorder(new EmptyBorder(0, UiTokens.ROW_GAP, 3, UiTokens.ROW_GAP));
-		summary.add(new OsrsLabel(items.size() + (items.size() == 1 ? " item" : " items"),
+		summary.add(new OsrsLabel(all.size() + (all.size() == 1 ? " item" : " items"),
 			OsrsSkin.MUTED, OsrsSkin.smallFont()));
 		summary.add(Box.createHorizontalGlue());
+		if (pages > 1)
+		{
+			summary.add(new OsrsLabel("page " + (page + 1) + " / " + pages,
+				OsrsSkin.FAINT, OsrsSkin.smallFont()));
+		}
 		cap(summary);
 		list.add(summary);
 
-		int limit = Math.min(MAX_ROWS, items.size());
-		for (int i = 0; i < limit; i++)
-		{
-			list.add(itemRow(items.get(i)));
-		}
-		if (items.isEmpty())
+		if (all.isEmpty())
 		{
 			list.add(note("Nothing matches. Widen the filters or clear the search."));
+			list.revalidate();
+			list.repaint();
+			return;
 		}
-		else if (limit < items.size())
+
+		List<EquipmentPack.Item> items = pageItems();
+		for (int start = 0; start < items.size(); start += COLUMNS)
 		{
-			list.add(note("+ " + (items.size() - limit) + " more — refine your search or filters"));
+			JPanel gridRow = row();
+			boolean selectedInRow = false;
+			for (int col = 0; col < COLUMNS && start + col < items.size(); col++)
+			{
+				EquipmentPack.Item item = items.get(start + col);
+				if (col > 0)
+				{
+					gridRow.add(Box.createHorizontalStrut(3));
+				}
+				gridRow.add(tile(item));
+				selectedInRow |= item.primaryId() == selected;
+			}
+			gridRow.add(Box.createHorizontalGlue());
+			cap(gridRow);
+			list.add(gridRow);
+			list.add(Box.createVerticalStrut(3));
+			// the selected item's detail card spans the full width, right
+			// under its row — so context stays put in a grid
+			if (selectedInRow)
+			{
+				EquipmentPack.Item chosen = byId(items, selected);
+				if (chosen != null)
+				{
+					list.add(detailCard(chosen, owns(chosen)));
+					list.add(Box.createVerticalStrut(3));
+				}
+			}
+		}
+
+		if (pages > 1)
+		{
+			list.add(pager(pages));
 		}
 		list.revalidate();
 		list.repaint();
 	}
 
-	private JComponent itemRow(EquipmentPack.Item item)
+	private static EquipmentPack.Item byId(List<EquipmentPack.Item> items, int id)
 	{
-		boolean own = owns(item);
-		boolean open = expanded.contains(item.primaryId());
-		JPanel container = new JPanel();
-		container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
-		container.setAlignmentX(LEFT_ALIGNMENT);
-		container.setOpaque(!open);
-		if (!open)
+		for (EquipmentPack.Item item : items)
 		{
-			container.setBackground(theme.background);
-		}
-		container.setBorder(new EmptyBorder(open ? 0 : 1, 0, open ? 0 : 1, 0));
-
-		JPanel head = row();
-		head.setBorder(new EmptyBorder(1, UiTokens.ROW_GAP, 1, UiTokens.ROW_GAP));
-		JLabel icon = new JLabel();
-		java.awt.Image sprite = sprites.get(item.primaryId(), -1, 16);
-		if (sprite != null)
-		{
-			icon.setIcon(new javax.swing.ImageIcon(sprite));
-		}
-		head.add(icon);
-		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		OsrsLabel name = new OsrsLabel(item.name,
-			own ? OsrsSkin.VALUE : OsrsSkin.MUTED, OsrsSkin.font()).leftAligned().squeezable();
-		name.setToolTipText(item.name + (own ? " — owned" : ""));
-		head.add(name);
-		head.add(Box.createHorizontalGlue());
-		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		String metric = metricText(item);
-		if (!metric.isEmpty())
-		{
-			head.add(new OsrsLabel(metric, OsrsSkin.FAINT, OsrsSkin.smallFont()));
-		}
-		cap(head);
-		container.add(head);
-
-		if (open)
-		{
-			container.add(detailCard(item, own));
-		}
-
-		container.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		MouseAdapter click = new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e)
+			if (item.primaryId() == id)
 			{
-				if (!open)
-				{
-					container.setBackground(theme.hoverFill);
-				}
+				return item;
 			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				if (!open)
-				{
-					container.setBackground(theme.background);
-				}
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				if (e.isPopupTrigger())
-				{
-					rowMenu(item, e);
-				}
-				else if (SwingUtilities.isLeftMouseButton(e))
-				{
-					if (!expanded.remove(item.primaryId()))
-					{
-						expanded.add(item.primaryId());
-					}
-					rebuildList();
-				}
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e)
-			{
-				if (e.isPopupTrigger())
-				{
-					rowMenu(item, e);
-				}
-			}
-		};
-		attach(head, click);
-		container.addMouseListener(click);
-		cap(container);
-		return container;
+		}
+		return null;
 	}
 
-	/** The metric shown on a row's right for the active sort. */
+	private GearItemTile tile(EquipmentPack.Item item)
+	{
+		java.awt.Image sprite = sprites.get(item.primaryId(), -1, 28);
+		return new GearItemTile(theme, item.name, sprite, owns(item), isTracked(item),
+			item.primaryId() == selected, tileTooltip(item),
+			() ->
+			{
+				selected = item.primaryId() == selected ? -1 : item.primaryId();
+				rebuildGrid();
+			},
+			e -> rowMenu(item, e));
+	}
+
+	/** Slot · value · the active metric — the tile shows only the sprite and
+	 *  name, so its numbers ride in the tooltip. */
+	private String tileTooltip(EquipmentPack.Item item)
+	{
+		StringBuilder tip = new StringBuilder(item.name);
+		tip.append(" — ").append(slotName(item.slot));
+		long value = marketValue(item);
+		if (value > 0)
+		{
+			tip.append(" · ").append(Format.gp(value));
+		}
+		if (sort != EquipmentLibrary.Sort.NAME && sort != EquipmentLibrary.Sort.VALUE)
+		{
+			tip.append(" · ").append(sort.label).append(' ').append(metricText(item));
+		}
+		if (owns(item))
+		{
+			tip.append(" · owned");
+		}
+		return tip.toString();
+	}
+
+	private JComponent pager(int pages)
+	{
+		JPanel row = row();
+		row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP));
+		row.add(pagerButton("< Prev", page > 0, () ->
+		{
+			page--;
+			selected = -1;
+			rebuildGrid();
+		}));
+		row.add(Box.createHorizontalGlue());
+		row.add(new OsrsLabel((page + 1) + " / " + pages, OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		row.add(Box.createHorizontalGlue());
+		row.add(pagerButton("Next >", page < pages - 1, () ->
+		{
+			page++;
+			selected = -1;
+			rebuildGrid();
+		}));
+		cap(row);
+		return row;
+	}
+
+	private JComponent pagerButton(String text, boolean enabled, Runnable onClick)
+	{
+		OsrsLabel label = new OsrsLabel(text, enabled ? OsrsSkin.LABEL : OsrsSkin.FAINT,
+			OsrsSkin.smallFont());
+		if (enabled)
+		{
+			label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			label.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					onClick.run();
+				}
+			});
+		}
+		return label;
+	}
+
+	/** The item's market value: the live GE price in-client, else high alch. */
+	private long marketValue(EquipmentPack.Item item)
+	{
+		if (itemManager != null)
+		{
+			int price = itemManager.getItemPrice(item.primaryId());
+			if (price > 0)
+			{
+				return price;
+			}
+		}
+		return item.alch;
+	}
+
+	/** The metric shown for the active sort (tooltip / detail). */
 	private String metricText(EquipmentPack.Item item)
 	{
 		if (sort == EquipmentLibrary.Sort.SPEED)
@@ -444,10 +517,10 @@ class GearLibraryTab extends JPanel
 		}
 		if (sort == EquipmentLibrary.Sort.NAME || sort == EquipmentLibrary.Sort.VALUE)
 		{
-			return item.value() > 0 ? Format.gp(item.value()) : "";
+			long value = marketValue(item);
+			return value > 0 ? Format.gp(value) : "";
 		}
-		int bonus = library.metric(item, sort);
-		return signed(bonus);
+		return signed((int) library.metric(item, sort));
 	}
 
 	private static String signed(int bonus)
@@ -463,33 +536,48 @@ class GearLibraryTab extends JPanel
 		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 		card.setAlignmentX(LEFT_ALIGNMENT);
 
+		// the header carries a LARGER sprite on the left (Luke), the name and
+		// the meta beside it, and the track affordance on the right
 		JPanel titleLine = row();
+		JLabel bigIcon = new JLabel();
+		java.awt.Image sprite = sprites.get(item.primaryId(), -1, 32);
+		if (sprite != null)
+		{
+			bigIcon.setIcon(new javax.swing.ImageIcon(sprite));
+			bigIcon.setBorder(new EmptyBorder(0, 0, 0, UiTokens.ROW_GAP));
+		}
+		bigIcon.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+		titleLine.add(bigIcon);
+		JPanel titleText = new JPanel();
+		titleText.setLayout(new BoxLayout(titleText, BoxLayout.Y_AXIS));
+		titleText.setOpaque(false);
+		titleText.setAlignmentY(TOP_ALIGNMENT);
 		OsrsLabel title = new OsrsLabel(item.name,
 			own ? OsrsSkin.VALUE : OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned().squeezable();
 		title.setToolTipText(item.name);
-		titleLine.add(title);
-		titleLine.add(Box.createHorizontalGlue());
-		titleLine.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		titleLine.add(trackGlyph(item, own));
-		cap(titleLine);
-		card.add(titleLine);
-
+		titleText.add(title);
 		StringBuilder meta = new StringBuilder(slotName(item.slot));
 		meta.append(item.members ? " · members" : " · free-to-play");
 		if (item.speed > 0)
 		{
 			meta.append(" · speed ").append(item.speed);
 		}
-		card.add(new OsrsLabel(meta.toString(), OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
-
-		// value
-		if (item.value() > 0)
+		titleText.add(new OsrsLabel(meta.toString(), OsrsSkin.MUTED, OsrsSkin.smallFont())
+			.leftAligned());
+		long value = marketValue(item);
+		if (value > 0)
 		{
-			String valueText = item.ge > 0
-				? "GE " + Format.gp(item.ge) + (item.alch > 0 ? " · alch " + Format.gp(item.alch) : "")
-				: "Alch " + Format.gp(item.alch);
-			card.add(new OsrsLabel(valueText, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+			String valueText = (itemManager != null && itemManager.getItemPrice(item.primaryId()) > 0
+				? "GE " : "Alch ") + Format.gp(value);
+			titleText.add(new OsrsLabel(valueText, OsrsSkin.MUTED, OsrsSkin.smallFont())
+				.leftAligned());
 		}
+		titleLine.add(titleText);
+		titleLine.add(Box.createHorizontalGlue());
+		titleLine.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		titleLine.add(trackGlyph(item, own));
+		cap(titleLine);
+		card.add(titleLine);
 
 		card.add(Box.createVerticalStrut(3));
 		addStatBlock(card, item);
@@ -575,7 +663,7 @@ class GearLibraryTab extends JPanel
 
 	private boolean isTracked(EquipmentPack.Item item)
 	{
-		return state.getSelectedGoals().contains("supply:" + item.primaryId());
+		return state.getSelectedGoals().contains("gear:" + item.primaryId());
 	}
 
 	private JLabel trackGlyph(EquipmentPack.Item item, boolean own)
@@ -607,14 +695,38 @@ class GearLibraryTab extends JPanel
 	{
 		if (isTracked(item))
 		{
-			state.removeGoalSeed("supply:" + item.primaryId());
+			state.removeGoalSeed("gear:" + item.primaryId());
 		}
 		else
 		{
-			// the same one-shot obtain goal the wiki-gear "+" seeds, so the
-			// two affordances dedupe on the item id
-			state.addGoalSeed(GoalSeeds.supply(item.primaryId(), item.name, 1));
+			// an "obtain this equipment" goal — family Gear, named for the item
+			// alone, decomposed to its real obtain tasks by the engine
+			state.addGoalSeed(GoalSeeds.gear(item.primaryId(), item.name, obtainReqs(item)));
 		}
+	}
+
+	/**
+	 * The item's wield/access requirements from the KB, gathered across ALL
+	 * its ids — a chargeable item states them on a different id than the one
+	 * that drops (Tumeken's shadow's ToA quest + Magic 85 sit on the charged
+	 * 27275, while 27277 is the raw drop).
+	 */
+	private List<String> obtainReqs(EquipmentPack.Item item)
+	{
+		if (itemSources == null)
+		{
+			return List.of();
+		}
+		LinkedHashSet<String> reqs = new LinkedHashSet<>();
+		for (int id : item.ids)
+		{
+			List<String> ownReqs = itemSources.reqs(id);
+			if (ownReqs != null)
+			{
+				reqs.addAll(ownReqs);
+			}
+		}
+		return new ArrayList<>(reqs);
 	}
 
 	private void rowMenu(EquipmentPack.Item item, MouseEvent e)
@@ -697,8 +809,14 @@ class GearLibraryTab extends JPanel
 
 	void expandForTest(int itemId)
 	{
-		expanded.add(itemId);
-		rebuildList();
+		selected = itemId;
+		rebuildGrid();
+	}
+
+	void pageForTest(int page)
+	{
+		this.page = page;
+		rebuildGrid();
 	}
 
 	void expandChartForTest()
@@ -743,20 +861,6 @@ class GearLibraryTab extends JPanel
 		holder.add(Box.createHorizontalGlue());
 		cap(holder);
 		return holder;
-	}
-
-	private static void attach(JComponent container, MouseAdapter click)
-	{
-		for (java.awt.Component child : container.getComponents())
-		{
-			// the +/× glyph keeps its own action; everything else forwards
-			if (child instanceof JLabel && ((JLabel) child).getIcon() == null
-				&& ("+".equals(((JLabel) child).getText()) || "×".equals(((JLabel) child).getText())))
-			{
-				continue;
-			}
-			child.addMouseListener(click);
-		}
 	}
 
 	private static void cap(JComponent c)

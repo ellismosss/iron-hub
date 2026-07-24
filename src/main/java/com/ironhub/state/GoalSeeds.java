@@ -158,6 +158,29 @@ public final class GoalSeeds
 		return seed;
 	}
 
+	/**
+	 * "Obtain this piece of equipment" — the Gear library's track affordance
+	 * (Luke, 2026-07-24). Family "gear" so it buckets under Gear (not
+	 * Supplies), named for the item alone. The reqs (wield/access gates from
+	 * the KB) become planner steps, then an obtain step routing through
+	 * {@code item:<id>} so the engine decomposes the KB's obtainment — the
+	 * raid, the drop rate, the materials, the quest — into real tasks rather
+	 * than the supply seed's "Gather 1 × item N". Achieved when owned.
+	 */
+	public static PersistedState.GoalSeed gear(int itemId, String name, List<String> reqs)
+	{
+		PersistedState.GoalSeed seed = base("gear", "gear:" + itemId, name);
+		seed.iconItemId = itemId;
+		for (String raw : reqs)
+		{
+			seed.steps.add(step(Requirements.parse(raw).describe(), raw));
+		}
+		seed.steps.add(step("Obtain " + name, "item:" + itemId));
+		// owned (any variation) retires the goal
+		seed.achieved.add("item:" + itemId + ":1:" + name);
+		return seed;
+	}
+
 	/** A one-shot supply goal ("stock N × item"): achieved when bank+carried
 	 *  ≥ N (variation-aware via {@code item:}), re-addable after completion. */
 	public static PersistedState.GoalSeed supply(int itemId, String name, int qty)

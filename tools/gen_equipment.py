@@ -5,10 +5,16 @@ armour and cosmetic item, not just an 'optimal' few).
 
 Reads knowledge.db directly (run tools/knowledge/rebuild.py first) — the
 `equipment` table is the wiki's 12 slot categories with full Infobox
-Bonuses. This pack carries only what no other pack has: the combat stats,
-the slot, members, and a value for sorting. Obtainment and equip
-requirements already live in item-sources.json (ItemSourcesPack), so the
-library reads those by id and never duplicates them.
+Bonuses. This pack carries only what no other pack has: the combat stats, the
+slot, members, and the high-alch value. Obtainment and equip requirements
+already live in item-sources.json (ItemSourcesPack), so the library reads
+those by id and never duplicates them.
+
+The MARKET value is NOT baked: the exchange module's `value` attribute is
+the item's store value (used to derive high alch), not the live GE price
+— for Tumeken's shadow that value is 7M while the item trades at ~750M.
+The live price comes from ItemManager.getItemPrice at runtime; only the
+high-alch value (a fixed, honest number) is baked, as an offline fallback.
 
 Excluded: restricted-mode items (LMS / Deadman / beta duplicates of real
 gear) and rows the wiki gives no slot (storage items mis-filed under
@@ -52,18 +58,17 @@ def main():
         raise SystemExit("knowledge.db missing — run tools/knowledge/rebuild.py first")
     con = sqlite3.connect(DB)
 
-    # GE guide price + high alch, by item id (bucket_exchange).
-    ge = {}
+    # high alch by item id (bucket_exchange). The `value` column is the
+    # store value, not the market price — deliberately not baked (see the
+    # module docstring); the live GE price is an ItemManager runtime read.
     alch = {}
-    for row in con.execute("select id, value, high_alch from bucket_exchange"):
+    for row in con.execute("select id, high_alch from bucket_exchange"):
         try:
             item_id = int(row[0])
         except (TypeError, ValueError):
             continue
         if to_int(row[1]) > 0:
-            ge[item_id] = to_int(row[1])
-        if to_int(row[2]) > 0:
-            alch[item_id] = to_int(row[2])
+            alch[item_id] = to_int(row[1])
 
     # game-mode-only duplicates the restricted-mode-item flag misses: the
     # Deadman Mode and Bounty Hunter (bh) recolours of real gear.
@@ -99,11 +104,8 @@ def main():
         speed = to_int(stats.get("speed"))
         if speed > 0:
             entry["speed"] = speed
-        # value for sorting: GE guide price where tradeable, else high alch;
-        # the first id that carries one wins (versions share a value)
-        price = next((ge[i] for i in ids if i in ge), 0)
-        if price:
-            entry["ge"] = price
+        # high-alch value (the first id that carries one — versions share it),
+        # the offline fallback when there's no live GE price
         alch_value = next((alch[i] for i in ids if i in alch), 0)
         if alch_value:
             entry["alch"] = alch_value

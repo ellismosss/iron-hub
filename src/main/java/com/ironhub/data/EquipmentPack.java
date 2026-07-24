@@ -43,16 +43,13 @@ public class EquipmentPack
 		public int[] stats;
 		/** Weapon attack speed in ticks; 0 = not a weapon / no speed. */
 		public int speed;
-		/** GE guide price, 0 = untradeable / unknown. */
-		public int ge;
-		/** High-alchemy value, 0 = unknown. */
+		/**
+		 * High-alchemy value; 0 = unknown. The MARKET price is NOT baked
+		 * (the exchange module's value is the store value, not the GE price)
+		 * — it comes from ItemManager at runtime, with this as the offline
+		 * fallback.
+		 */
 		public int alch;
-
-		/** The value to sort and show: GE price where tradeable, else alch. */
-		public int value()
-		{
-			return ge > 0 ? ge : alch;
-		}
 
 		/** The canonical (first) item id — the sprite and ownership key. */
 		public int primaryId()

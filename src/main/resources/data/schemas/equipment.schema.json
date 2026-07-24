@@ -60,10 +60,6 @@
 						"type": "integer",
 						"minimum": 1
 					},
-					"ge": {
-						"type": "integer",
-						"minimum": 1
-					},
 					"alch": {
 						"type": "integer",
 						"minimum": 1

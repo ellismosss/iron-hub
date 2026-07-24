@@ -83,6 +83,7 @@ final class EquipmentLibrary
 
 	private final EquipmentPack pack;
 	private final Ownership ownership;
+	private final java.util.function.ToLongFunction<EquipmentPack.Item> valueOf;
 
 	/** Owning-any-id test, injected so the pure logic never touches a client. */
 	interface Ownership
@@ -90,14 +91,27 @@ final class EquipmentLibrary
 		boolean owns(EquipmentPack.Item item);
 	}
 
-	EquipmentLibrary(EquipmentPack pack, Ownership ownership)
+	/**
+	 * @param valueOf the item's sortable/displayable market value — the live
+	 *                GE price in-client, the high-alch value offline. The
+	 *                exchange module's store value is deliberately not used
+	 *                (it read Tumeken's shadow at 7M vs the real ~750M).
+	 */
+	EquipmentLibrary(EquipmentPack pack, Ownership ownership,
+		java.util.function.ToLongFunction<EquipmentPack.Item> valueOf)
 	{
 		this.pack = pack;
 		this.ownership = ownership;
+		this.valueOf = valueOf;
+	}
+
+	long value(EquipmentPack.Item item)
+	{
+		return valueOf.applyAsLong(item);
 	}
 
 	/** The metric a row shows on its right, for the active sort. */
-	int metric(EquipmentPack.Item item, Sort sort)
+	long metric(EquipmentPack.Item item, Sort sort)
 	{
 		if (sort == Sort.SPEED)
 		{
@@ -105,7 +119,7 @@ final class EquipmentLibrary
 		}
 		if (sort == Sort.VALUE || sort == Sort.NAME)
 		{
-			return item.value();
+			return valueOf.applyAsLong(item);
 		}
 		return item.stats[sort.statIndex()];
 	}
@@ -155,13 +169,10 @@ final class EquipmentLibrary
 		{
 			// ties break by name, so a metric-sorted list is still stable and
 			// readable (dozens of items share a bonus of 0)
-			order = Comparator.<EquipmentPack.Item>comparingInt(i -> metric(i, sort)).reversed()
+			Comparator<EquipmentPack.Item> byMetric =
+				Comparator.comparingLong(i -> metric(i, sort));
+			order = (ascending ? byMetric : byMetric.reversed())
 				.thenComparing(i -> i.name.toLowerCase(Locale.ROOT));
-			if (ascending)
-			{
-				order = Comparator.<EquipmentPack.Item>comparingInt(i -> metric(i, sort))
-					.thenComparing(i -> i.name.toLowerCase(Locale.ROOT));
-			}
 		}
 		return sort == Sort.NAME && !ascending ? order.reversed() : order;
 	}

@@ -126,6 +126,50 @@ public class GearModuleTest
 			})));
 	}
 
+	/**
+	 * Tracking a library item makes a GEAR goal, not a Supplies one, named
+	 * for the item alone, whose obtain step routes through {@code item:} so
+	 * the engine decomposes it into real tasks (Luke: "Stock 1 × Tumeken's
+	 * shadow" / "Gather 1 × item 27277" was both the wrong family and the
+	 * wrong decomposition).
+	 */
+	@Test
+	public void trackingGearMakesAGearGoalWithRealObtainSteps()
+	{
+		int shadow = 27277;
+		com.ironhub.state.PersistedState.GoalSeed seed = com.ironhub.state.GoalSeeds.gear(
+			shadow, "Tumeken's shadow",
+			List.of("quest:Beneath Cursed Sands", "skill:Magic:85"));
+
+		assertEquals("gear", seed.family);
+		assertEquals("gear:27277", seed.id);
+		assertEquals("Tumeken's shadow", seed.name); // NOT "Stock 1 × ..."
+		// the reqs became steps, then an obtain step routing through item:
+		List<String> labels = new java.util.ArrayList<>();
+		List<String> reqs = new java.util.ArrayList<>();
+		for (com.ironhub.state.PersistedState.SeedStep step : seed.steps)
+		{
+			labels.add(step.label);
+			reqs.add(step.requirement);
+		}
+		assertTrue(labels.contains("Obtain Tumeken's shadow"));
+		assertTrue("obtain step routes through item: for engine decomposition",
+			reqs.contains("item:27277"));
+		assertTrue("wield/access reqs are steps", reqs.contains("quest:Beneath Cursed Sands"));
+		assertTrue(labels.stream().noneMatch(l -> l.startsWith("Stock ")
+			|| l.contains("item 27277")));
+
+		// it renders and buckets as a Gear goal, achieved once owned
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 7L);
+		state.addGoalSeed(seed);
+		assertTrue(state.getSelectedGoals().contains("gear:27277"));
+		com.ironhub.data.GoalsPack.Goal goal =
+			com.ironhub.modules.goals.GoalPlannerModule.toGoal(seed);
+		assertEquals("Tumeken's shadow", goal.getName());
+		assertEquals((Integer) shadow, goal.icon());
+	}
+
 	@Test
 	public void tabRendersHeadless() throws Exception
 	{

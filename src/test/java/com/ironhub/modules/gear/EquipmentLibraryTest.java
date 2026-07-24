@@ -19,7 +19,8 @@ public class EquipmentLibraryTest
 
 	private EquipmentLibrary library(Set<String> owned)
 	{
-		return new EquipmentLibrary(PACK, item -> owned.contains(item.name));
+		// headless: the market value is the high-alch fallback (no ItemManager)
+		return new EquipmentLibrary(PACK, item -> owned.contains(item.name), item -> item.alch);
 	}
 
 	@Test
@@ -58,13 +59,15 @@ public class EquipmentLibraryTest
 	@Test
 	public void valueSortLeadsWithTheMostExpensive()
 	{
-		List<EquipmentPack.Item> byValue = library(Set.of()).query(
+		EquipmentLibrary library = library(Set.of());
+		List<EquipmentPack.Item> byValue = library.query(
 			"", null, EquipmentLibrary.Owned.ALL, EquipmentLibrary.Access.ALL,
 			EquipmentLibrary.Sort.VALUE, false);
 		// the leader is worth more than the item 100 places down — the metric
-		// is genuinely descending, not just a stable no-op
-		assertTrue(byValue.get(0).value() >= byValue.get(100).value());
-		assertTrue(byValue.get(0).value() > 1_000_000);
+		// is genuinely descending, not just a stable no-op (value here is the
+		// high-alch fallback, since the test has no live prices)
+		assertTrue(library.value(byValue.get(0)) >= library.value(byValue.get(100)));
+		assertTrue(library.value(byValue.get(0)) > 1_000_000);
 	}
 
 	@Test
