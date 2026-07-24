@@ -86,6 +86,21 @@ def gameval_item_ids():
             re.finditer(r"public static final int (\w+) = (-?\d+);", dump)}
 
 
+def gameval_inventory_ids():
+    """gameval InventoryID constant NAME -> id, from the runelite-api jar."""
+    jars = [j for j in glob.glob(os.path.expanduser(
+        "~/.gradle/caches/modules-2/files-2.1/net.runelite/runelite-api/*/*/"
+        "runelite-api-*.jar")) if "sources" not in j and "javadoc" not in j]
+    if not jars:
+        raise SystemExit("no runelite-api jar in the Gradle cache — run a build first")
+    dump = subprocess.run(
+        ["javap", "-classpath", sorted(jars)[-1], "-constants",
+         "net.runelite.api.gameval.InventoryID"],
+        capture_output=True, text=True, check=True).stdout
+    return {m.group(1): int(m.group(2)) for m in
+            re.finditer(r"public static final int (\w+) = (-?\d+);", dump)}
+
+
 def read_enum(family, filename):
     with open(os.path.join(SRC_ROOT, family, filename), encoding="utf-8") as f:
         text = f.read()
@@ -191,7 +206,7 @@ def sentence_case(name):
     return re.sub(r"\(([a-z])", lambda m: "(" + m.group(1).upper(), out)
 
 
-def parse_poh(items_by_name):
+def parse_poh(items_by_name, inv_by_name):
     """PlayerOwnedHouse: NAME("Display", <container|-1>, "configKey", <list|null>)."""
     text = read_enum("playerownedhouse", "PlayerOwnedHouseStorageType.java")
     storages = []
@@ -209,8 +224,80 @@ def parse_poh(items_by_name):
         }
         if container:
             entry["container"] = container
+            cid = inv_by_name.get(container)
+            if cid is not None:
+                entry["containerId"] = cid
         if items is not None:
             entry["items"] = items
+        # the whole costume room shares POH_COSTUMES; attribute by allow-list
+        if container == "POH_COSTUMES":
+            entry["mode"] = "poh"
+        storages.append(entry)
+    return storages
+
+
+# constructor arg indices per family: (container_idx, configkey_idx). name is
+# always arg 0. A None container_idx means the family carries no container arg.
+FAMILY_SPEC = {
+    "carryable": (1, 3),
+    "coins": (2, 4),
+    "minigames": (None, 2),
+    "sailing": (1, 2),
+    "stash": (1, 3),
+    "world": (1, 3),
+    "death": (1, 3),
+}
+
+# storages that are a plain, byte-faithful container read on
+# ItemContainerChanged (DWMS's base ItemStorage path) — safe to detect
+# generically. bank/inventory/equipment are owned by AccountState and never
+# listed here; chat/widget/varbit-scrape storages are not (they land with
+# bespoke hooks in later slices).
+CONTAINER_MODE = {
+    ("carryable", "lootingbag"),
+    ("carryable", "seedbox"),
+    ("carryable", "huntsmanskit"),
+    ("carryable", "forestrykit"),
+    ("carryable", "tackleBox"),
+    ("carryable", "chuggingBarrel"),
+    ("sailing", "boat1"), ("sailing", "boat2"), ("sailing", "boat3"),
+    ("sailing", "boat4"), ("sailing", "boat5"),
+    ("death", "deathsoffice"),
+}
+
+ENUM_FILE = {
+    "carryable": "CarryableStorageType.java",
+    "coins": "CoinsStorageType.java",
+    "minigames": "MinigamesStorageType.java",
+    "sailing": "SailingStorageType.java",
+    "stash": "StashStorageType.java",
+    "world": "WorldStorageType.java",
+    "death": "DeathStorageType.java",
+}
+
+
+def parse_family(family, inv_by_name):
+    """Registry metadata for a family's *StorageType enum. Emits a container id
+    where the storage reads a real InventoryID, and mode='container' for the
+    curated plain-container-read set."""
+    container_idx, key_idx = FAMILY_SPEC[family]
+    text = read_enum(family, ENUM_FILE[family])
+    storages = []
+    for name, args in enum_constants(text):
+        display = args[0].strip().strip('"')
+        config_key = args[key_idx].strip().strip('"') if key_idx < len(args) else ""
+        if not config_key:
+            continue  # e.g. DeathStorageType.DEATH_ITEMS is a preview, not a store
+        entry = {"family": family, "key": config_key, "name": display}
+        if container_idx is not None and container_idx < len(args):
+            container = parse_container(args[container_idx])
+            if container:
+                entry["container"] = container
+                cid = inv_by_name.get(container)
+                if cid is not None:
+                    entry["containerId"] = cid
+        if (family, config_key) in CONTAINER_MODE:
+            entry["mode"] = "container"
         storages.append(entry)
     return storages
 
@@ -218,9 +305,12 @@ def parse_poh(items_by_name):
 def main():
     ensure_source()
     items_by_name = gameval_item_ids()
+    inv_by_name = gameval_inventory_ids()
 
     storages = []
-    storages += parse_poh(items_by_name)
+    storages += parse_poh(items_by_name, inv_by_name)
+    for family in FAMILY_SPEC:
+        storages += parse_family(family, inv_by_name)
 
     # sanity asserts — the POH costume room, byte-faithful to the source
     keys = {s["key"] for s in storages}
@@ -234,11 +324,32 @@ def main():
         if s.get("container") == "POH_COSTUMES" and s["key"] != "uncategorised":
             assert s.get("items"), f"{s['key']} missing allow-list"
 
+    # every container-mode storage resolved a real container id
+    for s in storages:
+        if s.get("mode") == "container":
+            assert s.get("containerId"), f"{s['key']} container-mode without a container id"
+    # the curated container-mode set is fully present (a rename in the source
+    # would silently drop a storage otherwise)
+    present = {(s["family"], s["key"]) for s in storages}
+    for want in CONTAINER_MODE:
+        assert want in present, f"container-mode storage vanished from source: {want}"
+
+    # a globally-unique handle: config keys collide across families ("bank" is
+    # both a coins and a world storage), and the persisted snapshot map is
+    # keyed by this. Emit id first for readability.
+    ordered = []
+    seen = set()
+    for s in storages:
+        s_id = s["family"] + ":" + s["key"]
+        assert s_id not in seen, f"duplicate storage id: {s_id}"
+        seen.add(s_id)
+        ordered.append({"id": s_id, **s})
+
     pack = {
         "_generated": "tools/gen_storage_locations.py",
         "_source": "dude-wheres-my-stuff @ " + COMMIT,
         "familyLabels": FAMILY_LABELS,
-        "storages": storages,
+        "storages": ordered,
     }
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(pack, f, indent=1)
@@ -246,8 +357,9 @@ def main():
 
     poh = sum(1 for s in storages if s["family"] == "playerownedhouse")
     allow = sum(1 for s in storages if s.get("items"))
+    cont = sum(1 for s in storages if s.get("mode") == "container")
     print(f"wrote {os.path.relpath(OUT, HERE)}: {len(storages)} storages "
-          f"({poh} POH, {allow} with allow-lists)")
+          f"({poh} POH, {allow} allow-lists, {cont} container-mode)")
 
 
 if __name__ == "__main__":

@@ -13,12 +13,14 @@
  },
  "storages": [
   {
+   "id": "playerownedhouse:treasureChestBeginner",
    "family": "playerownedhouse",
    "key": "treasureChestBeginner",
    "name": "Treasure chest (Beginner)",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
+   "containerId": 637,
    "items": [
     23285,
     23288,
@@ -35,15 +37,18 @@
     23330,
     23332,
     23334
-   ]
+   ],
+   "mode": "poh"
   },
   {
+   "id": "playerownedhouse:treasureChestEasy",
    "family": "playerownedhouse",
    "key": "treasureChestEasy",
    "name": "Treasure chest (Easy)",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
+   "containerId": 637,
    "items": [
     2583,
     2585,
@@ -205,15 +210,18 @@
     23378,
     23381,
     23384
-   ]
+   ],
+   "mode": "poh"
   },
   {
+   "id": "playerownedhouse:treasureChestMedium",
    "family": "playerownedhouse",
    "key": "treasureChestMedium",
    "name": "Treasure chest (Medium)",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
+   "containerId": 637,
    "items": [
     2577,
     2579,
@@ -312,15 +320,18 @@
     23407,
     23410,
     23413
-   ]
+   ],
+   "mode": "poh"
   },
   {
+   "id": "playerownedhouse:treasureChestHard",
    "family": "playerownedhouse",
    "key": "treasureChestHard",
    "name": "Treasure chest (Hard)",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
+   "containerId": 637,
    "items": [
     2581,
     2615,
@@ -478,15 +489,18 @@
     23221,
     23224,
     23242
-   ]
+   ],
+   "mode": "poh"
   },
   {
+   "id": "playerownedhouse:treasureChestElite",
    "family": "playerownedhouse",
    "key": "treasureChestElite",
    "name": "Treasure chest (Elite)",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
+   "containerId": 637,
    "items": [
     12335,
     12337,
@@ -566,15 +580,18 @@
     23276,
     23279,
     23282
-   ]
+   ],
+   "mode": "poh"
   },
   {
+   "id": "playerownedhouse:treasureChestMaster",
    "family": "playerownedhouse",
    "key": "treasureChestMaster",
    "name": "Treasure chest (Master)",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
+   "containerId": 637,
    "items": [
     1025,
     19724,
@@ -624,15 +641,18 @@
     23342,
     23345,
     28226
-   ]
+   ],
+   "mode": "poh"
   },
   {
+   "id": "playerownedhouse:armourCase",
    "family": "playerownedhouse",
    "key": "armourCase",
    "name": "Armour case",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
+   "containerId": 637,
    "items": [
     1069,
     1506,
@@ -1024,15 +1044,18 @@
     31196,
     31199,
     31202
-   ]
+   ],
+   "mode": "poh"
   },
   {
+   "id": "playerownedhouse:magicWardrobe",
    "family": "playerownedhouse",
    "key": "magicWardrobe",
    "name": "Magic wardrobe",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
+   "containerId": 637,
    "items": [
     3385,
     3387,
@@ -1360,15 +1383,18 @@
     33097,
     33098,
     33099
-   ]
+   ],
+   "mode": "poh"
   },
   {
+   "id": "playerownedhouse:fancyDressBox",
    "family": "playerownedhouse",
    "key": "fancyDressBox",
    "name": "Fancy dress box",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
+   "containerId": 637,
    "items": [
     546,
     548,
@@ -1402,15 +1428,18 @@
     25133,
     25135,
     25137
-   ]
+   ],
+   "mode": "poh"
   },
   {
+   "id": "playerownedhouse:capeRack",
    "family": "playerownedhouse",
    "key": "capeRack",
    "name": "Cape rack",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
+   "containerId": 637,
    "items": [
     1052,
     2412,
@@ -1627,23 +1656,28 @@
     31288,
     31290,
     31292
-   ]
+   ],
+   "mode": "poh"
   },
   {
+   "id": "playerownedhouse:menagerie",
    "family": "playerownedhouse",
    "key": "menagerie",
    "name": "Menagerie",
    "members": true,
    "automatic": false,
-   "container": "POH_MENAGERIE_PETS"
+   "container": "POH_MENAGERIE_PETS",
+   "containerId": 517
   },
   {
+   "id": "playerownedhouse:bossLairDisplay",
    "family": "playerownedhouse",
    "key": "bossLairDisplay",
    "name": "Boss lair display",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
+   "containerId": 637,
    "items": [
     12007,
     12885,
@@ -1660,9 +1694,11 @@
     25524,
     29786,
     32921
-   ]
+   ],
+   "mode": "poh"
   },
   {
+   "id": "playerownedhouse:capeHanger",
    "family": "playerownedhouse",
    "key": "capeHanger",
    "name": "Cape hanger",
@@ -1670,6 +1706,7 @@
    "automatic": false
   },
   {
+   "id": "playerownedhouse:spiceRack",
    "family": "playerownedhouse",
    "key": "spiceRack",
    "name": "Spice rack",
@@ -1677,12 +1714,14 @@
    "automatic": false
   },
   {
+   "id": "playerownedhouse:toyBox",
    "family": "playerownedhouse",
    "key": "toyBox",
    "name": "Toy box",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
+   "containerId": 637,
    "items": [
     795,
     1037,
@@ -2049,15 +2088,515 @@
     33082,
     33084,
     33086
-   ]
+   ],
+   "mode": "poh"
   },
   {
+   "id": "playerownedhouse:uncategorised",
    "family": "playerownedhouse",
    "key": "uncategorised",
    "name": "Uncategorised",
    "members": true,
    "automatic": false,
-   "container": "POH_COSTUMES"
+   "container": "POH_COSTUMES",
+   "containerId": 637,
+   "mode": "poh"
+  },
+  {
+   "id": "carryable:inventory",
+   "family": "carryable",
+   "key": "inventory",
+   "name": "Inventory",
+   "container": "INV",
+   "containerId": 93
+  },
+  {
+   "id": "carryable:equipment",
+   "family": "carryable",
+   "key": "equipment",
+   "name": "Equipment",
+   "container": "WORN",
+   "containerId": 94
+  },
+  {
+   "id": "carryable:lootingbag",
+   "family": "carryable",
+   "key": "lootingbag",
+   "name": "Looting Bag",
+   "container": "LOOTING_BAG",
+   "containerId": 516,
+   "mode": "container"
+  },
+  {
+   "id": "carryable:seedbox",
+   "family": "carryable",
+   "key": "seedbox",
+   "name": "Seed Box",
+   "container": "SEED_BOX",
+   "containerId": 573,
+   "mode": "container"
+  },
+  {
+   "id": "carryable:runepouch",
+   "family": "carryable",
+   "key": "runepouch",
+   "name": "Rune Pouch"
+  },
+  {
+   "id": "carryable:bottomlessbucket",
+   "family": "carryable",
+   "key": "bottomlessbucket",
+   "name": "Bottomless Compost Bucket"
+  },
+  {
+   "id": "carryable:plankSack",
+   "family": "carryable",
+   "key": "plankSack",
+   "name": "Plank Sack"
+  },
+  {
+   "id": "carryable:boltpouch",
+   "family": "carryable",
+   "key": "boltpouch",
+   "name": "Bolt Pouch"
+  },
+  {
+   "id": "carryable:gnomishfirelighter",
+   "family": "carryable",
+   "key": "gnomishfirelighter",
+   "name": "Gnomish Firelighter"
+  },
+  {
+   "id": "carryable:masterscrollbook",
+   "family": "carryable",
+   "key": "masterscrollbook",
+   "name": "Master Scroll Book"
+  },
+  {
+   "id": "carryable:huntsmanskit",
+   "family": "carryable",
+   "key": "huntsmanskit",
+   "name": "Huntsman's Kit",
+   "container": "HUNTSMANS_KIT",
+   "containerId": 855,
+   "mode": "container"
+  },
+  {
+   "id": "carryable:forestrykit",
+   "family": "carryable",
+   "key": "forestrykit",
+   "name": "Forestry Kit",
+   "container": "FORESTRY_KIT",
+   "containerId": 814,
+   "mode": "container"
+  },
+  {
+   "id": "carryable:tackleBox",
+   "family": "carryable",
+   "key": "tackleBox",
+   "name": "Tackle Box",
+   "container": "TACKLE_BOX",
+   "containerId": 651,
+   "mode": "container"
+  },
+  {
+   "id": "carryable:herbSack",
+   "family": "carryable",
+   "key": "herbSack",
+   "name": "Herb Sack"
+  },
+  {
+   "id": "carryable:chuggingBarrel",
+   "family": "carryable",
+   "key": "chuggingBarrel",
+   "name": "Chugging Barrel",
+   "container": "PREPOT_DEVICE_INV",
+   "containerId": 911,
+   "mode": "container"
+  },
+  {
+   "id": "carryable:dizanasQuiver",
+   "family": "carryable",
+   "key": "dizanasQuiver",
+   "name": "Dizana's Quiver"
+  },
+  {
+   "id": "carryable:bowStringSpool",
+   "family": "carryable",
+   "key": "bowStringSpool",
+   "name": "Bow String Spool"
+  },
+  {
+   "id": "coins:bank",
+   "family": "coins",
+   "key": "bank",
+   "name": "Bank",
+   "container": "BANK",
+   "containerId": 95
+  },
+  {
+   "id": "coins:nightmarezone",
+   "family": "coins",
+   "key": "nightmarezone",
+   "name": "Nightmare Zone"
+  },
+  {
+   "id": "coins:lastmanstanding",
+   "family": "coins",
+   "key": "lastmanstanding",
+   "name": "Last Man Standing"
+  },
+  {
+   "id": "coins:servantsmoneybag",
+   "family": "coins",
+   "key": "servantsmoneybag",
+   "name": "Servant's Moneybag"
+  },
+  {
+   "id": "coins:blastfurnace",
+   "family": "coins",
+   "key": "blastfurnace",
+   "name": "Blast Furnace"
+  },
+  {
+   "id": "coins:inventory",
+   "family": "coins",
+   "key": "inventory",
+   "name": "Inventory",
+   "container": "INV",
+   "containerId": 93
+  },
+  {
+   "id": "coins:lootingbag",
+   "family": "coins",
+   "key": "lootingbag",
+   "name": "Looting Bag",
+   "container": "LOOTING_BAG",
+   "containerId": 516
+  },
+  {
+   "id": "coins:grandexchange",
+   "family": "coins",
+   "key": "grandexchange",
+   "name": "Grand Exchange"
+  },
+  {
+   "id": "coins:shilofurnace",
+   "family": "coins",
+   "key": "shilofurnace",
+   "name": "Shilo Furnace"
+  },
+  {
+   "id": "coins:bountyhunter",
+   "family": "coins",
+   "key": "bountyhunter",
+   "name": "Bounty Hunter"
+  },
+  {
+   "id": "coins:managingMiscellania",
+   "family": "coins",
+   "key": "managingMiscellania",
+   "name": "Managing Miscellania"
+  },
+  {
+   "id": "coins:scarEssenceMine",
+   "family": "coins",
+   "key": "scarEssenceMine",
+   "name": "Scar Essence Mine"
+  },
+  {
+   "id": "minigames:magetrainingarena",
+   "family": "minigames",
+   "key": "magetrainingarena",
+   "name": "Mage Training Arena"
+  },
+  {
+   "id": "minigames:tithefarm",
+   "family": "minigames",
+   "key": "tithefarm",
+   "name": "Tithe Farm"
+  },
+  {
+   "id": "minigames:lastmanstanding",
+   "family": "minigames",
+   "key": "lastmanstanding",
+   "name": "Last Man Standing"
+  },
+  {
+   "id": "minigames:nightmarezone",
+   "family": "minigames",
+   "key": "nightmarezone",
+   "name": "Nightmare Zone"
+  },
+  {
+   "id": "minigames:pestcontrol",
+   "family": "minigames",
+   "key": "pestcontrol",
+   "name": "Pest Control"
+  },
+  {
+   "id": "minigames:barbarianassault",
+   "family": "minigames",
+   "key": "barbarianassault",
+   "name": "Barbarian Assault"
+  },
+  {
+   "id": "minigames:guardiansoftherift",
+   "family": "minigames",
+   "key": "guardiansoftherift",
+   "name": "Guardians of the Rift"
+  },
+  {
+   "id": "minigames:tempoross",
+   "family": "minigames",
+   "key": "tempoross",
+   "name": "Tempoross"
+  },
+  {
+   "id": "minigames:slayer",
+   "family": "minigames",
+   "key": "slayer",
+   "name": "Slayer"
+  },
+  {
+   "id": "minigames:soulwars",
+   "family": "minigames",
+   "key": "soulwars",
+   "name": "Soul Wars"
+  },
+  {
+   "id": "minigames:mahoganyhomes",
+   "family": "minigames",
+   "key": "mahoganyhomes",
+   "name": "Mahogany Homes"
+  },
+  {
+   "id": "minigames:giantsfoundry",
+   "family": "minigames",
+   "key": "giantsfoundry",
+   "name": "Giants' Foundry"
+  },
+  {
+   "id": "minigames:volcanicmine",
+   "family": "minigames",
+   "key": "volcanicmine",
+   "name": "Volcanic Mine"
+  },
+  {
+   "id": "minigames:troubleBrewing",
+   "family": "minigames",
+   "key": "troubleBrewing",
+   "name": "Trouble Brewing"
+  },
+  {
+   "id": "minigames:masteringMixology",
+   "family": "minigames",
+   "key": "masteringMixology",
+   "name": "Mastering Mixology"
+  },
+  {
+   "id": "minigames:wintertodt",
+   "family": "minigames",
+   "key": "wintertodt",
+   "name": "Wintertodt"
+  },
+  {
+   "id": "sailing:boat1",
+   "family": "sailing",
+   "key": "boat1",
+   "name": "Boat 1",
+   "container": "SAILING_BOAT_1_CARGOHOLD",
+   "containerId": 963,
+   "mode": "container"
+  },
+  {
+   "id": "sailing:boat2",
+   "family": "sailing",
+   "key": "boat2",
+   "name": "Boat 2",
+   "container": "SAILING_BOAT_2_CARGOHOLD",
+   "containerId": 964,
+   "mode": "container"
+  },
+  {
+   "id": "sailing:boat3",
+   "family": "sailing",
+   "key": "boat3",
+   "name": "Boat 3",
+   "container": "SAILING_BOAT_3_CARGOHOLD",
+   "containerId": 965,
+   "mode": "container"
+  },
+  {
+   "id": "sailing:boat4",
+   "family": "sailing",
+   "key": "boat4",
+   "name": "Boat 4",
+   "container": "SAILING_BOAT_4_CARGOHOLD",
+   "containerId": 966,
+   "mode": "container"
+  },
+  {
+   "id": "sailing:boat5",
+   "family": "sailing",
+   "key": "boat5",
+   "name": "Boat 5",
+   "container": "SAILING_BOAT_5_CARGOHOLD",
+   "containerId": 967,
+   "mode": "container"
+  },
+  {
+   "id": "sailing:lostBoat",
+   "family": "sailing",
+   "key": "lostBoat",
+   "name": "Lost boat"
+  },
+  {
+   "id": "stash:stash",
+   "family": "stash",
+   "key": "stash",
+   "name": "Stash"
+  },
+  {
+   "id": "world:leprechaun",
+   "family": "world",
+   "key": "leprechaun",
+   "name": "Tool Leprechaun"
+  },
+  {
+   "id": "world:bank",
+   "family": "world",
+   "key": "bank",
+   "name": "Bank",
+   "container": "BANK",
+   "containerId": 95
+  },
+  {
+   "id": "world:groupstorage",
+   "family": "world",
+   "key": "groupstorage",
+   "name": "Group Storage",
+   "container": "INV_GROUP_TEMP",
+   "containerId": 659
+  },
+  {
+   "id": "world:blastfurnace",
+   "family": "world",
+   "key": "blastfurnace",
+   "name": "Blast Furnace"
+  },
+  {
+   "id": "world:logstorage",
+   "family": "world",
+   "key": "logstorage",
+   "name": "Log Storage"
+  },
+  {
+   "id": "world:fossilstorage",
+   "family": "world",
+   "key": "fossilstorage",
+   "name": "Fossil Storage"
+  },
+  {
+   "id": "world:vyrewell",
+   "family": "world",
+   "key": "vyrewell",
+   "name": "Vyre Well"
+  },
+  {
+   "id": "world:seedvault",
+   "family": "world",
+   "key": "seedvault",
+   "name": "Seed Vault",
+   "container": "SEED_VAULT",
+   "containerId": 626
+  },
+  {
+   "id": "world:annette",
+   "family": "world",
+   "key": "annette",
+   "name": "Annette"
+  },
+  {
+   "id": "world:elnock",
+   "family": "world",
+   "key": "elnock",
+   "name": "Elnock Inquisitor"
+  },
+  {
+   "id": "world:pickaxestatue",
+   "family": "world",
+   "key": "pickaxestatue",
+   "name": "Pickaxe Statue"
+  },
+  {
+   "id": "world:nulodion",
+   "family": "world",
+   "key": "nulodion",
+   "name": "Nulodion"
+  },
+  {
+   "id": "world:forestryshop",
+   "family": "world",
+   "key": "forestryshop",
+   "name": "Forestry Shop"
+  },
+  {
+   "id": "world:sandstorm",
+   "family": "world",
+   "key": "sandstorm",
+   "name": "Sandstorm"
+  },
+  {
+   "id": "world:eyatlalli",
+   "family": "world",
+   "key": "eyatlalli",
+   "name": "Eyatlalli"
+  },
+  {
+   "id": "world:potionStorage",
+   "family": "world",
+   "key": "potionStorage",
+   "name": "Potion Storage"
+  },
+  {
+   "id": "world:compostBins",
+   "family": "world",
+   "key": "compostBins",
+   "name": "Compost Bins"
+  },
+  {
+   "id": "world:nest",
+   "family": "world",
+   "key": "nest",
+   "name": "Nest"
+  },
+  {
+   "id": "death:deathpile",
+   "family": "death",
+   "key": "deathpile",
+   "name": "Deathpile"
+  },
+  {
+   "id": "death:grave",
+   "family": "death",
+   "key": "grave",
+   "name": "Grave"
+  },
+  {
+   "id": "death:deathbank",
+   "family": "death",
+   "key": "deathbank",
+   "name": "Deathbank"
+  },
+  {
+   "id": "death:deathsoffice",
+   "family": "death",
+   "key": "deathsoffice",
+   "name": "Death's Office",
+   "container": "DEATH_PERMANENT",
+   "containerId": 636,
+   "mode": "container"
   }
  ]
 }

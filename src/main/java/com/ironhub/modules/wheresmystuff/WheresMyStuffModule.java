@@ -158,12 +158,45 @@ public class WheresMyStuffModule implements IronHubModule
 		{
 			containerId -= 0x8000;
 		}
-		if (containerId != InventoryID.POH_COSTUMES || !inOwnHouse())
+		long now = System.currentTimeMillis();
+
+		if (containerId == InventoryID.POH_COSTUMES)
 		{
+			if (!inOwnHouse())
+			{
+				return;
+			}
+			Map<Integer, Integer> contents = readContainer(event.getItemContainer());
+			commitPoh(contents, resolveNames(contents.keySet()), now);
 			return;
 		}
-		Map<Integer, Integer> contents = readContainer(event.getItemContainer());
-		commitPoh(contents, resolveNames(contents.keySet()), System.currentTimeMillis());
+
+		// a plain container-backed storage (carryable sub-container, boat hold,
+		// Death's office): the whole container IS the storage's contents
+		StorageLocationsPack.Storage def = containerStorage(containerId);
+		if (def != null)
+		{
+			Map<Integer, Integer> contents = readContainer(event.getItemContainer());
+			if (contents.isEmpty() && !state.getStorageContents().containsKey(def.id))
+			{
+				return; // never-seen + empty stays silent
+			}
+			state.putStorageContents(def.id, def.name, def.family, label(def),
+				contents, resolveNames(contents.keySet()), now);
+		}
+	}
+
+	/** The container-mode storage backed by this container id, or null. */
+	private StorageLocationsPack.Storage containerStorage(int containerId)
+	{
+		for (StorageLocationsPack.Storage s : pack.storages)
+		{
+			if ("container".equals(s.mode) && s.containerId == containerId)
+			{
+				return s;
+			}
+		}
+		return null;
 	}
 
 	/** Item id -> display name, resolved on the client thread (this handler
@@ -230,7 +263,7 @@ public class WheresMyStuffModule implements IronHubModule
 		Map<String, StorageLocationsPack.Storage> defs = new HashMap<>();
 		for (StorageLocationsPack.Storage s : pack.storages)
 		{
-			defs.put(s.key, s);
+			defs.put(s.id, s);
 		}
 		Set<String> tracked = state.getStorageContents().keySet();
 		for (Map.Entry<String, Map<Integer, Integer>> e : byStorage.entrySet())
@@ -297,7 +330,7 @@ public class WheresMyStuffModule implements IronHubModule
 					mine.put(e.getKey(), e.getValue());
 				}
 			}
-			out.put(s.key, mine);
+			out.put(s.id, mine);
 		}
 		return out;
 	}

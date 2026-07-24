@@ -34,12 +34,13 @@ public class StorageLocationsPackTest
 	}
 
 	@Test
-	public void storageKeysAreUnique()
+	public void storageIdsAreUnique()
 	{
 		Set<String> seen = new HashSet<>();
 		for (StorageLocationsPack.Storage s : pack.storages)
 		{
-			assertTrue("duplicate storage key: " + s.key, seen.add(s.key));
+			assertEquals(s.family + ":" + s.key, s.id);
+			assertTrue("duplicate storage id: " + s.id, seen.add(s.id));
 		}
 	}
 
@@ -69,6 +70,29 @@ public class StorageLocationsPackTest
 				}
 			}
 		}
+	}
+
+	/** Container-mode storages (plain ItemContainerChanged reads) each resolved
+	 *  a real InventoryID, and none of them is bank/inventory/worn (AccountState
+	 *  owns those). */
+	@Test
+	public void containerModeStoragesResolveAndAvoidLiveContainers()
+	{
+		int container = 0;
+		for (StorageLocationsPack.Storage s : pack.storages)
+		{
+			if ("container".equals(s.mode))
+			{
+				container++;
+				assertTrue(s.key + " container-mode without a container id", s.containerId > 0);
+				assertFalse(s.key + " must not re-track a live container",
+					s.key.equals("inventory") || s.key.equals("equipment") || s.key.equals("bank"));
+			}
+		}
+		assertTrue("no container-mode storages", container > 0);
+		// the gear-relevant one and the boat holds are present
+		assertEquals("container", byKey("deathsoffice").mode);
+		assertTrue(byKey("boat1").containerId > 0);
 	}
 
 	private StorageLocationsPack.Storage byKey(String key)

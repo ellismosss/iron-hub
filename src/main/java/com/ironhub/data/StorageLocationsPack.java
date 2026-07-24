@@ -31,6 +31,8 @@ public class StorageLocationsPack
 
 	public static class Storage
 	{
+		/** globally-unique handle ("family:key"); the snapshot map key. */
+		public String id;
 		public String family;
 		public String key;
 		public String name;
@@ -38,6 +40,12 @@ public class StorageLocationsPack
 		public boolean automatic;
 		/** gameval InventoryID constant name this storage reads, or null. */
 		public String container;
+		/** resolved InventoryID value this storage reads, or 0. */
+		public int containerId;
+		/** detection mode the module drives this storage by: "poh" (allow-list
+		 *  attribution of the shared costume container), "container" (a plain
+		 *  ItemContainerChanged read), or null (bespoke / not yet detected). */
+		public String mode;
 		/** allow-list of item ids owned by this storage, or null. */
 		public List<Integer> items;
 	}

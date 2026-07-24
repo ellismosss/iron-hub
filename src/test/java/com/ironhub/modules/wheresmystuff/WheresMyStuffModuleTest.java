@@ -49,15 +49,18 @@ public class WheresMyStuffModuleTest
 		Map<String, Map<Integer, Integer>> byStorage =
 			WheresMyStuffModule.attributePoh(pack, container);
 
-		assertEquals(Integer.valueOf(1), byStorage.get("fancyDressBox").get(fancyId));
-		assertFalse(byStorage.get("fancyDressBox").containsKey(armourId));
-		assertFalse(byStorage.get("fancyDressBox").containsKey(stray));
+		String fancy = "playerownedhouse:fancyDressBox";
+		String armour = "playerownedhouse:armourCase";
+		String uncat = "playerownedhouse:uncategorised";
+		assertEquals(Integer.valueOf(1), byStorage.get(fancy).get(fancyId));
+		assertFalse(byStorage.get(fancy).containsKey(armourId));
+		assertFalse(byStorage.get(fancy).containsKey(stray));
 
-		assertEquals(Integer.valueOf(1), byStorage.get("armourCase").get(armourId));
+		assertEquals(Integer.valueOf(1), byStorage.get(armour).get(armourId));
 
 		// the null-list catch-all keeps what nothing else claimed
-		assertEquals(Integer.valueOf(1), byStorage.get("uncategorised").get(stray));
-		assertFalse(byStorage.get("uncategorised").containsKey(fancyId));
+		assertEquals(Integer.valueOf(1), byStorage.get(uncat).get(stray));
+		assertFalse(byStorage.get(uncat).containsKey(fancyId));
 	}
 
 	@Test
