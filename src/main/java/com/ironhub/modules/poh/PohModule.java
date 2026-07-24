@@ -87,7 +87,7 @@ public class PohModule implements IronHubModule
 	@Override
 	public String name()
 	{
-		return "PoH";
+		return "House";
 	}
 
 	@Override

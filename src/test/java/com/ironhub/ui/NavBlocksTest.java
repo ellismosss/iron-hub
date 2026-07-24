@@ -177,19 +177,19 @@ public class NavBlocksTest
 		assertEquals("the first tile opens by default",
 			java.util.List.of("Collection log"), enableNotes());
 
-		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Progression", "PoH"));
-		assertEquals(java.util.List.of("PoH"), enableNotes());
+		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Progression", "House"));
+		assertEquals(java.util.List.of("House"), enableNotes());
 		// the chip row inside the Build tile switches to its second module
 		com.ironhub.ui.osrs.StoneChipRow chips =
 			find(panel, com.ironhub.ui.osrs.StoneChipRow.class);
 		assertNotNull("a two-module tile must offer chips", chips);
 		javax.swing.SwingUtilities.invokeAndWait(() -> chips.pick(1));
-		assertEquals(java.util.List.of("Sailing upgrades"), enableNotes());
+		assertEquals(java.util.List.of("Boats"), enableNotes());
 
 		// pressing the open tile again keeps it open (no empty page)
 		javax.swing.SwingUtilities.invokeAndWait(() ->
-			panel.toggleModule("Progression", "Sailing upgrades"));
-		assertEquals(java.util.List.of("Sailing upgrades"), enableNotes());
+			panel.toggleModule("Progression", "Boats"));
+		assertEquals(java.util.List.of("Boats"), enableNotes());
 	}
 
 	@Test

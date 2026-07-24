@@ -312,7 +312,7 @@ public class SailingUpgradesModuleTest
 		javax.swing.SwingUtilities.invokeAndWait(() -> { }); // drain queued rebuilds
 		BufferedImage image = SwingRender.render(tab);
 		assertTrue("height " + image.getHeight(), image.getHeight() > 200);
-		java.io.File out = new java.io.File("build/reports/sailing-upgrades-tab.png");
+		java.io.File out = new java.io.File("build/reports/boats-tab.png");
 		out.getParentFile().mkdirs();
 		javax.imageio.ImageIO.write(image, "png", out);
 		module.shutDown();

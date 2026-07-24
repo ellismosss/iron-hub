@@ -237,7 +237,7 @@ public class PohModuleTest
 		javax.swing.SwingUtilities.invokeAndWait(() -> { }); // drain queued rebuilds
 		BufferedImage image = SwingRender.render(tab);
 		assertTrue("height " + image.getHeight(), image.getHeight() > 150);
-		java.io.File out = new java.io.File("build/reports/poh-tab.png");
+		java.io.File out = new java.io.File("build/reports/house-tab.png");
 		out.getParentFile().mkdirs();
 		javax.imageio.ImageIO.write(image, "png", out);
 		module.shutDown();

@@ -47,7 +47,7 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "dailies", name = "Dailies", description = "Daily and weekly activity reminders", section = modulesSection, position = 10)
 	default boolean dailies() { return true; }
 
-	@ConfigItem(keyName = "boatUpgrades", name = "Sailing upgrades", description = "Per-boat available upgrades, materials owned and next locked tiers", section = modulesSection, position = 11)
+	@ConfigItem(keyName = "boatUpgrades", name = "Boats", description = "Per-boat available upgrades, materials owned and next locked tiers", section = modulesSection, position = 11)
 	default boolean boatUpgrades() { return true; }
 
 	@ConfigItem(keyName = "goalPlanner", name = "Goals", description = "Dependency-tree plans for any target (item, quest, capstone)", section = modulesSection, position = 12)
@@ -56,7 +56,7 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "clueStash", name = "Clues & STASH", description = "STASH tracking and emote-clue readiness", section = modulesSection, position = 14)
 	default boolean clueStash() { return true; }
 
-	@ConfigItem(keyName = "pohProgression", name = "PoH progression", description = "Useful house builds: built, buildable and locked tiers per space", section = modulesSection, position = 13)
+	@ConfigItem(keyName = "pohProgression", name = "House", description = "Useful house builds: built, buildable and locked tiers per space", section = modulesSection, position = 13)
 	default boolean pohProgression() { return true; }
 
 	@ConfigItem(keyName = "hunterRumours", name = "Hunters' Rumours", description = "Current rumour target, catch progress, hunting locations and history", section = modulesSection, position = 13)
