@@ -96,6 +96,9 @@ public class PohModule implements IronHubModule
 	 *  ~43k tiles every tick while a still-loading scene still gets retried. */
 	private int emptySweeps;
 	private static final int MAX_EMPTY_SWEEPS = 5;
+	/** Whether the last sweep saw the game's unbuilt-hotspot markers — the
+	 *  scene's own corroboration that the house is being EDITED. */
+	private boolean sawHotspot;
 
 	// Diagnostics, written on the client thread and shown in the tab while
 	// nothing is marked. Three rounds of "it still doesn't work" were spent
@@ -106,6 +109,8 @@ public class PohModule implements IronHubModule
 	private volatile int diagObjects;
 	private volatile int diagFurniture;
 	private volatile int diagMarked;
+	private volatile boolean diagSawHotspot;
+	private volatile int diagVarbit;
 	private final Runnable goalProofListener = this::onStateChange;
 	/** Seeds are per-profile — re-derive them when the profile switches
 	 *  (the profileGeneration seam every module-local cache obeys). */
@@ -271,9 +276,20 @@ public class PohModule implements IronHubModule
 		queueIfFurniture(event.getDecorativeObject().getId());
 	}
 
+	/**
+	 * Queue a sweep for any POH object — furniture OR one of the game's
+	 * unbuilt-hotspot markers. The markers matter as much as the furniture:
+	 * they appear the moment the player enters building mode, and since a
+	 * scene is swept only once, without them nothing would prompt the re-sweep
+	 * that turns "standing in the house" into "editing it".
+	 */
 	private void queueIfFurniture(int objectId)
 	{
-		if (pack != null && !pack.placementsByObjectId(objectId).isEmpty())
+		if (pack == null)
+		{
+			return;
+		}
+		if (pack.isBuildModeMarker(objectId) || !pack.placementsByObjectId(objectId).isEmpty())
 		{
 			sweepQueued = true;
 		}
@@ -290,6 +306,7 @@ public class PohModule implements IronHubModule
 	@Subscribe
 	public void onGameTick(net.runelite.api.events.GameTick event)
 	{
+		diagVarbit = client == null ? -1 : client.getVarbitValue(POH_BUILDING_MODE);
 		boolean building = buildingMode();
 		if (building != diagBuildingMode)
 		{
@@ -311,6 +328,7 @@ public class PohModule implements IronHubModule
 		}
 		sweepQueued = false;
 		scanHouse();
+		diagSawHotspot = sawHotspot;
 		commitPending();
 		// Only stop re-sweeping once a sweep has actually SEEN something. The
 		// first tick after a scene load can land before the scene is
@@ -357,6 +375,7 @@ public class PohModule implements IronHubModule
 		diagTiles = 0;
 		diagObjects = 0;
 		diagFurniture = 0;
+		sawHotspot = false;
 		for (net.runelite.api.Tile[][] plane : scene.getTiles())
 		{
 			if (plane == null)
@@ -412,6 +431,11 @@ public class PohModule implements IronHubModule
 	private void buffer(int objectId, net.runelite.api.coords.WorldPoint point)
 	{
 		diagObjects++;
+		if (pack.isBuildModeMarker(objectId))
+		{
+			sawHotspot = true;   // the scene's own proof the house is being edited
+			return;
+		}
 		if (pack.placementsByObjectId(objectId).isEmpty())
 		{
 			return;
@@ -449,7 +473,7 @@ public class PohModule implements IronHubModule
 	 */
 	private void commitPending()
 	{
-		if (pendingByRoom.isEmpty())
+		if (pendingByRoom.isEmpty() || !sawHotspot)
 		{
 			return;
 		}
@@ -498,6 +522,20 @@ public class PohModule implements IronHubModule
 		{
 			state.setPohBuiltBulk(new ArrayList<>(built));
 		}
+	}
+
+	/**
+	 * Forget every built mark and re-sweep — the tab's Reset, so detection can
+	 * be watched from a blank slate rather than reading marks a previous
+	 * session already persisted.
+	 */
+	void resetDetection()
+	{
+		state.clearPohBuilt();
+		pendingByRoom.clear();
+		sweptThisScene = false;
+		emptySweeps = 0;
+		sweepQueued = true;
 	}
 
 	/** Manual mark toggle — the escape hatch for houses built before the
@@ -691,10 +729,11 @@ public class PohModule implements IronHubModule
 		{
 			return "No game client attached.";
 		}
-		return "Build mode " + (diagBuildingMode ? "on" : "off")
+		return "Build mode " + (diagBuildingMode ? "on" : "off") + " (" + diagVarbit + ")"
 			+ " · sweeps " + diagSweeps
 			+ " · tiles " + diagTiles
 			+ " · objects " + diagObjects
+			+ " · editing " + (diagSawHotspot ? "yes" : "no")
 			+ " · furniture found " + diagFurniture
 			+ " · matched " + diagMarked;
 	}

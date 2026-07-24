@@ -871,6 +871,19 @@ public class AccountState implements StateView
 		}
 	}
 
+	/** Forget every built mark — detected and manual alike. The House tab's
+	 *  reset, so detection can be tested from a blank slate. */
+	public void clearPohBuilt()
+	{
+		if (pohBuilt.isEmpty())
+		{
+			return;
+		}
+		pohBuilt.clear();
+		persist();
+		notifyListeners();
+	}
+
 	// ── sailing boats ─────────────────────────────────────────────────
 
 	/** Boat-type key ("0" raft / "1" skiff / "2" sloop) -> last-boarding

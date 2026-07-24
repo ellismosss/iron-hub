@@ -157,6 +157,13 @@ class PohTab extends JPanel
 			header.add(OsrsLabel.wrapped(module.diagnostics(), 205,
 				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
 		}
+		else
+		{
+			// Only offered once something IS marked — a reset with nothing to
+			// forget is a button that does nothing.
+			header.add(Box.createVerticalStrut(4));
+			header.add(resetButton());
+		}
 
 		tree.setModel(buildModel(pack));
 		revalidate();
@@ -164,6 +171,48 @@ class PohTab extends JPanel
 	}
 
 	// ── model: rooms -> hotspots -> tier-ladder detail ────────────────────
+
+	/**
+	 * Forget every built mark, detected and manual, and re-sweep. Detection
+	 * persists, so a second visit shows what an earlier session already found
+	 * — this is how you watch it work from a blank slate. Confirmed first,
+	 * because manual marks for a pre-Iron-Hub house are not recoverable.
+	 */
+	private JComponent resetButton()
+	{
+		com.ironhub.ui.osrs.StoneButton button = new com.ironhub.ui.osrs.StoneButton(
+			theme, "Reset detected builds", () ->
+			{
+				int answer = javax.swing.JOptionPane.showConfirmDialog(this,
+					"Forget all " + builtCount() + " built marks for this account?",
+					"Reset House detection", javax.swing.JOptionPane.YES_NO_OPTION);
+				if (answer == javax.swing.JOptionPane.YES_OPTION)
+				{
+					module.resetDetection();
+				}
+			});
+		button.setAlignmentX(LEFT_ALIGNMENT);
+		button.setToolTipText("<html><div style='width:200px'>Forget every built mark "
+			+ "so detection can be tested from scratch. Manual marks go too.</div></html>");
+		return button;
+	}
+
+	private int builtCount()
+	{
+		PohPack pack = module.pack();
+		int n = 0;
+		for (PohPack.Space space : pack.spaces)
+		{
+			for (PohPack.Tier tier : space.tiers)
+			{
+				if (state.isPohBuilt(tier.id))
+				{
+					n++;
+				}
+			}
+		}
+		return n;
+	}
 
 	/** Whether anything at all is marked built — drives the sync hint. */
 	private boolean anyBuilt(PohPack pack)

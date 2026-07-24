@@ -15,8 +15,23 @@ public class PohPack
 {
 	public int version;
 	public List<Space> spaces;
+	/** The game's unbuilt-hotspot marker objects — what the scene itself shows
+	 *  while the player is editing the house. Never buildable furniture. */
+	public List<Integer> buildModeMarkers = List.of();
 
 	private transient volatile Map<Integer, List<Placement>> byObjectId;
+	private transient volatile java.util.Set<Integer> markerIds;
+
+	/** Whether this object id is one of the game's build-mode hotspot markers. */
+	public boolean isBuildModeMarker(int objectId)
+	{
+		java.util.Set<Integer> local = markerIds;
+		if (local == null)
+		{
+			markerIds = local = new java.util.HashSet<>(buildModeMarkers);
+		}
+		return local.contains(objectId);
+	}
 
 	/** One place a furniture can be built: the hotspot (with its room) and the
 	 *  tier itself. The same furniture — a rug, a fireplace — is buildable in

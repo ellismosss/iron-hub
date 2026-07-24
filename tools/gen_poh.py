@@ -460,7 +460,19 @@ def main():
     if len(unresolved) > 15:
         sys.exit(f"{len(unresolved)} unresolved materials — resolver problem")
 
-    pack = {"version": 3, "spaces": spaces}
+    # The game's unbuilt-hotspot markers. They are what the scene itself shows
+    # while the player is editing, so detection can corroborate building mode
+    # against the house in front of it instead of trusting one varbit whose
+    # truthy values nothing available documents.
+    built_ids = {i for s in spaces for t in s["tiers"] for i in t["objectIds"]}
+    markers = sorted(i for i, ns in obj_names.items()
+                     if i not in built_ids
+                     and any(n.startswith("POH") and "HOTSPOT" in n for n in ns))
+    print(f"build-mode hotspot markers: {len(markers)}")
+    if len(markers) < 50:
+        sys.exit(f"only {len(markers)} hotspot markers — the gameval names moved")
+
+    pack = {"version": 4, "spaces": spaces, "buildModeMarkers": markers}
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(pack, f, indent=1, ensure_ascii=False)
     n_tiers = sum(len(s["tiers"]) for s in spaces)

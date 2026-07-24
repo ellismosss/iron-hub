@@ -1131,6 +1131,27 @@ NON-ZERO rather than `== 1` — the constant's name comes from the game's own
 symbols and is authoritative, but nothing available confirms which truthy value
 it uses, and guessing a specific one is exactly how the last gate failed.
 
+**The varbit alone is NOT enough, and the scene is what settles it.** Luke:
+"it registered all of my items BEFORE I switched to build mode." Only the
+varbit's name and id were ever verified — RuneLite core never reads 2176, so
+no reference documents its values, and a non-zero read is not by itself proof
+the house is being edited. The scene answers directly: the game places its
+**unbuilt-hotspot marker objects** (gameval `POH_*HOTSPOT*`, 90 of them,
+`poh.json` `buildModeMarkers`, zero overlap with buildable furniture) in front
+of you only while you are building. Detection now commits nothing unless a
+sweep has seen one, however the varbit reads. Those markers must ALSO queue a
+sweep — they are what appears when the player switches into build mode, and
+since a scene is swept once, nothing else would prompt the re-sweep that turns
+"standing in the house" into "editing it". The diagnostics line prints the raw
+varbit value alongside, so its real semantics get settled from live data
+instead of assumed.
+
+Marks PERSIST, so a later visit shows what an earlier session detected — which
+reads exactly like "it detected before I was in build mode". The tab's **Reset
+detected builds** button (shown only once something is marked, confirmed
+first) forgets every mark, detected and manual, so detection can be watched
+from a blank slate.
+
 A POH **region** check was tried alongside it and **removed** (2026-07-24):
 building mode already implies standing in your own house, so the region list
 added no proof — it was a second unverified assumption that could only ever

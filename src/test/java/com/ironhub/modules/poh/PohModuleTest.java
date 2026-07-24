@@ -32,6 +32,14 @@ public class PohModuleTest
 
 	private final PohPack pack = new DataPack(new Gson()).load("poh", PohPack.class);
 
+	/** One of the game's unbuilt-hotspot markers. Building mode is what puts
+	 *  these in the scene, and detection now requires the scene to show one
+	 *  before it commits, so every simulated build-mode scene carries it. */
+	private int marker()
+	{
+		return pack.buildModeMarkers.get(0);
+	}
+
 	private PohModule module(AccountState state)
 	{
 		return new PohModule(state, config, new DataPack(new Gson()), new EventBus(), null, null);
@@ -130,7 +138,7 @@ public class PohModuleTest
 		module.startUp();
 
 		module.scanTileForTest(tile(0,
-			new int[]{6752},   // game object    — crude wooden chair (Parlour)
+			new int[]{6752, marker()},   // game object — crude wooden chair (Parlour)
 			6759,              // ground object  — brown rug
 			0, 0));
 		module.scanTileForTest(tile(1,
@@ -163,7 +171,7 @@ public class PohModuleTest
 		StateFixture.profile(state, 42L);
 
 		net.runelite.api.Tile[][][] tiles = new net.runelite.api.Tile[1][2][2];
-		tiles[0][0][0] = tile(0, new int[]{6752}, 6759, 0, 0); // parlour chair + rug
+		tiles[0][0][0] = tile(0, new int[]{6752, marker()}, 6759, 0, 0); // parlour chair + rug
 		tiles[0][0][1] = tile(1, new int[]{13615}, 0, 0, 0);   // teak portal -> Varrock
 		// tiles[0][1][*] stay null: a real scene has empty tiles everywhere
 
@@ -188,7 +196,7 @@ public class PohModuleTest
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 42L);
 		net.runelite.api.Tile[][][] tiles = new net.runelite.api.Tile[1][1][1];
-		tiles[0][0][0] = tile(0, new int[]{6752}, 0, 0, 0);
+		tiles[0][0][0] = tile(0, new int[]{6752, marker()}, 0, 0, 0);
 
 		PohModule module = moduleWithScene(state, tiles, 0);   // build mode off
 		module.startUp();
@@ -220,10 +228,76 @@ public class PohModuleTest
 		assertFalse(state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
 
 		// the scene populates a tick later, with no spawn event to prompt us
-		tiles[0][0][0] = tile(0, new int[]{6752}, 0, 0, 0);
+		tiles[0][0][0] = tile(0, new int[]{6752, marker()}, 0, 0, 0);
 		module.onGameTick(new net.runelite.api.events.GameTick());
 		assertTrue("the retry must pick the furniture up",
 			state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
+		module.shutDown();
+	}
+
+	/**
+	 * Luke: "it registered all of my items BEFORE I switched to build mode."
+	 * The varbit's NAME is authoritative but nothing available documents which
+	 * values it takes, so a non-zero read is not by itself proof the house is
+	 * being edited. The scene answers that directly: the game only puts its
+	 * unbuilt-hotspot markers in front of you while you are building, so
+	 * without one in view nothing is committed, however the varbit reads.
+	 */
+	@Test
+	public void furnitureIsNotCommittedWithoutTheSceneShowingBuildMode()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+
+		// a house full of furniture, but no hotspot markers: not being edited
+		net.runelite.api.Tile[][][] tiles = new net.runelite.api.Tile[1][1][1];
+		tiles[0][0][0] = tile(0, new int[]{6752}, 6759, 0, 0);
+		PohModule module = moduleWithScene(state, tiles, 1);   // varbit says yes
+		module.startUp();
+		module.onGameTick(new net.runelite.api.events.GameTick());
+
+		assertFalse("a loose varbit must not be enough on its own",
+			state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
+
+		// switching into building mode: the game puts its hotspot markers in
+		// the scene, and that spawn is what prompts the re-sweep (a scene is
+		// otherwise swept once, so nothing else would ask)
+		tiles[0][0][0] = tile(0, new int[]{6752, marker()}, 6759, 0, 0);
+		net.runelite.api.GameObject spawned =
+			org.mockito.Mockito.mock(net.runelite.api.GameObject.class);
+		org.mockito.Mockito.when(spawned.getId()).thenReturn(marker());
+		net.runelite.api.events.GameObjectSpawned event =
+			new net.runelite.api.events.GameObjectSpawned();
+		event.setGameObject(spawned);
+		module.onGameObjectSpawned(event);
+		module.onGameTick(new net.runelite.api.events.GameTick());
+		assertTrue(state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
+		module.shutDown();
+	}
+
+	/** Reset forgets everything so detection can be watched from blank — marks
+	 *  persist, so a second visit otherwise shows what an earlier session found. */
+	@Test
+	public void resetForgetsEveryBuiltMark()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		PohModule module = module(state);
+		module.startUp();
+		module.scanTileForTest(tile(0, new int[]{6752, marker()}, 0, 0, 0));
+		module.commitForTest();
+		assertTrue(state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
+
+		module.resetDetection();
+		assertFalse("reset must forget detected marks",
+			state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
+
+		// manual marks go too — the tooltip says so
+		PohPack.Tier tier = pack.spaces.get(0).tiers.get(0);
+		module.toggleBuilt(tier);
+		assertTrue(state.isPohBuilt(tier.id));
+		module.resetDetection();
+		assertFalse(state.isPohBuilt(tier.id));
 		module.shutDown();
 	}
 
@@ -258,7 +332,7 @@ public class PohModuleTest
 		module.startUp();
 
 		// 13615 = POH_PORTAL_TEAK_VARROCK: a teak portal set to Varrock
-		module.scanTileForTest(tile(0, new int[]{13615}, 0, 0, 0));
+		module.scanTileForTest(tile(0, new int[]{13615, marker()}, 0, 0, 0));
 		module.commitForTest();
 		assertTrue("a teak portal with a destination is a built teak portal",
 			state.isPohBuilt("portal_chamber__portals:teak_portal"));
@@ -289,7 +363,7 @@ public class PohModuleTest
 		int crudeChair = 6752;        // Parlour only
 		int woodenBed = 13148;        // Bedroom only
 
-		module.scanTileForTest(tile(0, new int[]{crudeChair, brownRug}, 0, 0, 0));
+		module.scanTileForTest(tile(0, new int[]{crudeChair, brownRug, marker()}, 0, 0, 0));
 		module.scanTileForTest(tile(1, new int[]{woodenBed}, 0, 0, 0));
 		module.commitForTest();
 
@@ -313,7 +387,7 @@ public class PohModuleTest
 		PohModule module = module(state);
 		module.startUp();
 
-		module.scanTileForTest(tile(0, new int[]{6759}, 0, 0, 0)); // a rug, alone
+		module.scanTileForTest(tile(0, new int[]{6759, marker()}, 0, 0, 0)); // a rug, alone
 		module.commitForTest();
 
 		assertFalse(state.isPohBuilt("parlour__rug:brown_rug"));
@@ -338,7 +412,7 @@ public class PohModuleTest
 
 		javax.swing.SwingUtilities.invokeAndWait(() ->
 		{
-			module.scanTileForTest(tile(0, new int[]{6752, 6759}, 0, 0, 0));
+			module.scanTileForTest(tile(0, new int[]{6752, 6759, marker()}, 0, 0, 0));
 			module.commitForTest();
 		});
 		javax.swing.SwingUtilities.invokeAndWait(() -> { }); // drain the rebuild
@@ -448,7 +522,7 @@ public class PohModuleTest
 		assertFalse(com.ironhub.modules.goals.GoalPlannerModule.isAchieved(goal, state));
 
 		// building it in-game marks the pohtier_ proof → achieved
-		module.scanTileForTest(tile(0, new int[]{ornate.objectIds.get(0)}, 0, 0, 0));
+		module.scanTileForTest(tile(0, new int[]{ornate.objectIds.get(0), marker()}, 0, 0, 0));
 		module.commitForTest();
 		assertTrue(state.isPohBuilt(ornate.id));
 		assertTrue(state.isUnlocked(com.ironhub.state.GoalSeeds.pohProofKey(ornate.id)));
