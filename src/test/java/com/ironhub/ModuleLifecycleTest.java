@@ -81,7 +81,7 @@ public class ModuleLifecycleTest
 				config),
 			new com.ironhub.modules.poh.PohModule(state, config,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()),
-				new net.runelite.client.eventbus.EventBus(), null),
+				new net.runelite.client.eventbus.EventBus(), null, null),
 			new com.ironhub.modules.hunter.HunterRumoursModule(state, config,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()),
 				null, null, new net.runelite.client.eventbus.EventBus(), null, null,

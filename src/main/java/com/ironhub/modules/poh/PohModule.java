@@ -30,10 +30,20 @@ import net.runelite.client.util.Text;
  * room → hotspot → tier tiles.
  *
  * <p>Built detection: house furniture object ids from the pack, gated on
- * the game's own "Welcome to your house." message so a friend's house
- * never marks anything. Spawns buffer from the scene load and commit once
- * the welcome message confirms the house is the player's own (spawns and
- * the message race, so neither order is trusted alone).</p>
+ * proof the house is the player's OWN so a friend's never marks anything.
+ * Two independent proofs, because one was not enough — the greeting's exact
+ * wording is documented in neither the client nor the wiki, so an equality
+ * check on it silently detected nothing forever:
+ * <ul>
+ *   <li>the game's greeting, matched as a lower-cased substring, and</li>
+ *   <li>building mode, which can only be entered in your own house.</li>
+ * </ul>
+ * On either proof the whole scene is SWEPT rather than trusting spawn
+ * events, so furniture that loaded before the module was listening (you
+ * were already inside) is still found, as is furniture the game does not
+ * place as a GameObject — rugs are ground objects, mounted heads and wall
+ * charts are wall/decorative ones. Spawns are still buffered for the entry
+ * race and committed live afterwards for building-mode swaps.</p>
  *
  * <p>The game builds the IDENTICAL object for the same furniture in
  * different rooms — one brown rug serves the parlour, bedroom, chapel and
@@ -49,7 +59,18 @@ import net.runelite.client.util.Text;
 @Singleton
 public class PohModule implements IronHubModule
 {
-	private static final String OWN_HOUSE_MESSAGE = "Welcome to your house.";
+	/**
+	 * The game's own greeting on entering your house. Matched as a
+	 * lower-cased SUBSTRING, never equality: the exact wording and
+	 * punctuation are not documented in the client or on the wiki, and an
+	 * equality check that misses is invisible — it just silently detects
+	 * nothing forever (the 0/137 Luke reported). A friend's house does not
+	 * greet you with this, so a substring stays safe.
+	 */
+	private static final String OWN_HOUSE_MESSAGE = "welcome to your house";
+	/** Set only inside your OWN house — you cannot build in a friend's, so
+	 *  this is a second, independent proof of ownership. */
+	private static final int POH_BUILDING_MODE = 2176;
 
 	private final AccountState state;
 	private final IronHubConfig config;
@@ -57,6 +78,7 @@ public class PohModule implements IronHubModule
 	private final com.ironhub.data.BoostsPack boostsPack;
 	private final com.ironhub.data.ItemSourcesPack itemSources;
 	private final EventBus eventBus; // null in unit tests
+	private final net.runelite.api.Client client; // null in unit tests — the scene sweep is skipped
 	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
 	private PohTab tab;
 
@@ -83,8 +105,10 @@ public class PohModule implements IronHubModule
 
 	@Inject
 	public PohModule(AccountState state, IronHubConfig config, DataPack dataPack,
-		EventBus eventBus, net.runelite.client.game.ItemManager itemManager)
+		EventBus eventBus, net.runelite.api.Client client,
+		net.runelite.client.game.ItemManager itemManager)
 	{
+		this.client = client;
 		this.state = state;
 		this.config = config;
 		this.pack = dataPack == null ? null : dataPack.load("poh", PohPack.class);
@@ -201,11 +225,33 @@ public class PohModule implements IronHubModule
 		{
 			return;
 		}
-		if (OWN_HOUSE_MESSAGE.equals(Text.removeTags(event.getMessage())))
+		if (Text.removeTags(event.getMessage()).toLowerCase(java.util.Locale.ROOT)
+			.contains(OWN_HOUSE_MESSAGE))
 		{
-			inOwnHouse = true;
-			commitPending();
+			confirmOwnHouse();
 		}
+	}
+
+	/** Building mode can only be entered in your own house, so it confirms
+	 *  ownership independently of the greeting. */
+	@Subscribe
+	public void onVarbitChanged(net.runelite.api.events.VarbitChanged event)
+	{
+		if (client != null && event.getVarbitId() == POH_BUILDING_MODE
+			&& client.getVarbitValue(POH_BUILDING_MODE) == 1)
+		{
+			confirmOwnHouse();
+		}
+	}
+
+	/** Ownership proven: sweep the whole house and commit what is buffered.
+	 *  The sweep is what makes detection independent of spawn-event timing —
+	 *  objects that loaded before we were listening are still found. */
+	private void confirmOwnHouse()
+	{
+		inOwnHouse = true;
+		scanHouse();
+		commitPending();
 	}
 
 	@Subscribe
@@ -215,17 +261,90 @@ public class PohModule implements IronHubModule
 		{
 			return;
 		}
-		int objectId = event.getGameObject().getId();
-		if (pack.placementsByObjectId(objectId).isEmpty())
-		{
-			return;
-		}
-		pendingByRoom.computeIfAbsent(roomKey(event.getGameObject()), k -> new HashSet<>())
-			.add(objectId);
+		buffer(event.getGameObject().getId(), event.getGameObject().getWorldLocation());
 		if (inOwnHouse)
 		{
 			commitPending(); // building-mode swaps commit live
 		}
+	}
+
+	/**
+	 * Sweep every tile of the house and buffer the POH furniture on it. Two
+	 * things this catches that {@link #onGameObjectSpawned} cannot: furniture
+	 * that loaded before the module was listening (you were already inside),
+	 * and furniture the game does not place as a GameObject at all — rugs are
+	 * ground objects, mounted heads and wall charts are wall/decorative ones.
+	 */
+	private void scanHouse()
+	{
+		if (client == null)
+		{
+			return;
+		}
+		net.runelite.api.WorldView view = client.getTopLevelWorldView();
+		net.runelite.api.Scene scene = view == null ? null : view.getScene();
+		if (scene == null || scene.getTiles() == null)
+		{
+			return;
+		}
+		for (net.runelite.api.Tile[][] plane : scene.getTiles())
+		{
+			if (plane == null)
+			{
+				continue;
+			}
+			for (net.runelite.api.Tile[] col : plane)
+			{
+				if (col == null)
+				{
+					continue;
+				}
+				for (net.runelite.api.Tile tile : col)
+				{
+					if (tile != null)
+					{
+						scanTile(tile);
+					}
+				}
+			}
+		}
+	}
+
+	private void scanTile(net.runelite.api.Tile tile)
+	{
+		net.runelite.api.coords.WorldPoint point = tile.getWorldLocation();
+		if (tile.getGameObjects() != null)
+		{
+			for (net.runelite.api.GameObject object : tile.getGameObjects())
+			{
+				if (object != null)
+				{
+					buffer(object.getId(), point);
+				}
+			}
+		}
+		if (tile.getGroundObject() != null)          // rugs
+		{
+			buffer(tile.getGroundObject().getId(), point);
+		}
+		if (tile.getWallObject() != null)            // windows, some fireplaces
+		{
+			buffer(tile.getWallObject().getId(), point);
+		}
+		if (tile.getDecorativeObject() != null)      // mounted heads, wall charts
+		{
+			buffer(tile.getDecorativeObject().getId(), point);
+		}
+	}
+
+	/** Buffer one furniture object against the house room it sits in. */
+	private void buffer(int objectId, net.runelite.api.coords.WorldPoint point)
+	{
+		if (pack.placementsByObjectId(objectId).isEmpty())
+		{
+			return;
+		}
+		pendingByRoom.computeIfAbsent(roomKey(point), k -> new HashSet<>()).add(objectId);
 	}
 
 	/**
@@ -235,9 +354,8 @@ public class PohModule implements IronHubModule
 	 * Objects with no readable location share one bucket (attribution then
 	 * only resolves the unambiguous ones).
 	 */
-	private static long roomKey(net.runelite.api.GameObject object)
+	private static long roomKey(net.runelite.api.coords.WorldPoint point)
 	{
-		net.runelite.api.coords.WorldPoint point = object.getWorldLocation();
 		if (point == null)
 		{
 			return -1L;

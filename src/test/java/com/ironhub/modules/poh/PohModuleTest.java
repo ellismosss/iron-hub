@@ -36,7 +36,7 @@ public class PohModuleTest
 
 	private PohModule module(AccountState state)
 	{
-		return new PohModule(state, config, new DataPack(new Gson()), new EventBus(), null);
+		return new PohModule(state, config, new DataPack(new Gson()), new EventBus(), null, null);
 	}
 
 	@Test
@@ -190,6 +190,52 @@ public class PohModuleTest
 
 		assertFalse(state.isPohBuilt("parlour__rug:brown_rug"));
 		assertFalse(state.isPohBuilt("bedroom__rug:brown_rug"));
+		module.shutDown();
+	}
+
+	/**
+	 * The greeting's exact wording is documented nowhere — not in the client
+	 * jar, not on the wiki — and an equality check that misses is invisible:
+	 * it just silently detects nothing forever, which is the 0/137 Luke saw.
+	 * Match it loosely enough to survive punctuation and casing.
+	 */
+	@Test
+	public void theOwnHouseGreetingIsMatchedLoosely()
+	{
+		for (String wording : new String[]{
+			"Welcome to your house.", "Welcome to your house!",
+			"Welcome to your house", "welcome to your house.",
+			"<col=ff0000>Welcome to your house.</col>"})
+		{
+			AccountState state = StateFixture.state(temp.getRoot());
+			StateFixture.profile(state, 42L);
+			PohModule module = module(state);
+			module.startUp();
+			spawnObject(module, 6752, 0);   // a crude wooden chair, parlour
+			ChatMessage message = new ChatMessage();
+			message.setType(ChatMessageType.GAMEMESSAGE);
+			message.setMessage(wording);
+			module.onChatMessage(message);
+			assertTrue("greeting not recognised: " + wording,
+				state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
+			module.shutDown();
+		}
+	}
+
+	/** A friend's house still never marks anything. */
+	@Test
+	public void anUnrelatedMessageNeverConfirms()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		PohModule module = module(state);
+		module.startUp();
+		spawnObject(module, 6752, 0);
+		ChatMessage message = new ChatMessage();
+		message.setType(ChatMessageType.GAMEMESSAGE);
+		message.setMessage("You are now in a friend's house.");
+		module.onChatMessage(message);
+		assertFalse(state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
 		module.shutDown();
 	}
 
