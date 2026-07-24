@@ -135,12 +135,30 @@ public class GearModuleTest
 		{
 		}, new DataPack(new Gson()), null, null, null);
 		module.startUp();
-		JPanel tab = (JPanel) module.buildTab();
+		GearLibraryTab tab = (GearLibraryTab) module.buildTab();
+
+		// the library sorted by value, a weapon slot, and one row expanded
+		tab.sortForTest(EquipmentLibrary.Sort.VALUE);
 		java.awt.image.BufferedImage image = SwingRender.render(tab);
 		assertTrue(image.getHeight() > 100);
 		java.io.File out = new java.io.File("build/reports/gear-tab.png");
 		out.getParentFile().mkdirs();
 		javax.imageio.ImageIO.write(image, "png", out);
+
+		// a slash-attack sort with a row opened into its stat card
+		tab.sortForTest(EquipmentLibrary.Sort.SLASH);
+		List<com.ironhub.data.EquipmentPack.Item> top = tab.visibleForTest();
+		if (!top.isEmpty())
+		{
+			tab.expandForTest(top.get(0).primaryId());
+		}
+		javax.imageio.ImageIO.write(SwingRender.render(tab), "png",
+			new java.io.File("build/reports/gear-library-detail.png"));
+
+		// the progression chart, folded away below, opened
+		tab.expandChartForTest();
+		javax.imageio.ImageIO.write(SwingRender.render(tab), "png",
+			new java.io.File("build/reports/gear-chart-section.png"));
 		module.shutDown();
 
 		// the other theme wears the same geometry in the vanilla palette;

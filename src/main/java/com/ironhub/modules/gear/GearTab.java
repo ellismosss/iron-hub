@@ -41,7 +41,10 @@ import net.runelite.client.util.LinkBrowser;
 class GearTab extends JPanel
 {
 	private static final String[] FILTERS_TOP = {"All", "Melee", "Ranged", "Magic"};
-	private static final String[] FILTERS_BOTTOM = {"Utility", "POH", "Boat"};
+	/** Combat categories the progression chart shows — Utility, POH and Boat
+	 *  were split out to their own modules (Luke, 2026-07-24). */
+	private static final java.util.Set<String> COMBAT_CATEGORIES =
+		java.util.Set.of("melee", "ranged", "magic");
 	/** Tile-row budget: the panel minus the home border + stone frame +
 	 *  this tab's own padding — the hub slot is narrower than 225px. */
 	private static final int ROW_WIDTH = UiTokens.PANEL_WIDTH - 24;
@@ -52,7 +55,6 @@ class GearTab extends JPanel
 	private final ItemManager itemManager; // null in headless tests
 	private final OsrsTheme theme;
 	private final StoneChipRow filterTop;
-	private final StoneChipRow filterBottom;
 	private final JPanel body = new JPanel();
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 	private final java.util.function.Consumer<Boolean> onHideCompleteChange;
@@ -88,13 +90,8 @@ class GearTab extends JPanel
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
 		filterTop = new StoneChipRow(theme, true, FILTERS_TOP);
-		filterBottom = new StoneChipRow(theme, true, FILTERS_BOTTOM);
-		filterTop.onChange(i -> selectFilter(true, i));
-		filterBottom.onChange(i -> selectFilter(false, i));
-		filterBottom.setSelected(-1);
+		filterTop.onChange(this::selectFilter);
 		add(filterTop);
-		add(Box.createVerticalStrut(UiTokens.CHIP_GAP));
-		add(filterBottom);
 		add(Box.createVerticalStrut(UiTokens.CHIP_GAP));
 		add(hideCompleteToggle());
 		add(Box.createVerticalStrut(UiTokens.PAD_SECTION));
@@ -132,22 +129,9 @@ class GearTab extends JPanel
 		return row;
 	}
 
-	private void selectFilter(boolean top, int index)
+	private void selectFilter(int index)
 	{
-		if (index < 0) // programmatic deselect of the other row
-		{
-			return;
-		}
-		if (top)
-		{
-			filterBottom.setSelected(-1);
-			filter = index == 0 ? null : FILTERS_TOP[index].toLowerCase(Locale.ROOT);
-		}
-		else
-		{
-			filterTop.setSelected(-1);
-			filter = FILTERS_BOTTOM[index].toLowerCase(Locale.ROOT);
-		}
+		filter = index <= 0 ? null : FILTERS_TOP[index].toLowerCase(Locale.ROOT);
 		rebuild();
 	}
 
@@ -163,6 +147,12 @@ class GearTab extends JPanel
 		boosts = com.ironhub.requirements.Boosts.available(boostsPack, state);
 		for (GearProgressionPack.Phase phase : pack.getPhases())
 		{
+			// the POH & Sailing phase moved to its own modules (Luke,
+			// 2026-07-24) — the chart is the combat-gear path only
+			if (phase.getName().contains("POH") || phase.getName().contains("Sailing"))
+			{
+				continue;
+			}
 			boolean phaseHasContent = false;
 			boolean firstGroup = true;
 			for (GearProgressionPack.Group group : phase.getGroups())
@@ -236,6 +226,11 @@ class GearTab extends JPanel
 
 	private boolean matchesFilter(GearProgressionPack.Item item)
 	{
+		// only combat gear here — utility/poh/boat moved to their own modules
+		if (item.getCategories().stream().noneMatch(COMBAT_CATEGORIES::contains))
+		{
+			return false;
+		}
 		return filter == null || item.getCategories().contains(filter);
 	}
 

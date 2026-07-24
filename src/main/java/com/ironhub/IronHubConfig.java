@@ -17,7 +17,7 @@ public interface IronHubConfig extends Config
 	)
 	String modulesSection = "modules";
 
-	@ConfigItem(keyName = "gearProgression", name = "Gear progression", description = "Per-slot gear upgrade ladders", section = modulesSection, position = 1)
+	@ConfigItem(keyName = "gearProgression", name = "Gear", description = "A library of every wearable, plus the upgrade chart", section = modulesSection, position = 1)
 	default boolean gearProgression() { return true; }
 
 	@ConfigItem(keyName = "questProgression", name = "Quest progression", description = "Optimal quest ordering and requirement graphs", section = modulesSection, position = 2)

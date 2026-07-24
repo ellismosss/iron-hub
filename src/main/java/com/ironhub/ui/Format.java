@@ -40,6 +40,29 @@ public final class Format
 		return minutes == 0 ? wholeHours + "h" : wholeHours + "h " + minutes + "m";
 	}
 
+	/** "1.2M", "250K", "812" — compact coin amounts (the game's own scale). */
+	public static String gp(long coins)
+	{
+		long abs = Math.abs(coins);
+		if (abs >= 10_000_000)
+		{
+			return coins / 1_000_000 + "M";
+		}
+		if (abs >= 1_000_000)
+		{
+			return Math.round(coins / 100_000.0) / 10.0 + "M";
+		}
+		if (abs >= 100_000)
+		{
+			return coins / 1_000 + "K";
+		}
+		if (abs >= 1_000)
+		{
+			return Math.round(coins / 100.0) / 10.0 + "K";
+		}
+		return String.valueOf(coins);
+	}
+
 	/** "just now", "5 min ago", "2 h ago", "3 d ago". */
 	public static String relativeTime(long millisAgo)
 	{

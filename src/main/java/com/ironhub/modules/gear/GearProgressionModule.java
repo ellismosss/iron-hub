@@ -30,7 +30,7 @@ public class GearProgressionModule implements IronHubModule
 	private final net.runelite.client.game.ItemManager itemManager; // null in headless tests
 	private final net.runelite.client.config.ConfigManager configManager; // null in headless tests
 	private final javax.inject.Provider<com.ironhub.modules.goals.GoalPlannerModule> planner; // null in tests
-	private GearTab tab;
+	private GearLibraryTab tab;
 
 	@Inject
 	public GearProgressionModule(AccountState state, IronHubConfig config, DataPack dataPack,
@@ -49,7 +49,7 @@ public class GearProgressionModule implements IronHubModule
 	@Override
 	public String name()
 	{
-		return "Gear progression";
+		return "Gear";
 	}
 
 	@Override
@@ -78,7 +78,9 @@ public class GearProgressionModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new GearTab(state,
+			com.ironhub.data.ItemSourcesPack itemSources =
+				dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class);
+			GearTab chart = new GearTab(state,
 				dataPack.load("gear-progression", com.ironhub.data.GearProgressionPack.class),
 				dataPack.load("boosts", com.ironhub.data.BoostsPack.class),
 				itemManager, config.gearHideComplete(), hide ->
@@ -87,8 +89,10 @@ public class GearProgressionModule implements IronHubModule
 					{
 						configManager.setConfiguration(com.ironhub.IronHubConfig.GROUP, "gearHideComplete", hide);
 					}
-				}, config.osrsTheme(), this::planWantsItem,
-				dataPack.load("item-sources", com.ironhub.data.ItemSourcesPack.class));
+				}, config.osrsTheme(), this::planWantsItem, itemSources);
+			tab = new GearLibraryTab(state,
+				dataPack.load("equipment", com.ironhub.data.EquipmentPack.class),
+				itemSources, itemManager, config.osrsTheme(), chart);
 		}
 		return tab;
 	}
