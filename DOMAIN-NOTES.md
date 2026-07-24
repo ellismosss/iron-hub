@@ -1095,8 +1095,20 @@ load-bearing and each one cost a bug:
   "Decorated marble fireplace") writes `level1`/`level2` and `id1`/`id2` with
   no plain `level`, so a strict `level` match silently drops it.
 
-The own-house gate is unchanged and deliberate: furniture only commits once
-the game's own "Welcome to your house." message confirms the house is yours,
-so a friend's house never marks anything. Spawns and that message race, so
-spawns buffer through the scene load and commit on confirmation (and live
-afterwards, for building-mode swaps).
+**The own-house gate must not hinge on one signal.** Furniture only commits
+once the house is proven to be yours — but the greeting's exact wording is
+documented NOWHERE (not in the client jar's strings, not on the wiki's
+Player-owned house or Construction pages), so an equality check on it was
+silently detecting nothing forever. Two independent proofs now: the greeting
+matched as a lower-cased SUBSTRING (a friend's house does not greet you with
+it, so this stays safe), and `VarbitID.POH_BUILDING_MODE` (2176) — you cannot
+build in someone else's house.
+
+**On either proof, SWEEP the scene rather than trusting spawn events.** Two
+blind spots that closes: furniture that loaded before the module was
+listening (you were already inside), and furniture the game does not place as
+a `GameObject` at all — **rugs are ground objects, mounted heads and wall
+charts are wall/decorative objects**, so a GameObjectSpawned-only reader can
+never see them. Spawns are still buffered for the entry race (spawns and the
+greeting race, so neither order is trusted alone) and committed live
+afterwards for building-mode swaps.
