@@ -1025,6 +1025,12 @@ public class AccountState implements StateView
 		return stashFilled.contains(objectId);
 	}
 
+	/** Object ids of every STASH unit currently filled (a read-only copy). */
+	public Set<Integer> getStashFilled()
+	{
+		return new HashSet<>(stashFilled);
+	}
+
 	public void setStashBuilt(int objectId, boolean built)
 	{
 		boolean changed = built ? stashBuilt.add(objectId) : stashBuilt.remove(objectId);

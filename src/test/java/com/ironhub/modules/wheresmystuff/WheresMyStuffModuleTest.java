@@ -86,6 +86,31 @@ public class WheresMyStuffModuleTest
 		assertEquals("Fancy dress box (PoH)", module.label(byKey("fancyDressBox")));
 	}
 
+	/** STASH: Iron Hub's own fill detection drives per-unit snapshots, so a
+	 *  filled unit's clue items become findable ("where is my Gold ring?"). */
+	@Test
+	public void stashUnitTracksItsClueItems()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 3L);
+		WheresMyStuffModule module = new WheresMyStuffModule(
+			state, config, new DataPack(new Gson()), new EventBus(), null, null);
+		module.startUp();
+
+		state.setStashFilled(34736, true); // Gypsy tent entrance: Gold ring + necklace
+		var snap = state.getStorageContents().get("stash:34736");
+		assertNotNull(snap);
+		assertEquals("stash", snap.family);
+		assertTrue(snap.items.containsKey(1635)); // Gold ring
+		assertTrue(snap.items.containsKey(1654)); // Gold necklace
+		assertEquals("Gold ring", snap.itemNames.get(1635));
+		assertTrue(state.whereOwned(1635).contains("STASH"));
+
+		state.setStashFilled(34736, false); // emptied -> honest empty, not stale
+		assertTrue(state.getStorageContents().get("stash:34736").items.isEmpty());
+		module.shutDown();
+	}
+
 	@Test
 	public void rendersTrackedStorages() throws Exception
 	{

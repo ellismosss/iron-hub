@@ -399,6 +399,21 @@ def apply_detection_tables(storages, varbit_by_name, items_by_name):
         return varbit_by_name[const]
 
     wired = 0
+
+    # Vyre Well is "special" only because blood runes are derived — but they
+    # derive from the SAME varbit as the vials (× 200), so it is exactly the
+    # varbits mode with two entries. Curated from world/VyreWell.java.
+    vyre = by_id.get(("world", "vyrewell"))
+    if vyre is not None:
+        vyre["mode"] = "varbits"
+        vyre["varbitItems"] = [
+            {"varbit": resolve_varbit("TOB_LOBBY_WELL_CONTENTS"),
+             "itemId": resolve_item("VIAL_BLOOD"), "multiplier": 1},
+            {"varbit": resolve_varbit("TOB_LOBBY_WELL_CONTENTS"),
+             "itemId": resolve_item("BLOODRUNE"), "multiplier": 200},
+        ]
+        wired += 1
+
     for family in ("carryable", "world"):
         for key, spec in tables.get(family, {}).items():
             if key.startswith("_"):

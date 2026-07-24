@@ -58,6 +58,13 @@ public class WheresMyStuffModule implements IronHubModule
 	private final EventBus eventBus;           // null in unit tests
 	private final Client client;               // null in unit tests
 	private final ItemManager itemManager;     // null in unit tests
+	private final com.ironhub.data.ClueStepsPack clues; // for STASH contents
+
+	// STASH: an AccountState-driven sync (Iron Hub already detects fills), so
+	// this mirrors the filled set into per-unit snapshots. Cached to avoid
+	// redundant work on unrelated state changes.
+	private final Runnable stashListener = this::syncStash;
+	private java.util.Set<Integer> lastStashFilled = java.util.Collections.emptySet();
 
 	private String familyLabel(String family)
 	{
@@ -76,6 +83,8 @@ public class WheresMyStuffModule implements IronHubModule
 		this.config = config;
 		this.pack = dataPack == null ? null
 			: dataPack.load("storage-locations", StorageLocationsPack.class);
+		this.clues = dataPack == null ? null
+			: dataPack.load("clue-steps", com.ironhub.data.ClueStepsPack.class);
 		this.eventBus = eventBus;
 		this.client = client;
 		this.itemManager = itemManager;
@@ -100,6 +109,8 @@ public class WheresMyStuffModule implements IronHubModule
 		{
 			eventBus.register(this);
 		}
+		state.addListener(stashListener);
+		syncStash();
 	}
 
 	@Override
@@ -109,6 +120,7 @@ public class WheresMyStuffModule implements IronHubModule
 		{
 			eventBus.unregister(this);
 		}
+		state.removeListener(stashListener);
 		if (tab != null)
 		{
 			tab.dispose();
@@ -191,6 +203,98 @@ public class WheresMyStuffModule implements IronHubModule
 			}
 		}
 		return null;
+	}
+
+	// ── STASH (derived from Iron Hub's own fill detection) ────────────
+
+	/** Iron Hub already tracks which STASH units are filled; mirror that into
+	 *  per-unit snapshots so "where is my clue item?" can point at a STASH.
+	 *  A filled unit stores its emote clue's required items. Runs on any state
+	 *  change but no-ops unless the filled set moved. */
+	private void syncStash()
+	{
+		if (clues == null)
+		{
+			return;
+		}
+		java.util.Set<Integer> filled = state.getStashFilled();
+		if (filled.equals(lastStashFilled))
+		{
+			return;
+		}
+		long now = System.currentTimeMillis();
+		// units that turned OFF since last sync -> record an honest empty
+		for (int objectId : lastStashFilled)
+		{
+			if (!filled.contains(objectId) && state.getStorageContents().containsKey(stashId(objectId)))
+			{
+				commitStash(objectId, false, now);
+			}
+		}
+		for (int objectId : filled)
+		{
+			commitStash(objectId, true, now);
+		}
+		lastStashFilled = filled;
+	}
+
+	private static String stashId(int objectId)
+	{
+		return "stash:" + objectId;
+	}
+
+	private void commitStash(int objectId, boolean filled, long now)
+	{
+		com.ironhub.data.ClueStepsPack.Stash unit = clues.stashByObjectId(objectId);
+		if (unit == null)
+		{
+			return;
+		}
+		Map<Integer, String> names = filled ? stashNames(objectId) : new HashMap<>();
+		Map<Integer, Integer> items = new HashMap<>();
+		names.keySet().forEach(id -> items.put(id, 1));
+		if (items.isEmpty() && !state.getStorageContents().containsKey(stashId(objectId)))
+		{
+			return; // never-seen + empty stays silent
+		}
+		String label = unit.name + " (" + familyLabel("stash") + ")";
+		state.putStorageContents(stashId(objectId), unit.name, "stash", label, items, names, now);
+	}
+
+	/** item id -> name for a STASH unit, parsed from its clue's item: reqs. */
+	private Map<Integer, String> stashNames(int objectId)
+	{
+		Map<Integer, String> out = new HashMap<>();
+		com.ironhub.data.ClueStepsPack.Stash unit = clues.stashByObjectId(objectId);
+		if (unit == null || unit.clueId == null)
+		{
+			return out;
+		}
+		for (com.ironhub.data.ClueStepsPack.Clue clue : clues.clues)
+		{
+			if (!unit.clueId.equals(clue.id) || clue.reqs == null)
+			{
+				continue;
+			}
+			for (String req : clue.reqs)
+			{
+				// "item:<id>:<qty>:<Name>"
+				String[] parts = req.split(":", 4);
+				if (parts.length == 4 && "item".equals(parts[0]))
+				{
+					try
+					{
+						out.put(Integer.parseInt(parts[1]), parts[3]);
+					}
+					catch (NumberFormatException ignored)
+					{
+						// a non-item req (skill:/unlock:/...) — not stored
+					}
+				}
+			}
+			break;
+		}
+		return out;
 	}
 
 	// ── object-mount detection (POH cape hanger) ──────────────────────

@@ -3551,7 +3551,20 @@
    "id": "world:vyrewell",
    "family": "world",
    "key": "vyrewell",
-   "name": "Vyre Well"
+   "name": "Vyre Well",
+   "mode": "varbits",
+   "varbitItems": [
+    {
+     "varbit": 6455,
+     "itemId": 22446,
+     "multiplier": 1
+    },
+    {
+     "varbit": 6455,
+     "itemId": 565,
+     "multiplier": 200
+    }
+   ]
   },
   {
    "id": "world:seedvault",
