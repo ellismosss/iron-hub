@@ -205,6 +205,113 @@ public class WheresMyStuffModule implements IronHubModule
 		return null;
 	}
 
+	// ── chat-driven bespoke storages (raw patterns from the reference) ─
+
+	private static final java.util.regex.Pattern EYATLALLI_LOGIN =
+		java.util.regex.Pattern.compile("Eyatlalli is holding onto your ([^.]+)\\.");
+
+	@Subscribe
+	public void onChatMessage(net.runelite.api.events.ChatMessage event)
+	{
+		if (pack == null || client == null)
+		{
+			return;
+		}
+		net.runelite.api.ChatMessageType type = event.getType();
+		if (type != net.runelite.api.ChatMessageType.GAMEMESSAGE
+			&& type != net.runelite.api.ChatMessageType.SPAM)
+		{
+			return;
+		}
+		String raw = event.getMessage();
+		String msg = net.runelite.client.util.Text.removeTags(raw);
+		long now = System.currentTimeMillis();
+
+		// Nulodion — a decayed cannon can be reclaimed (4 parts), a new one clears
+		if (msg.startsWith("Your cannon has decayed"))
+		{
+			commitFixed("world:nulodion", cannonParts(1), now);
+		}
+		else if (msg.startsWith("The dwarf gives you a new cannon"))
+		{
+			commitFixed("world:nulodion", cannonParts(0), now);
+		}
+		// Eyatlalli — cold-storage weapon (worn slot 3 at the freeze)
+		else if (raw.contains("Your weapon freezes over."))
+		{
+			net.runelite.api.ItemContainer worn = client.getItemContainer(InventoryID.WORN);
+			Map<Integer, Integer> items = new HashMap<>();
+			if (worn != null && worn.getItems().length > 3)
+			{
+				Item weapon = worn.getItems()[3];
+				if (weapon.getId() > 0)
+				{
+					items.put(weapon.getId(), Math.max(1, weapon.getQuantity()));
+				}
+			}
+			commitFixed("world:eyatlalli", items, now);
+		}
+		else if (msg.startsWith("Eyatlalli returns your lost weapon")
+			|| msg.startsWith("Eyatlalli retrieves your weapon")
+			|| msg.startsWith("You retrieve your weapon")
+			|| msg.startsWith("As the icicle bursts, your weapon"))
+		{
+			commitFixed("world:eyatlalli", new HashMap<>(), now); // retrieved -> empty
+		}
+		else
+		{
+			java.util.regex.Matcher m = EYATLALLI_LOGIN.matcher(msg);
+			if (m.find() && itemManager != null)
+			{
+				String name = m.group(1);
+				itemManager.search(name).stream()
+					.filter(p -> p.getName().equals(name)).findFirst()
+					.ifPresent(p ->
+					{
+						Map<Integer, Integer> items = new HashMap<>();
+						items.put(p.getId(), 1);
+						commitFixed("world:eyatlalli", items, now);
+					});
+			}
+		}
+	}
+
+	private Map<Integer, Integer> cannonParts(int qty)
+	{
+		Map<Integer, Integer> items = new HashMap<>();
+		if (qty > 0)
+		{
+			for (int id : new int[]{net.runelite.api.gameval.ItemID.TWPART1,
+				net.runelite.api.gameval.ItemID.TWPART2, net.runelite.api.gameval.ItemID.TWPART3,
+				net.runelite.api.gameval.ItemID.TWPART4})
+			{
+				items.put(id, qty);
+			}
+		}
+		return items;
+	}
+
+	private void commitFixed(String id, Map<Integer, Integer> items, long now)
+	{
+		StorageLocationsPack.Storage def = storageById(id);
+		if (def != null)
+		{
+			commit(def, items, now);
+		}
+	}
+
+	private StorageLocationsPack.Storage storageById(String id)
+	{
+		for (StorageLocationsPack.Storage s : pack.storages)
+		{
+			if (s.id.equals(id))
+			{
+				return s;
+			}
+		}
+		return null;
+	}
+
 	// ── STASH (derived from Iron Hub's own fill detection) ────────────
 
 	/** Iron Hub already tracks which STASH units are filled; mirror that into
