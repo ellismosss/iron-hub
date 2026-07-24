@@ -786,6 +786,61 @@ from) when a port references legacy constants verbatim. One reference
 row uses a raw id with no constant at all (22818, its comment names it
 Fish chunks) — curated, fail-fast on any new one.
 
+## Where's my stuff — storage tracking (module: wheresmystuff, pack: storage-locations.json)
+
+Ported from "Dude, Where's My Stuff?" (Thource/dude-wheres-my-stuff @
+d032272, BSD-2, (c) 2022 Thource). The value it adds over Iron Hub's
+existing reads is knowing what you keep in every place BEYOND bank /
+inventory / worn, so the Gear library can say "You own this · Fancy dress
+box (PoH)" for an item stored only in a POH costume case.
+
+**Model.** Each place is a `Storage` whose detection lives in per-storage
+event hooks (`onItemContainerChanged` / `onVarbitChanged` / `onWidgetLoaded`
+/ `onGameObjectSpawned` / `onChatMessage`), each returning "data changed".
+The port keeps those hooks byte-faithful (widget/varbit/object ids, chat
+substrings) and replaces only the reference's save/load (its own config
+group) and Swing panel with `AccountState.putStorageContents` (a
+self-describing `PersistedState.StorageSnapshot`: item id→qty + baked
+name/family/label so it renders offline — the GoalSeed baked-at-write rule)
+and an OSRS-skinned tab. Nothing polls; **an unseen storage is silent,
+never "empty"** (the sailing-boat honesty rule). `whereOwned(id)` falls
+through bank→inv→worn→`storedLabel(id)`; `ownedAnywhere(id)` counts tracked
+storages so Gear reads a stored-only item as owned.
+
+**The static tables become a pack, not the container ids.** The detection
+Java references the gameval `InventoryID`/`VarbitID` constants directly (on
+our classpath), so `storage-locations.json` carries only the registry
+metadata + the item allow-lists. gameval `ItemID` names DON'T resolve in
+tools/itemids.txt (that's LEGACY names) — resolve them via javap against
+`net.runelite.api.gameval.ItemID` from the Gradle cache, fail-fast (the
+gen_poh.py idiom).
+
+**POH costume room — the one non-obvious detection.** The whole costume
+room (six treasure-chest tiers, armour case, magic wardrobe, fancy dress
+box, cape rack, toy box, boss lair display, uncategorised) hangs off ONE
+backing container, `InventoryID.POH_COSTUMES` (637), and its sub-storages
+are told apart PURELY by hardcoded item-id allow-lists — that's why the
+reference's enum is 2000 lines and why the allow-lists must be a pack.
+On a POH_COSTUMES `ItemContainerChanged` (mask `-0x8000` first) while the
+player is in their OWN house (region ∈ {7534,7535,7790,7791,8046,8047,8302,
+8303} — the reference's REGION_POH, NOT the generic 7513), the container is
+re-attributed across every costume storage by allow-list; Uncategorised
+(the null-list catch-all) keeps whatever no other allow-list claims
+(`WheresMyStuffModule.attributePoh`, pure + tested). The container holds the
+UNION of the whole room, so re-deriving all storages from it on each change
+is correct — a sibling never gets wiped. **Caveat preserved from the
+reference:** you can't verify a house is your own beyond the region, so
+visiting a friend's costume room isn't a real risk (its container doesn't
+populate for you), but bespoke object-spawn storages (cape hanger) DO reset
+on a friend's house — a known limitation, not a bug to "fix".
+
+CapeHanger (GameObjectSpawned → mounted-cape ObjectID map), Menagerie (pets,
+`client.getEnum(985)` + varp bitfields) and SpiceRack (chat/widget state
+machine) are separate detection mechanisms ported in later slices; other
+families (carryable sub-containers, coins, world, minigames, sailing holds,
+death) each land with their own hooks. Death's storage tracking is distinct
+from the existing Death recovery module (which owns reclaim location/path).
+
 ## Combat style & autocast naming (module: loadoutlab, pack: weapon-styles.json)
 
 The combat tab's BUTTON labels ("Chop", "Hack", "Lunge") and per-button

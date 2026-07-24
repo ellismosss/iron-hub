@@ -182,12 +182,21 @@ def parse_container(arg):
     return None
 
 
+def sentence_case(name):
+    """Match the game's own furniture casing: "Fancy Dress Box" -> "Fancy dress
+    box", keeping a parenthesised tier capitalised ("Treasure Chest (Beginner)"
+    -> "Treasure chest (Beginner)")."""
+    out = name.lower()
+    out = out[:1].upper() + out[1:]
+    return re.sub(r"\(([a-z])", lambda m: "(" + m.group(1).upper(), out)
+
+
 def parse_poh(items_by_name):
     """PlayerOwnedHouse: NAME("Display", <container|-1>, "configKey", <list|null>)."""
     text = read_enum("playerownedhouse", "PlayerOwnedHouseStorageType.java")
     storages = []
     for name, args in enum_constants(text):
-        display = args[0].strip().strip('"')
+        display = sentence_case(args[0].strip().strip('"'))
         container = parse_container(args[1])
         config_key = args[2].strip().strip('"')
         items = parse_item_list(args[3], items_by_name) if len(args) > 3 else None

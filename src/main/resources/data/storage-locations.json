@@ -15,7 +15,7 @@
   {
    "family": "playerownedhouse",
    "key": "treasureChestBeginner",
-   "name": "Treasure Chest (Beginner)",
+   "name": "Treasure chest (Beginner)",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
@@ -40,7 +40,7 @@
   {
    "family": "playerownedhouse",
    "key": "treasureChestEasy",
-   "name": "Treasure Chest (Easy)",
+   "name": "Treasure chest (Easy)",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
@@ -210,7 +210,7 @@
   {
    "family": "playerownedhouse",
    "key": "treasureChestMedium",
-   "name": "Treasure Chest (Medium)",
+   "name": "Treasure chest (Medium)",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
@@ -317,7 +317,7 @@
   {
    "family": "playerownedhouse",
    "key": "treasureChestHard",
-   "name": "Treasure Chest (Hard)",
+   "name": "Treasure chest (Hard)",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
@@ -483,7 +483,7 @@
   {
    "family": "playerownedhouse",
    "key": "treasureChestElite",
-   "name": "Treasure Chest (Elite)",
+   "name": "Treasure chest (Elite)",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
@@ -571,7 +571,7 @@
   {
    "family": "playerownedhouse",
    "key": "treasureChestMaster",
-   "name": "Treasure Chest (Master)",
+   "name": "Treasure chest (Master)",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
@@ -629,7 +629,7 @@
   {
    "family": "playerownedhouse",
    "key": "armourCase",
-   "name": "Armour Case",
+   "name": "Armour case",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
@@ -1029,7 +1029,7 @@
   {
    "family": "playerownedhouse",
    "key": "magicWardrobe",
-   "name": "Magic Wardrobe",
+   "name": "Magic wardrobe",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
@@ -1365,7 +1365,7 @@
   {
    "family": "playerownedhouse",
    "key": "fancyDressBox",
-   "name": "Fancy Dress Box",
+   "name": "Fancy dress box",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
@@ -1407,7 +1407,7 @@
   {
    "family": "playerownedhouse",
    "key": "capeRack",
-   "name": "Cape Rack",
+   "name": "Cape rack",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
@@ -1640,7 +1640,7 @@
   {
    "family": "playerownedhouse",
    "key": "bossLairDisplay",
-   "name": "Boss Lair Display",
+   "name": "Boss lair display",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",
@@ -1665,21 +1665,21 @@
   {
    "family": "playerownedhouse",
    "key": "capeHanger",
-   "name": "Cape Hanger",
+   "name": "Cape hanger",
    "members": true,
    "automatic": false
   },
   {
    "family": "playerownedhouse",
    "key": "spiceRack",
-   "name": "Spice Rack",
+   "name": "Spice rack",
    "members": true,
    "automatic": false
   },
   {
    "family": "playerownedhouse",
    "key": "toyBox",
-   "name": "Toy Box",
+   "name": "Toy box",
    "members": true,
    "automatic": false,
    "container": "POH_COSTUMES",

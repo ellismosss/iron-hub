@@ -199,6 +199,9 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "bankSpaceSaver", name = "Bank space saver", description = "Bank items that could live in dedicated storage (tackle box, seed vault, POH cases and more)", section = modulesSection, position = 31)
 	default boolean bankSpaceSaver() { return true; }
 
+	@ConfigItem(keyName = "wheresMyStuff", name = "Where's my stuff", description = "Track what you keep in every storage beyond the bank - POH costume cases, STASH units, boat holds - so Iron Hub knows where your items are (ported from Dude, Where's My Stuff?)", section = modulesSection, position = 32)
+	default boolean wheresMyStuff() { return true; }
+
 	@ConfigItem(keyName = "portBoardAdvice", name = "Port task board advisor", description = "While a port task board is open, overlay the best courier picks (Sailing XP per tile added to your route)", section = notificationsSection, position = 13)
 	default boolean portBoardAdvice() { return true; }
 

@@ -158,7 +158,8 @@ public class PersistedState
 
 	public static class StorageSnapshot
 	{
-		public Map<Integer, Integer> items = new HashMap<>(); // item id -> qty
+		public Map<Integer, Integer> items = new HashMap<>();     // item id -> qty
+		public Map<Integer, String> itemNames = new HashMap<>();  // item id -> name (baked)
 		public long lastSeen;   // epoch ms of the last visit
 		// self-describing so whereOwned renders offline without the pack
 		// (the GoalSeed baked-at-write-time rule): raw name, family key, and
@@ -171,6 +172,7 @@ public class PersistedState
 		{
 			StorageSnapshot c = new StorageSnapshot();
 			c.items = new HashMap<>(items);
+			c.itemNames = new HashMap<>(itemNames);
 			c.lastSeen = lastSeen;
 			c.name = name;
 			c.family = family;

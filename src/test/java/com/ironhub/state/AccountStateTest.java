@@ -110,7 +110,8 @@ public class AccountStateTest
 		AccountState before = StateFixture.state(temp.getRoot());
 		StateFixture.profile(before, 99L);
 		before.putStorageContents("fancyDressBox", "Fancy dress box",
-			"playerownedhouse", "Fancy dress box (PoH)", Map.of(23330, 1), 1_000L);
+			"playerownedhouse", "Fancy dress box (PoH)", Map.of(23330, 1),
+			Map.of(23330, "Rune scimitar (Guthix)"), 1_000L);
 
 		assertTrue(before.ownedAnywhere(23330));
 		assertEquals("Fancy dress box (PoH)", before.whereOwned(23330));

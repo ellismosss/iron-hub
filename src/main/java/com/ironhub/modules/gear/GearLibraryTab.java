@@ -973,11 +973,11 @@ class GearLibraryTab extends JPanel
 	}
 
 	/**
-	 * "You own this — Bank" (green) when it sits in a readable container;
-	 * "Obtained DD/MM/YY" (orange) when the collection log recorded it but we
-	 * do not currently see it — banks get cleared, items get sold, so the two
-	 * are worth telling apart (Luke). POH costume storage / STASH and the
-	 * like aren't readable yet, so an item there reads as obtained, not owned.
+	 * "You own this · Bank" (green) when it sits in a readable container — bank,
+	 * inventory, worn, or any storage the "Where's my stuff" tracker has seen it
+	 * in (e.g. "Fancy dress box (PoH)"); "Obtained DD/MM/YY" (orange) when the
+	 * collection log recorded it but we do not currently see it anywhere — banks
+	 * get cleared, items get sold, so the two are worth telling apart (Luke).
 	 */
 	private JComponent ownershipLine(EquipmentPack.Item item, boolean own)
 	{

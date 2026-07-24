@@ -109,7 +109,8 @@ public class IronHubPlugin extends Plugin
 		com.ironhub.modules.moneymaking.MoneyMakingModule moneyMaking,
 		com.ironhub.modules.sailing.SailingUpgradesModule sailingUpgrades,
 		com.ironhub.modules.porttasks.PortTasksModule portTasks,
-		com.ironhub.modules.bankspace.BankSpaceModule bankSpace)
+		com.ironhub.modules.bankspace.BankSpaceModule bankSpace,
+		com.ironhub.modules.wheresmystuff.WheresMyStuffModule wheresMyStuff)
 	{
 		// TODO: skills — see DESIGN.md §3
 		return ImmutableSet.of(
@@ -117,7 +118,7 @@ public class IronHubPlugin extends Plugin
 			farmingRun, dailies, goalPlanner, clueStash,
 			slayerOptimizer, suppliesRunway, collectionLog, externalSync,
 			dashboard, deathRecovery, loadoutLab, designLab, dailiesNew, poh, hunterRumours,
-			moneyMaking, sailingUpgrades, portTasks, bankSpace);
+			moneyMaking, sailingUpgrades, portTasks, bankSpace, wheresMyStuff);
 	}
 
 	@Provides

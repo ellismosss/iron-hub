@@ -96,8 +96,8 @@ public class IronHubPanel extends PluginPanel
 		"Progression", List.of("Collection log", "Combat achievements", "Gear",
 			"PoH", "Sailing upgrades", "Achievement diaries", "Quests", "Clues & STASH",
 			"QoL checklist"),
-		"Bank", List.of("Bank & banked XP", "Bank space saver", "Money making", "Supplies runway",
-			"Death recovery"),
+		"Bank", List.of("Bank & banked XP", "Bank space saver", "Where's my stuff",
+			"Money making", "Supplies runway", "Death recovery"),
 		"Settings", List.of("Design lab"));
 
 	private final JPanel homeCard = new JPanel(new BorderLayout());

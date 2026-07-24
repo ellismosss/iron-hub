@@ -886,12 +886,13 @@ public class AccountState implements StateView
 	 *  (still "seen"), never silence; silence is only for never-opened
 	 *  storages. */
 	public void putStorageContents(String key, String name, String family,
-		String label, Map<Integer, Integer> items, long now)
+		String label, Map<Integer, Integer> items, Map<Integer, String> itemNames, long now)
 	{
 		PersistedState.StorageSnapshot snap = storageContents.computeIfAbsent(
 			key, k -> new PersistedState.StorageSnapshot());
 		boolean changed = snap.lastSeen == 0 || !snap.items.equals(items);
 		snap.items = new HashMap<>(items);
+		snap.itemNames = itemNames == null ? new HashMap<>() : new HashMap<>(itemNames);
 		snap.lastSeen = now;
 		snap.name = name;
 		snap.family = family;
