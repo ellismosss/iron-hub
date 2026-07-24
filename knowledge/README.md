@@ -103,6 +103,19 @@ flags/gaps before re-judging (a re-detected gap reopens; `wont-fix` sticks).
   dropped); holiday joke containers (Christmas cracker) are never a source;
   make sources carry `outputQty` (per-batch output) so a recipe scales to the
   count a step needs (75 arrows from a 15/batch recipe → 75 + 75 materials).
+- **equipment.json** — `tools/gen_equipment.py` reads **knowledge.db
+  directly** (rebuild first): every wearable for the Gear library — 3,848
+  items from the 12 slot categories with the full Infobox Bonuses (slot,
+  the 14 combat bonuses, weapon speed, members, high alch). Obtainment +
+  equip reqs are NOT duplicated (the library reads item-sources.json by
+  id). Restricted-mode / Deadman / `(bh)` recolours + slotless storage
+  items dropped; **Leagues/Deadman rewards flagged `leagues:true`** from
+  the wiki's `<X> League` / Deadman categories (a live categorymembers
+  fetch, cached `.cache-equipment`). The MARKET price is deliberately NOT
+  baked — the exchange module's `value` is the store value, not the GE
+  price (Tumeken's shadow reads 7M there vs ~750M live); high alch (a
+  fixed number) is the only value baked, as an offline fallback, and the
+  runtime resolves the live GE price via ItemManager.
 
 ## Domain notes worth remembering
 

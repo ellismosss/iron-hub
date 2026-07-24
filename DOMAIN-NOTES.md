@@ -823,6 +823,20 @@ the generator into data/icons/osrs/styles/.
 
 Hard-won source knowledge for ANY feature that harvests the OSRS wiki:
 
+- **The exchange module's `value` is the STORE value, not the GE price**
+  (Gear-library bug, 2026-07-24): `bucket_exchange.value` (and the
+  Module:Exchange `value` param) is the item's intrinsic coins value — the
+  number high alch is derived from (highalch = value×0.6) — NOT the live
+  market price. Tumeken's shadow reads 7M there while it trades at ~750M.
+  Never bake it as a price. High alch is a fixed honest number worth
+  baking; the live GE price is a runtime `ItemManager.getItemPrice` read
+  (which needs the CLIENT THREAD — a sweep, never an EDT call).
+- **Leagues / Deadman items are marked by wiki CATEGORY**, not by any
+  flag or examine text (which are unreliable — Battlehat reads only
+  "discontinued"): members of `Category:<X> League` (Twisted, Trailblazer,
+  Shattered Relics, Trailblazer Reloaded, Raging Echoes) and the Deadman
+  categories. gen_equipment.py fetches categorymembers for these to flag
+  `leagues:true`.
 - **The Bucket API is the structured ground truth** (`action=bucket`, the
   same store the wiki's own tables render from — query syntax
   `bucket('name').select(...).offset(N).limit(5000).run()`). 46 buckets
