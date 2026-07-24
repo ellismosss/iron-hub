@@ -1,8 +1,5 @@
-package com.ironhub.modules.gear;
+package com.ironhub.ui.osrs;
 
-import com.ironhub.ui.osrs.OsrsSkin;
-import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneNavButton;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -18,17 +15,22 @@ import java.util.List;
 import javax.swing.JComponent;
 
 /**
- * One item in the Gear library's grid: the item's sprite over its name in
- * the small font, on the nav stone's chamfered slab. The bevel encodes
- * state — green when owned, orange when tracked as a goal — and the fill
- * lifts when selected (its detail card is open below).
+ * One tile in a stonework grid: an icon over a caption in the small font, on
+ * the nav stone's chamfered slab. The bevel encodes state — orange when
+ * tracked, plain otherwise — a green corner tick marks it owned/built, a
+ * top-left badge counts its members, and the fill lifts when selected (its
+ * detail card is open below).
+ *
+ * <p>Shared across the Gear library and the Build modules (House, Boats):
+ * a generic presentation atom — an image, a caption, three state booleans,
+ * a badge count, a size flag, and two click callbacks — with no module type.
  */
-class GearItemTile extends JComponent
+public class IconTile extends JComponent
 {
-	static final int WIDTH = 52;
-	static final int HEIGHT = 56;
-	/** Set tiles are twice as wide (two across, Luke). */
-	static final int WIDTH_LARGE = 106;
+	public static final int WIDTH = 52;
+	public static final int HEIGHT = 56;
+	/** Set/room tiles can be twice as wide (two across). */
+	public static final int WIDTH_LARGE = 106;
 	private static final int ICON_BAND = 32;
 	private static final int LINE = 10;
 
@@ -38,11 +40,11 @@ class GearItemTile extends JComponent
 	private final boolean owned;
 	private final boolean tracked;
 	private final boolean selected;
-	/** >1 when this tile stands for a group of variants (a corner badge). */
+	/** >1 when this tile stands for a group of members (a corner badge). */
 	private final int variantCount;
 	private final boolean large;
 
-	GearItemTile(OsrsTheme theme, String name, Image icon, boolean owned, boolean tracked,
+	public IconTile(OsrsTheme theme, String name, Image icon, boolean owned, boolean tracked,
 		boolean selected, int variantCount, boolean large, String tooltip, Runnable onClick,
 		java.util.function.Consumer<MouseEvent> onRight)
 	{
@@ -134,12 +136,12 @@ class GearItemTile extends JComponent
 			y += LINE;
 		}
 
-		// a small green tick in the top-right marks an owned item
+		// a small green tick in the top-right marks an owned/built tile
 		if (owned)
 		{
 			paintCheck(g2, w - 10, 3);
 		}
-		// a variant-count badge in the top-left for a grouped tile — the light
+		// a member-count badge in the top-left for a grouped tile — the light
 		// colour (Luke), not orange
 		if (variantCount > 1)
 		{
@@ -193,17 +195,34 @@ class GearItemTile extends JComponent
 		{
 			lines.add(line.toString());
 		}
-		// ellipsize the final line if the whole name did not fit
+		// ellipsize the final line if the whole name did not fit across lines
 		String joined = String.join(" ", lines);
 		if (!joined.equals(text) && !lines.isEmpty())
 		{
-			String last = lines.get(lines.size() - 1);
-			while (last.length() > 1 && fm.stringWidth(last + "…") > width)
+			lines.set(lines.size() - 1, ellipsize(lines.get(lines.size() - 1), fm, width));
+		}
+		// and ellipsize any single line still wider than the tile (a long word
+		// like "Achievement" that can't be split, so it would center-clip)
+		for (int i = 0; i < lines.size(); i++)
+		{
+			if (fm.stringWidth(lines.get(i)) > width)
 			{
-				last = last.substring(0, last.length() - 1);
+				lines.set(i, ellipsize(lines.get(i), fm, width));
 			}
-			lines.set(lines.size() - 1, last + "…");
 		}
 		return lines;
+	}
+
+	private static String ellipsize(String line, FontMetrics fm, int width)
+	{
+		if (fm.stringWidth(line) <= width)
+		{
+			return line;
+		}
+		while (line.length() > 1 && fm.stringWidth(line + "…") > width)
+		{
+			line = line.substring(0, line.length() - 1);
+		}
+		return line + "…";
 	}
 }

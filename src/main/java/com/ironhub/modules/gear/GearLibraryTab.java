@@ -12,6 +12,7 @@ import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.components.RebuildGate;
 import com.ironhub.ui.components.SpriteCache;
 import com.ironhub.ui.osrs.OsrsLabel;
+import com.ironhub.ui.osrs.IconTile;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
 import com.ironhub.ui.osrs.StoneChipRow;
@@ -692,7 +693,7 @@ class GearLibraryTab extends JPanel
 
 	/** A unit's tile: a single item, or a group tile (variant count badge,
 	 *  larger when a set) whose click expands its members — one at a time. */
-	private GearItemTile unitTile(Unit unit)
+	private IconTile unitTile(Unit unit)
 	{
 		if (!unit.isGroup())
 		{
@@ -704,7 +705,7 @@ class GearLibraryTab extends JPanel
 		boolean ownsAny = showTick() && unit.items.stream().anyMatch(this::owns);
 		boolean expanded = unit.base.equals(expandedGroup);
 		String noun = sets ? " pieces" : " variants";
-		return new GearItemTile(theme, unit.base, sprite, ownsAny, false, expanded,
+		return new IconTile(theme, unit.base, sprite, ownsAny, false, expanded,
 			unit.items.size(), sets,
 			unit.base + " — " + unit.items.size() + noun,
 			() ->
@@ -716,10 +717,10 @@ class GearLibraryTab extends JPanel
 			e -> { });
 	}
 
-	private GearItemTile itemTile(EquipmentPack.Item item)
+	private IconTile itemTile(EquipmentPack.Item item)
 	{
 		java.awt.Image sprite = sprites.get(item.primaryId(), -1, 28);
-		return new GearItemTile(theme, item.name, sprite, showTick() && owns(item),
+		return new IconTile(theme, item.name, sprite, showTick() && owns(item),
 			isTracked(item), item.primaryId() == selected, 1, false, tileTooltip(item),
 			() ->
 			{
