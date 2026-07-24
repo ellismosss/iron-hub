@@ -1109,12 +1109,13 @@ NON-ZERO rather than `== 1` — the constant's name comes from the game's own
 symbols and is authoritative, but nothing available confirms which truthy value
 it uses, and guessing a specific one is exactly how the last gate failed.
 
-A POH **region** check rides along (`{7534, 7535, 7790, 7791, 8046, 8047, 8302,
-8303}`, the set the storage tracker uses, via `WorldPoint.fromLocalInstance` —
-the POH is instanced, so a plain world location reads the instance's own
-coordinates and the wrong region). That keeps the three furniture whose object
-id the game reuses in the world (a throne-room trapdoor shares 6521 with
-`DESERTTREASURE_PITFALL`) from marking anything outside a house.
+A POH **region** check was tried alongside it and **removed** (2026-07-24):
+building mode already implies standing in your own house, so the region list
+added no proof — it was a second unverified assumption that could only ever
+block detection, never enable it, which is the same shape as the invented chat
+message. The three furniture whose object id the game reuses in the world (a
+throne-room trapdoor shares 6521 with `DESERTTREASURE_PITFALL`) cannot mark
+anything anyway, because nothing is read outside building mode.
 
 Because detection only runs in building mode, the tab SAYS so while nothing is
 marked ("Enter building mode in your house to sync..."). An empty grid with no
