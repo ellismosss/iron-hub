@@ -48,7 +48,8 @@ class WheresMyStuffTab extends JPanel
 	private final SpriteCache sprites;
 
 	private final JPanel content = new JPanel();
-	private String expanded; // storage key, or null
+	private final com.ironhub.ui.osrs.StoneTextField search;
+	private String expanded; // storage id, or null
 
 	WheresMyStuffTab(AccountState state, WheresMyStuffModule module, OsrsTheme theme,
 		ItemManager itemManager)
@@ -63,6 +64,29 @@ class WheresMyStuffTab extends JPanel
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
+		// mounted once so it keeps focus — only `content` is rebuilt
+		search = new com.ironhub.ui.osrs.StoneTextField(theme, "Find an item across your stuff…");
+		search.setAlignmentX(LEFT_ALIGNMENT);
+		search.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+		{
+			public void insertUpdate(javax.swing.event.DocumentEvent e)
+			{
+				rebuild();
+			}
+
+			public void removeUpdate(javax.swing.event.DocumentEvent e)
+			{
+				rebuild();
+			}
+
+			public void changedUpdate(javax.swing.event.DocumentEvent e)
+			{
+				rebuild();
+			}
+		});
+		add(search);
+		add(Box.createVerticalStrut(4));
+
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 		content.setOpaque(false);
 		content.setAlignmentX(LEFT_ALIGNMENT);
@@ -71,6 +95,12 @@ class WheresMyStuffTab extends JPanel
 
 		state.addListener(listener);
 		rebuild();
+	}
+
+	private String query()
+	{
+		String q = search == null ? "" : search.getText().trim();
+		return q.equalsIgnoreCase("Find an item across your stuff…") ? "" : q;
 	}
 
 	void dispose()
@@ -85,6 +115,13 @@ class WheresMyStuffTab extends JPanel
 		rebuild();
 	}
 
+	/** Test seam: run a whole-account search. */
+	void searchFor(String q)
+	{
+		search.setText(q);
+		rebuild();
+	}
+
 	void rebuild()
 	{
 		content.removeAll();
@@ -95,6 +132,12 @@ class WheresMyStuffTab extends JPanel
 				+ "boat's hold — and Iron Hub will remember what you keep there, so it "
 				+ "knows where your stuff is even when it's not in your bank.",
 				OsrsSkin.FAINT));
+			finish();
+			return;
+		}
+		if (!query().isEmpty())
+		{
+			addSearchResults(all, query());
 			finish();
 			return;
 		}
@@ -123,6 +166,85 @@ class WheresMyStuffTab extends JPanel
 	{
 		content.revalidate();
 		content.repaint();
+	}
+
+	// ── whole-account search: "where is item X?" ──────────────────────
+
+	private void addSearchResults(Map<String, PersistedState.StorageSnapshot> all, String query)
+	{
+		String q = query.toLowerCase();
+		// one row per (storage, item) whose name matches, name-sorted
+		List<Object[]> hits = new ArrayList<>(); // {snapshot, itemId, qty}
+		for (PersistedState.StorageSnapshot snap : all.values())
+		{
+			for (Map.Entry<Integer, Integer> item : snap.items.entrySet())
+			{
+				if (nameOf(snap, item.getKey()).toLowerCase().contains(q))
+				{
+					hits.add(new Object[]{snap, item.getKey(), item.getValue()});
+				}
+			}
+		}
+		hits.sort(Comparator.comparing(h -> nameOf((PersistedState.StorageSnapshot) h[0],
+			(Integer) h[1]).toLowerCase()));
+
+		JPanel head = rowLine();
+		head.setBorder(new EmptyBorder(2, 4, 3, 4));
+		head.add(new OsrsLabel(hits.isEmpty() ? "Nothing tracked matches"
+			: hits.size() + (hits.size() == 1 ? " match" : " matches"),
+			hits.isEmpty() ? OsrsSkin.FAINT : OsrsSkin.VALUE, OsrsSkin.boldFont())
+			.leftAligned().squeezable());
+		head.add(Box.createHorizontalGlue());
+		cap(head);
+		content.add(head);
+
+		int shown = 0;
+		for (Object[] hit : hits)
+		{
+			if (shown++ >= ITEM_CAP)
+			{
+				content.add(sub("+ " + (hits.size() - ITEM_CAP) + " more — refine your search",
+					OsrsSkin.FAINT));
+				break;
+			}
+			PersistedState.StorageSnapshot snap = (PersistedState.StorageSnapshot) hit[0];
+			content.add(searchHitRow(snap, (Integer) hit[1], (Integer) hit[2]));
+		}
+		if (hits.isEmpty())
+		{
+			content.add(line("Iron Hub only knows the storages you've opened. Open the "
+				+ "place you think it's in, or check your bank.", OsrsSkin.FAINT));
+		}
+	}
+
+	/** A search hit: sprite · item name · the storage it's in (label). */
+	private JComponent searchHitRow(PersistedState.StorageSnapshot snap, int id, int qty)
+	{
+		JPanel r = rows();
+		JPanel top = rowLine();
+		if (itemManager != null)
+		{
+			java.awt.Image sprite = sprites.getBox(id, 16);
+			if (sprite != null)
+			{
+				top.add(new JLabel(new ImageIcon(sprite)));
+				top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+			}
+		}
+		top.add(new OsrsLabel(nameOf(snap, id) + (qty > 1 ? " ×" + qty : ""),
+			OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned().squeezable());
+		top.add(Box.createHorizontalGlue());
+		cap(top);
+		r.add(top);
+		JPanel where = rowLine();
+		where.setBorder(new EmptyBorder(0, UiTokens.PAD, 1, 0));
+		where.add(new OsrsLabel(snap.label.isEmpty() ? snap.name : snap.label,
+			OsrsSkin.TITLE, OsrsSkin.smallFont()).leftAligned());
+		where.add(Box.createHorizontalGlue());
+		cap(where);
+		r.add(where);
+		cap(r);
+		return r;
 	}
 
 	// ── hero ──────────────────────────────────────────────────────────

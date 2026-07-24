@@ -108,13 +108,20 @@ public class WheresMyStuffModuleTest
 		module.startUp();
 		WheresMyStuffTab tab = (WheresMyStuffTab) module.buildTab();
 		assertNotNull(tab);
-		javax.swing.SwingUtilities.invokeAndWait(() -> tab.expand("fancyDressBox"));
+		javax.swing.SwingUtilities.invokeAndWait(() -> tab.expand("playerownedhouse:fancyDressBox"));
 		javax.swing.SwingUtilities.invokeAndWait(() -> { }); // drain queued rebuilds
 		BufferedImage image = SwingRender.render(tab);
 		assertTrue("height " + image.getHeight(), image.getHeight() > 120);
 		java.io.File out = new java.io.File("build/reports/wheres-my-stuff-tab.png");
 		out.getParentFile().mkdirs();
 		javax.imageio.ImageIO.write(image, "png", out);
+
+		// the whole-account search — "where is this item?"
+		javax.swing.SwingUtilities.invokeAndWait(() -> tab.searchFor("plate"));
+		javax.swing.SwingUtilities.invokeAndWait(() -> { });
+		BufferedImage search = SwingRender.render(tab);
+		java.io.File out2 = new java.io.File("build/reports/wheres-my-stuff-search.png");
+		javax.imageio.ImageIO.write(search, "png", out2);
 		module.shutDown();
 	}
 }
