@@ -177,7 +177,7 @@ public class GearModuleTest
 		StateFixture.stat(state, Skill.ATTACK, 40, 0);
 		GearProgressionModule module = new GearProgressionModule(state, new IronHubConfig()
 		{
-		}, new DataPack(new Gson()), null, null, null);
+		}, new DataPack(new Gson()), null, null, null, null);
 		module.startUp();
 		GearLibraryTab tab = (GearLibraryTab) module.buildTab();
 

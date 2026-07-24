@@ -29,6 +29,7 @@ public class GearProgressionModule implements IronHubModule
 	private final DataPack dataPack;
 	private final net.runelite.client.game.ItemManager itemManager; // null in headless tests
 	private final net.runelite.client.config.ConfigManager configManager; // null in headless tests
+	private final net.runelite.client.callback.ClientThread clientThread; // null in headless tests
 	private final javax.inject.Provider<com.ironhub.modules.goals.GoalPlannerModule> planner; // null in tests
 	private GearLibraryTab tab;
 
@@ -36,6 +37,7 @@ public class GearProgressionModule implements IronHubModule
 	public GearProgressionModule(AccountState state, IronHubConfig config, DataPack dataPack,
 		net.runelite.client.game.ItemManager itemManager,
 		net.runelite.client.config.ConfigManager configManager,
+		net.runelite.client.callback.ClientThread clientThread,
 		javax.inject.Provider<com.ironhub.modules.goals.GoalPlannerModule> planner)
 	{
 		this.planner = planner;
@@ -44,6 +46,7 @@ public class GearProgressionModule implements IronHubModule
 		this.dataPack = dataPack;
 		this.itemManager = itemManager;
 		this.configManager = configManager;
+		this.clientThread = clientThread;
 	}
 
 	@Override
@@ -92,7 +95,7 @@ public class GearProgressionModule implements IronHubModule
 				}, config.osrsTheme(), this::planWantsItem, itemSources);
 			tab = new GearLibraryTab(state,
 				dataPack.load("equipment", com.ironhub.data.EquipmentPack.class),
-				itemSources, itemManager, config.osrsTheme(), chart);
+				itemSources, itemManager, clientThread, config.osrsTheme(), chart);
 		}
 		return tab;
 	}

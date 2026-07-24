@@ -67,8 +67,18 @@ class GearLibraryTab extends JPanel
 	private final EquipmentLibrary library;
 	private final ItemSourcesPack itemSources;
 	private final ItemManager itemManager; // null in headless tests
+	private final net.runelite.client.callback.ClientThread clientThread; // null in headless tests
 	private final OsrsTheme theme;
 	private final SpriteCache sprites;
+	/**
+	 * Live GE prices, resolved in ONE client-thread sweep (the Bank tab's
+	 * rule). {@link ItemManager#getItemPrice} calls getItemComposition, which
+	 * asserts the client thread — calling it on the EDT during the default
+	 * Value sort threw and left the tab unmounted (Luke's report). Until the
+	 * sweep lands, the value is the offline high-alch fallback.
+	 */
+	private volatile java.util.Map<Integer, Integer> priceCache = java.util.Map.of();
+	private boolean pricesRequested;
 	private final Runnable listener = RebuildGate.install(this, this::onStateChanged);
 	/** The progression chart, hosted in a collapsible section below. */
 	private final GearTab chart;
@@ -99,12 +109,14 @@ class GearLibraryTab extends JPanel
 	private List<Object> lastPrint = List.of();
 
 	GearLibraryTab(AccountState state, EquipmentPack pack, ItemSourcesPack itemSources,
-		ItemManager itemManager, OsrsTheme theme, GearTab chart)
+		ItemManager itemManager, net.runelite.client.callback.ClientThread clientThread,
+		OsrsTheme theme, GearTab chart)
 	{
 		this.state = state;
 		this.pack = pack;
 		this.itemSources = itemSources;
 		this.itemManager = itemManager;
+		this.clientThread = clientThread;
 		this.theme = theme;
 		this.chart = chart;
 		this.sprites = new SpriteCache(itemManager, listener);
@@ -202,7 +214,36 @@ class GearLibraryTab extends JPanel
 		add(Box.createVerticalGlue());
 
 		state.addListener(listener);
+		requestPrices();
 		rebuildList();
+	}
+
+	/**
+	 * Fill the price cache once, on the client thread, then rebuild — so the
+	 * EDT never calls getItemPrice (which needs the client thread). Prices
+	 * change slowly; one sweep per tab lifetime is enough.
+	 */
+	private void requestPrices()
+	{
+		if (pricesRequested || itemManager == null || clientThread == null)
+		{
+			return;
+		}
+		pricesRequested = true;
+		clientThread.invokeLater(() ->
+		{
+			java.util.Map<Integer, Integer> prices = new java.util.HashMap<>();
+			for (EquipmentPack.Item item : pack.items)
+			{
+				int price = itemManager.getItemPrice(item.primaryId());
+				if (price > 0)
+				{
+					prices.put(item.primaryId(), price);
+				}
+			}
+			priceCache = prices;
+			javax.swing.SwingUtilities.invokeLater(this::rebuildGrid);
+		});
 	}
 
 	void dispose()
@@ -494,18 +535,19 @@ class GearLibraryTab extends JPanel
 		return label;
 	}
 
-	/** The item's market value: the live GE price in-client, else high alch. */
+	/** The item's market value: the swept live GE price, else high alch.
+	 *  Reads the cache only — never getItemPrice, which needs the client
+	 *  thread and would throw on the EDT. */
 	private long marketValue(EquipmentPack.Item item)
 	{
-		if (itemManager != null)
-		{
-			int price = itemManager.getItemPrice(item.primaryId());
-			if (price > 0)
-			{
-				return price;
-			}
-		}
-		return item.alch;
+		int price = priceCache.getOrDefault(item.primaryId(), 0);
+		return price > 0 ? price : item.alch;
+	}
+
+	/** True when the shown value is a live GE price (vs the alch fallback). */
+	private boolean hasLivePrice(EquipmentPack.Item item)
+	{
+		return priceCache.getOrDefault(item.primaryId(), 0) > 0;
 	}
 
 	/** The metric shown for the active sort (tooltip / detail). */
@@ -567,8 +609,7 @@ class GearLibraryTab extends JPanel
 		long value = marketValue(item);
 		if (value > 0)
 		{
-			String valueText = (itemManager != null && itemManager.getItemPrice(item.primaryId()) > 0
-				? "GE " : "Alch ") + Format.gp(value);
+			String valueText = (hasLivePrice(item) ? "GE " : "Alch ") + Format.gp(value);
 			titleText.add(new OsrsLabel(valueText, OsrsSkin.MUTED, OsrsSkin.smallFont())
 				.leftAligned());
 		}
