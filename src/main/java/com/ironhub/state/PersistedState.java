@@ -150,6 +150,35 @@ public class PersistedState
 	java.util.Set<Integer> bankStorageIgnored = new java.util.HashSet<>();
 	boolean bankStorageFlagBis;
 
+	/** Where's my stuff: last-seen contents per storage (storage-locations
+	 *  pack key -> a snapshot of item id -> quantity + a lastSeen stamp).
+	 *  Only storages the player has actually opened appear — an unseen
+	 *  storage is silent, never "empty" (the sailing-boat honesty rule). */
+	Map<String, StorageSnapshot> storageContents = new HashMap<>();
+
+	public static class StorageSnapshot
+	{
+		public Map<Integer, Integer> items = new HashMap<>(); // item id -> qty
+		public long lastSeen;   // epoch ms of the last visit
+		// self-describing so whereOwned renders offline without the pack
+		// (the GoalSeed baked-at-write-time rule): raw name, family key, and
+		// the full parenthesised label, e.g. "Fancy dress box (PoH)".
+		public String name = "";
+		public String family = "";
+		public String label = "";
+
+		public StorageSnapshot copy()
+		{
+			StorageSnapshot c = new StorageSnapshot();
+			c.items = new HashMap<>(items);
+			c.lastSeen = lastSeen;
+			c.name = name;
+			c.family = family;
+			c.label = label;
+			return c;
+		}
+	}
+
 	public static class BoatSnapshot
 	{
 		/** Part key (boat-upgrades pack) -> highest tier seen built. */

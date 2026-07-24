@@ -101,6 +101,33 @@ public class AccountStateTest
 		assertEquals(bankedAt, after.getBankTimestamp());
 	}
 
+	/** Where's my stuff (DWMS port): a tracked storage snapshot names where an
+	 *  item was last seen, counts as owned, a live container wins over it, and
+	 *  it all survives a restart. */
+	@Test
+	public void storageContentsTrackAndSurviveRestart()
+	{
+		AccountState before = StateFixture.state(temp.getRoot());
+		StateFixture.profile(before, 99L);
+		before.putStorageContents("fancyDressBox", "Fancy dress box",
+			"playerownedhouse", "Fancy dress box (PoH)", Map.of(23330, 1), 1_000L);
+
+		assertTrue(before.ownedAnywhere(23330));
+		assertEquals("Fancy dress box (PoH)", before.whereOwned(23330));
+		assertEquals(0, before.ownedCount(23330));          // not in bank/inv/worn
+		org.junit.Assert.assertNull(before.whereOwned(99_999)); // untracked item
+
+		// a live container copy wins over the stored snapshot
+		StateFixture.bank(before, Map.of(23330, 1));
+		assertEquals("Bank", before.whereOwned(23330));
+		assertEquals("Fancy dress box (PoH)", before.storedLabel(23330)); // still tracked
+
+		AccountState after = StateFixture.state(temp.getRoot());
+		StateFixture.profile(after, 99L);
+		assertEquals("Fancy dress box (PoH)", after.storedLabel(23330));
+		assertTrue(after.ownedAnywhere(23330));
+	}
+
 	/** Goal-level priority, pins (ordered) and per-route task order (G5)
 	 *  persist profile-scoped and reach the router's constraints. */
 	@Test

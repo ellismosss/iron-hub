@@ -116,6 +116,9 @@ public class AccountState implements StateView
 	private final Set<Integer> bankStorageIgnored = ConcurrentHashMap.newKeySet();
 	private volatile boolean bankStorageFlagBis;
 
+	// where's my stuff: last-seen contents per storage (pack key -> snapshot)
+	private final Map<String, PersistedState.StorageSnapshot> storageContents = new ConcurrentHashMap<>();
+
 	// hunters' rumours: preferred locations + capped records
 	public static final int MAX_RUMOUR_RECORDS = 50;
 	private final Map<String, String> rumourPrefLocations = new ConcurrentHashMap<>();
@@ -335,10 +338,12 @@ public class AccountState implements StateView
 	}
 
 	/**
-	 * Which readable container an EXACT item id sits in, or null if it is in
-	 * none we can see. Only bank / inventory / worn are readable — POH costume
-	 * storage, STASH units and the like need a Dude-Where's-My-Stuff-style
-	 * port, so an item stored there reads as "not currently seen" honestly.
+	 * Which place an EXACT item id was last seen, or null if none we track.
+	 * Bank / inventory / worn are the always-live containers; beyond them the
+	 * "Where's my stuff" tracker (Dude-Where's-My-Stuff port) names every
+	 * storage it has seen the item in — e.g. "Fancy dress box (PoH)" — carried
+	 * as a self-describing label on the snapshot so this renders offline.
+	 * Live containers win over a stored snapshot (the item is in your hand now).
 	 */
 	public String whereOwned(int itemId)
 	{
@@ -354,7 +359,34 @@ public class AccountState implements StateView
 		{
 			return "Worn";
 		}
-		return null;
+		return storedLabel(itemId);
+	}
+
+	/**
+	 * The label of the tracked storage that last held this exact item id
+	 * ("Fancy dress box (PoH)"), or null. When more than one storage holds it,
+	 * the most recently seen wins. Never consults bank/inventory/worn.
+	 */
+	public String storedLabel(int itemId)
+	{
+		String label = null;
+		long best = Long.MIN_VALUE;
+		for (PersistedState.StorageSnapshot snap : storageContents.values())
+		{
+			if (snap.items.getOrDefault(itemId, 0) > 0 && snap.lastSeen >= best)
+			{
+				best = snap.lastSeen;
+				label = snap.label.isEmpty() ? snap.name : snap.label;
+			}
+		}
+		return label;
+	}
+
+	/** True if this exact item id is in bank/inventory/worn OR any tracked
+	 *  storage — the ownership test surfaces use ("You own this"). */
+	public boolean ownedAnywhere(int itemId)
+	{
+		return ownedCount(itemId) > 0 || storedLabel(itemId) != null;
 	}
 
 	/** Bank contents from the last bank visit (item id → quantity). */
@@ -844,6 +876,49 @@ public class AccountState implements StateView
 		Map<String, PersistedState.BoatSnapshot> out = new HashMap<>();
 		sailingBoats.forEach((k, v) -> out.put(k, v.copy()));
 		return out;
+	}
+
+	// ── where's my stuff ──────────────────────────────────────────────
+
+	/** Commit a storage read: its full current contents (item id -> qty),
+	 *  self-described by name/family/label so it renders offline. A read is
+	 *  authoritative — withdrawing everything leaves an honest empty snapshot
+	 *  (still "seen"), never silence; silence is only for never-opened
+	 *  storages. */
+	public void putStorageContents(String key, String name, String family,
+		String label, Map<Integer, Integer> items, long now)
+	{
+		PersistedState.StorageSnapshot snap = storageContents.computeIfAbsent(
+			key, k -> new PersistedState.StorageSnapshot());
+		boolean changed = snap.lastSeen == 0 || !snap.items.equals(items);
+		snap.items = new HashMap<>(items);
+		snap.lastSeen = now;
+		snap.name = name;
+		snap.family = family;
+		snap.label = label;
+		if (changed)
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	/** Read-only copy of every tracked storage snapshot (pack key -> snapshot). */
+	public Map<String, PersistedState.StorageSnapshot> getStorageContents()
+	{
+		Map<String, PersistedState.StorageSnapshot> out = new HashMap<>();
+		storageContents.forEach((k, v) -> out.put(k, v.copy()));
+		return out;
+	}
+
+	/** Forget a tracked storage (the surface's manual reset). */
+	public void clearStorage(String key)
+	{
+		if (storageContents.remove(key) != null)
+		{
+			persist();
+			notifyListeners();
+		}
 	}
 
 	/** Preferred courier-task ports (port-tasks pack dbrows). */
@@ -2637,6 +2712,8 @@ public class AccountState implements StateView
 		pohBuilt.addAll(persisted.pohBuilt);
 		sailingBoats.clear();
 		persisted.sailingBoats.forEach((k, v) -> sailingBoats.put(k, v.copy()));
+		storageContents.clear();
+		persisted.storageContents.forEach((k, v) -> storageContents.put(k, v.copy()));
 		preferredPorts.clear();
 		preferredPorts.addAll(persisted.preferredPorts);
 		bankStorageOff.clear();
@@ -2806,6 +2883,7 @@ public class AccountState implements StateView
 		state.deaths = new java.util.ArrayList<>(deaths);
 		state.pohBuilt = new HashSet<>(pohBuilt);
 		sailingBoats.forEach((k, v) -> state.sailingBoats.put(k, v.copy()));
+		storageContents.forEach((k, v) -> state.storageContents.put(k, v.copy()));
 		state.preferredPorts = new HashSet<>(preferredPorts);
 		state.bankStorageOff = new HashSet<>(bankStorageOff);
 		state.bankStorageIgnored = new HashSet<>(bankStorageIgnored);

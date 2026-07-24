@@ -376,7 +376,10 @@ class GearLibraryTab extends JPanel
 	{
 		for (int id : item.ids)
 		{
-			if (state.ownedCount(id) > 0)
+			// ownedAnywhere counts the "Where's my stuff" storages too, so an
+			// item that only sits in a POH costume storage / STASH / boat reads
+			// as owned rather than "Obtained".
+			if (state.ownedAnywhere(id))
 			{
 				return true;
 			}
@@ -384,7 +387,8 @@ class GearLibraryTab extends JPanel
 		return false;
 	}
 
-	/** The container the item sits in ("Bank"/"Inventory"/"Worn"), or null. */
+	/** Where the item was last seen ("Bank"/"Inventory"/"Worn", or a tracked
+	 *  storage label like "Fancy dress box (PoH)"), or null. */
 	private String ownedLocation(EquipmentPack.Item item)
 	{
 		for (int id : item.ids)
