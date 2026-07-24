@@ -26,22 +26,30 @@ import net.runelite.client.eventbus.Subscribe;
  * room, its hotspots and each hotspot's furniture ladder, shown as
  * room → hotspot → tier tiles.
  *
- * <p>Built detection sweeps the house scene and marks what it finds. It is
- * gated on the POH REGION, not on whose house it is: which player owns the
- * house cannot be read from the client, and the previous gate — an equality
- * check against a "Welcome to your house." chat message — was an invented
- * string that appears in neither the client nor the wiki, so it silently
- * detected nothing at all. The region gate is verifiable, and it also stops
- * the handful of furniture whose object id the game reuses in the world (a
- * throne-room trapdoor shares an id with a Desert Treasure pitfall) from
- * marking anything outside a house. Consequence to be honest about: standing
- * in ANOTHER player's house marks what they built.</p>
+ * <p>Built detection sweeps the house scene and marks what it finds, gated
+ * ONLY on building mode ({@code VarbitID.POH_BUILDING_MODE}): you can enter
+ * it just in your OWN house, so it proves ownership, which nothing else
+ * available does — not the client jar, not the wiki, not RuneLite's own
+ * PohPlugin. It replaced a gate that compared chat against a
+ * "Welcome to your house." message I had invented; that string does not exist
+ * in OSRS, and an equality check that misses is invisible, so detection
+ * silently marked nothing at all. A POH region check was tried alongside and
+ * REMOVED: building mode already implies being in your house, so the region
+ * list was an unverified assumption that could only ever block detection.</p>
  *
  * <p>Sweeping beats listening to spawns: it finds furniture that loaded
  * before the module started (you were already inside) and furniture the game
  * does not place as a GameObject at all — rugs are ground objects, mounted
  * heads and wall charts are wall/decorative ones. Spawn events of all four
- * kinds are only the trigger, coalesced to one sweep per tick.</p>
+ * kinds only queue a sweep, and while build mode is on one sweep per scene is
+ * guaranteed so no event is needed to get started. The gate is checked BEFORE
+ * the queue flag is consumed — consuming first discarded the request whenever
+ * a tick landed outside build mode.</p>
+ *
+ * <p>While nothing is marked the tab reports what detection can see (build
+ * mode, sweeps, tiles, furniture found, matched). Three rounds were lost
+ * guessing which link was broken; a detector that cannot report itself is
+ * indistinguishable from an empty grid.</p>
  *
  * <p>The game builds the IDENTICAL object for the same furniture in
  * different rooms — one brown rug serves the parlour, bedroom, chapel and
@@ -57,11 +65,6 @@ import net.runelite.client.eventbus.Subscribe;
 @Singleton
 public class PohModule implements IronHubModule
 {
-	/** Player-owned-house region ids, byte-faithful to the Dude-Where's-My-Stuff
-	 *  reference's Region.REGION_POH (the same set the storage tracker uses). */
-	private static final Set<Integer> POH_REGIONS =
-		Set.of(7534, 7535, 7790, 7791, 8046, 8047, 8302, 8303);
-
 	/**
 	 * {@code VarbitID.POH_BUILDING_MODE} — the ownership proof, per Luke's
 	 * call: you can only enter building mode in your OWN house, so nothing is
@@ -87,6 +90,17 @@ public class PohModule implements IronHubModule
 	private final Map<Long, Set<Integer>> pendingByRoom = new HashMap<>();
 	/** A sweep is due; drained on the next tick so a scene load costs one. */
 	private boolean sweepQueued;
+	/** Whether this scene has been swept at least once (reset on every load). */
+	private boolean sweptThisScene;
+
+	// Diagnostics, written on the client thread and shown in the tab while
+	// nothing is marked. Three rounds of "it still doesn't work" were spent
+	// guessing which link was broken; this puts the answer on screen instead.
+	private volatile boolean diagBuildingMode;
+	private volatile int diagSweeps;
+	private volatile int diagTiles;
+	private volatile int diagFurniture;
+	private volatile int diagMarked;
 	private final Runnable goalProofListener = this::onStateChange;
 	/** Seeds are per-profile — re-derive them when the profile switches
 	 *  (the profileGeneration seam every module-local cache obeys). */
@@ -154,6 +168,7 @@ public class PohModule implements IronHubModule
 		state.removeListener(goalProofListener);
 		pendingByRoom.clear();
 		sweepQueued = false;
+		sweptThisScene = false;
 		if (tab != null)
 		{
 			tab.dispose();
@@ -210,6 +225,7 @@ public class PohModule implements IronHubModule
 			|| event.getGameState() == GameState.HOPPING)
 		{
 			pendingByRoom.clear();
+			sweptThisScene = false;
 		}
 		if (event.getGameState() == GameState.LOGGED_IN)
 		{
@@ -256,33 +272,36 @@ public class PohModule implements IronHubModule
 		}
 	}
 
-	/** Sweeps are coalesced to one per tick — a scene load spawns hundreds of
-	 *  objects and each one would otherwise re-read all 43k tiles. */
+	/**
+	 * Sweeps are coalesced — a scene load spawns hundreds of objects and each
+	 * sweep reads the whole scene. The gate is checked BEFORE the queue flag is
+	 * consumed: consuming it first threw the request away whenever a tick landed
+	 * outside building mode, so a player already in build mode when the module
+	 * started never swept at all. While build mode is on we also guarantee one
+	 * sweep per scene, so no event is needed to get started.
+	 */
 	@Subscribe
 	public void onGameTick(net.runelite.api.events.GameTick event)
 	{
-		if (!sweepQueued)
+		boolean building = buildingMode();
+		if (building != diagBuildingMode)
+		{
+			diagBuildingMode = building;
+			publishDiagnostics();
+		}
+		if (!building)
+		{
+			return;
+		}
+		if (!sweepQueued && sweptThisScene)
 		{
 			return;
 		}
 		sweepQueued = false;
-		if (!inPoh() || !buildingMode())
-		{
-			return;
-		}
+		sweptThisScene = true;
 		scanHouse();
 		commitPending();
-	}
-
-	/** Entering building mode is the moment to sync — sweep right away rather
-	 *  than waiting for something to spawn. */
-	@Subscribe
-	public void onVarbitChanged(net.runelite.api.events.VarbitChanged event)
-	{
-		if (event.getVarbitId() == POH_BUILDING_MODE)
-		{
-			sweepQueued = true;
-		}
+		publishDiagnostics();
 	}
 
 	/**
@@ -293,29 +312,6 @@ public class PohModule implements IronHubModule
 	boolean buildingMode()
 	{
 		return client != null && client.getVarbitValue(POH_BUILDING_MODE) > 0;
-	}
-
-	/**
-	 * Whether the player is standing in a player-owned house. This is the gate
-	 * instead of any ownership test: which player's house it is cannot be read
-	 * from the client (see the class notes), whereas the region can. It also
-	 * keeps the handful of furniture whose object id the game reuses elsewhere
-	 * (a throne-room trapdoor shares an id with a Desert Treasure pitfall) from
-	 * marking anything out in the world.
-	 *
-	 * <p>The POH is instanced, so the region has to come from
-	 * {@code fromLocalInstance} — a plain world location reads the instance's
-	 * own coordinates, not the template's.</p>
-	 */
-	private boolean inPoh()
-	{
-		if (client == null || client.getLocalPlayer() == null)
-		{
-			return false;
-		}
-		net.runelite.api.coords.WorldPoint point = net.runelite.api.coords.WorldPoint
-			.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation());
-		return point != null && POH_REGIONS.contains(point.getRegionID());
 	}
 
 	/**
@@ -337,6 +333,9 @@ public class PohModule implements IronHubModule
 		{
 			return;
 		}
+		diagSweeps++;
+		diagTiles = 0;
+		diagFurniture = 0;
 		for (net.runelite.api.Tile[][] plane : scene.getTiles())
 		{
 			if (plane == null)
@@ -353,6 +352,7 @@ public class PohModule implements IronHubModule
 				{
 					if (tile != null)
 					{
+						diagTiles++;
 						scanTile(tile);
 					}
 				}
@@ -394,7 +394,10 @@ public class PohModule implements IronHubModule
 		{
 			return;
 		}
-		pendingByRoom.computeIfAbsent(roomKey(point), k -> new HashSet<>()).add(objectId);
+		if (pendingByRoom.computeIfAbsent(roomKey(point), k -> new HashSet<>()).add(objectId))
+		{
+			diagFurniture++;
+		}
 	}
 
 	/**
@@ -467,6 +470,7 @@ public class PohModule implements IronHubModule
 				}
 			}
 		}
+		diagMarked = built.size();
 		built.removeIf(state::isPohBuilt);
 		if (!built.isEmpty())
 		{
@@ -615,6 +619,42 @@ public class PohModule implements IronHubModule
 			}
 		}
 		return best;
+	}
+
+	/** Redraw the tab when what detection can see changes — nothing else would
+	 *  refresh it, since a failing detector never changes account state. */
+	private void publishDiagnostics()
+	{
+		String line = diagnostics();
+		if (line.equals(lastDiagnostics))
+		{
+			return;
+		}
+		lastDiagnostics = line;
+		PohTab open = tab;
+		if (open != null)
+		{
+			javax.swing.SwingUtilities.invokeLater(open::rebuild);
+		}
+	}
+
+	private volatile String lastDiagnostics = "";
+
+	/**
+	 * A one-line account of what detection can actually see, shown in the tab
+	 * while nothing is marked. Every value is written on the client thread.
+	 */
+	String diagnostics()
+	{
+		if (client == null)
+		{
+			return "No game client attached.";
+		}
+		return "Build mode " + (diagBuildingMode ? "on" : "off")
+			+ " · sweeps " + diagSweeps
+			+ " · tiles " + diagTiles
+			+ " · furniture found " + diagFurniture
+			+ " · matched " + diagMarked;
 	}
 
 	/** Test seam: read one tile exactly as the sweep does. */

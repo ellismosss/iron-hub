@@ -147,6 +147,11 @@ class PohTab extends JPanel
 			header.add(OsrsLabel.wrapped("Enter building mode in your house to sync what "
 					+ "you have built, or click any tier to mark it yourself.",
 				205, OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+			// what detection can actually see, so a failure reports itself
+			// instead of looking like an empty grid
+			header.add(Box.createVerticalStrut(2));
+			header.add(OsrsLabel.wrapped(module.diagnostics(), 205,
+				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
 		}
 
 		tree.setModel(buildModel(pack));
