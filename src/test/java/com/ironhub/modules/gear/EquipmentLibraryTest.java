@@ -113,13 +113,39 @@ public class EquipmentLibraryTest
 	@Test
 	public void baseNameStripsVariantMarkers()
 	{
-		assertEquals("Avernic treads",
-			com.ironhub.modules.gear.GearLibraryTab.baseName("Avernic treads (pr)(pe)"));
-		assertEquals("Rune platebody",
-			com.ironhub.modules.gear.GearLibraryTab.baseName("Rune platebody (t)"));
-		assertEquals("Amulet of glory",
-			com.ironhub.modules.gear.GearLibraryTab.baseName("Amulet of glory(4)"));
-		assertEquals("Abyssal whip",
-			com.ironhub.modules.gear.GearLibraryTab.baseName("Abyssal whip"));
+		assertEquals("Avernic treads", GearLibraryTab.baseName("Avernic treads (pr)(pe)"));
+		assertEquals("Rune platebody", GearLibraryTab.baseName("Rune platebody (t)"));
+		assertEquals("Amulet of glory", GearLibraryTab.baseName("Amulet of glory(4)"));
+		assertEquals("Abyssal whip", GearLibraryTab.baseName("Abyssal whip"));
+	}
+
+	/** A set's name is the base minus its piece-type word. */
+	@Test
+	public void setKeyStripsThePieceWord()
+	{
+		assertEquals("Rune", GearLibraryTab.setKey("Rune platebody"));
+		assertEquals("Rune", GearLibraryTab.setKey("Rune full helm"));
+		assertEquals("Masori", GearLibraryTab.setKey("Masori body (f)"));
+		assertEquals("Ancestral", GearLibraryTab.setKey("Ancestral robe top"));
+		assertEquals("Bandos", GearLibraryTab.setKey("Bandos chestplate"));
+		// a weapon has no piece word — it stands alone
+		assertEquals("Rune scimitar", GearLibraryTab.setKey("Rune scimitar"));
+		assertEquals("Abyssal whip", GearLibraryTab.setKey("Abyssal whip"));
+	}
+
+	/** Hiding Leagues/Deadman rewards drops the flagged items. */
+	@Test
+	public void hideLeaguesDropsRewardItems()
+	{
+		EquipmentLibrary library = library(Set.of());
+		List<EquipmentPack.Item> all = library.query("", null, EquipmentLibrary.Owned.ALL,
+			EquipmentLibrary.Access.ALL, EquipmentLibrary.Sort.NAME, true, false);
+		List<EquipmentPack.Item> mainGame = library.query("", null, EquipmentLibrary.Owned.ALL,
+			EquipmentLibrary.Access.ALL, EquipmentLibrary.Sort.NAME, true, true);
+		assertTrue("some items are Leagues/Deadman", all.size() > mainGame.size());
+		assertTrue(mainGame.stream().noneMatch(i -> i.leagues));
+		// the Twisted slayer helmet is a Twisted League reward
+		assertTrue(all.stream().anyMatch(i -> i.name.equals("Twisted slayer helmet")));
+		assertTrue(mainGame.stream().noneMatch(i -> i.name.equals("Twisted slayer helmet")));
 	}
 }

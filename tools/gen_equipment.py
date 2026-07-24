@@ -27,11 +27,63 @@ Usage:
 import datetime
 import json
 import os
+import re
 import sqlite3
+import time
+import urllib.parse
+import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DB = os.path.join(HERE, "..", "knowledge", "knowledge.db")
 OUT = os.path.join(HERE, "..", "src", "main", "resources", "data", "equipment.json")
+CACHE = os.path.join(HERE, ".cache-equipment")
+UA = "IronHub RuneLite plugin data generator (github.com/ellismosss/iron-hub; info@ellismoss.co.uk)"
+
+# Wiki categories whose members are NOT part of the standard game — Leagues
+# and Deadman rewards (Battlehat, Echo harpoon, Twisted slayer helmet …). An
+# item in any of these is marked leagues:true so the library can hide it.
+NON_MAIN_CATEGORIES = [
+    "Twisted League",
+    "Trailblazer League",
+    "Shattered Relics League",
+    "Trailblazer Reloaded League",
+    "Raging Echoes League",
+    "Deadman Mode",
+    "Deadman Apocalypse",
+]
+
+
+def category_members(category: str) -> set:
+    os.makedirs(CACHE, exist_ok=True)
+    cached = os.path.join(CACHE, "cat-" + re.sub(r"[^A-Za-z0-9]+", "_", category) + ".json")
+    if not os.path.exists(cached):
+        members = []
+        cont = None
+        while True:
+            url = ("https://oldschool.runescape.wiki/api.php?action=query&format=json"
+                   "&list=categorymembers&cmnamespace=0&cmlimit=500&cmtitle=Category:"
+                   + urllib.parse.quote(category))
+            if cont:
+                url += "&cmcontinue=" + urllib.parse.quote(cont)
+            req = urllib.request.Request(url, headers={"User-Agent": UA})
+            time.sleep(1)
+            with urllib.request.urlopen(req) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            members += [m["title"] for m in data.get("query", {}).get("categorymembers", [])]
+            cont = data.get("continue", {}).get("cmcontinue")
+            if not cont:
+                break
+        with open(cached, "w", encoding="utf-8") as f:
+            json.dump(members, f)
+    with open(cached, encoding="utf-8") as f:
+        return set(json.load(f))
+
+
+def non_main_game_names() -> set:
+    names = set()
+    for category in NON_MAIN_CATEGORIES:
+        names |= category_members(category)
+    return names
 
 # The 12 wearable slots, the order the game's Worn Equipment tab uses.
 SLOTS = ["head", "cape", "neck", "ammo", "weapon", "2h", "body", "shield",
@@ -73,8 +125,10 @@ def main():
     # game-mode-only duplicates the restricted-mode-item flag misses: the
     # Deadman Mode and Bounty Hunter (bh) recolours of real gear.
     restricted_suffixes = ("(Deadman Mode)", "(bh)", "(deadman)")
+    non_main = non_main_game_names()
 
     items = []
+    leagues_count = 0
     dropped_slot = 0
     dropped_restricted = 0
     for name, slot, ids_json, members, stats_json, flags in con.execute(
@@ -109,6 +163,9 @@ def main():
         alch_value = next((alch[i] for i in ids if i in alch), 0)
         if alch_value:
             entry["alch"] = alch_value
+        if name in non_main:
+            entry["leagues"] = True
+            leagues_count += 1
         items.append(entry)
 
     items.sort(key=lambda e: (SLOTS.index(e["slot"]), e["name"]))
@@ -133,8 +190,9 @@ def main():
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(pack, f, separators=(",", ":"))
         f.write("\n")
-    priced = sum(1 for e in items if "ge" in e or "alch" in e)
-    print(f"wrote {len(items)} wearables ({priced} with a value); "
+    priced = sum(1 for e in items if "alch" in e)
+    print(f"wrote {len(items)} wearables ({priced} with a value, "
+          f"{leagues_count} Leagues/Deadman); "
           f"dropped {dropped_restricted} restricted-mode, {dropped_slot} slotless")
     print("  " + ", ".join(f"{s} {by_slot[s]}" for s in SLOTS))
 

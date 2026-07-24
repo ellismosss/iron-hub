@@ -127,10 +127,20 @@ final class EquipmentLibrary
 	List<EquipmentPack.Item> query(String search, String slot, Owned owned, Access access,
 		Sort sort, boolean ascending)
 	{
+		return query(search, slot, owned, access, sort, ascending, false);
+	}
+
+	List<EquipmentPack.Item> query(String search, String slot, Owned owned, Access access,
+		Sort sort, boolean ascending, boolean hideLeagues)
+	{
 		String term = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
 		List<EquipmentPack.Item> out = new ArrayList<>();
 		for (EquipmentPack.Item item : pack.items)
 		{
+			if (hideLeagues && item.leagues)
+			{
+				continue;
+			}
 			if (slot != null && !slot.equals(item.slot))
 			{
 				continue;

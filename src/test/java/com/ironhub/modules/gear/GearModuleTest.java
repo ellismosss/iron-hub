@@ -250,15 +250,27 @@ public class GearModuleTest
 		javax.imageio.ImageIO.write(SwingRender.render(tab), "png",
 			new java.io.File("build/reports/gear-owned.png"));
 
-		// grouped variants: the "Group variants" toggle folds recolours into
-		// one badged tile; open a group to show its variants below
+		// grouped variants: the toggle folds recolours into one badged tile;
+		// open a group to show its variants below
 		tab.searchForTest("dragon");
 		tab.groupVariantsForTest(true);
-		tab.searchForTest("dragon");
 		javax.imageio.ImageIO.write(SwingRender.render(tab), "png",
 			new java.io.File("build/reports/gear-grouped.png"));
+
+		// sets: 2-wide larger tiles, expanding to the pieces
+		tab.showSetsForTest(true);
+		tab.searchForTest("rune");
+		List<com.ironhub.data.EquipmentPack.Item> setItems = tab.visibleForTest();
+		if (!setItems.isEmpty())
+		{
+			tab.expandGroupForTest(GearLibraryTab.setKey(
+				setItems.stream().filter(i -> i.name.startsWith("Rune plate")).findFirst()
+					.orElse(setItems.get(0)).name));
+		}
+		javax.imageio.ImageIO.write(SwingRender.render(tab), "png",
+			new java.io.File("build/reports/gear-sets.png"));
+		tab.showSetsForTest(false);
 		tab.searchForTest("");
-		tab.groupVariantsForTest(false);
 
 		// a slash-attack sort with a row opened into its stat card
 		tab.sortForTest(EquipmentLibrary.Sort.SLASH);

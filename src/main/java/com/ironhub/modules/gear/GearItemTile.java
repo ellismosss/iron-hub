@@ -27,6 +27,8 @@ class GearItemTile extends JComponent
 {
 	static final int WIDTH = 52;
 	static final int HEIGHT = 56;
+	/** Set tiles are twice as wide (two across, Luke). */
+	static final int WIDTH_LARGE = 106;
 	private static final int ICON_BAND = 32;
 	private static final int LINE = 10;
 
@@ -38,12 +40,14 @@ class GearItemTile extends JComponent
 	private final boolean selected;
 	/** >1 when this tile stands for a group of variants (a corner badge). */
 	private final int variantCount;
+	private final boolean large;
 
 	GearItemTile(OsrsTheme theme, String name, Image icon, boolean owned, boolean tracked,
-		boolean selected, int variantCount, String tooltip, Runnable onClick,
+		boolean selected, int variantCount, boolean large, String tooltip, Runnable onClick,
 		java.util.function.Consumer<MouseEvent> onRight)
 	{
 		this.variantCount = variantCount;
+		this.large = large;
 		this.theme = theme;
 		this.name = name;
 		this.icon = icon;
@@ -81,7 +85,7 @@ class GearItemTile extends JComponent
 	@Override
 	public Dimension getPreferredSize()
 	{
-		return new Dimension(WIDTH, HEIGHT);
+		return new Dimension(large ? WIDTH_LARGE : WIDTH, HEIGHT);
 	}
 
 	@Override
@@ -115,7 +119,7 @@ class GearItemTile extends JComponent
 
 		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
 			RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
-		g2.setFont(OsrsSkin.smallFont());
+		g2.setFont(large ? OsrsSkin.font() : OsrsSkin.smallFont());
 		FontMetrics fm = g2.getFontMetrics();
 		Color textColour = selected ? OsrsSkin.TITLE : OsrsSkin.MUTED;
 		List<String> lines = wrap(name, fm, w - 4, 2);
@@ -135,14 +139,15 @@ class GearItemTile extends JComponent
 		{
 			paintCheck(g2, w - 10, 3);
 		}
-		// a variant-count badge in the top-left for a grouped tile
+		// a variant-count badge in the top-left for a grouped tile — the light
+		// colour (Luke), not orange
 		if (variantCount > 1)
 		{
 			g2.setFont(OsrsSkin.smallFont());
 			String badge = String.valueOf(variantCount);
 			g2.setColor(OsrsSkin.TEXT_SHADOW);
 			g2.drawString(badge, 4, 11);
-			g2.setColor(OsrsSkin.TITLE);
+			g2.setColor(OsrsSkin.MUTED);
 			g2.drawString(badge, 3, 10);
 		}
 	}

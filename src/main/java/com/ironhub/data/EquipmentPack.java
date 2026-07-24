@@ -50,6 +50,8 @@ public class EquipmentPack
 		 * fallback.
 		 */
 		public int alch;
+		/** True for Leagues / Deadman rewards — not part of the standard game. */
+		public boolean leagues;
 
 		/** The canonical (first) item id — the sprite and ownership key. */
 		public int primaryId()

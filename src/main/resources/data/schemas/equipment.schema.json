@@ -63,6 +63,9 @@
 					"alch": {
 						"type": "integer",
 						"minimum": 1
+					},
+					"leagues": {
+						"type": "boolean"
 					}
 				}
 			}
