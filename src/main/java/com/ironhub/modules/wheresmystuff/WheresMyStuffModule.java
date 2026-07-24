@@ -235,23 +235,31 @@ public class WheresMyStuffModule implements IronHubModule
 		{
 			return;
 		}
-		int changed = event.getVarbitId();
 		long now = System.currentTimeMillis();
 		for (StorageLocationsPack.Storage s : pack.storages)
 		{
+			int changed = s.varp ? event.getVarpId() : event.getVarbitId();
 			if ("varbits".equals(s.mode) && touchesVarbits(s, changed))
 			{
 				Map<Integer, Integer> items = new HashMap<>();
+				Map<Integer, String> overrides = new HashMap<>();
 				for (StorageLocationsPack.VarbitItem vi : s.varbitItems)
 				{
 					int mult = vi.multiplier == 0 ? 1 : vi.multiplier;
-					int qty = client.getVarbitValue(vi.varbit) * mult;
+					int raw = s.varp ? client.getVarpValue(vi.varbit) : client.getVarbitValue(vi.varbit);
+					int qty = raw * mult;
 					if (qty > 0)
 					{
 						items.merge(vi.itemId, qty, Integer::sum);
+						if (vi.name != null)
+						{
+							overrides.put(vi.itemId, vi.name);
+						}
 					}
 				}
-				commit(s, items, now);
+				Map<Integer, String> names = resolveNames(items.keySet());
+				names.putAll(overrides);
+				commit(s, items, names, now);
 			}
 			else if ("varbitindex".equals(s.mode) && s.indexVarbit == changed)
 			{
@@ -339,12 +347,20 @@ public class WheresMyStuffModule implements IronHubModule
 	 *  snapshot with client-thread-resolved names. */
 	private void commit(StorageLocationsPack.Storage def, Map<Integer, Integer> items, long now)
 	{
+		commit(def, items, null, now);
+	}
+
+	/** As above, but with explicit item names (a caller with display-name
+	 *  overrides, e.g. minigame points); null names = resolve them all. */
+	private void commit(StorageLocationsPack.Storage def, Map<Integer, Integer> items,
+		Map<Integer, String> names, long now)
+	{
 		if (items.isEmpty() && !state.getStorageContents().containsKey(def.id))
 		{
 			return;
 		}
 		state.putStorageContents(def.id, def.name, def.family, label(def),
-			items, resolveNames(items.keySet()), now);
+			items, names != null ? names : resolveNames(items.keySet()), now);
 	}
 
 	/** For an object-mount storage: the items a spawned object id means are

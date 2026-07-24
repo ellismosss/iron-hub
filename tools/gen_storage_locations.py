@@ -449,6 +449,22 @@ def apply_detection_tables(storages, varbit_by_name, items_by_name):
             "multiplier": int(spec.get("multiplier", 1)),
         }]
         wired += 1
+
+    # minigame point balances: one varbit/varp over an icon item, name-overridden
+    for key, spec in tables.get("minigames", {}).items():
+        if key.startswith("_"):
+            continue
+        storage = by_id.get(("minigames", key))
+        if storage is None:
+            raise SystemExit(f"minigames detection table has no registry storage: minigames:{key}")
+        storage["mode"] = "varbits"
+        storage["varp"] = bool(spec.get("varp", False))
+        storage["varbitItems"] = [{
+            "varbit": resolve_varbit(spec["varbit"]),
+            "itemId": resolve_item(spec["item"]),
+            "name": spec["name"],
+        }]
+        wired += 1
     return wired
 
 

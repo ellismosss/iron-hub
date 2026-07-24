@@ -91,5 +91,8 @@ public class StorageLocationsPack
 		/** quantity = varbit value × multiplier (default 1). Lets one mode
 		 *  cover item stacks, coin balances (×1000 etc.) and point icons. */
 		public int multiplier = 1;
+		/** display-name override (minigame points show "Points"/"Reward
+		 *  permits" over their icon item, not the icon's real name). */
+		public String name;
 	}
 }

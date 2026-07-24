@@ -3125,7 +3125,16 @@
    "id": "minigames:tithefarm",
    "family": "minigames",
    "key": "tithefarm",
-   "name": "Tithe Farm"
+   "name": "Tithe Farm",
+   "mode": "varbits",
+   "varp": false,
+   "varbitItems": [
+    {
+     "varbit": 4893,
+     "itemId": 13353,
+     "name": "Points"
+    }
+   ]
   },
   {
    "id": "minigames:lastmanstanding",
@@ -3161,13 +3170,31 @@
    "id": "minigames:tempoross",
    "family": "minigames",
    "key": "tempoross",
-   "name": "Tempoross"
+   "name": "Tempoross",
+   "mode": "varbits",
+   "varp": false,
+   "varbitItems": [
+    {
+     "varbit": 11936,
+     "itemId": 25574,
+     "name": "Reward permits"
+    }
+   ]
   },
   {
    "id": "minigames:slayer",
    "family": "minigames",
    "key": "slayer",
-   "name": "Slayer"
+   "name": "Slayer",
+   "mode": "varbits",
+   "varp": false,
+   "varbitItems": [
+    {
+     "varbit": 4068,
+     "itemId": 964,
+     "name": "Points"
+    }
+   ]
   },
   {
    "id": "minigames:soulwars",
@@ -3197,7 +3224,16 @@
    "id": "minigames:troubleBrewing",
    "family": "minigames",
    "key": "troubleBrewing",
-   "name": "Trouble Brewing"
+   "name": "Trouble Brewing",
+   "mode": "varbits",
+   "varp": true,
+   "varbitItems": [
+    {
+     "varbit": 4218,
+     "itemId": 8951,
+     "name": "Pieces of eight"
+    }
+   ]
   },
   {
    "id": "minigames:masteringMixology",
@@ -3209,7 +3245,16 @@
    "id": "minigames:wintertodt",
    "family": "minigames",
    "key": "wintertodt",
-   "name": "Wintertodt"
+   "name": "Wintertodt",
+   "mode": "varbits",
+   "varp": false,
+   "varbitItems": [
+    {
+     "varbit": 11435,
+     "itemId": 20714,
+     "name": "Reward permits"
+    }
+   ]
   },
   {
    "id": "sailing:boat1",

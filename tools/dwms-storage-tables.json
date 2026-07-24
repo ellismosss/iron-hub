@@ -335,5 +335,13 @@
     "bountyhunter": {"source": "bespoke", "class": "BountyHunterCoffer"},
     "managingMiscellania": {"source": "varbit", "varbit": "MISC_COFFERS", "multiplier": 1},
     "scarEssenceMine": {"source": "bespoke", "class": "ScarEssenceMine"}
+  },
+  "minigames": {
+    "_note": "Point balances: a single varbit/varp read shown over a DWMS-chosen icon item with a display-name override. The multi-varbit / chat-scrape minigames (BA, NMZ, GotR, MTA, GiantsFoundry, LMS, MasteringMixology) are bespoke, not here. Constant names copied from each minigame subclass; varp:true reads a VarPlayer.",
+    "slayer": {"shape": "points", "item": "SKULL", "varbit": "SLAYER_POINTS", "name": "Points"},
+    "tithefarm": {"shape": "points", "item": "ZEAH_WATERINGCAN", "varbit": "HOSIDIUS_TITHE_REWARDPOINTS", "name": "Points"},
+    "tempoross": {"shape": "points", "item": "TOME_OF_WATER", "varbit": "TEMPOROSS_REWARDPERMITS", "name": "Reward permits"},
+    "wintertodt": {"shape": "points", "item": "TOME_OF_FIRE", "varbit": "WINT_REWARD_POOL", "name": "Reward permits"},
+    "troubleBrewing": {"shape": "points", "item": "BREW_PIECE_OF_EIGHT", "varbit": "BREW_PIECES", "name": "Pieces of eight", "varp": true}
   }
 }

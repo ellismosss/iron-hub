@@ -56,7 +56,8 @@
 							"properties": {
 								"varbit": {"type": "integer", "minimum": 1},
 								"itemId": {"type": "integer", "minimum": 1},
-								"multiplier": {"type": "integer", "minimum": 1}
+								"multiplier": {"type": "integer", "minimum": 1},
+								"name": {"type": "string", "minLength": 1}
 							}
 						}
 					},
