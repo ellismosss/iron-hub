@@ -42,9 +42,8 @@ public class PohModuleTest
 	@Test
 	public void packIntegrity()
 	{
-		assertTrue(pack.spaces.size() >= 12);
+		assertTrue(pack.spaces.size() >= 100);   // the full 24-room catalog
 		java.util.Set<String> tierIds = new java.util.HashSet<>();
-		java.util.Set<Integer> objectIds = new java.util.HashSet<>();
 		for (PohPack.Space space : pack.spaces)
 		{
 			int lastLevel = 0;
@@ -52,10 +51,9 @@ public class PohModuleTest
 			{
 				assertTrue("duplicate tier id " + tier.id, tierIds.add(tier.id));
 				assertFalse(tier.id + " has no object ids", tier.objectIds.isEmpty());
-				for (Integer id : tier.objectIds)
-				{
-					assertTrue(tier.id + " reuses object id " + id, objectIds.add(id));
-				}
+				// object ids are NOT globally unique: shared furniture (a rug, a
+				// fireplace) is buildable in several rooms' hotspots, so the same
+				// built object appears as a tier in each.
 				for (String req : tier.reqs)
 				{
 					assertFalse(tier.id + " req is manual: " + req,
@@ -68,12 +66,12 @@ public class PohModuleTest
 		}
 		// anchors: the famous levels
 		PohPack.Space pool = pack.spaces.stream()
-			.filter(s -> s.id.equals("pool")).findFirst().orElseThrow();
+			.filter(s -> s.id.equals("superior_garden__pool")).findFirst().orElseThrow();
 		assertEquals(5, pool.tiers.size());
 		assertEquals(65, pool.tiers.get(0).level);
 		assertEquals(90, pool.tiers.get(4).level);
 		PohPack.Space box = pack.spaces.stream()
-			.filter(s -> s.id.equals("jewellery_box")).findFirst().orElseThrow();
+			.filter(s -> s.id.equals("achievement_gallery__jewellery_box")).findFirst().orElseThrow();
 		assertEquals(91, box.tiers.get(2).level);
 	}
 
@@ -85,7 +83,7 @@ public class PohModuleTest
 		PohModule module = module(state);
 		module.startUp();
 		PohPack.Tier ornate = pack.spaces.stream()
-			.filter(s -> s.id.equals("jewellery_box")).findFirst().orElseThrow()
+			.filter(s -> s.id.equals("achievement_gallery__jewellery_box")).findFirst().orElseThrow()
 			.tiers.get(2);
 
 		// spawn seen BEFORE the welcome message buffers, never marks
@@ -105,7 +103,7 @@ public class PohModuleTest
 
 		// once confirmed, further spawns commit live (building mode swaps)
 		PohPack.Tier fancy = pack.spaces.stream()
-			.filter(s -> s.id.equals("jewellery_box")).findFirst().orElseThrow()
+			.filter(s -> s.id.equals("achievement_gallery__jewellery_box")).findFirst().orElseThrow()
 			.tiers.get(1);
 		spawnObject(module, fancy.objectIds.get(0));
 		assertTrue(state.isPohBuilt(fancy.id));
@@ -125,7 +123,7 @@ public class PohModuleTest
 		PohModule module = module(state);
 		module.startUp();
 		PohPack.Tier ornate = pack.spaces.stream()
-			.filter(s -> s.id.equals("jewellery_box")).findFirst().orElseThrow()
+			.filter(s -> s.id.equals("achievement_gallery__jewellery_box")).findFirst().orElseThrow()
 			.tiers.get(2);
 
 		module.onGameStateChanged(loading());
@@ -149,7 +147,7 @@ public class PohModuleTest
 		StateFixture.profile(state, 42L);
 		PohModule module = module(state);
 		PohPack.Space pool = pack.spaces.stream()
-			.filter(s -> s.id.equals("pool")).findFirst().orElseThrow();
+			.filter(s -> s.id.equals("superior_garden__pool")).findFirst().orElseThrow();
 
 		assertNull(module.builtTier(pool));
 		assertEquals(pool.tiers.get(0), module.nextTier(pool));
@@ -172,7 +170,7 @@ public class PohModuleTest
 		PohModule module = module(state);
 		module.startUp();
 		PohPack.Tier ornate = pack.spaces.stream()
-			.filter(s -> s.id.equals("jewellery_box")).findFirst().orElseThrow()
+			.filter(s -> s.id.equals("achievement_gallery__jewellery_box")).findFirst().orElseThrow()
 			.tiers.get(2);
 
 		// track it: a poh: goal seed + selection, not yet achieved
@@ -227,12 +225,14 @@ public class PohModuleTest
 		module.startUp();
 		PohTab tab = (PohTab) module.buildTab();
 		assertNotNull(tab);
+		PohPack.Space pool = pack.spaces.stream()
+			.filter(s -> s.id.equals("superior_garden__pool")).findFirst().orElseThrow();
 		javax.swing.SwingUtilities.invokeAndWait(() ->
 		{
-			module.toggleBuilt(pack.spaces.get(0).tiers.get(0)); // restoration pool built
-			module.toggleBuilt(pack.spaces.get(0).tiers.get(1));
-			module.toggleGoal(pack.spaces.get(0).tiers.get(3)); // track a later tier
-			tab.expand("pool");
+			module.toggleBuilt(pool.tiers.get(0)); // restoration pool built
+			module.toggleBuilt(pool.tiers.get(1));
+			module.toggleGoal(pool.tiers.get(3)); // track a later tier
+			tab.expand("superior_garden__pool");
 		});
 		javax.swing.SwingUtilities.invokeAndWait(() -> { }); // drain queued rebuilds
 		BufferedImage image = SwingRender.render(tab);

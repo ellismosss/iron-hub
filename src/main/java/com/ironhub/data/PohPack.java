@@ -46,6 +46,9 @@ public class PohPack
 		public String name;
 		public String room;
 		public Integer icon;
+		/** What the hotspot does for the player (from the top tier's wiki
+		 *  intro); null for a purely cosmetic hotspot. */
+		public String benefit;
 		/** Build-progression order; the first unbuilt tier is "next". */
 		public List<Tier> tiers;
 	}

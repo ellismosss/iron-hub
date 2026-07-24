@@ -1,15 +1,15 @@
 {
 	"$schema": "http://json-schema.org/draft-07/schema#",
-	"title": "Useful POH progression (wiki Infobox Construction per tier; curation per Guide:POH_Progression_&_Layout_Guide)",
+	"title": "Complete POH catalog (every room, hotspot and furniture; wiki room pages + per-furniture Infobox Construction)",
 	"type": "object",
-	"required": ["version", "sources", "spaces"],
+	"required": ["version", "spaces"],
 	"additionalProperties": false,
 	"properties": {
 		"version": {"type": "integer", "minimum": 1},
 		"sources": {"type": "object"},
 		"spaces": {
 			"type": "array",
-			"minItems": 12,
+			"minItems": 100,
 			"items": {
 				"type": "object",
 				"required": ["id", "name", "tiers"],
@@ -18,6 +18,7 @@
 					"id": {"type": "string", "pattern": "^[a-z0-9_]+$"},
 					"name": {"type": "string", "minLength": 1},
 					"room": {"type": "string"},
+					"benefit": {"type": "string"},
 					"icon": {"type": "integer", "minimum": 0},
 					"tiers": {
 						"type": "array",
@@ -32,11 +33,11 @@
 								"page": {"type": "string", "minLength": 1},
 								"level": {"type": "integer", "minimum": 1, "maximum": 99},
 								"reqs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
-								"objectIds": {"type": "array", "minItems": 1, "items": {"type": "integer", "minimum": 1}},
+								"objectIds": {"type": "array", "minItems": 0, "items": {"type": "integer", "minimum": 1}},
 								"icon": {"type": "integer", "minimum": 0},
 								"materials": {
 									"type": "array",
-									"minItems": 1,
+									"minItems": 0,
 									"items": {
 										"type": "object",
 										"required": ["itemId", "name", "qty"],

@@ -214,6 +214,10 @@ class PohTab extends JPanel
 		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 		card.setOpaque(false);
 		card.setAlignmentX(LEFT_ALIGNMENT);
+		if (space.benefit != null && !space.benefit.isEmpty())
+		{
+			card.add(line(space.benefit, OsrsSkin.MUTED));
+		}
 		PohPack.Tier next = module.nextTier(space);
 		for (PohPack.Tier tier : space.tiers)
 		{
