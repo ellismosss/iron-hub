@@ -108,4 +108,18 @@ public class EquipmentLibraryTest
 		assertFalse(free.isEmpty());
 		assertTrue(free.stream().noneMatch(i -> i.members));
 	}
+
+	/** Variant grouping strips trailing parentheticals down to the base name. */
+	@Test
+	public void baseNameStripsVariantMarkers()
+	{
+		assertEquals("Avernic treads",
+			com.ironhub.modules.gear.GearLibraryTab.baseName("Avernic treads (pr)(pe)"));
+		assertEquals("Rune platebody",
+			com.ironhub.modules.gear.GearLibraryTab.baseName("Rune platebody (t)"));
+		assertEquals("Amulet of glory",
+			com.ironhub.modules.gear.GearLibraryTab.baseName("Amulet of glory(4)"));
+		assertEquals("Abyssal whip",
+			com.ironhub.modules.gear.GearLibraryTab.baseName("Abyssal whip"));
+	}
 }

@@ -36,10 +36,14 @@ class GearItemTile extends JComponent
 	private final boolean owned;
 	private final boolean tracked;
 	private final boolean selected;
+	/** >1 when this tile stands for a group of variants (a corner badge). */
+	private final int variantCount;
 
 	GearItemTile(OsrsTheme theme, String name, Image icon, boolean owned, boolean tracked,
-		boolean selected, String tooltip, Runnable onClick, java.util.function.Consumer<MouseEvent> onRight)
+		boolean selected, int variantCount, String tooltip, Runnable onClick,
+		java.util.function.Consumer<MouseEvent> onRight)
 	{
+		this.variantCount = variantCount;
 		this.theme = theme;
 		this.name = name;
 		this.icon = icon;
@@ -98,8 +102,9 @@ class GearItemTile extends JComponent
 		Graphics2D g2 = (Graphics2D) g;
 		int w = getWidth();
 		int h = getHeight();
-		Color bevel = owned ? OsrsSkin.VALUE.darker()
-			: tracked ? OsrsSkin.TITLE : theme.edgeLight;
+		// tracked keeps its orange bevel cue; ownership is a corner tick now
+		// (Luke: green name/bevel was too loud), so an owned tile is plain
+		Color bevel = tracked ? OsrsSkin.TITLE : theme.edgeLight;
 		StoneNavButton.paintSlab(g2, theme, w, h, selected ? theme.selectFill : theme.boxFill, bevel);
 
 		if (icon != null)
@@ -112,7 +117,7 @@ class GearItemTile extends JComponent
 			RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 		g2.setFont(OsrsSkin.smallFont());
 		FontMetrics fm = g2.getFontMetrics();
-		Color textColour = owned ? OsrsSkin.VALUE : selected ? OsrsSkin.TITLE : OsrsSkin.MUTED;
+		Color textColour = selected ? OsrsSkin.TITLE : OsrsSkin.MUTED;
 		List<String> lines = wrap(name, fm, w - 4, 2);
 		int y = ICON_BAND + LINE;
 		for (String line : lines)
@@ -124,6 +129,35 @@ class GearItemTile extends JComponent
 			g2.drawString(line, x, y);
 			y += LINE;
 		}
+
+		// a small green tick in the top-right marks an owned item
+		if (owned)
+		{
+			paintCheck(g2, w - 10, 3);
+		}
+		// a variant-count badge in the top-left for a grouped tile
+		if (variantCount > 1)
+		{
+			g2.setFont(OsrsSkin.smallFont());
+			String badge = String.valueOf(variantCount);
+			g2.setColor(OsrsSkin.TEXT_SHADOW);
+			g2.drawString(badge, 4, 11);
+			g2.setColor(OsrsSkin.TITLE);
+			g2.drawString(badge, 3, 10);
+		}
+	}
+
+	/** A 6px green check mark, painted (the fonts have no tick glyph). */
+	private static void paintCheck(Graphics2D g2, int x, int y)
+	{
+		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g2.setColor(OsrsSkin.TEXT_SHADOW);
+		g2.drawLine(x, y + 3, x + 2, y + 5);
+		g2.drawLine(x + 2, y + 5, x + 6, y + 1);
+		g2.setColor(OsrsSkin.VALUE);
+		g2.drawLine(x, y + 2, x + 2, y + 4);
+		g2.drawLine(x + 2, y + 4, x + 6, y);
+		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 	}
 
 	/** Greedy word-wrap to at most {@code maxLines}, ellipsizing the last. */

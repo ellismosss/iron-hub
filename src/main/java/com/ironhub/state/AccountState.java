@@ -334,6 +334,29 @@ public class AccountState implements StateView
 			+ equipment.getOrDefault(itemId, 0);
 	}
 
+	/**
+	 * Which readable container an EXACT item id sits in, or null if it is in
+	 * none we can see. Only bank / inventory / worn are readable — POH costume
+	 * storage, STASH units and the like need a Dude-Where's-My-Stuff-style
+	 * port, so an item stored there reads as "not currently seen" honestly.
+	 */
+	public String whereOwned(int itemId)
+	{
+		if (bank.getOrDefault(itemId, 0) > 0)
+		{
+			return "Bank";
+		}
+		if (inventory.getOrDefault(itemId, 0) > 0)
+		{
+			return "Inventory";
+		}
+		if (equipment.getOrDefault(itemId, 0) > 0)
+		{
+			return "Worn";
+		}
+		return null;
+	}
+
 	/** Bank contents from the last bank visit (item id → quantity). */
 	public Map<Integer, Integer> getBankSnapshot()
 	{

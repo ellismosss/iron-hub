@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class GearModuleTest
@@ -170,11 +171,63 @@ public class GearModuleTest
 		assertEquals((Integer) shadow, goal.icon());
 	}
 
+	/**
+	 * Ownership is EXACT per id, not summed across the ItemVariationMapping
+	 * group: owning a plain Rune platebody must not make its clue-reward
+	 * recolours read as owned (Luke's report). canonicalStock bleeds across
+	 * the group; ownedCount does not.
+	 */
+	@Test
+	public void ownershipIsExactPerVariantNotTheWholeGroup()
+	{
+		com.ironhub.data.EquipmentPack pack =
+			new DataPack(new Gson()).load("equipment", com.ironhub.data.EquipmentPack.class);
+		// find two equipment entries sharing a variation base but distinct ids
+		Map<Integer, Integer> firstByBase = new java.util.HashMap<>();
+		int owned = -1;
+		int sibling = -1;
+		outer:
+		for (com.ironhub.data.EquipmentPack.Item item : pack.items)
+		{
+			int id = item.primaryId();
+			int base = net.runelite.client.game.ItemVariationMapping.map(id);
+			Integer prior = firstByBase.get(base);
+			if (prior != null && prior != id)
+			{
+				owned = prior;
+				sibling = id;
+				break outer;
+			}
+			firstByBase.putIfAbsent(base, id);
+		}
+		org.junit.Assume.assumeTrue("no variation pair in the pack", owned > 0 && sibling > 0);
+
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		StateFixture.bank(state, Map.of(owned, 1));
+
+		assertTrue("the owned id reads owned", state.ownedCount(owned) > 0);
+		assertEquals("the sibling variant is NOT owned", 0, state.ownedCount(sibling));
+		assertEquals("Bank", state.whereOwned(owned));
+		assertNull("the sibling is nowhere", state.whereOwned(sibling));
+		// the old canonicalStock would have leaked ownership onto the sibling
+		assertTrue("canonicalStock would have false-positived",
+			state.canonicalStock(sibling) > 0);
+	}
+
 	@Test
 	public void tabRendersHeadless() throws Exception
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
 		StateFixture.stat(state, Skill.ATTACK, 40, 0);
+		// own a couple of items (so the corner tick + "You own this" render)
+		// and log one obtained-but-not-owned slot (so "Obtained" renders)
+		com.ironhub.data.EquipmentPack equip =
+			new DataPack(new Gson()).load("equipment", com.ironhub.data.EquipmentPack.class);
+		int whipId = equip.items.stream().filter(i -> i.name.equals("Abyssal whip"))
+			.findFirst().map(i -> i.primaryId()).orElse(4151);
+		StateFixture.bank(state, Map.of(whipId, 1));
 		GearProgressionModule module = new GearProgressionModule(state, new IronHubConfig()
 		{
 		}, new DataPack(new Gson()), null, null, null, null);
@@ -188,6 +241,24 @@ public class GearModuleTest
 		java.io.File out = new java.io.File("build/reports/gear-tab.png");
 		out.getParentFile().mkdirs();
 		javax.imageio.ImageIO.write(image, "png", out);
+
+		// the owned whip: its tile carries a green corner tick and its detail
+		// reads "You own this — Bank"
+		tab.searchForTest("abyssal whip");
+		tab.sortForTest(EquipmentLibrary.Sort.NAME);
+		tab.expandForTest(whipId);
+		javax.imageio.ImageIO.write(SwingRender.render(tab), "png",
+			new java.io.File("build/reports/gear-owned.png"));
+
+		// grouped variants: the "Group variants" toggle folds recolours into
+		// one badged tile; open a group to show its variants below
+		tab.searchForTest("dragon");
+		tab.groupVariantsForTest(true);
+		tab.searchForTest("dragon");
+		javax.imageio.ImageIO.write(SwingRender.render(tab), "png",
+			new java.io.File("build/reports/gear-grouped.png"));
+		tab.searchForTest("");
+		tab.groupVariantsForTest(false);
 
 		// a slash-attack sort with a row opened into its stat card
 		tab.sortForTest(EquipmentLibrary.Sort.SLASH);

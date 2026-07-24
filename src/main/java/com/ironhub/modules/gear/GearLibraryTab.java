@@ -106,6 +106,10 @@ class GearLibraryTab extends JPanel
 	private static final int COLUMNS = 4;
 	private static final int PAGE_SIZE = COLUMNS * 15;
 	private boolean chartExpanded;
+	/** Group an item's variants under one tile with a count badge. */
+	private boolean groupVariants;
+	/** Base names whose variant group is expanded (grouping on). */
+	private final Set<String> expandedGroups = new java.util.HashSet<>();
 	private List<Object> lastPrint = List.of();
 
 	GearLibraryTab(AccountState state, EquipmentPack pack, ItemSourcesPack itemSources,
@@ -196,6 +200,8 @@ class GearLibraryTab extends JPanel
 			rebuildList();
 		});
 		add(accessChips);
+		add(Box.createVerticalStrut(UiTokens.CHIP_GAP));
+		add(groupToggleRow());
 		add(Box.createVerticalStrut(6));
 
 		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
@@ -291,16 +297,68 @@ class GearLibraryTab extends JPanel
 		sortDirection.getParent();
 	}
 
+	/** "Group variants" — a checkbox that folds an item's variants into one
+	 *  tile (Avernic treads + (max) + (pr)(pe) → one "Avernic treads"). */
+	private JComponent groupToggleRow()
+	{
+		JPanel row = row();
+		com.ironhub.ui.osrs.StoneCheckbox box =
+			new com.ironhub.ui.osrs.StoneCheckbox(theme, groupVariants);
+		OsrsLabel label = new OsrsLabel("Group variants", OsrsSkin.MUTED, OsrsSkin.font());
+		MouseAdapter toggle = new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				groupVariants = !groupVariants;
+				box.setChecked(groupVariants);
+				expandedGroups.clear();
+				rebuildList();
+			}
+		};
+		box.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		box.addMouseListener(toggle);
+		label.addMouseListener(toggle);
+		row.add(box);
+		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		row.add(label);
+		row.add(Box.createHorizontalGlue());
+		cap(row);
+		return row;
+	}
+
+	/**
+	 * EXACT ownership — any of the item's OWN ids in a readable container.
+	 * Not canonicalStock: that sums the whole ItemVariationMapping group, so
+	 * a plain Rune platebody made every clue-reward recolour read as owned
+	 * (Luke's report). Each recolour is its own equipment entry with its own
+	 * ids, so exact per-id counting keeps them distinct.
+	 */
 	private boolean owns(EquipmentPack.Item item)
 	{
 		for (int id : item.ids)
 		{
-			if (state.canonicalStock(id) > 0)
+			if (state.ownedCount(id) > 0)
 			{
 				return true;
 			}
 		}
 		return false;
+	}
+
+	/** The container the item sits in ("Bank"/"Inventory"/"Worn"), or null. */
+	private String ownedLocation(EquipmentPack.Item item)
+	{
+		for (int id : item.ids)
+		{
+			String where = state.whereOwned(id);
+			if (where != null)
+			{
+				return where;
+			}
+		}
+		return null;
 	}
 
 	// ── state ─────────────────────────────────────────────────────────
@@ -320,13 +378,18 @@ class GearLibraryTab extends JPanel
 		// only re-render when something the library reads has moved: what the
 		// player owns, which items are tracked, the page and the selection
 		print.add(trackedGear());
-		for (EquipmentPack.Item item : pageItems())
+		for (Unit unit : pageUnits())
 		{
-			print.add(item.primaryId());
-			print.add(owns(item));
+			for (EquipmentPack.Item item : unit.items)
+			{
+				print.add(item.primaryId());
+				print.add(owns(item));
+			}
 		}
 		print.add(selected);
 		print.add(page);
+		print.add(groupVariants);
+		print.add(new java.util.HashSet<>(expandedGroups));
 		print.add(chartExpanded);
 		return print;
 	}
@@ -346,15 +409,70 @@ class GearLibraryTab extends JPanel
 
 	// ── the grid ──────────────────────────────────────────────────────
 
+	/** A rendered position: a single item, or a group of variants (>1). */
+	private static final class Unit
+	{
+		final String base;
+		final List<EquipmentPack.Item> items;
+
+		Unit(String base, List<EquipmentPack.Item> items)
+		{
+			this.base = base;
+			this.items = items;
+		}
+
+		EquipmentPack.Item lead()
+		{
+			return items.get(0);
+		}
+
+		boolean isGroup()
+		{
+			return items.size() > 1;
+		}
+	}
+
 	private List<EquipmentPack.Item> visible()
 	{
 		return library.query(search.getText(), slotKey(), owned, access, sort, ascending);
 	}
 
-	/** The current page's slice of the filtered result. */
-	private List<EquipmentPack.Item> pageItems()
+	/** The filtered result as units — one per item, or one per variant group
+	 *  when "Group variants" is on (base name = the name minus its trailing
+	 *  parentheticals: "Avernic treads (pr)(pe)" → "Avernic treads"). */
+	private List<Unit> visibleUnits()
 	{
-		List<EquipmentPack.Item> all = visible();
+		List<EquipmentPack.Item> items = visible();
+		if (!groupVariants)
+		{
+			List<Unit> units = new ArrayList<>(items.size());
+			for (EquipmentPack.Item item : items)
+			{
+				units.add(new Unit(item.name, List.of(item)));
+			}
+			return units;
+		}
+		java.util.LinkedHashMap<String, List<EquipmentPack.Item>> groups =
+			new java.util.LinkedHashMap<>();
+		for (EquipmentPack.Item item : items)
+		{
+			groups.computeIfAbsent(baseName(item.name), k -> new ArrayList<>()).add(item);
+		}
+		List<Unit> units = new ArrayList<>(groups.size());
+		groups.forEach((base, list) -> units.add(new Unit(base, list)));
+		return units;
+	}
+
+	/** A name with its trailing "(...)" variant markers stripped. */
+	static String baseName(String name)
+	{
+		String base = name.replaceAll("(\\s*\\([^)]*\\))+$", "").trim();
+		return base.isEmpty() ? name : base;
+	}
+
+	private List<Unit> pageUnits()
+	{
+		List<Unit> all = visibleUnits();
 		int from = Math.min(page * PAGE_SIZE, all.size());
 		int to = Math.min(from + PAGE_SIZE, all.size());
 		return all.subList(from, to);
@@ -378,8 +496,9 @@ class GearLibraryTab extends JPanel
 	{
 		lastPrint = fingerprint();
 		list.removeAll();
-		List<EquipmentPack.Item> all = visible();
-		int pages = Math.max(1, (all.size() + PAGE_SIZE - 1) / PAGE_SIZE);
+		List<Unit> allUnits = visibleUnits();
+		int totalItems = visible().size();
+		int pages = Math.max(1, (allUnits.size() + PAGE_SIZE - 1) / PAGE_SIZE);
 		if (page >= pages)
 		{
 			page = pages - 1;
@@ -387,7 +506,7 @@ class GearLibraryTab extends JPanel
 
 		JPanel summary = row();
 		summary.setBorder(new EmptyBorder(0, UiTokens.ROW_GAP, 3, UiTokens.ROW_GAP));
-		summary.add(new OsrsLabel(all.size() + (all.size() == 1 ? " item" : " items"),
+		summary.add(new OsrsLabel(totalItems + (totalItems == 1 ? " item" : " items"),
 			OsrsSkin.MUTED, OsrsSkin.smallFont()));
 		summary.add(Box.createHorizontalGlue());
 		if (pages > 1)
@@ -398,7 +517,7 @@ class GearLibraryTab extends JPanel
 		cap(summary);
 		list.add(summary);
 
-		if (all.isEmpty())
+		if (allUnits.isEmpty())
 		{
 			list.add(note("Nothing matches. Widen the filters or clear the search."));
 			list.revalidate();
@@ -406,34 +525,35 @@ class GearLibraryTab extends JPanel
 			return;
 		}
 
-		List<EquipmentPack.Item> items = pageItems();
-		for (int start = 0; start < items.size(); start += COLUMNS)
+		List<Unit> units = pageUnits();
+		for (int start = 0; start < units.size(); start += COLUMNS)
 		{
+			List<Unit> rowUnits = units.subList(start, Math.min(start + COLUMNS, units.size()));
 			JPanel gridRow = row();
-			boolean selectedInRow = false;
-			for (int col = 0; col < COLUMNS && start + col < items.size(); col++)
+			for (int col = 0; col < rowUnits.size(); col++)
 			{
-				EquipmentPack.Item item = items.get(start + col);
 				if (col > 0)
 				{
 					gridRow.add(Box.createHorizontalStrut(3));
 				}
-				gridRow.add(tile(item));
-				selectedInRow |= item.primaryId() == selected;
+				gridRow.add(unitTile(rowUnits.get(col)));
 			}
 			gridRow.add(Box.createHorizontalGlue());
 			cap(gridRow);
 			list.add(gridRow);
 			list.add(Box.createVerticalStrut(3));
-			// the selected item's detail card spans the full width, right
-			// under its row — so context stays put in a grid
-			if (selectedInRow)
+			// after the row: a selected singleton's detail card, and each
+			// expanded group's variants (each with its own selected detail)
+			for (Unit unit : rowUnits)
 			{
-				EquipmentPack.Item chosen = byId(items, selected);
-				if (chosen != null)
+				if (!unit.isGroup() && unit.lead().primaryId() == selected)
 				{
-					list.add(detailCard(chosen, owns(chosen)));
+					list.add(detailCard(unit.lead(), owns(unit.lead())));
 					list.add(Box.createVerticalStrut(3));
+				}
+				else if (unit.isGroup() && expandedGroups.contains(unit.base))
+				{
+					addVariantBlock(unit);
 				}
 			}
 		}
@@ -446,23 +566,71 @@ class GearLibraryTab extends JPanel
 		list.repaint();
 	}
 
-	private static EquipmentPack.Item byId(List<EquipmentPack.Item> items, int id)
+	/** An expanded group's variant tiles, indented, with the selected
+	 *  variant's detail card under its sub-row. */
+	private void addVariantBlock(Unit group)
 	{
-		for (EquipmentPack.Item item : items)
+		for (int start = 0; start < group.items.size(); start += COLUMNS)
 		{
-			if (item.primaryId() == id)
+			List<EquipmentPack.Item> rowItems =
+				group.items.subList(start, Math.min(start + COLUMNS, group.items.size()));
+			JPanel gridRow = row();
+			gridRow.setBorder(new EmptyBorder(0, 8, 0, 0)); // indent variants
+			for (int col = 0; col < rowItems.size(); col++)
 			{
-				return item;
+				if (col > 0)
+				{
+					gridRow.add(Box.createHorizontalStrut(3));
+				}
+				gridRow.add(itemTile(rowItems.get(col)));
+			}
+			gridRow.add(Box.createHorizontalGlue());
+			cap(gridRow);
+			list.add(gridRow);
+			list.add(Box.createVerticalStrut(3));
+			for (EquipmentPack.Item variant : rowItems)
+			{
+				if (variant.primaryId() == selected)
+				{
+					list.add(detailCard(variant, owns(variant)));
+					list.add(Box.createVerticalStrut(3));
+				}
 			}
 		}
-		return null;
 	}
 
-	private GearItemTile tile(EquipmentPack.Item item)
+	/** A unit's tile: a single item, or a group with a variant-count badge
+	 *  whose click toggles its expansion. */
+	private GearItemTile unitTile(Unit unit)
+	{
+		if (!unit.isGroup())
+		{
+			return itemTile(unit.lead());
+		}
+		EquipmentPack.Item lead = unit.lead();
+		java.awt.Image sprite = sprites.get(lead.primaryId(), -1, 28);
+		boolean ownsAny = unit.items.stream().anyMatch(this::owns);
+		boolean expanded = expandedGroups.contains(unit.base);
+		return new GearItemTile(theme, unit.base, sprite, ownsAny, false, expanded,
+			unit.items.size(),
+			unit.base + " — " + unit.items.size() + " variants",
+			() ->
+			{
+				if (!expandedGroups.remove(unit.base))
+				{
+					expandedGroups.add(unit.base);
+				}
+				selected = -1;
+				rebuildGrid();
+			},
+			e -> { });
+	}
+
+	private GearItemTile itemTile(EquipmentPack.Item item)
 	{
 		java.awt.Image sprite = sprites.get(item.primaryId(), -1, 28);
 		return new GearItemTile(theme, item.name, sprite, owns(item), isTracked(item),
-			item.primaryId() == selected, tileTooltip(item),
+			item.primaryId() == selected, 1, tileTooltip(item),
 			() ->
 			{
 				selected = item.primaryId() == selected ? -1 : item.primaryId();
@@ -497,23 +665,40 @@ class GearLibraryTab extends JPanel
 	{
 		JPanel row = row();
 		row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP));
-		row.add(pagerButton("< Prev", page > 0, () ->
-		{
-			page--;
-			selected = -1;
-			rebuildGrid();
-		}));
+		row.add(pagerButton("< Prev", page > 0, () -> goToPage(page - 1)));
 		row.add(Box.createHorizontalGlue());
-		row.add(new OsrsLabel((page + 1) + " / " + pages, OsrsSkin.MUTED, OsrsSkin.smallFont()));
-		row.add(Box.createHorizontalGlue());
-		row.add(pagerButton("Next >", page < pages - 1, () ->
+		// the current page is a typeable box — jump straight to a page
+		StoneTextField pageField = new StoneTextField(theme, "");
+		pageField.setText(String.valueOf(page + 1));
+		pageField.setMaximumSize(new Dimension(34, 20));
+		pageField.setPreferredSize(new Dimension(34, 20));
+		pageField.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+		pageField.setToolTipText("Type a page number and press Enter");
+		pageField.addActionListener(e ->
 		{
-			page++;
-			selected = -1;
-			rebuildGrid();
-		}));
+			try
+			{
+				goToPage(Integer.parseInt(pageField.getText().trim()) - 1);
+			}
+			catch (NumberFormatException ignored)
+			{
+				pageField.setText(String.valueOf(page + 1));
+			}
+		});
+		row.add(pageField);
+		row.add(new OsrsLabel(" / " + pages, OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		row.add(Box.createHorizontalGlue());
+		row.add(pagerButton("Next >", page < pages - 1, () -> goToPage(page + 1)));
 		cap(row);
 		return row;
+	}
+
+	private void goToPage(int target)
+	{
+		int pages = Math.max(1, (visibleUnits().size() + PAGE_SIZE - 1) / PAGE_SIZE);
+		page = Math.max(0, Math.min(target, pages - 1));
+		selected = -1;
+		rebuildGrid();
 	}
 
 	private JComponent pagerButton(String text, boolean enabled, Runnable onClick)
@@ -582,20 +767,24 @@ class GearLibraryTab extends JPanel
 		// the meta beside it, and the track affordance on the right
 		JPanel titleLine = row();
 		JLabel bigIcon = new JLabel();
-		java.awt.Image sprite = sprites.get(item.primaryId(), -1, 32);
+		bigIcon.setPreferredSize(new Dimension(40, 36));
+		bigIcon.setMinimumSize(new Dimension(40, 36));
+		java.awt.Image sprite = sprites.get(item.primaryId(), -1, 36);
 		if (sprite != null)
 		{
 			bigIcon.setIcon(new javax.swing.ImageIcon(sprite));
-			bigIcon.setBorder(new EmptyBorder(0, 0, 0, UiTokens.ROW_GAP));
 		}
+		bigIcon.setBorder(new EmptyBorder(0, 0, 0, UiTokens.ROW_GAP));
 		bigIcon.setVerticalAlignment(javax.swing.SwingConstants.TOP);
 		titleLine.add(bigIcon);
 		JPanel titleText = new JPanel();
 		titleText.setLayout(new BoxLayout(titleText, BoxLayout.Y_AXIS));
 		titleText.setOpaque(false);
 		titleText.setAlignmentY(TOP_ALIGNMENT);
-		OsrsLabel title = new OsrsLabel(item.name,
-			own ? OsrsSkin.VALUE : OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned().squeezable();
+		// the name is NOT green for an owned item (Luke) — ownership shows as
+		// the tile's corner tick and the status line below
+		OsrsLabel title = new OsrsLabel(item.name, OsrsSkin.TITLE, OsrsSkin.boldFont())
+			.leftAligned().squeezable();
 		title.setToolTipText(item.name);
 		titleText.add(title);
 		StringBuilder meta = new StringBuilder(slotName(item.slot));
@@ -606,10 +795,10 @@ class GearLibraryTab extends JPanel
 		}
 		titleText.add(new OsrsLabel(meta.toString(), OsrsSkin.MUTED, OsrsSkin.smallFont())
 			.leftAligned());
-		long value = marketValue(item);
-		if (value > 0)
+		// value: live GE and high alch side by side ("GE 96.9K · HA 21.1K")
+		String valueText = valueLine(item);
+		if (valueText != null)
 		{
-			String valueText = (hasLivePrice(item) ? "GE " : "Alch ") + Format.gp(value);
 			titleText.add(new OsrsLabel(valueText, OsrsSkin.MUTED, OsrsSkin.smallFont())
 				.leftAligned());
 		}
@@ -635,11 +824,8 @@ class GearLibraryTab extends JPanel
 					.leftAligned());
 			}
 		}
-		if (own)
-		{
-			card.add(Box.createVerticalStrut(2));
-			card.add(new OsrsLabel("You own this", OsrsSkin.VALUE, OsrsSkin.smallFont()).leftAligned());
-		}
+		card.add(Box.createVerticalStrut(2));
+		card.add(ownershipLine(item, own));
 		cap(card);
 
 		JPanel holder = new JPanel(new BorderLayout());
@@ -649,6 +835,84 @@ class GearLibraryTab extends JPanel
 		holder.add(card, BorderLayout.CENTER);
 		cap(holder);
 		return holder;
+	}
+
+	/** "GE 96.9K · HA 21.1K", either half present; null when nothing is known. */
+	private String valueLine(EquipmentPack.Item item)
+	{
+		List<String> parts = new ArrayList<>();
+		if (hasLivePrice(item))
+		{
+			parts.add("GE " + Format.gp(priceCache.get(item.primaryId())));
+		}
+		if (item.alch > 0)
+		{
+			parts.add("HA " + Format.gp(item.alch));
+		}
+		return parts.isEmpty() ? null : String.join(" · ", parts);
+	}
+
+	/**
+	 * "You own this — Bank" (green) when it sits in a readable container;
+	 * "Obtained DD/MM/YY" (orange) when the collection log recorded it but we
+	 * do not currently see it — banks get cleared, items get sold, so the two
+	 * are worth telling apart (Luke). POH costume storage / STASH and the
+	 * like aren't readable yet, so an item there reads as obtained, not owned.
+	 */
+	private JComponent ownershipLine(EquipmentPack.Item item, boolean own)
+	{
+		if (own)
+		{
+			String where = ownedLocation(item);
+			String text = where == null ? "You own this" : "You own this — " + where;
+			return new OsrsLabel(text, OsrsSkin.VALUE, OsrsSkin.smallFont()).leftAligned();
+		}
+		long obtainedAt = obtainedDate(item);
+		if (obtainedAt > 0)
+		{
+			return new OsrsLabel("Obtained " + shortDate(obtainedAt), OsrsSkin.TITLE,
+				OsrsSkin.smallFont()).leftAligned();
+		}
+		if (clogObtained(item))
+		{
+			return new OsrsLabel("Obtained", OsrsSkin.TITLE, OsrsSkin.smallFont()).leftAligned();
+		}
+		return new OsrsLabel("Not owned", OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned();
+	}
+
+	/** The collection log's recorded obtained-time for the item, or 0. */
+	private long obtainedDate(EquipmentPack.Item item)
+	{
+		for (int id : item.ids)
+		{
+			long at = state.clogObtainedAt(id);
+			if (at > 0)
+			{
+				return at;
+			}
+		}
+		return 0;
+	}
+
+	/** Whether the collection log has any of the item's ids logged. */
+	private boolean clogObtained(EquipmentPack.Item item)
+	{
+		for (int id : item.ids)
+		{
+			if (state.getClogObtained().contains(id))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static String shortDate(long epochMs)
+	{
+		java.time.LocalDate date = java.time.Instant.ofEpochMilli(epochMs)
+			.atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+		return String.format(Locale.ROOT, "%02d/%02d/%02d",
+			date.getDayOfMonth(), date.getMonthValue(), date.getYear() % 100);
 	}
 
 	private static final String[][] STAT_GROUPS = {
@@ -837,6 +1101,20 @@ class GearLibraryTab extends JPanel
 	void searchForTest(String term)
 	{
 		search.setText(term);
+		rebuildList();
+	}
+
+	void groupVariantsForTest(boolean on)
+	{
+		groupVariants = on;
+		expandedGroups.clear();
+		rebuildList();
+	}
+
+	void expandGroupForTest(String base)
+	{
+		expandedGroups.add(base);
+		rebuildGrid();
 	}
 
 	void sortForTest(EquipmentLibrary.Sort sort)
