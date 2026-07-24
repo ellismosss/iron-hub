@@ -60,6 +60,22 @@ public class StorageLocationsPack
 		 *  indexes this item-id array (0/negative = empty; pickaxe statue). */
 		public int indexVarbit;
 		public List<Integer> indexItems;
+		/** slot detection (mode == "slots"): N (type, count) slots — rune pouch,
+		 *  bolt pouch, Dizana's quiver. The type value resolves to an item id
+		 *  via typeKind ("array" -> typeArray[type], "enum" -> game enum
+		 *  typeEnum, "direct" -> the value IS the item id); count is the qty.
+		 *  varp = read the slot vars as VarPlayers, not varbits (the quiver). */
+		public List<Slot> slots;
+		public String typeKind;
+		public List<Integer> typeArray;
+		public int typeEnum;
+		public boolean varp;
+	}
+
+	public static class Slot
+	{
+		public int typeVarbit;
+		public int countVarbit;
 	}
 
 	public static class Mount

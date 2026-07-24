@@ -2669,7 +2669,29 @@
    "id": "carryable:runepouch",
    "family": "carryable",
    "key": "runepouch",
-   "name": "Rune Pouch"
+   "name": "Rune Pouch",
+   "mode": "slots",
+   "varp": false,
+   "slots": [
+    {
+     "typeVarbit": 29,
+     "countVarbit": 1624
+    },
+    {
+     "typeVarbit": 1622,
+     "countVarbit": 1625
+    },
+    {
+     "typeVarbit": 1623,
+     "countVarbit": 1626
+    },
+    {
+     "typeVarbit": 14285,
+     "countVarbit": 14286
+    }
+   ],
+   "typeKind": "enum",
+   "typeEnum": 982
   },
   {
    "id": "carryable:bottomlessbucket",
@@ -2718,7 +2740,113 @@
    "id": "carryable:boltpouch",
    "family": "carryable",
    "key": "boltpouch",
-   "name": "Bolt Pouch"
+   "name": "Bolt Pouch",
+   "mode": "slots",
+   "varp": false,
+   "slots": [
+    {
+     "typeVarbit": 2473,
+     "countVarbit": 2469
+    },
+    {
+     "typeVarbit": 2474,
+     "countVarbit": 2470
+    },
+    {
+     "typeVarbit": 2475,
+     "countVarbit": 2471
+    },
+    {
+     "typeVarbit": 2476,
+     "countVarbit": 2472
+    }
+   ],
+   "typeKind": "array",
+   "typeArray": [
+    -1,
+    877,
+    9139,
+    9140,
+    9141,
+    9142,
+    9143,
+    9144,
+    9145,
+    878,
+    9286,
+    9287,
+    9288,
+    9289,
+    9290,
+    9291,
+    9292,
+    6061,
+    9293,
+    9294,
+    9295,
+    9296,
+    9297,
+    9298,
+    9299,
+    6062,
+    9300,
+    9301,
+    9302,
+    9303,
+    9304,
+    9305,
+    9306,
+    879,
+    9335,
+    880,
+    9336,
+    9337,
+    9338,
+    9339,
+    9340,
+    9341,
+    9342,
+    9236,
+    9237,
+    9238,
+    9239,
+    9240,
+    9241,
+    9242,
+    9243,
+    9244,
+    9245,
+    9419,
+    881,
+    8882,
+    11875,
+    21316,
+    21905,
+    21924,
+    21926,
+    21928,
+    21955,
+    21957,
+    21959,
+    21961,
+    21963,
+    21965,
+    21967,
+    21969,
+    21971,
+    21973,
+    21932,
+    21934,
+    21936,
+    21938,
+    21940,
+    21942,
+    21944,
+    21946,
+    21948,
+    21950,
+    4740
+   ]
   },
   {
    "id": "carryable:gnomishfirelighter",
@@ -2853,7 +2981,16 @@
    "id": "carryable:dizanasQuiver",
    "family": "carryable",
    "key": "dizanasQuiver",
-   "name": "Dizana's Quiver"
+   "name": "Dizana's Quiver",
+   "mode": "slots",
+   "varp": true,
+   "slots": [
+    {
+     "typeVarbit": 4142,
+     "countVarbit": 4141
+    }
+   ],
+   "typeKind": "direct"
   },
   {
    "id": "carryable:bowStringSpool",

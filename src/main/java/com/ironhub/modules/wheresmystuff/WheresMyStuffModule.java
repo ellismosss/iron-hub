@@ -267,7 +267,60 @@ public class WheresMyStuffModule implements IronHubModule
 				}
 				commit(s, items, now);
 			}
+			else if ("slots".equals(s.mode) && touchesSlots(s, event))
+			{
+				commit(s, readSlots(s), now);
+			}
 		}
+	}
+
+	private static boolean touchesSlots(StorageLocationsPack.Storage s, net.runelite.api.events.VarbitChanged e)
+	{
+		int id = s.varp ? e.getVarpId() : e.getVarbitId();
+		for (StorageLocationsPack.Slot slot : s.slots)
+		{
+			if (slot.typeVarbit == id || slot.countVarbit == id)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** Read a slot-based storage (rune/bolt pouch, quiver): per slot, the type
+	 *  value resolves to an item id, the count value to a quantity. */
+	private Map<Integer, Integer> readSlots(StorageLocationsPack.Storage s)
+	{
+		Map<Integer, Integer> items = new HashMap<>();
+		for (StorageLocationsPack.Slot slot : s.slots)
+		{
+			int type = s.varp ? client.getVarpValue(slot.typeVarbit)
+				: client.getVarbitValue(slot.typeVarbit);
+			if (type <= 0)
+			{
+				continue;
+			}
+			int itemId;
+			if ("array".equals(s.typeKind))
+			{
+				itemId = type < s.typeArray.size() ? s.typeArray.get(type) : -1;
+			}
+			else if ("enum".equals(s.typeKind))
+			{
+				itemId = client.getEnum(s.typeEnum).getIntValue(type);
+			}
+			else
+			{
+				itemId = type; // the type value IS the item id (Dizana's quiver)
+			}
+			int qty = s.varp ? client.getVarpValue(slot.countVarbit)
+				: client.getVarbitValue(slot.countVarbit);
+			if (itemId > 0 && qty > 0)
+			{
+				items.merge(itemId, qty, Integer::sum);
+			}
+		}
+		return items;
 	}
 
 	private static boolean touchesVarbits(StorageLocationsPack.Storage s, int varbit)

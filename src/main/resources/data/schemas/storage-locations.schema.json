@@ -28,7 +28,24 @@
 					"automatic": {"type": "boolean"},
 					"container": {"type": "string", "minLength": 1},
 					"containerId": {"type": "integer", "minimum": 1},
-					"mode": {"type": "string", "enum": ["poh", "container", "objectmount", "varbits", "varbitindex"]},
+					"mode": {"type": "string", "enum": ["poh", "container", "objectmount", "varbits", "varbitindex", "slots"]},
+					"slots": {
+						"type": "array",
+						"minItems": 1,
+						"items": {
+							"type": "object",
+							"required": ["typeVarbit", "countVarbit"],
+							"additionalProperties": false,
+							"properties": {
+								"typeVarbit": {"type": "integer", "minimum": 1},
+								"countVarbit": {"type": "integer", "minimum": 1}
+							}
+						}
+					},
+					"typeKind": {"type": "string", "enum": ["array", "enum", "direct"]},
+					"typeArray": {"type": "array", "minItems": 1, "items": {"type": "integer", "minimum": -1}},
+					"typeEnum": {"type": "integer", "minimum": 1},
+					"varp": {"type": "boolean"},
 					"varbitItems": {
 						"type": "array",
 						"minItems": 1,

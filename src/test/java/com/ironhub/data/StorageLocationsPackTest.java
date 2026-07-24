@@ -122,6 +122,27 @@ public class StorageLocationsPackTest
 		assertEquals(1000, nmz.varbitItems.get(0).multiplier);
 	}
 
+	/** Slot storages (rune/bolt pouch, quiver) carry N (type,count) slots and a
+	 *  type→item resolution kind. */
+	@Test
+	public void slotStoragesResolve()
+	{
+		StorageLocationsPack.Storage rune = byKey("runepouch");
+		assertEquals("slots", rune.mode);
+		assertEquals("enum", rune.typeKind);
+		assertEquals(982, rune.typeEnum); // EnumID.RUNEPOUCH_RUNE
+		assertEquals(4, rune.slots.size());
+
+		StorageLocationsPack.Storage bolt = byKey("boltpouch");
+		assertEquals("array", bolt.typeKind);
+		assertTrue(bolt.typeArray.size() > 1);
+		assertEquals(Integer.valueOf(-1), bolt.typeArray.get(0)); // index 0 = empty
+
+		StorageLocationsPack.Storage quiver = byKey("dizanasQuiver");
+		assertEquals("direct", quiver.typeKind);
+		assertTrue(quiver.varp); // the quiver reads VarPlayers
+	}
+
 	private StorageLocationsPack.Storage byKey(String key)
 	{
 		return pack.storages.stream().filter(s -> s.key.equals(key)).findFirst().orElse(null);

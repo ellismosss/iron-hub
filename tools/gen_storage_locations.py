@@ -418,6 +418,23 @@ def apply_detection_tables(storages, varbit_by_name, items_by_name):
                 storage["indexVarbit"] = resolve_varbit(spec["indexVarbit"])
                 storage["indexItems"] = [resolve_item(c) for c in spec["array"]]
                 wired += 1
+            elif spec["shape"] == "slots":
+                storage["mode"] = "slots"
+                storage["varp"] = spec.get("typeConstType") == "VarPlayerID"
+                storage["slots"] = [
+                    {"typeVarbit": resolve_varbit(t), "countVarbit": resolve_varbit(c)}
+                    for t, c in zip(spec["type"], spec["count"])]
+                tti = spec["typeToItem"]
+                if "array" in tti:
+                    storage["typeKind"] = "array"
+                    storage["typeArray"] = [
+                        -1 if c == "-1" else resolve_item(c) for c in spec["array"]]
+                elif "getEnum" in tti:
+                    storage["typeKind"] = "enum"
+                    storage["typeEnum"] = 982  # net.runelite.api.EnumID.RUNEPOUCH_RUNE
+                else:
+                    storage["typeKind"] = "direct"
+                wired += 1
 
     for key, spec in tables.get("coins", {}).items():
         if key.startswith("_") or spec.get("source") != "varbit":
