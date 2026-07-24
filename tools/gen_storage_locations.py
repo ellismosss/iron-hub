@@ -337,6 +337,14 @@ CONTAINER_MODE = {
     ("death", "deathsoffice"),
 }
 
+# container reads whose container the *StorageType enum leaves at -1 because
+# the reference resolves it in a manager override — curated with the real
+# gameval InventoryID. Your gravestone (grave/deathbank items) is the big one:
+# opening it records what you'd lose on death, the whole point of the plugin.
+CURATED_CONTAINERS = {
+    ("death", "grave"): "GRAVESTONE",
+}
+
 ENUM_FILE = {
     "carryable": "CarryableStorageType.java",
     "coins": "CoinsStorageType.java",
@@ -383,7 +391,7 @@ COINS = 995  # every coins-family storage is a coins balance
 # 0), index (one varbit -> item array), and coin varbit balances. slots
 # (rune/bolt/quiver), special (vyre well, leprechaun) and the bespoke
 # chat/widget scrapers land with their own hooks in later slices.
-def apply_detection_tables(storages, varbit_by_name, items_by_name):
+def apply_detection_tables(storages, varbit_by_name, items_by_name, inv_by_name):
     with open(os.path.join(HERE, "dwms-storage-tables.json"), encoding="utf-8") as f:
         tables = json.load(f)
     by_id = {(s["family"], s["key"]): s for s in storages}
@@ -400,6 +408,19 @@ def apply_detection_tables(storages, varbit_by_name, items_by_name):
 
     wired = 0
 
+    # curated container reads (the enum leaves the container at -1)
+    for (family, key), container in CURATED_CONTAINERS.items():
+        storage = by_id.get((family, key))
+        if storage is None:
+            raise SystemExit(f"curated container has no registry storage: {family}:{key}")
+        cid = inv_by_name.get(container)
+        if cid is None:
+            raise SystemExit(f"unresolved InventoryID.{container}")
+        storage["container"] = container
+        storage["containerId"] = cid
+        storage["mode"] = "container"
+        wired += 1
+
     # Vyre Well is "special" only because blood runes are derived — but they
     # derive from the SAME varbit as the vials (× 200), so it is exactly the
     # varbits mode with two entries. Curated from world/VyreWell.java.
@@ -411,6 +432,54 @@ def apply_detection_tables(storages, varbit_by_name, items_by_name):
              "itemId": resolve_item("VIAL_BLOOD"), "multiplier": 1},
             {"varbit": resolve_varbit("TOB_LOBBY_WELL_CONTENTS"),
              "itemId": resolve_item("BLOODRUNE"), "multiplier": 200},
+        ]
+        wired += 1
+
+    # Tool Leprechaun + Elnock Inquisitor: derived per-item formulas (base+extra
+    # math, a fairy-secateurs variant, a watering-can index, a bottomless-bucket
+    # type, and the impling-net index). Curated from the reference's overrides;
+    # every constant resolved fail-fast.
+    def csum(item, terms):
+        return {"kind": "sum", "itemId": resolve_item(item),
+                "terms": [{"varbit": resolve_varbit(v), "mult": m} for v, m in terms]}
+
+    watering_can_ids = ["-1"] + [f"WATERING_CAN_{i}" for i in range(9)] + ["ZEAH_WATERINGCAN"]
+    lep = by_id.get(("world", "leprechaun"))
+    if lep is not None:
+        lep["mode"] = "compute"
+        lep["computeItems"] = [
+            csum("RAKE", [("FARMING_TOOLS_RAKE", 1), ("FARMING_TOOLS_EXTRARAKES", 2)]),
+            csum("DIBBER", [("FARMING_TOOLS_DIBBER", 1), ("FARMING_TOOLS_EXTRADIBBERS", 2)]),
+            csum("SPADE", [("FARMING_TOOLS_SPADE", 1), ("FARMING_TOOLS_EXTRASPADES", 2)]),
+            {"kind": "variant", "itemId": resolve_item("SECATEURS"),
+             "terms": [{"varbit": resolve_varbit("FARMING_TOOLS_SECATEURS"), "mult": 1},
+                       {"varbit": resolve_varbit("FARMING_TOOLS_EXTRASECATEURS"), "mult": 2}],
+             "variantVarbit": resolve_varbit("FARMING_TOOLS_FAIRYSECATEURS"),
+             "variantItemId": resolve_item("FAIRY_ENCHANTED_SECATEURS")},
+            {"kind": "index", "indexVarbit": resolve_varbit("FARMING_TOOLS_WATERINGCAN"),
+             "indexArray": [-1 if c == "-1" else resolve_item(c) for c in watering_can_ids]},
+            csum("GARDENING_TROWEL", [("FARMING_TOOLS_TROWEL", 1), ("FARMING_TOOLS_EXTRATROWELS", 2)]),
+            csum("PLANT_CURE", [("FARMING_TOOLS_PLANTCURE", 1)]),
+            {"kind": "type", "typeVarbit": resolve_varbit("FARMING_TOOLS_BOTTOMLESS_BUCKET_TYPE"),
+             "emptyId": resolve_item("BOTTOMLESS_COMPOST_BUCKET"),
+             "filledId": resolve_item("BOTTOMLESS_COMPOST_BUCKET_FILLED")},
+            csum("BUCKET_EMPTY", [("FARMING_TOOLS_BUCKETS", 1), ("FARMING_TOOLS_EXTRABUCKETS", 32),
+                                  ("FARMING_TOOLS_EXTRA2BUCKETS", 256)]),
+            csum("BUCKET_COMPOST", [("FARMING_TOOLS_COMPOST", 1), ("FARMING_TOOLS_EXTRACOMPOST", 256)]),
+            csum("BUCKET_SUPERCOMPOST", [("FARMING_TOOLS_SUPERCOMPOST", 1),
+                                         ("FARMING_TOOLS_EXTRASUPERCOMPOST", 256)]),
+            csum("BUCKET_ULTRACOMPOST", [("FARMING_TOOLS_ULTRACOMPOST", 1)]),
+        ]
+        wired += 1
+    eln = by_id.get(("world", "elnock"))
+    if eln is not None:
+        eln["mode"] = "compute"
+        eln["computeItems"] = [
+            {"kind": "index", "indexVarbit": resolve_varbit("II_STORED_NET"),
+             "indexArray": [-1, resolve_item("HUNTING_BUTTERFLY_NET"),
+                            resolve_item("II_MAGIC_BUTTERFLY_NET")]},
+            csum("II_IMP_REPELLENT", [("II_STORED_REPELLENT", 1)]),
+            csum("II_IMPLING_JAR", [("II_STORED_IMPLING_JARS", 1)]),
         ]
         wired += 1
 
@@ -494,7 +563,7 @@ def main():
     storages += parse_poh(items_by_name, inv_by_name, obj_by_name)
     for family in FAMILY_SPEC:
         storages += parse_family(family, inv_by_name)
-    wired = apply_detection_tables(storages, varbit_by_name, items_by_name)
+    wired = apply_detection_tables(storages, varbit_by_name, items_by_name, inv_by_name)
 
     # sanity asserts — the POH costume room, byte-faithful to the source
     keys = {s["key"] for s in storages}

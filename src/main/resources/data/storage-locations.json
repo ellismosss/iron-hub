@@ -3317,7 +3317,171 @@
    "id": "world:leprechaun",
    "family": "world",
    "key": "leprechaun",
-   "name": "Tool Leprechaun"
+   "name": "Tool Leprechaun",
+   "mode": "compute",
+   "computeItems": [
+    {
+     "kind": "sum",
+     "itemId": 5341,
+     "terms": [
+      {
+       "varbit": 1435,
+       "mult": 1
+      },
+      {
+       "varbit": 8357,
+       "mult": 2
+      }
+     ]
+    },
+    {
+     "kind": "sum",
+     "itemId": 5343,
+     "terms": [
+      {
+       "varbit": 1436,
+       "mult": 1
+      },
+      {
+       "varbit": 8358,
+       "mult": 2
+      }
+     ]
+    },
+    {
+     "kind": "sum",
+     "itemId": 952,
+     "terms": [
+      {
+       "varbit": 1437,
+       "mult": 1
+      },
+      {
+       "varbit": 8361,
+       "mult": 2
+      }
+     ]
+    },
+    {
+     "kind": "variant",
+     "itemId": 5329,
+     "terms": [
+      {
+       "varbit": 1438,
+       "mult": 1
+      },
+      {
+       "varbit": 8359,
+       "mult": 2
+      }
+     ],
+     "variantVarbit": 1848,
+     "variantItemId": 7409
+    },
+    {
+     "kind": "index",
+     "indexVarbit": 1439,
+     "indexArray": [
+      -1,
+      5331,
+      5333,
+      5334,
+      5335,
+      5336,
+      5337,
+      5338,
+      5339,
+      5340,
+      13353
+     ]
+    },
+    {
+     "kind": "sum",
+     "itemId": 5325,
+     "terms": [
+      {
+       "varbit": 1440,
+       "mult": 1
+      },
+      {
+       "varbit": 8360,
+       "mult": 2
+      }
+     ]
+    },
+    {
+     "kind": "sum",
+     "itemId": 6036,
+     "terms": [
+      {
+       "varbit": 6268,
+       "mult": 1
+      }
+     ]
+    },
+    {
+     "kind": "type",
+     "typeVarbit": 7915,
+     "emptyId": 22994,
+     "filledId": 22997
+    },
+    {
+     "kind": "sum",
+     "itemId": 1925,
+     "terms": [
+      {
+       "varbit": 1441,
+       "mult": 1
+      },
+      {
+       "varbit": 4731,
+       "mult": 32
+      },
+      {
+       "varbit": 6265,
+       "mult": 256
+      }
+     ]
+    },
+    {
+     "kind": "sum",
+     "itemId": 6032,
+     "terms": [
+      {
+       "varbit": 1442,
+       "mult": 1
+      },
+      {
+       "varbit": 6266,
+       "mult": 256
+      }
+     ]
+    },
+    {
+     "kind": "sum",
+     "itemId": 6034,
+     "terms": [
+      {
+       "varbit": 1443,
+       "mult": 1
+      },
+      {
+       "varbit": 6267,
+       "mult": 256
+      }
+     ]
+    },
+    {
+     "kind": "sum",
+     "itemId": 21483,
+     "terms": [
+      {
+       "varbit": 5732,
+       "mult": 1
+      }
+     ]
+    }
+   ]
   },
   {
    "id": "world:bank",
@@ -3591,7 +3755,39 @@
    "id": "world:elnock",
    "family": "world",
    "key": "elnock",
-   "name": "Elnock Inquisitor"
+   "name": "Elnock Inquisitor",
+   "mode": "compute",
+   "computeItems": [
+    {
+     "kind": "index",
+     "indexVarbit": 11767,
+     "indexArray": [
+      -1,
+      10010,
+      11259
+     ]
+    },
+    {
+     "kind": "sum",
+     "itemId": 11262,
+     "terms": [
+      {
+       "varbit": 11768,
+       "mult": 1
+      }
+     ]
+    },
+    {
+     "kind": "sum",
+     "itemId": 11260,
+     "terms": [
+      {
+       "varbit": 11770,
+       "mult": 1
+      }
+     ]
+    }
+   ]
   },
   {
    "id": "world:pickaxestatue",
@@ -3672,7 +3868,10 @@
    "id": "death:grave",
    "family": "death",
    "key": "grave",
-   "name": "Grave"
+   "name": "Grave",
+   "container": "GRAVESTONE",
+   "containerId": 525,
+   "mode": "container"
   },
   {
    "id": "death:deathbank",

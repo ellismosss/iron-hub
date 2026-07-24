@@ -383,7 +383,81 @@ public class WheresMyStuffModule implements IronHubModule
 			{
 				commit(s, readSlots(s), now);
 			}
+			else if ("compute".equals(s.mode) && touchesCompute(s, changed))
+			{
+				commit(s, readCompute(s), now);
+			}
 		}
+	}
+
+	private static boolean touchesCompute(StorageLocationsPack.Storage s, int varbit)
+	{
+		for (StorageLocationsPack.Compute c : s.computeItems)
+		{
+			if (c.variantVarbit == varbit || c.indexVarbit == varbit || c.typeVarbit == varbit)
+			{
+				return true;
+			}
+			if (c.terms != null)
+			{
+				for (StorageLocationsPack.Term t : c.terms)
+				{
+					if (t.varbit == varbit)
+					{
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	/** Derived-formula storages (Tool Leprechaun, Elnock Inquisitor). */
+	private Map<Integer, Integer> readCompute(StorageLocationsPack.Storage s)
+	{
+		Map<Integer, Integer> items = new HashMap<>();
+		for (StorageLocationsPack.Compute c : s.computeItems)
+		{
+			int id;
+			int qty;
+			switch (c.kind == null ? "" : c.kind)
+			{
+				case "sum":
+				case "variant":
+					qty = sumTerms(c);
+					id = "variant".equals(c.kind) && client.getVarbitValue(c.variantVarbit) == 1
+						? c.variantItemId : c.itemId;
+					break;
+				case "index":
+					int v = client.getVarbitValue(c.indexVarbit);
+					id = v >= 0 && v < c.indexArray.size() ? c.indexArray.get(v) : -1;
+					qty = id > 0 ? 1 : 0;
+					break;
+				case "type":
+					int t = client.getVarbitValue(c.typeVarbit);
+					id = t <= 1 ? c.emptyId : c.filledId;
+					qty = t == 0 ? 0 : 1;
+					break;
+				default:
+					id = -1;
+					qty = 0;
+			}
+			if (id > 0 && qty > 0)
+			{
+				items.merge(id, qty, Integer::sum);
+			}
+		}
+		return items;
+	}
+
+	private int sumTerms(StorageLocationsPack.Compute c)
+	{
+		int sum = 0;
+		for (StorageLocationsPack.Term t : c.terms)
+		{
+			sum += client.getVarbitValue(t.varbit) * Math.max(1, t.mult);
+		}
+		return sum;
 	}
 
 	private static boolean touchesSlots(StorageLocationsPack.Storage s, net.runelite.api.events.VarbitChanged e)

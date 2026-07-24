@@ -70,12 +70,41 @@ public class StorageLocationsPack
 		public List<Integer> typeArray;
 		public int typeEnum;
 		public boolean varp;
+		/** compute detection (mode == "compute"): per-item derived formulas. */
+		public List<Compute> computeItems;
 	}
 
 	public static class Slot
 	{
 		public int typeVarbit;
 		public int countVarbit;
+	}
+
+	/** compute detection (mode == "compute"): per-item formulas for the
+	 *  storages the reference derives with arithmetic — Tool Leprechaun,
+	 *  Elnock Inquisitor. Each item is one of four kinds:
+	 *  sum (qty = Σ term.varbit × mult), variant (a sum whose item id swaps to
+	 *  variantItemId when variantVarbit == 1), index (indexVarbit picks the id
+	 *  from indexArray, qty 1), type (typeVarbit 0/1 -> emptyId, else filledId;
+	 *  qty 0 when type 0). */
+	public static class Compute
+	{
+		public String kind;
+		public int itemId;
+		public List<Term> terms;
+		public int variantVarbit;
+		public int variantItemId;
+		public int indexVarbit;
+		public List<Integer> indexArray;
+		public int typeVarbit;
+		public int emptyId;
+		public int filledId;
+	}
+
+	public static class Term
+	{
+		public int varbit;
+		public int mult = 1;
 	}
 
 	public static class Mount

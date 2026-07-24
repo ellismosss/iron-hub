@@ -28,7 +28,39 @@
 					"automatic": {"type": "boolean"},
 					"container": {"type": "string", "minLength": 1},
 					"containerId": {"type": "integer", "minimum": 1},
-					"mode": {"type": "string", "enum": ["poh", "container", "objectmount", "varbits", "varbitindex", "slots"]},
+					"mode": {"type": "string", "enum": ["poh", "container", "objectmount", "varbits", "varbitindex", "slots", "compute"]},
+					"computeItems": {
+						"type": "array",
+						"minItems": 1,
+						"items": {
+							"type": "object",
+							"required": ["kind"],
+							"additionalProperties": false,
+							"properties": {
+								"kind": {"type": "string", "enum": ["sum", "variant", "index", "type"]},
+								"itemId": {"type": "integer", "minimum": 1},
+								"terms": {
+									"type": "array",
+									"items": {
+										"type": "object",
+										"required": ["varbit"],
+										"additionalProperties": false,
+										"properties": {
+											"varbit": {"type": "integer", "minimum": 1},
+											"mult": {"type": "integer", "minimum": 1}
+										}
+									}
+								},
+								"variantVarbit": {"type": "integer", "minimum": 1},
+								"variantItemId": {"type": "integer", "minimum": 1},
+								"indexVarbit": {"type": "integer", "minimum": 1},
+								"indexArray": {"type": "array", "items": {"type": "integer", "minimum": -1}},
+								"typeVarbit": {"type": "integer", "minimum": 1},
+								"emptyId": {"type": "integer", "minimum": 1},
+								"filledId": {"type": "integer", "minimum": 1}
+							}
+						}
+					},
 					"slots": {
 						"type": "array",
 						"minItems": 1,
