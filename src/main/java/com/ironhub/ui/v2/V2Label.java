@@ -66,6 +66,13 @@ public final class V2Label
 		return make(text, status, V2Tokens.bodyFont());
 	}
 
+	/** The one centred role: a button's own label, which is centred in its
+	 *  art rather than aligned to the section's left edge. */
+	public static OsrsLabel centred(String text)
+	{
+		return new OsrsLabel(text, V2Tokens.TEXT, V2Tokens.bodyFont());
+	}
+
 	/** Body text word-wrapped to a pixel width. Never html: the html view
 	 *  measures with its parse-time font and clips the pixel font mid-word. */
 	public static OsrsLabel wrapped(String text, int width)
