@@ -834,12 +834,25 @@ visiting a friend's costume room isn't a real risk (its container doesn't
 populate for you), but bespoke object-spawn storages (cape hanger) DO reset
 on a friend's house — a known limitation, not a bug to "fix".
 
-CapeHanger (GameObjectSpawned → mounted-cape ObjectID map), Menagerie (pets,
-`client.getEnum(985)` + varp bitfields) and SpiceRack (chat/widget state
-machine) are separate detection mechanisms ported in later slices; other
-families (carryable sub-containers, coins, world, minigames, sailing holds,
-death) each land with their own hooks. Death's storage tracking is distinct
-from the existing Death recovery module (which owns reclaim location/path).
+**Two more generic modes drive the pack, no per-storage Java:** `mode:
+"container"` = a plain `ItemContainerChanged` read (the whole container IS the
+storage — carryable sub-containers, the five sailing boat holds, Death's
+office; bank/inventory/worn are never listed, AccountState owns them), and
+`mode: "objectmount"` = the cape hanger, whose mounted-cape `GameObjectSpawned`
+(76 `ObjectID.POH_MOUNTED_*` → [cape, hood], resolved via javap) means that
+cape is stored — object 29166 (the empty hanger) clears it. Every storage
+carries a globally-unique `id` ("family:key") because config keys collide
+across families ("bank" is both a coins and a world storage) and the snapshot
+map is keyed by it.
+
+Menagerie (pets, `client.getEnum(985)` + varp bitfields) and SpiceRack
+(chat/widget state machine) are separate mechanisms ported in later slices;
+the varbit-static carryables (rune/bolt/plank/scroll/spool pouches), the
+world varbit reads, coins scrapers, STASH, and death capture (the DyingState
+machine — distinct from the existing Death recovery module, which owns reclaim
+location/path) each land with their own hooks. Storages without a mode appear
+in the registry but aren't auto-detected yet — honest: an unseen storage stays
+silent.
 
 ## Combat style & autocast naming (module: loadoutlab, pack: weapon-styles.json)
 

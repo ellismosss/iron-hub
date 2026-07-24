@@ -63,6 +63,21 @@ public class WheresMyStuffModuleTest
 		assertFalse(byStorage.get(uncat).containsKey(fancyId));
 	}
 
+	/** Cape hanger: a mounted-cape object spawn means that cape [+ hood] is
+	 *  stored; the empty-hanger object clears it; anything else is ignored. */
+	@Test
+	public void capeHangerResolvesMountedCape()
+	{
+		StorageLocationsPack.Storage cape = byKey("capeHanger");
+		assertEquals("objectmount", cape.mode);
+		assertFalse(cape.mounts.isEmpty());
+
+		StorageLocationsPack.Mount infernal = cape.mounts.get(0);
+		assertEquals(infernal.items, WheresMyStuffModule.mountItems(cape, infernal.object));
+		assertTrue(WheresMyStuffModule.mountItems(cape, cape.clearObjects.get(0)).isEmpty());
+		org.junit.Assert.assertNull(WheresMyStuffModule.mountItems(cape, 1));
+	}
+
 	@Test
 	public void moduleLabelUsesFamilySuffix()
 	{

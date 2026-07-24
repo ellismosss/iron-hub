@@ -48,5 +48,16 @@ public class StorageLocationsPack
 		public String mode;
 		/** allow-list of item ids owned by this storage, or null. */
 		public List<Integer> items;
+		/** object-mount detection (cape hanger): a spawned object id -> the
+		 *  [cape, hood] it means is stored. Null unless mode == "objectmount". */
+		public List<Mount> mounts;
+		/** object ids whose spawn means the storage is empty (empty hanger). */
+		public List<Integer> clearObjects;
+	}
+
+	public static class Mount
+	{
+		public int object;
+		public List<Integer> items;
 	}
 }

@@ -199,6 +199,65 @@ public class WheresMyStuffModule implements IronHubModule
 		return null;
 	}
 
+	// ── object-mount detection (POH cape hanger) ──────────────────────
+
+	@Subscribe
+	public void onGameObjectSpawned(net.runelite.api.events.GameObjectSpawned event)
+	{
+		if (pack == null || client == null || !inOwnHouse())
+		{
+			return;
+		}
+		int objectId = event.getGameObject().getId();
+		for (StorageLocationsPack.Storage s : pack.storages)
+		{
+			if (!"objectmount".equals(s.mode))
+			{
+				continue;
+			}
+			List<Integer> stored = mountItems(s, objectId);
+			if (stored == null)
+			{
+				continue; // this object isn't a mount or clear for this storage
+			}
+			// a mount replaces the storage's contents (one cape at a time); the
+			// empty-hanger object clears it — but a never-seen empty stays silent
+			if (stored.isEmpty() && !state.getStorageContents().containsKey(s.id))
+			{
+				return;
+			}
+			Map<Integer, Integer> items = new HashMap<>();
+			for (int id : stored)
+			{
+				items.put(id, 1);
+			}
+			state.putStorageContents(s.id, s.name, s.family, label(s),
+				items, resolveNames(items.keySet()), System.currentTimeMillis());
+			return;
+		}
+	}
+
+	/** For an object-mount storage: the items a spawned object id means are
+	 *  stored (empty list = a clear object), or null if the id is neither. */
+	static List<Integer> mountItems(StorageLocationsPack.Storage s, int objectId)
+	{
+		if (s.mounts != null)
+		{
+			for (StorageLocationsPack.Mount m : s.mounts)
+			{
+				if (m.object == objectId)
+				{
+					return m.items;
+				}
+			}
+		}
+		if (s.clearObjects != null && s.clearObjects.contains(objectId))
+		{
+			return java.util.Collections.emptyList();
+		}
+		return null;
+	}
+
 	/** Item id -> display name, resolved on the client thread (this handler
 	 *  runs on it), baked into the snapshot so the tab renders offline. */
 	private Map<Integer, String> resolveNames(Set<Integer> ids)

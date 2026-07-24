@@ -101,6 +101,52 @@ def gameval_inventory_ids():
             re.finditer(r"public static final int (\w+) = (-?\d+);", dump)}
 
 
+def gameval_object_ids():
+    """gameval ObjectID + ObjectID1 constant NAME -> id, from the runelite-api jar."""
+    jars = [j for j in glob.glob(os.path.expanduser(
+        "~/.gradle/caches/modules-2/files-2.1/net.runelite/runelite-api/*/*/"
+        "runelite-api-*.jar")) if "sources" not in j and "javadoc" not in j]
+    if not jars:
+        raise SystemExit("no runelite-api jar in the Gradle cache — run a build first")
+    out = {}
+    for cls in ("net.runelite.api.gameval.ObjectID", "net.runelite.api.gameval.ObjectID1"):
+        dump = subprocess.run(
+            ["javap", "-classpath", sorted(jars)[-1], "-constants", cls],
+            capture_output=True, text=True, check=True).stdout
+        out.update({m.group(1): int(m.group(2)) for m in
+                    re.finditer(r"public static final int (\w+) = (-?\d+);", dump)})
+    return out
+
+
+def parse_cape_hanger(items_by_name, obj_by_name):
+    """CapeHanger.java's objectIdItemIdMap: ObjectID.POH_MOUNTED_* -> [cape,
+    hood?]. Returns (mounts, clearObjects). The reference clears on raw id
+    29166 (the empty hanger, no ObjectID constant)."""
+    text = read_enum("playerownedhouse", "CapeHanger.java")
+    mounts = []
+    for m in re.finditer(
+            r"builder\.put\(\s*ObjectID\.(\w+)\s*,\s*new Integer\[\]\{([^}]*)\}\)",
+            text):
+        obj_const, item_body = m.group(1), m.group(2)
+        if obj_const not in obj_by_name:
+            raise SystemExit(f"unresolved ObjectID.{obj_const}")
+        item_ids = []
+        for tok in item_body.split(","):
+            tok = tok.strip()
+            if not tok:
+                continue
+            if not tok.startswith("ItemID."):
+                raise SystemExit(f"unexpected cape item token: {tok!r}")
+            const = tok[len("ItemID."):]
+            if const not in items_by_name:
+                raise SystemExit(f"unresolved ItemID.{const}")
+            item_ids.append(items_by_name[const])
+        mounts.append({"object": obj_by_name[obj_const], "items": item_ids})
+    if len(mounts) < 60:
+        raise SystemExit(f"cape hanger parsed only {len(mounts)} mounts")
+    return mounts, [29166]
+
+
 def read_enum(family, filename):
     with open(os.path.join(SRC_ROOT, family, filename), encoding="utf-8") as f:
         text = f.read()
@@ -206,9 +252,10 @@ def sentence_case(name):
     return re.sub(r"\(([a-z])", lambda m: "(" + m.group(1).upper(), out)
 
 
-def parse_poh(items_by_name, inv_by_name):
+def parse_poh(items_by_name, inv_by_name, obj_by_name):
     """PlayerOwnedHouse: NAME("Display", <container|-1>, "configKey", <list|null>)."""
     text = read_enum("playerownedhouse", "PlayerOwnedHouseStorageType.java")
+    cape_mounts, cape_clears = parse_cape_hanger(items_by_name, obj_by_name)
     storages = []
     for name, args in enum_constants(text):
         display = sentence_case(args[0].strip().strip('"'))
@@ -232,6 +279,11 @@ def parse_poh(items_by_name, inv_by_name):
         # the whole costume room shares POH_COSTUMES; attribute by allow-list
         if container == "POH_COSTUMES":
             entry["mode"] = "poh"
+        # cape hanger: object-spawn detection of the mounted cape
+        if config_key == "capeHanger":
+            entry["mode"] = "objectmount"
+            entry["mounts"] = cape_mounts
+            entry["clearObjects"] = cape_clears
         storages.append(entry)
     return storages
 
@@ -306,9 +358,10 @@ def main():
     ensure_source()
     items_by_name = gameval_item_ids()
     inv_by_name = gameval_inventory_ids()
+    obj_by_name = gameval_object_ids()
 
     storages = []
-    storages += parse_poh(items_by_name, inv_by_name)
+    storages += parse_poh(items_by_name, inv_by_name, obj_by_name)
     for family in FAMILY_SPEC:
         storages += parse_family(family, inv_by_name)
 
