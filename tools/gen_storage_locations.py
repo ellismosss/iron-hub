@@ -101,6 +101,26 @@ def gameval_inventory_ids():
             re.finditer(r"public static final int (\w+) = (-?\d+);", dump)}
 
 
+def _javap_constants(cls):
+    jars = [j for j in glob.glob(os.path.expanduser(
+        "~/.gradle/caches/modules-2/files-2.1/net.runelite/runelite-api/*/*/"
+        "runelite-api-*.jar")) if "sources" not in j and "javadoc" not in j]
+    if not jars:
+        raise SystemExit("no runelite-api jar in the Gradle cache — run a build first")
+    dump = subprocess.run(
+        ["javap", "-classpath", sorted(jars)[-1], "-constants", cls],
+        capture_output=True, text=True, check=True).stdout
+    return {m.group(1): int(m.group(2)) for m in
+            re.finditer(r"public static final int (\w+) = (-?\d+);", dump)}
+
+
+def gameval_varbit_ids():
+    """gameval VarbitID + VarPlayerID constant NAME -> id."""
+    out = _javap_constants("net.runelite.api.gameval.VarbitID")
+    out.update(_javap_constants("net.runelite.api.gameval.VarPlayerID"))
+    return out
+
+
 def gameval_object_ids():
     """gameval ObjectID + ObjectID1 constant NAME -> id, from the runelite-api jar."""
     jars = [j for j in glob.glob(os.path.expanduser(
@@ -354,16 +374,79 @@ def parse_family(family, inv_by_name):
     return storages
 
 
+COINS = 995  # every coins-family storage is a coins balance
+
+# curated tables extracted from the DWMS Storage subclasses (tools/
+# dwms-storage-tables.json — every constant copied verbatim from source, so
+# the javap resolution below fail-fasts on any drift). This pass wires the
+# storages the module can drive generically: static (varbit-per-item, offset
+# 0), index (one varbit -> item array), and coin varbit balances. slots
+# (rune/bolt/quiver), special (vyre well, leprechaun) and the bespoke
+# chat/widget scrapers land with their own hooks in later slices.
+def apply_detection_tables(storages, varbit_by_name, items_by_name):
+    with open(os.path.join(HERE, "dwms-storage-tables.json"), encoding="utf-8") as f:
+        tables = json.load(f)
+    by_id = {(s["family"], s["key"]): s for s in storages}
+
+    def resolve_item(const):
+        if const not in items_by_name:
+            raise SystemExit(f"unresolved ItemID.{const}")
+        return items_by_name[const]
+
+    def resolve_varbit(const):
+        if const not in varbit_by_name:
+            raise SystemExit(f"unresolved VarbitID/VarPlayerID.{const}")
+        return varbit_by_name[const]
+
+    wired = 0
+    for family in ("carryable", "world"):
+        for key, spec in tables.get(family, {}).items():
+            if key.startswith("_"):
+                continue
+            key = spec.get("configKey", key)  # the enum's real config key
+            storage = by_id.get((family, key))
+            if storage is None:
+                raise SystemExit(f"detection table has no registry storage: {family}:{key}")
+            if spec["shape"] == "static" and spec.get("varbitItemOffset", 0) == 0:
+                storage["mode"] = "varbits"
+                storage["varbitItems"] = [
+                    {"varbit": resolve_varbit(s["varbit"]), "itemId": resolve_item(s["item"])}
+                    for s in spec["slots"]]
+                wired += 1
+            elif spec["shape"] == "index":
+                storage["mode"] = "varbitindex"
+                storage["indexVarbit"] = resolve_varbit(spec["indexVarbit"])
+                storage["indexItems"] = [resolve_item(c) for c in spec["array"]]
+                wired += 1
+
+    for key, spec in tables.get("coins", {}).items():
+        if key.startswith("_") or spec.get("source") != "varbit":
+            continue
+        storage = by_id.get(("coins", key))
+        if storage is None:
+            raise SystemExit(f"coins detection table has no registry storage: coins:{key}")
+        storage["mode"] = "varbits"
+        storage["varbitItems"] = [{
+            "varbit": resolve_varbit(spec["varbit"]),
+            "itemId": COINS,
+            "multiplier": int(spec.get("multiplier", 1)),
+        }]
+        wired += 1
+    return wired
+
+
 def main():
     ensure_source()
     items_by_name = gameval_item_ids()
     inv_by_name = gameval_inventory_ids()
     obj_by_name = gameval_object_ids()
+    varbit_by_name = gameval_varbit_ids()
 
     storages = []
     storages += parse_poh(items_by_name, inv_by_name, obj_by_name)
     for family in FAMILY_SPEC:
         storages += parse_family(family, inv_by_name)
+    wired = apply_detection_tables(storages, varbit_by_name, items_by_name)
 
     # sanity asserts — the POH costume room, byte-faithful to the source
     keys = {s["key"] for s in storages}
@@ -408,11 +491,10 @@ def main():
         json.dump(pack, f, indent=1)
         f.write("\n")
 
-    poh = sum(1 for s in storages if s["family"] == "playerownedhouse")
-    allow = sum(1 for s in storages if s.get("items"))
-    cont = sum(1 for s in storages if s.get("mode") == "container")
-    print(f"wrote {os.path.relpath(OUT, HERE)}: {len(storages)} storages "
-          f"({poh} POH, {allow} allow-lists, {cont} container-mode)")
+    from collections import Counter
+    modes = Counter(s.get("mode", "—") for s in storages)
+    print(f"wrote {os.path.relpath(OUT, HERE)}: {len(storages)} storages; "
+          f"modes {dict(modes)}; {wired} wired from detection tables")
 
 
 if __name__ == "__main__":

@@ -53,11 +53,27 @@ public class StorageLocationsPack
 		public List<Mount> mounts;
 		/** object ids whose spawn means the storage is empty (empty hanger). */
 		public List<Integer> clearObjects;
+		/** varbit-static detection (mode == "varbits"): each item's quantity is
+		 *  read from its varbit (plank sack, blast furnace, fossil storage). */
+		public List<VarbitItem> varbitItems;
+		/** varbit-index detection (mode == "varbitindex"): one varbit's value
+		 *  indexes this item-id array (0/negative = empty; pickaxe statue). */
+		public int indexVarbit;
+		public List<Integer> indexItems;
 	}
 
 	public static class Mount
 	{
 		public int object;
 		public List<Integer> items;
+	}
+
+	public static class VarbitItem
+	{
+		public int varbit;
+		public int itemId;
+		/** quantity = varbit value × multiplier (default 1). Lets one mode
+		 *  cover item stacks, coin balances (×1000 etc.) and point icons. */
+		public int multiplier = 1;
 	}
 }

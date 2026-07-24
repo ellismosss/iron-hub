@@ -2681,7 +2681,38 @@
    "id": "carryable:plankSack",
    "family": "carryable",
    "key": "plankSack",
-   "name": "Plank Sack"
+   "name": "Plank Sack",
+   "mode": "varbits",
+   "varbitItems": [
+    {
+     "varbit": 18171,
+     "itemId": 960
+    },
+    {
+     "varbit": 18172,
+     "itemId": 8778
+    },
+    {
+     "varbit": 18173,
+     "itemId": 8780
+    },
+    {
+     "varbit": 18174,
+     "itemId": 8782
+    },
+    {
+     "varbit": 18175,
+     "itemId": 31432
+    },
+    {
+     "varbit": 18176,
+     "itemId": 31435
+    },
+    {
+     "varbit": 18177,
+     "itemId": 31438
+    }
+   ]
   },
   {
    "id": "carryable:boltpouch",
@@ -2699,7 +2730,82 @@
    "id": "carryable:masterscrollbook",
    "family": "carryable",
    "key": "masterscrollbook",
-   "name": "Master Scroll Book"
+   "name": "Master Scroll Book",
+   "mode": "varbits",
+   "varbitItems": [
+    {
+     "varbit": 5672,
+     "itemId": 12402
+    },
+    {
+     "varbit": 5673,
+     "itemId": 12403
+    },
+    {
+     "varbit": 5674,
+     "itemId": 12404
+    },
+    {
+     "varbit": 5675,
+     "itemId": 12405
+    },
+    {
+     "varbit": 5676,
+     "itemId": 12406
+    },
+    {
+     "varbit": 5677,
+     "itemId": 12407
+    },
+    {
+     "varbit": 5678,
+     "itemId": 12408
+    },
+    {
+     "varbit": 5679,
+     "itemId": 12409
+    },
+    {
+     "varbit": 5680,
+     "itemId": 12410
+    },
+    {
+     "varbit": 5681,
+     "itemId": 12411
+    },
+    {
+     "varbit": 5682,
+     "itemId": 12642
+    },
+    {
+     "varbit": 5683,
+     "itemId": 12938
+    },
+    {
+     "varbit": 5684,
+     "itemId": 13249
+    },
+    {
+     "varbit": 6056,
+     "itemId": 21802
+    },
+    {
+     "varbit": 8253,
+     "itemId": 23387
+    },
+    {
+     "varbit": 10967,
+     "itemId": 29684
+    },
+    {
+     "varbit": 10995,
+     "itemId": 29782
+    },
+    {
+     "varbit": 11029,
+     "itemId": 30040
+    }
+   ]
   },
   {
    "id": "carryable:huntsmanskit",
@@ -2753,7 +2859,14 @@
    "id": "carryable:bowStringSpool",
    "family": "carryable",
    "key": "bowStringSpool",
-   "name": "Bow String Spool"
+   "name": "Bow String Spool",
+   "mode": "varbits",
+   "varbitItems": [
+    {
+     "varbit": 17291,
+     "itemId": 1777
+    }
+   ]
   },
   {
    "id": "coins:bank",
@@ -2767,13 +2880,29 @@
    "id": "coins:nightmarezone",
    "family": "coins",
    "key": "nightmarezone",
-   "name": "Nightmare Zone"
+   "name": "Nightmare Zone",
+   "mode": "varbits",
+   "varbitItems": [
+    {
+     "varbit": 3948,
+     "itemId": 995,
+     "multiplier": 1000
+    }
+   ]
   },
   {
    "id": "coins:lastmanstanding",
    "family": "coins",
    "key": "lastmanstanding",
-   "name": "Last Man Standing"
+   "name": "Last Man Standing",
+   "mode": "varbits",
+   "varbitItems": [
+    {
+     "varbit": 5305,
+     "itemId": 995,
+     "multiplier": 1000
+    }
+   ]
   },
   {
    "id": "coins:servantsmoneybag",
@@ -2785,7 +2914,15 @@
    "id": "coins:blastfurnace",
    "family": "coins",
    "key": "blastfurnace",
-   "name": "Blast Furnace"
+   "name": "Blast Furnace",
+   "mode": "varbits",
+   "varbitItems": [
+    {
+     "varbit": 5357,
+     "itemId": 995,
+     "multiplier": 1
+    }
+   ]
   },
   {
    "id": "coins:inventory",
@@ -2825,7 +2962,15 @@
    "id": "coins:managingMiscellania",
    "family": "coins",
    "key": "managingMiscellania",
-   "name": "Managing Miscellania"
+   "name": "Managing Miscellania",
+   "mode": "varbits",
+   "varbitItems": [
+    {
+     "varbit": 74,
+     "itemId": 995,
+     "multiplier": 1
+    }
+   ]
   },
   {
    "id": "coins:scarEssenceMine",
@@ -3012,7 +3157,78 @@
    "id": "world:blastfurnace",
    "family": "world",
    "key": "blastfurnace",
-   "name": "Blast Furnace"
+   "name": "Blast Furnace",
+   "mode": "varbits",
+   "varbitItems": [
+    {
+     "varbit": 959,
+     "itemId": 436
+    },
+    {
+     "varbit": 950,
+     "itemId": 438
+    },
+    {
+     "varbit": 951,
+     "itemId": 440
+    },
+    {
+     "varbit": 949,
+     "itemId": 453
+    },
+    {
+     "varbit": 952,
+     "itemId": 447
+    },
+    {
+     "varbit": 953,
+     "itemId": 449
+    },
+    {
+     "varbit": 954,
+     "itemId": 451
+    },
+    {
+     "varbit": 956,
+     "itemId": 442
+    },
+    {
+     "varbit": 955,
+     "itemId": 444
+    },
+    {
+     "varbit": 941,
+     "itemId": 2349
+    },
+    {
+     "varbit": 942,
+     "itemId": 2351
+    },
+    {
+     "varbit": 943,
+     "itemId": 2353
+    },
+    {
+     "varbit": 944,
+     "itemId": 2359
+    },
+    {
+     "varbit": 945,
+     "itemId": 2361
+    },
+    {
+     "varbit": 946,
+     "itemId": 2363
+    },
+    {
+     "varbit": 948,
+     "itemId": 2355
+    },
+    {
+     "varbit": 947,
+     "itemId": 2357
+    }
+   ]
   },
   {
    "id": "world:logstorage",
@@ -3024,7 +3240,130 @@
    "id": "world:fossilstorage",
    "family": "world",
    "key": "fossilstorage",
-   "name": "Fossil Storage"
+   "name": "Fossil Storage",
+   "mode": "varbits",
+   "varbitItems": [
+    {
+     "varbit": 5828,
+     "itemId": 21562
+    },
+    {
+     "varbit": 5829,
+     "itemId": 21564
+    },
+    {
+     "varbit": 5830,
+     "itemId": 21566
+    },
+    {
+     "varbit": 5831,
+     "itemId": 21568
+    },
+    {
+     "varbit": 5832,
+     "itemId": 21570
+    },
+    {
+     "varbit": 5833,
+     "itemId": 21572
+    },
+    {
+     "varbit": 5834,
+     "itemId": 21574
+    },
+    {
+     "varbit": 5835,
+     "itemId": 21576
+    },
+    {
+     "varbit": 5836,
+     "itemId": 21578
+    },
+    {
+     "varbit": 5837,
+     "itemId": 21580
+    },
+    {
+     "varbit": 5838,
+     "itemId": 21582
+    },
+    {
+     "varbit": 5839,
+     "itemId": 21584
+    },
+    {
+     "varbit": 5840,
+     "itemId": 21586
+    },
+    {
+     "varbit": 5841,
+     "itemId": 21588
+    },
+    {
+     "varbit": 5842,
+     "itemId": 21600
+    },
+    {
+     "varbit": 5843,
+     "itemId": 21602
+    },
+    {
+     "varbit": 5844,
+     "itemId": 21604
+    },
+    {
+     "varbit": 5845,
+     "itemId": 21606
+    },
+    {
+     "varbit": 5846,
+     "itemId": 21608
+    },
+    {
+     "varbit": 5847,
+     "itemId": 21590
+    },
+    {
+     "varbit": 5848,
+     "itemId": 21592
+    },
+    {
+     "varbit": 5849,
+     "itemId": 21594
+    },
+    {
+     "varbit": 5850,
+     "itemId": 21596
+    },
+    {
+     "varbit": 5851,
+     "itemId": 21598
+    },
+    {
+     "varbit": 5852,
+     "itemId": 21610
+    },
+    {
+     "varbit": 5853,
+     "itemId": 21612
+    },
+    {
+     "varbit": 5854,
+     "itemId": 21614
+    },
+    {
+     "varbit": 5855,
+     "itemId": 21616
+    },
+    {
+     "varbit": 5856,
+     "itemId": 21618
+    },
+    {
+     "varbit": 5952,
+     "itemId": 21620
+    }
+   ]
   },
   {
    "id": "world:vyrewell",
@@ -3044,7 +3383,14 @@
    "id": "world:annette",
    "family": "world",
    "key": "annette",
-   "name": "Annette"
+   "name": "Annette",
+   "mode": "varbits",
+   "varbitItems": [
+    {
+     "varbit": 243,
+     "itemId": 21652
+    }
+   ]
   },
   {
    "id": "world:elnock",
@@ -3056,7 +3402,28 @@
    "id": "world:pickaxestatue",
    "family": "world",
    "key": "pickaxestatue",
-   "name": "Pickaxe Statue"
+   "name": "Pickaxe Statue",
+   "mode": "varbitindex",
+   "indexVarbit": 14440,
+   "indexItems": [
+    1265,
+    1267,
+    1269,
+    12297,
+    1273,
+    1271,
+    1275,
+    23276,
+    11920,
+    12797,
+    23677,
+    25376,
+    13243,
+    25063,
+    23680,
+    23682,
+    20014
+   ]
   },
   {
    "id": "world:nulodion",

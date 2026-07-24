@@ -176,13 +176,7 @@ public class WheresMyStuffModule implements IronHubModule
 		StorageLocationsPack.Storage def = containerStorage(containerId);
 		if (def != null)
 		{
-			Map<Integer, Integer> contents = readContainer(event.getItemContainer());
-			if (contents.isEmpty() && !state.getStorageContents().containsKey(def.id))
-			{
-				return; // never-seen + empty stays silent
-			}
-			state.putStorageContents(def.id, def.name, def.family, label(def),
-				contents, resolveNames(contents.keySet()), now);
+			commit(def, readContainer(event.getItemContainer()), now);
 		}
 	}
 
@@ -221,20 +215,83 @@ public class WheresMyStuffModule implements IronHubModule
 				continue; // this object isn't a mount or clear for this storage
 			}
 			// a mount replaces the storage's contents (one cape at a time); the
-			// empty-hanger object clears it — but a never-seen empty stays silent
-			if (stored.isEmpty() && !state.getStorageContents().containsKey(s.id))
-			{
-				return;
-			}
+			// empty-hanger object clears it
 			Map<Integer, Integer> items = new HashMap<>();
 			for (int id : stored)
 			{
 				items.put(id, 1);
 			}
-			state.putStorageContents(s.id, s.name, s.family, label(s),
-				items, resolveNames(items.keySet()), System.currentTimeMillis());
+			commit(s, items, System.currentTimeMillis());
 			return;
 		}
+	}
+
+	// ── varbit-driven detection (varbit-static + varbit-index) ────────
+
+	@Subscribe
+	public void onVarbitChanged(net.runelite.api.events.VarbitChanged event)
+	{
+		if (pack == null || client == null)
+		{
+			return;
+		}
+		int changed = event.getVarbitId();
+		long now = System.currentTimeMillis();
+		for (StorageLocationsPack.Storage s : pack.storages)
+		{
+			if ("varbits".equals(s.mode) && touchesVarbits(s, changed))
+			{
+				Map<Integer, Integer> items = new HashMap<>();
+				for (StorageLocationsPack.VarbitItem vi : s.varbitItems)
+				{
+					int mult = vi.multiplier == 0 ? 1 : vi.multiplier;
+					int qty = client.getVarbitValue(vi.varbit) * mult;
+					if (qty > 0)
+					{
+						items.merge(vi.itemId, qty, Integer::sum);
+					}
+				}
+				commit(s, items, now);
+			}
+			else if ("varbitindex".equals(s.mode) && s.indexVarbit == changed)
+			{
+				Map<Integer, Integer> items = new HashMap<>();
+				int idx = client.getVarbitValue(s.indexVarbit);
+				if (idx > 0 && idx < s.indexItems.size())
+				{
+					int itemId = s.indexItems.get(idx);
+					if (itemId > 0)
+					{
+						items.put(itemId, 1);
+					}
+				}
+				commit(s, items, now);
+			}
+		}
+	}
+
+	private static boolean touchesVarbits(StorageLocationsPack.Storage s, int varbit)
+	{
+		for (StorageLocationsPack.VarbitItem vi : s.varbitItems)
+		{
+			if (vi.varbit == varbit)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** Shared commit: never-seen + empty stays silent, otherwise write the
+	 *  snapshot with client-thread-resolved names. */
+	private void commit(StorageLocationsPack.Storage def, Map<Integer, Integer> items, long now)
+	{
+		if (items.isEmpty() && !state.getStorageContents().containsKey(def.id))
+		{
+			return;
+		}
+		state.putStorageContents(def.id, def.name, def.family, label(def),
+			items, resolveNames(items.keySet()), now);
 	}
 
 	/** For an object-mount storage: the items a spawned object id means are

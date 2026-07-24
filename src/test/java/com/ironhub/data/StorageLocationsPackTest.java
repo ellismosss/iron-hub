@@ -95,6 +95,33 @@ public class StorageLocationsPackTest
 		assertTrue(byKey("boat1").containerId > 0);
 	}
 
+	/** Varbit-driven storages wired from the detection tables resolved to real
+	 *  varbit + item ids; coins carry the ×multiplier and are item 995. */
+	@Test
+	public void varbitStoragesResolveToRealIds()
+	{
+		StorageLocationsPack.Storage plank = byKey("plankSack");
+		assertEquals("varbits", plank.mode);
+		assertFalse(plank.varbitItems.isEmpty());
+		for (StorageLocationsPack.VarbitItem vi : plank.varbitItems)
+		{
+			assertTrue(vi.varbit > 0);
+			assertTrue(vi.itemId > 0);
+		}
+
+		StorageLocationsPack.Storage pickaxe = byKey("pickaxestatue");
+		assertEquals("varbitindex", pickaxe.mode);
+		assertTrue(pickaxe.indexVarbit > 0);
+		assertFalse(pickaxe.indexItems.isEmpty());
+
+		// a coins balance: NMZ cash × 1000, item id 995
+		StorageLocationsPack.Storage nmz = pack.storages.stream()
+			.filter(s -> s.id.equals("coins:nightmarezone")).findFirst().orElseThrow();
+		assertEquals("varbits", nmz.mode);
+		assertEquals(995, nmz.varbitItems.get(0).itemId);
+		assertEquals(1000, nmz.varbitItems.get(0).multiplier);
+	}
+
 	private StorageLocationsPack.Storage byKey(String key)
 	{
 		return pack.storages.stream().filter(s -> s.key.equals(key)).findFirst().orElse(null);
