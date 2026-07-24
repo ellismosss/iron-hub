@@ -834,25 +834,59 @@ visiting a friend's costume room isn't a real risk (its container doesn't
 populate for you), but bespoke object-spawn storages (cape hanger) DO reset
 on a friend's house — a known limitation, not a bug to "fix".
 
-**Two more generic modes drive the pack, no per-storage Java:** `mode:
-"container"` = a plain `ItemContainerChanged` read (the whole container IS the
-storage — carryable sub-containers, the five sailing boat holds, Death's
-office; bank/inventory/worn are never listed, AccountState owns them), and
-`mode: "objectmount"` = the cape hanger, whose mounted-cape `GameObjectSpawned`
-(76 `ObjectID.POH_MOUNTED_*` → [cape, hood], resolved via javap) means that
-cape is stored — object 29166 (the empty hanger) clears it. Every storage
-carries a globally-unique `id` ("family:key") because config keys collide
-across families ("bank" is both a coins and a world storage) and the snapshot
-map is keyed by it.
+**Seven pack-driven generic modes, no per-storage Java** (every storage
+carries a globally-unique `id` = "family:key", the snapshot map key — config
+keys collide across families, "bank" is both coins and world):
+- `container` — a plain `ItemContainerChanged` read (the whole container IS the
+  storage: carryable sub-containers, the five boat holds, Death's office,
+  GRAVESTONE[525], group storage, seed vault; bank/inv/worn are never listed,
+  AccountState owns them).
+- `objectmount` — the cape hanger: a mounted-cape `GameObjectSpawned` (76
+  `ObjectID.POH_MOUNTED_*` → [cape, hood]) means that cape is stored; object
+  29166 (the empty hanger) clears it.
+- `varbits` — qty = varbit value × multiplier per item, with an optional
+  display-name override and a `varp` flag, so ONE mode covers item bags (plank
+  sack, blast furnace, fossil), coin balances (NMZ/LMS × 1000), minigame
+  points (Slayer/Tithe/…, "Points" over an icon item) and Vyre Well (blood
+  runes = the vial varbit × 200).
+- `varbitindex` — one varbit's value indexes an item-id array (pickaxe statue).
+- `slots` — N (type, count) slots; the type resolves to an item id via a game
+  enum (rune pouch, `EnumID.RUNEPOUCH_RUNE` 982), an array (bolt pouch) or the
+  value directly (Dizana's quiver, a VarPlayer).
+- `compute` — per-item derived formulas (Tool Leprechaun's 12 tools, Elnock):
+  sum (Σ varbit×mult), variant (a sum whose id swaps on a flag varbit), index,
+  type. Curated from the reference's overrides in `tools/dwms-storage-tables.json`.
 
-Menagerie (pets, `client.getEnum(985)` + varp bitfields) and SpiceRack
-(chat/widget state machine) are separate mechanisms ported in later slices;
-the varbit-static carryables (rune/bolt/plank/scroll/spool pouches), the
-world varbit reads, coins scrapers, STASH, and death capture (the DyingState
-machine — distinct from the existing Death recovery module, which owns reclaim
-location/path) each land with their own hooks. Storages without a mode appear
-in the registry but aren't auto-detected yet — honest: an unseen storage stays
-silent.
+The `gameval` constants above are all resolved via javap against the client
+jar (fail-fast) — **the OLD ItemID/VarbitID name tables (itemids.txt) are
+LEGACY names and won't resolve gameval; use the gameval classes.**
+
+**STASH** is the whole 119-unit family, but detected by REUSE, not a DWMS
+port: Iron Hub already tracks fills (ClueStashModule), so an AccountState
+listener mirrors `getStashFilled()` into per-unit snapshots whose contents are
+the unit's emote-clue item reqs (from the clue-steps pack) — the map itself
+advised replacing DWMS's cluescrolls-coupled detection with your own data.
+
+**The widget / chat / inventory-diff scrapers** (24 storages — world
+log/forestry/sandstorm/potion/compost/nest, carryable bottomless-bucket/
+firelighter/herb-sack, coins GE/servant/shilo/bounty/scar, 9 minigames, POH
+menagerie[`getEnum(985)`]/spice-rack) live in an ISOLATED companion
+`WheresMyStuffScrapers`, registered on the eventBus and driven by a `Sink`
+back to the module's commit path. Ported byte-faithful (widget ids + chat
+regexes copied verbatim; the reference's `Var` helpers → direct
+`getVarbitValue`/`getVarpValue`, its `ItemContainerWatcher` → an inner
+GameTick-polled `Watcher`). **Because they read raw interface widgets, they
+want an in-client pass to confirm the ids** — the port-then-live-verify
+workflow. Nulodion (cannon parts) + Eyatlalli (cold-storage weapon) are
+chat-driven in the module itself.
+
+**PARKED (honest silence, an unseen storage never renders):** death
+deathpile/deathbank (the UIM ground-item scanner + DyingState machine — too
+coupled, and your gravestone contents are already captured via the container
+read; distinct from the existing Death recovery module, which owns reclaim
+location/path). Two deviations: Mastering Mixology resins (sprite currencies,
+no item id the id-keyed sink can hold) and CompostBins (summed across regions,
+the single-map sink can't carry a per-region breakdown).
 
 ## Combat style & autocast naming (module: loadoutlab, pack: weapon-styles.json)
 
