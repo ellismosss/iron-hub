@@ -90,8 +90,12 @@ public class PohModule implements IronHubModule
 	private final Map<Long, Set<Integer>> pendingByRoom = new HashMap<>();
 	/** A sweep is due; drained on the next tick so a scene load costs one. */
 	private boolean sweepQueued;
-	/** Whether this scene has been swept at least once (reset on every load). */
+	/** Whether this scene has been swept to a useful result (reset on load). */
 	private boolean sweptThisScene;
+	/** Consecutive sweeps that saw nothing, so an empty house stops re-reading
+	 *  ~43k tiles every tick while a still-loading scene still gets retried. */
+	private int emptySweeps;
+	private static final int MAX_EMPTY_SWEEPS = 5;
 
 	// Diagnostics, written on the client thread and shown in the tab while
 	// nothing is marked. Three rounds of "it still doesn't work" were spent
@@ -170,6 +174,7 @@ public class PohModule implements IronHubModule
 		pendingByRoom.clear();
 		sweepQueued = false;
 		sweptThisScene = false;
+		emptySweeps = 0;
 		if (tab != null)
 		{
 			tab.dispose();
@@ -227,6 +232,7 @@ public class PohModule implements IronHubModule
 		{
 			pendingByRoom.clear();
 			sweptThisScene = false;
+			emptySweeps = 0;
 		}
 		if (event.getGameState() == GameState.LOGGED_IN)
 		{
@@ -291,6 +297,7 @@ public class PohModule implements IronHubModule
 			// toggling it reloads the scene (which would reset sweptThisScene)
 			// is not something this can verify, so it must not depend on it.
 			sweptThisScene = !building && sweptThisScene;
+			emptySweeps = 0;
 			diagBuildingMode = building;
 			publishDiagnostics();
 		}
@@ -303,9 +310,17 @@ public class PohModule implements IronHubModule
 			return;
 		}
 		sweepQueued = false;
-		sweptThisScene = true;
 		scanHouse();
 		commitPending();
+		// Only stop re-sweeping once a sweep has actually SEEN something. The
+		// first tick after a scene load can land before the scene is
+		// populated, and latching on that leaves an empty house until some
+		// spawn happens to queue another sweep. Bounded, because a sweep reads
+		// the whole scene and a genuinely empty one must not do that forever.
+		if (diagObjects > 0 || ++emptySweeps >= MAX_EMPTY_SWEEPS)
+		{
+			sweptThisScene = true;
+		}
 		publishDiagnostics();
 	}
 

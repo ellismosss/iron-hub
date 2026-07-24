@@ -199,6 +199,34 @@ public class PohModuleTest
 		module.shutDown();
 	}
 
+	/**
+	 * A sweep that lands before the scene is populated must not latch. The
+	 * first tick after a load can read an empty scene, and treating that as
+	 * "swept" left the house blank until some spawn happened to queue another
+	 * one — an empty grid with no explanation, which is the exact failure this
+	 * whole module has already been reported for twice.
+	 */
+	@Test
+	public void anEmptySweepIsRetriedRatherThanLatched()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+
+		// the scene the client hands back on the first tick: still empty
+		net.runelite.api.Tile[][][] tiles = new net.runelite.api.Tile[1][1][1];
+		PohModule module = moduleWithScene(state, tiles, 1);
+		module.startUp();
+		module.onGameTick(new net.runelite.api.events.GameTick());
+		assertFalse(state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
+
+		// the scene populates a tick later, with no spawn event to prompt us
+		tiles[0][0][0] = tile(0, new int[]{6752}, 0, 0, 0);
+		module.onGameTick(new net.runelite.api.events.GameTick());
+		assertTrue("the retry must pick the furniture up",
+			state.isPohBuilt("parlour__chairs:crude_wooden_chair"));
+		module.shutDown();
+	}
+
 	private PohModule moduleWithScene(AccountState state,
 		net.runelite.api.Tile[][][] tiles, int buildingMode)
 	{
