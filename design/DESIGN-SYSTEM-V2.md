@@ -5,8 +5,10 @@ the same idea got drawn several ways across 27 modules, and each new surface nee
 another round of tweaks to look like its neighbours. V2 replaces judgement with
 rules, and rules with tests.
 
-**Status:** the atoms are built and presented in **Design lab V2**. *No module is
-migrated until Luke says he is 100% happy with the atoms* (his gate, 2026-07-24).
+**Status (2026-07-25):** all 31 atoms are built, enforced by `V2RulesTest`, and
+presented in **Design lab V2** (the Design lab's first view; a chip switches back
+to the V1 atoms). *No module is migrated until Luke says he is 100% happy with the
+atoms* — his gate, 2026-07-24.
 
 ---
 
@@ -252,35 +254,33 @@ widens to each tab as it migrates, so the rules can't rot ahead of the code.
 
 ## 12. The atoms
 
-| Atom | Sprites | States |
-|---|---|---|
-| `Frame` | `bottom_line_mode_side_panel_*` | — |
-| `Card` | `enter_wilderness_teleport` | plain, hovered |
-| `Well` | `equipment_metal_corner_*`, `equipment_edge_*` | plain, hovered |
-| `Divider` | `bottom_line_mode_edge_horizontal` | — |
-| `Label` | — (text) | heading, body, value, detail, faint |
-| `WrappedText` | — (text) | as Label |
-| `Button` | `regular_large`, `regular_small` | plain |
-| `IconButton` | `button`, `unknown_square_small`, `options_square` | plain, hovered, selected |
-| `UtilityButton` | `wrench`, `help`, `menu`, `close_small`, `cancel_button` | plain, hovered |
-| `Stepper` | `increment_button`, `decrement_button`, `plus`, `minus` | plain, hovered |
-| `ArrowButton` | `ui/arrows/*` | plain, hovered |
-| `WikiButton` | `icons/wiki/*` | deselected, selected |
-| `Checkbox` | `square_bordered_checkbox` | off, on, locked, disabled |
-| `ChipRow` | Card slice | unselected, selected |
-| `Tab` | `tag_tab`, `tag_tab_active` | plain, active |
-| `Tile` | `options_square`, `slot_tile`, `unknown_square_small` | plain, selected |
-| `ItemSlot` | `icons/equipment/slot_*` | empty, filled, selected |
-| `StatusGlyph` | `checkmark_*`, `red_cross_*` | done, blocked |
-| `Lock` | `icons/padlock` | — |
-| `Star` | `icons/star/*` | off, on, hovered |
-| `ProgressBar` | `progress_bar_grey`, `progress_bar_green` | — |
-| `Chevron` | `icons/chevron/*` | 4 directions, 4 colours |
-| `SortArrow` | `list_sorting_arrow_*` | ascending, descending |
-| `Hero` | Card slice + `Label` | — |
-| `Table` | — (layout) | — |
-| `EmptyState` | `Label` | empty, unknown |
-| `TextField` | Well + `search_1` | idle, focused |
-| `Dropdown` | Button + chevron | closed, open |
-| `ScrollBar` | Well + Card + arrows | — |
-| `Tooltip` | Card + `Label` | — |
+All in `com.ironhub.ui.v2`, all shown in **Design lab V2**.
+
+| Class | Covers | Sprites | States |
+|---|---|---|---|
+| `V2Surface` | Card, Well, Frame | `enter_wilderness_teleport` · `equipment_metal_corner_*` + `equipment_edge_*` · `bottom_line_mode_side_panel_*` | plain, hovered |
+| `V2Divider` | Divider | `..._side_panel_edge_horizontal` (rows 14..19 only) | — |
+| `V2Label` | Label, WrappedText | — (text) | heading, body, value, detail, faint, status |
+| `V2Layout` | columns, rows, gaps | — | — |
+| `V2Button` | Button | `regular_large` | plain (the art has no other) |
+| `V2SpriteButton` | IconButton, UtilityButton, Stepper, ArrowButton, WikiButton | `ui/buttons_square/*`, `ui/plus_minus/*`, `ui/arrows/*`, `icons/wiki/*`, `ui/buttons/*` | whatever `_hovered` / `_selected` the art has |
+| `V2Checkbox` | Checkbox | `square_bordered_checkbox` | off, on, locked, disabled, disabled-on |
+| `V2ChipRow` | ChipRow | Card slice | unselected, selected (lit art + orange label) |
+| `V2Tab` | Tab | `tag_tab`, `tag_tab_active` | plain, active |
+| `V2Tile` | Tile | Card slice + `checkmark_small` | plain, selected, owned |
+| `V2ItemSlot` | ItemSlot | `icons/equipment/slot_*` | empty, filled, selected |
+| `V2Glyph` | StatusGlyph, Lock, Star, Chevron, SortArrow | `ui/ticks/*`, `icons/padlock`, `icons/star/*`, `icons/chevron/*`, `list_sorting_arrow_*` | — (display only) |
+| `V2ProgressBar` | ProgressBar | `progress_bar_grey` + `progress_bar_green` | green only; NaN = empty trough |
+| `V2Hero` | Hero | Card + Label + ProgressBar | — |
+| `V2Table` | Table | — (layout) | `right()` for numeric columns |
+| `V2EmptyState` | EmptyState | Well + Label | empty, unknown |
+| `V2TextField` | TextField | Well + `search_1` | idle, typed |
+| `V2Dropdown` | Dropdown | Card + chevron | closed, open |
+| `V2ScrollBarUI` | ScrollBar | Well trough + Card thumb + arrows | — |
+| `V2Tooltip` | Tooltip | Card + Label | — |
+
+**Both a class and a rule:** `V2Layout` is the only way V2 code makes a column,
+a row or a gap. A bare `Box.createVerticalStrut` is CENTER-aligned, and BoxLayout
+aligns a column by making its children's alignment points coincide — so one
+centre-aligned child, even a zero-width spacer, shifts every left-aligned sibling.
+That bug pushed whole tile rows 56px right in the first render of Design lab V2.
