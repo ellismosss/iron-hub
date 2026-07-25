@@ -26,6 +26,9 @@ public class V2Surface extends JPanel
 {
 	private final OsrsTheme theme;
 	private final NineSlice slice;
+	/** Set instead of {@link #slice} for the well, whose art is not a
+	 *  nine-slice — it is the field texture, gridded in both directions. */
+	private final V2Well wellArt;
 	private NineSlice hovered;
 	private boolean hover;
 
@@ -46,11 +49,13 @@ public class V2Surface extends JPanel
 		return new V2Surface(theme, V2Tokens.card());
 	}
 
-	/** Border-only recess: framed lists, fields. Content reads on the panel
-	 *  backing, so a Well never fights the content the way a second fill does. */
+	/** The sunken well — framed lists, fields, tables. The same texture the
+	 *  game puts behind its own search boxes. */
 	public static V2Surface well(OsrsTheme theme)
 	{
-		return new V2Surface(theme, V2Tokens.well());
+		V2Surface surface = new V2Surface(theme, null, V2Tokens.well(),
+			V2Well.CAP + V2Tokens.PAD);
+		return surface;
 	}
 
 	/**
@@ -73,8 +78,14 @@ public class V2Surface extends JPanel
 
 	public V2Surface(OsrsTheme theme, NineSlice slice, int contentInset)
 	{
+		this(theme, slice, null, contentInset);
+	}
+
+	private V2Surface(OsrsTheme theme, NineSlice slice, V2Well wellArt, int contentInset)
+	{
 		this.theme = theme;
 		this.slice = slice;
+		this.wellArt = wellArt;
 		setOpaque(false);
 		setAlignmentX(LEFT_ALIGNMENT);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -85,7 +96,7 @@ public class V2Surface extends JPanel
 	 *  family has none — the system never invents one (§8). */
 	public V2Surface hoverable()
 	{
-		hovered = slice.variant("_hovered");
+		hovered = slice == null ? null : slice.variant("_hovered");
 		addMouseListener(new java.awt.event.MouseAdapter()
 		{
 			@Override
@@ -109,7 +120,7 @@ public class V2Surface extends JPanel
 	 *  reads, alongside its label going HEADING orange (§8). */
 	public void setLit(boolean lit)
 	{
-		if (hovered == null)
+		if (hovered == null && slice != null)
 		{
 			hovered = slice.variant("_hovered");
 		}
@@ -140,8 +151,15 @@ public class V2Surface extends JPanel
 	@Override
 	protected void paintComponent(Graphics g)
 	{
-		NineSlice art = hover && hovered != null ? hovered : slice;
-		art.paint((Graphics2D) g, theme, 0, 0, getWidth(), getHeight());
+		if (wellArt != null)
+		{
+			wellArt.paint((Graphics2D) g, theme, 0, 0, getWidth(), getHeight());
+		}
+		else
+		{
+			NineSlice art = hover && hovered != null ? hovered : slice;
+			art.paint((Graphics2D) g, theme, 0, 0, getWidth(), getHeight());
+		}
 		super.paintComponent(g);
 	}
 

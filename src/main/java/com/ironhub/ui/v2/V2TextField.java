@@ -37,7 +37,7 @@ public class V2TextField extends JPanel
 	private static final int HEIGHT = 20;
 
 	private final OsrsTheme theme;
-	private final V2Strip well = V2Tokens.field();
+	private final V2Well well = V2Tokens.well();
 	private final JTextField field = new JTextField();
 	private final String placeholder;
 
@@ -110,7 +110,7 @@ public class V2TextField extends JPanel
 	protected void paintComponent(Graphics g)
 	{
 		Graphics2D g2 = (Graphics2D) g;
-		well.paint(g2, theme, 0, (getHeight() - well.height()) / 2, getWidth());
+		well.paint(g2, theme, 0, 0, getWidth(), getHeight());
 		BufferedImage icon = V2Sprites.get(theme, SEARCH);
 		g2.drawImage(icon, V2Tokens.PAD, (getHeight() - icon.getHeight()) / 2, null);
 		super.paintComponent(g);

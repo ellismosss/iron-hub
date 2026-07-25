@@ -149,6 +149,30 @@ public final class V2Sprites
 		return "vanilla".equals(variant) ? "" : "_" + variant;
 	}
 
+	/**
+	 * The sprite with the pointer wash baked in, clipped to its OWN pixels.
+	 * Filling the component rectangle washed the transparent air around a
+	 * plus sign and outside a rounded square (Luke, 2026-07-25); SrcAtop over
+	 * a copy of the sprite lights only what the sprite actually draws.
+	 */
+	public static BufferedImage highlighted(OsrsTheme theme, String key)
+	{
+		String cacheKey = "hl/" + theme.spriteVariant() + "/" + key;
+		return CACHE.computeIfAbsent(cacheKey, k ->
+		{
+			BufferedImage art = get(theme, key);
+			BufferedImage lit = new BufferedImage(art.getWidth(), art.getHeight(),
+				BufferedImage.TYPE_INT_ARGB);
+			java.awt.Graphics2D g = lit.createGraphics();
+			g.drawImage(art, 0, 0, null);
+			g.setComposite(java.awt.AlphaComposite.SrcAtop);
+			g.setColor(V2Tokens.HIGHLIGHT);
+			g.fillRect(0, 0, art.getWidth(), art.getHeight());
+			g.dispose();
+			return Optional.of(lit);
+		}).orElse(null);
+	}
+
 	private static BufferedImage load(String path)
 	{
 		return CACHE.computeIfAbsent(path, key ->

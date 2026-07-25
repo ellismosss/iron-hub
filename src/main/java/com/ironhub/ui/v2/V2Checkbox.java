@@ -49,6 +49,7 @@ public class V2Checkbox extends JPanel
 	private final Box box;
 	private final OsrsLabel label;
 	private State state;
+	private boolean hover;
 
 	public V2Checkbox(OsrsTheme theme, String text, boolean checked, Runnable onToggle)
 	{
@@ -65,6 +66,20 @@ public class V2Checkbox extends JPanel
 		setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		addMouseListener(new MouseAdapter()
 		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				hover = true;
+				box.repaint();
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				hover = false;
+				box.repaint();
+			}
+
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
@@ -123,7 +138,10 @@ public class V2Checkbox extends JPanel
 		@Override
 		protected void paintComponent(Graphics g)
 		{
-			BufferedImage art = V2Sprites.get(theme, BOX + state.suffix);
+			String key = BOX + state.suffix;
+			boolean live = state == State.OFF || state == State.ON;
+			BufferedImage art = hover && live
+				? V2Sprites.highlighted(theme, key) : V2Sprites.get(theme, key);
 			g.drawImage(art, 0, (getHeight() - art.getHeight()) / 2, null);
 		}
 

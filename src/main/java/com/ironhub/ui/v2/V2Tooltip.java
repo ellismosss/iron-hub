@@ -3,7 +3,6 @@ package com.ironhub.ui.v2;
 import com.ironhub.ui.osrs.OsrsTheme;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import javax.swing.JComponent;
 import javax.swing.JToolTip;
 
@@ -19,13 +18,12 @@ import javax.swing.JToolTip;
  */
 public class V2Tooltip extends JToolTip
 {
-	/** Fits inside the 225px panel with the Card's insets — a tooltip floats
-	 *  free of the panel, but one that reads wider than the panel it explains
-	 *  looks like a different application. */
-	private static final int MAX_WIDTH = 180;
+	/** Narrow on purpose: a tooltip should cover as little as possible. */
+	private static final int MAX_WIDTH = 160;
+	/** The whole padding — a tooltip has no surface art to clear. */
+	private static final int PAD = V2Tokens.TIGHT;
 
 	private final OsrsTheme theme;
-	private final NineSlice card = V2Tokens.card();
 	private com.ironhub.ui.osrs.OsrsLabel body;
 
 	public V2Tooltip(OsrsTheme theme)
@@ -38,8 +36,7 @@ public class V2Tooltip extends JToolTip
 		// Design lab V2 sixty pixels right. Every V2 atom claims LEFT.
 		setAlignmentX(LEFT_ALIGNMENT);
 		setLayout(new java.awt.BorderLayout());
-		int inset = V2Tokens.SLICE_INSET + V2Tokens.PAD;
-		setBorder(new javax.swing.border.EmptyBorder(inset, inset, inset, inset));
+		setBorder(new javax.swing.border.EmptyBorder(PAD, PAD + 1, PAD, PAD + 1));
 	}
 
 	@Override
@@ -66,17 +63,22 @@ public class V2Tooltip extends JToolTip
 	}
 
 	/**
-	 * The Card, and nothing else. Deliberately does NOT call
-	 * {@code super.paintComponent}: that delegates to {@code BasicToolTipUI},
-	 * which draws the tip string itself in the look-and-feel's font at its
-	 * own origin — which rendered as a second copy of the text spilling out
-	 * of the card (the render caught it). The wrapped V2 label child is the
-	 * text, and it paints through {@code paintChildren}.
+	 * A filled rectangle with a 1px border, and nothing else (Luke,
+	 * 2026-07-25: "just draw a simple bordered rectangle using Detail font").
+	 * A tooltip covers what you are pointing at, so its job is to be small.
+	 *
+	 * <p>Deliberately does NOT call {@code super.paintComponent}: that
+	 * delegates to {@code BasicToolTipUI}, which draws the tip string itself
+	 * in the look-and-feel's font — a second copy of the text spilling out of
+	 * the box (the render caught it). The wrapped label child is the text.
 	 */
 	@Override
 	protected void paintComponent(Graphics g)
 	{
-		card.paint((Graphics2D) g, theme, 0, 0, getWidth(), getHeight());
+		g.setColor(theme.background);
+		g.fillRect(0, 0, getWidth(), getHeight());
+		g.setColor(theme.edgeDark);
+		g.drawRect(0, 0, getWidth() - 1, getHeight() - 1); // v2-exempt: 1px box
 	}
 
 	@Override
@@ -87,8 +89,7 @@ public class V2Tooltip extends JToolTip
 			return new Dimension(0, 0);
 		}
 		Dimension text = body.getPreferredSize();
-		int pad = 2 * (V2Tokens.SLICE_INSET + V2Tokens.PAD);
-		return new Dimension(text.width + pad, text.height + pad);
+		return new Dimension(text.width + 2 * PAD + 2, text.height + 2 * PAD);
 	}
 
 	/**

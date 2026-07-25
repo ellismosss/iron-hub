@@ -60,15 +60,21 @@ public final class V2Tokens
 	public static final int TILE_ICON = 22;
 	/** The corner size of the Card and Frame slices — structural, not spacing. */
 	public static final int SLICE_INSET = 9;
-	/** The notched slab's corner sprites are 6px. */
-	public static final int SLAB_INSET = 6;
-	/** {@code button.png}'s rounded corner. */
-	public static final int CHIP_INSET = 8;
+	/** The tan frame's corner sprites are 9px, mostly transparent margin. */
+	public static final int SLAB_INSET = 9;
+	/**
+	 * {@code button.png}'s rounded corner is exactly 5px — measured from its
+	 * alpha. Slicing at 8 cut past it and tiled the light inner bevel across
+	 * the whole face, which is the doubled-border glitch Luke screenshotted.
+	 */
+	public static final int CHIP_INSET = 5;
 	/** The field well's end caps are 4px wide. */
 	public static final int FIELD_INSET = 4;
 	/** The bar frame's corner sprites are 9px, but only ~2px of that is ink —
 	 *  the rest is the transparent margin the game leaves around a bar. */
 	public static final int BAR_FRAME_INSET = 9;
+	/** The nav stone's chamfer. */
+	public static final int NAV_STONE_INSET = 8;
 	/** Utility buttons all render in one cell so a row of them lines up
 	 *  (Luke, 2026-07-25) — the art itself varies from 16px to 21px. */
 	public static final int UTILITY_CELL = 22;
@@ -101,7 +107,7 @@ public final class V2Tokens
 	 * treatment that works on every sprite in the set regardless of its
 	 * colour. Everything else is still art.
 	 */
-	public static final Color HIGHLIGHT = new Color(255, 255, 255, 38);
+	public static final Color HIGHLIGHT = new Color(255, 255, 255, 20);
 
 	// ── type: five roles ──────────────────────────────────────────────
 
@@ -133,8 +139,11 @@ public final class V2Tokens
 	 */
 	public static NineSlice slab()
 	{
-		return NineSlice.pieces("ui/buttons/corner_%s", "ui/buttons/edge_%s",
-			"ui/buttons/middle", SLAB_INSET);
+		// The thin tan frame, not the options-button rail: that rail is the
+		// grey speckled border Luke called ugly, and its middle was the grey
+		// tiled background. This is a 1px line — the Design lab header look.
+		return NineSlice.frame("ui/borders/tan_border_corner_%s",
+			"ui/borders/tan_border_%s", SLAB_INSET);
 	}
 
 	/** Filled surface at any size: Card, Tab body, Tooltip. */
@@ -155,28 +164,45 @@ public final class V2Tokens
 	}
 
 	/**
-	 * The game's own sunken field well (the one behind every Filters dropdown
-	 * and search box). A three-piece horizontal strip, not a nine-slice: it
-	 * has a fixed height and stretches sideways only.
+	 * The game's own sunken well — the texture behind every Filters dropdown
+	 * and search box, and now behind every recessed surface in the system:
+	 * fields, dropdowns, tables and list frames all share it (Luke,
+	 * 2026-07-25).
 	 */
-	public static V2Strip field()
+	public static V2Well well()
 	{
-		return new V2Strip("ui/borders/number_field_edge_left",
-			"ui/borders/number_field_middle", "ui/borders/number_field_edge_right");
+		return new V2Well();
 	}
 
-	/** The thin frame the game draws around a progress bar. */
+	/** @deprecated the well IS the field surface now. */
+	public static V2Well field()
+	{
+		return new V2Well();
+	}
+
+	/** The thin frame the game draws around a progress bar — the same tan
+	 *  line the slab wears, which is how they read as one system. */
 	public static NineSlice barFrame()
 	{
-		return NineSlice.frame("ui/borders/tan_border_corner_%s",
-			"ui/borders/tan_border_%s", BAR_FRAME_INSET);
+		return slab();
 	}
 
-	/** Border-only recess at any size: Well, TextField, list frames. */
-	public static NineSlice well()
+	/**
+	 * The riveted metal frame. It is the BUTTON's resting state now — the
+	 * recessed surfaces all moved to the field well, which left this family
+	 * doing one job well instead of two badly.
+	 */
+	public static NineSlice metal()
 	{
 		return NineSlice.frame("ui/borders/equipment_metal_corner_%s",
 			"ui/borders/equipment_edge_%s", SLICE_INSET);
+	}
+
+	/** The nav bar's own stone, sliced so a tile can be any size (Luke:
+	 *  status tiles use the sprites the main plugin's nav bar uses). */
+	public static NineSlice navStone()
+	{
+		return NineSlice.of("ui/tabs/tab_stone_middle", NAV_STONE_INSET);
 	}
 
 	/** The outer panel border. */

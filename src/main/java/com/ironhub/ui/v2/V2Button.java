@@ -24,7 +24,7 @@ import javax.swing.JPanel;
 public class V2Button extends JPanel
 {
 	private final OsrsTheme theme;
-	private final NineSlice rest = V2Tokens.well();
+	private final NineSlice rest = V2Tokens.metal();
 	private final NineSlice hovered = V2Tokens.card();
 	private final NineSlice pressed = V2Tokens.chip();
 	private final OsrsLabel label;

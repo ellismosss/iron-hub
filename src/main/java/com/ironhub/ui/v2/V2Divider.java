@@ -3,23 +3,23 @@ package com.ironhub.ui.v2;
 import com.ironhub.ui.osrs.OsrsTheme;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.image.BufferedImage;
 import javax.swing.JComponent;
 
 /**
- * The game's own section divider: the stone bar it draws between panel
- * sections, tiled to width.
+ * A 1px rule between sections.
  *
- * <p>The sprite is a 32x32 canvas with the bar sitting in rows 14..19 and
- * transparent padding around it (that padding is how the game centres the bar
- * on a boundary). Only the bar is drawn here, so the divider costs its own
- * 6px and no more.
+ * <p>This is one of two places the system draws rather than blits, and it is
+ * deliberate: the closest sprite is the game's 6px stone bar, which marks a
+ * PANEL boundary and reads far too heavy between two sections of a list.
+ * A divider's whole job is to be the least it can be.
  */
 public class V2Divider extends JComponent
 {
-	private static final String SPRITE = "ui/borders/bottom_line_mode_side_panel_edge_horizontal";
+	/** The whole atom. v2-exempt: a 1px rule has no sprite. */
+	static final int BAR_HEIGHT = 1;
+	/** Where the panel-frame art puts its bar, which the Inventory frame
+	 *  still needs to clear its content by. */
 	static final int BAR_TOP = 14;
-	static final int BAR_HEIGHT = 6;
 
 	private final OsrsTheme theme;
 
@@ -33,13 +33,8 @@ public class V2Divider extends JComponent
 	@Override
 	protected void paintComponent(Graphics g)
 	{
-		BufferedImage bar = V2Sprites.get(theme, SPRITE);
-		for (int x = 0; x < getWidth(); x += bar.getWidth())
-		{
-			int w = Math.min(bar.getWidth(), getWidth() - x);
-			g.drawImage(bar, x, 0, x + w, BAR_HEIGHT,
-				0, BAR_TOP, w, BAR_TOP + BAR_HEIGHT, null);
-		}
+		g.setColor(theme.edgeDark);
+		g.fillRect(0, 0, getWidth(), BAR_HEIGHT);
 	}
 
 	@Override

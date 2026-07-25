@@ -146,8 +146,9 @@ public class V2CompositesRenderTest
 		tip.setTipText("Needs Farming 65 and a Magic secateurs you don't own yet.");
 		java.awt.Dimension card = tip.getPreferredSize();
 		java.awt.Dimension text = tip.getComponent(0).getPreferredSize();
-		int pad = 2 * (V2Tokens.SLICE_INSET + V2Tokens.PAD);
-		assertEquals(text.height + pad, card.height);
+		// a tooltip is a 1px box with 2px of padding — it covers what you are
+		// pointing at, so its job is to be small (Luke, 2026-07-25)
+		assertEquals(text.height + 2 * V2Tokens.TIGHT, card.height);
 		assertTrue("the text must wrap to more than one line", text.height > V2Tokens.LINE_PITCH);
 	}
 

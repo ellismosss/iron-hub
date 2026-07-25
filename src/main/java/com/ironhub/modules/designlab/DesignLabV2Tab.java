@@ -233,7 +233,7 @@ public class DesignLabV2Tab extends JPanel
 		add(statuses);
 		gap(V2Tokens.SECTION);
 
-		heading("Tabs — three styles to pick from");
+		heading("Tabs — two styles to pick from");
 		for (V2Tab.Style style : V2Tab.Style.values())
 		{
 			add(V2Label.detail(style.name().toLowerCase()));
@@ -281,12 +281,12 @@ public class DesignLabV2Tab extends JPanel
 		gap(V2Tokens.SECTION);
 
 		heading("Progress — three weights");
-		for (V2ProgressBar.Size size : V2ProgressBar.Size.values())
-		{
-			add(new V2ProgressBar(theme, size).fraction(0.35));
-			gap(V2Tokens.ROW);
-		}
-		add(new V2ProgressBar(theme, V2ProgressBar.Size.ROW).fraction(1));
+		add(new V2ProgressBar(theme, V2ProgressBar.Size.FULL).fraction(0.35));
+		gap(V2Tokens.ROW);
+		add(new V2ProgressBar(theme, V2ProgressBar.Size.ROW).fraction(0.35)
+			.labels("Farming", "72 / 99", "8.4m"));
+		gap(V2Tokens.ROW);
+		add(new V2ProgressBar(theme, V2ProgressBar.Size.METER).fraction(0.35).segments(4));
 		gap(V2Tokens.ROW);
 		add(new V2ProgressBar(theme, V2ProgressBar.Size.ROW));
 		gap(V2Tokens.TIGHT);

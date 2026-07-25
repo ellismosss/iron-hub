@@ -189,19 +189,14 @@ public class V2SpriteButton extends JComponent
 	@Override
 	protected void paintComponent(Graphics g)
 	{
-		BufferedImage art = V2Sprites.get(theme, currentKey());
-		// native size, centred in whatever the layout gave us — a button is
-		// never scaled (§2)
-		int x = (getWidth() - art.getWidth()) / 2;
-		int y = (getHeight() - art.getHeight()) / 2;
-		g.drawImage(art, x, y, null);
-		if (hover && !down)
-		{
-			// the pointer wash, over the art's own footprint so it lights the
-			// button rather than its cell
-			g.setColor(V2Tokens.HIGHLIGHT);
-			g.fillRect(x, y, art.getWidth(), art.getHeight());
-		}
+		String key = currentKey();
+		// the wash is baked into a copy of the sprite, so it lights the glyph
+		// and not the transparent air around it
+		BufferedImage art = hover && !down
+			? V2Sprites.highlighted(theme, key) : V2Sprites.get(theme, key);
+		// native size, centred in whatever the layout gave us — never scaled
+		g.drawImage(art, (getWidth() - art.getWidth()) / 2,
+			(getHeight() - art.getHeight()) / 2, null);
 	}
 
 	@Override

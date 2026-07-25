@@ -28,7 +28,7 @@ import javax.swing.JPopupMenu;
 public class V2Dropdown extends JPanel
 {
 	private final OsrsTheme theme;
-	private final V2Strip well = V2Tokens.field();
+	private final V2Well well = V2Tokens.well();
 	private final OsrsLabel label;
 	private final String[] options;
 	private int selected;
@@ -138,11 +138,11 @@ public class V2Dropdown extends JPanel
 	protected void paintComponent(Graphics g)
 	{
 		Graphics2D g2 = (Graphics2D) g;
-		well.paint(g2, theme, 0, (getHeight() - well.height()) / 2, getWidth());
+		well.paint(g2, theme, 0, 0, getWidth(), getHeight());
 		if (hover)
 		{
 			g2.setColor(V2Tokens.HIGHLIGHT);
-			g2.fillRect(0, (getHeight() - well.height()) / 2, getWidth(), well.height());
+			g2.fillRect(0, 0, getWidth(), getHeight());
 		}
 		// the game puts a stone arrow button at the right end of the well
 		BufferedImage arrow = V2Sprites.get(theme, "ui/arrows/arrow_down");

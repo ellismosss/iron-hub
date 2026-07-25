@@ -33,6 +33,24 @@ public class DesignLabV2RenderTest
 		}
 	}
 
+	/** The lab as Luke actually sees it — chips and all. He screenshotted a
+	 *  grey border wrapping the page and glitched chips; this is where that
+	 *  lives, and the gallery-only render could never show it. */
+	@Test
+	public void theWholeDesignLabRenders() throws Exception
+	{
+		for (OsrsTheme theme : OsrsTheme.values())
+		{
+			DesignLabTab lab = new DesignLabTab(theme);
+			BufferedImage image = SwingRender.render(lab);
+			java.io.File out = new java.io.File("build/reports/designlab-wrapper-"
+				+ theme.name().toLowerCase() + ".png");
+			out.getParentFile().mkdirs();
+			javax.imageio.ImageIO.write(image, "png", out);
+			assertTrue(image.getHeight() > 800);
+		}
+	}
+
 	/** The Design lab shows V2 first and can switch back to the V1 atoms —
 	 *  the two systems are judged side by side, not one from memory. */
 	@Test

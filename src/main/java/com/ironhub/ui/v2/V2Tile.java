@@ -16,10 +16,10 @@ import javax.swing.JComponent;
  * optional corner tick for "you own this". Hub tiles, gear tiles, category
  * tiles — the grid unit.
  *
- * <p>Built on the Card slice rather than the game's fixed 40px squares, so
- * one atom covers every grid the plugin lays out. The fixed squares are
- * still reachable as {@link V2SpriteButton}; what they cannot do is be 50px
- * wide, and every real grid in this panel is sized by its column count.
+ * <p>Built on the side-panel nav stone — the sprite the main plugin's own
+ * nav bar wears (Luke, 2026-07-25) — sliced so a tile can be any size. Every
+ * real grid in this panel is sized by its column count, so a fixed 40px
+ * square could never have served them all.
  *
  * <p>Selected reads exactly as a chip does: lit art plus a HEADING-orange
  * caption. Owned is a painted corner tick from the curated checkmark, which
@@ -55,8 +55,9 @@ public class V2Tile extends JComponent
 	private static final String TICK = "ui/ticks/checkmark_small";
 
 	private final OsrsTheme theme;
-	private final NineSlice plain = V2Tokens.card();
-	private final NineSlice lit = V2Tokens.card().variant("_hovered");
+	// the nav bar's own stone, sliced so a tile can be any size (Luke)
+	private final NineSlice plain = V2Tokens.navStone();
+	private final NineSlice lit = V2Tokens.navStone().variant("_selected");
 	private final BufferedImage emblem;
 	private final OsrsLabel caption;
 	private final int size;
@@ -149,6 +150,7 @@ public class V2Tile extends JComponent
 			g2.setColor(V2Tokens.HIGHLIGHT);
 			g2.fillRect(0, 0, getWidth(), size);
 		}
+
 
 		if (emblem != null)
 		{

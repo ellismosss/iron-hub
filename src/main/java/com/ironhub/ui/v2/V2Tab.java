@@ -10,19 +10,17 @@ import java.awt.image.BufferedImage;
 import javax.swing.JComponent;
 
 /**
- * A tab with an emblem on it. Three styles, all from the game (Luke added
+ * A tab with an emblem on it. Two styles, both from the game (Luke added
  * them 2026-07-25 so he can pick a favourite):
  *
  * <ul>
  * <li>{@link Style#TAB} — the bank tab, 41x40, with rest / hover / selected /
  * empty art
  * <li>{@link Style#TAG} — the bank TAG tab, 39x40, rest and active
- * <li>{@link Style#STONE} — the side-panel nav stone, 33x36, rest and
- * selected. This is also the Checklist's border art.
  * </ul>
  *
- * <p>Each style offers exactly the states its own sprites have: TAB is the
- * only one with a distinct hover, so the other two take the highlight wash.
+ * <p>Each style offers exactly the states its own sprites have: TAB has a
+ * distinct hover sprite, TAG takes the highlight wash.
  */
 public class V2Tab extends JComponent
 {
@@ -30,8 +28,7 @@ public class V2Tab extends JComponent
 	public enum Style
 	{
 		TAB("ui/tabs/tab", "ui/tabs/tab_selected", "ui/tabs/tab_hovered", "ui/tabs/tab_empty"),
-		TAG("ui/tabs/tag_tab", "ui/tabs/tag_tab_active", null, null),
-		STONE("ui/tabs/tab_stone_middle", "ui/tabs/tab_stone_middle_selected", null, null);
+		TAG("ui/tabs/tag_tab", "ui/tabs/tag_tab_active", null, null);
 
 		final String rest;
 		final String active;

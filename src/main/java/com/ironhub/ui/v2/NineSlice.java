@@ -171,10 +171,18 @@ public final class NineSlice
 			BufferedImage bottom = V2Sprites.get(theme, edges[1]);
 			BufferedImage left = V2Sprites.get(theme, edges[2]);
 			BufferedImage right = V2Sprites.get(theme, edges[3]);
-			tile(g, top, 0, 0, top.getWidth(), top.getHeight(), x + c, y, midW, c);
-			tile(g, bottom, 0, 0, bottom.getWidth(), bottom.getHeight(), x + c, y + h - c, midW, c);
-			tile(g, left, 0, 0, left.getWidth(), left.getHeight(), x, y + c, c, midH);
-			tile(g, right, 0, 0, right.getWidth(), right.getHeight(), x + w - c, y + c, c, midH);
+			// each piece is placed and sized by its OWN art, not by the slice
+			// inset: a pack that trims the transparent margin ships a 32x20
+			// edge where vanilla has 32x32, and using the inset for both put
+			// the bottom and right bars 12px out of line (Luke, 2026-07-25)
+			tile(g, top, 0, 0, top.getWidth(), top.getHeight(),
+				x + c, y, midW, top.getHeight());
+			tile(g, bottom, 0, 0, bottom.getWidth(), bottom.getHeight(),
+				x + c, y + h - bottom.getHeight(), midW, bottom.getHeight());
+			tile(g, left, 0, 0, left.getWidth(), left.getHeight(),
+				x, y + c, left.getWidth(), midH);
+			tile(g, right, 0, 0, right.getWidth(), right.getHeight(),
+				x + w - right.getWidth(), y + c, right.getWidth(), midH);
 			BufferedImage tl = V2Sprites.get(theme, corners[0]);
 			BufferedImage tr = V2Sprites.get(theme, corners[1]);
 			BufferedImage bl = V2Sprites.get(theme, corners[2]);

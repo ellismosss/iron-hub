@@ -81,18 +81,25 @@ public class V2SurfacesRenderTest
 		}
 	}
 
-	/** Content clears the art by the same amount on every surface — that
-	 *  identity is what makes two modules' cards look like one system. */
+	/**
+	 * Every surface clears its OWN art by the same rule — the art's inset
+	 * plus PAD — and is square about it. The insets differ between families
+	 * because the art does (the card's bevel is 9px, the well's cap is 4),
+	 * but two cards anywhere in the plugin still have identical geometry.
+	 */
 	@Test
-	public void everySurfaceInsetsItsContentIdentically()
+	public void everySurfaceInsetsItsContentSquarely()
 	{
 		java.awt.Insets card = V2Surface.card(OsrsTheme.STONE).getInsets();
-		java.awt.Insets well = V2Surface.well(OsrsTheme.STONE).getInsets();
 		assertEquals(V2Tokens.SLICE_INSET + V2Tokens.PAD, card.left);
-		assertEquals(card.left, well.left);
-		assertEquals(card.left, card.top);
-		assertEquals(card.left, card.right);
-		assertEquals(card.left, card.bottom);
+		java.awt.Insets well = V2Surface.well(OsrsTheme.STONE).getInsets();
+		assertEquals(com.ironhub.ui.v2.V2Well.CAP + V2Tokens.PAD, well.left);
+		for (java.awt.Insets insets : new java.awt.Insets[]{card, well})
+		{
+			assertEquals(insets.left, insets.top);
+			assertEquals(insets.left, insets.right);
+			assertEquals(insets.left, insets.bottom);
+		}
 	}
 
 	@Test
