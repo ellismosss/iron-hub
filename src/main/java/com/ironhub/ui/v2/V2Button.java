@@ -12,10 +12,17 @@ import java.awt.event.MouseEvent;
 import javax.swing.JPanel;
 
 /**
- * The text button, in three states drawn from three curated families
- * (Luke, 2026-07-25): the Well recess at rest, the filled Card on hover, and
- * the chip surface while held or selected. It reads as rising out of the
- * panel as you engage with it, and every state is real art.
+ * The text button: the metal frame at rest, the filled Card on hover, and the
+ * metal frame's OWN pressed art while held or selected.
+ *
+ * <p>Held used to be the chip surface, a third family borrowed from
+ * {@code button.png}. It read as a different control mid-press and its rounded
+ * bottom edge fell outside the 28px button, so the lower border simply was not
+ * there (Luke, 2026-07-25: "uses a different sprite and clips so no lower half
+ * is showing"). The metal family ships {@code _hovered} art, and per
+ * {@code V2Tokens.HIGHLIGHT} the curated {@code _hovered} sprites ARE the
+ * pressed look — so the pressed state is now the rest state's own, which is
+ * both the system's rule and a silhouette that cannot clip.
  *
  * <p>This replaced {@code regular_large}, which has no second state of its
  * own in the set — a button with no feedback at all was the honest answer to
@@ -26,7 +33,7 @@ public class V2Button extends JPanel
 	private final OsrsTheme theme;
 	private final NineSlice rest = V2Tokens.metal();
 	private final NineSlice hovered = V2Tokens.card();
-	private final NineSlice pressed = V2Tokens.chip();
+	private final NineSlice pressed = V2Tokens.metal().variant("_hovered");
 	private final OsrsLabel label;
 	private boolean hover;
 	private boolean down;

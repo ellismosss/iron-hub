@@ -23,6 +23,14 @@ import javax.swing.JPanel;
  * <p>The whole row is the press target, label included. A 18px hit area is a
  * miss waiting to happen at this panel width, and a label you can't click
  * reads as decoration.
+ *
+ * <p><b>The highlight is the box's alone</b> (Luke, 2026-07-25). The hit area
+ * and the lit area are deliberately different sizes: lighting the box from
+ * anywhere in the row made a list of them flicker as the pointer crossed it.
+ * So the box carries its own hover listener — and its own press listener too,
+ * because a child with a MouseListener stops forwarding to its parent, and
+ * without that the one place you would actually aim at is the one place that
+ * would not toggle.
  */
 public class V2Checkbox extends JPanel
 {
@@ -48,12 +56,14 @@ public class V2Checkbox extends JPanel
 
 	private final Box box;
 	private final OsrsLabel label;
+	private final Runnable onToggle;
 	private State state;
 	private boolean hover;
 
 	public V2Checkbox(OsrsTheme theme, String text, boolean checked, Runnable onToggle)
 	{
 		this.state = checked ? State.ON : State.OFF;
+		this.onToggle = onToggle;
 		this.box = new Box(theme);
 		this.label = V2Label.body(text);
 		setOpaque(false);
@@ -64,7 +74,17 @@ public class V2Checkbox extends JPanel
 		add(label);
 		add(javax.swing.Box.createHorizontalGlue());
 		setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		// the row presses but never lights
 		addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				press();
+			}
+		});
+		// the box lights, and presses on its own behalf
+		box.addMouseListener(new MouseAdapter()
 		{
 			@Override
 			public void mouseEntered(MouseEvent e)
@@ -83,13 +103,25 @@ public class V2Checkbox extends JPanel
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
-				if (onToggle != null && state != State.LOCKED
-					&& state != State.DISABLED && state != State.DISABLED_ON)
-				{
-					onToggle.run();
-				}
+				press();
 			}
 		});
+	}
+
+	/** Toggle, unless the state says otherwise. */
+	private void press()
+	{
+		if (onToggle != null && state != State.LOCKED
+			&& state != State.DISABLED && state != State.DISABLED_ON)
+		{
+			onToggle.run();
+		}
+	}
+
+	/** Test seam: is the box lit? */
+	public boolean highlighted()
+	{
+		return hover;
 	}
 
 	public V2Checkbox state(State state)
@@ -112,14 +144,20 @@ public class V2Checkbox extends JPanel
 	@Override
 	public Dimension getMaximumSize()
 	{
-		return new Dimension(Integer.MAX_VALUE, V2Tokens.ROW_HEIGHT);
+		return new Dimension(Integer.MAX_VALUE, rowHeight());
 	}
 
 	@Override
 	public Dimension getPreferredSize()
 	{
-		Dimension pref = super.getPreferredSize();
-		return new Dimension(pref.width, V2Tokens.ROW_HEIGHT);
+		return new Dimension(super.getPreferredSize().width, rowHeight());
+	}
+
+	/** The art's own height, not {@code ROW_HEIGHT}'s 20 — the extra pixel
+	 *  above and below only showed as slack in a list (Luke, 2026-07-25). */
+	private int rowHeight()
+	{
+		return Math.max(box.getPreferredSize().height, label.getPreferredSize().height);
 	}
 
 	/** The 18px art itself — its own component so the row can lay out around

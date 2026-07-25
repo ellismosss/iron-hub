@@ -28,7 +28,7 @@ public class V2Table extends JPanel
 	private final int flexColumn;
 	private final List<Component[]> rows = new ArrayList<>();
 	private final com.ironhub.ui.osrs.OsrsTheme theme;
-	private final NineSlice surface;
+	private final V2Well surface;
 	private int hoverRow = -1;
 
 	/** @param flexColumn the column that absorbs leftover width, usually the name */
@@ -38,21 +38,25 @@ public class V2Table extends JPanel
 	}
 
 	/**
-	 * A framed table: the rows sit inside one notched slab with a highlight
-	 * band under the pointer, the Checklist grammar from V1 (Luke,
-	 * 2026-07-25). A null theme draws no surface — a bare column model.
+	 * A framed table: the rows sit inside a WELL with a highlight band under
+	 * the pointer, the Checklist grammar from V1. The well is the surface every
+	 * recessed thing in the system wears — fields, dropdowns, lists — and a
+	 * table is a list (Luke, 2026-07-25: "Tables and Checklists both need to be
+	 * Wells. Currently I don't know what they are"). A null theme draws no
+	 * surface — a bare column model.
 	 */
 	public V2Table(com.ironhub.ui.osrs.OsrsTheme theme, int flexColumn)
 	{
 		this.theme = theme;
-		this.surface = theme == null ? null : V2Tokens.slab();
+		this.surface = theme == null ? null : V2Tokens.well();
 		this.flexColumn = flexColumn;
 		setOpaque(false);
 		setAlignmentX(LEFT_ALIGNMENT);
 		setLayout(new TableLayout());
 		if (theme != null)
 		{
-			int inset = V2Tokens.SLAB_INSET;
+			// the Checklist's inset, so the pair stays a pair
+			int inset = V2Well.CAP + V2Tokens.TIGHT;
 			setBorder(new javax.swing.border.EmptyBorder(inset, inset, inset, inset));
 			addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
 			{
@@ -105,12 +109,39 @@ public class V2Table extends JPanel
 				// the V1 checklist highlight does
 				Component first = rows.get(hoverRow)[0];
 				g.setColor(V2Tokens.HIGHLIGHT);
-				g.fillRect(V2Tokens.SLAB_INSET, first.getY() - V2Tokens.TIGHT,
-					getWidth() - 2 * V2Tokens.SLAB_INSET,
+				g.fillRect(V2Well.CAP, first.getY() - V2Tokens.TIGHT,
+					getWidth() - 2 * V2Well.CAP,
 					first.getHeight() + 2 * V2Tokens.TIGHT);
 			}
 		}
 		super.paintComponent(g);
+	}
+
+
+	/**
+	 * Put every label in this surface into the DETAIL font (Luke, 2026-07-25).
+	 * A table and a checklist are dense lists, and the body font at 16px made
+	 * four rows fill the panel; the small font is what the game itself uses for
+	 * list text. Colour is left alone, so a value stays STRONG white and a
+	 * status stays its status colour — only the size changes.
+	 *
+	 * <p>Applied by the atom rather than asked of the caller: a row is built
+	 * from whatever components a module hands over, and "remember to pass
+	 * detail labels" is precisely the instruction that gets forgotten.
+	 */
+	static void detailFont(java.awt.Component component)
+	{
+		if (component instanceof com.ironhub.ui.osrs.OsrsLabel)
+		{
+			((com.ironhub.ui.osrs.OsrsLabel) component).font(V2Tokens.detailFont());
+		}
+		if (component instanceof java.awt.Container)
+		{
+			for (java.awt.Component child : ((java.awt.Container) component).getComponents())
+			{
+				detailFont(child);
+			}
+		}
 	}
 
 	/** One row. Every row must have the same number of cells. */
@@ -124,6 +155,7 @@ public class V2Table extends JPanel
 		rows.add(cells);
 		for (Component cell : cells)
 		{
+			detailFont(cell);
 			add(cell);
 		}
 		return this;
@@ -186,7 +218,7 @@ public class V2Table extends JPanel
 					row[c].setBounds(x, y, widths[c], height);
 					x += widths[c] + V2Tokens.PAD;
 				}
-				y += height + V2Tokens.ROW;
+				y += height;
 			}
 		}
 
@@ -197,7 +229,11 @@ public class V2Table extends JPanel
 		 */
 		private int rowHeight(Component[] row)
 		{
-			int height = V2Tokens.ROW_HEIGHT;
+			// no ROW_HEIGHT floor: 20 is the checkbox's row, and a table of 13px
+			// ticks and small-font text does not need it. The floor was what
+			// made the Table read looser than the Checklist even though every
+			// measurement matched (Luke, 2026-07-25).
+			int height = 0;
 			for (Component[] any : rows)
 			{
 				for (Component cell : any)
@@ -215,10 +251,10 @@ public class V2Table extends JPanel
 			int height = insets.top + insets.bottom;
 			for (Component[] row : rows)
 			{
-				height += rowHeight(row) + V2Tokens.ROW;
+				height += rowHeight(row);
 			}
 			return new Dimension(V2Tokens.CONTENT_WIDTH,
-				Math.max(0, height - V2Tokens.ROW));
+				Math.max(0, height));
 		}
 
 		@Override

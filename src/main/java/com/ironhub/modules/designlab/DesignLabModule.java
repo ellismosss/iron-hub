@@ -23,13 +23,16 @@ public class DesignLabModule implements IronHubModule
 {
 	private final IronHubConfig config;
 	private final EventBus eventBus;
+	private final net.runelite.client.game.ItemManager itemManager;
 	private JPanel holder;
 
 	@Inject
-	public DesignLabModule(IronHubConfig config, EventBus eventBus)
+	public DesignLabModule(IronHubConfig config, EventBus eventBus,
+		net.runelite.client.game.ItemManager itemManager)
 	{
 		this.config = config;
 		this.eventBus = eventBus;
+		this.itemManager = itemManager;
 	}
 
 	@Override
@@ -90,7 +93,7 @@ public class DesignLabModule implements IronHubModule
 		com.ironhub.ui.osrs.OsrsTheme theme = config.osrsTheme();
 		// the Goals-hub mockup was the Goals v2 proposal surface; it shipped as
 		// the real GoalsHubTab, so the lab is just the atom gallery now
-		JComponent content = new DesignLabTab(theme);
+		JComponent content = new DesignLabTab(theme, itemManager);
 		content.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
 		holder.removeAll();

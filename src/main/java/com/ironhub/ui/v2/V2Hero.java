@@ -12,6 +12,9 @@ import com.ironhub.ui.osrs.OsrsTheme;
  * fixed order. The order IS the atom — a hero whose number sits under its
  * bar on one tab and over it on another is the drift this system exists to
  * stop.
+ *
+ * <p>The value is the bar's own centre label, not a line above it: one less
+ * row of height, and the number reads against the fill it describes.
  */
 public final class V2Hero
 {
@@ -30,8 +33,12 @@ public final class V2Hero
 	{
 		V2Surface card = V2Surface.card(theme);
 		card.stack(V2Label.heading(title), V2Tokens.ROW);
-		card.stack(V2Label.value(value), V2Tokens.ROW);
-		card.add(new V2ProgressBar(theme).fraction(fraction));
+		// the value rides ON the bar rather than sitting above it (Luke,
+		// 2026-07-25), and on the FULL sprite bar — the hero keeps the big
+		// weight; the text is drawn over the art.
+		card.add(new V2ProgressBar(theme, V2ProgressBar.Size.FULL)
+			.fraction(fraction)
+			.labels("", value, ""));
 		if (provenance != null)
 		{
 			card.add(V2Layout.gap(V2Tokens.ROW));

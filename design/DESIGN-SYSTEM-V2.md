@@ -5,10 +5,18 @@ the same idea got drawn several ways across 27 modules, and each new surface nee
 another round of tweaks to look like its neighbours. V2 replaces judgement with
 rules, and rules with tests.
 
-**Status (2026-07-25):** all 31 atoms are built in three themes, enforced by
-`V2RulesTest`, and presented in **Design lab V2** (the Design lab's first view; a chip switches back
-to the V1 atoms). *No module is migrated until Luke says he is 100% happy with the
-atoms* — his gate, 2026-07-24.
+**Status (2026-07-25, end of the atom pass):** the atoms are built in three
+themes, enforced by `V2RulesTest`, and shown in the Design lab under three
+chips — **Atoms**, **Goals**, **V1**.
+
+**The strategy changed at the end of this session.** The Goals hub was rebuilt
+from V2 atoms in the lab (`GoalsV2View`) as the system's first real workload.
+It did its job — it found five missing atoms and several wrong defaults, listed
+in §13 — but rebuilding screens in the lab from sample data turned out to be a
+poor way to converge: every round corrected an invention of mine rather than a
+real module's real problem. **From here the modules get rebuilt directly**, and
+the lab goes back to being what it is good at: showing one atom in every state.
+Luke's call, 2026-07-25.
 
 ---
 
@@ -53,6 +61,21 @@ exactly the "everything looks slightly different" problem.
 
 `NineSlice` is the only class allowed to draw a sprite at a size it didn't come in.
 It cuts nine regions and repeats each along its own axis, always 1:1 source-to-screen.
+
+**A slice cuts from the sprite's INK, not its canvas.** `NineSlice` slices
+`V2Sprites.trimmed()` — the alpha bounding box. `ui/buttons/button` is a 35x35
+canvas whose ink runs rows 5..29 only, so slicing the canvas at 5 took two rows
+of pure transparency as the top and bottom edges and tiled the whole button —
+both rounded ends included — through the middle. That is why chips and the
+pressed button both lost their lower half (2026-07-25). Measured: `button` and
+`button_hovered` are the only slice sources with padding, so trimming is a
+no-op everywhere else.
+
+**Scaling an EMBLEM is allowed; scaling a SURFACE is not.** `V2Sprites.fitted`
+resizes an icon to a given box, NEAREST NEIGHBOUR, because a row of emblems
+pulled from different families arrives at different sizes and reads as unrelated
+icons. A picture is not a tiled texture. Smooth interpolation is banned — it is
+what made the first nav row read soft.
 
 `NineSliceTest.redrawingASpriteAtItsOwnSizeReproducesItExactly` is the proof: redraw
 a sprite at its own dimensions through the slicer and demand pixel identity. That
@@ -130,6 +153,31 @@ any other number in an `EmptyBorder`, strut or gap.
 | `ICON` | 16 | inline item sprites |
 | `TILE_ICON` | 22 | tile emblems |
 
+### The inventory's spacings
+
+The game's own, measured 2026-07-25 and pinned by `DesignLabInventoryTest`.
+They are not on the five-step scale and never will be — this is one imported
+widget reproducing a fixed piece of the game's interface, not a surface the
+system lays out.
+
+| What | px | Note |
+|---|---|---|
+| Panel | 190 x 276 | 190 is the game's own; 276 is the width's rule applied downward. A derived size came out 180x266 and read visibly smaller than the real thing side by side |
+| Cell | 36 x 32 | what `ItemManager` hands back |
+| Pitch | 42 x 36 | 4 columns, 7 rows |
+| Gap between columns | 6 | pitch minus cell |
+| Gap between rows | 4 | pitch minus cell — narrower than the column gap, and that asymmetry is the game's |
+| Frame band | 7 (6 in Mystic) | measured per theme from the sprite's opaque band, never assumed |
+| Margin | 7 | one band's width, on all four sides; `7 + 7 + (3x42 + 36) + 7 + 7 = 190` corroborates the panel width, and `7 + 7 + (6x36 + 32) + 7 + 7 = 276` sets the height |
+
+The grid is **centred** in whatever the bands leave rather than pinned to a
+hardcoded origin: Mystic's 6px bands would otherwise shift every margin.
+
+The panel's height is the one number here not taken straight from the game. At
+the 261 the width's source implied, seven rows need 248px against 247 available
+— the grid sits flush against both bands with no air at all. 276 gives it the
+same 7px of padding above and below that it already had left and right.
+
 ---
 
 ## 5. Type — five roles, no others
@@ -177,10 +225,37 @@ Rules:
    in `BLOCKED`.
 5. **Unknown is never coloured.** It renders as silence or "?" in `FAINT`.
 
+### Derived colours
+
+Everything above is sampled. These five are DERIVED, each from the theme's own
+colours so the three packs stay in step without a table to maintain:
+
+| Token | What | Why it is derived |
+|---|---|---|
+| `HIGHLIGHT` | white, alpha 20 | the pointer wash. The curated `_hovered` sprites are the PRESSED look, so hover needed something of its own |
+| `SHADOW` | black, alpha 120 | the opposite: an unavailable Tile sinks. A dark ring alone is not enough — the FILL has to darken |
+| `dimEdge(theme)` | `edgeLight` half way to `edgeDark` | the Frame's and the Tile's border. At full strength it competed with its own contents |
+| `statusEdge(theme, c)` | 45% back toward the panel | a status ring at full strength is the loudest thing on a grid, which inverts rule 1 |
+| `BAR_FILL` / `BAR_BLUE` | V1's bar greens and blues | a bar is not an achievement. `DONE` green read as one; blue means plan progress, green means possession |
+
+**Highlight means the FILL. Border means the OUTLINE.** Luke's vocabulary, and
+the two are separate arguments to every surface painter. Do not conflate them.
+
 ---
 
 ## 7. Layout
 
+- **Every view sits inside a Frame.** `V2Surface.frame(theme)`, wrapping the
+  whole view, edge to edge in the 225px panel — the arrangement Design lab V2
+  wears, and the one every migrated tab adopts (Luke, 2026-07-25). It is the
+  game's own thin side-panel edge (`StoneFrame`: 1px dark over 1px light, 8px
+  stepped corner chamfer), with its light line dimmed halfway to its dark one
+  via `V2Tokens.dimEdge` so it frames without competing. The Tile wears the
+  same dimmed edge, so a Tile inside a Frame reads as one system.
+
+  The view must not add a horizontal inset of its own: the Frame carries the
+  edge, and a second inset is what made the lab's frame 209px where the hub's
+  is 217 (measured 2026-07-25). Vertical padding is still the view's.
 - **225px, one column, vertical scroll only.** Content that doesn't fit is two-lined,
   tooltipped or truncated — never widened. No nested scroll panes.
 - **One left edge.** Everything in a section aligns to the same x. Indentation is one
@@ -202,6 +277,11 @@ Rules:
 
 ## 8. States
 
+**A wash clips to the art, never to the component box.** A `fillRect` lights the
+transparent air outside a chamfered corner or a rounded end cap and leaves a halo
+on the panel behind — caught three times (the Tile, the Value dropdown, and the
+tab). Composite `SrcAtop` over a copy of the surface, or fill its silhouette.
+
 **Hover exists only where the curated art has a `_hovered` sprite.** OSRS has no mouse
 pointer, so the game never drew most of them, and inventing a tint is how two buttons
 side by side end up behaving differently. `NineSlice.variant()` throws when asked for a
@@ -209,8 +289,10 @@ state the art lacks — the system cannot offer what it doesn't have.
 
 | State | How it reads |
 |---|---|
-| Hover | the `_hovered` sprite, where one exists; otherwise no change |
-| Selected | the `_hovered` sprite **and** the label switches to `HEADING` orange (Luke's call — the art's brighten alone is too subtle on a chip row) |
+| Hover | the `HIGHLIGHT` wash, clipped to the art's own pixels (`NineSlice.highlighted`, `V2Well.paintLit`, `StoneNavButton.paintSilhouette`). NEVER the `_hovered` sprite — that art is the PRESSED look, and showing it on hover announces a press that has not happened |
+| Pressed | the `_hovered` sprite, from the SAME family as the rest state. A third family borrowed for the pressed state reads as a different control mid-press |
+| Selected | the `_hovered` sprite **and** the label switches to `HEADING` orange (Luke's call — the art's brighten alone is too subtle on a chip row). A Tile shows it as the brighter BEVEL plus the wash, never as a brighter fill |
+| Unavailable | the `SHADOW` wash over everything, applied LAST so the border and the emblem sink with the fill |
 | Disabled | the art's own disabled sprite where it exists (checkbox), else `FAINT` text and no hover |
 | Locked | the locked sprite, `FAINT` label, reason in the tooltip |
 | Unknown | `FAINT` "?" or nothing at all — never a zero, never an invented value |
@@ -227,7 +309,13 @@ defined once here so they can never be re-improvised per module:
 | `TextField` | Frame slice (well) + `icons/search/search_1` + a painted caret |
 | `Dropdown` | `Button` + `icons/chevron/gray_down_single`, popup on a Card |
 | `ScrollBar` | Frame slice trough + Card slice thumb + `ui/arrows` buttons |
-| `Tooltip` | Card slice + `DETAIL` label |
+| `Tooltip` | RuneLite's own chrome — see below |
+
+**The Tooltip is the one surface wearing no OSRS art.** It takes RuneLite's
+`ColorScheme` — the LAF's `ToolTip.background` is `lighten(DARK_GRAY, 4%)` — with
+V2's detail font and no border. A tooltip is client chrome: it floats above the
+panel rather than sitting in it, and skinning it made it read as a card that had
+come loose (Luke, 2026-07-25). This is a deliberate exception to §1.
 
 **Never hand-roll an atom's job.** A row of toggles is a `ChipRow`, not three buttons
 with manual selection state. A framed list is a `Well`, not a `Card` with a border. If
@@ -271,7 +359,7 @@ All in `com.ironhub.ui.v2`, all shown in **Design lab V2**.
 
 | Class | Covers | Sprites | States |
 |---|---|---|---|
-| `V2Surface` | Card, Well, Frame | `enter_wilderness_teleport` · `equipment_metal_corner_*` + `equipment_edge_*` · `bottom_line_mode_side_panel_*` | plain, hovered |
+| `V2Surface` | Frame, Tile, Card, Well | `StoneFrame` (hand-painted) · `StoneNavButton.paintSlab` (hand-painted) · `enter_wilderness_teleport` · the field well | plain, hovered |
 | `V2Divider` | Divider | `..._side_panel_edge_horizontal` (rows 14..19 only) | — |
 | `V2Label` | Label, WrappedText | — (text) | heading, body, value, detail, faint, status |
 | `V2Layout` | columns, rows, gaps | — | — |
@@ -284,7 +372,9 @@ All in `com.ironhub.ui.v2`, all shown in **Design lab V2**.
 | `V2ItemSlot` | ItemSlot | `icons/equipment/slot_*` | empty, filled, selected |
 | `V2Glyph` | StatusGlyph, Lock, Star, Chevron, SortArrow | `ui/ticks/*`, `icons/padlock`, `icons/star/*`, `icons/chevron/*`, `list_sorting_arrow_*` | — (display only) |
 | `V2ProgressBar` | ProgressBar | `progress_bar_grey` + `progress_bar_green` | green only; NaN = empty trough |
-| `V2Hero` | Hero | Card + Label + ProgressBar | — |
+| `V2Hero` | Hero | Card + Label + ProgressBar (value ON the bar) | — |
+| `V2Inventory` | Inventory | panel edges + `inventory_background` | 4x7, the game's own 190x276 |
+| `V2Checklist` | Checklist | Well + rows | hover band |
 | `V2Table` | Table | — (layout) | `right()` for numeric columns |
 | `V2EmptyState` | EmptyState | Well + Label | empty, unknown |
 | `V2TextField` | TextField | Well + `search_1` | idle, typed |
@@ -297,3 +387,46 @@ a row or a gap. A bare `Box.createVerticalStrut` is CENTER-aligned, and BoxLayou
 aligns a column by making its children's alignment points coincide — so one
 centre-aligned child, even a zero-width spacer, shifts every left-aligned sibling.
 That bug pushed whole tile rows 56px right in the first render of Design lab V2.
+
+---
+
+## 13. What the Goals rebuild found (2026-07-25)
+
+`GoalsV2View` reconstructed the Goals hub from V2 atoms as the system's first
+real workload. **It is kept as a reference, not as a destination** — the modules
+get rebuilt directly from here (see the status note at the top). What it exposed
+is the useful part:
+
+### Missing atoms
+
+1. **Row.** Glyph, label, glue, trailing controls. Eleven times in one screen,
+   and in every module the plugin has. §9 says "never hand-roll an atom's job"
+   and this is the job with no atom. **Build this first.**
+2. **Section header.** A heading plus a gap by convention, retyped at every use,
+   so the spacing above and below will drift.
+3. **Disclosure.** A row that opens: chevron, click target, indent, and the
+   opened content. Goals, diaries, the collection log and the bank all need it.
+4. **Stat tile.** Two side by side is how every hub starts. V1 has `StatBox`;
+   V2 has to hand-build it from a Tile and two labels, and the label truncates
+   at 217px because nothing owns the two-line wrap `StatBox` does.
+5. **A pin affordance.** The curated set has no pin sprite, so V1's pin/remove
+   controls have nothing to draw with. `SQUARE_SMALL` with no emblem in it reads
+   as a hole — do not use a blank square as a button.
+
+### Rulings still needed
+
+- **Priority has no colour.** V1 marks it with a 1px coloured left strip. §6 has
+  three status colours and priority is not one of them, so the rebuild carried
+  it in font weight alone, which is weaker than V1.
+- **`V2Table` cannot span.** A route row is a line PLUS a meter beneath it,
+  which fixed columns cannot express — so goal lists are columns of
+  compositions rather than tables. Either the table grows a spanning row or the
+  Row atom subsumes it.
+
+### The process lesson
+
+Rebuilding a screen in the lab from sample data converged badly: each round
+corrected an invention of mine (a hero bar V1 never had, a blank square where
+V1 had a painted pin) rather than a real problem with a real module. **Rebuild
+the module itself**, against its real data and its real V1 for comparison. The
+lab's job is one atom in every state — it is good at that and bad at this.

@@ -138,11 +138,15 @@ public class V2Dropdown extends JPanel
 	protected void paintComponent(Graphics g)
 	{
 		Graphics2D g2 = (Graphics2D) g;
-		well.paint(g2, theme, 0, 0, getWidth(), getHeight());
 		if (hover)
 		{
-			g2.setColor(V2Tokens.HIGHLIGHT);
-			g2.fillRect(0, 0, getWidth(), getHeight());
+			// clipped to the well's own pixels — a plain fillRect washed the
+			// air outside its chamfered end caps too (Luke, 2026-07-25)
+			well.paintLit(g2, theme, 0, 0, getWidth(), getHeight());
+		}
+		else
+		{
+			well.paint(g2, theme, 0, 0, getWidth(), getHeight());
 		}
 		// the game puts a stone arrow button at the right end of the well
 		BufferedImage arrow = V2Sprites.get(theme, "ui/arrows/arrow_down");

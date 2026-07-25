@@ -194,7 +194,7 @@ public class EdtCostProbeTest
 				new com.loadoutlab.LoadoutLabPlugin(), new net.runelite.client.eventbus.EventBus(),
 				config, state, null, null, null, new Gson(), null, null, null, null),
 			new com.ironhub.modules.designlab.DesignLabModule(config,
-				new net.runelite.client.eventbus.EventBus()),
+				new net.runelite.client.eventbus.EventBus(), null),
 			new com.ironhub.modules.dailies.DailiesNewModule(
 				new DailiesModule(state, null, config, new DataPack(new Gson()),
 					null, null, null, null, null, null, null, null, null, null, null),

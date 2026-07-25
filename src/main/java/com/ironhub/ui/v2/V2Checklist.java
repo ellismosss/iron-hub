@@ -16,9 +16,12 @@ import javax.swing.border.EmptyBorder;
  * pointer — the V1 checklist grammar, which Luke walked to the pixel across
  * three rounds and asked to keep.
  *
- * <p>The frame is the side-panel nav stone's art ({@code tab_stone_middle}),
- * which he pointed at for exactly this. The band is inset equally on all four
- * sides so the space beside a row matches the space above the first one.
+ * <p>The frame is the WELL — the game's own sunken texture, the same one
+ * behind every field and dropdown in the system. It wore the dark
+ * {@code tab_stone_middle} until 2026-07-25, which read as neither a list nor
+ * a field: "Tables and Checklists both need to be Wells. Currently I don't
+ * know what they are" (Luke). The band is inset equally on all four sides so
+ * the space beside a row matches the space above the first one.
  *
  * <p>A checklist is not a {@link V2Table}: the table exists to align COLUMNS
  * down a list, this exists to group ROWS into one object. Rows that need both
@@ -26,23 +29,26 @@ import javax.swing.border.EmptyBorder;
  */
 public class V2Checklist extends JPanel
 {
-	private static final String FRAME = "ui/tabs/tab_stone_middle";
-	/** The nav stone's own chamfer, so the band clears the corner art. */
-	private static final int INSET = 6;
+	/** The well's end caps, so the band clears them. */
+	private static final int INSET = V2Well.CAP;
 
 	private final OsrsTheme theme;
-	private final NineSlice frame;
+	private final V2Well frame;
 	private final List<Component> rows = new ArrayList<>();
 	private int hoverRow = -1;
 
 	public V2Checklist(OsrsTheme theme)
 	{
 		this.theme = theme;
-		this.frame = NineSlice.of(FRAME, INSET);
+		this.frame = V2Tokens.well();
 		setOpaque(false);
 		setAlignmentX(LEFT_ALIGNMENT);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		setBorder(new EmptyBorder(V2Tokens.PAD, V2Tokens.PAD, V2Tokens.PAD, V2Tokens.PAD));
+		// CAP clears the well's end caps, TIGHT is the only air on top of it —
+		// a list wants to feel dense (Luke, 2026-07-25: "needs to feel tight").
+		// PAD here put 10px round three rows and the surface read half empty.
+		setBorder(new EmptyBorder(V2Well.CAP + V2Tokens.TIGHT, V2Well.CAP + V2Tokens.TIGHT,
+			V2Well.CAP + V2Tokens.TIGHT, V2Well.CAP + V2Tokens.TIGHT));
 		addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
 		{
 			@Override
@@ -69,6 +75,7 @@ public class V2Checklist extends JPanel
 
 	public V2Checklist row(Component row)
 	{
+		V2Table.detailFont(row);
 		rows.add(row);
 		add(row);
 		return this;

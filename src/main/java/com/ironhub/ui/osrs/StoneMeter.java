@@ -11,7 +11,7 @@ public class StoneMeter extends JComponent
 	private static final int HEIGHT = 5;
 
 	private final OsrsTheme theme;
-	private final Color fill;
+	private Color fill;
 	private double fraction;
 	private int segments = 1;
 
@@ -28,6 +28,13 @@ public class StoneMeter extends JComponent
 	{
 		this.segments = Math.max(1, n);
 		return this;
+	}
+
+	/** Recolour in place — V2 hands routes a different fill from possessions. */
+	public void setFill(Color fill)
+	{
+		this.fill = fill;
+		repaint();
 	}
 
 	public void setFraction(double fraction)

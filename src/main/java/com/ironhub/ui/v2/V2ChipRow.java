@@ -112,7 +112,11 @@ public class V2ChipRow extends JPanel
 	{
 		private final OsrsTheme theme;
 		private final NineSlice plain = V2Tokens.chip();
-		private final NineSlice lit = V2Tokens.chip().variant("_hovered");
+		/** SELECTED wears the art's own second state. */
+		private final NineSlice picked = V2Tokens.chip().variant("_hovered");
+		/** HOVER wears the pointer wash — not the pressed sprite (Luke,
+		 *  2026-07-25: the chips "show their Pressed sprite on hover"). */
+		private final NineSlice lit = V2Tokens.chip().highlighted();
 		private final OsrsLabel label;
 		private boolean selected;
 		private boolean hover;
@@ -159,7 +163,7 @@ public class V2ChipRow extends JPanel
 		@Override
 		protected void paintComponent(Graphics g)
 		{
-			(selected || hover ? lit : plain)
+			(selected ? picked : hover ? lit : plain)
 				.paint((Graphics2D) g, theme, 0, 0, getWidth(), getHeight());
 			super.paintComponent(g);
 		}

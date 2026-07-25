@@ -50,7 +50,7 @@ public class DesignLabPanelRenderTest
 					return theme;
 				}
 			};
-			DesignLabModule lab = new DesignLabModule(config, new net.runelite.client.eventbus.EventBus());
+			DesignLabModule lab = new DesignLabModule(config, new net.runelite.client.eventbus.EventBus(), null);
 			IronHubPanel panel = new IronHubPanel(
 				Set.of((IronHubModule) lab), state, config, null);
 			javax.swing.SwingUtilities.invokeAndWait(() -> panel.openBlock("Settings"));
@@ -61,17 +61,34 @@ public class DesignLabPanelRenderTest
 			BufferedImage image = SwingRender.render(panel);
 			assertEquals(UiTokens.PANEL_WIDTH, image.getWidth());
 			assertTrue("the panel collapsed: " + image.getHeight(), image.getHeight() > 600);
-			// the defect that started this test: a skinned tab painting the
-			// classic grey behind itself framed the whole page in grey
-			for (int y = 0; y < image.getHeight(); y++)
-			{
-				assertTrue("classic grey behind the skin at y=" + y,
-					image.getRGB(8, y) != UiTokens.PANEL_BG.getRGB());
-			}
+			// written BEFORE the assertion: the render is the thing you look at
+			// to find out WHY this failed, and withholding it on failure is
+			// exactly when it is most wanted
 			java.io.File out = new java.io.File("build/reports/panel-designlab-"
 				+ theme.name().toLowerCase() + ".png");
 			out.getParentFile().mkdirs();
 			javax.imageio.ImageIO.write(image, "png", out);
+
+			// The defect that started this test: a skinned tab painting the
+			// classic grey behind itself framed the WHOLE PAGE in grey — it
+			// showed at x=8 for essentially every row.
+			//
+			// Counted rather than asserted per-pixel, because a single pixel
+			// proves nothing: Mystic's dimmed frame edge lands on exactly
+			// #262626 by coincidence, so the top and bottom border rows of the
+			// V2 Frame tripped the old per-pixel form (2026-07-25). A backing
+			// is a band; a border is a line. This still fails hard on the
+			// original defect, which greyed hundreds of rows.
+			int grey = 0;
+			for (int y = 0; y < image.getHeight(); y++)
+			{
+				if (image.getRGB(8, y) == UiTokens.PANEL_BG.getRGB())
+				{
+					grey++;
+				}
+			}
+			assertTrue("classic grey behind the skin in " + theme + ": " + grey
+				+ " of " + image.getHeight() + " rows at x=8", grey <= 8);
 		}
 	}
 }

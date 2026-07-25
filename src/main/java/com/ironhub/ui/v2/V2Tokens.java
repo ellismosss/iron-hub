@@ -1,6 +1,7 @@
 package com.ironhub.ui.v2;
 
 import com.ironhub.ui.osrs.OsrsSkin;
+import com.ironhub.ui.osrs.OsrsTheme;
 import java.awt.Color;
 import java.awt.Font;
 
@@ -82,6 +83,9 @@ public final class V2Tokens
 	public static final int PANEL_FRAME_INSET = 20;
 	/** The nav stone's chamfer. */
 	public static final int NAV_STONE_INSET = 8;
+	/** {@code StoneFrame}'s own insets — 1px dark over 1px light, plus the two
+	 *  pixels its 8px corner chamfer needs to land on. */
+	public static final int STONE_FRAME_INSET = 4;
 	/** Utility buttons all render in one cell so a row of them lines up
 	 *  (Luke, 2026-07-25) — the art itself varies from 16px to 21px. */
 	public static final int UTILITY_CELL = 22;
@@ -96,6 +100,23 @@ public final class V2Tokens
 	public static final Color STRONG = Color.WHITE;
 	/** Provenance, disabled, "as of" lines. */
 	public static final Color FAINT = OsrsSkin.FAINT;
+
+	/**
+	 * A progress bar's fill. V1's own bar green, and deliberately NOT
+	 * {@link #DONE}: the status green is the checkmark's ink and reads as an
+	 * achievement, which is far too loud for a bar that just says how far
+	 * along something is (Luke, 2026-07-25 — V1's bars "look nicer"). §6 rule 4
+	 * still holds: a bar carries no status, so it needs a colour of its own
+	 * rather than borrowing one that means something.
+	 */
+	public static final Color BAR_FILL = OsrsSkin.VALUE.darker();
+
+	/**
+	 * The route/task progress blue — V1's {@code PROGRESS_BLUE}, kept because
+	 * Goals uses it to mean "how far along a plan is" as distinct from the
+	 * green "how much of a thing you have" (Luke, 2026-07-25).
+	 */
+	public static final Color BAR_BLUE = OsrsSkin.PROGRESS_BLUE;
 
 	/** Done, owned, complete. Sampled from {@code ui/ticks/checkmark_small}. */
 	public static final Color DONE = new Color(0x18BF1B);
@@ -115,6 +136,62 @@ public final class V2Tokens
 	 * colour. Everything else is still art.
 	 */
 	public static final Color HIGHLIGHT = new Color(255, 255, 255, 20);
+
+	/**
+	 * The opposite of {@link #HIGHLIGHT} — a translucent dark wash, for a
+	 * surface that is present but not available. An unavailable tile needs a
+	 * dark HIGHLIGHT and not merely a dark ring (Luke, 2026-07-25; highlight
+	 * being the internal fill in his vocabulary): the whole tile has to sink,
+	 * or a greyed edge just reads as a quieter status.
+	 */
+	public static final Color SHADOW = new Color(0, 0, 0, 120);
+
+	/**
+	 * The Frame's light line, dimmed halfway to its dark one (Luke,
+	 * 2026-07-25: "less light, so it doesn't pop as much"). Derived from the
+	 * theme's own two edge colours rather than picked per theme, so the three
+	 * packs stay in step without a table to keep in sync.
+	 */
+	public static Color dimEdge(OsrsTheme theme)
+	{
+		return blend(theme.edgeLight, theme.edgeDark, 0.5);
+	}
+
+	/**
+	 * A status colour as a tile's EDGE — pulled back toward the panel so it
+	 * outlines rather than shouts (Luke, 2026-07-25: the status borders "need
+	 * to be less bright"). At full strength a red or green ring is the loudest
+	 * thing on a grid, which inverts §6: the tile's content is the message and
+	 * the edge is the annotation.
+	 */
+	public static Color statusEdge(OsrsTheme theme, Color status)
+	{
+		return blend(status, theme.background, 0.4);
+	}
+
+	/**
+	 * Tooltip colours — RuneLite's own, not the skin's (Luke, 2026-07-25:
+	 * "Tooltips need to be RuneLite's default style, but with Detail font").
+	 *
+	 * <p>A tooltip is chrome, not part of the panel: it floats above whatever
+	 * it explains and belongs to the client rather than to the skin, which is
+	 * why it is the one surface here that does not wear OSRS art. Taken from
+	 * {@code ColorScheme} so it follows RuneLite rather than drifting from it —
+	 * the LAF resolves {@code ToolTip.background} to {@code lighten(DARK_GRAY,
+	 * 4%)}, which is what the blend reproduces.
+	 */
+	public static final Color TOOLTIP_BG =
+		blend(net.runelite.client.ui.ColorScheme.DARK_GRAY_COLOR, Color.WHITE, 0.04);
+	public static final Color TOOLTIP_TEXT = net.runelite.client.ui.ColorScheme.TEXT_COLOR;
+
+	/** {@code amount} of the way from {@code from} to {@code to}. */
+	private static Color blend(Color from, Color to, double amount)
+	{
+		return new Color(
+			(int) Math.round(from.getRed() + (to.getRed() - from.getRed()) * amount),
+			(int) Math.round(from.getGreen() + (to.getGreen() - from.getGreen()) * amount),
+			(int) Math.round(from.getBlue() + (to.getBlue() - from.getBlue()) * amount));
+	}
 
 	// ── type: five roles ──────────────────────────────────────────────
 
@@ -205,12 +282,25 @@ public final class V2Tokens
 			"ui/borders/equipment_edge_%s", SLICE_INSET);
 	}
 
-	/** The nav bar's own stone, sliced so a tile can be any size (Luke:
-	 *  status tiles use the sprites the main plugin's nav bar uses). */
+	/**
+	 * The dark stone the status tiles wear, sliced so a tile can be any size.
+	 *
+	 * <p><b>Not the Iron Hub nav bar's art</b>, despite the name — that is
+	 * {@code tab_stone_middle}, RuneLite's dark grey tab stone. The real nav
+	 * tile is hand-painted by {@code StoneNavButton} from theme colours and
+	 * has no sprite in the curated set at all. Renamed in comment only, since
+	 * the tiles look right as they are (Luke, 2026-07-25).
+	 */
 	public static NineSlice navStone()
 	{
 		return NineSlice.of("ui/tabs/tab_stone_middle", NAV_STONE_INSET);
 	}
+
+	/**
+	 * The nav tile's chamfer (4px) plus its two bevel rings — what content
+	 * must clear on a slab wearing that stone.
+	 */
+	public static final int NAV_TILE_INSET = 6;
 
 	/** The outer panel border. */
 	public static NineSlice panel()

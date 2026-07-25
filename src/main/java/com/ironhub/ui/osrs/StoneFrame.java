@@ -33,10 +33,20 @@ public class StoneFrame extends AbstractBorder
 	};
 
 	private final OsrsTheme theme;
+	/** The frame's light line. Its own field so a caller can dim it without
+	 *  touching the theme — V2's Frame does (Luke, 2026-07-25: the light
+	 *  border popped too much at gallery width). */
+	private final Color light;
 
 	public StoneFrame(OsrsTheme theme)
 	{
+		this(theme, theme.edgeLight);
+	}
+
+	public StoneFrame(OsrsTheme theme, Color light)
+	{
 		this.theme = theme;
+		this.light = light;
 	}
 
 	@Override
@@ -47,7 +57,7 @@ public class StoneFrame extends AbstractBorder
 		g.fillRect(x + CORNER, y + h - 1, w - 2 * CORNER, 1);
 		g.fillRect(x, y + CORNER, 1, h - 2 * CORNER);
 		g.fillRect(x + w - 1, y + CORNER, 1, h - 2 * CORNER);
-		g.setColor(theme.edgeLight);
+		g.setColor(light);
 		g.fillRect(x + CORNER, y + 1, w - 2 * CORNER, 1);
 		g.fillRect(x + CORNER, y + h - 2, w - 2 * CORNER, 1);
 		g.fillRect(x + 1, y + CORNER, 1, h - 2 * CORNER);
@@ -86,7 +96,7 @@ public class StoneFrame extends AbstractBorder
 					continue; // transparent — the panel's own fill covers it
 				}
 				int rgb = (token == 'D' ? theme.edgeDark
-					: token == 'L' ? theme.edgeLight : outside).getRGB();
+					: token == 'L' ? light : outside).getRGB();
 				out[0].setRGB(col, row, rgb);
 				out[1].setRGB(CORNER - 1 - col, row, rgb);
 				out[2].setRGB(col, CORNER - 1 - row, rgb);
@@ -96,11 +106,25 @@ public class StoneFrame extends AbstractBorder
 		return out;
 	}
 
-	/** The chamfer cuts through to whatever hosts the frame. */
+	/**
+	 * The chamfer cuts through to whatever hosts the frame — the nearest
+	 * ANCESTOR that actually paints, not just the immediate parent.
+	 *
+	 * <p>V2 surfaces are non-opaque by design, so a frame nested inside one
+	 * used to fall straight to the classic grey and draw black corners on a
+	 * tan panel (Luke, 2026-07-25). Walking up finds the backing that is really
+	 * behind the chamfer; the grey stays only as the last resort.
+	 */
 	private Color outside(Component c)
 	{
-		Component parent = c.getParent();
-		return parent != null && parent.isOpaque() ? parent.getBackground() : UiTokens.PANEL_BG;
+		for (Component parent = c.getParent(); parent != null; parent = parent.getParent())
+		{
+			if (parent.isOpaque())
+			{
+				return parent.getBackground();
+			}
+		}
+		return UiTokens.PANEL_BG;
 	}
 
 	@Override

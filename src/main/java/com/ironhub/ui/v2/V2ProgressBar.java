@@ -45,17 +45,27 @@ public class V2ProgressBar extends JComponent
 	private final OsrsTheme theme;
 	private final Size size;
 	private final NineSlice frame = V2Tokens.barFrame();
+	/**
+	 * ROW and METER are the V1 atoms THEMSELVES, not a copy of them (Luke,
+	 * 2026-07-25: "import them EXACTLY"). They were previously reproduced line
+	 * for line here, and the copy had already drifted — it filled with the
+	 * status green instead of V1's own bar green, which is the whole of why
+	 * V1's looked nicer. Holding the real components makes that class of drift
+	 * impossible; null for FULL, which is the one weight made of sprites.
+	 */
+	private final com.ironhub.ui.osrs.StoneProgressBar rowBar;
+	private final com.ironhub.ui.osrs.StoneMeter meterBar;
+
+	/** Side breathing room, so the trough does not hug the text. */
+	private static final int SIDE_PAD = 6;
+	/** Measured ink per font+string: {top relative to the baseline, height}. */
+	private static final java.util.Map<String, int[]> INK =
+		new java.util.concurrent.ConcurrentHashMap<>();
 	private double fraction;
 	private String left = "";
 	private String centre = "";
 	private String right = "";
 	private int segments = 1;
-
-	/** V1's measurement: the small font's caps ink sits 6.5 rows above the
-	 *  baseline, so +7 from the trough's centre row lands it dead centre. */
-	private static final int INK_CENTRE_TO_BASELINE = 7;
-	/** V1's side breathing room, so the trough does not hug the text. */
-	private static final int SIDE_PAD = 6;
 
 	public V2ProgressBar(OsrsTheme theme)
 	{
@@ -67,14 +77,51 @@ public class V2ProgressBar extends JComponent
 		this.theme = theme;
 		this.size = size;
 		this.fraction = Double.NaN;
+		this.rowBar = size == Size.ROW
+			// theme.recess for the trough: the METER's own, so the two drawn
+			// weights sit on the same background (Luke, 2026-07-25)
+			? new com.ironhub.ui.osrs.StoneProgressBar(theme, V2Tokens.BAR_FILL, Double.NaN,
+				theme.recess)
+			: null;
+		this.meterBar = size == Size.METER
+			? new com.ironhub.ui.osrs.StoneMeter(theme, V2Tokens.BAR_FILL, Double.NaN)
+			: null;
 		setOpaque(false);
 		setAlignmentX(LEFT_ALIGNMENT);
+	}
+
+	/**
+	 * Recolour the fill. The default is {@link V2Tokens#BAR_FILL}; Goals asks
+	 * for {@link V2Tokens#BAR_BLUE} on routes and tasks, which is V1's own
+	 * split between plan progress and possession. §6 rule 4 still holds — the
+	 * bar carries no STATUS either way.
+	 */
+	public V2ProgressBar fill(java.awt.Color fill)
+	{
+		if (rowBar != null)
+		{
+			rowBar.setFill(fill);
+		}
+		if (meterBar != null)
+		{
+			meterBar.setFill(fill);
+		}
+		repaint();
+		return this;
 	}
 
 	/** 0..1. NaN leaves the trough empty — unknown is not zero. */
 	public V2ProgressBar fraction(double fraction)
 	{
 		this.fraction = fraction;
+		if (rowBar != null)
+		{
+			rowBar.setFraction(fraction);
+		}
+		if (meterBar != null)
+		{
+			meterBar.setFraction(fraction);
+		}
 		repaint();
 		return this;
 	}
@@ -95,6 +142,10 @@ public class V2ProgressBar extends JComponent
 		this.left = left == null ? "" : left;
 		this.centre = centre == null ? "" : centre;
 		this.right = right == null ? "" : right;
+		if (rowBar != null)
+		{
+			rowBar.labels(this.left, this.centre, this.right);
+		}
 		repaint();
 		return this;
 	}
@@ -103,6 +154,10 @@ public class V2ProgressBar extends JComponent
 	public V2ProgressBar segments(int segments)
 	{
 		this.segments = Math.max(1, segments);
+		if (meterBar != null)
+		{
+			meterBar.segments(this.segments);
+		}
 		repaint();
 		return this;
 	}
@@ -112,7 +167,9 @@ public class V2ProgressBar extends JComponent
 	{
 		if (size != Size.FULL)
 		{
-			paintDrawn((Graphics2D) g);
+			JComponent v1 = size == Size.ROW ? rowBar : meterBar;
+			v1.setBounds(0, 0, getWidth(), getHeight());
+			v1.paint(g);
 			return;
 		}
 		Graphics2D g2 = (Graphics2D) g;
@@ -140,47 +197,92 @@ public class V2ProgressBar extends JComponent
 			}
 		}
 		frame.paint(g2, theme, 0, 0, getWidth(), getHeight());
+		paintLabels(g2, barY, sh);
 	}
 
 	/**
-	 * The two smaller weights are the V1 atoms, ported line for line (Luke,
-	 * 2026-07-25: "import EXACTLY the medium and small progress bars from
-	 * Atoms V1, which draw themselves and aren't using sprites"). ROW is
-	 * StoneProgressBar — a sunken trough with left/centre/right labels placed
-	 * by MEASURED ink, since the small font's caps span baseline-10..-3 and
-	 * FontMetrics reads high. METER is StoneMeter, with its notches.
+	 * The three labels drawn OVER the sprite bar — the Hero's value rides on
+	 * its own bar (Luke, 2026-07-25). FULL is sprite art, so unlike ROW there
+	 * is nothing in the picture to carry text and it has to go on top.
+	 *
+	 * <p>Placed by MEASURED ink, as {@code StoneProgressBar} does — FontMetrics
+	 * reads high for these pixel fonts and would sit the text low. Unlike V1
+	 * the offset is measured from the font itself rather than hardcoded at 7,
+	 * because that 7 was the SMALL font's and this draws in the body font
+	 * (Luke, 2026-07-25). A constant would have to be re-measured every time
+	 * the role changed; the glyph's own pixel bounds never go stale.
+	 *
+	 * <p>Centred on the BAR, not on the component. The trough is drawn as a
+	 * centred window of its sprite, so it is shorter than the component box the
+	 * frame occupies — centring on the box put the text below the bar's middle
+	 * (Luke, 2026-07-25: "the text is sitting far too low").
+	 *
+	 * @param barY the trough's first row
+	 * @param barH the trough's drawn height, which is NOT {@code getHeight()}
 	 */
-	private void paintDrawn(Graphics2D g2)
+	private void paintLabels(Graphics2D g2, int barY, int barH)
 	{
-		g2.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
-			java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
-		int w = getWidth();
-		int h = getHeight();
-		double f = Double.isNaN(fraction) ? 0 : Math.max(0, Math.min(1, fraction));
-
-		g2.setColor(size == Size.ROW ? com.ironhub.ui.osrs.OsrsSkin.BAR_TROUGH : theme.recess);
-		g2.fillRect(0, 0, w, h);
-		g2.setColor(V2Tokens.DONE);
-		g2.fillRect(1, 1, (int) Math.round((w - 2) * f), h - 2);
-		if (size == Size.METER && segments > 1)
-		{
-			g2.setColor(theme.edgeLight);
-			for (int i = 1; i < segments; i++)
-			{
-				g2.fillRect(1 + (int) Math.round((w - 2) * (i / (double) segments)), 1, 1, h - 2);
-			}
-		}
-		com.ironhub.ui.osrs.OsrsSkin.outline(g2, theme.edgeDark, 0, 0, w, h);
-		if (size != Size.ROW)
+		if (left.isEmpty() && centre.isEmpty() && right.isEmpty())
 		{
 			return;
 		}
-		g2.setFont(V2Tokens.detailFont());
+		g2.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+			java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+		g2.setFont(V2Tokens.bodyFont());
 		java.awt.FontMetrics fm = g2.getFontMetrics();
-		int baseline = (h - 1) / 2 + INK_CENTRE_TO_BASELINE;
+		// measured from the STRING that will be drawn, not from a sample glyph:
+		// "1,482 / 1,706" has a slash that rides high and commas that descend,
+		// so a digit's ink is not this string's ink
+		int[] ink = ink(g2.getFont(), centre.isEmpty() ? left + right : centre);
+		int baseline = barY + (barH - ink[1]) / 2 - ink[0];
+		int w = getWidth();
 		label(g2, left, SIDE_PAD, baseline);
 		label(g2, centre, (w - fm.stringWidth(centre)) / 2, baseline);
 		label(g2, right, w - SIDE_PAD - fm.stringWidth(right), baseline);
+	}
+
+	/**
+	 * Where a string's ink actually lands, by RASTERISING it and looking:
+	 * {top relative to the baseline, height}.
+	 *
+	 * <p>Glyph metrics were the first attempt and they measured something the
+	 * client did not draw — the bar looked centred in the test renderer and sat
+	 * low in the real client (Luke, 2026-07-25, twice). Metrics can describe a
+	 * substituted font, or carry padding this font's bitmap glyphs do not use.
+	 * Drawing the glyph and scanning for ink cannot disagree with the screen,
+	 * because it IS the screen's answer. Once per font, then cached.
+	 */
+	private static int[] ink(java.awt.Font font, String text)
+	{
+		return INK.computeIfAbsent(font.getFontName() + "/" + font.getSize() + "/" + text, k ->
+		{
+			java.awt.Font f = font;
+			int box = Math.max(64, f.getSize() * 8);
+			int baseline = box / 2;
+			BufferedImage probe = new BufferedImage(box, box, BufferedImage.TYPE_INT_ARGB);
+			Graphics2D g = probe.createGraphics();
+			g.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+				java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+			g.setFont(f);
+			g.setColor(java.awt.Color.WHITE); // v2-exempt: an offscreen ruler, never shown
+			g.drawString(text, 2, baseline);
+			g.dispose();
+			int top = -1, bottom = -1;
+			for (int y = 0; y < box; y++)
+			{
+				for (int x = 0; x < box; x++)
+				{
+					if ((probe.getRGB(x, y) >>> 24) != 0)
+					{
+						top = top < 0 ? y : top;
+						bottom = y;
+						break;
+					}
+				}
+			}
+			return top < 0 ? new int[]{-f.getSize(), f.getSize()}
+				: new int[]{top - baseline, bottom - top + 1};
+		});
 	}
 
 	private void label(Graphics2D g2, String text, int x, int y)
@@ -191,7 +293,7 @@ public class V2ProgressBar extends JComponent
 		}
 		g2.setColor(com.ironhub.ui.osrs.OsrsSkin.TEXT_SHADOW);
 		g2.drawString(text, x + 1, y + 1);
-		g2.setColor(com.ironhub.ui.osrs.OsrsSkin.BAR_TEXT);
+		g2.setColor(V2Tokens.STRONG);
 		g2.drawString(text, x, y);
 	}
 

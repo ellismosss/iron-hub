@@ -47,9 +47,17 @@ public class DesignLabTab extends JPanel
 	 *  Luke's sign-off before any module migrates. */
 	private final JPanel slot = new JPanel(new java.awt.BorderLayout());
 
+	private final net.runelite.client.game.ItemManager itemManager;
+
 	public DesignLabTab(OsrsTheme theme)
 	{
+		this(theme, null);
+	}
+
+	public DesignLabTab(OsrsTheme theme, net.runelite.client.game.ItemManager itemManager)
+	{
 		this.theme = theme;
+		this.itemManager = itemManager;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		// THEME-backed, not the classic grey. UiTokens.PANEL_BG is #262626,
 		// and painting it behind a skinned tab put a grey band around every
@@ -59,24 +67,41 @@ public class DesignLabTab extends JPanel
 		// the nav rework: no classic grey behind the skin.
 		setOpaque(true);
 		setBackground(theme.background);
-		setBorder(new EmptyBorder(4, 4, 4, 4));
+		// no horizontal inset — the gallery below carries its own frame and
+		// wants every one of the panel's 225px (Luke, 2026-07-25: "it could
+		// still be wider"). The chip row keeps the 4px for itself.
+		setBorder(new EmptyBorder(4, 0, 4, 0));
 
 		com.ironhub.ui.v2.V2ChipRow views =
-			new com.ironhub.ui.v2.V2ChipRow(theme, true, "Design lab V2", "Atoms (V1)");
-		views.onChange(index -> showGallery(index == 0));
+			new com.ironhub.ui.v2.V2ChipRow(theme, true, "Atoms", "Goals", "V1");
+		views.onChange(this::showView);
+		views.setBorder(new EmptyBorder(0, 4, 0, 4));
 		add(views);
 		add(Box.createVerticalStrut(com.ironhub.ui.v2.V2Tokens.ROW));
 		slot.setOpaque(false);
 		slot.setAlignmentX(LEFT_ALIGNMENT);
 		add(slot);
-		showGallery(true);
+		showView(0);
 	}
 
 	/** Test seam: pick a gallery as a chip press would. */
 	public void showGallery(boolean v2)
 	{
+		showView(v2 ? 0 : 2);
+	}
+
+	/**
+	 * 0 = the atom gallery, 1 = the Goals hub rebuilt from those atoms, 2 = the
+	 * V1 atoms. Goals is the system's first real screen (Luke, 2026-07-25) and
+	 * sits beside the atoms it is made of, so a change to an atom can be judged
+	 * against a page that uses it rather than against a swatch.
+	 */
+	public void showView(int index)
+	{
 		slot.removeAll();
-		slot.add(v2 ? new DesignLabV2Tab(theme) : v1Gallery(), java.awt.BorderLayout.CENTER);
+		slot.add(index == 1 ? new GoalsV2View(theme)
+			: index == 2 ? v1Gallery()
+			: new DesignLabV2Tab(theme, itemManager), java.awt.BorderLayout.CENTER);
 		slot.revalidate();
 		slot.repaint();
 	}

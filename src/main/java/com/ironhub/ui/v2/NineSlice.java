@@ -36,14 +36,42 @@ public final class NineSlice
 	 *  it transparent (a border-only frame such as the Well). */
 	private final String middle;
 	private final int inset;
+	/** Draw from the sprite's highlighted copy — the pointer wash, clipped to
+	 *  the art's own pixels. See {@link #highlighted()}. */
+	private final boolean lit;
 
 	private NineSlice(String single, String[] corners, String[] edges, String middle, int inset)
+	{
+		this(single, corners, edges, middle, inset, false);
+	}
+
+	private NineSlice(String single, String[] corners, String[] edges, String middle, int inset,
+		boolean lit)
 	{
 		this.single = single;
 		this.corners = corners;
 		this.edges = edges;
 		this.middle = middle;
 		this.inset = inset;
+		this.lit = lit;
+	}
+
+	/**
+	 * The same slice under the pointer wash rather than in another sprite.
+	 *
+	 * <p>This is what HOVER wears. The curated {@code _hovered} sprites are the
+	 * PRESSED look (see {@code V2Tokens.HIGHLIGHT}), so a control that showed
+	 * them on hover was announcing a press that had not happened — Luke's
+	 * chips, 2026-07-25. Single-sprite slices only; the piece families have no
+	 * caller that needs it.
+	 */
+	public NineSlice highlighted()
+	{
+		if (single == null)
+		{
+			throw new IllegalStateException("the wash is for single-sprite slices");
+		}
+		return new NineSlice(single, null, null, null, inset, true);
 	}
 
 	/**
@@ -146,7 +174,8 @@ public final class NineSlice
 		int midH = h - 2 * c;
 		if (single != null)
 		{
-			BufferedImage s = V2Sprites.get(theme, single);
+			BufferedImage s = lit ? V2Sprites.highlighted(theme, single)
+				: V2Sprites.trimmed(theme, single);
 			int sw = s.getWidth();
 			int sh = s.getHeight();
 			tile(g, s, c, c, sw - 2 * c, sh - 2 * c, x + c, y + c, midW, midH);

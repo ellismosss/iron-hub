@@ -1,6 +1,7 @@
 package com.ironhub.modules.designlab;
 
 import com.ironhub.ui.osrs.OsrsTheme;
+import com.ironhub.ui.osrs.StoneNavButton;
 import com.ironhub.ui.v2.V2Button;
 import com.ironhub.ui.v2.V2Checkbox;
 import com.ironhub.ui.v2.V2ChipRow;
@@ -24,6 +25,7 @@ import com.ironhub.ui.v2.V2Tokens;
 import com.ironhub.ui.v2.V2Tooltip;
 import java.awt.image.BufferedImage;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -42,17 +44,83 @@ import javax.swing.border.EmptyBorder;
  */
 public class DesignLabV2Tab extends JPanel
 {
+	/**
+	 * The nav emblems, in stone order against {@code HomePanel.navBlocks()} —
+	 * Luke's pick from the curated set (2026-07-25), replacing the wiki PNGs
+	 * the live row still wears.
+	 */
+	private static final String[] NAV_EMBLEMS = {
+		"icons/planner",              // Goals
+		"icons/combat/combat_large",  // Gear & Combat
+		"icons/clock/clock_1",        // Dailies
+		"icons/storage",              // Progression
+		"icons/bank",                 // Bank
+		"icons/settings",             // Settings
+	};
+
+	/**
+	 * The box each emblem is fitted into. NOT one number: these six come from
+	 * different families and a single box makes some read heavy and others
+	 * thin. Tuned by eye against the row (Luke, 2026-07-25), then taken up ~20%
+	 * because the row read small in the 33x36 stone.
+	 *
+	 * <p>The swords are CAPPED at the stone's own width rather than scaled with
+	 * the rest: another 20% would have taken them past it, and an emblem wider
+	 * than its stone has nowhere to go. That cap is the row's ceiling — the
+	 * stone cannot grow either, since six of them at 33px already fill 198 of
+	 * the 209px a 225 panel leaves.
+	 */
+	private static final int[] NAV_BOX = {
+		26,  // planner  — back to its native 26
+		33,  // swords   — the stone's width; the cap, not a choice
+		26,  // clock    — 22 up to 26
+		22,  // storage  — 16 up to 22
+		22,  // bank     — 15 up to 22
+		26,  // settings — 22 up to 26
+	};
+
+	/**
+	 * The 28 items the inventory shows — real game items, drawn by
+	 * {@code ItemManager} rather than by any sprite in this repo (Luke,
+	 * 2026-07-25). IDs come from {@code data/supplies.json}, which is generated
+	 * from knowledge.db, so they are verified rather than remembered.
+	 */
+	private static final int[] INVENTORY = {
+		12695, 2444, 22461, 3024, 2434,   // potions
+		13441, 391, 11936, 7060, 385,     // food
+		561, 563, 560, 565, 566,          // runes
+		892, 21326, 11212, 890,           // ammo
+		536, 22124, 22780, 6729,          // prayer
+		7936, 314, 1777, 207, 3051,       // materials
+	};
+
 	private final OsrsTheme theme;
+	/** null in the render tests — there is no client, so the slots stay empty
+	 *  and everything else on the page still renders. */
+	private final com.ironhub.ui.components.SpriteCache sprites;
+	/** Held so the cache's arrival callback can re-fill it — see {@link #fillInventory}. */
+	private com.ironhub.ui.v2.V2Inventory inventory;
 
 	public DesignLabV2Tab(OsrsTheme theme)
 	{
+		this(theme, null);
+	}
+
+	public DesignLabV2Tab(OsrsTheme theme, net.runelite.client.game.ItemManager itemManager)
+	{
 		this.theme = theme;
+		this.sprites = new com.ironhub.ui.components.SpriteCache(itemManager, this::fillInventory);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
-		setBorder(new EmptyBorder(V2Tokens.PAD, V2Tokens.ROW, V2Tokens.PAD, V2Tokens.ROW));
+		// NO horizontal inset: DesignLabTab already insets this tab by 4px, and
+		// a second 4px here made the frame 209px where HomePanel's is 217
+		// (Luke, 2026-07-25: "there's definitely more than 4px on either side").
+		// The frame carries the edge now, so the tab must not double it.
+		setBorder(new EmptyBorder(V2Tokens.PAD, 0, V2Tokens.PAD, 0));
 		setAlignmentX(LEFT_ALIGNMENT);
 
+		nav();
 		surfaces();
 		text();
 		actions();
@@ -71,17 +139,94 @@ public class DesignLabV2Tab extends JPanel
 			.filter(meta -> meta.has(theme.spriteVariant())).count();
 		add(V2Label.faint(theme + " · " + reskinned + " of "
 			+ V2Sprites.all().size() + " sprites"));
+
+		wrapInFrame();
+	}
+
+	/**
+	 * Move everything the sections just built inside the panel's own frame, at
+	 * the width the real nav row sits at — 217px, which is 225 less this tab's
+	 * own 4px edges, exactly as HomePanel's frame is 225 less its own
+	 * (Luke, 2026-07-25).
+	 *
+	 * <p>Done by reparenting after the fact rather than by threading a
+	 * container through all seven section methods: {@code Container.add}
+	 * removes a child from its previous parent, so the loop drains this panel
+	 * into the frame in order and leaves every section's code untouched.
+	 */
+	private void wrapInFrame()
+	{
+		V2Surface frame = V2Surface.frame(theme);
+		while (getComponentCount() > 0)
+		{
+			frame.add(getComponent(0));
+		}
+		add(frame);
 	}
 
 	// ── sections ──────────────────────────────────────────────────────
 
+	/**
+	 * The live nav row, imported as-is (Luke, 2026-07-25). This is the one
+	 * thing on the page that is NOT V2 art, and it sits at the top because it
+	 * is the first thing the panel shows:
+	 *
+	 * <ul>
+	 * <li>the stone is {@link StoneNavButton}, which paints its own bevel with
+	 *     {@code fillRect} from {@code OsrsTheme} colours — §2's hand-drawn
+	 *     border, exactly what the system removes. The curated equivalent
+	 *     ({@code ui/tabs/tab_stone_middle}, already sliced by
+	 *     {@code V2Tokens.navStone()}) is unused by the real nav bar.</li>
+	 * <li>the emblems are now curated art (Luke's pick, 2026-07-25), so the
+	 *     wiki PNGs under {@code data/icons/osrs/nav/} are out of the picture
+	 *     here — the live HomePanel row still wears them.</li>
+	 * </ul>
+	 *
+	 * <p>It is here to be judged and then rebuilt on V2 art, not to be copied.
+	 */
+	private void nav()
+	{
+		heading("Nav tiles");
+		JPanel stones = row();
+		// glue BOTH sides — the nav row is the one thing on this page that is
+		// centred rather than on the section's left edge (§7), because that is
+		// how HomePanel builds it and how the game's own tab row sits
+		stones.add(V2Layout.glue());
+		String[][] blocks = com.ironhub.ui.HomePanel.navBlocks();
+		for (int i = 0; i < blocks.length; i++)
+		{
+			// flush, no gap between stones — the game's own tab row, and how
+			// HomePanel builds it. Selected on the first so both states show.
+			// fitted, not native: the six sources span 15px to 36px, which
+			// reads as six unrelated icons in one row (Luke, 2026-07-25)
+			StoneNavButton stone = new StoneNavButton(theme,
+				new ImageIcon(V2Sprites.fitted(theme, NAV_EMBLEMS[i], NAV_BOX[i])),
+				i == 0, null)
+				.textured(cardGrain());
+			stone.setToolTipText(blocks[i][1]);
+			stones.add(stone);
+		}
+		stones.add(V2Layout.glue());
+		add(stones);
+		gap(V2Tokens.TIGHT);
+		add(V2Label.faint("hand-painted stone, curated emblems"));
+		add(V2Label.faint("stone not V2 art yet · Goals selected"));
+		gap(V2Tokens.SECTION);
+	}
+
 	private void surfaces()
 	{
 		heading("Surfaces");
-		V2Surface slab = V2Surface.slab(theme);
-		slab.stack(V2Label.heading("Slab"), V2Tokens.ROW);
-		slab.add(V2Label.body("Static. Never clickable."));
-		add(slab);
+		V2Surface frame = V2Surface.frame(theme);
+		frame.stack(V2Label.heading("Frame"), V2Tokens.ROW);
+		frame.add(V2Label.body("The panel's own edge. Wraps a block."));
+		add(frame);
+		gap(V2Tokens.ROW);
+
+		V2Surface tile = V2Surface.tile(theme);
+		tile.stack(V2Label.heading("Tile"), V2Tokens.ROW);
+		tile.add(V2Label.body("Static. Never clickable."));
+		add(tile);
 		gap(V2Tokens.ROW);
 
 		V2Surface card = V2Surface.card(theme);
@@ -98,11 +243,16 @@ public class DesignLabV2Tab extends JPanel
 
 		// the real inventory, ported from Gear & Combat's SavedSetupView so
 		// V2 shares its measured geometry instead of re-deriving it: 4 x 7 on
-		// the game's backing, each frame strip cropped to its own opaque band
-		add(new com.ironhub.ui.v2.V2Inventory(theme)
-			.item(0, sprite("icons/skills/attack"))
-			.item(1, sprite("icons/skills/farming"))
-			.item(4, sprite("icons/skills/mining")));
+		// the game's backing, each frame strip cropped to its own opaque band.
+		// All 28 slots full, with the GAME's own item images — a half-empty
+		// grid of skill icons proved nothing about how a real one reads.
+		inventory = new com.ironhub.ui.v2.V2Inventory(theme);
+		fillInventory();
+		JPanel centred = row();
+		centred.add(V2Layout.glue());
+		centred.add(inventory);
+		centred.add(V2Layout.glue());
+		add(centred);
 		gap(V2Tokens.TIGHT);
 		add(V2Label.faint("Inventory — Gear & Combat only"));
 		gap(V2Tokens.ROW);
@@ -142,7 +292,8 @@ public class DesignLabV2Tab extends JPanel
 		held.setPressed(true);
 		add(held);
 		gap(V2Tokens.ROW);
-		add(V2Label.faint("rest = well, hover = card, pressed = chip"));
+		add(V2Label.faint("rest = metal, hover = card"));
+		add(V2Label.faint("pressed = metal's own _hovered art"));
 		gap(V2Tokens.ROW);
 
 		add(V2Label.detail("Utility"));
@@ -237,6 +388,18 @@ public class DesignLabV2Tab extends JPanel
 		}
 		statuses.add(V2Layout.glue());
 		add(statuses);
+		gap(V2Tokens.ROW);
+		add(V2Label.detail("Wrapping progress"));
+		JPanel wraps = row();
+		double[] fractions = {0.25, 0.5, 0.75, 1};
+		for (double fraction : fractions)
+		{
+			wraps.add(new V2Tile(theme, sprite("icons/skills/farming"), null, 50, null)
+				.status(V2Tile.Status.READY).progress(fraction));
+			wraps.add(V2Layout.hgap(V2Tokens.ROW));
+		}
+		wraps.add(V2Layout.glue());
+		add(wraps);
 		gap(V2Tokens.SECTION);
 
 		heading("Tabs — two styles to pick from");
@@ -384,6 +547,37 @@ public class DesignLabV2Tab extends JPanel
 		}
 		row.add(V2Layout.glue());
 		return row;
+	}
+
+	/**
+	 * Ask the cache for all 28 item images and hand them to the inventory.
+	 *
+	 * <p>Called once at build and AGAIN from the cache's arrival callback,
+	 * which is the whole point: {@code SpriteCache.get} returns null on a miss
+	 * and fetches in the background, so a one-shot population at build time
+	 * stores 28 nulls and a bare {@code repaint()} redraws those same nulls
+	 * forever. The callback has to re-ASK, not just redraw.
+	 */
+	private void fillInventory()
+	{
+		if (inventory == null)
+		{
+			return; // the cache can call back before the field is assigned
+		}
+		for (int slot = 0; slot < INVENTORY.length; slot++)
+		{
+			// width -1 keeps the sprite's own 36x32 aspect — the convention
+			// every other tab uses; a square box squashes wide items
+			inventory.item(slot, sprites.get(INVENTORY[slot], -1, V2Tokens.ICON * 2));
+		}
+	}
+
+	/** The Card's grain, repeating — what Tile and Card already wear. */
+	private java.awt.TexturePaint cardGrain()
+	{
+		BufferedImage grain = V2Sprites.cardInterior(theme);
+		return new java.awt.TexturePaint(grain,
+			new java.awt.Rectangle(0, 0, grain.getWidth(), grain.getHeight()));
 	}
 
 	private BufferedImage sprite(String key)

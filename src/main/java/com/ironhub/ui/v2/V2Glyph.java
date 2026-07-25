@@ -23,13 +23,27 @@ public class V2Glyph extends JComponent
 	public static final String TICK_LARGE = "ui/ticks/checkmark_large";
 	public static final String CROSS = "ui/ticks/red_cross_small";
 	public static final String CROSS_LARGE = "ui/ticks/red_cross_large";
-	public static final String LOCK = "icons/padlock";
+	/**
+	 * The CHECKLIST's padlock — the checkbox's own locked art, so a locked row
+	 * looks the same whether it is a Table row or a Checklist row (Luke,
+	 * 2026-07-25). {@code icons/padlock} is a gold 29x22 lock and read as a
+	 * different idea entirely beside the checklist's red one.
+	 */
+	public static final String LOCK = "ui/checkbox/square_bordered_checkbox_locked";
 	public static final String STAR = "icons/star/star";
 	public static final String STAR_MEMBER = "icons/star/star_member";
 	public static final String SORT_ASCENDING = "ui/arrows/list_sorting_arrow_ascending";
 	public static final String SORT_DESCENDING = "ui/arrows/list_sorting_arrow_descending";
 
 	/** Collapsed — press to open. */
+	/** The green double chevron the game uses to mark the ACTIVE thing —
+	 *  Goals puts it beside "current task" (Luke, 2026-07-25). */
+	public static final String ACTIVE = "icons/chevron/green_right_double";
+	public static final String ACTIVE_OPEN = "icons/chevron/green_down_double";
+	/** Expand / collapse: the DROPDOWN's own arrows, so opening a row is the
+	 *  same gesture as opening a dropdown. */
+	public static final String CLOSED = "ui/arrows/arrow_right";
+	public static final String OPEN = "ui/arrows/arrow_down";
 	public static final String CHEVRON_CLOSED = "icons/chevron/gray_right_single";
 	/** Expanded. */
 	public static final String CHEVRON_OPEN = "icons/chevron/gray_down_single";

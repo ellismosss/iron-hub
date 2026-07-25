@@ -157,10 +157,13 @@ public final class V2Sprites
 	 */
 	public static BufferedImage highlighted(OsrsTheme theme, String key)
 	{
+		// resolved BEFORE computeIfAbsent: get() caches into this same map, and
+		// a nested computeIfAbsent on a ConcurrentHashMap throws "Recursive
+		// update" whenever the source sprite is not already warm
+		BufferedImage art = trimmed(theme, key);
 		String cacheKey = "hl/" + theme.spriteVariant() + "/" + key;
 		return CACHE.computeIfAbsent(cacheKey, k ->
 		{
-			BufferedImage art = get(theme, key);
 			BufferedImage lit = new BufferedImage(art.getWidth(), art.getHeight(),
 				BufferedImage.TYPE_INT_ARGB);
 			java.awt.Graphics2D g = lit.createGraphics();
@@ -171,6 +174,105 @@ public final class V2Sprites
 			g.dispose();
 			return Optional.of(lit);
 		}).orElse(null);
+	}
+
+	/**
+	 * The sprite cropped to its own ink — the alpha bounding box.
+	 *
+	 * <p>A nine-slice cuts its edges from the sprite's CANVAS, so a sprite with
+	 * transparent padding hands the slicer nothing. {@code ui/buttons/button}
+	 * is exactly that: a 35x35 canvas whose ink runs rows 5..29 only, so
+	 * slicing it at 5 took two rows of pure transparency as the top and bottom
+	 * edges and tiled the entire real button — both rounded ends included —
+	 * through the middle. That is Luke's chip with "no lower half" (2026-07-25)
+	 * and the same button family that clipped under {@code V2Button}.
+	 *
+	 * <p>Measured 2026-07-25: {@code button} and {@code button_hovered} are the
+	 * ONLY slice sources with padding. Every other one is already flush, so
+	 * trimming is a no-op for them and this cannot shift art that was right.
+	 */
+	public static BufferedImage trimmed(OsrsTheme theme, String key)
+	{
+		BufferedImage art = get(theme, key);
+		String cacheKey = "trim/" + theme.spriteVariant() + "/" + key;
+		return CACHE.computeIfAbsent(cacheKey, k ->
+		{
+			int minX = art.getWidth(), minY = art.getHeight(), maxX = -1, maxY = -1;
+			for (int y = 0; y < art.getHeight(); y++)
+			{
+				for (int x = 0; x < art.getWidth(); x++)
+				{
+					if ((art.getRGB(x, y) >>> 24) != 0)
+					{
+						minX = Math.min(minX, x);
+						minY = Math.min(minY, y);
+						maxX = Math.max(maxX, x);
+						maxY = Math.max(maxY, y);
+					}
+				}
+			}
+			return Optional.of(maxX < 0 ? art
+				: art.getSubimage(minX, minY, maxX - minX + 1, maxY - minY + 1));
+		}).orElse(null);
+	}
+
+	/**
+	 * A sprite scaled to read at a given weight, aspect preserved, NEAREST
+	 * NEIGHBOUR. The one place in V2 that resizes art, and it exists because a
+	 * row of emblems pulled from different families arrives at different sizes
+	 * — the nav row's six span 15px to 36px, which reads as six unrelated
+	 * icons rather than one row (Luke, 2026-07-25).
+	 *
+	 * <p>NEAREST is not a preference: smooth interpolation is what made the
+	 * first nav pass read soft, and Luke's fix then was native size only
+	 * ("much nicer and crisper"). Nearest keeps every pixel hard-edged; the
+	 * cost at a non-integer ratio is uneven pixel runs, which is a visible,
+	 * honest artefact rather than a blur.
+	 *
+	 * <p>This is NOT a licence to scale surfaces — §2 stands, and
+	 * {@link NineSlice} is still the only way to draw a surface at a size it
+	 * did not come in. An emblem is a picture, not a tiled texture.
+	 */
+	public static BufferedImage fitted(OsrsTheme theme, String key, int box)
+	{
+		// resolved BEFORE computeIfAbsent — see highlighted()
+		BufferedImage art = get(theme, key);
+		String cacheKey = "fit" + box + "/" + theme.spriteVariant() + "/" + key;
+		return CACHE.computeIfAbsent(cacheKey, k ->
+		{
+			double factor = Math.min(box / (double) art.getWidth(),
+				box / (double) art.getHeight());
+			int w = Math.max(1, (int) Math.round(art.getWidth() * factor));
+			int h = Math.max(1, (int) Math.round(art.getHeight() * factor));
+			if (w == art.getWidth() && h == art.getHeight())
+			{
+				return Optional.of(art);
+			}
+			BufferedImage out = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+			java.awt.Graphics2D g = out.createGraphics();
+			g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
+				java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+			g.drawImage(art, 0, 0, w, h, null);
+			g.dispose();
+			return Optional.of(out);
+		}).orElse(null);
+	}
+
+	/**
+	 * The Card's interior — {@code enter_wilderness_teleport} inside its 9px
+	 * bevel. The Tile fills its chamfer with this, so the two surfaces share
+	 * one colour, one lightness and one grain (Luke, 2026-07-25); they are
+	 * told apart by their outline, not their tone.
+	 *
+	 * <p>Used AS IT COMES, at 1:1 — a TexturePaint repeats it, which is the
+	 * §2 tiling rule holding for a fill exactly as it does for a slice.
+	 */
+	public static BufferedImage cardInterior(OsrsTheme theme)
+	{
+		BufferedImage card = get(theme, "ui/buttons/enter_wilderness_teleport");
+		int inset = V2Tokens.SLICE_INSET;
+		return card.getSubimage(inset, inset,
+			card.getWidth() - 2 * inset, card.getHeight() - 2 * inset);
 	}
 
 	private static BufferedImage load(String path)

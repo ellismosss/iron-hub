@@ -185,6 +185,16 @@ public class HomePanel extends JPanel
 		return names;
 	}
 
+	/**
+	 * The nav row's blocks in stone order — {icon key, display name}. Public so
+	 * Design lab V2 shows the REAL row rather than a copy of it: a gallery that
+	 * keeps its own nav list is a second source of truth, and drifts.
+	 */
+	public static String[][] navBlocks()
+	{
+		return NAV.clone();
+	}
+
 	/** The six stones, flush at full size — the Design lab row. Not wired yet. */
 	private JComponent navRow()
 	{

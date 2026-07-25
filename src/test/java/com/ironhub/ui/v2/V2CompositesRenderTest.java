@@ -146,9 +146,10 @@ public class V2CompositesRenderTest
 		tip.setTipText("Needs Farming 65 and a Magic secateurs you don't own yet.");
 		java.awt.Dimension card = tip.getPreferredSize();
 		java.awt.Dimension text = tip.getComponent(0).getPreferredSize();
-		// a tooltip is a 1px box with 2px of padding — it covers what you are
-		// pointing at, so its job is to be small (Luke, 2026-07-25)
-		assertEquals(text.height + 2 * V2Tokens.TIGHT, card.height);
+		// a tooltip is a 1px box in RuneLite's own style — ROW above and below,
+		// PAD either side, which is near enough FlatLaf's tooltip padding
+		// (Luke, 2026-07-25). It covers what you are pointing at, so it is small.
+		assertEquals(text.height + 2 * V2Tokens.ROW, card.height);
 		assertTrue("the text must wrap to more than one line", text.height > V2Tokens.LINE_PITCH);
 	}
 

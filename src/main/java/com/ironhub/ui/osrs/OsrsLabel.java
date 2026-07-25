@@ -107,6 +107,20 @@ public class OsrsLabel extends JComponent
 		repaint();
 	}
 
+	/**
+	 * Restyle in place. Its own method because {@code setFont} alone leaves the
+	 * cached preferred size behind, so the label keeps measuring in the old
+	 * font and the row lays out to a width the text no longer needs.
+	 */
+	public OsrsLabel font(Font font)
+	{
+		setFont(font);
+		this.preferredSize = null;
+		revalidate();
+		repaint();
+		return this;
+	}
+
 	/** Recolour in place — status changes must not rebuild the row. */
 	public void setColor(Color color)
 	{

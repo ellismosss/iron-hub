@@ -422,6 +422,13 @@
 				"vanilla"
 			]
 		},
+		"icons/bank": {
+			"w": 15,
+			"h": 15,
+			"variants": [
+				"vanilla"
+			]
+		},
 		"icons/cancel": {
 			"w": 19,
 			"h": 19,

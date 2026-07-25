@@ -31,6 +31,10 @@ public class V2Surface extends JPanel
 	private final V2Well wellArt;
 	private NineSlice hovered;
 	private boolean hover;
+	/** Painted by the nav row's own painter rather than from a slice. */
+	private boolean navTile;
+	/** Painted by a Swing Border rather than from a slice — the Frame. */
+	private javax.swing.border.Border frameBorder;
 	/**
 	 * A slice cannot render below twice its corner size — the corners overlap
 	 * and the edges get a negative span. The panel frame's corners are 32px,
@@ -42,14 +46,81 @@ public class V2Surface extends JPanel
 	private final int minimumHeight;
 
 	/**
-	 * A NON-CLICKABLE surface — the game's notched slab. Section headings,
-	 * static blocks, anything the player cannot press (Luke, 2026-07-25).
-	 * Keeping it visually distinct from the button family is the point: a
-	 * surface that looks pressable and isn't is the worst kind of drift.
+	 * A NON-CLICKABLE surface — section headings, static blocks, anything the
+	 * player cannot press. It is a NAV TILE, as wide as it is given (Luke,
+	 * 2026-07-25), replacing the thin tan line it wore before.
+	 *
+	 * <p>It shares {@code StoneNavButton.paintSlab} with the nav row rather
+	 * than copying its look, so the two can never drift apart. That painter is
+	 * hand-drawn rather than sprite art, which is the one thing on this page
+	 * V2 has not taken over yet — when the nav tile becomes art, this follows
+	 * it for free, and that is exactly why it borrows instead of reproducing.
 	 */
-	public static V2Surface slab(OsrsTheme theme)
+	public static V2Surface tile(OsrsTheme theme)
 	{
-		return new V2Surface(theme, V2Tokens.slab());
+		return new V2Surface(theme, V2Tokens.NAV_TILE_INSET + V2Tokens.PAD);
+	}
+
+	/**
+	 * The game's thin side-panel frame — what the "Iron Hub" header and the nav
+	 * row sit inside in the real panel (Luke, 2026-07-25). Imported from
+	 * {@code StoneFrame} rather than reproduced, on the same terms as the Tile:
+	 * it is hand-painted from an 8x8 pixel stamp in theme colours, not sprite
+	 * art, and when it becomes art this follows it.
+	 *
+	 * <p>Border only — the interior is left on the panel backing, and the 8px
+	 * corner chamfer deliberately cuts through to whatever hosts it.
+	 */
+	public static V2Surface frame(OsrsTheme theme)
+	{
+		V2Surface surface = new V2Surface(theme,
+			V2Tokens.STONE_FRAME_INSET + V2Tokens.PAD);
+		surface.navTile = false;
+		surface.frameBorder = new com.ironhub.ui.osrs.StoneFrame(theme,
+			V2Tokens.dimEdge(theme));
+		return surface;
+	}
+
+	/**
+	 * The Tile's surface, painted straight onto a Graphics — for things that
+	 * wear it without being containers, {@link V2Tile} above all. Shared rather
+	 * than reproduced so the clickable tile and the static one can never drift
+	 * apart, which is the entire point of this system.
+	 *
+	 * <p>Selected changes the BORDER, not the highlight: it keeps the same Card
+	 * grain and takes the brighter bevel. A flat {@code selectFill} was the
+	 * first attempt and read far too hot beside its neighbours (Luke,
+	 * 2026-07-25, "the highlight is too strong when they are pressed" — and in
+	 * his vocabulary the highlight is the fill). The lift comes from the wash
+	 * instead, which is a fifth of the weight.
+	 */
+	public static void paintTile(Graphics2D g, OsrsTheme theme, int w, int h, boolean selected)
+	{
+		java.awt.image.BufferedImage grain = V2Sprites.cardInterior(theme);
+		com.ironhub.ui.osrs.StoneNavButton.paintSlab(g, theme, w, h,
+			new java.awt.TexturePaint(grain,
+				new java.awt.Rectangle(0, 0, grain.getWidth(), grain.getHeight())),
+			selected ? theme.selectEdge : V2Tokens.dimEdge(theme));
+	}
+
+	/**
+	 * The pointer wash over a Tile, clipped to the chamfered silhouette.
+	 *
+	 * <p>A {@code fillRect} washes the square the tile is drawn in, so it
+	 * spilled over all four notched corners onto the panel behind (Luke,
+	 * 2026-07-25: "the hover highlight isn't clipping to the inside of the
+	 * tiles"). {@code paintSilhouette} fills the tile's actual shape.
+	 */
+	public static void washTile(Graphics2D g, int w, int h)
+	{
+		com.ironhub.ui.osrs.StoneNavButton.paintSilhouette(g, w, h, V2Tokens.HIGHLIGHT);
+	}
+
+	/** The same clipped wash, dark — an unavailable Tile sinks into the panel
+	 *  rather than merely wearing a grey edge. */
+	public static void shadeTile(Graphics2D g, int w, int h)
+	{
+		com.ironhub.ui.osrs.StoneNavButton.paintSilhouette(g, w, h, V2Tokens.SHADOW);
 	}
 
 	/** Filled surface: cards, tooltips, and the button's hovered state. */
@@ -88,6 +159,14 @@ public class V2Surface extends JPanel
 	public V2Surface(OsrsTheme theme, NineSlice slice, int contentInset)
 	{
 		this(theme, slice, null, contentInset);
+	}
+
+	/** The Tile: no slice and no well, painted by the nav row's own painter.
+	 *  See {@link #tile}. */
+	private V2Surface(OsrsTheme theme, int contentInset)
+	{
+		this(theme, null, null, contentInset);
+		this.navTile = true;
 	}
 
 	private V2Surface(OsrsTheme theme, NineSlice slice, V2Well wellArt, int contentInset)
@@ -161,7 +240,23 @@ public class V2Surface extends JPanel
 	@Override
 	protected void paintComponent(Graphics g)
 	{
-		if (wellArt != null)
+		if (frameBorder != null)
+		{
+			frameBorder.paintBorder(this, g, 0, 0, getWidth(), getHeight());
+		}
+		else if (navTile)
+		{
+			// the nav tile's BORDER, with no HIGHLIGHT — its body is left on
+			// the panel backing (Luke, 2026-07-25). In Luke's vocabulary the
+			// highlight is a surface's internal fill and the border is its
+			// outline; this surface has the second and not the first.
+			// HIGHLIGHT (fill) lifted half way to the nav stone's, BORDER the
+			// same dimmed edge as the Frame (Luke, 2026-07-25) — the two
+			// surfaces stack, so a brighter border on the Tile read as two
+			// different systems, while a flat fill left it sunk into the Frame
+			paintTile((Graphics2D) g, theme, getWidth(), getHeight(), false);
+		}
+		else if (wellArt != null)
 		{
 			wellArt.paint((Graphics2D) g, theme, 0, 0, getWidth(), getHeight());
 		}

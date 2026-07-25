@@ -16,10 +16,10 @@ import javax.swing.JComponent;
  * optional corner tick for "you own this". Hub tiles, gear tiles, category
  * tiles — the grid unit.
  *
- * <p>Built on the side-panel nav stone — the sprite the main plugin's own
- * nav bar wears (Luke, 2026-07-25) — sliced so a tile can be any size. Every
- * real grid in this panel is sized by its column count, so a fixed 40px
- * square could never have served them all.
+ * <p>Wears the Tile surface — the same chamfered stone, Card grain and dimmed
+ * edge as {@code V2Surface.tile}, through the one painter both call. It takes
+ * any size: every real grid in this panel is sized by its column count, so a
+ * fixed 40px square could never have served them all.
  *
  * <p>Selected reads exactly as a chip does: lit art plus a HEADING-orange
  * caption. Owned is a painted corner tick from the curated checkmark, which
@@ -36,28 +36,42 @@ public class V2Tile extends JComponent
 	public enum Status
 	{
 		/** Nothing to say. */
-		PLAIN(null),
+		PLAIN(null, false),
 		/** Done, built, owned. */
-		DONE(V2Tokens.DONE),
+		DONE(V2Tokens.DONE, true),
 		/** Actionable now. */
-		READY(V2Tokens.ACTION),
-		/** Locked or missing. */
-		BLOCKED(V2Tokens.BLOCKED);
+		READY(V2Tokens.ACTION, true),
+		/**
+		 * Locked, missing, not yet reachable — greyed out rather than red
+		 * (Luke, 2026-07-25). Red is for something WRONG; a tile you cannot
+		 * use yet is not an error, and a grid of red rings read as a wall of
+		 * failures. It recedes instead, which is also what {@code FAINT} means
+		 * everywhere else in the system.
+		 */
+		UNAVAILABLE(V2Tokens.FAINT, true);
 
 		final java.awt.Color edge;
+		/**
+		 * Whether the edge needs pulling back toward the panel.
+		 *
+		 * <p>UNAVAILABLE went false for one round, when its ring was the only
+		 * thing marking it and dimming a muted colour twice left nothing to
+		 * see. It is back to true now that the tile also carries the dark
+		 * {@code SHADOW} fill: the fill does the work, so a bright ring on top
+		 * of it just reads as an outline round a hole (Luke, 2026-07-25).
+		 */
+		final boolean dim;
 
-		Status(java.awt.Color edge)
+		Status(java.awt.Color edge, boolean dim)
 		{
 			this.edge = edge;
+			this.dim = dim;
 		}
 	}
 
 	private static final String TICK = "ui/ticks/checkmark_small";
 
 	private final OsrsTheme theme;
-	// the nav bar's own stone, sliced so a tile can be any size (Luke)
-	private final NineSlice plain = V2Tokens.navStone();
-	private final NineSlice lit = V2Tokens.navStone().variant("_selected");
 	private final BufferedImage emblem;
 	private final OsrsLabel caption;
 	private final int size;
@@ -65,6 +79,9 @@ public class V2Tile extends JComponent
 	private boolean owned;
 	private boolean hover;
 	private Status status = Status.PLAIN;
+	/** How far the status edge wraps, clockwise from the top centre. 1 is the
+	 *  whole way round, which is a plain status edge. */
+	private double progress = 1;
 
 	public V2Tile(OsrsTheme theme, BufferedImage emblem, String caption, int size,
 		Runnable onPress)
@@ -118,6 +135,18 @@ public class V2Tile extends JComponent
 		return this;
 	}
 
+	/**
+	 * How far the status edge wraps the tile, 0..1, clockwise from the top
+	 * centre — 8 of 12 patches ready, 3 of 5 rooms built. Needs a
+	 * {@link #status} to have a colour to draw in.
+	 */
+	public V2Tile progress(double fraction)
+	{
+		this.progress = fraction;
+		repaint();
+		return this;
+	}
+
 	/** A corner tick — owned, built, complete. */
 	public V2Tile owned(boolean owned)
 	{
@@ -144,11 +173,16 @@ public class V2Tile extends JComponent
 	protected void paintComponent(Graphics g)
 	{
 		Graphics2D g2 = (Graphics2D) g;
-		(selected ? lit : plain).paint(g2, theme, 0, 0, getWidth(), size);
-		if (hover && !selected)
+		// the Tile SURFACE, shared with V2Surface.tile — this used to be
+		// V2Tokens.navStone(), which is RuneLite's dark grey tab stone and
+		// nothing to do with the tile we built (Luke, 2026-07-25: "some weird
+		// dark sprites")
+		V2Surface.paintTile(g2, theme, getWidth(), size, selected);
+		// selected carries the wash permanently, so a picked tile stays lifted
+		// whether or not the pointer is on it — the bevel says WHICH is picked
+		if (hover || selected)
 		{
-			g2.setColor(V2Tokens.HIGHLIGHT);
-			g2.fillRect(0, 0, getWidth(), size);
+			V2Surface.washTile(g2, getWidth(), size);
 		}
 
 
@@ -169,10 +203,35 @@ public class V2Tile extends JComponent
 		}
 		if (status.edge != null)
 		{
-			g2.setColor(status.edge);
-			// no sprite in the set carries a status edge, and the V1 status
-			// tile Luke asked to keep is defined by exactly this
-			g2.drawRect(0, 0, getWidth() - 1, size - 1); // v2-exempt: status edge
+			// Traced around the chamfer, not drawn as a rectangle: a drawRect
+			// cuts straight across all four notched corners (Luke, 2026-07-25).
+			//
+			// ONE ring, at inset 1 — the bevel, INSIDE the slab's dark outer
+			// ring. This is V1's status tile exactly (StoneTile hands the
+			// status colour to paintSlab as the bevel), and Luke preferred it:
+			// tracing insets 0 and 1 painted over the dark border, so the tile
+			// lost its outline and the colour became the whole edge.
+			//
+			// ringPath is an ORDERED walk from the top centre, so stopping
+			// partway round is what draws progress. A plain status edge is
+			// just progress = 1.
+			g2.setColor(status.dim ? V2Tokens.statusEdge(theme, status.edge) : status.edge);
+			java.util.List<java.awt.Point> ring =
+				com.ironhub.ui.osrs.StoneNavButton.ringPath(1, getWidth(), size);
+			int covered = (int) Math.round(Math.max(0, Math.min(1, progress)) * ring.size());
+			for (int i = 0; i < covered; i++)
+			{
+				java.awt.Point p = ring.get(i);
+				g2.fillRect(p.x, p.y, 1, 1);
+			}
+		}
+		// unavailable sinks LAST, so the shade falls on the ring and the emblem
+		// too. Drawn before them it left a bright outline round a dark hole
+		// (Luke, 2026-07-25: "reduce the light border around the unavailable
+		// tile") — the whole tile has to recede, not just its middle.
+		if (status == Status.UNAVAILABLE)
+		{
+			V2Surface.shadeTile(g2, getWidth(), size);
 		}
 		if (owned)
 		{
