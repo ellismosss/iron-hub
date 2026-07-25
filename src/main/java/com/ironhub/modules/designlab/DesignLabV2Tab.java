@@ -96,26 +96,15 @@ public class DesignLabV2Tab extends JPanel
 		add(well);
 		gap(V2Tokens.ROW);
 
-		// the panel-frame art is composed on a 32px grid with its bar sitting
-		// 13px inside each cell, so it only reads as a frame around something
-		// inventory-sized. Shown around a real slot grid for that reason
-		// (Luke, 2026-07-25: "the inventory frame sprites are not lining up"
-		// — they were, but around one line of text there is nothing to line
-		// up WITH: two corner blocks meeting is all a 64px box can hold).
-		V2Surface frame = V2Surface.inventoryFrame(theme);
-		for (int r = 0; r < 3; r++)
-		{
-			JPanel slotRow = row();
-			for (int c = 0; c < 4; c++)
-			{
-				slotRow.add(new V2ItemSlot(theme, null));
-			}
-			slotRow.add(V2Layout.glue());
-			frame.add(slotRow);
-		}
-		add(frame);
+		// the real inventory, ported from Gear & Combat's SavedSetupView so
+		// V2 shares its measured geometry instead of re-deriving it: 4 x 7 on
+		// the game's backing, each frame strip cropped to its own opaque band
+		add(new com.ironhub.ui.v2.V2Inventory(theme)
+			.item(0, sprite("icons/skills/attack"))
+			.item(1, sprite("icons/skills/farming"))
+			.item(4, sprite("icons/skills/mining")));
 		gap(V2Tokens.TIGHT);
-		add(V2Label.faint("Inventory frame — Gear & Combat only"));
+		add(V2Label.faint("Inventory — Gear & Combat only"));
 		gap(V2Tokens.ROW);
 
 		add(new V2Divider(theme));

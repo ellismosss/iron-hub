@@ -68,7 +68,7 @@ public class V2SpritesTest
 		// counts move when Luke curates more art; they are here so a silent
 		// collapse of the theme layer can't pass
 		assertEquals("the curated set changed — rerun tools/gen_v2_sprites.py",
-			225, reskinned);
+			226, reskinned);
 		assertTrue(shared > 500);
 	}
 

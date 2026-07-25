@@ -2247,6 +2247,14 @@
 				"vanilla"
 			]
 		},
+		"ui/borders/inventory_background": {
+			"w": 88,
+			"h": 60,
+			"variants": [
+				"mystic",
+				"vanilla"
+			]
+		},
 		"ui/borders/iron_rivets_bottom": {
 			"w": 36,
 			"h": 36,
