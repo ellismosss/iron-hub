@@ -66,6 +66,8 @@ FOLDERS = {
 	"ui/checkbox": "ui/checkbox",
 	"ui/plus_minus": "ui/plus_minus",
 	"ui/progress_bar": "ui/progress_bar",
+	"ui/scrollbar": "ui/scrollbar",
+	"ui/tabs": "ui/tabs",
 	"ui/ticks crosses": "ui/ticks",
 }
 

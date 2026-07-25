@@ -23,7 +23,7 @@ public class V2SpritesTest
 	public void everyIndexedSpriteActuallyShips()
 	{
 		Map<String, V2Sprites.Meta> all = V2Sprites.all();
-		assertTrue("the index looks truncated: " + all.size(), all.size() > 400);
+		assertTrue("the index looks truncated: " + all.size(), all.size() > 450);
 		for (Map.Entry<String, V2Sprites.Meta> entry : all.entrySet())
 		{
 			for (OsrsTheme theme : OsrsTheme.values())
@@ -68,7 +68,7 @@ public class V2SpritesTest
 		// counts move when Luke curates more art; they are here so a silent
 		// collapse of the theme layer can't pass
 		assertEquals("the curated set changed — rerun tools/gen_v2_sprites.py",
-			160, reskinned);
+			225, reskinned);
 		assertTrue(shared > 500);
 	}
 
@@ -103,7 +103,7 @@ public class V2SpritesTest
 	{
 		long flagged = V2Sprites.all().values().stream()
 			.filter(V2Sprites.Meta::packOnly).count();
-		assertEquals(82, flagged);
+		assertEquals(57, flagged);
 		V2Sprites.Meta sort = V2Sprites.meta("ui/arrows/list_sorting_arrow_ascending");
 		assertTrue(sort.packOnly());
 		assertSame(V2Sprites.get(OsrsTheme.STONE, "ui/arrows/list_sorting_arrow_ascending"),

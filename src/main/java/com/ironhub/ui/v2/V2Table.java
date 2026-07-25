@@ -27,14 +27,90 @@ public class V2Table extends JPanel
 {
 	private final int flexColumn;
 	private final List<Component[]> rows = new ArrayList<>();
+	private final com.ironhub.ui.osrs.OsrsTheme theme;
+	private final NineSlice surface;
+	private int hoverRow = -1;
 
 	/** @param flexColumn the column that absorbs leftover width, usually the name */
 	public V2Table(int flexColumn)
 	{
+		this(null, flexColumn);
+	}
+
+	/**
+	 * A framed table: the rows sit inside one notched slab with a highlight
+	 * band under the pointer, the Checklist grammar from V1 (Luke,
+	 * 2026-07-25). A null theme draws no surface — a bare column model.
+	 */
+	public V2Table(com.ironhub.ui.osrs.OsrsTheme theme, int flexColumn)
+	{
+		this.theme = theme;
+		this.surface = theme == null ? null : V2Tokens.slab();
 		this.flexColumn = flexColumn;
 		setOpaque(false);
 		setAlignmentX(LEFT_ALIGNMENT);
 		setLayout(new TableLayout());
+		if (theme != null)
+		{
+			int inset = V2Tokens.SLAB_INSET;
+			setBorder(new javax.swing.border.EmptyBorder(inset, inset, inset, inset));
+			addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
+			{
+				@Override
+				public void mouseMoved(java.awt.event.MouseEvent e)
+				{
+					int row = rowAt(e.getY());
+					if (row != hoverRow)
+					{
+						hoverRow = row;
+						repaint();
+					}
+				}
+			});
+			addMouseListener(new java.awt.event.MouseAdapter()
+			{
+				@Override
+				public void mouseExited(java.awt.event.MouseEvent e)
+				{
+					hoverRow = -1;
+					repaint();
+				}
+			});
+		}
+	}
+
+	/** Which row a y coordinate falls in, or -1. */
+	private int rowAt(int y)
+	{
+		for (int i = 0; i < rows.size(); i++)
+		{
+			Component first = rows.get(i)[0];
+			if (y >= first.getY() && y < first.getY() + first.getHeight())
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	@Override
+	protected void paintComponent(java.awt.Graphics g)
+	{
+		if (surface != null)
+		{
+			surface.paint((java.awt.Graphics2D) g, theme, 0, 0, getWidth(), getHeight());
+			if (hoverRow >= 0 && hoverRow < rows.size())
+			{
+				// the band spans the whole surface, inset equally, exactly as
+				// the V1 checklist highlight does
+				Component first = rows.get(hoverRow)[0];
+				g.setColor(V2Tokens.HIGHLIGHT);
+				g.fillRect(V2Tokens.SLAB_INSET, first.getY() - V2Tokens.TIGHT,
+					getWidth() - 2 * V2Tokens.SLAB_INSET,
+					first.getHeight() + 2 * V2Tokens.TIGHT);
+			}
+		}
+		super.paintComponent(g);
 	}
 
 	/** One row. Every row must have the same number of cells. */
@@ -61,7 +137,8 @@ public class V2Table extends JPanel
 	/** The measured width of each column, after layout. Test seam. */
 	public int[] columnWidths()
 	{
-		return ((TableLayout) getLayout()).widths(getWidth());
+		java.awt.Insets insets = getInsets();
+		return ((TableLayout) getLayout()).widths(getWidth() - insets.left - insets.right);
 	}
 
 	private class TableLayout implements LayoutManager
@@ -97,12 +174,13 @@ public class V2Table extends JPanel
 		@Override
 		public void layoutContainer(Container parent)
 		{
-			int[] widths = widths(parent.getWidth());
-			int y = 0;
+			java.awt.Insets insets = getInsets();
+			int[] widths = widths(parent.getWidth() - insets.left - insets.right);
+			int y = insets.top;
 			for (Component[] row : rows)
 			{
 				int height = rowHeight(row);
-				int x = 0;
+				int x = insets.left;
 				for (int c = 0; c < row.length; c++)
 				{
 					row[c].setBounds(x, y, widths[c], height);
@@ -112,12 +190,20 @@ public class V2Table extends JPanel
 			}
 		}
 
+		/**
+		 * EVERY row is the same height — the tallest cell in the whole table,
+		 * not per row. Per-row heights made a table of 13px ticks and 17px
+		 * ticks step up and down the list (Luke, 2026-07-25).
+		 */
 		private int rowHeight(Component[] row)
 		{
 			int height = V2Tokens.ROW_HEIGHT;
-			for (Component cell : row)
+			for (Component[] any : rows)
 			{
-				height = Math.max(height, cell.getPreferredSize().height);
+				for (Component cell : any)
+				{
+					height = Math.max(height, cell.getPreferredSize().height);
+				}
 			}
 			return height;
 		}
@@ -125,12 +211,14 @@ public class V2Table extends JPanel
 		@Override
 		public Dimension preferredLayoutSize(Container parent)
 		{
-			int height = 0;
+			java.awt.Insets insets = getInsets();
+			int height = insets.top + insets.bottom;
 			for (Component[] row : rows)
 			{
 				height += rowHeight(row) + V2Tokens.ROW;
 			}
-			return new Dimension(V2Tokens.CONTENT_WIDTH, Math.max(0, height - V2Tokens.ROW));
+			return new Dimension(V2Tokens.CONTENT_WIDTH,
+				Math.max(0, height - V2Tokens.ROW));
 		}
 
 		@Override

@@ -3,7 +3,6 @@ package com.ironhub.ui.v2;
 import com.ironhub.ui.osrs.OsrsTheme;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import javax.swing.JButton;
@@ -13,21 +12,27 @@ import javax.swing.JScrollPane;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 
 /**
- * The scrollbar, composed (§9): the Well recess as the trough, the Card
- * slice as the thumb, and the curated 16px arrows as the end buttons.
+ * The game's own scrollbar, in every theme: its arrow buttons, its three-part
+ * thumb (top cap, tiled middle, bottom cap) and its track (Luke, 2026-07-25 —
+ * the art is in all_sprites under {@code scrollbar/}, so there was nothing to
+ * draw).
  *
- * <p>Swing needs a {@code ScrollBarUI} — there is no drawing our own and
+ * <p>Swing needs a {@code ScrollBarUI} — there is no drawing your own and
  * having the viewport cooperate — so this is the one atom that plugs into a
- * Swing delegate rather than being a component. Everything it paints still
- * comes from the curated set.
+ * Swing delegate rather than being a component.
  */
 public class V2ScrollBarUI extends BasicScrollBarUI
 {
+	private static final String ARROW_UP = "ui/scrollbar/arrow_up";
+	private static final String ARROW_DOWN = "ui/scrollbar/arrow_down";
+	private static final String THUMB_TOP = "ui/scrollbar/thumb_top";
+	private static final String THUMB_MIDDLE = "ui/scrollbar/thumb_middle";
+	private static final String THUMB_BOTTOM = "ui/scrollbar/thumb_bottom";
+	private static final String TRACK = "ui/scrollbar/transparent_thumb_background";
+
 	private static final int WIDTH = 16;
 
 	private final OsrsTheme theme;
-	private final NineSlice trough = V2Tokens.well();
-	private final NineSlice thumbArt = V2Tokens.card();
 
 	public V2ScrollBarUI(OsrsTheme theme)
 	{
@@ -35,14 +40,13 @@ public class V2ScrollBarUI extends BasicScrollBarUI
 	}
 
 	/** Dress a scroll pane's vertical bar. Horizontal scrolling doesn't
-	 *  exist in this panel — 225px, one column (§7). */
+	 *  exist in this panel — 225px, one column. */
 	public static void install(JScrollPane pane, OsrsTheme theme)
 	{
 		JScrollBar bar = pane.getVerticalScrollBar();
 		bar.setUI(new V2ScrollBarUI(theme));
-		// the trough is a BORDER, so its middle is transparent: an opaque
-		// scrollbar fills that middle with the look-and-feel's own white
-		// before we ever paint (the render caught it)
+		// the track art is partly transparent, so an opaque scrollbar would
+		// fill it with the look-and-feel's own white first
 		bar.setOpaque(false);
 		bar.setPreferredSize(new Dimension(WIDTH, 0));
 		bar.setUnitIncrement(V2Tokens.ROW_HEIGHT);
@@ -55,7 +59,13 @@ public class V2ScrollBarUI extends BasicScrollBarUI
 	@Override
 	protected void paintTrack(Graphics g, JComponent c, Rectangle bounds)
 	{
-		trough.paint((Graphics2D) g, theme, bounds.x, bounds.y, bounds.width, bounds.height);
+		BufferedImage track = V2Sprites.get(theme, TRACK);
+		for (int y = 0; y < bounds.height; y += track.getHeight())
+		{
+			int h = Math.min(track.getHeight(), bounds.height - y);
+			g.drawImage(track, bounds.x, bounds.y + y, bounds.x + bounds.width,
+				bounds.y + y + h, 0, 0, track.getWidth(), h, null);
+		}
 	}
 
 	@Override
@@ -65,19 +75,31 @@ public class V2ScrollBarUI extends BasicScrollBarUI
 		{
 			return;
 		}
-		thumbArt.paint((Graphics2D) g, theme, bounds.x, bounds.y, bounds.width, bounds.height);
+		BufferedImage top = V2Sprites.get(theme, THUMB_TOP);
+		BufferedImage mid = V2Sprites.get(theme, THUMB_MIDDLE);
+		BufferedImage bottom = V2Sprites.get(theme, THUMB_BOTTOM);
+		int capped = Math.max(0, bounds.height - top.getHeight() - bottom.getHeight());
+		for (int y = 0; y < capped; y += mid.getHeight())
+		{
+			int h = Math.min(mid.getHeight(), capped - y);
+			g.drawImage(mid, bounds.x, bounds.y + top.getHeight() + y,
+				bounds.x + bounds.width, bounds.y + top.getHeight() + y + h,
+				0, 0, mid.getWidth(), h, null);
+		}
+		g.drawImage(top, bounds.x, bounds.y, null);
+		g.drawImage(bottom, bounds.x, bounds.y + bounds.height - bottom.getHeight(), null);
 	}
 
 	@Override
 	protected JButton createIncreaseButton(int orientation)
 	{
-		return arrow(V2SpriteButton.ARROW_DOWN);
+		return arrow(ARROW_DOWN);
 	}
 
 	@Override
 	protected JButton createDecreaseButton(int orientation)
 	{
-		return arrow(V2SpriteButton.ARROW_UP);
+		return arrow(ARROW_UP);
 	}
 
 	private JButton arrow(String key)
@@ -92,7 +114,8 @@ public class V2ScrollBarUI extends BasicScrollBarUI
 					(getHeight() - art.getHeight()) / 2, null);
 			}
 		};
-		button.setPreferredSize(new Dimension(WIDTH, WIDTH));
+		V2Sprites.Meta meta = V2Sprites.meta(key);
+		button.setPreferredSize(new Dimension(WIDTH, meta.height()));
 		button.setBorder(null);
 		button.setContentAreaFilled(false);
 		button.setFocusable(false);

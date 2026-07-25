@@ -32,13 +32,17 @@ public final class NineSlice
 	private final String single;
 	private final String[] corners;
 	private final String[] edges;
+	/** Piece form only: the sprite tiled through the middle, or null to leave
+	 *  it transparent (a border-only frame such as the Well). */
+	private final String middle;
 	private final int inset;
 
-	private NineSlice(String single, String[] corners, String[] edges, int inset)
+	private NineSlice(String single, String[] corners, String[] edges, String middle, int inset)
 	{
 		this.single = single;
 		this.corners = corners;
 		this.edges = edges;
+		this.middle = middle;
 		this.inset = inset;
 	}
 
@@ -53,7 +57,7 @@ public final class NineSlice
 		{
 			throw new IllegalArgumentException("no V2 sprite '" + key + "'");
 		}
-		return new NineSlice(key, null, null, inset);
+		return new NineSlice(key, null, null, null, inset);
 	}
 
 	/**
@@ -63,6 +67,18 @@ public final class NineSlice
 	 * and {@code "ui/borders/equipment_edge_%s"}.
 	 */
 	public static NineSlice frame(String cornerPattern, String edgePattern, int inset)
+	{
+		return pieces(cornerPattern, edgePattern, null, inset);
+	}
+
+	/**
+	 * The same eight pieces plus a sprite tiled through the middle — the
+	 * game's own notched slab, which ships its corners, edges and middle as
+	 * separate files. A null middle leaves the centre transparent, which is
+	 * the border-only {@link #frame}.
+	 */
+	public static NineSlice pieces(String cornerPattern, String edgePattern, String middle,
+		int inset)
 	{
 		String[] c = new String[4];
 		String[] e = new String[4];
@@ -75,7 +91,11 @@ public final class NineSlice
 				throw new IllegalArgumentException("no V2 sprite '" + c[i] + "' / '" + e[i] + "'");
 			}
 		}
-		return new NineSlice(null, c, e, inset);
+		if (middle != null && !V2Sprites.has(middle))
+		{
+			throw new IllegalArgumentException("no V2 sprite '" + middle + "'");
+		}
+		return new NineSlice(null, c, e, middle, inset);
 	}
 
 	/**
@@ -100,7 +120,11 @@ public final class NineSlice
 				throw new IllegalArgumentException("no '" + suffix + "' state for " + corners[i]);
 			}
 		}
-		return new NineSlice(null, c, e, inset);
+		// the middle often has no per-state art (the game re-tints the border
+		// and leaves the fill), so keep the plain one when the state is absent
+		String m = middle == null ? null
+			: V2Sprites.has(middle + suffix) ? middle + suffix : middle;
+		return new NineSlice(null, c, e, m, inset);
 	}
 
 	/** The corner size — also the minimum padding content needs to clear the art. */
@@ -137,6 +161,12 @@ public final class NineSlice
 		}
 		else
 		{
+			if (middle != null)
+			{
+				BufferedImage fill = V2Sprites.get(theme, middle);
+				tile(g, fill, 0, 0, fill.getWidth(), fill.getHeight(),
+					x + c, y + c, midW, midH);
+			}
 			BufferedImage top = V2Sprites.get(theme, edges[0]);
 			BufferedImage bottom = V2Sprites.get(theme, edges[1]);
 			BufferedImage left = V2Sprites.get(theme, edges[2]);

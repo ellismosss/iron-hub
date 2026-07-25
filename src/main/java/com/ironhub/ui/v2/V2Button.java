@@ -9,32 +9,31 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
 
 /**
- * The text button — the game's own, {@code regular_large}, 9-sliced to
- * whatever width the panel gives it and fixed at its native 28px height.
+ * The text button, in three states drawn from three curated families
+ * (Luke, 2026-07-25): the Well recess at rest, the filled Card on hover, and
+ * the chip surface while held or selected. It reads as rising out of the
+ * panel as you engage with it, and every state is real art.
  *
- * <p>It has <b>no hover and no pressed state</b>, because the curated set has
- * neither: the game drew one button sprite and no second state for it. Under
- * §8 that is the answer rather than a problem to paper over with a tint. The
- * hand cursor is the affordance.
- *
- * <p>A button that needs to show a state is not this atom — it is a
- * {@link V2SpriteButton} (which offers exactly the states its art has) or a
- * chip on the Card family (which has a hovered sprite).
+ * <p>This replaced {@code regular_large}, which has no second state of its
+ * own in the set — a button with no feedback at all was the honest answer to
+ * the art available, but not a good one on a whole tab.
  */
 public class V2Button extends JPanel
 {
 	private final OsrsTheme theme;
-	private final NineSlice slice;
+	private final NineSlice rest = V2Tokens.well();
+	private final NineSlice hovered = V2Tokens.card();
+	private final NineSlice pressed = V2Tokens.chip();
 	private final OsrsLabel label;
+	private boolean hover;
+	private boolean down;
 
 	public V2Button(OsrsTheme theme, String text, Runnable onPress)
 	{
 		this.theme = theme;
-		this.slice = V2Tokens.button();
 		this.label = V2Label.centred(text);
 		setOpaque(false);
 		setLayout(new BorderLayout());
@@ -44,12 +43,36 @@ public class V2Button extends JPanel
 		addMouseListener(new MouseAdapter()
 		{
 			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				hover = true;
+				repaint();
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				hover = false;
+				down = false;
+				repaint();
+			}
+
+			@Override
 			public void mousePressed(MouseEvent e)
 			{
+				down = true;
+				repaint();
 				if (onPress != null)
 				{
 					onPress.run();
 				}
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e)
+			{
+				down = false;
+				repaint();
 			}
 		});
 	}
@@ -67,19 +90,28 @@ public class V2Button extends JPanel
 		return label.text();
 	}
 
+	/** Held down, or acting as a selected toggle. */
+	public void setPressed(boolean pressed)
+	{
+		if (down != pressed)
+		{
+			down = pressed;
+			repaint();
+		}
+	}
+
 	@Override
 	protected void paintComponent(Graphics g)
 	{
-		slice.paint((Graphics2D) g, theme, 0, 0, getWidth(), getHeight());
+		NineSlice art = down ? pressed : hover ? hovered : rest;
+		art.paint((Graphics2D) g, theme, 0, 0, getWidth(), getHeight());
 		super.paintComponent(g);
 	}
 
 	@Override
 	public Dimension getPreferredSize()
 	{
-		BufferedImage art = V2Sprites.get(theme, "ui/buttons/regular_large");
-		return new Dimension(
-			Math.max(art.getWidth(), label.getPreferredSize().width + 4 * V2Tokens.PAD),
+		return new Dimension(label.getPreferredSize().width + 4 * V2Tokens.PAD,
 			V2Tokens.BUTTON_HEIGHT);
 	}
 
@@ -92,6 +124,6 @@ public class V2Button extends JPanel
 	@Override
 	public Dimension getMinimumSize()
 	{
-		return new Dimension(2 * slice.inset(), V2Tokens.BUTTON_HEIGHT);
+		return new Dimension(2 * rest.inset(), V2Tokens.BUTTON_HEIGHT);
 	}
 }

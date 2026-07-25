@@ -60,6 +60,18 @@ public final class V2Tokens
 	public static final int TILE_ICON = 22;
 	/** The corner size of the Card and Frame slices — structural, not spacing. */
 	public static final int SLICE_INSET = 9;
+	/** The notched slab's corner sprites are 6px. */
+	public static final int SLAB_INSET = 6;
+	/** {@code button.png}'s rounded corner. */
+	public static final int CHIP_INSET = 8;
+	/** The field well's end caps are 4px wide. */
+	public static final int FIELD_INSET = 4;
+	/** The bar frame's corner sprites are 9px, but only ~2px of that is ink —
+	 *  the rest is the transparent margin the game leaves around a bar. */
+	public static final int BAR_FRAME_INSET = 9;
+	/** Utility buttons all render in one cell so a row of them lines up
+	 *  (Luke, 2026-07-25) — the art itself varies from 16px to 21px. */
+	public static final int UTILITY_CELL = 22;
 
 	// ── colour ────────────────────────────────────────────────────────
 
@@ -78,6 +90,18 @@ public final class V2Tokens
 	public static final Color ACTION = OsrsSkin.TITLE;
 	/** Blocked, missing, over threshold. Sampled from the cross and the padlock. */
 	public static final Color BLOCKED = new Color(0xFF0000);
+
+	/**
+	 * The pointer highlight — a translucent white wash over whatever art a
+	 * control is wearing.
+	 *
+	 * <p>This is the system's ONE derived effect, and it is Luke's call
+	 * (2026-07-25): the curated {@code _hovered} sprites are the PRESSED look,
+	 * so hover needed something of its own, and a uniform wash is the only
+	 * treatment that works on every sprite in the set regardless of its
+	 * colour. Everything else is still art.
+	 */
+	public static final Color HIGHLIGHT = new Color(255, 255, 255, 38);
 
 	// ── type: five roles ──────────────────────────────────────────────
 
@@ -101,10 +125,51 @@ public final class V2Tokens
 
 	// ── the slice families ────────────────────────────────────────────
 
-	/** Filled surface at any size: Card, Chip, Tab body, Tooltip. */
+	/**
+	 * The game's notched slab — its corners, edges and middle as separate
+	 * sprites. This is what a NON-CLICKABLE surface wears (Luke, 2026-07-25:
+	 * "use the stone slab sprites currently used for the Design lab header"),
+	 * so a static heading can never be mistaken for something to press.
+	 */
+	public static NineSlice slab()
+	{
+		return NineSlice.pieces("ui/buttons/corner_%s", "ui/buttons/edge_%s",
+			"ui/buttons/middle", SLAB_INSET);
+	}
+
+	/** Filled surface at any size: Card, Tab body, Tooltip. */
 	public static NineSlice card()
 	{
 		return NineSlice.of("ui/buttons/enter_wilderness_teleport", SLICE_INSET);
+	}
+
+	/**
+	 * The chip / small-button surface — {@code button.png} sliced, since it is
+	 * a rounded rectangle rather than a stone square and reads wrong beside
+	 * the square tiles (Luke's list). Sliced rather than used at its native
+	 * 35x35 so a chip can be any width.
+	 */
+	public static NineSlice chip()
+	{
+		return NineSlice.of("ui/buttons/button", CHIP_INSET);
+	}
+
+	/**
+	 * The game's own sunken field well (the one behind every Filters dropdown
+	 * and search box). A three-piece horizontal strip, not a nine-slice: it
+	 * has a fixed height and stretches sideways only.
+	 */
+	public static V2Strip field()
+	{
+		return new V2Strip("ui/borders/number_field_edge_left",
+			"ui/borders/number_field_middle", "ui/borders/number_field_edge_right");
+	}
+
+	/** The thin frame the game draws around a progress bar. */
+	public static NineSlice barFrame()
+	{
+		return NineSlice.frame("ui/borders/tan_border_corner_%s",
+			"ui/borders/tan_border_%s", BAR_FRAME_INSET);
 	}
 
 	/** Border-only recess at any size: Well, TextField, list frames. */

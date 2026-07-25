@@ -123,7 +123,7 @@ public class V2RulesTest
 		List<Component> atoms = Arrays.asList(
 			V2Surface.card(theme),
 			V2Surface.well(theme),
-			V2Surface.frame(theme),
+			V2Surface.inventoryFrame(theme),
 			new V2Divider(theme),
 			new V2Button(theme, "Button", null),
 			new V2SpriteButton(theme, V2SpriteButton.WRENCH, null),

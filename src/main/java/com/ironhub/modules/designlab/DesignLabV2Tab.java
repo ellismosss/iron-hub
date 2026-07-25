@@ -78,6 +78,12 @@ public class DesignLabV2Tab extends JPanel
 	private void surfaces()
 	{
 		heading("Surfaces");
+		V2Surface slab = V2Surface.slab(theme);
+		slab.stack(V2Label.heading("Slab"), V2Tokens.ROW);
+		slab.add(V2Label.body("Static. Never clickable."));
+		add(slab);
+		gap(V2Tokens.ROW);
+
 		V2Surface card = V2Surface.card(theme);
 		card.stack(V2Label.heading("Card"), V2Tokens.ROW);
 		card.add(V2Label.body("Filled. Sections, tiles, tooltips."));
@@ -90,8 +96,8 @@ public class DesignLabV2Tab extends JPanel
 		add(well);
 		gap(V2Tokens.ROW);
 
-		V2Surface frame = V2Surface.frame(theme);
-		frame.add(V2Label.body("Frame — the panel border"));
+		V2Surface frame = V2Surface.inventoryFrame(theme);
+		frame.add(V2Label.body("Inventory frame — Gear & Combat only"));
 		add(frame);
 		gap(V2Tokens.ROW);
 
@@ -126,7 +132,11 @@ public class DesignLabV2Tab extends JPanel
 		gap(V2Tokens.ROW);
 		add(new V2Button(theme, "Saved", null).labelColor(V2Tokens.DONE));
 		gap(V2Tokens.ROW);
-		add(V2Label.faint("the curated art has no hover for this button"));
+		V2Button held = new V2Button(theme, "Held down", null);
+		held.setPressed(true);
+		add(held);
+		gap(V2Tokens.ROW);
+		add(V2Label.faint("rest = well, hover = card, pressed = chip"));
 		gap(V2Tokens.ROW);
 
 		add(V2Label.detail("Utility"));
@@ -140,14 +150,21 @@ public class DesignLabV2Tab extends JPanel
 		add(spriteRow(V2SpriteButton.ARROW_UP, V2SpriteButton.ARROW_DOWN,
 			V2SpriteButton.ARROW_LEFT, V2SpriteButton.ARROW_RIGHT, V2SpriteButton.BACK));
 		add(V2Label.detail("Squares and wiki"));
-		add(spriteRow(V2SpriteButton.SQUARE, V2SpriteButton.SQUARE_SMALL,
-			V2SpriteButton.SQUARE_LARGE, V2SpriteButton.WIKI));
-		add(V2Label.faint("selected states the art has"));
+		JPanel squares = row();
+		for (String key : new String[]{V2SpriteButton.SQUARE_SMALL,
+			V2SpriteButton.SQUARE_LARGE, V2SpriteButton.WIKI})
+		{
+			squares.add(new V2SpriteButton(theme, key, false, null));
+			squares.add(V2Layout.hgap(V2Tokens.PAD));
+		}
+		squares.add(V2Layout.glue());
+		add(squares);
+		add(V2Label.faint("selected: the two squares and the wiki toggle"));
 		JPanel selected = row();
 		for (String key : new String[]{V2SpriteButton.SQUARE_SMALL,
-			V2SpriteButton.SQUARE_LARGE, V2SpriteButton.WIKI, V2SpriteButton.MENU})
+			V2SpriteButton.SQUARE_LARGE, V2SpriteButton.WIKI})
 		{
-			V2SpriteButton button = new V2SpriteButton(theme, key, null);
+			V2SpriteButton button = new V2SpriteButton(theme, key, false, null);
 			button.setSelected(true);
 			selected.add(button);
 			selected.add(V2Layout.hgap(V2Tokens.PAD));
@@ -201,17 +218,41 @@ public class DesignLabV2Tab extends JPanel
 		}
 		captioned.add(V2Layout.glue());
 		add(captioned);
+		gap(V2Tokens.ROW);
+		add(V2Label.detail("Status tiles"));
+		JPanel statuses = row();
+		V2Tile.Status[] states = V2Tile.Status.values();
+		for (int i = 0; i < states.length; i++)
+		{
+			V2Tile tile = new V2Tile(theme, sprite("icons/skills/mining"), null, 50, null);
+			tile.status(states[i]);
+			statuses.add(tile);
+			statuses.add(V2Layout.hgap(V2Tokens.ROW));
+		}
+		statuses.add(V2Layout.glue());
+		add(statuses);
 		gap(V2Tokens.SECTION);
 
-		heading("Tabs and slots");
-		JPanel tabs = row();
-		for (int i = 0; i < 3; i++)
+		heading("Tabs — three styles to pick from");
+		for (V2Tab.Style style : V2Tab.Style.values())
 		{
-			tabs.add(new V2Tab(theme, sprite("icons/skills/mining"), null).active(i == 1));
+			add(V2Label.detail(style.name().toLowerCase()));
+			JPanel tabs = row();
+			for (int i = 0; i < 3; i++)
+			{
+				tabs.add(new V2Tab(theme, style, sprite("icons/skills/mining"), null)
+					.active(i == 1));
+			}
+			if (style == V2Tab.Style.TAB)
+			{
+				tabs.add(new V2Tab(theme, style, null, null).empty(true));
+			}
+			tabs.add(V2Layout.glue());
+			add(tabs);
+			gap(V2Tokens.ROW);
 		}
-		tabs.add(V2Layout.glue());
-		add(tabs);
 		gap(V2Tokens.ROW);
+		add(V2Label.detail("Slots"));
 		JPanel slots = row();
 		slots.add(new V2ItemSlot(theme, V2ItemSlot.Slot.HEAD, null));
 		slots.add(new V2ItemSlot(theme, V2ItemSlot.Slot.CAPE, null));
@@ -239,12 +280,15 @@ public class DesignLabV2Tab extends JPanel
 		add(glyphs);
 		gap(V2Tokens.SECTION);
 
-		heading("Progress");
-		add(new V2ProgressBar(theme).fraction(0.35));
+		heading("Progress — three weights");
+		for (V2ProgressBar.Size size : V2ProgressBar.Size.values())
+		{
+			add(new V2ProgressBar(theme, size).fraction(0.35));
+			gap(V2Tokens.ROW);
+		}
+		add(new V2ProgressBar(theme, V2ProgressBar.Size.ROW).fraction(1));
 		gap(V2Tokens.ROW);
-		add(new V2ProgressBar(theme).fraction(1));
-		gap(V2Tokens.ROW);
-		add(new V2ProgressBar(theme));
+		add(new V2ProgressBar(theme, V2ProgressBar.Size.ROW));
 		gap(V2Tokens.TIGHT);
 		add(V2Label.faint("unknown — an empty trough, never a zero"));
 		gap(V2Tokens.SECTION);
@@ -258,7 +302,7 @@ public class DesignLabV2Tab extends JPanel
 		gap(V2Tokens.SECTION);
 
 		heading("Table");
-		V2Table table = new V2Table(1);
+		V2Table table = new V2Table(theme, 1);
 		table.row(new V2Glyph(theme, V2Glyph.TICK), V2Label.body("Ranarr weed"),
 			V2Table.right(V2Label.value("142")));
 		table.row(new V2Glyph(theme, V2Glyph.CROSS), V2Label.body("Snapdragon"),
@@ -268,6 +312,16 @@ public class DesignLabV2Tab extends JPanel
 		table.row(V2Table.blank(), V2Label.body("Grimy toadflax, a longer name"),
 			V2Table.right(V2Label.value("1,204")));
 		add(table);
+		gap(V2Tokens.SECTION);
+
+		heading("Checklist");
+		com.ironhub.ui.v2.V2Checklist list = new com.ironhub.ui.v2.V2Checklist(theme);
+		list.row(new V2Checkbox(theme, "Herb run", true, null));
+		list.row(new V2Checkbox(theme, "Tree run", false, null));
+		list.row(new V2Checkbox(theme, "Hardwood run", false, null)
+			.state(V2Checkbox.State.LOCKED));
+		list.setHighlighted(1);
+		add(list);
 		gap(V2Tokens.SECTION);
 
 		heading("Empty and unknown");

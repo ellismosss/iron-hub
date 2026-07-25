@@ -58,7 +58,7 @@ public class V2SurfacesRenderTest
 			V2Tokens.CONTENT_WIDTH - 2 * V2Tokens.ROW));
 
 		page.add(Box.createVerticalStrut(V2Tokens.SECTION));
-		V2Surface frame = V2Surface.frame(theme);
+		V2Surface frame = V2Surface.inventoryFrame(theme);
 		frame.add(V2Label.body("Frame — the outer panel border"));
 		page.add(frame);
 

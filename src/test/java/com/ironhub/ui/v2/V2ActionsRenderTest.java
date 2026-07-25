@@ -75,8 +75,10 @@ public class V2ActionsRenderTest
 		selected.setLayout(new BoxLayout(selected, BoxLayout.X_AXIS));
 		selected.setOpaque(false);
 		selected.setAlignmentX(Component.LEFT_ALIGNMENT);
+		// the menu button's second sprite is its PRESSED art, not a selected
+		// state (Luke, 2026-07-25), so it is no longer a toggle
 		for (String key : new String[]{V2SpriteButton.SQUARE_SMALL,
-			V2SpriteButton.SQUARE_LARGE, V2SpriteButton.WIKI, V2SpriteButton.MENU})
+			V2SpriteButton.SQUARE_LARGE, V2SpriteButton.WIKI})
 		{
 			V2SpriteButton button = new V2SpriteButton(theme, key, null);
 			button.setSelected(true);
@@ -107,16 +109,22 @@ public class V2ActionsRenderTest
 		}
 	}
 
-	/** §8, both directions: the art decides which states exist. */
+	/**
+	 * Both directions: the art decides which states exist. Since 2026-07-25
+	 * the {@code _hovered} sprites are the PRESSED look (Luke's reading — the
+	 * game has no pointer, so they were never hover art), and hover is a
+	 * highlight wash instead.
+	 */
 	@Test
 	public void statesAreOfferedOnlyWhereTheArtHasThem()
 	{
-		assertTrue(new V2SpriteButton(OsrsTheme.STONE, V2SpriteButton.WRENCH, null).hasHover());
-		assertFalse("the game drew no hovered increment button",
-			new V2SpriteButton(OsrsTheme.STONE, V2SpriteButton.INCREMENT, null).hasHover());
+		assertTrue(new V2SpriteButton(OsrsTheme.STONE, V2SpriteButton.WRENCH, null)
+			.hasPressArt());
+		assertFalse("the game drew no second state for the increment button",
+			new V2SpriteButton(OsrsTheme.STONE, V2SpriteButton.INCREMENT, null).hasPressArt());
 		assertTrue(new V2SpriteButton(OsrsTheme.STONE, V2SpriteButton.WIKI, null).canSelect());
 		V2SpriteButton wrench = new V2SpriteButton(OsrsTheme.STONE, V2SpriteButton.WRENCH, null);
-		assertFalse(wrench.canSelect());
+		assertFalse("a wrench is not a toggle", wrench.canSelect());
 		try
 		{
 			wrench.setSelected(true);

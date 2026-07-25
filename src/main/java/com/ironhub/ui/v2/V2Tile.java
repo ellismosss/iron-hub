@@ -28,6 +28,30 @@ import javax.swing.JComponent;
  */
 public class V2Tile extends JComponent
 {
+	/**
+	 * The V1 status tile's four readings, ported (Luke, 2026-07-25). The
+	 * status is a 1px edge inside the tile rather than a fill, so the emblem
+	 * keeps its own colours and a grid of them still scans as a grid.
+	 */
+	public enum Status
+	{
+		/** Nothing to say. */
+		PLAIN(null),
+		/** Done, built, owned. */
+		DONE(V2Tokens.DONE),
+		/** Actionable now. */
+		READY(V2Tokens.ACTION),
+		/** Locked or missing. */
+		BLOCKED(V2Tokens.BLOCKED);
+
+		final java.awt.Color edge;
+
+		Status(java.awt.Color edge)
+		{
+			this.edge = edge;
+		}
+	}
+
 	private static final String TICK = "ui/ticks/checkmark_small";
 
 	private final OsrsTheme theme;
@@ -39,6 +63,7 @@ public class V2Tile extends JComponent
 	private boolean selected;
 	private boolean owned;
 	private boolean hover;
+	private Status status = Status.PLAIN;
 
 	public V2Tile(OsrsTheme theme, BufferedImage emblem, String caption, int size,
 		Runnable onPress)
@@ -84,6 +109,14 @@ public class V2Tile extends JComponent
 		return this;
 	}
 
+	/** The V1 status-tile edge. */
+	public V2Tile status(Status status)
+	{
+		this.status = status;
+		repaint();
+		return this;
+	}
+
 	/** A corner tick — owned, built, complete. */
 	public V2Tile owned(boolean owned)
 	{
@@ -110,33 +143,49 @@ public class V2Tile extends JComponent
 	protected void paintComponent(Graphics g)
 	{
 		Graphics2D g2 = (Graphics2D) g;
-		(selected || hover ? lit : plain).paint(g2, theme, 0, 0, getWidth(), getHeight());
+		(selected ? lit : plain).paint(g2, theme, 0, 0, getWidth(), size);
+		if (hover && !selected)
+		{
+			g2.setColor(V2Tokens.HIGHLIGHT);
+			g2.fillRect(0, 0, getWidth(), size);
+		}
 
-		int captionHeight = caption == null ? 0 : V2Tokens.LINE_PITCH;
 		if (emblem != null)
 		{
+			// dead centre of the tile: the caption lives OUTSIDE the art now
+			// (Luke, 2026-07-25 — text on the tile pushed the icon off centre)
 			g2.drawImage(emblem, (getWidth() - emblem.getWidth()) / 2,
-				(getHeight() - captionHeight - emblem.getHeight()) / 2, null);
+				(size - emblem.getHeight()) / 2, null);
 		}
 		if (caption != null)
 		{
-			caption.setSize(getWidth() - 2 * V2Tokens.TIGHT, captionHeight + 5);
-			g2.translate(V2Tokens.TIGHT, getHeight() - captionHeight - V2Tokens.ROW);
+			caption.setSize(getWidth(), V2Tokens.LINE_PITCH + 5);
+			g2.translate(0, size + V2Tokens.TIGHT);
 			caption.setColor(selected ? V2Tokens.HEADING : V2Tokens.TEXT);
 			caption.paint(g2);
-			g2.translate(-V2Tokens.TIGHT, -(getHeight() - captionHeight - V2Tokens.ROW));
+			g2.translate(0, -(size + V2Tokens.TIGHT));
+		}
+		if (status.edge != null)
+		{
+			g2.setColor(status.edge);
+			// no sprite in the set carries a status edge, and the V1 status
+			// tile Luke asked to keep is defined by exactly this
+			g2.drawRect(0, 0, getWidth() - 1, size - 1); // v2-exempt: status edge
 		}
 		if (owned)
 		{
 			BufferedImage tick = V2Sprites.get(theme, TICK);
 			g2.drawImage(tick, getWidth() - tick.getWidth() - V2Tokens.TIGHT, V2Tokens.TIGHT, null);
 		}
+		// the tile art stops at `size`; anything below it is the caption
 	}
 
 	@Override
 	public Dimension getPreferredSize()
 	{
-		return new Dimension(size, size);
+		// the caption sits UNDER the art, so it costs height, not centring
+		return new Dimension(size, caption == null ? size
+			: size + V2Tokens.TIGHT + V2Tokens.LINE_PITCH + V2Tokens.ROW);
 	}
 
 	@Override

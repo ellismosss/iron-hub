@@ -111,8 +111,8 @@ public class V2ChipRow extends JPanel
 	private static class Chip extends JPanel
 	{
 		private final OsrsTheme theme;
-		private final NineSlice plain = V2Tokens.card();
-		private final NineSlice lit = V2Tokens.card().variant("_hovered");
+		private final NineSlice plain = V2Tokens.chip();
+		private final NineSlice lit = V2Tokens.chip().variant("_hovered");
 		private final OsrsLabel label;
 		private boolean selected;
 		private boolean hover;

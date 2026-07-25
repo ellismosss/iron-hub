@@ -29,7 +29,18 @@ public class V2Surface extends JPanel
 	private NineSlice hovered;
 	private boolean hover;
 
-	/** Filled surface: sections, tiles, tooltips. */
+	/**
+	 * A NON-CLICKABLE surface — the game's notched slab. Section headings,
+	 * static blocks, anything the player cannot press (Luke, 2026-07-25).
+	 * Keeping it visually distinct from the button family is the point: a
+	 * surface that looks pressable and isn't is the worst kind of drift.
+	 */
+	public static V2Surface slab(OsrsTheme theme)
+	{
+		return new V2Surface(theme, V2Tokens.slab());
+	}
+
+	/** Filled surface: cards, tooltips, and the button's hovered state. */
 	public static V2Surface card(OsrsTheme theme)
 	{
 		return new V2Surface(theme, V2Tokens.card());
@@ -43,12 +54,14 @@ public class V2Surface extends JPanel
 	}
 
 	/**
-	 * The outer panel border — the game's stone bars. Its pieces are 32px
-	 * canvases with the bar sitting in rows 14..19 and transparent padding
-	 * around it, so content clears the ART at 20px, not at the 32px slice
-	 * inset (which would eat a third of a 225px panel).
+	 * The game's stone-bar frame. Reserved for the Inventory view under Gear
+	 * &amp; Combat (Luke, 2026-07-25) — it is the frame the game itself puts
+	 * around an inventory, and using it for ordinary sections made every
+	 * section look like one. Its pieces are 32px canvases with the bar in
+	 * rows 14..19 and transparent padding around it, so content clears the
+	 * ART at 20px, not at the 32px slice inset.
 	 */
-	public static V2Surface frame(OsrsTheme theme)
+	public static V2Surface inventoryFrame(OsrsTheme theme)
 	{
 		return new V2Surface(theme, V2Tokens.panel(), V2Divider.BAR_TOP + V2Divider.BAR_HEIGHT);
 	}

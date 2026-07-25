@@ -2429,53 +2429,87 @@
 				"dark"
 			]
 		},
+		"ui/borders/number_field_edge_left": {
+			"w": 4,
+			"h": 20,
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
+		},
+		"ui/borders/number_field_edge_right": {
+			"w": 4,
+			"h": 20,
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
+		},
+		"ui/borders/number_field_middle": {
+			"w": 4,
+			"h": 20,
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
+		},
 		"ui/borders/tan_border_bottom": {
 			"w": 9,
 			"h": 9,
 			"variants": [
-				"dark"
+				"dark",
+				"vanilla"
 			]
 		},
 		"ui/borders/tan_border_corner_bottom_left": {
 			"w": 9,
 			"h": 9,
 			"variants": [
-				"dark"
+				"dark",
+				"vanilla"
 			]
 		},
 		"ui/borders/tan_border_corner_bottom_right": {
 			"w": 9,
 			"h": 9,
 			"variants": [
-				"dark"
+				"dark",
+				"vanilla"
 			]
 		},
 		"ui/borders/tan_border_corner_top_left": {
 			"w": 9,
 			"h": 9,
 			"variants": [
-				"dark"
+				"dark",
+				"vanilla"
 			]
 		},
 		"ui/borders/tan_border_corner_top_right": {
 			"w": 9,
 			"h": 9,
 			"variants": [
-				"dark"
+				"dark",
+				"vanilla"
 			]
 		},
 		"ui/borders/tan_border_left": {
 			"w": 9,
 			"h": 9,
 			"variants": [
-				"dark"
+				"dark",
+				"vanilla"
 			]
 		},
 		"ui/borders/tan_border_right": {
 			"w": 9,
 			"h": 9,
 			"variants": [
-				"dark"
+				"dark",
+				"vanilla"
 			]
 		},
 		"ui/borders/tan_border_thick_bottom": {
@@ -2538,7 +2572,8 @@
 			"w": 9,
 			"h": 9,
 			"variants": [
-				"dark"
+				"dark",
+				"vanilla"
 			]
 		},
 		"ui/borders/vertical_separator_line": {
@@ -2663,14 +2698,16 @@
 			"h": 6,
 			"variants": [
 				"dark",
-				"mystic"
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/corner_bottom_left_selected": {
 			"w": 6,
 			"h": 6,
 			"variants": [
-				"mystic"
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/corner_bottom_right": {
@@ -2678,14 +2715,16 @@
 			"h": 6,
 			"variants": [
 				"dark",
-				"mystic"
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/corner_bottom_right_selected": {
 			"w": 6,
 			"h": 6,
 			"variants": [
-				"mystic"
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/corner_top_left": {
@@ -2693,14 +2732,16 @@
 			"h": 6,
 			"variants": [
 				"dark",
-				"mystic"
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/corner_top_left_selected": {
 			"w": 6,
 			"h": 6,
 			"variants": [
-				"mystic"
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/corner_top_right": {
@@ -2708,14 +2749,16 @@
 			"h": 6,
 			"variants": [
 				"dark",
-				"mystic"
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/corner_top_right_selected": {
 			"w": 6,
 			"h": 6,
 			"variants": [
-				"mystic"
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/edge_bottom": {
@@ -2723,14 +2766,16 @@
 			"h": 6,
 			"variants": [
 				"dark",
-				"mystic"
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/edge_bottom_selected": {
 			"w": 12,
 			"h": 6,
 			"variants": [
-				"mystic"
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/edge_left": {
@@ -2738,14 +2783,16 @@
 			"h": 12,
 			"variants": [
 				"dark",
-				"mystic"
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/edge_left_selected": {
 			"w": 6,
 			"h": 12,
 			"variants": [
-				"mystic"
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/edge_right": {
@@ -2753,14 +2800,16 @@
 			"h": 12,
 			"variants": [
 				"dark",
-				"mystic"
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/edge_right_selected": {
 			"w": 6,
 			"h": 12,
 			"variants": [
-				"mystic"
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/edge_top": {
@@ -2768,14 +2817,16 @@
 			"h": 6,
 			"variants": [
 				"dark",
-				"mystic"
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/edge_top_selected": {
 			"w": 12,
 			"h": 6,
 			"variants": [
-				"mystic"
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/enter_wilderness_teleport": {
@@ -2807,7 +2858,9 @@
 			"w": 12,
 			"h": 12,
 			"variants": [
-				"dark"
+				"dark",
+				"mystic",
+				"vanilla"
 			]
 		},
 		"ui/buttons/music_player": {
@@ -3301,10 +3354,140 @@
 				"vanilla"
 			]
 		},
+		"ui/progress_bar/progress_bar_green_new": {
+			"w": 1,
+			"h": 27,
+			"variants": [
+				"vanilla"
+			]
+		},
 		"ui/progress_bar/progress_bar_grey": {
 			"w": 1,
 			"h": 27,
 			"variants": [
+				"vanilla"
+			]
+		},
+		"ui/scrollbar/arrow_down": {
+			"w": 16,
+			"h": 16,
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
+		},
+		"ui/scrollbar/arrow_up": {
+			"w": 16,
+			"h": 16,
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
+		},
+		"ui/scrollbar/thumb_bottom": {
+			"w": 16,
+			"h": 5,
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
+		},
+		"ui/scrollbar/thumb_middle": {
+			"w": 16,
+			"h": 5,
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
+		},
+		"ui/scrollbar/thumb_top": {
+			"w": 16,
+			"h": 5,
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
+		},
+		"ui/scrollbar/transparent_thumb_background": {
+			"w": 16,
+			"h": 5,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"ui/tabs/tab": {
+			"w": 41,
+			"h": 40,
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
+		},
+		"ui/tabs/tab_empty": {
+			"w": 41,
+			"h": 40,
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
+		},
+		"ui/tabs/tab_hovered": {
+			"w": 41,
+			"h": 40,
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
+		},
+		"ui/tabs/tab_selected": {
+			"w": 41,
+			"h": 40,
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
+		},
+		"ui/tabs/tab_stone_middle": {
+			"w": 33,
+			"h": 36,
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
+		},
+		"ui/tabs/tab_stone_middle_selected": {
+			"w": 33,
+			"h": 36,
+			"variants": [
+				"mystic",
+				"vanilla"
+			]
+		},
+		"ui/tabs/tag_tab": {
+			"w": 39,
+			"h": 40,
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
+		},
+		"ui/tabs/tag_tab_active": {
+			"w": 39,
+			"h": 40,
+			"variants": [
+				"dark",
+				"mystic",
 				"vanilla"
 			]
 		},

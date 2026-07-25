@@ -15,9 +15,10 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
 /**
- * A one-of-many picker for lists too long to be chips. Another composition
- * (§9): the Card slice as the closed control, the game's chevron as the
- * affordance, and the options on a Card in a popup.
+ * A one-of-many picker for lists too long to be chips: the game's own field
+ * well with its stone arrow at the right end, and the options on a Card in a
+ * popup. It matches the Filters dropdowns in the Combat Achievements
+ * interface, which is where Luke pointed for the reference.
  *
  * <p>Deliberately not a styled {@code JComboBox}. The Swing control brings a
  * renderer, a UI delegate, a popup border and a scrollbar that each have to
@@ -27,8 +28,7 @@ import javax.swing.JPopupMenu;
 public class V2Dropdown extends JPanel
 {
 	private final OsrsTheme theme;
-	private final NineSlice card = V2Tokens.card();
-	private final NineSlice lit = V2Tokens.card().variant("_hovered");
+	private final V2Strip well = V2Tokens.field();
 	private final OsrsLabel label;
 	private final String[] options;
 	private int selected;
@@ -44,7 +44,7 @@ public class V2Dropdown extends JPanel
 		setAlignmentX(LEFT_ALIGNMENT);
 		setLayout(new java.awt.BorderLayout());
 		setBorder(new javax.swing.border.EmptyBorder(0, V2Tokens.PAD, 0,
-			V2Sprites.meta(V2Glyph.CHEVRON_OPEN).width() + V2Tokens.PAD));
+			V2Sprites.meta("ui/arrows/arrow_down").width() + V2Tokens.PAD));
 		add(label, java.awt.BorderLayout.CENTER);
 		setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		addMouseListener(new MouseAdapter()
@@ -138,10 +138,16 @@ public class V2Dropdown extends JPanel
 	protected void paintComponent(Graphics g)
 	{
 		Graphics2D g2 = (Graphics2D) g;
-		(hover ? lit : card).paint(g2, theme, 0, 0, getWidth(), getHeight());
-		BufferedImage chevron = V2Sprites.get(theme, V2Glyph.CHEVRON_OPEN);
-		g2.drawImage(chevron, getWidth() - chevron.getWidth() - V2Tokens.PAD,
-			(getHeight() - chevron.getHeight()) / 2, null);
+		well.paint(g2, theme, 0, (getHeight() - well.height()) / 2, getWidth());
+		if (hover)
+		{
+			g2.setColor(V2Tokens.HIGHLIGHT);
+			g2.fillRect(0, (getHeight() - well.height()) / 2, getWidth(), well.height());
+		}
+		// the game puts a stone arrow button at the right end of the well
+		BufferedImage arrow = V2Sprites.get(theme, "ui/arrows/arrow_down");
+		g2.drawImage(arrow, getWidth() - arrow.getWidth() - V2Tokens.TIGHT,
+			(getHeight() - arrow.getHeight()) / 2, null);
 		super.paintComponent(g);
 	}
 
