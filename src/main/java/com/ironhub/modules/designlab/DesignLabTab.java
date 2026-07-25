@@ -51,8 +51,14 @@ public class DesignLabTab extends JPanel
 	{
 		this.theme = theme;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+		// THEME-backed, not the classic grey. UiTokens.PANEL_BG is #262626,
+		// and painting it behind a skinned tab put a grey band around every
+		// edge of the gallery — the "grey border wrapping the Design lab"
+		// (Luke, 2026-07-25; measured at x=8 as (38,38,38) inside a panel
+		// backed (62,53,41)). CLAUDE.md has warned about exactly this since
+		// the nav rework: no classic grey behind the skin.
 		setOpaque(true);
-		setBackground(UiTokens.PANEL_BG);
+		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
 		com.ironhub.ui.v2.V2ChipRow views =

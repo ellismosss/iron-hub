@@ -31,6 +31,15 @@ public class V2Surface extends JPanel
 	private final V2Well wellArt;
 	private NineSlice hovered;
 	private boolean hover;
+	/**
+	 * A slice cannot render below twice its corner size — the corners overlap
+	 * and the edges get a negative span. The panel frame's corners are 32px,
+	 * so an inventory frame shorter than 64 draws as rubble, which is what
+	 * "the inventory frame is still completely busted" was (Luke, 2026-07-25:
+	 * it had been handed 47px). Every surface now refuses to go below its own
+	 * art's floor.
+	 */
+	private final int minimumHeight;
 
 	/**
 	 * A NON-CLICKABLE surface — the game's notched slab. Section headings,
@@ -68,7 +77,7 @@ public class V2Surface extends JPanel
 	 */
 	public static V2Surface inventoryFrame(OsrsTheme theme)
 	{
-		return new V2Surface(theme, V2Tokens.panel(), V2Divider.BAR_TOP + V2Divider.BAR_HEIGHT);
+		return new V2Surface(theme, V2Tokens.panel(), V2Tokens.PANEL_FRAME_INSET);
 	}
 
 	public V2Surface(OsrsTheme theme, NineSlice slice)
@@ -83,6 +92,7 @@ public class V2Surface extends JPanel
 
 	private V2Surface(OsrsTheme theme, NineSlice slice, V2Well wellArt, int contentInset)
 	{
+		this.minimumHeight = slice == null ? 0 : 2 * slice.inset();
 		this.theme = theme;
 		this.slice = slice;
 		this.wellArt = wellArt;
@@ -168,6 +178,20 @@ public class V2Surface extends JPanel
 	 * this a BoxLayout stretches the last child to fill the scroll viewport,
 	 * which is how a Card ends up 400px tall with 20px of text in it.
 	 */
+	@Override
+	public Dimension getPreferredSize()
+	{
+		Dimension pref = super.getPreferredSize();
+		return new Dimension(pref.width, Math.max(pref.height, minimumHeight));
+	}
+
+	@Override
+	public Dimension getMinimumSize()
+	{
+		Dimension min = super.getMinimumSize();
+		return new Dimension(min.width, Math.max(min.height, minimumHeight));
+	}
+
 	@Override
 	public Dimension getMaximumSize()
 	{

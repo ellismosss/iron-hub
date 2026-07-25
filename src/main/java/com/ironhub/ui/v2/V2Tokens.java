@@ -73,6 +73,13 @@ public final class V2Tokens
 	/** The bar frame's corner sprites are 9px, but only ~2px of that is ink —
 	 *  the rest is the transparent margin the game leaves around a bar. */
 	public static final int BAR_FRAME_INSET = 9;
+	/**
+	 * The panel frame's content inset. Its OWN constant: this used to be
+	 * derived from the divider's bar geometry, so shrinking the divider to
+	 * 1px silently shrank the inventory frame's padding from 20 to 15 and
+	 * broke it (Luke, 2026-07-25). Atoms do not borrow each other's numbers.
+	 */
+	public static final int PANEL_FRAME_INSET = 20;
 	/** The nav stone's chamfer. */
 	public static final int NAV_STONE_INSET = 8;
 	/** Utility buttons all render in one cell so a row of them lines up

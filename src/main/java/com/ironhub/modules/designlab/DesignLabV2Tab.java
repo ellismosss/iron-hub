@@ -96,9 +96,26 @@ public class DesignLabV2Tab extends JPanel
 		add(well);
 		gap(V2Tokens.ROW);
 
+		// the panel-frame art is composed on a 32px grid with its bar sitting
+		// 13px inside each cell, so it only reads as a frame around something
+		// inventory-sized. Shown around a real slot grid for that reason
+		// (Luke, 2026-07-25: "the inventory frame sprites are not lining up"
+		// — they were, but around one line of text there is nothing to line
+		// up WITH: two corner blocks meeting is all a 64px box can hold).
 		V2Surface frame = V2Surface.inventoryFrame(theme);
-		frame.add(V2Label.body("Inventory frame — Gear & Combat only"));
+		for (int r = 0; r < 3; r++)
+		{
+			JPanel slotRow = row();
+			for (int c = 0; c < 4; c++)
+			{
+				slotRow.add(new V2ItemSlot(theme, null));
+			}
+			slotRow.add(V2Layout.glue());
+			frame.add(slotRow);
+		}
 		add(frame);
+		gap(V2Tokens.TIGHT);
+		add(V2Label.faint("Inventory frame — Gear & Combat only"));
 		gap(V2Tokens.ROW);
 
 		add(new V2Divider(theme));
