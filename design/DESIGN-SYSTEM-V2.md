@@ -5,8 +5,8 @@ the same idea got drawn several ways across 27 modules, and each new surface nee
 another round of tweaks to look like its neighbours. V2 replaces judgement with
 rules, and rules with tests.
 
-**Status (2026-07-25):** all 31 atoms are built, enforced by `V2RulesTest`, and
-presented in **Design lab V2** (the Design lab's first view; a chip switches back
+**Status (2026-07-25):** all 31 atoms are built in three themes, enforced by
+`V2RulesTest`, and presented in **Design lab V2** (the Design lab's first view; a chip switches back
 to the V1 atoms). *No module is migrated until Luke says he is 100% happy with the
 atoms* — his gate, 2026-07-24.
 
@@ -62,7 +62,7 @@ The two slice families:
 
 | Family | Source | Inset | Used for |
 |---|---|---|---|
-| Card | `ui/buttons/enter_wilderness_teleport` (+`_hovered`, both themes) | 9 | Card, Chip, Tab body, Tooltip, ScrollBar thumb |
+| Card | `ui/buttons/enter_wilderness_teleport` (+`_hovered`, all three themes) | 9 | Card, Chip, Tab body, Tooltip, ScrollBar thumb |
 | Frame | `ui/borders/equipment_metal_corner_%s` + `equipment_edge_%s` (+`_hovered`) | 9 | Well, TextField, list recesses |
 | Panel | `ui/borders/bottom_line_mode_side_panel_*` | 32 | the outer panel border |
 | Button | `ui/buttons/regular_large` | 8 | the text button |
@@ -71,16 +71,29 @@ The two slice families:
 
 ## 3. Themes
 
-**A sprite changes with the theme if and only if a `_mystic` twin sits beside it in
-the source folder.** (Luke, 2026-07-24.) Everything else is the same art in both.
+**A theme gets the pack's art where the pack ships it, and vanilla everywhere else.**
+That is how a resource pack behaves in game: it overrides the sprites it re-draws and
+leaves the rest of the interface alone.
 
-78 sprites are twinned, 292 are shared, and 20 are `_mystic` files with no vanilla
-original — those are used in both themes and carry a `mysticOnly` flag so the gallery
-labels them honestly rather than implying they are vanilla art.
+Three themes as of 2026-07-25 — vanilla, Mystic, and **Dark Vanilla** (Luke: "I wanted
+a dark-mode that looked exactly like Vanilla"). 452 sprites: 370 vanilla, 92 mystic,
+160 dark. 82 have no vanilla original at all — pack-only families, shared by every
+theme and flagged `packOnly` so the gallery never implies they are the game's own.
 
-The rule lives in the generated index, not in a runtime filename probe. V1's
-mystic-falls-back-to-vanilla lookup meant "is this themed?" could only be answered by
-trying, and the answer changed silently whenever art moved.
+The rule lives in the generated index (`variants: ["vanilla","dark"]`), not in a
+runtime filename probe. V1's mystic-falls-back-to-vanilla lookup meant "is this
+themed?" could only be answered by trying, and the answer changed silently whenever
+art moved.
+
+**Coverage is partial, and that is visible rather than mysterious.** Dark Vanilla
+re-skins every surface the atoms are built on (the generator fails if one goes
+missing), but it ships no tab art — so tabs render vanilla brown in a dark panel. The
+gallery footer states how much of the panel each theme re-skins.
+
+**Known deviation:** nine sprites have variants of differing canvas size, because the
+dark pack trims transparent padding (`..._side_panel_edge_top` is 32x20 where vanilla
+is 32x32, with the ink at the same offset; `combat_style_*` is genuinely 1px smaller).
+`w`/`h` follow vanilla and the generator reports every one.
 
 **Text is not themed.** Fonts and colours are global, exactly as a resource pack
 behaves in game: it re-sprites the interface and leaves the text rendering alone.
