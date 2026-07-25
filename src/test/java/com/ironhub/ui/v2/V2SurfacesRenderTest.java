@@ -67,7 +67,7 @@ public class V2SurfacesRenderTest
 	}
 
 	@Test
-	public void surfacesRenderInBothThemes() throws Exception
+	public void surfacesRenderInEveryTheme() throws Exception
 	{
 		for (OsrsTheme theme : OsrsTheme.values())
 		{

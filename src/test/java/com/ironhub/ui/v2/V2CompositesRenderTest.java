@@ -81,7 +81,7 @@ public class V2CompositesRenderTest
 	}
 
 	@Test
-	public void compositesRenderInBothThemes() throws Exception
+	public void compositesRenderInEveryTheme() throws Exception
 	{
 		for (OsrsTheme theme : OsrsTheme.values())
 		{

@@ -93,7 +93,7 @@ public class V2ActionsRenderTest
 	}
 
 	@Test
-	public void actionsRenderInBothThemes() throws Exception
+	public void actionsRenderInEveryTheme() throws Exception
 	{
 		for (OsrsTheme theme : OsrsTheme.values())
 		{

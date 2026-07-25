@@ -5,1972 +5,3336 @@
 		"icons/archive": {
 			"w": 22,
 			"h": 22,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_axe_block": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_axe_chop": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_axe_hack": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_axe_smash": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_bow_accurate": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_bow_longrange": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_bow_rapid": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_chinchompa_long_fuse": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_chinchompa_medium_fuse": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_chinchompa_short_fuse": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_claws_block": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_claws_chop": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_claws_lunge": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_claws_slash": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_crossbow_accurate": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_crossbow_longrange": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_crossbow_rapid": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_defensive_casting_shield": {
 			"w": 36,
 			"h": 36,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_halberd_block": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_halberd_jab": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_halberd_swipe": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_hammer_block": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_hammer_pound": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_hammer_pummel": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_hammer_pummel_dinhs": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_mace_block": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_mace_pound": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_mace_pummel": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_mace_spike": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_magic_accurate": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_magic_longrange": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_magic_rapid": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_pickaxe_block": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_pickaxe_impale": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_pickaxe_smash": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_pickaxe_spike": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_salamander_blaze": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_salamander_flare": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_salamander_scorch": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_scythe_block": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_scythe_chop": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_scythe_jab": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_scythe_reap": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_spear_block": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_spear_lunge": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_spear_pound": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_spear_swipe": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_staff_bash": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_staff_block": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_staff_pound": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_sword_block": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_sword_chop": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_sword_slash": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_sword_stab": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_unarmed_block": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_unarmed_kick": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_unarmed_punch": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_whip_flick": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/attack_styles/style_whip_lash": {
 			"w": 34,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/cancel": {
 			"w": 19,
 			"h": 19,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/gray_down_double": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/gray_down_single": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/gray_down_stop": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/gray_left_double": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/gray_left_single": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/gray_left_stop": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/gray_right_double": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/gray_right_single": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/gray_right_stop": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/gray_up_double": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/gray_up_single": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/gray_up_stop": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/green_down_double": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/green_down_single": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/green_down_stop": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/green_left_double": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/green_left_single": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/green_left_stop": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/green_right_double": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/green_right_single": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/green_right_stop": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/green_up_double": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/green_up_single": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/green_up_stop": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/red_down_double": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/red_down_single": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/red_down_stop": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/red_left_double": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/red_left_single": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/red_left_stop": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/red_right_double": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/red_right_single": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/red_right_stop": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/red_up_double": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/red_up_single": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/red_up_stop": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/yellow_down_double": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/yellow_down_single": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/yellow_down_stop": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/yellow_left_double": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/yellow_left_single": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/yellow_left_stop": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/yellow_right_double": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/yellow_right_single": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/yellow_right_stop": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/yellow_up_double": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/yellow_up_single": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/chevron/yellow_up_stop": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/clock/clock_1": {
 			"w": 22,
 			"h": 22,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/clock/clock_2": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat/combat_large": {
 			"w": 33,
 			"h": 36,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat/combat_small": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat_achievements/armadyl_godsword_large": {
 			"w": 32,
 			"h": 32,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat_achievements/armadyl_godsword_small": {
 			"w": 24,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat_achievements/black_sword_large": {
 			"w": 32,
 			"h": 32,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat_achievements/black_sword_small": {
 			"w": 24,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat_achievements/bronze_sword_large": {
 			"w": 32,
 			"h": 32,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat_achievements/bronze_sword_small": {
 			"w": 24,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat_achievements/collection_log_book": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat_achievements/combat_achievements_book": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat_achievements/combat_achievements_large": {
 			"w": 33,
 			"h": 36,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat_achievements/combat_achievements_small": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat_achievements/dragon_sword_large": {
 			"w": 32,
 			"h": 32,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat_achievements/dragon_sword_small": {
 			"w": 24,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat_achievements/rune_sword_large": {
 			"w": 32,
 			"h": 32,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat_achievements/rune_sword_small": {
 			"w": 24,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat_achievements/steel_sword_large": {
 			"w": 32,
 			"h": 32,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/combat_achievements/steel_sword_small": {
 			"w": 24,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/crate": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/equipment/deposit_equipment": {
 			"w": 29,
 			"h": 22,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/equipment/equipment": {
 			"w": 33,
 			"h": 36,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/equipment/lost_on_death": {
 			"w": 32,
 			"h": 32,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/equipment/slot_ammunition": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"icons/equipment/slot_cape": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"icons/equipment/slot_feet": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"icons/equipment/slot_hands": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"icons/equipment/slot_head": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"icons/equipment/slot_legs": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"icons/equipment/slot_neck": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"icons/equipment/slot_ring": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"icons/equipment/slot_selected": {
 			"w": 36,
 			"h": 36,
-			"themed": true
+			"variants": [
+				"mystic",
+				"vanilla"
+			]
 		},
 		"icons/equipment/slot_shield": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"icons/equipment/slot_tile": {
 			"w": 36,
 			"h": 36,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"icons/equipment/slot_torso": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"icons/equipment/slot_weapon": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"icons/equipment/worn_items": {
 			"w": 28,
 			"h": 28,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/filter_large": {
 			"w": 24,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/filter_small": {
 			"w": 7,
 			"h": 5,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/flag": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/heart": {
 			"w": 13,
 			"h": 13,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/house": {
 			"w": 32,
 			"h": 32,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/inventory/collection_box_offer_buy": {
 			"w": 20,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/inventory/collection_box_offer_sell": {
 			"w": 20,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/inventory/deposit_inventory": {
 			"w": 29,
 			"h": 22,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/inventory/inventory": {
 			"w": 30,
 			"h": 30,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/inventory/make_offer_buy": {
 			"w": 35,
 			"h": 35,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/inventory/make_offer_buy_hovered": {
 			"w": 35,
 			"h": 35,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/inventory/make_offer_sell": {
 			"w": 35,
 			"h": 35,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/inventory/make_offer_sell_hovered": {
 			"w": 35,
 			"h": 35,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/inventory/send_to_inventory": {
 			"w": 29,
 			"h": 22,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/location": {
 			"w": 23,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/magic/earth_surge_resized": {
 			"w": 40,
 			"h": 40,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/magic/fire_surge_resized": {
 			"w": 40,
 			"h": 40,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/magic/magic": {
 			"w": 33,
 			"h": 36,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/magic/magic_spellbook_ancient_magicks": {
 			"w": 33,
 			"h": 36,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/magic/magic_spellbook_arceuus": {
 			"w": 33,
 			"h": 36,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/magic/magic_spellbook_lunar": {
 			"w": 33,
 			"h": 36,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/magic/water_surge_resized": {
 			"w": 40,
 			"h": 40,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/magic/wind_surge_resized": {
 			"w": 40,
 			"h": 40,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/money/gold_pouch": {
 			"w": 30,
 			"h": 30,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/money/guide_price": {
 			"w": 20,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/money/high_level_alchemy": {
 			"w": 24,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/money/high_level_alchemy_resized": {
 			"w": 40,
 			"h": 40,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/monster_large": {
 			"w": 40,
 			"h": 40,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/monster_small": {
 			"w": 24,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/note": {
 			"w": 20,
 			"h": 20,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/note_hovered": {
 			"w": 20,
 			"h": 20,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/padlock": {
 			"w": 29,
 			"h": 22,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/planner": {
 			"w": 26,
 			"h": 26,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/player": {
 			"w": 22,
 			"h": 22,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/prayer/prayer_1": {
 			"w": 26,
 			"h": 26,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/prayer/prayer_2": {
 			"w": 17,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/prayers/augury": {
 			"w": 30,
 			"h": 30,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/prayers/augury_disabled": {
 			"w": 30,
 			"h": 30,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/prayers/piety": {
 			"w": 30,
 			"h": 30,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/prayers/piety_disabled": {
 			"w": 30,
 			"h": 30,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/prayers/protect_from_magic": {
 			"w": 30,
 			"h": 30,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/prayers/protect_from_magic_disabled": {
 			"w": 30,
 			"h": 30,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/prayers/protect_from_melee": {
 			"w": 30,
 			"h": 30,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/prayers/protect_from_melee_disabled": {
 			"w": 30,
 			"h": 30,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/prayers/protect_from_missiles": {
 			"w": 30,
 			"h": 30,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/prayers/protect_from_missiles_disabled": {
 			"w": 30,
 			"h": 30,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/prayers/rigour": {
 			"w": 30,
 			"h": 30,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/prayers/rigour_disabled": {
 			"w": 30,
 			"h": 30,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/quest/goal_icon": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/quest/quest_blue_large": {
 			"w": 33,
 			"h": 36,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/quest/quest_blue_small": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/quest/quest_green_large": {
 			"w": 33,
 			"h": 36,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/quest/quest_green_small": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/quest/quest_orange_small": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/quest/quest_purple_small": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/quest/quest_red_large": {
 			"w": 33,
 			"h": 36,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/quest/quest_red_small": {
 			"w": 17,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/refresh": {
 			"w": 19,
 			"h": 17,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/repair": {
 			"w": 24,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/sailing/anchor": {
 			"w": 20,
 			"h": 20,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/sailing/brazier": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/sailing/cannon": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/sailing/cargo_hold": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/sailing/helm": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/sailing/hull": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/sailing/keel": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/sailing/raft": {
 			"w": 35,
 			"h": 35,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/sailing/sails": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/sailing/skiff": {
 			"w": 35,
 			"h": 35,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/sailing/sloop": {
 			"w": 35,
 			"h": 35,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/sailing/stations": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/sailing/steering_large": {
 			"w": 24,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/sailing/steering_small": {
 			"w": 20,
 			"h": 20,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/sailing/wind_catcher": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/search/search_1": {
 			"w": 20,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"icons/search/search_2": {
 			"w": 29,
 			"h": 22,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/settings": {
 			"w": 22,
 			"h": 22,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/agility": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/attack": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/construction": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/cooking": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/crafting": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/defence": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/farming": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/firemaking": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/fishing": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/fletching": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/herblore": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/hitpoints": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/hunter": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/magic": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/mining": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/prayer": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/ranged": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/runecraft": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/slayer": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/smithing": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/strength": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/thieving": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/skills/woodcutting": {
 			"w": 25,
 			"h": 25,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/stack": {
 			"w": 24,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/star/star": {
 			"w": 18,
 			"h": 30,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/star/star_free": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/star/star_hovered": {
 			"w": 18,
 			"h": 30,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/star/star_member": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/storage": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/supplies": {
 			"w": 28,
 			"h": 28,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/unstack": {
 			"w": 24,
 			"h": 24,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/wiki/wiki_deselected": {
 			"w": 40,
 			"h": 14,
-			"themed": true
+			"variants": [
+				"mystic",
+				"vanilla"
+			]
 		},
 		"icons/wiki/wiki_selected": {
 			"w": 40,
 			"h": 14,
-			"themed": true
+			"variants": [
+				"mystic",
+				"vanilla"
+			]
 		},
 		"icons/wiki/wiki_small": {
 			"w": 26,
 			"h": 26,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/world": {
 			"w": 13,
 			"h": 13,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/xp/totals_large": {
 			"w": 33,
 			"h": 36,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/xp/totals_small": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"icons/xp/xp": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/arrows/arrow_down": {
 			"w": 16,
 			"h": 16,
-			"themed": true
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/arrows/arrow_left": {
 			"w": 16,
 			"h": 16,
-			"themed": true
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/arrows/arrow_right": {
 			"w": 16,
 			"h": 16,
-			"themed": true
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/arrows/arrow_up": {
 			"w": 16,
 			"h": 16,
-			"themed": true
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/arrows/left_arrow": {
 			"w": 21,
 			"h": 21,
-			"themed": true
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/arrows/left_arrow_hovered": {
 			"w": 21,
 			"h": 21,
-			"themed": true
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/arrows/list_sorting_arrow_ascending": {
 			"w": 7,
 			"h": 5,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"mystic"
+			]
 		},
 		"ui/arrows/list_sorting_arrow_descending": {
 			"w": 7,
 			"h": 5,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"mystic"
+			]
 		},
 		"ui/arrows/music_skip": {
 			"w": 23,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/arrows/orange_down_arrow": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/arrows/orange_left_arrow": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/arrows/orange_right_arrow": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/arrows/orange_up_arrow": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/arrows/tag_down_arrow": {
 			"w": 39,
 			"h": 20,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/arrows/tag_up_arrow": {
 			"w": 39,
 			"h": 20,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/arrows/transparent_arrow_down": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/arrows/transparent_arrow_up": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/borders/bottom_line_mode_corner_bottom_left": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/borders/bottom_line_mode_corner_bottom_right": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/borders/bottom_line_mode_corner_top_left": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/borders/bottom_line_mode_corner_top_right": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/borders/bottom_line_mode_edge_vertical": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/borders/bottom_line_mode_side_panel_corner_bottom_left": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/borders/bottom_line_mode_side_panel_corner_bottom_right": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/borders/bottom_line_mode_side_panel_corner_top_left": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/borders/bottom_line_mode_side_panel_corner_top_right": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/borders/bottom_line_mode_side_panel_edge_bottom": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/borders/bottom_line_mode_side_panel_edge_horizontal": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/borders/bottom_line_mode_side_panel_edge_left": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/borders/bottom_line_mode_side_panel_edge_right": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/borders/bottom_line_mode_side_panel_edge_top": {
 			"w": 32,
 			"h": 32,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/borders/equipment_edge_bottom": {
 			"w": 9,
 			"h": 9,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/borders/equipment_edge_bottom_hovered": {
 			"w": 9,
 			"h": 9,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/borders/equipment_edge_left": {
 			"w": 9,
 			"h": 9,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/borders/equipment_edge_left_hovered": {
 			"w": 9,
 			"h": 9,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/borders/equipment_edge_right": {
 			"w": 9,
 			"h": 9,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/borders/equipment_edge_right_hovered": {
 			"w": 9,
 			"h": 9,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/borders/equipment_edge_top": {
 			"w": 9,
 			"h": 9,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/borders/equipment_edge_top_hovered": {
 			"w": 9,
 			"h": 9,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/borders/equipment_metal_corner_bottom_left": {
 			"w": 9,
 			"h": 9,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/borders/equipment_metal_corner_bottom_left_hovered": {
 			"w": 9,
 			"h": 9,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/borders/equipment_metal_corner_bottom_right": {
 			"w": 9,
 			"h": 9,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/borders/equipment_metal_corner_bottom_right_hovered": {
 			"w": 9,
 			"h": 9,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/borders/equipment_metal_corner_top_left": {
 			"w": 9,
 			"h": 9,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/borders/equipment_metal_corner_top_left_hovered": {
 			"w": 9,
 			"h": 9,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/borders/equipment_metal_corner_top_right": {
 			"w": 9,
 			"h": 9,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
 		},
 		"ui/borders/equipment_metal_corner_top_right_hovered": {
 			"w": 9,
 			"h": 9,
-			"themed": false
+			"variants": [
+				"dark",
+				"vanilla"
+			]
+		},
+		"ui/borders/iron_rivets_bottom": {
+			"w": 36,
+			"h": 36,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/iron_rivets_corner_bottom_left": {
+			"w": 25,
+			"h": 30,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/iron_rivets_corner_bottom_right": {
+			"w": 25,
+			"h": 30,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/iron_rivets_corner_top_left": {
+			"w": 25,
+			"h": 30,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/iron_rivets_corner_top_right": {
+			"w": 25,
+			"h": 30,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/iron_rivets_edge_right": {
+			"w": 21,
+			"h": 36,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/iron_rivets_edge_top": {
+			"w": 36,
+			"h": 21,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/iron_rivets_horizontal": {
+			"w": 36,
+			"h": 36,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/iron_rivets_vertical": {
+			"w": 21,
+			"h": 36,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/iron_rivets_vertical_middle": {
+			"w": 36,
+			"h": 36,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/make_all_button_metal_corner_bottom_left": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/make_all_button_metal_corner_bottom_left_hovered": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/make_all_button_metal_corner_bottom_right": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/make_all_button_metal_corner_bottom_right_hovered": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/make_all_button_metal_corner_top_left": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/make_all_button_metal_corner_top_left_hovered": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/make_all_button_metal_corner_top_right": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/make_all_button_metal_corner_top_right_hovered": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/make_all_button_metal_edge_bottom": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/make_all_button_metal_edge_bottom_hovered": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/make_all_button_metal_edge_left": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/make_all_button_metal_edge_left_hovered": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/make_all_button_metal_edge_right": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/make_all_button_metal_edge_right_hovered": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/make_all_button_metal_edge_top": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/make_all_button_metal_edge_top_hovered": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/tan_border_bottom": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/tan_border_corner_bottom_left": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/tan_border_corner_bottom_right": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/tan_border_corner_top_left": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/tan_border_corner_top_right": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/tan_border_left": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/tan_border_right": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/tan_border_thick_bottom": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/tan_border_thick_corner_bottom_left": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/tan_border_thick_corner_bottom_right": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/tan_border_thick_corner_top_left": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/tan_border_thick_corner_top_right": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/tan_border_thick_left": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/tan_border_thick_right": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/tan_border_thick_top": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/tan_border_top": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/vertical_separator_line": {
+			"w": 12,
+			"h": 12,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/world_map_edge_bottom": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/world_map_edge_left": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/world_map_edge_right": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/world_map_edge_top": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/world_map_metal_corner_bottom_left": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/world_map_metal_corner_bottom_right": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/world_map_metal_corner_top_left": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/borders/world_map_metal_corner_top_right": {
+			"w": 9,
+			"h": 9,
+			"variants": [
+				"dark"
+			]
 		},
 		"ui/buttons/button": {
 			"w": 35,
 			"h": 35,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons/button_hovered": {
 			"w": 35,
 			"h": 35,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons/combat_style_narrow": {
 			"w": 72,
 			"h": 36,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons/combat_style_narrow_selected": {
 			"w": 72,
 			"h": 36,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons/combat_style_thin": {
 			"w": 72,
 			"h": 36,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons/combat_style_thin_selected": {
 			"w": 72,
 			"h": 36,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons/corner_bottom_left": {
 			"w": 6,
 			"h": 6,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"dark",
+				"mystic"
+			]
 		},
 		"ui/buttons/corner_bottom_left_selected": {
 			"w": 6,
 			"h": 6,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"mystic"
+			]
 		},
 		"ui/buttons/corner_bottom_right": {
 			"w": 6,
 			"h": 6,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"dark",
+				"mystic"
+			]
 		},
 		"ui/buttons/corner_bottom_right_selected": {
 			"w": 6,
 			"h": 6,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"mystic"
+			]
 		},
 		"ui/buttons/corner_top_left": {
 			"w": 6,
 			"h": 6,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"dark",
+				"mystic"
+			]
 		},
 		"ui/buttons/corner_top_left_selected": {
 			"w": 6,
 			"h": 6,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"mystic"
+			]
 		},
 		"ui/buttons/corner_top_right": {
 			"w": 6,
 			"h": 6,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"dark",
+				"mystic"
+			]
 		},
 		"ui/buttons/corner_top_right_selected": {
 			"w": 6,
 			"h": 6,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"mystic"
+			]
 		},
 		"ui/buttons/edge_bottom": {
 			"w": 12,
 			"h": 6,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"dark",
+				"mystic"
+			]
 		},
 		"ui/buttons/edge_bottom_selected": {
 			"w": 12,
 			"h": 6,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"mystic"
+			]
 		},
 		"ui/buttons/edge_left": {
 			"w": 6,
 			"h": 12,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"dark",
+				"mystic"
+			]
 		},
 		"ui/buttons/edge_left_selected": {
 			"w": 6,
 			"h": 12,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"mystic"
+			]
 		},
 		"ui/buttons/edge_right": {
 			"w": 6,
 			"h": 12,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"dark",
+				"mystic"
+			]
 		},
 		"ui/buttons/edge_right_selected": {
 			"w": 6,
 			"h": 12,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"mystic"
+			]
 		},
 		"ui/buttons/edge_top": {
 			"w": 12,
 			"h": 6,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"dark",
+				"mystic"
+			]
 		},
 		"ui/buttons/edge_top_selected": {
 			"w": 12,
 			"h": 6,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"mystic"
+			]
 		},
 		"ui/buttons/enter_wilderness_teleport": {
 			"w": 90,
 			"h": 56,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons/enter_wilderness_teleport_hovered": {
 			"w": 90,
 			"h": 56,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
+		},
+		"ui/buttons/logout_middle": {
+			"w": 20,
+			"h": 34,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/buttons/middle": {
+			"w": 12,
+			"h": 12,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/buttons/music_player": {
+			"w": 36,
+			"h": 25,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/buttons/music_player_selected": {
+			"w": 36,
+			"h": 25,
+			"variants": [
+				"dark"
+			]
 		},
 		"ui/buttons/options_square": {
 			"w": 40,
 			"h": 40,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons/options_square_selected": {
 			"w": 40,
 			"h": 40,
-			"themed": true
+			"variants": [
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons/regular_large": {
 			"w": 132,
 			"h": 28,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons/regular_small": {
 			"w": 64,
 			"h": 30,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons/selected_item_box": {
 			"w": 40,
 			"h": 36,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons/selected_item_box_glowing": {
 			"w": 40,
 			"h": 36,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons/slayer_rewards_and_poll_history": {
 			"w": 85,
 			"h": 22,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"dark",
+				"mystic"
+			]
 		},
 		"ui/buttons/slayer_rewards_and_poll_history_selected": {
 			"w": 85,
 			"h": 22,
-			"themed": false,
-			"mysticOnly": true
+			"variants": [
+				"dark",
+				"mystic"
+			]
 		},
 		"ui/buttons/slot_selected": {
 			"w": 36,
 			"h": 36,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/buttons/slot_tile": {
 			"w": 36,
 			"h": 36,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
+		},
+		"ui/buttons/stone_small_top_left": {
+			"w": 5,
+			"h": 5,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/buttons/stone_small_top_left_disabled": {
+			"w": 5,
+			"h": 5,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/buttons/stone_small_top_left_hovered": {
+			"w": 5,
+			"h": 5,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/buttons/stone_small_top_right": {
+			"w": 5,
+			"h": 5,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/buttons/stone_small_top_right_disabled": {
+			"w": 5,
+			"h": 5,
+			"variants": [
+				"dark"
+			]
+		},
+		"ui/buttons/stone_small_top_right_hovered": {
+			"w": 5,
+			"h": 5,
+			"variants": [
+				"dark"
+			]
 		},
 		"ui/buttons/tag_tab": {
 			"w": 39,
 			"h": 40,
-			"themed": true
+			"variants": [
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons/tag_tab_active": {
 			"w": 39,
 			"h": 40,
-			"themed": true
+			"variants": [
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons/unknown_square_small": {
 			"w": 25,
 			"h": 25,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons/unknown_square_small_selected": {
 			"w": 25,
 			"h": 25,
-			"themed": true
+			"variants": [
+				"mystic",
+				"vanilla"
+			]
+		},
+		"ui/buttons/world_switcher_middle": {
+			"w": 20,
+			"h": 34,
+			"variants": [
+				"dark"
+			]
 		},
 		"ui/buttons_square/cancel_button": {
 			"w": 20,
 			"h": 20,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/buttons_square/cancel_button_hovered": {
 			"w": 20,
 			"h": 20,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/buttons_square/close_small": {
 			"w": 16,
 			"h": 16,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons_square/close_small_hovered": {
 			"w": 16,
 			"h": 16,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons_square/decrement_button": {
 			"w": 20,
 			"h": 18,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons_square/help": {
 			"w": 21,
 			"h": 21,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons_square/help_hovered": {
 			"w": 21,
 			"h": 21,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons_square/increment_button": {
 			"w": 20,
 			"h": 18,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons_square/menu": {
 			"w": 21,
 			"h": 21,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons_square/menu_selected": {
 			"w": 21,
 			"h": 21,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons_square/wrench": {
 			"w": 21,
 			"h": 21,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/buttons_square/wrench_hovered": {
 			"w": 21,
 			"h": 21,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/checkbox/round_square_checkbox": {
 			"w": 19,
 			"h": 19,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/checkbox/round_square_checkbox_checked": {
 			"w": 19,
 			"h": 19,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/checkbox/square_bordered_checkbox": {
 			"w": 18,
 			"h": 18,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/checkbox/square_bordered_checkbox_checked": {
 			"w": 18,
 			"h": 18,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/checkbox/square_bordered_checkbox_disabled": {
 			"w": 18,
 			"h": 18,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/checkbox/square_bordered_checkbox_disabled_checked": {
 			"w": 18,
 			"h": 18,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/checkbox/square_bordered_checkbox_locked": {
 			"w": 18,
 			"h": 18,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/checkbox/square_check_box": {
 			"w": 16,
 			"h": 16,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/checkbox/square_check_box_checked": {
 			"w": 16,
 			"h": 16,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/checkbox/square_check_box_checked_hovered": {
 			"w": 16,
 			"h": 16,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/checkbox/square_check_box_crossed": {
 			"w": 16,
 			"h": 16,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/checkbox/square_check_box_crossed_hovered": {
 			"w": 16,
 			"h": 16,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/checkbox/square_check_box_hovered": {
 			"w": 16,
 			"h": 16,
-			"themed": true
+			"variants": [
+				"dark",
+				"mystic",
+				"vanilla"
+			]
 		},
 		"ui/plus_minus/minus": {
 			"w": 11,
 			"h": 11,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/plus_minus/minus_hovered": {
 			"w": 11,
 			"h": 11,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/plus_minus/minus_icon": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/plus_minus/minus_icon_hovered": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/plus_minus/plus": {
 			"w": 11,
 			"h": 11,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/plus_minus/plus_hovered": {
 			"w": 11,
 			"h": 11,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/plus_minus/plus_icon": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/plus_minus/plus_icon_hovered": {
 			"w": 18,
 			"h": 18,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/plus_minus/small_minus_icon": {
 			"w": 24,
 			"h": 23,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/plus_minus/small_minus_icon_hovered": {
 			"w": 24,
 			"h": 23,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/plus_minus/small_plus_icon": {
 			"w": 24,
 			"h": 23,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/plus_minus/small_plus_icon_hovered": {
 			"w": 24,
 			"h": 23,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/progress_bar/progress_bar_green": {
 			"w": 1,
 			"h": 27,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/progress_bar/progress_bar_grey": {
 			"w": 1,
 			"h": 27,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/ticks/checkmark_large": {
 			"w": 17,
 			"h": 17,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/ticks/checkmark_small": {
 			"w": 13,
 			"h": 13,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/ticks/red_cross_large": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		},
 		"ui/ticks/red_cross_small": {
 			"w": 16,
 			"h": 16,
-			"themed": false
+			"variants": [
+				"vanilla"
+			]
 		}
 	}
 }

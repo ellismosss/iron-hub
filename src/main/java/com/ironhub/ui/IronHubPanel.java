@@ -337,6 +337,7 @@ public class IronHubPanel extends PluginPanel
 		{
 			labels[i] = themes[i] == com.ironhub.ui.osrs.OsrsTheme.STONE ? "Vanilla"
 				: themes[i] == com.ironhub.ui.osrs.OsrsTheme.MYSTIC ? "Mystic"
+				: themes[i] == com.ironhub.ui.osrs.OsrsTheme.DARK ? "Dark"
 				: themes[i].toString();
 		}
 		com.ironhub.ui.osrs.StoneChipRow chips = new com.ironhub.ui.osrs.StoneChipRow(

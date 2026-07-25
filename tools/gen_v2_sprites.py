@@ -13,9 +13,15 @@ Two outputs:
 The index exists so the theme rule is DATA, not a filename guess at runtime
 (Luke, 2026-07-24): "only sprites that explicitly have a _mystic variant in
 the folder should change between themes. Otherwise, use the same sprite in
-both themes." So each entry records whether a _mystic twin exists, and a
-_mystic file with no vanilla original is flagged mysticOnly — those are art
-we use in BOTH themes while knowing it isn't vanilla.
+both themes." Each entry therefore records exactly WHICH variants exist —
+vanilla, mystic, dark — and the runtime falls back to vanilla for a theme
+the pack doesn't re-sprite, which is how a resource pack behaves in game.
+
+Dark vanilla joined on 2026-07-25 (Luke: "I wanted a dark-mode that looked
+exactly like Vanilla"), which is why variants are a LIST now rather than a
+themed boolean: coverage is per theme and genuinely partial. A key with no
+vanilla original at all keeps whatever variants it has and is flagged, so
+the gallery can say so instead of implying it is vanilla art.
 
 Folder names with spaces are normalised (a resource path with a space in it
 is a lifetime of escaping bugs); the mapping is explicit below so a renamed
@@ -63,7 +69,8 @@ FOLDERS = {
 	"ui/ticks crosses": "ui/ticks",
 }
 
-MYSTIC = "_mystic"
+# theme -> the filename suffix that carries its art. Vanilla has none.
+VARIANTS = {"mystic": "_mystic", "dark": "_dark"}
 
 
 def png_size(path):
@@ -73,6 +80,14 @@ def png_size(path):
 	if head[:8] != b"\x89PNG\r\n\x1a\n" or head[12:16] != b"IHDR":
 		sys.exit(f"not a PNG: {path}")
 	return struct.unpack(">II", head[16:24])
+
+
+def split_variant(stem):
+	"""'button_hovered_mystic' -> ('button_hovered', 'mystic')."""
+	for variant, suffix in VARIANTS.items():
+		if stem.endswith(suffix):
+			return stem[: -len(suffix)], variant
+	return stem, "vanilla"
 
 
 def main():
@@ -107,26 +122,26 @@ def main():
 			shutil.copy2(os.path.join(src_dir, name), os.path.join(dest_dir, name))
 			copied += 1
 			stem = name[:-4]
-			if stem.endswith(MYSTIC):
-				base = stem[: -len(MYSTIC)]
-				if base in stems:
-					continue  # indexed under its vanilla original
-				# a _mystic file with no vanilla original: still one sprite,
-				# used in both themes, but flagged so we never claim it is
-				# vanilla art
-				sprites[f"{family}/{base}"] = {
-					"w": png_size(os.path.join(src_dir, name))[0],
-					"h": png_size(os.path.join(src_dir, name))[1],
-					"themed": False,
-					"mysticOnly": True,
-				}
-				continue
-			w, h = png_size(os.path.join(src_dir, name))
-			sprites[f"{family}/{stem}"] = {
-				"w": w,
-				"h": h,
-				"themed": f"{stem}{MYSTIC}" in stems,
-			}
+			base, variant = split_variant(stem)
+			key = f"{family}/{base}"
+			entry = sprites.setdefault(key, {"variants": [], "sizes": {}})
+			entry["variants"].append(variant)
+			entry["sizes"][variant] = png_size(os.path.join(src_dir, name))
+
+	# w/h describe the sprite for layout; a pack that trims transparent
+	# padding gives a smaller canvas for the same ink, so vanilla is the
+	# reference and any disagreement is REPORTED rather than silently kept
+	mismatched = []
+	for key, entry in sorted(sprites.items()):
+		sizes = entry["sizes"]
+		reference = sizes.get("vanilla") or sizes[sorted(sizes)[0]]
+		if len(set(sizes.values())) > 1:
+			mismatched.append((key, dict(sorted(sizes.items()))))
+		sprites[key] = {
+			"w": reference[0],
+			"h": reference[1],
+			"variants": sorted(entry["variants"]),
+		}
 
 	index = {
 		"version": 1,
@@ -137,11 +152,19 @@ def main():
 		json.dump(index, f, indent="\t", sort_keys=False)
 		f.write("\n")
 
-	themed = sum(1 for s in sprites.values() if s["themed"])
-	mystic_only = sum(1 for s in sprites.values() if s.get("mysticOnly"))
+	counts = {name: sum(1 for s in sprites.values() if name in s["variants"])
+		for name in ["vanilla", "mystic", "dark"]}
+	no_vanilla = [k for k, s in sprites.items() if "vanilla" not in s["variants"]]
 	print(f"copied {copied} files -> {DEST}")
-	print(f"indexed {len(sprites)} sprites: {themed} themed, "
-		f"{mystic_only} mystic-only, {len(sprites) - themed - mystic_only} theme-agnostic")
+	print(f"indexed {len(sprites)} sprites: " + ", ".join(
+		f"{n} {c}" for n, c in counts.items()))
+	print(f"  {len(no_vanilla)} have no vanilla original (pack-only art)")
+	if mismatched:
+		print(f"  {len(mismatched)} sprites whose variants differ in canvas size "
+			"(w/h follow vanilla):")
+		for key, sizes in mismatched:
+			print("    " + key + " " + " ".join(
+				f"{n}={w}x{h}" for n, (w, h) in sizes.items()))
 
 	# sanity floors: the families the atoms are built on must be present
 	required = [
@@ -156,12 +179,23 @@ def main():
 	for key in required:
 		if key not in sprites:
 			sys.exit(f"required sprite missing from the index: {key}")
-	# every copied file is either its own entry or the _mystic half of one
-	if len(sprites) + themed != copied:
-		sys.exit(f"index doesn't account for every file: {len(sprites)} entries "
-			f"+ {themed} mystic twins != {copied} copied")
-	if copied < 450:
+	# every copied file is accounted for by exactly one variant of one entry
+	indexed_files = sum(len(s["variants"]) for s in sprites.values())
+	if indexed_files != copied:
+		sys.exit(f"index doesn't account for every file: {indexed_files} variants "
+			f"!= {copied} copied")
+	if copied < 600:
 		sys.exit(f"only {copied} sprites copied — the source looks truncated")
+	# the atoms are all built on art the dark pack re-sprites; if a future
+	# curation drops one, the dark theme silently falls back to a vanilla
+	# sprite in the middle of a dark panel
+	for key in ["ui/buttons/enter_wilderness_teleport",
+		"ui/borders/equipment_metal_corner_top_left",
+		"ui/borders/bottom_line_mode_side_panel_edge_top",
+		"ui/buttons/regular_large",
+		"ui/checkbox/square_bordered_checkbox"]:
+		if "dark" not in sprites[key]["variants"]:
+			sys.exit(f"{key} has no dark variant — the dark theme's surfaces need it")
 
 
 if __name__ == "__main__":

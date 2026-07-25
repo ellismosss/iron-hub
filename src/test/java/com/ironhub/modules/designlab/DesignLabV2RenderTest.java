@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 public class DesignLabV2RenderTest
 {
 	@Test
-	public void theV2GalleryRendersInBothThemes() throws Exception
+	public void theV2GalleryRendersInEveryTheme() throws Exception
 	{
 		for (OsrsTheme theme : OsrsTheme.values())
 		{

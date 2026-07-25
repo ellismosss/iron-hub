@@ -62,8 +62,15 @@ public class DesignLabV2Tab extends JPanel
 		composites();
 
 		add(V2Layout.gap(V2Tokens.SECTION));
-		add(V2Label.faint("Design lab V2 · sample data · "
-			+ V2Sprites.all().size() + " curated sprites"));
+		add(V2Label.faint("Design lab V2 · sample data"));
+		// how much of the panel this theme actually re-skins. A pack covers
+		// what it covers, and the rest falls back to vanilla — with three
+		// themes that is worth stating rather than leaving to be noticed
+		// (Dark Vanilla ships no tab art, so the tabs above are brown)
+		long reskinned = V2Sprites.all().values().stream()
+			.filter(meta -> meta.has(theme.spriteVariant())).count();
+		add(V2Label.faint(theme + " · " + reskinned + " of "
+			+ V2Sprites.all().size() + " sprites"));
 	}
 
 	// ── sections ──────────────────────────────────────────────────────

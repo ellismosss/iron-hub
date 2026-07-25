@@ -29,13 +29,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class V2Sprites
 {
-	/** One indexed sprite: its natural size and how it answers the theme. */
+	/** One indexed sprite: its natural size and which theme variants exist. */
 	public static final class Meta
 	{
 		int w;
 		int h;
-		boolean themed;
-		boolean mysticOnly;
+		java.util.List<String> variants;
 
 		public int width()
 		{
@@ -47,17 +46,29 @@ public final class V2Sprites
 			return h;
 		}
 
-		/** A {@code _mystic} twin exists, so the Mystic theme swaps art. */
-		public boolean themed()
+		/** Which of vanilla / mystic / dark the curated set actually ships. */
+		public java.util.List<String> variants()
 		{
-			return themed;
+			return java.util.Collections.unmodifiableList(variants);
 		}
 
-		/** The only art is the Mystic file — used in both themes, flagged so
-		 *  the gallery can say so rather than implying it is vanilla. */
-		public boolean mysticOnly()
+		public boolean has(String variant)
 		{
-			return mysticOnly;
+			return variants.contains(variant);
+		}
+
+		/** More than one variant, so the theme setting changes this sprite. */
+		public boolean themed()
+		{
+			return variants.size() > 1;
+		}
+
+		/** No vanilla original — the art came from a pack and is used in
+		 *  every theme. Flagged so the gallery can say so rather than
+		 *  implying it is the game's own. */
+		public boolean packOnly()
+		{
+			return !variants.contains("vanilla");
 		}
 	}
 
@@ -103,11 +114,7 @@ public final class V2Sprites
 			throw new IllegalArgumentException("no V2 sprite '" + key
 				+ "' — check data/v2-sprites.json (rerun tools/gen_v2_sprites.py)");
 		}
-		// mysticOnly art has no vanilla original, so the FILE is the _mystic
-		// one in both themes — the index says which sprite, the file name
-		// says which pixels
-		String path = meta.mysticOnly || (meta.themed && theme == OsrsTheme.MYSTIC)
-			? key + "_mystic" : key;
+		String path = key + suffix(variantFor(theme, meta));
 		BufferedImage image = load(path);
 		if (image == null)
 		{
@@ -115,6 +122,31 @@ public final class V2Sprites
 				+ "' is indexed but missing from " + ART);
 		}
 		return image;
+	}
+
+	/**
+	 * Which variant a theme actually gets for this sprite: its own if the
+	 * pack re-skinned it, otherwise vanilla, otherwise whatever exists.
+	 *
+	 * <p>The vanilla fallback is the whole model — a resource pack overrides
+	 * the sprites it ships and leaves the rest alone, so Dark Vanilla's 160
+	 * sprites sit on top of the game's own 370 rather than needing all of
+	 * them. The last branch covers pack-only art (a family the game has no
+	 * equivalent for), which every theme then shares.
+	 */
+	public static String variantFor(OsrsTheme theme, Meta meta)
+	{
+		String wanted = theme.spriteVariant();
+		if (meta.has(wanted))
+		{
+			return wanted;
+		}
+		return meta.has("vanilla") ? "vanilla" : meta.variants.get(0);
+	}
+
+	private static String suffix(String variant)
+	{
+		return "vanilla".equals(variant) ? "" : "_" + variant;
 	}
 
 	private static BufferedImage load(String path)

@@ -86,7 +86,7 @@ public class V2StatusRenderTest
 	}
 
 	@Test
-	public void statusAtomsRenderInBothThemes() throws Exception
+	public void statusAtomsRenderInEveryTheme() throws Exception
 	{
 		for (OsrsTheme theme : OsrsTheme.values())
 		{

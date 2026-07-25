@@ -10,23 +10,22 @@
 		"source": { "type": "string" },
 		"sprites": {
 			"type": "object",
-			"minProperties": 350,
+			"minProperties": 400,
 			"description": "key = family/name, matching data/v2/<key>.png",
 			"propertyNames": { "pattern": "^(ui|icons)/[a-z0-9_]+(/[a-z0-9_]+)?$" },
 			"additionalProperties": {
 				"type": "object",
-				"required": ["w", "h", "themed"],
+				"required": ["w", "h", "variants"],
 				"additionalProperties": false,
 				"properties": {
 					"w": { "type": "integer", "minimum": 1 },
 					"h": { "type": "integer", "minimum": 1 },
-					"themed": {
-						"type": "boolean",
-						"description": "true = a <name>_mystic.png twin exists beside it, so the Mystic theme swaps art"
-					},
-					"mysticOnly": {
-						"type": "boolean",
-						"description": "true = the only art is the _mystic file; used in BOTH themes, flagged so we never claim it is vanilla"
+					"variants": {
+						"type": "array",
+						"minItems": 1,
+						"uniqueItems": true,
+						"description": "which theme variants the curated set ships for this sprite; a theme with no entry falls back to vanilla, exactly as a resource pack behaves in game",
+						"items": { "enum": ["vanilla", "mystic", "dark"] }
 					}
 				}
 			}

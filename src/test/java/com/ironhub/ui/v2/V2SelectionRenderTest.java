@@ -114,7 +114,7 @@ public class V2SelectionRenderTest
 	}
 
 	@Test
-	public void selectionAtomsRenderInBothThemes() throws Exception
+	public void selectionAtomsRenderInEveryTheme() throws Exception
 	{
 		for (OsrsTheme theme : OsrsTheme.values())
 		{
