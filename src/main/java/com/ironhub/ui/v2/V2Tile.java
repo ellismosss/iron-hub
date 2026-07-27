@@ -224,6 +224,27 @@ public class V2Tile extends JComponent
 	private OsrsLabel corner;
 
 	/**
+	 * The caption in a status colour — the clog grid's orange-until-done,
+	 * green-when-complete. {@code DONE}, {@code ACTION} or {@code BLOCKED}
+	 * only, the same guard as {@link V2Label#status} (§6 — colour is never
+	 * decoration). Null returns the caption to its plain colours.
+	 */
+	public V2Tile captionStatus(java.awt.Color colour)
+	{
+		if (colour != null && colour != V2Tokens.DONE && colour != V2Tokens.ACTION
+			&& colour != V2Tokens.BLOCKED)
+		{
+			throw new IllegalArgumentException(
+				"captionStatus takes DONE, ACTION or BLOCKED — colour is never decoration");
+		}
+		this.captionStatus = colour;
+		repaint();
+		return this;
+	}
+
+	private java.awt.Color captionStatus;
+
+	/**
 	 * A member count in the top-left — "this tile stands for 4 variants".
 	 * Drawn in {@code TEXT}, not a status colour: it is a quantity, and Luke
 	 * asked for the light colour rather than orange when the Gear library
@@ -347,7 +368,8 @@ public class V2Tile extends JComponent
 				: size + V2Tokens.TIGHT;
 			text.setSize(getWidth(), captionHeight());
 			g2.translate(0, top);
-			text.setColor(selected ? V2Tokens.HEADING : V2Tokens.TEXT);
+			text.setColor(captionStatus != null ? captionStatus
+				: selected ? V2Tokens.HEADING : V2Tokens.TEXT);
 			text.paint(g2);
 			g2.translate(0, -top);
 		}

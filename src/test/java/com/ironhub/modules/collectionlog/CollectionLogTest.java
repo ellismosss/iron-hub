@@ -372,6 +372,11 @@ public class CollectionLogTest
 		tab.showForRender(firstTab, null);
 		render(tab, "collectionlog-category");
 
+		tab.expandForRender(firstTab, first.name);
+		java.awt.image.BufferedImage expanded = render(tab, "collectionlog-category-expanded");
+		assertTrue("expanding a page tile must add its results in-line",
+			expanded.getHeight() > 300);
+
 		tab.showForRender(firstTab, first.name);
 		java.awt.image.BufferedImage page = render(tab, "collectionlog-page");
 		assertTrue(page.getHeight() > 300);

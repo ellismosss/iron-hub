@@ -333,9 +333,14 @@ public class CollectionLogModule implements IronHubModule
 	 */
 	private void readOpenPageHeader()
 	{
-		Widget header = client.getWidget(InterfaceID.Collection.HEADER);
-		Widget[] lines = header == null ? null : header.getDynamicChildren();
-		if (lines == null || lines.length < 2)
+		// HEADER_TEXT, not HEADER: the title and counter lines are children
+		// of the text widget (core's ChatCommandsPlugin reads the title as
+		// HEADER_TEXT child 0). HEADER is the container — its child list is
+		// empty, which is why no count was ever captured (root-caused
+		// 2026-07-27 against the 1.12.33 sources; Luke: "I already have").
+		Widget header = client.getWidget(InterfaceID.Collection.HEADER_TEXT);
+		Widget[] lines = header == null ? null : header.getChildren();
+		if (lines == null || lines.length < 2 || lines[0] == null)
 		{
 			return;
 		}
@@ -349,7 +354,7 @@ public class CollectionLogModule implements IronHubModule
 		List<String> counts = new ArrayList<>();
 		for (int i = 1; i < lines.length; i++)
 		{
-			String text = lines[i].getText();
+			String text = lines[i] == null ? null : lines[i].getText();
 			if (text == null)
 			{
 				continue;

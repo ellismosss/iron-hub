@@ -76,12 +76,10 @@ class CollectionLogTab extends JPanel
 	/** The newest slots the overview shows. */
 	private static final int LATEST = 10;
 	private static final String[] TAB_ICONS = {"bosses", "raids", "clues", "minigames", "other"};
-	/** The category view's page grid: 3 tiles across the 217px content
-	 *  column (3x68 + 2x4 = 212). The caption paints INSIDE the art, so the
-	 *  tile is V1 IconTile's 56px — two caption lines under a 22px emblem. */
-	private static final int PAGE_COLS = 3;
-	private static final int PAGE_TILE_WIDTH = 68;
-	private static final int PAGE_TILE_ART = 56;
+	/** The category view's page grid: two PERFECT SQUARES across the 217px
+	 *  content column (2x106 + 4 = 216; Luke, 2026-07-27), captions inside. */
+	private static final int PAGE_COLS = 2;
+	private static final int PAGE_TILE = 106;
 	/** Marks a child that keeps its own click (the +/x glyphs). */
 	private static final String OWN_ACTION = "clog.ownAction";
 	private static final int CARD_WRAP = 180;
@@ -103,6 +101,8 @@ class CollectionLogTab extends JPanel
 	// view state
 	private String openTab;   // null = the overview
 	private String openPage;  // null = the tab's page list
+	/** The category grid's ONE in-line expanded page (Luke, 2026-07-27). */
+	private String expandedPage;
 	private List<Object> lastFingerprint = List.of();
 
 	CollectionLogTab(CollectionLogModule module, AccountState state, ItemManager itemManager,
@@ -200,6 +200,7 @@ class CollectionLogTab extends JPanel
 		print.add(catalogPrint());
 		print.add(openTab);
 		print.add(openPage);
+		print.add(expandedPage);
 		return print;
 	}
 
@@ -447,10 +448,11 @@ class CollectionLogTab extends JPanel
 		return dated.size() > LATEST ? dated.subList(0, LATEST) : dated;
 	}
 
-	/** A tab's pages as a 3-wide grid of DLV2 icon tiles (Luke, 2026-07-27):
-	 *  emblem = the page's own first slot, the log's colouring kept — DONE
-	 *  tick when a page is finished, the orange wrapping edge as its fill
-	 *  arc while it is not (the Farming overview's grammar). */
+	/** A tab's pages as a 2-wide grid of square DLV2 icon tiles (Luke,
+	 *  2026-07-27): emblem = the page's own first slot, bold caption on the
+	 *  art — orange until the page is complete, then green — and the count
+	 *  top-right. Clicking a tile expands the page's results IN-LINE below
+	 *  its row; one page at a time, click again to close. */
 	private void categoryView()
 	{
 		PersistedState.ClogTab tab = tabByName(openTab);
@@ -480,6 +482,15 @@ class CollectionLogTab extends JPanel
 			cap(row);
 			content.add(row);
 			content.add(Box.createVerticalStrut(V2Tokens.ROW));
+			// the ONE expanded page's results land under its own row
+			for (PersistedState.ClogPage page : rowPages)
+			{
+				if (page.name.equals(expandedPage))
+				{
+					pageDetail(page);
+					content.add(Box.createVerticalStrut(V2Tokens.ROW));
+				}
+			}
 		}
 		if (tab.pages.size() > MAX_PAGES)
 		{
@@ -493,12 +504,19 @@ class CollectionLogTab extends JPanel
 		Set<Integer> items = pageItems(page);
 		int owned = obtainedIn(items);
 		boolean complete = owned >= items.size() && !items.isEmpty();
+		boolean expanded = page.name.equals(expandedPage);
 		java.awt.Image emblem = page.items.length == 0
 			? null : sprites.get(page.items[0], V2Tokens.TILE_ICON);
-		V2Tile tile = new V2Tile(theme, emblem, page.name, PAGE_TILE_ART,
-			() -> openPage(page.name))
-			.width(PAGE_TILE_WIDTH).captionLines(2).captionInside()
-			.corner(owned + "/" + items.size());
+		V2Tile tile = new V2Tile(theme, emblem, page.name, PAGE_TILE, () ->
+			{
+				// single expansion: a second click on the open tile closes it
+				expandedPage = expanded ? null : page.name;
+				rebuildContent();
+			})
+			.captionLines(2).captionInside()
+			.captionStatus(complete ? V2Tokens.DONE : V2Tokens.ACTION)
+			.corner(owned + "/" + items.size())
+			.selected(expanded);
 		if (complete)
 		{
 			tile.status(V2Tile.Status.DONE);
@@ -580,6 +598,14 @@ class CollectionLogTab extends JPanel
 		cap(head);
 		content.add(head);
 
+		pageDetail(page);
+	}
+
+	/** A page's results — obtained count, its captured kill counts, the
+	 *  log's own item grid — added to {@link #content}. Shared by the full
+	 *  page view (search) and the category grid's in-line expansion. */
+	private void pageDetail(PersistedState.ClogPage page)
+	{
 		Set<Integer> items = pageItems(page);
 		int owned = obtainedIn(items);
 		// the game's own red/yellow/green scale, in the skin's palette (it
@@ -1122,6 +1148,15 @@ class CollectionLogTab extends JPanel
 	{
 		openTab = tab;
 		openPage = page;
+		rebuildAll();
+	}
+
+	/** Test hook: the category grid with one page expanded in-line. */
+	void expandForRender(String tab, String page)
+	{
+		openTab = tab;
+		openPage = null;
+		expandedPage = page;
 		rebuildAll();
 	}
 

@@ -96,7 +96,8 @@ public class V2SelectionRenderTest
 		{
 			V2Tile tile = new V2Tile(theme, emblem(theme, "icons/skills/slayer"),
 				insideNames[i], 56, null)
-				.width(68).captionLines(2).captionInside().corner(counts[i]);
+				.width(68).captionLines(2).captionInside().corner(counts[i])
+				.captionStatus(i == 1 ? V2Tokens.DONE : V2Tokens.ACTION);
 			if (i == 0)
 			{
 				tile.status(V2Tile.Status.READY).progress(7 / 33.0);

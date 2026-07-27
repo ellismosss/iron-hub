@@ -380,7 +380,8 @@ public class DesignLabV2Tab extends JPanel
 		for (int i = 0; i < pages.length; i++)
 		{
 			V2Tile tile = new V2Tile(theme, sprite("icons/skills/slayer"), pages[i], 56, null)
-				.width(68).captionLines(2).captionInside().corner(counts[i]);
+				.width(68).captionLines(2).captionInside().corner(counts[i])
+				.captionStatus(i == 1 ? V2Tokens.DONE : V2Tokens.ACTION);
 			if (i == 1)
 			{
 				tile.status(V2Tile.Status.DONE);
