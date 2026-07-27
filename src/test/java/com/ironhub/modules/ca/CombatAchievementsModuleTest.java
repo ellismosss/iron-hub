@@ -30,7 +30,7 @@ public class CombatAchievementsModuleTest
 	private CombatAchievementsModule module(AccountState state, IronHubConfig config)
 	{
 		return new CombatAchievementsModule(state, config, null,
-			new EventBus(), new DataPack(new Gson()), null);
+			new EventBus(), new DataPack(new Gson()), null, null);
 	}
 
 	@Test

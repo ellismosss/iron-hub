@@ -3,7 +3,9 @@ package com.ironhub.modules.ca;
 import com.ironhub.IronHubConfig;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
+import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.components.RebuildGate;
+import com.ironhub.ui.components.SpriteCache;
 import com.ironhub.ui.osrs.OsrsIcons;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
@@ -57,11 +59,15 @@ import net.runelite.client.util.LinkBrowser;
 class CombatAchievementsTab extends JPanel
 {
 	/** Grid geometry — the clog page grid's square Cards, measured against
-	 *  the 217px content column (2x106+4 = 216; 3x69+2x4 = 215). */
+	 *  the 217px content column (2x106+4 = 216). */
 	private static final int TIER_COLUMNS = 2;
 	private static final int TIER_TILE = 106;
-	private static final int BOSS_COLUMNS = 3;
-	private static final int BOSS_TILE = 69;
+	private static final int BOSS_COLUMNS = 2;
+	private static final int BOSS_TILE = 106;
+	/** The emblem box, matching the clog page cards (Luke, 2026-07-27). */
+	private static final int PAGE_EMBLEM = 44;
+	/** Boss pages: 10 rows of 2 per page, arrows below (Luke, 2026-07-27). */
+	private static final int BOSS_PAGE_ROWS = 10;
 	/** Row ceiling for a page's task list (the Bank tab's grammar). */
 	private static final int MAX_TASKS = 50;
 	private static final int WRAP = 185;
@@ -85,8 +91,15 @@ class CombatAchievementsTab extends JPanel
 	 *  show in-line under its grid row (the clog grammar). */
 	private CaTier openTier;
 	private String openBoss;
+	/** The boss grid's current page (10 rows of 2 per page). */
+	private int bossGridPage;
 	private boolean browserExpanded;
+	/** The Combat Profile card starts folded (Luke, 2026-07-27). */
+	private boolean profileExpanded;
 	private List<Object> lastPrint = List.of();
+	/** Boss-card emblems arrive async from the item cache. */
+	private final Runnable spriteListener = RebuildGate.install(this, this::rebuildAll);
+	private SpriteCache sprites;
 
 	CombatAchievementsTab(CombatAchievementsModule module, AccountState state,
 		IronHubConfig config, OsrsTheme theme)
@@ -94,6 +107,7 @@ class CombatAchievementsTab extends JPanel
 		this.module = module;
 		this.state = state;
 		this.theme = theme;
+		this.sprites = new SpriteCache(module.itemManager(), spriteListener);
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
@@ -107,8 +121,20 @@ class CombatAchievementsTab extends JPanel
 		add(hero);
 		add(Box.createVerticalStrut(4));
 
-		// the account's own combat profile — a titled block, the Slab (§12)
-		profile = V2Surface.slab(theme);
+		// the account's own combat profile — an EXPANDABLE Card (Luke,
+		// 2026-07-27), toggled by the Goals sections' simple triangle
+		profile = V2Surface.card(theme);
+		profile.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		com.ironhub.ui.v2.MouseRelay.install(profile);
+		profile.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				profileExpanded = !profileExpanded;
+				rebuildProfile();
+			}
+		});
 		add(profile);
 		add(Box.createVerticalStrut(4));
 
@@ -117,6 +143,7 @@ class CombatAchievementsTab extends JPanel
 		{
 			openTier = null;
 			openBoss = null;
+			bossGridPage = 0;
 			rebuildContent();
 		});
 		add(views);
@@ -178,7 +205,9 @@ class CombatAchievementsTab extends JPanel
 		print.add(module.tasks().stream().filter(t -> t.completed).count());
 		print.add(openTier);
 		print.add(openBoss);
+		print.add(bossGridPage);
 		print.add(browserExpanded);
+		print.add(profileExpanded);
 		return print;
 	}
 
@@ -202,9 +231,7 @@ class CombatAchievementsTab extends JPanel
 		int points = module.points();
 		CaTier next = CombatAchievementsModule.nextTier(state);
 		CaTier reached = previousTier(next);
-		int floor = reached == null ? 0 : state.getVarbit(reached.thresholdVarbit);
-		int ceiling = next == null ? Math.max(points, floor)
-			: state.getVarbit(next.thresholdVarbit);
+		int ceiling = next == null ? points : state.getVarbit(next.thresholdVarbit);
 
 		// the clog reference shape (Luke, 2026-07-27): the headline is the
 		// WHOLE ladder's points in orange, the tier-band count rides the
@@ -229,7 +256,10 @@ class CombatAchievementsTab extends JPanel
 		hero.add(top);
 
 		hero.add(Box.createVerticalStrut(3));
-		heroBar.fraction(ceiling > floor ? (double) (points - floor) / (ceiling - floor) : 1);
+		// the fill answers the SAME numbers as the label riding it — the
+		// banded fraction sat near zero just past a threshold and read as
+		// an all-grey bar under a "214 / 304" label (Luke, 2026-07-27)
+		heroBar.fraction(ceiling > 0 ? Math.min(1, (double) points / ceiling) : 1);
 		heroBar.labels("", ceiling > 0
 			? String.format(Locale.ROOT, "%,d / %,d", points, ceiling)
 			: String.format(Locale.ROOT, "%,d", points), "");
@@ -302,32 +332,47 @@ class CombatAchievementsTab extends JPanel
 
 	// ── the Combat Profile ────────────────────────────────────────────
 
-	/** The interface's own seven rows, under the player's name. */
+	/** The interface's own seven rows on an EXPANDABLE Card — the Goals
+	 *  sections' simple triangle, never a chevron (Luke, 2026-07-27). */
 	private void rebuildProfile()
 	{
 		profile.removeAll();
 		String player = state.playerName();
-		profile.add(new OsrsLabel("Combat Profile" + (player == null || player.isEmpty()
+		JPanel head = row();
+		JLabel triangle = new JLabel(new PaintedIcon(profileExpanded
+			? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+		triangle.setForeground(OsrsSkin.MUTED);
+		head.add(triangle);
+		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		head.add(new OsrsLabel("Combat Profile" + (player == null || player.isEmpty()
 			? "" : " - " + player), OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
-		profile.add(Box.createVerticalStrut(2));
-		List<CaProfile.Row> rows = module.profileRows();
-		if (rows.isEmpty())
+		head.add(Box.createHorizontalGlue());
+		cap(head);
+		profile.add(head);
+		if (profileExpanded)
 		{
-			profile.add(new OsrsLabel("Log in to read your combat stats",
-				OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
-		}
-		for (CaProfile.Row entry : rows)
-		{
-			JPanel line = row();
-			line.add(new OsrsLabel(entry.label, OsrsSkin.MUTED, OsrsSkin.smallFont())
-				.leftAligned().squeezable());
-			line.add(Box.createHorizontalGlue());
-			line.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-			line.add(new OsrsLabel(entry.value, OsrsSkin.BAR_TEXT, OsrsSkin.smallFont()));
-			cap(line);
-			profile.add(line);
+			profile.add(Box.createVerticalStrut(2));
+			List<CaProfile.Row> rows = module.profileRows();
+			if (rows.isEmpty())
+			{
+				profile.add(new OsrsLabel("Log in to read your combat stats",
+					OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+			}
+			for (CaProfile.Row entry : rows)
+			{
+				JPanel line = row();
+				line.add(new OsrsLabel(entry.label, OsrsSkin.MUTED, OsrsSkin.smallFont())
+					.leftAligned().squeezable());
+				line.add(Box.createHorizontalGlue());
+				line.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+				line.add(new OsrsLabel(entry.value, OsrsSkin.BAR_TEXT, OsrsSkin.smallFont()));
+				cap(line);
+				profile.add(line);
+			}
 		}
 		cap(profile);
+		profile.setMaximumSize(new Dimension(Integer.MAX_VALUE,
+			profile.getPreferredSize().height));
 		profile.revalidate();
 		profile.repaint();
 	}
@@ -373,7 +418,7 @@ class CombatAchievementsTab extends JPanel
 					line.add(Box.createHorizontalStrut(V2Tokens.ROW));
 				}
 				CaTier tier = tiers[start + col];
-				line.add(pageTile(tier.display, tierIcon(tier), TIER_TILE,
+				line.add(pageTile(tier.display, tierEmblem(tier), TIER_TILE,
 					counts.getOrDefault(tier, new int[2]), tier == openTier, () ->
 					{
 						openTier = tier == openTier ? null : tier;
@@ -421,18 +466,24 @@ class CombatAchievementsTab extends JPanel
 			content.add(note("No bosses to show yet."));
 			return;
 		}
-		for (int start = 0; start < names.size(); start += BOSS_COLUMNS)
+		// paginated: 10 rows of 2 per page, arrows below (Luke, 2026-07-27)
+		int perPage = BOSS_PAGE_ROWS * BOSS_COLUMNS;
+		int pages = (names.size() + perPage - 1) / perPage;
+		bossGridPage = Math.max(0, Math.min(bossGridPage, pages - 1));
+		int from = bossGridPage * perPage;
+		List<String> shown = names.subList(from, Math.min(from + perPage, names.size()));
+		for (int start = 0; start < shown.size(); start += BOSS_COLUMNS)
 		{
 			JPanel line = row();
 			line.add(Box.createHorizontalGlue());
-			for (int col = 0; col < BOSS_COLUMNS && start + col < names.size(); col++)
+			for (int col = 0; col < BOSS_COLUMNS && start + col < shown.size(); col++)
 			{
 				if (col > 0)
 				{
 					line.add(Box.createHorizontalStrut(V2Tokens.ROW));
 				}
-				String name = names.get(start + col);
-				line.add(pageTile(name, null, BOSS_TILE,
+				String name = shown.get(start + col);
+				line.add(pageTile(name, bossEmblem(name), BOSS_TILE,
 					stats.getOrDefault(name, new int[2]), name.equals(openBoss), () ->
 					{
 						openBoss = name.equals(openBoss) ? null : name;
@@ -444,14 +495,44 @@ class CombatAchievementsTab extends JPanel
 			cap(line);
 			content.add(line);
 			content.add(Box.createVerticalStrut(V2Tokens.ROW));
-			for (int col = 0; col < BOSS_COLUMNS && start + col < names.size(); col++)
+			for (int col = 0; col < BOSS_COLUMNS && start + col < shown.size(); col++)
 			{
-				if (names.get(start + col).equals(openBoss))
+				if (shown.get(start + col).equals(openBoss))
 				{
 					bossDetail(tasks);
 					content.add(Box.createVerticalStrut(V2Tokens.ROW));
 				}
 			}
+		}
+		if (pages > 1)
+		{
+			JPanel pager = row();
+			pager.add(Box.createHorizontalGlue());
+			pager.add(new com.ironhub.ui.v2.V2SpriteButton(theme,
+				com.ironhub.ui.v2.V2SpriteButton.ARROW_LEFT, () ->
+				{
+					if (bossGridPage > 0)
+					{
+						bossGridPage--;
+						rebuildContent();
+					}
+				}));
+			pager.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+			pager.add(new OsrsLabel("Page " + (bossGridPage + 1) + "/" + pages,
+				OsrsSkin.MUTED, OsrsSkin.smallFont()));
+			pager.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+			pager.add(new com.ironhub.ui.v2.V2SpriteButton(theme,
+				com.ironhub.ui.v2.V2SpriteButton.ARROW_RIGHT, () ->
+				{
+					if (bossGridPage < pages - 1)
+					{
+						bossGridPage++;
+						rebuildContent();
+					}
+				}));
+			pager.add(Box.createHorizontalGlue());
+			cap(pager);
+			content.add(pager);
 		}
 	}
 
@@ -730,6 +811,43 @@ class CombatAchievementsTab extends JPanel
 	{
 		javax.swing.ImageIcon icon = CaTaskBrowser.tierIcon(tier);
 		return icon == null ? null : icon.getImage();
+	}
+
+	/** The tier's sword scaled to the clog cards' emblem box — the native
+	 *  sprite floated tiny in a 106px card (Luke, 2026-07-27). */
+	private static Image tierEmblem(CaTier tier)
+	{
+		Image icon = tierIcon(tier);
+		if (icon == null)
+		{
+			return null;
+		}
+		int w = icon.getWidth(null);
+		int h = icon.getHeight(null);
+		if (w <= 0 || h <= 0)
+		{
+			return icon;
+		}
+		double scale = (double) PAGE_EMBLEM / Math.max(w, h);
+		return icon.getScaledInstance((int) Math.round(w * scale),
+			(int) Math.round(h * scale), Image.SCALE_SMOOTH);
+	}
+
+	/** A boss card's emblem: the boss's own collection-log page's first
+	 *  slot, when one matches by name — the clog cards' emblem source. */
+	private Image bossEmblem(String boss)
+	{
+		for (com.ironhub.state.PersistedState.ClogTab tab : state.getClogCatalog())
+		{
+			for (com.ironhub.state.PersistedState.ClogPage page : tab.pages)
+			{
+				if (page.name.equalsIgnoreCase(boss) && page.items.length > 0)
+				{
+					return sprites.getBox(page.items[0], PAGE_EMBLEM);
+				}
+			}
+		}
+		return null;
 	}
 
 	// ── test seams ────────────────────────────────────────────────────

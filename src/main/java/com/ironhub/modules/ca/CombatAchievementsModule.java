@@ -47,6 +47,7 @@ public class CombatAchievementsModule implements IronHubModule
 	private final EventBus eventBus;
 	private final DataPack dataPack;
 	private final ChatMessageManager chatMessageManager; // null in unit tests
+	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
 
 	private CombatAchievementsTab tab;
 	private volatile List<CaTask> tasks = List.of();
@@ -62,7 +63,8 @@ public class CombatAchievementsModule implements IronHubModule
 
 	@Inject
 	public CombatAchievementsModule(AccountState state, IronHubConfig config, Client client,
-		EventBus eventBus, DataPack dataPack, ChatMessageManager chatMessageManager)
+		EventBus eventBus, DataPack dataPack, ChatMessageManager chatMessageManager,
+		net.runelite.client.game.ItemManager itemManager)
 	{
 		this.state = state;
 		this.config = config;
@@ -70,6 +72,13 @@ public class CombatAchievementsModule implements IronHubModule
 		this.eventBus = eventBus;
 		this.dataPack = dataPack;
 		this.chatMessageManager = chatMessageManager;
+		this.itemManager = itemManager;
+	}
+
+	/** For the tab's boss-card emblems (clog page sprites). Null headless. */
+	net.runelite.client.game.ItemManager itemManager()
+	{
+		return itemManager;
 	}
 
 	@Override
