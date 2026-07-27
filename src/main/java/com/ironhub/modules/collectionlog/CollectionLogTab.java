@@ -992,7 +992,11 @@ class CollectionLogTab extends JPanel
 			card.washHoverable();
 		}
 		card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		MouseAdapter toggle = new MouseAdapter()
+		// the relay makes clicks on the text reach the card (deepest-
+		// component dispatch — the root cause behind every "only works
+		// beside the text" report; MouseRelay)
+		com.ironhub.ui.v2.MouseRelay.install(card);
+		card.addMouseListener(new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent e)
@@ -1000,10 +1004,7 @@ class CollectionLogTab extends JPanel
 				suggestionsCollapsed = !suggestionsCollapsed;
 				rebuildContent();
 			}
-		};
-		card.addMouseListener(toggle);
-		head.addMouseListener(toggle);
-		title.addMouseListener(toggle);
+		});
 		cap(card);
 		content.add(card);
 		if (!suggestionsCollapsed)

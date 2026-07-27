@@ -586,6 +586,16 @@ character in `IronHubPluginTest` — the class IntelliJ's run configuration
 launches — survived four green `./gradlew build`s and only surfaced under
 `clean`. **Finish a pass with `./gradlew clean build -x javadoc`.**
 
+**A container that listens for its own hover/click goes dead over its
+content.** Swing hands a mouse event to the DEEPEST interested component and
+never bubbles it — and a tooltip alone makes a label interested. So a Table's
+band, a Checklist's band, or a pressable Card's click works only "beside the
+text" (Luke hit this three separate times, 2026-07-27). The fix is
+`MouseRelay.install(root)` — descendants' press/move events re-dispatch to
+the root, converted; child actions still run first. The Table, the Checklist
+and `pressable()` install it themselves; any new self-listening container
+must too.
+
 ---
 
 ### The process lesson

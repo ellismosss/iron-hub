@@ -374,6 +374,9 @@ public class V2Surface extends JPanel
 			setBorder(new EmptyBorder(V2Tokens.TIGHT, inset, V2Tokens.TIGHT, inset));
 		}
 		hoverable();
+		// without the relay a press on the surface's own LABEL never reaches
+		// the listener below — deepest-component dispatch (MouseRelay)
+		MouseRelay.install(this);
 		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
 		addMouseListener(new java.awt.event.MouseAdapter()
 		{

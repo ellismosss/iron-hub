@@ -58,6 +58,10 @@ public class V2Table extends JPanel
 			// the Checklist's inset, so the pair stays a pair
 			int inset = V2Well.CAP + V2Tokens.TIGHT;
 			setBorder(new javax.swing.border.EmptyBorder(inset, inset, inset, inset));
+			// cells with tooltips/actions swallow the pointer (deepest-
+			// component dispatch), so the band went dead over the text —
+			// the relay makes their events reach the table too (MouseRelay)
+			MouseRelay.install(this);
 			addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
 			{
 				@Override

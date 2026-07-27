@@ -49,6 +49,10 @@ public class V2Checklist extends JPanel
 		// PAD here put 10px round three rows and the surface read half empty.
 		setBorder(new EmptyBorder(V2Well.CAP + V2Tokens.TIGHT, V2Well.CAP + V2Tokens.TIGHT,
 			V2Well.CAP + V2Tokens.TIGHT, V2Well.CAP + V2Tokens.TIGHT));
+		// rows are full of tooltipped/clickable children that swallow the
+		// pointer (deepest-component dispatch) — relay their events here or
+		// the hover band dies exactly over the text (MouseRelay)
+		MouseRelay.install(this);
 		addMouseMotionListener(new java.awt.event.MouseMotionAdapter()
 		{
 			@Override
