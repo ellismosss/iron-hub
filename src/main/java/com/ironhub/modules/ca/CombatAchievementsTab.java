@@ -3,7 +3,6 @@ package com.ironhub.modules.ca;
 import com.ironhub.IronHubConfig;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
-import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.components.RebuildGate;
 import com.ironhub.ui.osrs.OsrsIcons;
 import com.ironhub.ui.osrs.OsrsLabel;
@@ -12,6 +11,7 @@ import com.ironhub.ui.osrs.OsrsTheme;
 import com.ironhub.ui.v2.V2ChipRow;
 import com.ironhub.ui.v2.V2ProgressBar;
 import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2Tile;
 import com.ironhub.ui.v2.V2Tokens;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -56,14 +56,12 @@ import net.runelite.client.util.LinkBrowser;
  */
 class CombatAchievementsTab extends JPanel
 {
-	/** Grid geometry, measured against the 225px panel's 217px of content. */
+	/** Grid geometry — the clog page grid's square Cards, measured against
+	 *  the 217px content column (2x106+4 = 216; 3x69+2x4 = 215). */
 	private static final int TIER_COLUMNS = 2;
-	private static final int TIER_WIDTH = 107;
-	private static final int TIER_HEIGHT = 40;
+	private static final int TIER_TILE = 106;
 	private static final int BOSS_COLUMNS = 3;
-	private static final int BOSS_WIDTH = 69;
-	private static final int BOSS_HEIGHT = 48;
-	private static final int GRID_GAP = 3;
+	private static final int BOSS_TILE = 69;
 	/** Row ceiling for a page's task list (the Bank tab's grammar). */
 	private static final int MAX_TASKS = 50;
 	private static final int WRAP = 185;
@@ -79,10 +77,12 @@ class CombatAchievementsTab extends JPanel
 	private final V2ChipRow views;
 	private final JPanel content = new JPanel();
 	private final JPanel browserSlot = new JPanel();
-	private final JLabel browserTriangle;
+	/** The All-tasks header card — lit while the browser is open. */
+	private V2Surface browserCard;
 	private final CaTaskBrowser browser;
 
-	/** null = the grid; otherwise the tier or boss whose page is open. */
+	/** null = nothing expanded; otherwise the ONE tier or boss whose tasks
+	 *  show in-line under its grid row (the clog grammar). */
 	private CaTier openTier;
 	private String openBoss;
 	private boolean browserExpanded;
@@ -100,9 +100,10 @@ class CombatAchievementsTab extends JPanel
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		// the points standing is the one live readout on the page — the Card
+		// the points standing is the one live readout on the page — the Card,
+		// with the SPRITE bar (the clog reference shape; Luke, 2026-07-27)
 		hero = V2Surface.card(theme);
-		heroBar = new V2ProgressBar(theme, V2ProgressBar.Size.ROW).fill(V2Tokens.BAR_BLUE);
+		heroBar = new V2ProgressBar(theme);
 		add(hero);
 		add(Box.createVerticalStrut(4));
 
@@ -126,8 +127,6 @@ class CombatAchievementsTab extends JPanel
 		content.setAlignmentX(LEFT_ALIGNMENT);
 		add(content);
 
-		browserTriangle = new JLabel(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
-		browserTriangle.setForeground(OsrsSkin.MUTED);
 		add(Box.createVerticalStrut(6));
 		add(browserHeader());
 		browserSlot.setLayout(new BoxLayout(browserSlot, BoxLayout.Y_AXIS));
@@ -207,6 +206,10 @@ class CombatAchievementsTab extends JPanel
 		int ceiling = next == null ? Math.max(points, floor)
 			: state.getVarbit(next.thresholdVarbit);
 
+		// the clog reference shape (Luke, 2026-07-27): the headline is the
+		// WHOLE ladder's points in orange, the tier-band count rides the
+		// sprite bar in white, the flanking rewards sit plain and in-line
+		int totalPossible = module.tasks().stream().mapToInt(t -> t.tier.points).sum();
 		hero.removeAll();
 		JPanel top = row();
 		top.add(hilt(reached));
@@ -215,10 +218,10 @@ class CombatAchievementsTab extends JPanel
 		middle.setLayout(new BoxLayout(middle, BoxLayout.Y_AXIS));
 		middle.setOpaque(false);
 		middle.add(new OsrsLabel("Combat Task Points", OsrsSkin.TITLE, OsrsSkin.font()));
-		middle.add(new OsrsLabel(ceiling > 0
-			? String.format(Locale.ROOT, "%,d / %,d", points, ceiling)
+		middle.add(new OsrsLabel(totalPossible > 0
+			? String.format(Locale.ROOT, "%,d / %,d", points, totalPossible)
 			: String.format(Locale.ROOT, "%,d", points),
-			OsrsSkin.VALUE, OsrsSkin.boldFont()));
+			OsrsSkin.TITLE, OsrsSkin.boldFont()));
 		top.add(middle);
 		top.add(Box.createHorizontalGlue());
 		top.add(hilt(next));
@@ -227,14 +230,15 @@ class CombatAchievementsTab extends JPanel
 
 		hero.add(Box.createVerticalStrut(3));
 		heroBar.fraction(ceiling > floor ? (double) (points - floor) / (ceiling - floor) : 1);
+		heroBar.labels("", ceiling > 0
+			? String.format(Locale.ROOT, "%,d / %,d", points, ceiling)
+			: String.format(Locale.ROOT, "%,d", points), "");
 		hero.add(heroBar);
 
 		JPanel labels = row();
-		labels.add(new OsrsLabel(reached == null ? "No tier yet" : rewardLabel(reached),
-			OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		labels.add(hiltLabel(reached, "No tier yet"));
 		labels.add(Box.createHorizontalGlue());
-		labels.add(new OsrsLabel(next == null ? "Every tier complete" : rewardLabel(next),
-			OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		labels.add(hiltLabel(next, "Every tier complete"));
 		cap(labels);
 		hero.add(labels);
 		cap(hero);
@@ -253,9 +257,23 @@ class CombatAchievementsTab extends JPanel
 		return ordinal == 0 ? null : CaTier.values()[ordinal - 1];
 	}
 
-	private static String rewardLabel(CaTier tier)
+	private static final String[] ROMAN = {"I", "II", "III", "IV", "V", "VI"};
+
+	/** "IV: Hard" — the numeral orange, the name white (the clog rank
+	 *  labels' grammar; Luke, 2026-07-27). */
+	private JComponent hiltLabel(CaTier tier, String fallback)
 	{
-		return tier.display + " · hilt " + (tier.ordinal() + 1);
+		if (tier == null)
+		{
+			return new OsrsLabel(fallback, OsrsSkin.MUTED, OsrsSkin.smallFont());
+		}
+		JPanel pair = row();
+		pair.add(new OsrsLabel(ROMAN[tier.ordinal()] + ": ",
+			OsrsSkin.LABEL, OsrsSkin.smallFont()).leftAligned());
+		pair.add(new OsrsLabel(tier.display,
+			V2Tokens.STRONG, OsrsSkin.smallFont()).leftAligned());
+		pair.setMaximumSize(pair.getPreferredSize());
+		return pair;
 	}
 
 	/** A tier's Ghommal's hilt, the reward it hands over. */
@@ -324,16 +342,9 @@ class CombatAchievementsTab extends JPanel
 		{
 			content.add(note("Log in to load your combat tasks."));
 		}
-		else if (openTier != null)
-		{
-			tierPage(tasks);
-		}
-		else if (openBoss != null)
-		{
-			bossPage(tasks);
-		}
 		else if (views.selected() == 1)
 		{
+			// the open boss expands in-line inside the grid
 			bossGrid(tasks);
 		}
 		else
@@ -344,104 +355,127 @@ class CombatAchievementsTab extends JPanel
 		content.repaint();
 	}
 
-	/** The six tiers, two across, each with its fill bar. */
+	/** The six tiers as 2-wide square Cards (the clog page grid's grammar;
+	 *  Luke, 2026-07-27), the open tier's tasks expanding IN-LINE below its
+	 *  own row — one at a time, a second click closes. */
 	private void tierGrid(List<CaTask> tasks)
 	{
 		Map<CaTier, int[]> counts = tierStats(tasks);
-		List<JComponent> tiles = new ArrayList<>();
-		for (CaTier tier : CaTier.values())
+		CaTier[] tiers = CaTier.values();
+		for (int start = 0; start < tiers.length; start += TIER_COLUMNS)
 		{
-			int[] stat = counts.getOrDefault(tier, new int[2]);
-			tiles.add(new CaProgressTile(theme, tierIcon(tier), tier.display,
-				stat[0] + "/" + stat[1], stat[0], stat[1], TIER_WIDTH, TIER_HEIGHT,
-				tier.display + " · " + stat[0] + "/" + stat[1] + " tasks · "
-					+ tier.points + " points each",
-				() ->
+			JPanel line = row();
+			line.add(Box.createHorizontalGlue());
+			for (int col = 0; col < TIER_COLUMNS && start + col < tiers.length; col++)
+			{
+				if (col > 0)
 				{
-					openTier = tier;
-					rebuildContent();
-				}));
+					line.add(Box.createHorizontalStrut(V2Tokens.ROW));
+				}
+				CaTier tier = tiers[start + col];
+				line.add(pageTile(tier.display, tierIcon(tier), TIER_TILE,
+					counts.getOrDefault(tier, new int[2]), tier == openTier, () ->
+					{
+						openTier = tier == openTier ? null : tier;
+						openBoss = null;
+						rebuildContent();
+					}));
+			}
+			line.add(Box.createHorizontalGlue());
+			cap(line);
+			content.add(line);
+			content.add(Box.createVerticalStrut(V2Tokens.ROW));
+			for (int col = 0; col < TIER_COLUMNS && start + col < tiers.length; col++)
+			{
+				if (tiers[start + col] == openTier)
+				{
+					tierDetail(tasks);
+					content.add(Box.createVerticalStrut(V2Tokens.ROW));
+				}
+			}
 		}
-		addGrid(tiles, TIER_COLUMNS);
 	}
 
-	/** The interface's boss grid: three across, in the game's own order. */
+	/** The interface's boss grid, three-across square Cards in the game's
+	 *  own order, expanding IN-LINE the same way. */
 	private void bossGrid(List<CaTask> tasks)
 	{
 		Map<String, int[]> stats = bossStats(tasks);
 		List<CaBoss> bosses = module.bosses();
-		List<JComponent> tiles = new ArrayList<>();
+		List<String> names = new ArrayList<>();
 		if (bosses.isEmpty())
 		{
 			// no cache read yet: fall back to the bosses the tasks name, so
 			// the grid is never empty when we plainly have tasks
-			for (Map.Entry<String, int[]> entry : stats.entrySet())
-			{
-				tiles.add(bossTile(entry.getKey(), 0, -1, entry.getValue()));
-			}
+			names.addAll(stats.keySet());
 		}
 		else
 		{
 			for (CaBoss boss : bosses)
 			{
-				int[] stat = stats.getOrDefault(boss.name, new int[2]);
-				tiles.add(bossTile(boss.name, boss.level,
-					CaProfile.killCount(state, module.profilePack(), boss.index), stat));
+				names.add(boss.name);
 			}
 		}
-		if (tiles.isEmpty())
+		if (names.isEmpty())
 		{
 			content.add(note("No bosses to show yet."));
 			return;
 		}
-		addGrid(tiles, BOSS_COLUMNS);
-	}
-
-	private JComponent bossTile(String name, int level, int kills, int[] stat)
-	{
-		StringBuilder tip = new StringBuilder(name);
-		tip.append(" · ").append(stat[0]).append('/').append(stat[1]).append(" tasks");
-		if (level > 0)
-		{
-			tip.append(" · combat level ").append(level);
-		}
-		if (kills > 0)
-		{
-			tip.append(" · ").append(CaProfile.count(kills)).append(" kills");
-		}
-		return new CaProgressTile(theme, null, name,
-			level > 0 ? "Level: " + level : "Level: N/A", stat[0], stat[1],
-			BOSS_WIDTH, BOSS_HEIGHT, tip.toString(),
-			() ->
-			{
-				openBoss = name;
-				rebuildContent();
-			});
-	}
-
-	private void addGrid(List<JComponent> tiles, int columns)
-	{
-		for (int i = 0; i < tiles.size(); i += columns)
+		for (int start = 0; start < names.size(); start += BOSS_COLUMNS)
 		{
 			JPanel line = row();
-			for (int column = 0; column < columns && i + column < tiles.size(); column++)
+			line.add(Box.createHorizontalGlue());
+			for (int col = 0; col < BOSS_COLUMNS && start + col < names.size(); col++)
 			{
-				if (column > 0)
+				if (col > 0)
 				{
-					line.add(Box.createHorizontalStrut(GRID_GAP));
+					line.add(Box.createHorizontalStrut(V2Tokens.ROW));
 				}
-				line.add(tiles.get(i + column));
+				String name = names.get(start + col);
+				line.add(pageTile(name, null, BOSS_TILE,
+					stats.getOrDefault(name, new int[2]), name.equals(openBoss), () ->
+					{
+						openBoss = name.equals(openBoss) ? null : name;
+						openTier = null;
+						rebuildContent();
+					}));
 			}
 			line.add(Box.createHorizontalGlue());
 			cap(line);
 			content.add(line);
-			content.add(Box.createVerticalStrut(GRID_GAP));
+			content.add(Box.createVerticalStrut(V2Tokens.ROW));
+			for (int col = 0; col < BOSS_COLUMNS && start + col < names.size(); col++)
+			{
+				if (names.get(start + col).equals(openBoss))
+				{
+					bossDetail(tasks);
+					content.add(Box.createVerticalStrut(V2Tokens.ROW));
+				}
+			}
 		}
 	}
 
-	// ── the pages a tile opens ────────────────────────────────────────
+	/** One square Card in the clog page-grid grammar: bold inside caption
+	 *  on the orange/green scale, corner count in the shared colours, a
+	 *  plain meter strip, no tooltip. */
+	private V2Tile pageTile(String caption, Image emblem, int size, int[] stat,
+		boolean expanded, Runnable onPress)
+	{
+		boolean complete = stat[1] > 0 && stat[0] >= stat[1];
+		Color cornerOwned = complete ? V2Tokens.DONE
+			: stat[0] == 0 ? V2Tokens.BLOCKED : V2Tokens.ACTION;
+		Color cornerRest = complete ? V2Tokens.DONE : V2Tokens.ACTION;
+		return new V2Tile(theme, emblem, caption, size, onPress)
+			.card().captionLines(2).captionInside()
+			.captionStatus(complete ? V2Tokens.DONE : V2Tokens.ACTION)
+			.corner(String.valueOf(stat[0]), cornerOwned, "/" + stat[1], cornerRest)
+			.selected(expanded)
+			.meter(stat[1] == 0 ? Double.NaN : (double) stat[0] / stat[1]);
+	}
 
-	private void tierPage(List<CaTask> tasks)
+	// ── the results a tile expands in-line (the clog grammar) ─────────
+
+	private void tierDetail(List<CaTask> tasks)
 	{
 		List<CaTask> mine = new ArrayList<>();
 		for (CaTask task : tasks)
@@ -451,13 +485,12 @@ class CombatAchievementsTab extends JPanel
 				mine.add(task);
 			}
 		}
-		content.add(backRow("Difficulty", () -> openTier = null));
 		content.add(pageHeader(openTier.display, mine,
 			openTier.points + " points per task"));
 		addTaskRows(mine);
 	}
 
-	private void bossPage(List<CaTask> tasks)
+	private void bossDetail(List<CaTask> tasks)
 	{
 		List<CaTask> mine = new ArrayList<>();
 		for (CaTask task : tasks)
@@ -467,7 +500,6 @@ class CombatAchievementsTab extends JPanel
 				mine.add(task);
 			}
 		}
-		content.add(backRow("Bosses", () -> openBoss = null));
 		CaBoss boss = bossByName(openBoss);
 		StringBuilder sub = new StringBuilder();
 		if (boss != null && boss.level > 0)
@@ -496,42 +528,25 @@ class CombatAchievementsTab extends JPanel
 		V2Surface card = V2Surface.card(theme);
 		OsrsLabel title = new OsrsLabel(name, OsrsSkin.TITLE, OsrsSkin.boldFont())
 			.leftAligned().squeezable();
-		title.setToolTipText(name);
 		card.add(title);
-		Color colour = tasks.isEmpty() || done == 0 ? OsrsSkin.FAINT
-			: done >= tasks.size() ? OsrsSkin.VALUE : OsrsSkin.TITLE;
-		card.add(new OsrsLabel("Tasks Completed: " + done + "/" + tasks.size(),
-			colour, OsrsSkin.font()).leftAligned());
+		// the clog counter grammar (Luke, 2026-07-27): orange label, value
+		// red at 0 / counter-yellow partial / green done
+		Color colour = tasks.isEmpty() || done == 0 ? V2Tokens.BLOCKED
+			: done >= tasks.size() ? OsrsSkin.VALUE : OsrsSkin.COUNT_YELLOW;
+		JPanel counts = row();
+		counts.add(new OsrsLabel("Tasks Completed: ",
+			OsrsSkin.LABEL, OsrsSkin.smallFont()).leftAligned());
+		counts.add(new OsrsLabel(done + "/" + tasks.size(),
+			colour, OsrsSkin.smallFont()).leftAligned());
+		counts.add(Box.createHorizontalGlue());
+		cap(counts);
+		card.add(counts);
 		if (sub != null && !sub.isEmpty())
 		{
 			card.add(new OsrsLabel(sub, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
 		}
 		cap(card);
 		return card;
-	}
-
-	private JComponent backRow(String target, Runnable close)
-	{
-		JPanel row = row();
-		row.setBorder(new EmptyBorder(0, UiTokens.ROW_GAP, 3, UiTokens.ROW_GAP));
-		JLabel arrow = new JLabel(new PaintedIcon(PaintedIcon.Shape.CHEVRON_LEFT, 10));
-		arrow.setForeground(OsrsSkin.MUTED);
-		row.add(arrow);
-		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		row.add(new OsrsLabel(target, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
-		row.add(Box.createHorizontalGlue());
-		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		cap(row);
-		clickAnywhere(row, new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				close.run();
-				rebuildContent();
-			}
-		});
-		return row;
 	}
 
 	/** Every achievement under the open tile: tier icon, name, description. */
@@ -615,19 +630,24 @@ class CombatAchievementsTab extends JPanel
 
 	// ── the task browser, folded away at the foot ─────────────────────
 
+	/** "All tasks" as the clog's Easiest-next-slots shape (Luke,
+	 *  2026-07-27): a pressable TEXT-ONLY Card — subtle wash on hover, the
+	 *  hovered art pinned while the browser is open, no chevron, no
+	 *  tooltip — with the browser mounting below it. */
 	private JComponent browserHeader()
 	{
-		// a titled block that presses — the Slab (§12)
-		V2Surface plate = V2Surface.slab(theme);
-		plate.setLayout(new BoxLayout(plate, BoxLayout.X_AXIS));
-		plate.add(browserTriangle);
-		plate.add(Box.createHorizontalGlue());
-		plate.add(new OsrsLabel("All tasks", OsrsSkin.TITLE, OsrsSkin.boldFont()));
-		plate.add(Box.createHorizontalGlue());
-		plate.add(Box.createHorizontalStrut(10));
-		plate.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		plate.setToolTipText("Search, filter and track every combat task");
-		plate.addMouseListener(new MouseAdapter()
+		browserCard = V2Surface.card(theme);
+		browserCard.setAlignmentX(LEFT_ALIGNMENT);
+		JPanel head = row();
+		head.add(Box.createHorizontalGlue());
+		head.add(new OsrsLabel("All tasks", OsrsSkin.TITLE, OsrsSkin.boldFont()));
+		head.add(Box.createHorizontalGlue());
+		cap(head);
+		browserCard.add(head);
+		browserCard.washHoverable();
+		browserCard.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		com.ironhub.ui.v2.MouseRelay.install(browserCard);
+		browserCard.addMouseListener(new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent e)
@@ -635,20 +655,14 @@ class CombatAchievementsTab extends JPanel
 				toggleBrowser();
 			}
 		});
-		JPanel holder = new JPanel();
-		holder.setLayout(new BoxLayout(holder, BoxLayout.X_AXIS));
-		holder.setOpaque(false);
-		holder.setAlignmentX(LEFT_ALIGNMENT);
-		holder.add(plate);
-		cap(holder);
-		return holder;
+		cap(browserCard);
+		return browserCard;
 	}
 
 	private void toggleBrowser()
 	{
 		browserExpanded = !browserExpanded;
-		browserTriangle.setIcon(new PaintedIcon(browserExpanded
-			? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+		browserCard.setLit(browserExpanded);
 		browserSlot.removeAll();
 		if (browserExpanded)
 		{
