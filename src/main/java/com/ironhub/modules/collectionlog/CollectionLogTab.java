@@ -383,6 +383,8 @@ class CollectionLogTab extends JPanel
 					new javax.swing.border.LineBorder(Color.BLACK, 1),
 					new javax.swing.border.LineBorder(OsrsSkin.FAINT, 1)),
 				new EmptyBorder(2, 2, 2, 2)));
+			// glue BOTH sides — the icons centre in the box (Luke, 2026-07-27)
+			box.add(Box.createHorizontalGlue());
 			int shown = 0;
 			for (int id : latest)
 			{
@@ -611,6 +613,9 @@ class CollectionLogTab extends JPanel
 		{
 			List<PersistedState.ClogPage> rowPages = new ArrayList<>();
 			JPanel row = row();
+			// glue BOTH sides — full rows centre in the column and a lone
+			// last tile centres too (Luke, 2026-07-27)
+			row.add(Box.createHorizontalGlue());
 			for (int i = start; i < Math.min(start + PAGE_COLS, tiles); i++)
 			{
 				if (i > start)
@@ -913,6 +918,9 @@ class CollectionLogTab extends JPanel
 		});
 		JPanel holder = row();
 		holder.setBorder(new EmptyBorder(0, UiTokens.ROW_GAP, 0, UiTokens.ROW_GAP));
+		// glue BOTH sides — the grid sits centred like everything else in
+		// the tab (Luke, 2026-07-27)
+		holder.add(Box.createHorizontalGlue());
 		holder.add(grid);
 		holder.add(Box.createHorizontalGlue());
 		cap(holder);
