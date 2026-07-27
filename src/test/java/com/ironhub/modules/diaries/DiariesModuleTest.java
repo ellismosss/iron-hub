@@ -43,7 +43,7 @@ public class DiariesModuleTest
 				// exist to be judged against the Vanilla design system
 				return com.ironhub.ui.osrs.OsrsTheme.STONE;
 			}
-		}, new DataPack(new Gson()));
+		}, new DataPack(new Gson()), null);
 		module.startUp();
 		return module;
 	}
@@ -311,6 +311,9 @@ public class DiariesModuleTest
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
 		((DiariesTab) tab).expandForTest("Ardougne");
+		// one task Well open too, so the render shows the Goals grammar
+		DiariesPack.Task first = module.pack().regions.get(0).tiers.get(0).tasks.get(3);
+		((DiariesTab) tab).expandTaskForTest(DiariesModule.slug(first));
 		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
 		assertTrue(image.getHeight() > 200);
 		try
