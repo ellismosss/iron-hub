@@ -304,7 +304,14 @@ class CollectionLogTab extends JPanel
 		JComponent line = syncLine();
 		syncRow.add(line);
 		syncRow.add(Box.createHorizontalGlue());
-		syncRow.add(com.ironhub.ui.v2.V2ChipRow.action(theme, "Sync log", this::requestSync));
+		// the button shows only while a sync would ADD something: never
+		// synced, or the in-game slot count drifted past the last sync
+		// (drops landed while the plugin wasn't watching — mobile, another
+		// machine, plugin off). In sync = no button (Luke, 2026-07-27).
+		if (state.getClogBaseline() < 0 || !module.inSync())
+		{
+			syncRow.add(com.ironhub.ui.v2.V2ChipRow.action(theme, "Sync log", this::requestSync));
+		}
 		cap(syncRow);
 		hero.add(syncRow);
 		if (syncNote != null)
