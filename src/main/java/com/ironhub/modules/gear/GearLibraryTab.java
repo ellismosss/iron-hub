@@ -604,18 +604,40 @@ class GearLibraryTab extends JPanel
 	 * vestments, 3rd age tools/melee, "… of darkness", Elder chaos).
 	 */
 	private static final String[] SET_NAMES = {
-		"3rd age tools", "3rd age druidic", "3rd age melee", "Bronze", "Iron", "Steel",
-		"Black", "Mithril", "Adamant", "Rune", "Dragon", "White", "Initiate", "Shayzien",
-		"Samurai", "Proselyte", "Inquisitor's", "Rock-shell", "Void Knight", "Granite",
-		"Blood moon", "Obsidian", "Barrows", "Justiciar", "Oathplate", "Torva", "Yak-hide",
-		"Fighter", "Leather", "Frog-leather", "Snakeskin", "Ranger", "Green d'hide",
-		"Spined", "Blue d'hide", "Red d'hide", "Black d'hide", "Mixed hide",
-		"Blessed d'hide", "Hueycoatl hide", "Crystal", "Armadyl", "Eclipse moon", "Masori",
-		"Zamorak monk", "Wizard", "Ghostly", "Dark Squall", "Elder chaos druid", "Xerician",
-		"Mystic", "Enchanted", "Robes of darkness", "Skeletal", "Splitbark", "Swampbark",
-		"Infinity", "Bloodbark", "Lunar", "Dagon'hai", "Blue moon", "Ancestral", "Virtus",
-		"Priest", "Monk's", "Shade", "Druid's", "Ancient ceremonial", "Elite black",
-		"Vestment", "Sunfire fanatic"};
+		"3rd age tools", "3rd age druidic", "3rd age melee", "3rd age range", "3rd age robe",
+		"Bronze", "Iron", "Steel", "Black", "Mithril", "Adamant", "Rune", "Dragon", "White",
+		"Initiate", "Shayzien", "Samurai", "Proselyte", "Inquisitor's", "Rock-shell",
+		"Void Knight", "Granite", "Blood moon", "Obsidian", "Barrows", "Justiciar",
+		"Oathplate", "Torva", "Yak-hide", "Fighter", "Leather", "Frog-leather", "Snakeskin",
+		"Ranger", "Green d'hide", "Spined", "Blue d'hide", "Red d'hide", "Black d'hide",
+		"Mixed hide", "Blessed d'hide", "Hueycoatl hide", "Crystal", "Armadyl",
+		"Eclipse moon", "Masori", "Zamorak monk", "Wizard", "Ghostly", "Dark Squall",
+		"Elder chaos druid", "Xerician", "Mystic", "Enchanted", "Robes of darkness",
+		"Skeletal", "Splitbark", "Swampbark", "Infinity", "Bloodbark", "Lunar", "Dagon'hai",
+		"Blue moon", "Ancestral", "Virtus", "Priest", "Monk's", "Shade", "Druid's",
+		"Ancient ceremonial", "Elite black", "Vestment", "Sunfire fanatic",
+		// the 2026-07-28 second wave (Luke's list, verbatim bar apostrophes)
+		"10th birthday", "20th anniversary", "25th anniversary", "Adventure", "Alchemist",
+		"Amethyst", "Angler", "Ankou", "Antisanta", "Ardougne knight", "Banner", "Banshee",
+		"Beekeeper", "Elegant", "Halloween", "Partyhat", "Bob's", "Bounty Hunter",
+		"Broodoo", "Bunny", "Camo", "Carrot", "Castlewars", "Chompy", "Chicken", "Citizen",
+		"Clown", "Clue hunter", "Collection log", "Corrupted", "Crab", "Cow", "Cream",
+		"Cavalier", "Cursed", "Decorative", "Tuxedo", "Deadman", "Demonic", "Desert",
+		"Dragonstone", "Elite void", "Elven", "Emissary", "Evil chicken", "Farmer's",
+		"Festive", "Forestry", "Fremennik", "Ghommal's", "Gilded", "Gnome child", "Graahk",
+		"Graceful", "Boater", "Slayer", "Grey", "Grid master", "Grim reaper",
+		"Guild hunter", "Gothic", "Ham", "Hard leather", "The eye", "Ironman", "Jad",
+		"Jester", "Jungle camo", "Khazard", "Koriff's", "Kyatt", "Larupia", "Lederhosen",
+		"Light", "Lumberjack", "Maple", "Menaphite", "Mime", "Moonclan", "Mourner",
+		"Mummy's", "Musketeer", "Nutcracker", "Oak", "Onyx", "Opal", "Ornate", "Penance",
+		"Pheasant", "Pink", "Pirate", "Plague", "Snelm", "Polar Camo", "Prospector",
+		"Purple", "Pyromancer", "Raging", "Rainbow", "Rangers'", "Ruin", "Rogue",
+		"Royal frog", "Royal", "Saika's", "Sandwich lady", "Santa", "Shattered", "Silly",
+		"Sinhaza", "Skeleton", "Slave", "Smiths", "Snow imp", "Spookier", "Spooky",
+		"Spirit angler", "Storm cruiser's", "Stripy", "Studded", "Swamp cruiser's", "Teal",
+		"Team", "Trailblazer", "Training", "Tri-jester", "Tribal", "Turquoise", "Trousers",
+		"Twisted", "Victor's", "Villager", "Void", "Vyre noble", "Vyrewatch", "Willow",
+		"Witch", "Wood camo", "Xeric's", "Yellow", "Yew", "Zealot's", "Zombie"};
 
 	/** Lower-cased set names, longest first, so "Elite black" and
 	 *  "Black d'hide" win over "Black". */
@@ -703,18 +725,52 @@ class GearLibraryTab extends JPanel
 		{
 			return "Robes of darkness";
 		}
+		if (lower.endsWith(" of the eye"))
+		{
+			return "The eye";
+		}
+		if (lower.endsWith(" snelm"))
+		{
+			return "Snelm";
+		}
+		if (lower.endsWith(" boater"))
+		{
+			return "Boater";
+		}
+		if (lower.endsWith(" cavalier"))
+		{
+			return "Cavalier";
+		}
+		if (lower.contains(" elegant "))
+		{
+			return "Elegant";
+		}
+		if (lower.contains("halloween"))
+		{
+			return "Halloween";
+		}
+		if (lower.endsWith(" partyhat"))
+		{
+			return "Partyhat";
+		}
 		if (lower.startsWith("elder chaos "))
 		{
 			return "Elder chaos druid";
 		}
+		// direct match vs a modifier line: the LONGER set-name component
+		// wins, so "Twisted ancestral hat" is Twisted Ancestral while
+		// "Twisted slayer helmet" stays Twisted
+		String direct = null;
+		int directLen = 0;
 		for (String set : SETS_LOWER)
 		{
-			if (lower.startsWith(set + " "))
+			if (lower.equals(set) || lower.startsWith(set + " "))
 			{
-				return SET_DISPLAY.get(set);
+				direct = SET_DISPLAY.get(set);
+				directLen = set.length();
+				break;
 			}
 		}
-		// a modifier line: the set name starts at the SECOND word
 		int space = lower.indexOf(' ');
 		if (space > 0)
 		{
@@ -723,11 +779,15 @@ class GearLibraryTab extends JPanel
 			{
 				if (rest.startsWith(set + " ") || rest.equals(set))
 				{
-					return base.substring(0, space) + " " + SET_DISPLAY.get(set);
+					if (set.length() > directLen)
+					{
+						return base.substring(0, space) + " " + SET_DISPLAY.get(set);
+					}
+					break;
 				}
 			}
 		}
-		return null;
+		return direct;
 	}
 
 	private int pageSize()

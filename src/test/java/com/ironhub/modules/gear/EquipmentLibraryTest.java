@@ -144,6 +144,14 @@ public class EquipmentLibraryTest
 		assertEquals("Twisted Ancestral", GearLibraryTab.curatedSet("Twisted ancestral hat"));
 		assertEquals("Radiant Oathplate", GearLibraryTab.curatedSet("Radiant oathplate chest"));
 		assertEquals("Dark Infinity", GearLibraryTab.curatedSet("Dark infinity top"));
+		assertEquals("Boater", GearLibraryTab.curatedSet("Red boater"));
+		assertEquals("Cavalier", GearLibraryTab.curatedSet("Black cavalier"));
+		assertEquals("Elegant", GearLibraryTab.curatedSet("Blue elegant shirt"));
+		assertEquals("The eye", GearLibraryTab.curatedSet("Hat of the eye"));
+		assertEquals("Partyhat", GearLibraryTab.curatedSet("Red partyhat"));
+		assertEquals("Twisted", GearLibraryTab.curatedSet("Twisted slayer helmet"));
+		assertEquals("Elite void", GearLibraryTab.curatedSet("Elite void top"));
+		assertEquals("Void", GearLibraryTab.curatedSet("Void melee helm"));
 		// a weapon has no piece word — it stands alone
 		assertEquals("Rune", GearLibraryTab.curatedSet("Rune scimitar"));
 		assertEquals(null, GearLibraryTab.curatedSet("Abyssal whip"));
