@@ -268,9 +268,9 @@ class CollectionLogTab extends JPanel
 		hero.removeAll();
 		JPanel top = row();
 		// the staves sit IN-LINE with the two text lines, like the CA tab's
-		// Ghommal's hilts, each inside a darker bordered square (Luke,
-		// 2026-07-27, matching the game's overview)
-		top.add(iconBox(staff(reached)));
+		// Ghommal's hilts — plain, no box (Luke's screenshot round,
+		// 2026-07-27)
+		top.add(staff(reached));
 		// glue BOTH sides: the count stays centred between the two staves
 		top.add(Box.createHorizontalGlue());
 		JPanel middle = new JPanel();
@@ -283,7 +283,7 @@ class CollectionLogTab extends JPanel
 			OsrsSkin.TITLE, OsrsSkin.boldFont()));
 		top.add(middle);
 		top.add(Box.createHorizontalGlue());
-		top.add(iconBox(staff(next)));
+		top.add(staff(next));
 		cap(top);
 		hero.add(top);
 
@@ -353,34 +353,36 @@ class CollectionLogTab extends JPanel
 		return pair;
 	}
 
-	/** A darker square behind an icon, 1px black outside a 1px grey inside —
-	 *  the game overview's own framing (Luke, 2026-07-27). */
-	private JComponent iconBox(JComponent inner)
-	{
-		JPanel box = new JPanel(new BorderLayout());
-		box.setBackground(theme.recess);
-		box.setBorder(javax.swing.BorderFactory.createCompoundBorder(
-			new javax.swing.border.LineBorder(Color.BLACK, 1),
-			new javax.swing.border.LineBorder(OsrsSkin.FAINT, 1)));
-		box.add(inner, BorderLayout.CENTER);
-		Dimension size = new Dimension(inner.getPreferredSize().width + 8,
-			inner.getPreferredSize().height + 8);
-		box.setPreferredSize(size);
-		box.setMaximumSize(size);
-		return box;
-	}
-
-	/** The game overview's "Latest collections" strip: the newest obtained
-	 *  slots as bordered icons under the hero (Luke, 2026-07-27). */
+	/**
+	 * The game overview's "Latest Collections" strip, per Luke's screenshot
+	 * (2026-07-27): a centred orange header, then the newest obtained slots
+	 * as plain icons side by side inside ONE long recessed box — 1px black
+	 * outside a 1px grey inside — never a box per icon.
+	 */
 	private void rebuildLatestStrip()
 	{
 		latestStrip.removeAll();
 		List<Integer> latest = latestSlots();
 		if (!latest.isEmpty())
 		{
-			latestStrip.add(smallLine("Latest collections:", OsrsSkin.LABEL));
+			JPanel head = row();
+			head.add(Box.createHorizontalGlue());
+			head.add(new OsrsLabel("Latest Collections", OsrsSkin.TITLE, OsrsSkin.boldFont()));
+			head.add(Box.createHorizontalGlue());
+			cap(head);
+			latestStrip.add(head);
 			latestStrip.add(Box.createVerticalStrut(2));
-			JPanel icons = row();
+
+			JPanel box = new JPanel();
+			box.setLayout(new BoxLayout(box, BoxLayout.X_AXIS));
+			box.setBackground(theme.recess);
+			box.setOpaque(true);
+			box.setAlignmentX(LEFT_ALIGNMENT);
+			box.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+				javax.swing.BorderFactory.createCompoundBorder(
+					new javax.swing.border.LineBorder(Color.BLACK, 1),
+					new javax.swing.border.LineBorder(OsrsSkin.FAINT, 1)),
+				new EmptyBorder(2, 2, 2, 2)));
 			int shown = 0;
 			for (int id : latest)
 			{
@@ -395,16 +397,18 @@ class CollectionLogTab extends JPanel
 					icon.setIcon(new javax.swing.ImageIcon(sprite));
 				}
 				icon.setPreferredSize(new Dimension(24, 24));
+				icon.setMaximumSize(new Dimension(24, 24));
 				icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 				icon.setToolTipText(itemName(id));
-				JComponent box = iconBox(icon);
-				box.setAlignmentY(CENTER_ALIGNMENT);
-				icons.add(box);
-				icons.add(Box.createHorizontalStrut(2));
+				box.add(icon);
+				if (shown < LATEST_STRIP)
+				{
+					box.add(Box.createHorizontalStrut(2));
+				}
 			}
-			icons.add(Box.createHorizontalGlue());
-			cap(icons);
-			latestStrip.add(icons);
+			box.add(Box.createHorizontalGlue());
+			cap(box);
+			latestStrip.add(box);
 			latestStrip.add(Box.createVerticalStrut(4));
 		}
 		latestStrip.revalidate();
