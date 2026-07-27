@@ -675,42 +675,44 @@ class GearLibraryTab extends JPanel
 	 */
 	private void renderUnits(List<Unit> units)
 	{
-		List<Unit> pending = new ArrayList<>();
-		int i = 0;
-		while (i < units.size())
+		// two queues in sort order: every set PULLS the next four smalls
+		// forward to fill its band completely — sets pair up only when the
+		// smalls have run out (Luke, 2026-07-28: no half-empty bands)
+		java.util.ArrayDeque<Unit> bigs = new java.util.ArrayDeque<>();
+		java.util.ArrayDeque<Unit> smalls = new java.util.ArrayDeque<>();
+		for (Unit unit : units)
 		{
-			Unit unit = units.get(i);
-			if (!(groupSets && unit.isGroup()))
+			(groupSets && unit.isGroup() ? bigs : smalls).add(unit);
+		}
+		while (!bigs.isEmpty())
+		{
+			Unit big = bigs.poll();
+			if (smalls.size() >= 4 || (bigs.isEmpty() && !smalls.isEmpty()))
 			{
-				pending.add(unit);
-				i++;
-				continue;
+				List<Unit> wrap = new ArrayList<>();
+				while (wrap.size() < 4 && !smalls.isEmpty())
+				{
+					wrap.add(smalls.poll());
+				}
+				addBandRow(List.of(big), wrap);
+				List<Unit> shown = new ArrayList<>();
+				shown.add(big);
+				shown.addAll(wrap);
+				addExpansions(shown);
 			}
-			flushSmallRows(pending);
-			List<Unit> band = new ArrayList<>();
-			band.add(unit);
-			i++;
-			if (i < units.size() && units.get(i).isGroup())
+			else if (!bigs.isEmpty())
 			{
-				// two sets meet: they pair up side by side
-				band.add(units.get(i));
-				i++;
-				addBandRow(band, List.of());
+				Unit pair = bigs.poll();
+				addBandRow(List.of(big, pair), List.of());
+				addExpansions(List.of(big, pair));
 			}
 			else
 			{
-				List<Unit> wrap = new ArrayList<>();
-				while (i < units.size() && wrap.size() < 4 && !units.get(i).isGroup())
-				{
-					wrap.add(units.get(i));
-					i++;
-				}
-				addBandRow(band, wrap);
-				band.addAll(wrap);
+				addBandRow(List.of(big), List.of());
+				addExpansions(List.of(big));
 			}
-			addExpansions(band);
 		}
-		flushSmallRows(pending);
+		flushSmallRows(new ArrayList<>(smalls));
 	}
 
 	/** Pending small units as centred 4-wide rows, expansions after each. */
