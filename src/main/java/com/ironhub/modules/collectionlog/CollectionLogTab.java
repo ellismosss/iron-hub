@@ -299,24 +299,24 @@ class CollectionLogTab extends JPanel
 		cap(labels);
 		hero.add(labels);
 
-		hero.add(Box.createVerticalStrut(2));
-		JPanel syncRow = row();
-		JComponent line = syncLine();
-		syncRow.add(line);
-		syncRow.add(Box.createHorizontalGlue());
-		// the button shows only while a sync would ADD something: never
+		// the sync row exists only while a sync would ADD something: never
 		// synced, or the in-game slot count drifted past the last sync
 		// (drops landed while the plugin wasn't watching — mobile, another
-		// machine, plugin off). In sync = no button (Luke, 2026-07-27).
-		if (state.getClogBaseline() < 0 || !module.inSync())
+		// machine, plugin off). In sync = no row at all (Luke, 2026-07-27).
+		JComponent line = syncLine();
+		if (line != null)
 		{
+			hero.add(Box.createVerticalStrut(2));
+			JPanel syncRow = row();
+			syncRow.add(line);
+			syncRow.add(Box.createHorizontalGlue());
 			syncRow.add(com.ironhub.ui.v2.V2ChipRow.action(theme, "Sync log", this::requestSync));
-		}
-		cap(syncRow);
-		hero.add(syncRow);
-		if (syncNote != null)
-		{
-			hero.add(smallLine(syncNote, OsrsSkin.TITLE));
+			cap(syncRow);
+			hero.add(syncRow);
+			if (syncNote != null)
+			{
+				hero.add(smallLine(syncNote, OsrsSkin.TITLE));
+			}
 		}
 		cap(hero);
 		hero.revalidate();
@@ -464,11 +464,9 @@ class CollectionLogTab extends JPanel
 		}
 		else
 		{
-			colour = OsrsSkin.VALUE;
-			long syncedMs = state.getClogSyncedMs();
-			text = "Synced" + (syncedMs > 0
-				? " · " + Format.relativeTime(System.currentTimeMillis() - syncedMs) : "");
-			tip = "Live drops keep the data current between full syncs.";
+			// in sync says nothing at all — no "Synced · ago" line (Luke,
+			// 2026-07-27); the nag states above are the whole message
+			return null;
 		}
 		OsrsLabel line = OsrsLabel.wrapped(text, CARD_WRAP, colour, OsrsSkin.smallFont());
 		line.leftAligned();
@@ -495,8 +493,7 @@ class CollectionLogTab extends JPanel
 				tabRow.add(Box.createHorizontalStrut(3));
 			}
 			tabRow.add(new ClogTabTile(theme, icon, owned, items.size(),
-				name.equals(openTab), name + " · " + owned + "/" + items.size() + " slots",
-				() -> openTab(name)));
+				name.equals(openTab), () -> openTab(name)));
 		}
 		tabRow.add(Box.createHorizontalGlue());
 		tabRow.setMaximumSize(new Dimension(Integer.MAX_VALUE,
@@ -558,16 +555,10 @@ class CollectionLogTab extends JPanel
 		content.repaint();
 	}
 
-	/** The overview's own body. Latest collections moved to the strip under
-	 *  the hero (Luke, 2026-07-27) — what remains is the honest note while
-	 *  there is nothing dated to show there. */
+	/** The overview's own body: nothing — the hero, the strip and the tabs
+	 *  above it ARE the overview (Luke, 2026-07-27, note removed too). */
 	private void overview()
 	{
-		if (latestSlots().isEmpty())
-		{
-			content.add(note("Slots you fill from here on appear under the banner — an "
-				+ "import tells us what you own, never when you got it."));
-		}
 	}
 
 	/** Slots we watched fill, newest first. */
@@ -659,7 +650,6 @@ class CollectionLogTab extends JPanel
 		V2Tile tile = new V2Tile(theme, null, UPCOMING_RAID, PAGE_TILE, null)
 			.card().captionLines(2).captionInside()
 			.status(V2Tile.Status.UNAVAILABLE);
-		tile.setToolTipText(UPCOMING_RAID + " — upcoming raid, not yet in the game");
 		tile.setCursor(Cursor.getDefaultCursor());
 		return tile;
 	}
@@ -683,9 +673,8 @@ class CollectionLogTab extends JPanel
 			.corner(owned + "/" + items.size())
 			.selected(expanded)
 			// the meter strip is the progress readout — no status edges on
-			// a card tile (Luke, 2026-07-27)
+			// a card tile, and no hover tooltip on a card (Luke, 2026-07-27)
 			.meter(items.isEmpty() ? Double.NaN : (double) owned / items.size());
-		tile.setToolTipText(page.name + " — " + owned + "/" + items.size());
 		return tile;
 	}
 

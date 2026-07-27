@@ -3,7 +3,6 @@ package com.ironhub.modules.collectionlog;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
 import com.ironhub.ui.v2.V2ProgressBar;
-import com.ironhub.ui.v2.V2Surface;
 import com.ironhub.ui.v2.V2Tokens;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -19,9 +18,9 @@ import javax.swing.JComponent;
 
 /**
  * One of the log's five tab buttons, in the shape the game's overview screen
- * uses: the tab's emblem over its slot count over a thin fill bar. Five sit
- * across the 225px panel, so the tab's NAME lives in the tooltip and in the
- * header of the list it opens.
+ * uses: the tab's emblem over its slot count over a thin fill bar, on the
+ * CARD art (Luke, 2026-07-27 — and cards carry no hover tooltip; the tab's
+ * name shows in the header of the list it opens).
  */
 class ClogTabTile extends JComponent
 {
@@ -39,7 +38,7 @@ class ClogTabTile extends JComponent
 	private final V2ProgressBar bar;
 
 	ClogTabTile(OsrsTheme theme, Image icon, int obtained, int total, boolean selected,
-		String tooltip, Runnable onClick)
+		Runnable onClick)
 	{
 		this.theme = theme;
 		this.icon = icon;
@@ -47,7 +46,6 @@ class ClogTabTile extends JComponent
 		this.total = total;
 		this.selected = selected;
 		this.bar = new V2ProgressBar(theme, V2ProgressBar.Size.METER);
-		setToolTipText(tooltip);
 		setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		addMouseListener(new MouseAdapter()
 		{
@@ -100,12 +98,13 @@ class ClogTabTile extends JComponent
 		Graphics2D g2 = (Graphics2D) g;
 		int w = getWidth();
 		int h = getHeight();
-		// the Tile SURFACE, shared with V2Tile and V2Surface.tile — this used
-		// to paint its own fills (Luke's Progression pass, 2026-07-26)
-		V2Surface.paintTile(g2, theme, w, h, selected);
+		// the CARD art, matching the page grid's card tiles (Luke,
+		// 2026-07-27); the wash goes flat-inset like V2Tile.card()
+		V2Tokens.card().paint(g2, theme, 0, 0, w, h);
 		if (hover || selected)
 		{
-			V2Surface.washTile(g2, w, h);
+			g2.setColor(V2Tokens.HIGHLIGHT);
+			g2.fillRect(2, 2, w - 4, h - 4);
 		}
 
 		if (icon != null)
