@@ -449,7 +449,7 @@ All in `com.ironhub.ui.v2`, all shown in **Design lab V2**.
 | `V2Checklist` | Checklist | Well + rows | hover band |
 | `V2Table` | Table | — (layout) | `right()` for numeric columns |
 | `V2EmptyState` | EmptyState | Well + Label | empty, unknown |
-| `V2TextField` | TextField | Well + `search_1` | idle, typed. **`plain(...)` drops the magnifier** — a note, a number or a name is not a search, and the icon's column squeezes a narrow box until its digits clip |
+| `V2TextField` | TextField | Well + `search_1` | idle, typed. **`plain(...)` drops the magnifier** — a note, a number or a name is not a search, and the icon's column squeezes a narrow box until its digits clip. **`width(px)` pins a small box** (a page number): the atom's size overrides IGNORE the `setXxxSize` setters, so setter calls on it are dead code — the gear pager's box stretched full-width until this landed (2026-07-28) |
 | `V2Dropdown` | Dropdown | Well + arrow | closed (one row), open = the well's LIST floated OVER the content (a JPopupMenu flush under the row, the control's width, max 20 rows — Luke, 2026-07-27, reversing the 2026-07-25 grow-in-place ruling: growing pushed the page's cards down). `width(px)` pins it for a shared row — `setPreferredSize` cannot, the size overrides ignore it |
 | `V2ScrollBarUI` | ScrollBar | Well trough + Card thumb + arrows | — |
 | `V2Tooltip` | Tooltip | Card + Label | — |

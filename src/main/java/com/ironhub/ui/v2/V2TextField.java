@@ -162,21 +162,36 @@ public class V2TextField extends JPanel
 		g2.dispose();
 	}
 
+	/** 0 = fluid (the default full-width field). */
+	private int fixedWidth;
+
+	/** Pin the field to one width — the sizes here override the setXxxSize
+	 *  setters, so a small box (a page number) needs this, not those. */
+	public V2TextField width(int width)
+	{
+		this.fixedWidth = width;
+		return this;
+	}
+
 	@Override
 	public Dimension getPreferredSize()
 	{
-		return new Dimension(V2Tokens.CONTENT_WIDTH, HEIGHT);
+		return new Dimension(fixedWidth > 0 ? fixedWidth : V2Tokens.CONTENT_WIDTH, HEIGHT);
 	}
 
 	@Override
 	public Dimension getMaximumSize()
 	{
-		return new Dimension(Integer.MAX_VALUE, HEIGHT);
+		return new Dimension(fixedWidth > 0 ? fixedWidth : Integer.MAX_VALUE, HEIGHT);
 	}
 
 	@Override
 	public Dimension getMinimumSize()
 	{
+		if (fixedWidth > 0)
+		{
+			return new Dimension(fixedWidth, HEIGHT);
+		}
 		// a plain field may be a three-digit box; a search never is
 		return new Dimension(magnifier ? 4 * V2Tokens.SECTION : 2 * V2Tokens.SECTION, HEIGHT);
 	}

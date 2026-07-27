@@ -997,13 +997,11 @@ class GearLibraryTab extends JPanel
 			}));
 		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 		row.add(new OsrsLabel("Page ", OsrsSkin.MUTED, OsrsSkin.smallFont()));
-		// the page number is TYPEABLE — Enter jumps (Luke, 2026-07-28)
-		V2TextField pageField = V2TextField.plain(theme, "", null);
+		// the page number is TYPEABLE — Enter jumps; three digits' worth of
+		// box, no more (Luke, 2026-07-28; the atom's width(), because its
+		// size overrides ignore the setXxxSize setters)
+		V2TextField pageField = V2TextField.plain(theme, "", null).width(34);
 		pageField.setText(String.valueOf(page + 1));
-		Dimension boxSize = new Dimension(28, V2Tokens.CONTROL_HEIGHT);
-		pageField.setMaximumSize(boxSize);
-		pageField.setPreferredSize(boxSize);
-		pageField.setMinimumSize(boxSize);
 		pageField.editor().setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 		pageField.setToolTipText("Type a page number and press Enter");
 		pageField.editor().addActionListener(e ->
