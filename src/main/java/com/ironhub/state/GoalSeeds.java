@@ -28,6 +28,39 @@ public final class GoalSeeds
 		return seed;
 	}
 
+	/** A whole CA tier ("All Easy combat tasks"): proven by the
+	 *  {@code catier_<tier>} unlock the CA module marks off the game's own
+	 *  tier-status varbit (Luke, 2026-07-27). */
+	public static PersistedState.GoalSeed caTier(String tier)
+	{
+		String key = tier.toLowerCase(java.util.Locale.ROOT);
+		String proof = "unlock:catier_" + key;
+		PersistedState.GoalSeed seed = base("ca", "ca:tier_" + key,
+			"All " + tier + " combat tasks");
+		seed.steps.add(step("Complete every " + tier + " combat achievement", proof));
+		seed.achieved.add(proof);
+		return seed;
+	}
+
+	/** Every CA of one boss: proven by the {@code caboss_<slug>} unlock the
+	 *  CA module marks when the boss's task count completes. */
+	public static PersistedState.GoalSeed caBoss(String boss)
+	{
+		String proof = "unlock:" + caBossProofKey(boss);
+		PersistedState.GoalSeed seed = base("ca", "ca:boss_" + sanitize(boss),
+			"All " + boss + " combat tasks");
+		seed.steps.add(step("Complete every combat achievement for " + boss, proof));
+		seed.achieved.add(proof);
+		return seed;
+	}
+
+	/** The boss proof key — sanitized, because an unlock: key must carry no
+	 *  colons (the graph's colon-split parse truncates them). */
+	public static String caBossProofKey(String boss)
+	{
+		return "caboss_" + sanitize(boss);
+	}
+
 	/** An achievement diary task: one step, proven by the
 	 *  {@code diarytask_<slug>} unlock the diaries module marks. */
 	public static PersistedState.GoalSeed diary(String slug, String task, String region, String tier)

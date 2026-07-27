@@ -274,6 +274,28 @@ public class CombatAchievementsModule implements IronHubModule
 				newlyDone.add("catask_" + task.id);
 			}
 		}
+		// aggregate goals (Luke, 2026-07-27): a whole tier proves off the
+		// game's own status varbit, a whole boss off its task count
+		for (CaTier tier : TIERS)
+		{
+			String key = tier.display.toLowerCase(java.util.Locale.ROOT);
+			if (goalIds.contains("tier_" + key)
+				&& state.getVarbit(tier.statusVarbit) >= 1
+				&& !state.isUnlocked("catier_" + key))
+			{
+				newlyDone.add("catier_" + key);
+			}
+		}
+		for (var entry : CombatAchievementsTab.bossStats(loaded).entrySet())
+		{
+			String proof = com.ironhub.state.GoalSeeds.caBossProofKey(entry.getKey());
+			if (entry.getValue()[1] > 0 && entry.getValue()[0] >= entry.getValue()[1]
+				&& goalIds.contains("boss_" + proof.substring("caboss_".length()))
+				&& !state.isUnlocked(proof))
+			{
+				newlyDone.add(proof);
+			}
+		}
 		if (!newlyDone.isEmpty())
 		{
 			state.setUnlockedBulk(newlyDone);

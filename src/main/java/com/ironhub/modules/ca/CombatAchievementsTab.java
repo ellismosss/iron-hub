@@ -595,7 +595,7 @@ class CombatAchievementsTab extends JPanel
 					line.add(Box.createHorizontalStrut(V2Tokens.ROW));
 				}
 				String name = shown.get(start + col);
-				line.add(pageTile(name, bossEmblem(name), BOSS_TILE,
+				line.add(pageTile(name, bossEmblem(name, PAGE_EMBLEM), BOSS_TILE,
 					stats.getOrDefault(name, new int[2]), name.equals(openBoss), () ->
 					{
 						openBoss = name.equals(openBoss) ? null : name;
@@ -685,8 +685,18 @@ class CombatAchievementsTab extends JPanel
 		}
 		// the header counts the TIER, the list obeys the filters
 		content.add(pageHeader(openTier.display, mine,
-			openTier.points + " points per task"));
-		addTaskRows(shown);
+			openTier.points + (openTier.points == 1 ? " point" : " points") + " per task",
+			aggregateGlyph("ca:tier_" + openTier.display.toLowerCase(Locale.ROOT),
+				"every " + openTier.display + " task", () ->
+				{
+					state.addGoalSeed(com.ironhub.state.GoalSeeds.caTier(openTier.display));
+					if (state.getVarbit(openTier.statusVarbit) >= 1)
+					{
+						state.setUnlocked("catier_"
+							+ openTier.display.toLowerCase(Locale.ROOT), true);
+					}
+				})));
+		addTaskRows(shown, false);
 	}
 
 	private void bossDetail(List<CaTask> tasks)
@@ -720,19 +730,42 @@ class CombatAchievementsTab extends JPanel
 			}
 			sub.append(CaProfile.count(kills)).append(" kills");
 		}
-		content.add(pageHeader(openBoss, mine, sub.toString()));
-		addTaskRows(shown);
+		String bossName = openBoss;
+		int done = (int) mine.stream().filter(t -> t.completed).count();
+		content.add(pageHeader(openBoss, mine, sub.toString(),
+			aggregateGlyph("ca:boss_" + com.ironhub.state.GoalSeeds.caBossProofKey(bossName)
+					.substring("caboss_".length()),
+				"every " + bossName + " task", () ->
+				{
+					state.addGoalSeed(com.ironhub.state.GoalSeeds.caBoss(bossName));
+					if (!mine.isEmpty() && done >= mine.size())
+					{
+						state.setUnlocked(
+							com.ironhub.state.GoalSeeds.caBossProofKey(bossName), true);
+					}
+				})));
+		addTaskRows(shown, true);
 	}
 
 	/** Name, "Tasks Completed: n/N" in the game's colour scale, and a line
 	 *  of context beneath. */
-	private JComponent pageHeader(String name, List<CaTask> tasks, String sub)
+	private JComponent pageHeader(String name, List<CaTask> tasks, String sub,
+		JComponent aggregate)
 	{
 		int done = (int) tasks.stream().filter(t -> t.completed).count();
 		V2Surface card = V2Surface.card(theme);
+		JPanel titleRow = row();
 		OsrsLabel title = new OsrsLabel(name, OsrsSkin.TITLE, OsrsSkin.boldFont())
 			.leftAligned().squeezable();
-		card.add(title);
+		titleRow.add(title);
+		titleRow.add(Box.createHorizontalGlue());
+		if (aggregate != null)
+		{
+			titleRow.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+			titleRow.add(aggregate);
+		}
+		cap(titleRow);
+		card.add(titleRow);
 		// the clog counter grammar (Luke, 2026-07-27): orange label, value
 		// red at 0 / counter-yellow partial / green done
 		Color colour = tasks.isEmpty() || done == 0 ? V2Tokens.BLOCKED
@@ -753,8 +786,9 @@ class CombatAchievementsTab extends JPanel
 		return card;
 	}
 
-	/** Every achievement under the open tile: tier icon, name, description. */
-	private void addTaskRows(List<CaTask> tasks)
+	/** Every achievement under the open tile. Difficulty sorts by BOSS
+	 *  (alphabetical within), Bosses by TIER (Luke, 2026-07-27). */
+	private void addTaskRows(List<CaTask> tasks, boolean bossView)
 	{
 		if (tasks.isEmpty())
 		{
@@ -762,13 +796,57 @@ class CombatAchievementsTab extends JPanel
 			return;
 		}
 		List<CaTask> sorted = new ArrayList<>(tasks);
-		sorted.sort(Comparator.<CaTask>comparingInt(t -> t.tier.ordinal())
-			.thenComparing(t -> t.name));
+		if (bossView)
+		{
+			sorted.sort(Comparator.<CaTask>comparingInt(t -> t.tier.ordinal())
+				.thenComparing(t -> t.name));
+		}
+		else
+		{
+			// boss-less tasks close the list rather than leading it
+			sorted.sort(Comparator.<CaTask, String>comparing(
+					t -> t.boss.isEmpty() ? "\uffff" : t.boss)
+				.thenComparing(t -> t.name));
+		}
+		// the Goals grammar (Luke, 2026-07-27): every task on ONE Tile,
+		// the open task's details in a Well beneath its row
+		V2Surface tile = V2Surface.tile(theme);
+		tile.setAlignmentX(LEFT_ALIGNMENT);
 		int limit = Math.min(MAX_TASKS, sorted.size());
 		for (int i = 0; i < limit; i++)
 		{
-			content.add(taskRow(sorted.get(i)));
+			CaTask task = sorted.get(i);
+			if (i > 0)
+			{
+				tile.add(Box.createVerticalStrut(3));
+			}
+			tile.add(taskHead(task, bossView));
+			if (expandedTasks.contains(task.id))
+			{
+				V2Surface well = V2Surface.well(theme);
+				// the Checklist's inset: CAP clears the end caps, TIGHT is
+				// the only air on top (the Goals tasks' own numbers)
+				int inset = com.ironhub.ui.v2.V2Well.CAP + V2Tokens.TIGHT;
+				well.setBorder(new EmptyBorder(inset, inset, inset, inset));
+				JPanel meta = row();
+				meta.add(new OsrsLabel(task.tier.display,
+					V2Tokens.STRONG, OsrsSkin.smallFont()).leftAligned());
+				meta.add(new OsrsLabel(" · " + task.type + " · " + task.tier.points
+					+ (task.tier.points == 1 ? " pt" : " pts"),
+					OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+				meta.add(Box.createHorizontalGlue());
+				cap(meta);
+				well.add(meta);
+				well.add(OsrsLabel.wrapped(task.description, WRAP,
+					task.completed ? OsrsSkin.FAINT : OsrsSkin.MUTED, OsrsSkin.smallFont())
+					.leftAligned());
+				cap(well);
+				tile.add(Box.createVerticalStrut(2));
+				tile.add(well);
+			}
 		}
+		cap(tile);
+		content.add(tile);
 		if (limit < sorted.size())
 		{
 			content.add(note("+ " + (sorted.size() - limit)
@@ -777,45 +855,35 @@ class CombatAchievementsTab extends JPanel
 	}
 
 	/**
-	 * One achievement on its own TILE (Luke, 2026-07-27): collapsed = the
-	 * name alone in the body font with the "+" goal button top-right; a
-	 * click expands it — NON-exclusively — adding the faint detail row
-	 * (tier · type · points · community completion) and the description.
-	 * Right-click keeps the wiki page.
+	 * One task's ROW on the shared Tile (Luke, 2026-07-27, the Goals
+	 * grammar): its icon — the BOSS's on the Difficulty view, the tier's
+	 * small sword on the Bosses view — the name in the body font, and the
+	 * +/x goal glyph. A click expands the task NON-exclusively into a Well
+	 * below; right-click keeps the wiki page.
 	 */
-	private JComponent taskRow(CaTask task)
+	private JComponent taskHead(CaTask task, boolean bossView)
 	{
 		boolean expanded = expandedTasks.contains(task.id);
-		V2Surface tile = V2Surface.tile(theme);
-		tile.setAlignmentX(LEFT_ALIGNMENT);
-
 		JPanel head = row();
+		Image icon = bossView
+			? com.ironhub.ui.v2.V2Sprites.get(theme, "icons/combat_achievements/"
+				+ TIER_SWORDS[task.tier.ordinal()] + "_small")
+			: bossEmblem(task.boss, 16);
+		if (icon != null)
+		{
+			JLabel holder = new JLabel(new javax.swing.ImageIcon(icon));
+			head.add(holder);
+			head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		}
 		OsrsLabel name = new OsrsLabel(task.name,
 			task.completed ? OsrsSkin.VALUE : V2Tokens.TEXT, OsrsSkin.font())
 			.leftAligned().squeezable();
 		head.add(name);
 		head.add(Box.createHorizontalGlue());
 		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		JComponent glyph = goalGlyph(task);
-		glyph.setAlignmentY(TOP_ALIGNMENT);
-		head.add(glyph);
-		cap(head);
-		tile.add(head);
-
-		if (expanded)
-		{
-			String pct = task.communityPct == null ? "unknown"
-				: String.format(Locale.ROOT, "%.1f%% of players", task.communityPct);
-			tile.add(new OsrsLabel(task.tier.display + " · " + task.type + " · "
-				+ task.tier.points + (task.tier.points == 1 ? " pt" : " pts") + " · " + pct,
-				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned().squeezable());
-			tile.add(OsrsLabel.wrapped(task.description, WRAP,
-				task.completed ? OsrsSkin.FAINT : OsrsSkin.MUTED, OsrsSkin.smallFont())
-				.leftAligned());
-		}
-
-		tile.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		clickAnywhere(tile, new MouseAdapter()
+		head.add(goalGlyph(task));
+		head.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		clickAnywhere(head, new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent e)
@@ -845,8 +913,8 @@ class CombatAchievementsTab extends JPanel
 				}
 			}
 		});
-		cap(tile);
-		return tile;
+		cap(head);
+		return head;
 	}
 
 	private void wikiMenu(CaTask task, MouseEvent e)
@@ -944,6 +1012,50 @@ class CombatAchievementsTab extends JPanel
 		return state.getSelectedGoals().contains("ca:" + task.id);
 	}
 
+	/** A header's +/x: track "complete ALL of these" as ONE Goal — the
+	 *  whole tier or the whole boss (Luke, 2026-07-27). */
+	private JComponent aggregateGlyph(String goalId, String what, Runnable addSeed)
+	{
+		boolean goal = state.getSelectedGoals().contains(goalId);
+		JLabel glyph = new JLabel(goal ? "×" : "+");
+		OsrsSkin.crisp(glyph);
+		glyph.setFont(OsrsSkin.font());
+		glyph.setForeground(OsrsSkin.FAINT);
+		glyph.setToolTipText(goal ? "Remove from Goal planner"
+			: "Track " + what + " in the Goal planner");
+		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		glyph.putClientProperty(OWN_ACTION, Boolean.TRUE);
+		glyph.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.TITLE);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.FAINT);
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				if (state.getSelectedGoals().contains(goalId))
+				{
+					state.removeGoalSeed(goalId);
+				}
+				else
+				{
+					addSeed.run();
+				}
+				rebuildContent();
+			}
+		});
+		return glyph;
+	}
+
 	/** The row's +/x: add to or remove from the Goal planner. */
 	private JComponent goalGlyph(CaTask task)
 	{
@@ -1032,7 +1144,7 @@ class CombatAchievementsTab extends JPanel
 
 	/** A boss card's emblem: the boss's own collection-log page's first
 	 *  slot, when one matches by name — the clog cards' emblem source. */
-	private Image bossEmblem(String boss)
+	private Image bossEmblem(String boss, int box)
 	{
 		for (com.ironhub.state.PersistedState.ClogTab tab : state.getClogCatalog())
 		{
@@ -1040,7 +1152,7 @@ class CombatAchievementsTab extends JPanel
 			{
 				if (page.name.equalsIgnoreCase(boss) && page.items.length > 0)
 				{
-					return sprites.getBox(page.items[0], PAGE_EMBLEM);
+					return sprites.getBox(page.items[0], box);
 				}
 			}
 		}
