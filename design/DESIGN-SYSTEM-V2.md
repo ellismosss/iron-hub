@@ -450,7 +450,7 @@ All in `com.ironhub.ui.v2`, all shown in **Design lab V2**.
 | `V2Table` | Table | — (layout) | `right()` for numeric columns |
 | `V2EmptyState` | EmptyState | Well + Label | empty, unknown |
 | `V2TextField` | TextField | Well + `search_1` | idle, typed. **`plain(...)` drops the magnifier** — a note, a number or a name is not a search, and the icon's column squeezes a narrow box until its digits clip |
-| `V2Dropdown` | Dropdown | Well + arrow | closed (one row), open (grows in place, max 20 rows). `width(px)` pins it for a shared row — `setPreferredSize` cannot, the size overrides ignore it |
+| `V2Dropdown` | Dropdown | Well + arrow | closed (one row), open = the well's LIST floated OVER the content (a JPopupMenu flush under the row, the control's width, max 20 rows — Luke, 2026-07-27, reversing the 2026-07-25 grow-in-place ruling: growing pushed the page's cards down). `width(px)` pins it for a shared row — `setPreferredSize` cannot, the size overrides ignore it |
 | `V2ScrollBarUI` | ScrollBar | Well trough + Card thumb + arrows | — |
 | `V2Tooltip` | Tooltip | Card + Label | — |
 
@@ -568,9 +568,10 @@ Four mistakes, each of which cost a round trip, and each avoidable:
 
 ### Traps that bite silently
 
-**A row holding a Dropdown must follow the dropdown's height.** It grows in
-place when opened, so a row pinned to one `CONTROL_HEIGHT` clips the open list.
-Override the row's `getMaximumSize()` to its preferred height.
+**A row holding a Dropdown no longer needs to follow its height.** The open
+list floats over the content since 2026-07-27 (it used to grow in place, and
+rows pinned to one `CONTROL_HEIGHT` clipped it — the `getMaximumSize()`
+overrides that guarded against that are now harmless leftovers).
 
 **`V2Surface` overrides `getMaximumSize()` to full width.** `setMaximumSize(
 getPreferredSize())` on one is silently ignored and it stretches to fill its row.

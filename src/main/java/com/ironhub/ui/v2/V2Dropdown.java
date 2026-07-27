@@ -18,13 +18,13 @@ import javax.swing.JPanel;
  * A one-of-many picker for lists too long to be chips: the game's own field
  * well with its stone arrow at the right end.
  *
- * <p><b>It expands in place</b> (Luke, 2026-07-25). The well itself grows to
- * one row per option, and picking one collapses it back to a single row. It
- * used to open a {@code JPopupMenu} carrying a Card, which floated a second
- * surface over the panel: the list arrived somewhere the layout did not know
- * about, it could overhang the 225px edge, and it read as client chrome rather
- * than as part of the view. Growing the well keeps the whole interaction on
- * one surface and inside the column.
+ * <p><b>The open list floats OVER the content</b> (Luke, 2026-07-27,
+ * reversing his 2026-07-25 grow-in-place ruling: growing pushed the page's
+ * cards down, which turned out to be the worse read). What the popup learned
+ * from that ruling's complaints survives: it is the WELL continuing —
+ * painted over the panel background, exactly the control's width, flush
+ * under the closed row — never a floated Card reading as client chrome, and
+ * never wider than the column.
  *
  * <p>Deliberately not a styled {@code JComboBox}. The Swing control brings a
  * renderer, a UI delegate, a popup border and a scrollbar that each have to be
@@ -42,6 +42,8 @@ public class V2Dropdown extends JPanel
 	private int selected;
 	private IntConsumer onChange;
 	private boolean expanded;
+	/** The floated list while open; null while closed. */
+	private javax.swing.JPopupMenu popup;
 	/** Which row the pointer is over, or -1. Drives the wash. */
 	private int hovered = -1;
 	/** A pinned width, for a dropdown sharing a row with another control.
@@ -103,7 +105,141 @@ public class V2Dropdown extends JPanel
 	{
 		this.expanded = expanded;
 		hovered = -1;
+		if (!expanded && popup != null)
+		{
+			javax.swing.JPopupMenu closing = popup;
+			popup = null;
+			closing.setVisible(false);
+		}
+		// headless render tests flag the state without a heavyweight popup
+		if (expanded && isShowing())
+		{
+			showPopup();
+		}
 		rebuild();
+	}
+
+	/** The floated list: the well continuing under the closed row. */
+	private void showPopup()
+	{
+		popup = new javax.swing.JPopupMenu();
+		popup.setBorder(new javax.swing.border.EmptyBorder(0, 0, 0, 0));
+		popup.setOpaque(false);
+		ListPanel list = new ListPanel();
+		popup.add(list);
+		popup.addPopupMenuListener(new javax.swing.event.PopupMenuListener()
+		{
+			@Override
+			public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e)
+			{
+			}
+
+			@Override
+			public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e)
+			{
+				// outside click, ESC, or a pick — either way we are closed
+				if (popup != null)
+				{
+					popup = null;
+					expanded = false;
+					hovered = -1;
+					rebuild();
+				}
+			}
+
+			@Override
+			public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e)
+			{
+			}
+		});
+		popup.show(this, 0, V2Tokens.CONTROL_HEIGHT);
+	}
+
+	/** The popup's body: every option in one well, the control's width. */
+	private class ListPanel extends JPanel
+	{
+		private int listHovered = -1;
+
+		ListPanel()
+		{
+			setOpaque(true);
+			setBackground(theme.background);
+			setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+			for (int i = 0; i < shownRows(); i++)
+			{
+				int index = i;
+				JPanel row = new JPanel(new java.awt.BorderLayout());
+				row.setOpaque(false);
+				row.setAlignmentX(LEFT_ALIGNMENT);
+				row.setBorder(new javax.swing.border.EmptyBorder(0, V2Tokens.PAD, 0,
+					V2Sprites.meta("ui/arrows/arrow_down").width() + V2Tokens.PAD));
+				row.add(index == selected
+					? V2Label.heading(options[index]) : V2Label.detail(options[index]),
+					java.awt.BorderLayout.CENTER);
+				row.setMaximumSize(new Dimension(Integer.MAX_VALUE, V2Tokens.CONTROL_HEIGHT));
+				row.setPreferredSize(new Dimension(listWidth(), V2Tokens.CONTROL_HEIGHT));
+				row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+				row.addMouseListener(new MouseAdapter()
+				{
+					@Override
+					public void mousePressed(MouseEvent e)
+					{
+						javax.swing.JPopupMenu closing = popup;
+						popup = null;
+						expanded = false;
+						if (closing != null)
+						{
+							closing.setVisible(false);
+						}
+						pick(index);
+					}
+
+					@Override
+					public void mouseEntered(MouseEvent e)
+					{
+						listHovered = index;
+						ListPanel.this.repaint();
+					}
+
+					@Override
+					public void mouseExited(MouseEvent e)
+					{
+						listHovered = -1;
+						ListPanel.this.repaint();
+					}
+				});
+				add(row);
+			}
+		}
+
+		private int listWidth()
+		{
+			return V2Dropdown.this.getWidth() > 0
+				? V2Dropdown.this.getWidth()
+				: width > 0 ? width : V2Tokens.CONTENT_WIDTH;
+		}
+
+		@Override
+		protected void paintComponent(Graphics g)
+		{
+			Graphics2D g2 = (Graphics2D) g;
+			g2.setColor(theme.background);
+			g2.fillRect(0, 0, getWidth(), getHeight());
+			well.paint(g2, theme, 0, 0, getWidth(), getHeight());
+			if (listHovered >= 0)
+			{
+				g2.setColor(V2Tokens.HIGHLIGHT);
+				g2.fillRect(V2Well.CAP, listHovered * V2Tokens.CONTROL_HEIGHT,
+					Math.max(0, getWidth() - 2 * V2Well.CAP), V2Tokens.CONTROL_HEIGHT);
+			}
+			super.paintComponent(g);
+		}
+
+		@Override
+		public Dimension getPreferredSize()
+		{
+			return new Dimension(listWidth(), shownRows() * V2Tokens.CONTROL_HEIGHT);
+		}
 	}
 
 	public boolean isExpanded()
@@ -126,25 +262,11 @@ public class V2Dropdown extends JPanel
 			repaint();
 			return;
 		}
-		if (expanded)
-		{
-			for (int i = 0; i < shownRows(); i++)
-			{
-				add(new Row(i));
-			}
-		}
-		else
-		{
-			add(new Row(selected));
-		}
+		// the component is ALWAYS the one closed row — the open list floats
+		// in the popup, over the content instead of pushing it down
+		add(new Row(selected));
 		revalidate();
 		repaint();
-	}
-
-	/** How many rows the well is currently as tall as. */
-	private int rowCount()
-	{
-		return options.length == 0 ? 1 : expanded ? shownRows() : 1;
 	}
 
 	/** How many options an open well lists. Capped (Luke, 2026-07-25): a
@@ -180,21 +302,21 @@ public class V2Dropdown extends JPanel
 	public Dimension getPreferredSize()
 	{
 		return new Dimension(width > 0 ? width : V2Tokens.CONTENT_WIDTH,
-			rowCount() * V2Tokens.CONTROL_HEIGHT);
+			V2Tokens.CONTROL_HEIGHT);
 	}
 
 	@Override
 	public Dimension getMaximumSize()
 	{
 		return new Dimension(width > 0 ? width : Integer.MAX_VALUE,
-			rowCount() * V2Tokens.CONTROL_HEIGHT);
+			V2Tokens.CONTROL_HEIGHT);
 	}
 
 	@Override
 	public Dimension getMinimumSize()
 	{
 		return new Dimension(width > 0 ? width : 4 * V2Tokens.SECTION,
-			rowCount() * V2Tokens.CONTROL_HEIGHT);
+			V2Tokens.CONTROL_HEIGHT);
 	}
 
 	/** One option line inside the well. Transparent: the well is painted once,
@@ -223,14 +345,7 @@ public class V2Dropdown extends JPanel
 				@Override
 				public void mousePressed(MouseEvent e)
 				{
-					if (expanded)
-					{
-						pick(index);
-					}
-					else
-					{
-						setExpanded(true);
-					}
+					setExpanded(!expanded);
 				}
 
 				@Override

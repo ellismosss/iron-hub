@@ -69,11 +69,8 @@ class CombatAchievementsTab extends JPanel
 	/** Boss pages: 10 rows of 2 per page, arrows below (Luke, 2026-07-27). */
 	private static final int BOSS_PAGE_ROWS = 10;
 	/** The shared filters, under the view chips (Luke, 2026-07-27). */
-	static final String[] STATUS_OPTIONS = {"All", "Completed", "Incomplete"};
 	static final String[] TYPE_OPTIONS = {"All types", "Stamina", "Perfection",
 		"Kill Count", "Mechanical", "Restriction", "Speed"};
-	private static final String[] TIER_OPTIONS = {"All tiers", "Easy", "Medium",
-		"Hard", "Elite", "Master", "Grandmaster"};
 	/** The game's own tier swords, the _large variants (Luke, 2026-07-27). */
 	private static final String[] TIER_SWORDS = {"bronze_sword", "steel_sword",
 		"black_sword", "rune_sword", "dragon_sword", "armadyl_godsword"};
@@ -90,10 +87,13 @@ class CombatAchievementsTab extends JPanel
 	private final V2ProgressBar heroBar;
 	private final V2Surface profile;
 	private final V2ChipRow views;
-	private final com.ironhub.ui.v2.V2Dropdown statusFilter;
+	/** Checked = the finished tasks; unchecked = the to-do list. */
+	private final com.ironhub.ui.v2.V2Checkbox completedFilter;
 	private final com.ironhub.ui.v2.V2Dropdown typeFilter;
-	private final com.ironhub.ui.v2.V2Dropdown tierFilter;
-	/** The tier dropdown's row — hidden on the Difficulty view, whose cards
+	/** Non-exclusive tier icon toggles (Luke, 2026-07-27: "the original
+	 *  tier filter"), all on by default. */
+	private final Map<CaTier, Boolean> tierEnabled = new java.util.EnumMap<>(CaTier.class);
+	/** The tier toggles' row — hidden on the Difficulty view, whose cards
 	 *  already partition by tier. */
 	private final JPanel tierFilterRow;
 	private final JPanel content = new JPanel();
@@ -157,45 +157,41 @@ class CombatAchievementsTab extends JPanel
 		add(views);
 		add(Box.createVerticalStrut(4));
 
-		// the filters, moved out of All tasks (Luke, 2026-07-27): status +
-		// type side by side, the tier dropdown below on the Bosses view
-		// only. Status defaults to Incomplete — the log is a to-do list.
-		statusFilter = new com.ironhub.ui.v2.V2Dropdown(theme, STATUS_OPTIONS).width(106);
-		statusFilter.setSelected(2);
-		typeFilter = new com.ironhub.ui.v2.V2Dropdown(theme, TYPE_OPTIONS).width(107);
-		tierFilter = new com.ironhub.ui.v2.V2Dropdown(theme, TIER_OPTIONS);
-		statusFilter.onChange(i -> filtersChanged());
-		typeFilter.onChange(i -> filtersChanged());
-		tierFilter.onChange(i -> filtersChanged());
-		// rows FOLLOW their dropdowns' height — an open list grows in place
-		JPanel filterPair = new JPanel()
+		// the filters, moved out of All tasks (Luke, 2026-07-27): a
+		// "Completed" checkbox (unchecked = the to-do list) beside the type
+		// dropdown — whose open list floats OVER the cards — and the
+		// non-exclusive tier icon toggles below, on the Bosses view only
+		for (CaTier tier : CaTier.values())
 		{
-			@Override
-			public Dimension getMaximumSize()
-			{
-				return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
-			}
-		};
+			tierEnabled.put(tier, true);
+		}
+		completedFilter = new com.ironhub.ui.v2.V2Checkbox(theme, "Completed", false,
+			this::filtersChanged);
+		typeFilter = new com.ironhub.ui.v2.V2Dropdown(theme, TYPE_OPTIONS).width(107);
+		typeFilter.onChange(i -> filtersChanged());
+		JPanel filterPair = new JPanel();
 		filterPair.setLayout(new BoxLayout(filterPair, BoxLayout.X_AXIS));
 		filterPair.setOpaque(false);
 		filterPair.setAlignmentX(LEFT_ALIGNMENT);
-		filterPair.add(statusFilter);
-		filterPair.add(Box.createHorizontalStrut(V2Tokens.ROW));
+		filterPair.setMaximumSize(new Dimension(Integer.MAX_VALUE, V2Tokens.CONTROL_HEIGHT));
+		filterPair.add(completedFilter);
+		filterPair.add(Box.createHorizontalGlue());
 		filterPair.add(typeFilter);
 		add(filterPair);
 		add(Box.createVerticalStrut(4));
-		tierFilterRow = new JPanel()
-		{
-			@Override
-			public Dimension getMaximumSize()
-			{
-				return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
-			}
-		};
+		tierFilterRow = new JPanel();
 		tierFilterRow.setLayout(new BoxLayout(tierFilterRow, BoxLayout.Y_AXIS));
 		tierFilterRow.setOpaque(false);
 		tierFilterRow.setAlignmentX(LEFT_ALIGNMENT);
-		tierFilterRow.add(tierFilter);
+		JPanel tierToggles = new JPanel(new java.awt.GridLayout(1, CaTier.values().length, 2, 0));
+		tierToggles.setOpaque(false);
+		tierToggles.setAlignmentX(LEFT_ALIGNMENT);
+		tierToggles.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ICON_CELL_SIZE));
+		for (CaTier tier : CaTier.values())
+		{
+			tierToggles.add(tierToggle(tier));
+		}
+		tierFilterRow.add(tierToggles);
 		tierFilterRow.add(Box.createVerticalStrut(4));
 		tierFilterRow.setVisible(false);
 		add(tierFilterRow);
@@ -265,12 +261,43 @@ class CombatAchievementsTab extends JPanel
 		print.add(openTier);
 		print.add(openBoss);
 		print.add(bossGridPage);
-		print.add(statusFilter.selected());
+		print.add(completedFilter.state());
 		print.add(typeFilter.selected());
-		print.add(tierFilter.selected());
+		print.add(new ArrayList<>(tierEnabled.values()));
 		print.add(browserExpanded);
 		print.add(profileExpanded);
 		return print;
+	}
+
+	/** Wiki tier icon toggle; select fill + bevel = tier shown — the
+	 *  browser's original filter, relocated (Luke, 2026-07-27). */
+	private JLabel tierToggle(CaTier tier)
+	{
+		JLabel toggle = new JLabel(CaTaskBrowser.tierIcon(tier));
+		toggle.setOpaque(true);
+		toggle.setHorizontalAlignment(JLabel.CENTER);
+		toggle.setToolTipText(tier.display + " tier (click to show/hide)");
+		toggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		Runnable style = () ->
+		{
+			boolean on = tierEnabled.get(tier);
+			toggle.setBackground(on ? theme.selectFill : theme.recess);
+			// MatteBorder fills strips — a drawRect border halves on Retina
+			toggle.setBorder(new javax.swing.border.MatteBorder(1, 1, 1, 1,
+				on ? theme.selectEdge : theme.edgeDark));
+		};
+		style.run();
+		toggle.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				tierEnabled.put(tier, !tierEnabled.get(tier));
+				style.run();
+				filtersChanged();
+			}
+		});
+		return toggle;
 	}
 
 	/** A shared filter moved — both the grids and the browser re-run. */
@@ -481,18 +508,32 @@ class CombatAchievementsTab extends JPanel
 	private void tierGrid(List<CaTask> tasks)
 	{
 		Map<CaTier, int[]> counts = tierStats(tasks);
-		CaTier[] tiers = CaTier.values();
-		for (int start = 0; start < tiers.length; start += TIER_COLUMNS)
+		// a card with nothing behind the filters does not show (Luke,
+		// 2026-07-27)
+		List<CaTier> tiers = new ArrayList<>();
+		for (CaTier tier : CaTier.values())
+		{
+			if (tasks.stream().anyMatch(t -> t.tier == tier && filterPasses(t, false)))
+			{
+				tiers.add(tier);
+			}
+		}
+		if (tiers.isEmpty())
+		{
+			content.add(note("No combat tasks match the filters."));
+			return;
+		}
+		for (int start = 0; start < tiers.size(); start += TIER_COLUMNS)
 		{
 			JPanel line = row();
 			line.add(Box.createHorizontalGlue());
-			for (int col = 0; col < TIER_COLUMNS && start + col < tiers.length; col++)
+			for (int col = 0; col < TIER_COLUMNS && start + col < tiers.size(); col++)
 			{
 				if (col > 0)
 				{
 					line.add(Box.createHorizontalStrut(V2Tokens.ROW));
 				}
-				CaTier tier = tiers[start + col];
+				CaTier tier = tiers.get(start + col);
 				line.add(pageTile(tier.display, tierEmblem(tier), TIER_TILE,
 					counts.getOrDefault(tier, new int[2]), tier == openTier, () ->
 					{
@@ -505,9 +546,9 @@ class CombatAchievementsTab extends JPanel
 			cap(line);
 			content.add(line);
 			content.add(Box.createVerticalStrut(V2Tokens.ROW));
-			for (int col = 0; col < TIER_COLUMNS && start + col < tiers.length; col++)
+			for (int col = 0; col < TIER_COLUMNS && start + col < tiers.size(); col++)
 			{
-				if (tiers[start + col] == openTier)
+				if (tiers.get(start + col) == openTier)
 				{
 					tierDetail(tasks);
 					content.add(Box.createVerticalStrut(V2Tokens.ROW));
@@ -539,6 +580,15 @@ class CombatAchievementsTab extends JPanel
 		if (names.isEmpty())
 		{
 			content.add(note("No bosses to show yet."));
+			return;
+		}
+		// a card with nothing behind the filters does not show (Luke,
+		// 2026-07-27: no Chambers of Xeric when only Easy is on)
+		names.removeIf(name -> tasks.stream()
+			.noneMatch(t -> name.equals(t.boss) && filterPasses(t, true)));
+		if (names.isEmpty())
+		{
+			content.add(note("No bosses match the filters."));
 			return;
 		}
 		// paginated: 10 rows of 2 per page, arrows below (Luke, 2026-07-27)
@@ -914,9 +964,10 @@ class CombatAchievementsTab extends JPanel
 	 */
 	boolean filterPasses(CaTask task, boolean applyTier)
 	{
-		String status = STATUS_OPTIONS[statusFilter.selected()];
-		if ("Completed".equals(status) && !task.completed
-			|| "Incomplete".equals(status) && task.completed)
+		// the Completed checkbox: checked = the finished tasks, unchecked =
+		// the to-do list (Luke, 2026-07-27)
+		boolean completed = completedFilter.state() == com.ironhub.ui.v2.V2Checkbox.State.ON;
+		if (task.completed != completed)
 		{
 			return false;
 		}
@@ -925,8 +976,7 @@ class CombatAchievementsTab extends JPanel
 		{
 			return false;
 		}
-		return !applyTier || tierFilter.selected() == 0
-			|| task.tier == CaTier.values()[tierFilter.selected() - 1];
+		return !applyTier || tierEnabled.get(task.tier);
 	}
 
 	/** A boss card's emblem: the boss's own collection-log page's first
