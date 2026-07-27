@@ -75,6 +75,13 @@ public class LoadoutLabModuleTest
 		return new LoadoutLabModule(new com.loadoutlab.LoadoutLabPlugin(),
 			new net.runelite.client.eventbus.EventBus(), new com.ironhub.IronHubConfig()
 			{
+				// Vanilla: the config default is MYSTIC, and these renders are
+				// judged against the Vanilla design system (Luke, 2026-07-25)
+				@Override
+				public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+				{
+					return com.ironhub.ui.osrs.OsrsTheme.STONE;
+				}
 			},
 			state, null, null, null, new com.google.gson.Gson(), null, null, null, null);
 	}

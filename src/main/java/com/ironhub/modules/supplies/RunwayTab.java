@@ -9,10 +9,11 @@ import com.ironhub.ui.components.SpriteCache;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneBorder;
-import com.ironhub.ui.osrs.StoneHubTile;
-import com.ironhub.ui.osrs.StonePanel;
-import com.ironhub.ui.osrs.StoneTextField;
+import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2TextField;
+import com.ironhub.ui.v2.V2Tile;
+import com.ironhub.ui.v2.V2Tokens;
+import com.ironhub.ui.v2.V2Well;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -57,8 +58,8 @@ class RunwayTab extends JPanel
 	private final SuppliesPack pack;
 
 	private final JPanel list = new JPanel();
-	private final StoneTextField search;
-	private final List<StoneHubTile> tiles = new ArrayList<>();
+	private final V2TextField search;
+	private final List<V2Tile> tiles = new ArrayList<>();
 	private final List<String> categoryKeys = new ArrayList<>();
 	private String selectedCategory;
 
@@ -82,15 +83,17 @@ class RunwayTab extends JPanel
 		if (pack != null && !pack.categories.isEmpty())
 		{
 			selectedCategory = pack.categories.get(0).key;
-			JPanel strip = new JPanel(new GridLayout(0, 4, 3, 3));
+			JPanel strip = new JPanel(new GridLayout(0, 4, V2Tokens.ROW, V2Tokens.ROW));
 			strip.setOpaque(false);
 			strip.setAlignmentX(LEFT_ALIGNMENT);
 			for (SuppliesPack.Category c : pack.categories)
 			{
 				categoryKeys.add(c.key);
 				Image icon = sprites.get(c.icon, -1, 26);
-				StoneHubTile tile = new StoneHubTile(theme, icon, c.name, c.name,
-					c.key.equals(selectedCategory), () -> selectCategory(c.key));
+				V2Tile tile = new V2Tile(theme, icon, c.name, TILE_ART,
+					() -> selectCategory(c.key)).width(TILE_WIDTH)
+					.selected(c.key.equals(selectedCategory));
+				tile.setToolTipText(c.name);
 				tiles.add(tile);
 				strip.add(tile);
 			}
@@ -98,8 +101,8 @@ class RunwayTab extends JPanel
 			add(strip);
 			add(Box.createVerticalStrut(4));
 
-			search = new StoneTextField(theme, "Search consumables & resources…");
-			search.getDocument().addDocumentListener(new DocumentListener()
+			search = new V2TextField(theme, "Search consumables & resources…", null);
+			search.editor().getDocument().addDocumentListener(new DocumentListener()
 			{
 				public void insertUpdate(DocumentEvent e) { rebuild(); }
 				public void removeUpdate(DocumentEvent e) { rebuild(); }
@@ -147,7 +150,7 @@ class RunwayTab extends JPanel
 		selectedCategory = key;
 		for (int i = 0; i < tiles.size(); i++)
 		{
-			tiles.get(i).setSelected(categoryKeys.get(i).equals(key));
+			tiles.get(i).selected(categoryKeys.get(i).equals(key));
 		}
 		if (search != null && !search.getText().isEmpty())
 		{
@@ -199,7 +202,7 @@ class RunwayTab extends JPanel
 				+ "supply, or bring back one you removed."));
 			return;
 		}
-		StonePanel group = group();
+		V2Surface group = group();
 		for (SuppliesPack.Item item : items)
 		{
 			group.add(watchRow(item));
@@ -217,7 +220,7 @@ class RunwayTab extends JPanel
 			list.add(note("No supplies match that search."));
 			return;
 		}
-		StonePanel group = group();
+		V2Surface group = group();
 		int cap = 40;
 		for (int i = 0; i < Math.min(cap, results.size()); i++)
 		{
@@ -303,7 +306,7 @@ class RunwayTab extends JPanel
 	 *  it is also the amount a restock goal stocks to. */
 	private JComponent targetField(SuppliesPack.Item item, int target)
 	{
-		StoneTextField field = new StoneTextField(theme, "min");
+		V2TextField field = V2TextField.plain(theme, "min", null);
 		field.setText(target > 0 ? String.valueOf(target) : "");
 		field.setToolTipText("Target amount — red below this, and the restock "
 			+ "goal's amount");
@@ -321,8 +324,8 @@ class RunwayTab extends JPanel
 			}
 			state.setSupplyThreshold(item.id, value);
 		};
-		field.addActionListener(e -> commit.run());
-		field.addFocusListener(new FocusAdapter()
+		field.editor().addActionListener(e -> commit.run());
+		field.editor().addFocusListener(new FocusAdapter()
 		{
 			@Override
 			public void focusGained(FocusEvent e)
@@ -432,16 +435,18 @@ class RunwayTab extends JPanel
 		return row;
 	}
 
-	private StonePanel group()
+	/** A list Well at the list inset (§4) — a group of supply rows. */
+	private V2Surface group()
 	{
-		StonePanel group = new StonePanel(theme);
-		group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
-		group.setAlignmentX(LEFT_ALIGNMENT);
-		int corner = theme.cornerStamp.length;
-		group.setBorder(new StoneBorder(theme, theme.background,
-			new Insets(corner, corner, corner, corner)));
+		V2Surface group = V2Surface.well(theme);
+		int inset = V2Well.CAP + V2Tokens.TIGHT;
+		group.setBorder(new javax.swing.border.EmptyBorder(inset, inset, inset, inset));
 		return group;
 	}
+
+	/** The category strip's tile geometry; the caption sits under the art. */
+	private static final int TILE_ART = 38;
+	private static final int TILE_WIDTH = 50;
 
 	private JComponent note(String text)
 	{

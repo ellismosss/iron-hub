@@ -1,7 +1,7 @@
 package com.ironhub.ui.components;
 
-import com.ironhub.ui.osrs.IconTile;
 import com.ironhub.ui.osrs.OsrsTheme;
+import com.ironhub.ui.v2.V2Tile;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.util.ArrayList;
@@ -37,6 +37,11 @@ public class TileTree extends JPanel
 	private static final int SUB_COLS = 3;   // indented, so one fewer than the top
 	private static final int INDENT = 8;
 	private static final int GAP = 3;
+	/** The tile's ART height; the caption sits under it. V1's IconTile was
+	 *  52x56 with the caption INSIDE the art — the V2 tile puts it outside, so
+	 *  the art is the old height less its two caption lines. */
+	private static final int TILE_ART = 34;
+	private static final int TILE_WIDTH = 52;
 
 	/** A member tile (level 2) and the detail it opens (level 3). */
 	public static final class Leaf
@@ -160,19 +165,34 @@ public class TileTree extends JPanel
 		repaint();
 	}
 
-	private IconTile topTile(Top top)
+	private V2Tile topTile(Top top)
 	{
 		Image icon = top.icon != null ? sprites.get(top.icon, -1, 26) : null;
 		boolean open = top.id.equals(expandedTop);
-		return new IconTile(theme, top.label, icon, top.owned, top.tracked, open,
-			top.badge, false, top.tooltip,
+		return tile(top.label, icon, top.owned, top.tracked, open, top.badge, top.tooltip,
 			() ->
 			{
 				expandedTop = open ? null : top.id;
 				selectedLeaf = null;
 				render();
-			},
-			e -> { });
+			});
+	}
+
+	/**
+	 * The shared tile. V1's {@code IconTile} was a second tile class with its
+	 * own painter; it is gone (Luke's Progression pass, 2026-07-26) and this
+	 * is {@code V2Tile} wearing the same three states: {@code tracked} is the
+	 * READY status edge, {@code owned} the curated corner tick, {@code
+	 * selected} the lit bevel.
+	 */
+	private V2Tile tile(String label, Image icon, boolean owned, boolean tracked,
+		boolean selected, int badge, String tooltip, Runnable onClick)
+	{
+		V2Tile tile = new V2Tile(theme, icon, label, TILE_ART, onClick)
+			.width(TILE_WIDTH).captionLines(2).owned(owned).selected(selected).badge(badge);
+		tile.status(tracked ? V2Tile.Status.READY : V2Tile.Status.PLAIN);
+		tile.setToolTipText(tooltip);
+		return tile;
 	}
 
 	private void addSubGrid(Top top)
@@ -214,18 +234,16 @@ public class TileTree extends JPanel
 		}
 	}
 
-	private IconTile leafTile(Leaf leaf)
+	private V2Tile leafTile(Leaf leaf)
 	{
 		Image icon = leaf.icon != null ? sprites.get(leaf.icon, -1, 26) : null;
 		boolean sel = leaf.id.equals(selectedLeaf);
-		return new IconTile(theme, leaf.label, icon, leaf.owned, leaf.tracked, sel,
-			leaf.badge, false, leaf.tooltip,
+		return tile(leaf.label, icon, leaf.owned, leaf.tracked, sel, leaf.badge, leaf.tooltip,
 			() ->
 			{
 				selectedLeaf = sel ? null : leaf.id;
 				render();
-			},
-			e -> { });
+			});
 	}
 
 	private JPanel row(int leftIndent)

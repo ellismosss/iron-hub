@@ -8,8 +8,9 @@ import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StonePanel;
-import com.ironhub.ui.osrs.StoneMeter;
+import com.ironhub.ui.v2.V2ProgressBar;
+import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2Tokens;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -47,8 +48,8 @@ class DiariesTab extends JPanel
 	private final OsrsTheme theme;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 
-	private final StonePanel card;
-	private final StoneMeter bar;
+	private final V2Surface card;
+	private final V2ProgressBar bar;
 	private final JPanel list = new JPanel();
 
 	/** Region whose task list is open (one at a time, like the in-game journal). */
@@ -71,10 +72,9 @@ class DiariesTab extends JPanel
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
 		add(section("Progress"));
-		card = new StonePanel(theme);
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setAlignmentX(LEFT_ALIGNMENT);
-		bar = new StoneMeter(theme, OsrsSkin.PROGRESS_BLUE, 0);
+		// the diary standing is the one live readout on the page — the Card
+		card = V2Surface.card(theme);
+		bar = new V2ProgressBar(theme, V2ProgressBar.Size.METER).fill(V2Tokens.BAR_BLUE);
 		add(pad(card));
 		add(Box.createVerticalStrut(6));
 
@@ -119,8 +119,7 @@ class DiariesTab extends JPanel
 			+ (DiariesModule.REGIONS.length * 4) + " tiers",
 			OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
 		card.add(Box.createVerticalStrut(3));
-		bar.setFraction(total == 0 ? 0 : (double) done / total);
-		bar.setAlignmentX(LEFT_ALIGNMENT);
+		bar.fraction(total == 0 ? 0 : (double) done / total);
 		card.add(bar);
 		cap(card);
 
@@ -139,28 +138,18 @@ class DiariesTab extends JPanel
 	private JPanel regionCard(DiariesPack.Region region)
 	{
 		boolean open = region.name.equals(expandedRegion);
-		StonePanel regionCard = new StonePanel(theme)
-		{
-			@Override
-			public Dimension getMaximumSize()
-			{
-				return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
-			}
-		};
-		regionCard.setLayout(new BoxLayout(regionCard, BoxLayout.Y_AXIS));
-		regionCard.setAlignmentX(LEFT_ALIGNMENT);
+		// a region is a grouping block — the Tile (§12)
+		V2Surface regionCard = V2Surface.tile(theme);
+		regionCard.setLit(open);
 
 		int done = module.regionDone(region);
 		int total = DiariesModule.regionTotal(region);
 
 		JPanel header = new JPanel();
 		header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
-		// the open region's header wears the theme's select band
-		header.setOpaque(open);
-		if (open)
-		{
-			header.setBackground(theme.selectFill);
-		}
+		// the open region is lit by the TILE, not by a band of its own — a
+		// solid selectFill inside a surface paints over its grain
+		header.setOpaque(false);
 		header.setAlignmentX(LEFT_ALIGNMENT);
 		header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
@@ -271,25 +260,16 @@ class DiariesTab extends JPanel
 				.append(done).append("/").append(tier.tasks.size())
 				.append(complete[i] ? " (complete)" : "");
 		}
-		JComponent segments = new JComponent()
+		// four METER atoms, not a hand-painted strip (Luke's Progression pass,
+		// 2026-07-26): green when the tier is signed off, orange while partial
+		JPanel segments = new JPanel(new java.awt.GridLayout(1, 4, V2Tokens.TIGHT, 0));
+		segments.setOpaque(false);
+		for (int i = 0; i < 4; i++)
 		{
-			@Override
-			protected void paintComponent(Graphics g)
-			{
-				int gap = 2;
-				int w = (getWidth() - 3 * gap) / 4;
-				int h = getHeight();
-				for (int i = 0; i < 4; i++)
-				{
-					int x = i * (w + gap);
-					g.setColor(OsrsSkin.BAR_TROUGH);
-					g.fillRect(x, 0, w, h);
-					g.setColor(complete[i] ? OsrsSkin.VALUE.darker() : OsrsSkin.TITLE.darker());
-					g.fillRect(x + 1, 1, (int) Math.round((w - 2) * fractions[i]), h - 2);
-					OsrsSkin.outline(g, theme.edgeDark, x, 0, w, h);
-				}
-			}
-		};
+			segments.add(new V2ProgressBar(theme, V2ProgressBar.Size.METER)
+				.fill(complete[i] ? V2Tokens.BAR_FILL : OsrsSkin.TITLE.darker())
+				.fraction(fractions[i]));
+		}
 		// the thin-meter height (Luke, 2026-07-17): the tall bar crowded the card
 		segments.setPreferredSize(new Dimension(0, TIER_BAR_HEIGHT));
 		segments.setMinimumSize(new Dimension(0, TIER_BAR_HEIGHT));

@@ -14,12 +14,14 @@ import com.ironhub.ui.osrs.OsrsIcons;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StatBox;
 import com.ironhub.ui.osrs.StoneButton;
 import com.ironhub.ui.osrs.StoneMeter;
 import com.ironhub.ui.osrs.StonePanel;
 import com.ironhub.ui.osrs.StoneProgressBar;
-import com.ironhub.ui.osrs.StoneTextField;
+import com.ironhub.ui.v2.V2SpriteButton;
+import com.ironhub.ui.v2.V2TextField;
+import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2Tokens;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -69,16 +71,18 @@ class GoalsHubTab extends JPanel
 	/** Goal/task row icon height — a small, consistent size for every icon
 	 *  (system badges AND item sprites), the tidy small variation Luke prefers. */
 	private static final int BADGE_H = 18;
-	/** The tab's own 4px border, both sides. */
-	private static final int TAB_INSET = 8;
-	/** A category slab's inner padding inside its engraved edge. */
-	private static final int SLAB_PAD = 4;
-	/** A Task block's left indent (ROW_GAP + 6) and right gutter (ROW_GAP). */
-	private static final int TASK_INDENT = UiTokens.ROW_GAP + 6;
+	/** What the hub page's Frame costs this view, both sides (§7). */
+	private static final int TAB_INSET = 2 * (V2Tokens.STONE_FRAME_INSET + V2Tokens.PAD);
 	/** The choose-a-method affordance (design/choose_method.png, Luke). */
 	private static final int CHOOSE_ICON = 14;
-	/** The larger icon in the CURRENT TASK hero tile (Luke). */
-	private static final int CURRENT_ICON_H = 34;
+	/**
+	 * The larger icon in the CURRENT TASK hero tile (Luke). 25px is the curated
+	 * skill sprites' NATIVE size: at 34 they had to be blown up 1.36x, and
+	 * nearest-neighbour at a fractional factor doubles some pixel rows and not
+	 * others, which is what makes upscaled pixel art look broken. Every other
+	 * icon in the tile follows it so the hero reads as one size.
+	 */
+	private static final int CURRENT_ICON_H = 25;
 
 	/** Clue-scroll sprite per tier, for a clue Route's icon (16). */
 	private static final Map<String, Integer> CLUE_TIER_ITEM = Map.of(
@@ -108,7 +112,7 @@ class GoalsHubTab extends JPanel
 	/** The search field + results panel are LONG-LIVED (created once, re-added
 	 *  on rebuild): typing updates only the results panel, so a keystroke never
 	 *  destroys the focused field (Luke's de-focus bug). */
-	private StoneTextField searchField;
+	private V2TextField searchField;
 	private final JPanel searchResultsPanel = new JPanel();
 	/** Collapsed Goal categories (Quests, Gear, …). */
 	private final java.util.Set<String> collapsedCategories = new java.util.HashSet<>();
@@ -130,11 +134,18 @@ class GoalsHubTab extends JPanel
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
-		setBorder(new EmptyBorder(4, 4, 4, 4));
+		// NO horizontal inset: the Frame goes edge to edge across all 225px, the
+		// same as Design lab V2's (measured 2026-07-25). DesignLabTab's own
+		// border is EmptyBorder(4, 0, 4, 0) — its 4px belongs to the CHIP ROW,
+		// not to the gallery, so nothing insets that frame either. Vertical
+		// padding is still the view's.
+		setBorder(new EmptyBorder(V2Tokens.PAD, 0, V2Tokens.PAD, 0));
 
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 		content.setOpaque(false);
 		content.setAlignmentX(LEFT_ALIGNMENT);
+		// NO frame of its own: the hub PAGE carries one around every module it
+		// holds now (Luke, 2026-07-25), and two nested frames drew two edges
 		add(content);
 		add(Box.createVerticalGlue());
 
@@ -192,20 +203,20 @@ class GoalsHubTab extends JPanel
 		List<GoalsPack.Goal> routes = routes();
 
 		// 1 · hero
-		content.add(pad(pair(
-			new StatBox(theme, "Active\ngoals:", OsrsIcons.stat(theme, "quests"),
-				String.valueOf(routes.size())),
-			doneThisMonth())));
+		content.add(pair(
+			statSlab("Active\ngoals:", OsrsIcons.stat(theme, "quests"),
+				String.valueOf(routes.size()), null),
+			doneThisMonth()));
 		// 2 · current task — the »» marker sits beside the header text (Luke)
 		content.add(section("CURRENT TASK", doubleChevron(true)));
 		Plan plan = latestPlan;
 		Plan.Step head = plan == null ? null : plan.head();
-		content.add(pad(head == null ? emptyTask() : currentTask(head)));
+		content.add(head == null ? emptyTask() : currentTask(head));
 
 		// 3 · add goal — above the GOALS header (15). The field + results panel
 		// are long-lived so typing doesn't rebuild (and de-focus) the field.
 		content.add(strut(4));
-		content.add(pad(addGoalField()));
+		content.add(addGoalField());
 		content.add(searchResultsPanel);
 		renderSearchResults();
 
@@ -214,12 +225,12 @@ class GoalsHubTab extends JPanel
 		JComponent banner = updateBanner();
 		if (banner != null)
 		{
-			content.add(pad(banner));
+			content.add(banner);
 			content.add(strut(3));
 		}
 		if (routes.isEmpty())
 		{
-			content.add(pad(mutedLine("No routes yet — add a goal above.")));
+			content.add(mutedLine("No routes yet — add a goal above."));
 		}
 		else
 		{
@@ -227,7 +238,7 @@ class GoalsHubTab extends JPanel
 			{
 				// full-width, matching the main section's header plate (no extra
 				// pad inset) so the rows get the most text space (Luke)
-				content.add(categorySlab(e.getKey(), e.getValue()));
+				content.add(category(e.getKey(), e.getValue()));
 				content.add(strut(3));
 			}
 		}
@@ -239,7 +250,7 @@ class GoalsHubTab extends JPanel
 			content.add(section("SUGGESTIONS"));
 			for (Suggester.Suggestion s : suggestions)
 			{
-				content.add(pad(suggestionCard(s)));
+				content.add(suggestionCard(s));
 				content.add(strut(2));
 			}
 		}
@@ -311,37 +322,62 @@ class GoalsHubTab extends JPanel
 		}
 	}
 
-	private StatBox doneThisMonth()
+	/**
+	 * {@code StatBox}'s layout on the DLV2 Slab (Luke, 2026-07-25) — the same
+	 * centred label over icon-and-value it always had, now wearing the grain
+	 * its neighbours wear. Hand-built rather than subclassed because the box's
+	 * whole content IS those three lines; what changed is the surface under
+	 * them.
+	 */
+	private V2Surface statSlab(String label, Icon icon, String value, Runnable onPress)
 	{
-		StatBox box = new StatBox(theme, "Completed\nthis month:",
-			OsrsIcons.stat(theme, "achievements"), String.valueOf(doneThisMonthCount()));
-		box.setToolTipText("View completed goals");
-		box.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		box.addMouseListener(new MouseAdapter()
+		V2Surface slab = V2Surface.slab(theme);
+		slab.add(OsrsLabel.label(label));
+		slab.add(strut(2));
+		JPanel line = new JPanel();
+		line.setLayout(new BoxLayout(line, BoxLayout.X_AXIS));
+		line.setOpaque(false);
+		line.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
+		if (icon != null)
 		{
-			// a hover lift signals the click-through
-			@Override
-			public void mouseEntered(MouseEvent e)
+			JLabel sprite = new JLabel(icon);
+			sprite.setAlignmentY(java.awt.Component.CENTER_ALIGNMENT);
+			line.add(sprite);
+			line.add(Box.createHorizontalStrut(5));
+		}
+		OsrsLabel valueLabel = OsrsLabel.value(value);
+		valueLabel.setAlignmentY(java.awt.Component.CENTER_ALIGNMENT);
+		line.add(valueLabel);
+		slab.add(line);
+		if (onPress != null)
+		{
+			// the clipped wash signals the click-through, where V1 swapped the
+			// whole fill for hoverFill — a Slab's fill is a texture now (§8)
+			slab.hoverable();
+			slab.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			slab.addMouseListener(new MouseAdapter()
 			{
-				box.setBackground(theme.hoverFill);
-				box.repaint();
-			}
+				@Override
+				public void mousePressed(MouseEvent e)
+				{
+					onPress.run();
+				}
+			});
+		}
+		return slab;
+	}
 
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				box.setBackground(theme.boxFill);
-				box.repaint();
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e)
+	private V2Surface doneThisMonth()
+	{
+		V2Surface slab = statSlab("Completed\nthis month:",
+			OsrsIcons.stat(theme, "achievements"), String.valueOf(doneThisMonthCount()),
+			() ->
 			{
 				showArchive = true;
 				rebuild();
-			}
-		});
-		return box;
+			});
+		slab.setToolTipText("View completed goals");
+		return slab;
 	}
 
 	private int doneThisMonthCount()
@@ -363,10 +399,10 @@ class GoalsHubTab extends JPanel
 
 	private JComponent currentTask(Plan.Step step)
 	{
-		StonePanel card = new StonePanel(theme);
-		card.setBackground(theme.selectFill);
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setAlignmentX(LEFT_ALIGNMENT);
+		// the DLV2 Card (Luke, 2026-07-25) — the filled surface, where the
+		// Goals list below wears the Tile. No selectFill either way: neither
+		// surface changes its fill, and the lift is the wash (§8)
+		V2Surface card = V2Surface.card(theme);
 
 		JPanel title = row();
 		Icon icon = stepIcon(step, CURRENT_ICON_H); // large in the hero tile (Luke)
@@ -419,7 +455,8 @@ class GoalsHubTab extends JPanel
 		if (step.why != null && !step.why.isEmpty())
 		{
 			card.add(Box.createVerticalStrut(3));
-			card.add(OsrsLabel.wrapped("Why: " + step.why, 186, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+			card.add(OsrsLabel.wrapped("Why: " + step.why, cardContentWidth(),
+				OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
 		}
 		addResourceRows(step, card);
 
@@ -430,8 +467,12 @@ class GoalsHubTab extends JPanel
 		String wiki = wikiUrl(step);
 		if (wiki != null)
 		{
-			StoneButton w = new StoneButton(theme, theme.selectFill, "Wiki", () -> LinkBrowser.browse(wiki));
-			w.setMaximumSize(w.getPreferredSize());
+			// a W in DETAIL on the empty checkbox (Luke, 2026-07-25). The
+			// curated wiki badge is 26px and would not shrink into a row of
+			// detail text cleanly; the panel's own font does.
+			V2SpriteButton w = new V2SpriteButton(theme, V2SpriteButton.EMPTY_BOX,
+				false, () -> LinkBrowser.browse(wiki)).letter("W");
+			w.setToolTipText("Open wiki"); // the word the button no longer says
 			foot.add(w);
 		}
 		card.add(foot);
@@ -477,13 +518,13 @@ class GoalsHubTab extends JPanel
 
 	private JComponent emptyTask()
 	{
-		StonePanel card = new StonePanel(theme);
-		card.setLayout(new BoxLayout(card, BoxLayout.X_AXIS));
-		card.setAlignmentX(LEFT_ALIGNMENT);
-		card.add(new OsrsLabel("All caught up — add a goal to get a plan.",
+		// the same slot as currentTask, so the same surface
+		V2Surface card = V2Surface.card(theme);
+		JPanel line = row();
+		line.add(new OsrsLabel("All caught up — add a goal to get a plan.",
 			OsrsSkin.MUTED, OsrsSkin.font()).leftAligned().squeezable());
-		card.add(Box.createHorizontalGlue());
-		cap(card);
+		line.add(Box.createHorizontalGlue());
+		card.add(line);
 		return card;
 	}
 
@@ -499,13 +540,12 @@ class GoalsHubTab extends JPanel
 		List<Plan.Step> slice = routeSlice(route);
 		boolean single = slice.size() <= 1; // a one-task goal needs no meter/count
 		// flat row on the slab (no nested stone border — frees text width);
-		// pinned rows fill selectFill, a 1px darker left strip marks priority
+		// a 1px darker left strip marks priority. The active goal carries NO
+		// fill of its own (Luke, 2026-07-25): the bright »» pin and the bold
+		// orange name already say which one it is, and a selectFill band across
+		// the row said it a third time.
 		JPanel card = new JPanel();
-		card.setOpaque(pinned);
-		if (pinned)
-		{
-			card.setBackground(theme.selectFill);
-		}
+		card.setOpaque(false);
 		Color edge = "high".equals(tier) ? EDGE_HIGH
 			: "medium".equals(tier) ? EDGE_MEDIUM : low ? EDGE_LOW : null;
 		javax.swing.border.Border inner = new EmptyBorder(1, edge != null ? 3 : 2, 1, 2);
@@ -665,9 +705,25 @@ class GoalsHubTab extends JPanel
 	 */
 	private int taskContentWidth(int extraIndent)
 	{
-		int slabEdge = theme.cornerStamp.length + SLAB_PAD;
-		return Math.max(60, UiTokens.PANEL_WIDTH - TAB_INSET - slabEdge * 2
-			- TASK_INDENT - UiTokens.ROW_GAP - extraIndent);
+		// the Tile's content inset — wrapped text measured against the old
+		// engraved edge ran off the right edge once the surface underneath it
+		// changed (Luke, 2026-07-23), so this stays derived, never restated
+		int slabEdge = V2Tokens.NAV_TILE_INSET + V2Tokens.PAD;
+		int wellEdge = com.ironhub.ui.v2.V2Well.CAP + V2Tokens.TIGHT;
+		return Math.max(60, UiTokens.PANEL_WIDTH - TAB_INSET
+			- slabEdge * 2 - wellEdge * 2 - extraIndent);
+	}
+
+	/**
+	 * How wide the Current Task Card's own content may be: the panel, minus the
+	 * Frame, minus the Card's 9px art inset and its PAD. Derived rather than
+	 * restated — the 186 that stood here predated both the Frame and the Card,
+	 * and a literal cannot follow a surface change.
+	 */
+	private int cardContentWidth()
+	{
+		return UiTokens.PANEL_WIDTH - TAB_INSET
+			- 2 * (V2Tokens.SLICE_INSET + V2Tokens.PAD);
 	}
 
 	/** This route's slice of the merged plan (the real, costed Tasks with
@@ -767,7 +823,7 @@ class GoalsHubTab extends JPanel
 		block.setLayout(new BoxLayout(block, BoxLayout.Y_AXIS));
 		block.setOpaque(false);
 		block.setAlignmentX(LEFT_ALIGNMENT);
-		block.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP + 6, 2, UiTokens.ROW_GAP));
+		block.setBorder(new EmptyBorder(V2Tokens.TIGHT, 0, V2Tokens.TIGHT, 0));
 
 		JPanel line = row();
 		Icon icon = stepIcon(step);
@@ -831,7 +887,7 @@ class GoalsHubTab extends JPanel
 		block.setLayout(new BoxLayout(block, BoxLayout.Y_AXIS));
 		block.setOpaque(false);
 		block.setAlignmentX(LEFT_ALIGNMENT);
-		block.setBorder(new EmptyBorder(2, TASK_INDENT, 2, UiTokens.ROW_GAP));
+		block.setBorder(new EmptyBorder(V2Tokens.TIGHT, 0, V2Tokens.TIGHT, 0));
 		addDetailRows(step, route, block);
 		if (block.getComponentCount() == 0)
 		{
@@ -1278,7 +1334,7 @@ class GoalsHubTab extends JPanel
 		for (Plan.Resource r : step.resources)
 		{
 			JPanel row = row();
-			row.setBorder(new EmptyBorder(1, UiTokens.ROW_GAP + 12, 1, UiTokens.ROW_GAP));
+			row.setBorder(new EmptyBorder(0, V2Tokens.PAD, 0, 0));
 			if (itemManager != null && r.itemId > 0)
 			{
 				Icon icon = itemIcon(r.itemId, 16);
@@ -1313,7 +1369,7 @@ class GoalsHubTab extends JPanel
 	private JComponent materialRow(int itemId, String text)
 	{
 		JPanel row = row();
-		row.setBorder(new EmptyBorder(1, UiTokens.ROW_GAP + 6, 1, UiTokens.ROW_GAP));
+		row.setBorder(new EmptyBorder(0, 0, 0, 0));
 		if (itemId > 0 && itemManager != null)
 		{
 			row.add(new JLabel(itemIcon(itemId, BADGE_H)));
@@ -1330,7 +1386,7 @@ class GoalsHubTab extends JPanel
 	private JComponent manualTaskRow(CompiledStep step)
 	{
 		JPanel row = row();
-		row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP + 6, 2, UiTokens.ROW_GAP));
+		row.setBorder(new EmptyBorder(V2Tokens.TIGHT, 0, V2Tokens.TIGHT, 0));
 		row.add(OsrsLabel.wrapped(step.label, 160, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
 		row.add(Box.createHorizontalGlue());
 		if (step.manual)
@@ -1463,29 +1519,15 @@ class GoalsHubTab extends JPanel
 	{
 		if (searchField == null)
 		{
-			searchField = new StoneTextField(theme, "Add a goal — search…");
 			searchResultsPanel.setLayout(new BoxLayout(searchResultsPanel, BoxLayout.Y_AXIS));
 			searchResultsPanel.setOpaque(false);
 			searchResultsPanel.setAlignmentX(LEFT_ALIGNMENT);
-			searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
-			{
-				@Override
-				public void insertUpdate(javax.swing.event.DocumentEvent e)
-				{
-					refreshSearch(searchField.getText());
-				}
-
-				@Override
-				public void removeUpdate(javax.swing.event.DocumentEvent e)
-				{
-					refreshSearch(searchField.getText());
-				}
-
-				@Override
-				public void changedUpdate(javax.swing.event.DocumentEvent e)
-				{
-				}
-			});
+			// the DLV2 field: the game's own well with the magnifier in it. Its
+			// onChange carries the same contract as the three-method document
+			// listener it replaces, and still updates the results panel only,
+			// so a keystroke never rebuilds (and de-focuses) the field.
+			searchField = new V2TextField(theme, "Add a goal — search…",
+				() -> refreshSearch(searchField.getText()));
 		}
 		return searchField;
 	}
@@ -1497,7 +1539,7 @@ class GoalsHubTab extends JPanel
 		searchResultsPanel.removeAll();
 		for (Map.Entry<String, String> e : searchResults.entrySet())
 		{
-			searchResultsPanel.add(pad(searchResultRow(e.getKey(), e.getValue())));
+			searchResultsPanel.add(searchResultRow(e.getKey(), e.getValue()));
 		}
 		searchResultsPanel.revalidate();
 		searchResultsPanel.repaint();
@@ -1729,13 +1771,13 @@ class GoalsHubTab extends JPanel
 		header.add(new OsrsLabel("Completed", OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
 		header.add(Box.createHorizontalGlue());
 		cap(header);
-		content.add(pad(header));
+		content.add(header);
 		content.add(strut(3));
 
 		List<PersistedState.GoalRecord> records = state.getGoalRecords();
 		if (records.isEmpty())
 		{
-			content.add(pad(mutedLine("Nothing completed yet.")));
+			content.add(mutedLine("Nothing completed yet."));
 			return;
 		}
 		content.add(section("THIS MONTH · " + doneThisMonthCount()));
@@ -1744,7 +1786,7 @@ class GoalsHubTab extends JPanel
 		sorted.sort((a, b) -> Long.compare(b.completedAt, a.completedAt));
 		for (PersistedState.GoalRecord r : sorted)
 		{
-			content.add(pad(archiveRow(r)));
+			content.add(archiveRow(r));
 		}
 		content.add(strut(6));
 	}
@@ -1791,13 +1833,15 @@ class GoalsHubTab extends JPanel
 			return null;
 		}
 		double delta = latest.knownHours - displayedPlan.knownHours;
-		StonePanel banner = new StonePanel(theme);
-		banner.setLayout(new BoxLayout(banner, BoxLayout.X_AXIS));
-		banner.setAlignmentX(LEFT_ALIGNMENT);
+		// the DLV2 Chip (Luke, 2026-07-25) — a rounded, transient surface, which
+		// is what this is: a notice that appears when the plan moves and leaves
+		// again the moment it is applied
+		V2Surface banner = V2Surface.chip(theme);
+		JPanel line = row();
 		String text = Math.abs(delta) < 0.05 ? "Routes updated" : "Routes updated: "
 			+ (delta < 0 ? "-" : "+") + compactHours(Math.abs(delta));
-		banner.add(new OsrsLabel(text, BANNER_AMBER, OsrsSkin.font()).leftAligned().squeezable());
-		banner.add(Box.createHorizontalGlue());
+		line.add(new OsrsLabel(text, BANNER_AMBER, OsrsSkin.font()).leftAligned().squeezable());
+		line.add(Box.createHorizontalGlue());
 		JLabel apply = new JLabel("apply");
 		OsrsSkin.crisp(apply);
 		apply.setFont(OsrsSkin.font());
@@ -1812,8 +1856,8 @@ class GoalsHubTab extends JPanel
 				rebuild();
 			}
 		});
-		banner.add(apply);
-		cap(banner);
+		line.add(apply);
+		banner.add(line);
 		return banner;
 	}
 
@@ -2031,10 +2075,10 @@ class GoalsHubTab extends JPanel
 
 	private Icon stepIcon(Plan.Step step, int height)
 	{
-		if (skillIcons != null && step.action.kind == com.ironhub.engine.Action.Kind.TRAIN
+		if (step.action.kind == com.ironhub.engine.Action.Kind.TRAIN
 			&& step.action.trainSkill != null)
 		{
-			return sized(skillIcons.getSkillImage(step.action.trainSkill, false), height);
+			return skillIcon(step.action.trainSkill, height);
 		}
 		if (step.action.kind == com.ironhub.engine.Action.Kind.QUEST)
 		{
@@ -2105,6 +2149,24 @@ class GoalsHubTab extends JPanel
 		}
 	}
 
+	/**
+	 * A skill's icon from the CURATED set (Luke, 2026-07-25), scaled to fit —
+	 * §2's emblem exception, nearest neighbour. The client's own
+	 * {@code SkillIconManager} stays as the fallback for anything the set does
+	 * not cover: it was curated against the 23 skills of the day, and a skill
+	 * added to the game later must still draw something.
+	 */
+	private Icon skillIcon(Skill skill, int height)
+	{
+		String key = com.ironhub.ui.v2.V2Sprites.skill(skill.getName());
+		if (com.ironhub.ui.v2.V2Sprites.has(key))
+		{
+			return new ImageIcon(com.ironhub.ui.v2.V2Sprites.fitted(theme, key, height));
+		}
+		return skillIcons == null ? null
+			: sized(skillIcons.getSkillImage(skill, false), height);
+	}
+
 	/** Scale an image to the shared goal-row icon height (1), or null. */
 	private static Icon sized(java.awt.Image img)
 	{
@@ -2135,12 +2197,12 @@ class GoalsHubTab extends JPanel
 	private Icon goalIcon(GoalsPack.Goal goal)
 	{
 		String id = goal.getId();
-		if (isLevelGoal(id) && skillIcons != null)
+		if (isLevelGoal(id))
 		{
 			Skill skill = goalSkill(id);
 			if (skill != null)
 			{
-				return sized(skillIcons.getSkillImage(skill, false));
+				return skillIcon(skill, BADGE_H);
 			}
 		}
 		if (id.startsWith("ca:"))
@@ -2234,7 +2296,7 @@ class GoalsHubTab extends JPanel
 	private JComponent section(String text, Icon marker)
 	{
 		JPanel row = row();
-		row.setBorder(new EmptyBorder(8, 8, 3, 8));
+		row.setBorder(new EmptyBorder(V2Tokens.PAD, 0, 3, 0));
 		if (marker != null)
 		{
 			row.add(new JLabel(marker));
@@ -2246,31 +2308,51 @@ class GoalsHubTab extends JPanel
 		return row;
 	}
 
-	/** A whole Goal-category on one stone slab (10): the collapsible header,
-	 *  then the category's Route rows (each expandable to its Tasks). */
-	private JComponent categorySlab(String name, List<GoalsPack.Goal> routesInCat)
+	/**
+	 * A whole Goal-category on the DLV2 Tile (Luke, 2026-07-25): the
+	 * collapsible header, then the category's Route rows (each expandable to
+	 * its Tasks).
+	 *
+	 * <p>Named {@code category}, not {@code categorySlab}: this is a TILE, and
+	 * the old name is what made "update the Slabs in Goals" read as an
+	 * instruction about these blocks when it meant the stat boxes and the
+	 * header (Luke, 2026-07-25). The Slab is its own surface now, so nothing
+	 * here may go on calling itself one.
+	 */
+	private JComponent category(String name, List<GoalsPack.Goal> routesInCat)
 	{
-		StonePanel slab = new StonePanel(theme);
-		slab.setLayout(new BoxLayout(slab, BoxLayout.Y_AXIS));
-		slab.setAlignmentX(LEFT_ALIGNMENT);
-		// inner padding inside the engraved edge; the flat rows fill the rest
-		slab.setBorder(new javax.swing.border.CompoundBorder(slab.getBorder(),
-			new EmptyBorder(3, 4, 4, 4)));
-		slab.add(categoryHeader(name, routesInCat.size()));
+		V2Surface tile = V2Surface.tile(theme);
+		tile.add(categoryHeader(name, routesInCat.size()));
 		if (!collapsedCategories.contains(name))
 		{
 			for (GoalsPack.Goal route : routesInCat)
 			{
-				slab.add(strut(3));
-				slab.add(routeRow(route));
-				if (route.getId().equals(expandedRoute))
+				tile.add(strut(3));
+				tile.add(routeRow(route));
+				if (!route.getId().equals(expandedRoute))
 				{
-					addTasks(route, slab);
+					continue;
+				}
+				// the open Goal's Tasks sit in a DLV2 Well (Luke, 2026-07-25) —
+				// the sunken surface says "this belongs to the row above it"
+				// where a flat run of rows just continued the list
+				V2Surface well = V2Surface.well(theme);
+				// the Checklist's inset, not the generic well's: CAP clears the
+				// end caps and TIGHT is the only air on top of it. PAD put 10px
+				// round every side and the surface read half empty, which is the
+				// same note Luke gave the Checklist (2026-07-25)
+				int inset = com.ironhub.ui.v2.V2Well.CAP + V2Tokens.TIGHT;
+				well.setBorder(new EmptyBorder(inset, inset, inset, inset));
+				addTasks(route, well);
+				if (well.getComponentCount() > 0)
+				{
+					tile.add(strut(2));
+					tile.add(well);
 				}
 			}
 		}
-		cap(slab);
-		return slab;
+		cap(tile);
+		return tile;
 	}
 
 	/** The collapsible category header — medium (16px) text (8), a triangle,
@@ -2320,7 +2402,7 @@ class GoalsHubTab extends JPanel
 	private JComponent moreLine(String text)
 	{
 		JPanel row = row();
-		row.setBorder(new EmptyBorder(0, UiTokens.ROW_GAP + 24, 2, 0));
+		row.setBorder(new EmptyBorder(0, V2Tokens.SECTION, V2Tokens.TIGHT, 0));
 		row.add(new OsrsLabel(text, OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
 		row.add(Box.createHorizontalGlue());
 		cap(row);
@@ -2337,7 +2419,7 @@ class GoalsHubTab extends JPanel
 		return row;
 	}
 
-	private JComponent pair(StatBox left, StatBox right)
+	private JComponent pair(JComponent left, JComponent right)
 	{
 		JPanel row = new JPanel(new GridLayout(1, 2, 3, 0));
 		row.setOpaque(false);
@@ -2354,17 +2436,6 @@ class GoalsHubTab extends JPanel
 		holder.add(Box.createHorizontalGlue());
 		holder.add(inner);
 		holder.add(Box.createHorizontalGlue());
-		cap(holder);
-		return holder;
-	}
-
-	private JComponent pad(JComponent inner)
-	{
-		JPanel holder = new JPanel(new java.awt.BorderLayout());
-		holder.setOpaque(false);
-		holder.setAlignmentX(LEFT_ALIGNMENT);
-		holder.setBorder(new EmptyBorder(0, 4, 0, 4));
-		holder.add(inner);
 		cap(holder);
 		return holder;
 	}

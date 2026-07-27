@@ -46,8 +46,13 @@ public final class V2Tokens
 	public static final int CONTENT_WIDTH = 217;
 	/** 18px checkbox or tick, plus a pixel of air above and below. */
 	public static final int ROW_HEIGHT = 20;
-	/** Chips and toggles — proved to 9-slice cleanly at this height. */
-	public static final int CONTROL_HEIGHT = 22;
+	/**
+	 * Chips, toggles and dropdown rows. 26, not the 22 it 9-sliced at: the
+	 * label sat hard against the chip's rounded top and bottom, and a chip is
+	 * mostly air by design (Luke, 2026-07-25 — "a little more vertical
+	 * headroom"). Still well clear of {@link #BUTTON_HEIGHT}.
+	 */
+	public static final int CONTROL_HEIGHT = 26;
 	/** {@code regular_large}'s native height. */
 	public static final int BUTTON_HEIGHT = 28;
 	/**

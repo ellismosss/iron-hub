@@ -180,7 +180,7 @@ class PohTab extends JPanel
 	 */
 	private JComponent resetButton()
 	{
-		com.ironhub.ui.osrs.StoneButton button = new com.ironhub.ui.osrs.StoneButton(
+		com.ironhub.ui.v2.V2Button button = new com.ironhub.ui.v2.V2Button(
 			theme, "Reset detected builds", () ->
 			{
 				int answer = javax.swing.JOptionPane.showConfirmDialog(this,
@@ -302,10 +302,8 @@ class PohTab extends JPanel
 	/** The level-3 detail: the hotspot's tier ladder + a mark/wiki hint. */
 	private JComponent hotspotDetail(PohPack.Space space)
 	{
-		JPanel card = new JPanel();
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setOpaque(false);
-		card.setAlignmentX(LEFT_ALIGNMENT);
+		// the opened hotspot is the one live readout on the page — the Card
+		com.ironhub.ui.v2.V2Surface card = com.ironhub.ui.v2.V2Surface.card(theme);
 		if (space.benefit != null && !space.benefit.isEmpty())
 		{
 			card.add(line(space.benefit, OsrsSkin.MUTED));

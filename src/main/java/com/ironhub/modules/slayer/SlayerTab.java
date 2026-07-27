@@ -10,11 +10,9 @@ import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
 import com.ironhub.ui.osrs.StoneButton;
-import com.ironhub.ui.osrs.StoneChipRow;
+import com.ironhub.ui.v2.V2ChipRow;
 import com.ironhub.ui.osrs.StoneComboBoxUI;
 import com.ironhub.ui.osrs.StoneMeter;
-import com.ironhub.ui.osrs.StonePanel;
-import com.ironhub.ui.osrs.StoneTextField;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.util.ArrayList;
@@ -59,13 +57,13 @@ class SlayerTab extends JPanel
 	 *  SpriteCache's own documented failure mode). */
 	private final com.ironhub.ui.components.SpriteCache sprites;
 
-	private final StoneChipRow views;
+	private final V2ChipRow views;
 	private final JPanel content = new JPanel();
 
 	/** Blocks-view master selection, kept across rebuilds (name). */
 	private String masterChoice;
 	/** Notes field kept across rebuilds so typing survives state chatter. */
-	private StoneTextField noteField;
+	private com.ironhub.ui.v2.V2TextField noteField;
 	private String noteTask = "";
 
 	SlayerTab(AccountState state, SlayerOptimizerModule module, OsrsTheme theme)
@@ -79,7 +77,7 @@ class SlayerTab extends JPanel
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		views = new StoneChipRow(theme, true, "Task", "History", "Unlocks", "Blocks");
+		views = new V2ChipRow(theme, true, "Task", "History", "Unlocks", "Blocks");
 		views.onChange(i -> rebuild());
 		add(views);
 		add(Box.createVerticalStrut(4));
@@ -110,7 +108,7 @@ class SlayerTab extends JPanel
 	{
 		saveNote(); // typing never lost to a state-driven rebuild
 		content.removeAll();
-		switch (views.getSelected())
+		switch (views.selected())
 		{
 			case 1:
 				rebuildHistory();
@@ -138,9 +136,8 @@ class SlayerTab extends JPanel
 		SlayerTasksPack pack = module.pack();
 		SlayerTasksPack.Task entry = pack == null ? null : pack.task(task);
 
-		StonePanel hero = new StonePanel(theme);
-		hero.setLayout(new BoxLayout(hero, BoxLayout.Y_AXIS));
-		hero.setAlignmentX(LEFT_ALIGNMENT);
+		// the task hero is the one live thing on the page — the Card (Luke)
+		com.ironhub.ui.v2.V2Surface hero = com.ironhub.ui.v2.V2Surface.card(theme);
 		JPanel title = row(0);
 		if (entry != null && entry.icon > 0)
 		{
@@ -238,10 +235,8 @@ class SlayerTab extends JPanel
 			if (entry.turael.worldPoint() != null)
 			{
 				content.add(Box.createVerticalStrut(3));
-				StoneButton route = new StoneButton(theme, "Route",
-					() -> module.route(entry.turael.worldPoint()));
-				route.setAlignmentX(LEFT_ALIGNMENT);
-				content.add(route);
+				content.add(chipButton("Route",
+					() -> module.route(entry.turael.worldPoint())));
 			}
 		}
 
@@ -249,7 +244,7 @@ class SlayerTab extends JPanel
 		{
 			// section rows ride a stone slab now (Luke, 2026-07-21); the
 			// click-to-prefer hint lives in the row tooltips, not a line
-			StonePanel locations = slab("Locations");
+			JPanel locations = slab("Locations");
 			String preferred = state.getSlayerLocationPref(entry.name);
 			for (SlayerTasksPack.Location location : entry.locations)
 			{
@@ -261,7 +256,7 @@ class SlayerTab extends JPanel
 
 		if (entry.bring != null && !entry.bring.isEmpty())
 		{
-			StonePanel bring = slab("Bring");
+			JPanel bring = slab("Bring");
 			// protection alternatives render as ONE any-of row — the slayer
 			// helmet replaces the facemask family (Luke, 2026-07-21)
 			for (List<SlayerTasksPack.BringItem> group
@@ -279,7 +274,7 @@ class SlayerTab extends JPanel
 
 		if (entry.stats != null)
 		{
-			StonePanel monster = slab("Monster");
+			JPanel monster = slab("Monster");
 			for (String line : statsLines(entry.stats))
 			{
 				monster.add(textLine(line, OsrsSkin.MUTED, OsrsSkin.smallFont()));
@@ -298,11 +293,12 @@ class SlayerTab extends JPanel
 		content.add(section("Notes"));
 		if (noteField == null || !noteTask.equals(entry.name))
 		{
-			noteField = new StoneTextField(theme, "Add a note for this task…");
+			// the DLV2 field, as every other search and entry box now is
+			noteField = com.ironhub.ui.v2.V2TextField.plain(theme, "Add a note for this task…", null);
 			noteField.setText(state.getSlayerNote(entry.name));
 			noteTask = entry.name;
-			noteField.addActionListener(e -> saveNote());
-			noteField.addFocusListener(new java.awt.event.FocusAdapter()
+			noteField.editor().addActionListener(e -> saveNote());
+			noteField.editor().addFocusListener(new java.awt.event.FocusAdapter()
 			{
 				@Override
 				public void focusLost(java.awt.event.FocusEvent e)
@@ -332,18 +328,15 @@ class SlayerTab extends JPanel
 		String missing = missingText(location.reqs);
 		Color color = missing == null ? OsrsSkin.MUTED : OsrsSkin.FAINT;
 		String text = location.name + (preferred ? " · preferred" : "");
-		OsrsLabel name = new OsrsLabel(text, preferred ? OsrsSkin.TITLE : color, OsrsSkin.font())
-			.leftAligned().squeezable();
+		OsrsLabel name = new OsrsLabel(text, preferred ? OsrsSkin.TITLE : color,
+			OsrsSkin.smallFont()).leftAligned().squeezable();
 		name.setToolTipText(missing != null ? "Needs: " + missing
 			: preferred ? "Preferred — click to unprefer" : "Click to prefer this location");
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
 		if (location.worldPoint() != null)
 		{
-			StoneButton route = new StoneButton(theme, "Route",
-				() -> module.route(location.worldPoint()));
-			route.setMaximumSize(route.getPreferredSize());
-			row.add(route);
+			row.add(chipButton("Route", () -> module.route(location.worldPoint())));
 		}
 		row.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
 		row.addMouseListener(new java.awt.event.MouseAdapter()
@@ -388,7 +381,8 @@ class SlayerTab extends JPanel
 			.collect(java.util.stream.Collectors.joining(" or "));
 		Color color = owned ? OsrsSkin.VALUE
 			: required ? UiTokens.STATUS_WARNING : OsrsSkin.FAINT;
-		OsrsLabel name = new OsrsLabel(label, color, OsrsSkin.font()).leftAligned().squeezable();
+		OsrsLabel name = new OsrsLabel(label, color, OsrsSkin.smallFont())
+			.leftAligned().squeezable();
 		String tip = group.size() > 1
 			? (owned ? "Any one of these works — you own one"
 				: "Any one of these works — you own none")
@@ -448,9 +442,7 @@ class SlayerTab extends JPanel
 
 	private JComponent historyRow(PersistedState.SlayerTaskRecord record)
 	{
-		StonePanel card = new StonePanel(theme);
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setAlignmentX(LEFT_ALIGNMENT);
+		com.ironhub.ui.v2.V2Surface card = com.ironhub.ui.v2.V2Surface.slab(theme);
 
 		JPanel top = row(0);
 		SlayerTasksPack pack = module.pack();
@@ -542,9 +534,7 @@ class SlayerTab extends JPanel
 				owned++;
 			}
 		}
-		StonePanel hero = new StonePanel(theme);
-		hero.setLayout(new BoxLayout(hero, BoxLayout.Y_AXIS));
-		hero.setAlignmentX(LEFT_ALIGNMENT);
+		com.ironhub.ui.v2.V2Surface hero = com.ironhub.ui.v2.V2Surface.slab(theme);
 		JPanel head = row(0);
 		head.add(new OsrsLabel("Slayer points", OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
 		head.add(Box.createHorizontalGlue());
@@ -569,7 +559,7 @@ class SlayerTab extends JPanel
 
 		for (String category : List.of("unlock", "extend"))
 		{
-			StonePanel slab = slab(category.equals("unlock") ? "Unlocks" : "Extends");
+			JPanel slab = slab(category.equals("unlock") ? "Unlocks" : "Extends");
 			for (SlayerTasksPack.Unlock unlock : pack.unlocks)
 			{
 				if (category.equals(unlock.category))
@@ -697,9 +687,7 @@ class SlayerTab extends JPanel
 			return;
 		}
 		content.add(Box.createVerticalStrut(4));
-		StonePanel masterCard = new StonePanel(theme);
-		masterCard.setLayout(new BoxLayout(masterCard, BoxLayout.Y_AXIS));
-		masterCard.setAlignmentX(LEFT_ALIGNMENT);
+		com.ironhub.ui.v2.V2Surface masterCard = com.ironhub.ui.v2.V2Surface.slab(theme);
 		JPanel points = row(0);
 		points.add(new OsrsLabel("Points per task", OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
 		points.add(Box.createHorizontalGlue());
@@ -733,7 +721,7 @@ class SlayerTab extends JPanel
 		content.add(masterCard);
 
 		// live blocked slots from the game's own varbits
-		StonePanel blocked = slab("Blocked now");
+		JPanel blocked = slab("Blocked now");
 		List<Integer> blockedIds = module.blockedTaskIds(master.focusId);
 		List<String> blockedNames = new ArrayList<>();
 		if (blockedIds.isEmpty())
@@ -753,14 +741,14 @@ class SlayerTab extends JPanel
 		}
 		addSlab(blocked);
 
-		StonePanel blocks = slab("Preferred blocks");
+		JPanel blocks = slab("Preferred blocks");
 		List<String> prefs = state.getSlayerBlockPref(master.name);
 		prefList(blocks, master, prefs, blockedNames,
 			list -> state.setSlayerBlockPref(master.name, list),
 			"Block", BLOCK_COST);
 		addSlab(blocks);
 
-		StonePanel skipSlab = slab("Always skip");
+		JPanel skipSlab = slab("Always skip");
 		List<String> skips = state.getSlayerSkipPref(master.name);
 		prefList(skipSlab, master, skips, List.of(),
 			list -> state.setSlayerSkipPref(master.name, list),
@@ -813,7 +801,7 @@ class SlayerTab extends JPanel
 
 	/** A preferred-task list inside its slab: icon rows with remove, an add
 	 *  selector, and (for blocks) advice lines vs the live blocked slots. */
-	private void prefList(StonePanel slab, SlayerTasksPack.Master master, List<String> current,
+	private void prefList(JPanel slab, SlayerTasksPack.Master master, List<String> current,
 		List<String> liveBlockedLower, java.util.function.Consumer<List<String>> save,
 		String adviseVerb, int cost)
 	{
@@ -944,10 +932,18 @@ class SlayerTab extends JPanel
 
 	/** A half-width stone stat box: small muted label over the value
 	 *  (points + streak share one row — Luke, 2026-07-21). */
+	/** A "Route" affordance — the chip ATOM, so it cannot look different to
+	 *  the chips beside it, in DETAIL so it does not shout over the rows it
+	 *  sits among (Luke, 2026-07-25). */
+	private JComponent chipButton(String text, Runnable onPress)
+	{
+		return V2ChipRow.action(theme, text, null, null, OsrsSkin.smallFont(), onPress);
+	}
+
+	/** Slayer points / Task streak: a Tile each (Luke, 2026-07-25). */
 	private JComponent statBox(String label, String value)
 	{
-		StonePanel box = new StonePanel(theme);
-		box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
+		com.ironhub.ui.v2.V2Surface box = com.ironhub.ui.v2.V2Surface.tile(theme);
 		box.add(new OsrsLabel(label, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
 		box.add(Box.createVerticalStrut(1));
 		box.add(OsrsLabel.value(value).leftAligned());
@@ -955,25 +951,38 @@ class SlayerTab extends JPanel
 	}
 
 	/** A titled stone slab holding a section's rows (Luke, 2026-07-21). */
-	private StonePanel slab(String title)
+	/**
+	 * A titled block: a bare header on the backing, then its rows in a Well
+	 * (Luke, 2026-07-25 — Locations, Bring and Monster came OFF their Tiles;
+	 * a Well inside a Tile was two surfaces saying one thing). Returns the
+	 * WELL, so every existing {@code slab.add(row)} lands rows inside it, and
+	 * {@link #addSlab} adds the column that holds both.
+	 */
+	private JPanel slab(String title)
 	{
-		StonePanel slab = new StonePanel(theme);
-		slab.setLayout(new BoxLayout(slab, BoxLayout.Y_AXIS));
-		slab.setAlignmentX(LEFT_ALIGNMENT);
+		JPanel block = com.ironhub.ui.v2.V2Layout.column();
 		JPanel head = row(0);
 		head.add(new OsrsLabel(title, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
 		head.add(Box.createHorizontalGlue());
 		cap(head);
-		slab.add(head);
-		slab.add(Box.createVerticalStrut(2));
-		return slab;
+		block.add(head);
+		block.add(Box.createVerticalStrut(2));
+		com.ironhub.ui.v2.V2Surface well = com.ironhub.ui.v2.V2Surface.well(theme);
+		int inset = com.ironhub.ui.v2.V2Well.CAP + com.ironhub.ui.v2.V2Tokens.TIGHT;
+		well.setBorder(new javax.swing.border.EmptyBorder(inset, inset, inset, inset));
+		block.add(well);
+		return well;
 	}
 
-	private void addSlab(StonePanel slab)
+	/** Takes the WELL {@link #slab} handed back and adds the header-plus-well
+	 *  column around it — callers keep passing the thing they added rows to. */
+	private void addSlab(JPanel well)
 	{
+		java.awt.Container column = well.getParent();
+		JComponent block = column instanceof JComponent ? (JComponent) column : well;
 		content.add(Box.createVerticalStrut(6));
-		cap(slab);
-		content.add(slab);
+		cap(block);
+		content.add(block);
 	}
 
 	/** Compact monster stat lines — only what the pack actually knows. */

@@ -6,8 +6,9 @@ import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneCheckbox;
-import com.ironhub.ui.osrs.StoneMeter;
+import com.ironhub.ui.v2.V2Checkbox;
+import com.ironhub.ui.v2.V2ProgressBar;
+import com.ironhub.ui.v2.V2Surface;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -136,39 +137,27 @@ class BankSpaceTab extends JPanel
 	private void addHero(int banked)
 	{
 		int wasted = module.flaggedItems().size();
-		JPanel head = new JPanel();
-		head.setLayout(new BoxLayout(head, BoxLayout.X_AXIS));
-		head.setOpaque(false);
-		head.setAlignmentX(LEFT_ALIGNMENT);
-		head.setBorder(new EmptyBorder(2, 4, 3, 4));
+		// the wasted-slot count is the one live readout on the page — the Card
+		V2Surface hero = V2Surface.card(theme);
+		JPanel head = rowLine();
 		head.add(new OsrsLabel(wasted + " could move to storage",
 			wasted > 0 ? OsrsSkin.TITLE : OsrsSkin.VALUE, OsrsSkin.boldFont())
 			.leftAligned().squeezable());
 		head.add(Box.createHorizontalGlue());
 		cap(head);
-		content.add(head);
+		hero.add(head);
 
-		StoneMeter meter = new StoneMeter(theme, AMBER,
-			banked == 0 ? 0 : (double) wasted / banked);
-		JPanel holder = new JPanel();
-		holder.setLayout(new BoxLayout(holder, BoxLayout.X_AXIS));
-		holder.setOpaque(false);
-		holder.setAlignmentX(LEFT_ALIGNMENT);
-		holder.setBorder(new EmptyBorder(1, 4, 1, 4));
-		holder.add(meter);
-		cap(holder);
-		content.add(holder);
+		hero.add(new V2ProgressBar(theme, V2ProgressBar.Size.METER).fill(AMBER)
+			.fraction(banked == 0 ? 0 : (double) wasted / banked));
 
-		JPanel under = new JPanel();
-		under.setLayout(new BoxLayout(under, BoxLayout.X_AXIS));
-		under.setOpaque(false);
-		under.setAlignmentX(LEFT_ALIGNMENT);
-		under.setBorder(new EmptyBorder(0, 4, 3, 4));
+		JPanel under = rowLine();
 		under.add(Box.createHorizontalGlue());
 		under.add(new OsrsLabel("of " + banked + " banked items", OsrsSkin.FAINT,
 			OsrsSkin.smallFont()));
 		cap(under);
-		content.add(under);
+		hero.add(under);
+		cap(hero);
+		content.add(hero);
 	}
 
 	private void addBisToggle()
@@ -176,23 +165,12 @@ class BankSpaceTab extends JPanel
 		boolean flagBis = state.isBankStorageFlagBis();
 		JPanel row = rowLine();
 		row.setBorder(new EmptyBorder(2, 4, 3, 4));
-		StoneCheckbox box = new StoneCheckbox(theme, flagBis);
+		// the checkbox ATOM carries its own box, label, hover and hit target
+		V2Checkbox box = new V2Checkbox(theme, "Flag best-in-slot gear too", flagBis,
+			() -> state.setBankStorageFlagBis(!flagBis)); // listener rebuilds
 		box.setToolTipText("Best-in-slot gear (armour case, cape rack, magic "
 			+ "wardrobe pieces) is usually banked on purpose - tick to flag it too");
 		row.add(box);
-		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		row.add(new OsrsLabel("Flag best-in-slot gear too", OsrsSkin.MUTED,
-			OsrsSkin.smallFont()).leftAligned());
-		row.add(Box.createHorizontalGlue());
-		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		row.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				state.setBankStorageFlagBis(!flagBis); // listener rebuilds
-			}
-		});
 		cap(row);
 		content.add(row);
 	}
@@ -205,27 +183,13 @@ class BankSpaceTab extends JPanel
 		JPanel row = rows();
 
 		JPanel top = rowLine();
-		StoneCheckbox box = new StoneCheckbox(theme, report.enabled);
+		V2Checkbox box = new V2Checkbox(theme, location.name, report.enabled,
+			() -> state.toggleBankStorageLocation(location.id)); // listener rebuilds
+		box.labelColor(report.enabled ? OsrsSkin.MUTED : OsrsSkin.FAINT);
 		box.setToolTipText(report.enabled
 			? "Stop flagging " + location.name + " items"
 			: "Flag " + location.name + " items again");
-		box.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		box.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				state.toggleBankStorageLocation(location.id); // listener rebuilds
-				e.consume();
-			}
-		});
 		top.add(box);
-		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		OsrsLabel name = new OsrsLabel(location.name,
-			report.enabled ? OsrsSkin.MUTED : OsrsSkin.FAINT, OsrsSkin.font())
-			.leftAligned().squeezable();
-		top.add(name);
-		top.add(Box.createHorizontalGlue());
 		top.add(new OsrsLabel(String.valueOf(report.storable.size()),
 			report.enabled ? AMBER : OsrsSkin.FAINT, OsrsSkin.font()));
 		cap(top);

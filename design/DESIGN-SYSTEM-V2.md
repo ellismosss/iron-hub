@@ -5,18 +5,58 @@ the same idea got drawn several ways across 27 modules, and each new surface nee
 another round of tweaks to look like its neighbours. V2 replaces judgement with
 rules, and rules with tests.
 
-**Status (2026-07-25, end of the atom pass):** the atoms are built in three
-themes, enforced by `V2RulesTest`, and shown in the Design lab under three
-chips — **Atoms**, **Goals**, **V1**.
+**Status, 2026-07-26.** The atoms are built in three themes, enforced by
+`V2RulesTest`, and shown in the Design lab under three chips — **Atoms**,
+**Goals**, **V1**. **Five of the six hub pages are migrated**; what remains is
+Settings (the Design lab, which deliberately still shows V1) and the V1 residue
+listed below.
 
-**The strategy changed at the end of this session.** The Goals hub was rebuilt
-from V2 atoms in the lab (`GoalsV2View`) as the system's first real workload.
-It did its job — it found five missing atoms and several wrong defaults, listed
-in §13 — but rebuilding screens in the lab from sample data turned out to be a
-poor way to converge: every round corrected an invention of mine rather than a
-real module's real problem. **From here the modules get rebuilt directly**, and
-the lab goes back to being what it is good at: showing one atom in every state.
-Luke's call, 2026-07-25.
+| Hub page | Sections | Migrated |
+|---|---|---|
+| Goals | Goals | 2026-07-25 |
+| Gear & Combat | Gear & Combat (incl. the vendored `LoadoutLabPanel`), Slayer, Loot & supplies | 2026-07-25 |
+| Dailies | Dailies, Farm runs, Hunters' Rumours, Port tasks | 2026-07-26 |
+| Progression | Collection log, Combat achievements, Gear (chart + library), House, Boats, Achievement diaries, Quests, Clues & STASH, QoL checklist | 2026-07-26 |
+| Bank | Bank & banked XP, Bank space saver, Where's my stuff, Money making, Supplies runway, Death recovery | 2026-07-26 |
+| Settings | Design lab | — (shows V1 on purpose) |
+
+**Known V1 residue in migrated pages**, so the table above is not read as more
+than it is: `GoalsHubTab` still holds a `StonePanel`, two `StoneButton`s and two
+V1 bars; `SlayerTab` two `StoneMeter`s, a `StoneButton` and two
+`StoneComboBoxUI` pickers; `LoadoutLabPanel` one `StoneCheckbox`. All are
+one-line swaps that the passes above simply did not reach.
+
+**The strategy changed part-way through.** The Goals hub was first rebuilt from
+V2 atoms in the lab (`GoalsV2View`). It did its job — it found five missing
+atoms and several wrong defaults, listed in §13 — but rebuilding screens in the
+lab from sample data converged badly: every round corrected an invention of mine
+rather than a real module's real problem. **The modules get rebuilt directly**,
+and the lab shows one atom in every state. Luke's call, 2026-07-25.
+
+### What the page passes changed
+
+- **The atom pass** built the set. **The module pass** (Goals, Gear & Combat,
+  Slayer, Loot & supplies) added two surfaces — Slab and Chip — rewrote the
+  Dropdown, and changed three rules written before any real screen tested them:
+  the Frame moved from per-view to per-hub-page (§7), surface insets stopped
+  being square (§4), and controls grew (§4).
+- **The page passes** (Dailies, Progression, Bank) were mostly about
+  **deleting duplicates rather than converting them**. The plugin had FOUR
+  hand-painted tile classes — `IconTile`, `ItemTile`, `StoneHubTile` and the
+  Dailies/Farm-runs pair — plus three composites that painted the Tile surface
+  and a progress bar by hand. Every generic one is deleted into `V2Tile`, which
+  is now the only tile in the plugin; the composites (`CaProgressTile`,
+  `ClogTabTile`, the banked-XP skill strip) keep their arrangement but paint
+  `V2Surface.paintTile` and hold a METER atom. `V2Tile` and `V2ChipRow` grew to
+  carry what those classes had — see §12.
+- **The atom's reading wins over the module's.** Dailies and Farm runs each had
+  their own status colours; on `V2Tile` green means DONE and orange ACTIONABLE
+  NOW, so a claimed daily now reads green where V1 painted a *claimable* one
+  green. Say so out loud when a port flips a colour — it is a decision, not a
+  bug.
+- Every render shown for review is **Vanilla**. `IronHubConfig.osrsTheme()`
+  defaults to MYSTIC, so a test taking its theme from a bare config writes a
+  grey PNG; twenty-odd module tests now pin `OsrsTheme.STONE`.
 
 ---
 
@@ -140,6 +180,25 @@ plugin.
 Nothing uses a value that isn't on this scale. The enforcement test fails the build on
 any other number in an `EmptyBorder`, strut or gap.
 
+### Surface insets — symmetric per axis, NOT square
+
+A surface stands its content off its own art. The horizontal figure clears the
+art and adds a spacing step; the vertical figure is **tighter**, because every
+one of these edges is a corner-and-edge feature and a one-line row does not need
+the horizontal number repeated above and below it (Luke, 2026-07-25).
+
+| Surface | horizontal | vertical | why |
+|---|---|---|---|
+| Card | `SLICE_INSET + ROW` = 13 | `SLICE_INSET + TIGHT` = 11 | the 9px bevel is structural — content inside it sits ON the art |
+| Tile | `NAV_TILE_INSET + PAD` = 12 | `ROW` = 4 | the chamfer eats corners, not edges |
+| Slab | `NAV_TILE_INSET + PAD` = 12 | `ROW` = 4 | same, for the engraved notch |
+| Well | `V2Well.CAP + PAD` = 10 | 10 | its rows ARE its content; it stayed square |
+| Well, as a LIST | `CAP + TIGHT` = 6 | 6 | a list wants to feel dense — `V2Checklist`, `V2Table`, and every results well |
+
+`V2SurfacesRenderTest.everySurfaceInsetsItsContentSquarely` guards what still
+holds: content never sits on the art, each axis is symmetric, and vertical never
+exceeds horizontal.
+
 ### Fixed sizes
 
 | Token | px | Why |
@@ -147,7 +206,7 @@ any other number in an `EmptyBorder`, strut or gap.
 | `PANEL_WIDTH` | 225 | platform constraint, never widen |
 | `CONTENT_WIDTH` | 217 | 225 minus the panel's own 4px edges |
 | `ROW_HEIGHT` | 20 | 18px checkbox/tick + 1px breathing above and below |
-| `CONTROL_HEIGHT` | 22 | chips, toggles — proved to 9-slice cleanly at this height |
+| `CONTROL_HEIGHT` | 26 | chips, toggles, dropdown rows. Was 22 — the label sat hard against the chip's rounded ends (Luke, 2026-07-25) |
 | `BUTTON_HEIGHT` | 28 | `regular_large`'s native height |
 | `LINE_PITCH` | 12 | the game's own, measured — not FontMetrics height, which runs 4px/line tall |
 | `ICON` | 16 | inline item sprites |
@@ -225,6 +284,13 @@ Rules:
    in `BLOCKED`.
 5. **Unknown is never coloured.** It renders as silence or "?" in `FAINT`.
 
+**`FAINT` was 12 levels too dark.** It documents itself as "MUTED dimmed by the
+same ratio UiTokens uses from body to faint" — that ratio is `0x6B/0x8C` = 0.764,
+and the constant sat at 0.545 of MUTED. Against the stone panel that is ~40
+levels of separation and faint lines got lost in it (Luke, 2026-07-25). Now
+`0x8D8377`, which IS the documented ratio and clears the panel by ~79. It is
+`OsrsSkin.FAINT`, so this lifted every faint line in the plugin, V1 and V2.
+
 ### Derived colours
 
 Everything above is sampled. These five are DERIVED, each from the theme's own
@@ -245,22 +311,28 @@ the two are separate arguments to every surface painter. Do not conflate them.
 
 ## 7. Layout
 
-- **Every view sits inside a Frame.** `V2Surface.frame(theme)`, wrapping the
-  whole view, edge to edge in the 225px panel — the arrangement Design lab V2
-  wears, and the one every migrated tab adopts (Luke, 2026-07-25). It is the
-  game's own thin side-panel edge (`StoneFrame`: 1px dark over 1px light, 8px
-  stepped corner chamfer), with its light line dimmed halfway to its dark one
-  via `V2Tokens.dimEdge` so it frames without competing. The Tile wears the
-  same dimmed edge, so a Tile inside a Frame reads as one system.
+- **Every hub PAGE sits inside a Frame — one per page, not one per view.**
+  `IronHubPanel.hubPage()` wraps the page's whole module stack in
+  `V2Surface.frame(theme)`. Gear & Combat holds three modules and they share a
+  single frame (Luke, 2026-07-25); a frame each drew three edges down a page
+  that is one thing. **A module must not frame itself** — Goals and Loadout both
+  did, and nested frames draw two edges.
 
-  The view must not add a horizontal inset of its own: the Frame carries the
-  edge, and a second inset is what made the lab's frame 209px where the hub's
-  is 217 (measured 2026-07-25). Vertical padding is still the view's.
+  It is the game's own thin side-panel edge (`StoneFrame`: 1px dark over 1px
+  light, 8px stepped corner chamfer), with its light line dimmed halfway to its
+  dark one via `V2Tokens.dimEdge` so it frames without competing. The Tile wears
+  the same dimmed edge, so a Tile inside a Frame reads as one system.
+
+  A view inside the frame adds no horizontal inset of its own. Measure the frame
+  in the **panel** render, never in a standalone tab render: a tab rendered alone
+  is 225 wide, the same tab in the panel is 217, and reasoning from the standalone
+  figure produced a wrong 4px gutter that had to be undone.
 - **225px, one column, vertical scroll only.** Content that doesn't fit is two-lined,
   tooltipped or truncated — never widened. No nested scroll panes.
 - **One left edge.** Everything in a section aligns to the same x. Indentation is one
   step of `SECTION`, maximum two levels deep.
-- **Lists cap at 50 rows** with an honest `+ N more — refine your search` line. This is
+- **Lists cap at 20 rows** with an honest `+ N more` line (Luke, 2026-07-25;
+  it was 50). The Dropdown caps at 20 too — `V2Dropdown.MAX_ROWS`. This is
   a performance rule as much as a design one: rendering hundreds of sprite rows per
   rebuild was a measured freeze contributor.
 - **Navigation depth ≤ 2.**
@@ -359,16 +431,16 @@ All in `com.ironhub.ui.v2`, all shown in **Design lab V2**.
 
 | Class | Covers | Sprites | States |
 |---|---|---|---|
-| `V2Surface` | Frame, Tile, Card, Well | `StoneFrame` (hand-painted) · `StoneNavButton.paintSlab` (hand-painted) · `enter_wilderness_teleport` · the field well | plain, hovered |
+| `V2Surface` | Frame, Tile, **Slab**, Card, Well, **Chip** | `StoneFrame` · `StoneNavButton.paintSlab` · **`StoneBorder`** (all hand-painted) · `enter_wilderness_teleport` · the field well · `ui/buttons/button` | plain, hovered, pressable |
 | `V2Divider` | Divider | `..._side_panel_edge_horizontal` (rows 14..19 only) | — |
 | `V2Label` | Label, WrappedText | — (text) | heading, body, value, detail, faint, status |
 | `V2Layout` | columns, rows, gaps | — | — |
 | `V2Button` | Button | `regular_large` | plain (the art has no other) |
-| `V2SpriteButton` | IconButton, UtilityButton, Stepper, ArrowButton, WikiButton | `ui/buttons_square/*`, `ui/plus_minus/*`, `ui/arrows/*`, `icons/wiki/*`, `ui/buttons/*` | whatever `_hovered` / `_selected` the art has |
-| `V2Checkbox` | Checkbox | `square_bordered_checkbox` | off, on, locked, disabled, disabled-on |
-| `V2ChipRow` | ChipRow | Card slice | unselected, selected (lit art + orange label) |
+| `V2SpriteButton` | IconButton, UtilityButton, Stepper, ArrowButton, WikiButton | `ui/buttons_square/*`, `ui/plus_minus/*`, `ui/arrows/*`, `icons/wiki/*`, `ui/buttons/*` | whatever `_hovered` / `_selected` the art has. `fit(box)` scales an oversized emblem (§2); `letter(s)` draws a character over the art for a mark the set lacks |
+| `V2Checkbox` | Checkbox | `square_bordered_checkbox` | off, on, locked, disabled, disabled-on. `labelColor` for a status the caller owns (the dailies scale); `badge(icon)` for a trailing mark; **null text = the box alone**, for a row that lays itself out |
+| `V2ChipRow` | ChipRow, **action chip** (`action()`), **latching chip** (`toggle()`, optionally with an icon, a font, and stretched to its cell) | `ui/buttons/button` | unselected, selected (lit art + orange label), hovered (wash), highlighted (green label) |
 | `V2Tab` | Tab | `tag_tab`, `tag_tab_active` | plain, active |
-| `V2Tile` | Tile | Card slice + `checkmark_small` | plain, selected, owned |
+| `V2Tile` | Tile | Card slice + `checkmark_small` | plain, selected, owned, `Status` + `progress`. Takes any `java.awt.Image` (the tabs draw through `SpriteCache`, whose sprites arrive from `getScaledInstance`); `emblem(img)` swaps a late arrival in; `width(px)` for a tile wider than it is tall; `captionLines(n)` wraps and **clamps** the caption (a label paints every line it holds, so an unclamped one bled over the row beneath); `badge(n)` a corner count; `placeholder(code)` when there is no art; `onRightClick` a context menu |
 | `V2ItemSlot` | ItemSlot | `icons/equipment/slot_*` | empty, filled, selected |
 | `V2Glyph` | StatusGlyph, Lock, Star, Chevron, SortArrow | `ui/ticks/*`, `icons/padlock`, `icons/star/*`, `icons/chevron/*`, `list_sorting_arrow_*` | — (display only) |
 | `V2ProgressBar` | ProgressBar | `progress_bar_grey` + `progress_bar_green` | green only; NaN = empty trough |
@@ -377,10 +449,24 @@ All in `com.ironhub.ui.v2`, all shown in **Design lab V2**.
 | `V2Checklist` | Checklist | Well + rows | hover band |
 | `V2Table` | Table | — (layout) | `right()` for numeric columns |
 | `V2EmptyState` | EmptyState | Well + Label | empty, unknown |
-| `V2TextField` | TextField | Well + `search_1` | idle, typed |
-| `V2Dropdown` | Dropdown | Card + chevron | closed, open |
+| `V2TextField` | TextField | Well + `search_1` | idle, typed. **`plain(...)` drops the magnifier** — a note, a number or a name is not a search, and the icon's column squeezes a narrow box until its digits clip |
+| `V2Dropdown` | Dropdown | Well + arrow | closed (one row), open (grows in place, max 20 rows). `width(px)` pins it for a shared row — `setPreferredSize` cannot, the size overrides ignore it |
 | `V2ScrollBarUI` | ScrollBar | Well trough + Card thumb + arrows | — |
 | `V2Tooltip` | Tooltip | Card + Label | — |
+
+### The six surfaces
+
+Every one is a container; they differ only in their edge, and — except the Card
+and the Chip — they share the same Card grain, so they read as one family.
+
+| Surface | Edge | Use |
+|---|---|---|
+| Frame | 1px dark over 1px dimmed light, 8px stepped chamfer | one per hub page (§7) |
+| Slab | engraved, corner-notched (`StoneBorder`) | the V1 stone box: stat boxes, module headers, titled blocks |
+| Tile | chamfered stone (`StoneNavButton.paintSlab`) | grouping blocks, pressable rows |
+| Card | sprite art, 9px bevel | the one live readout on a page |
+| Well | sunken field texture | lists, results, fields |
+| Chip | rounded `button.png` | transient notices; a row of choices is `V2ChipRow` |
 
 **Both a class and a rule:** `V2Layout` is the only way V2 code makes a column,
 a row or a gap. A bare `Box.createVerticalStrut` is CENTER-aligned, and BoxLayout
@@ -422,6 +508,85 @@ is the useful part:
   which fixed columns cannot express — so goal lists are columns of
   compositions rather than tables. Either the table grows a spanning row or the
   Row atom subsumes it.
+
+### What the module pass answered (2026-07-25)
+
+- **Row** — still no atom, but the need shrank: `V2Table` covers aligned rows
+  (Loot's two lists), `V2Checklist` covers checkable ones (Gear & Combat's
+  toggles), and a Tile covers pressable ones. Build it when something needs a
+  shape none of those give.
+- **Stat tile** — `V2Surface.slab` plus two labels. Goals and Slayer both do it
+  by hand; still a candidate atom.
+- **Pin affordance** — answered generally rather than specifically:
+  `V2SpriteButton.letter(s)` draws a character over the art when the curated set
+  has no sprite for a mark. Goals' wiki link is a "W" on the empty checkbox.
+- **Priority has no colour** — resolved as: it takes the Tile's BEVEL, pulled
+  back through `V2Tokens.statusEdge` the way every status ring is. Same pixel of
+  colour V1 put down one side, traced round the chamfer instead.
+
+---
+
+## 14. What the passes cost
+
+### The module pass (2026-07-25)
+
+Four mistakes, each of which cost a round trip, and each avoidable:
+
+1. **Hand-rolling a chip, three times.** Route, then Open DPS calc, then Save
+   setup and the style row. Each was built from the chip *surface* rather than
+   the chip *atom*, so none of them followed `CONTROL_HEIGHT` when it changed and
+   all three looked subtly wrong beside real chips. §9 already said this. The
+   fix is `V2ChipRow.action(...)`, which returns the very same `Chip` class.
+2. **Guessing which component was on screen.** `sectionPlate` vs `moduleHeader`,
+   and the in-view "GOALS" header vs the module plate — both converted the wrong
+   one first. A pixel sample of the render answers it in one step.
+3. **Measuring a tab standalone instead of in the panel.** A tab alone is 225px,
+   the same tab in the hub is 217. `DesignLabPanelRenderTest` says in its own
+   header that V2 changes are verified against the panel render; twice they
+   weren't.
+4. **Reasoning about client behaviour from a headless render.** Wiki gear
+   "wasn't always visible" in a render with no slayer task set — in the client,
+   a task alone filled it.
+
+### The page passes (2026-07-26)
+
+5. **Converting a duplicate instead of deleting it.** The first instinct on
+   every hand-painted tile was "put it on the V2 surface". The right move was
+   "grow `V2Tile` and delete the class" — and the atom could cover it EVERY
+   time, once asked. Four tile classes died this way. **Before writing a tile,
+   a chip or a bar, check whether the atom can grow to carry it.**
+6. **Trusting a downscaled render.** A 4,275px tab shown at 2,000px looked like
+   every row was overlapping; at full resolution it was correct. Crop and view
+   at 1:1 before diagnosing a layout bug.
+7. **An atom detail wrong everywhere at once.** `V2TextField` drew the search
+   magnifier unconditionally, so a note, a page number and a supply target all
+   wore a search glyph — and the icon's reserved column squeezed a 40px numeric
+   box until its digits clipped. One atom, seven wrong call sites, four passes
+   before anyone looked at a narrow one. `plain(...)` is the fix. Chip labels
+   were hard-clipping at the art's edge for the same class of reason and are
+   `squeezable()` now.
+
+### Traps that bite silently
+
+**A row holding a Dropdown must follow the dropdown's height.** It grows in
+place when opened, so a row pinned to one `CONTROL_HEIGHT` clips the open list.
+Override the row's `getMaximumSize()` to its preferred height.
+
+**`V2Surface` overrides `getMaximumSize()` to full width.** `setMaximumSize(
+getPreferredSize())` on one is silently ignored and it stretches to fill its row.
+Use a `FlowLayout` holder when a surface must keep its own size. `V2Dropdown`
+has the same override — use `width(px)`, not `setPreferredSize`.
+
+**A wrapped label paints every line it holds.** A tile reserves height for
+`captionLines` and no more, so an unclamped caption bleeds over the row beneath.
+`V2Tile` clamps; anything else wrapping into a fixed band must too.
+
+**Gradle's incremental build hides a broken file it has cached.** A stray
+character in `IronHubPluginTest` — the class IntelliJ's run configuration
+launches — survived four green `./gradlew build`s and only surfaced under
+`clean`. **Finish a pass with `./gradlew clean build -x javadoc`.**
+
+---
 
 ### The process lesson
 

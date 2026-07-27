@@ -6,6 +6,11 @@ import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
+import com.ironhub.ui.v2.V2EmptyState;
+import com.ironhub.ui.v2.V2Layout;
+import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2Tokens;
+import com.ironhub.ui.v2.V2Well;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -29,6 +34,9 @@ import net.runelite.client.ui.ColorScheme;
  */
 class PortTasksTab extends JPanel
 {
+	/** The system's list cap (§7). */
+	private static final int MAX_PORT_ROWS = 20;
+
 	private final AccountState state;
 	private final PortTasksModule module;
 	private final OsrsTheme theme;
@@ -88,11 +96,9 @@ class PortTasksTab extends JPanel
 
 	private void addSummary()
 	{
-		JPanel head = new JPanel();
+		// the day's standing is the one live readout on the page — the Card
+		V2Surface head = V2Surface.card(theme);
 		head.setLayout(new BoxLayout(head, BoxLayout.X_AXIS));
-		head.setOpaque(false);
-		head.setAlignmentX(LEFT_ALIGNMENT);
-		head.setBorder(new EmptyBorder(2, 4, 2, 4));
 		head.add(new OsrsLabel("Completed today: " + module.completedToday(),
 			OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
 		head.add(Box.createHorizontalGlue());
@@ -106,22 +112,24 @@ class PortTasksTab extends JPanel
 
 	private void addActiveTasks()
 	{
-		content.add(header("Active tasks"));
 		List<PortTasksModule.ActiveTask> tasks = module.activeTasks();
 		if (tasks.isEmpty())
 		{
-			content.add(line("No port tasks accepted.", OsrsSkin.FAINT));
+			content.add(header("Active tasks"));
+			content.add(V2EmptyState.empty(theme, "No port tasks accepted."));
 			return;
 		}
+		JPanel well = section("Active tasks");
 		for (PortTasksModule.ActiveTask task : tasks)
 		{
-			content.add(taskRow(task));
+			well.add(taskRow(task));
 		}
 		if (!module.catalogLoaded())
 		{
-			content.add(line("Task names sync from the game cache on login.",
+			well.add(line("Task names sync from the game cache on login.",
 				OsrsSkin.FAINT));
 		}
+		addSection(well);
 	}
 
 	private JComponent taskRow(PortTasksModule.ActiveTask task)
@@ -182,23 +190,26 @@ class PortTasksTab extends JPanel
 
 	private void addBoard()
 	{
-		content.add(header("Noticeboard"));
 		List<PortTasksModule.Advice> ranked = module.rankOffers();
 		if (ranked.isEmpty())
 		{
-			content.add(line("Open a port task board and its offers rank here "
-				+ "by xp per tile added to your route.", OsrsSkin.FAINT));
+			content.add(header("Noticeboard"));
+			content.add(V2EmptyState.unknown(theme, "No offers ranked yet",
+				"Open a port task board and its offers rank here by xp per tile "
+					+ "added to your route."));
 			return;
 		}
+		JPanel well = section("Noticeboard");
 		if (!module.boardOpen())
 		{
-			content.add(line("As of the last board you opened:", OsrsSkin.FAINT));
+			well.add(line("As of the last board you opened:", OsrsSkin.FAINT));
 		}
 		int rank = 1;
 		for (PortTasksModule.Advice advice : ranked)
 		{
-			content.add(adviceRow(rank++, advice));
+			well.add(adviceRow(rank++, advice));
 		}
+		addSection(well);
 	}
 
 	private JComponent adviceRow(int rank, PortTasksModule.Advice advice)
@@ -243,17 +254,27 @@ class PortTasksTab extends JPanel
 
 	private void addPorts()
 	{
-		content.add(header("Noticeboard ports"));
+		JPanel well = section("Noticeboard ports");
 		List<PortTasksModule.PortSuggestion> ports = module.portSuggestions();
 		if (!module.catalogLoaded())
 		{
-			content.add(line("Best-task scores appear once the task catalog "
+			well.add(line("Best-task scores appear once the task catalog "
 				+ "has synced from the game (log in).", OsrsSkin.FAINT));
 		}
+		// §7: a list caps at 20 rows with an honest "+ N more" — preferred
+		// ports sort to the top, so the tail is the part nobody reads
+		int shown = 0;
 		for (PortTasksModule.PortSuggestion s : ports)
 		{
-			content.add(portRow(s));
+			if (shown++ >= MAX_PORT_ROWS)
+			{
+				well.add(line("+ " + (ports.size() - MAX_PORT_ROWS)
+					+ " more ports", OsrsSkin.FAINT));
+				break;
+			}
+			well.add(portRow(s));
 		}
+		addSection(well);
 		content.add(line("Click a port to mark it preferred - preferred ports "
 			+ "stay on top.", OsrsSkin.FAINT));
 	}
@@ -319,10 +340,36 @@ class PortTasksTab extends JPanel
 		head.setOpaque(false);
 		head.setAlignmentX(LEFT_ALIGNMENT);
 		head.setBorder(new EmptyBorder(8, 4, 3, 4));
-		head.add(new OsrsLabel(text, OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
+		head.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
 		head.add(Box.createHorizontalGlue());
 		cap(head);
 		return head;
+	}
+
+	/**
+	 * A titled block in the SlayerTab grammar: a bare header on the backing,
+	 * then its rows in a Well at the list inset (§4). Returns the WELL, so
+	 * {@code well.add(row)} lands rows inside it; {@link #addSection} adds the
+	 * column holding both.
+	 */
+	private JPanel section(String title)
+	{
+		JPanel block = V2Layout.column();
+		block.add(header(title));
+		V2Surface well = V2Surface.well(theme);
+		int inset = V2Well.CAP + V2Tokens.TIGHT;
+		well.setBorder(new EmptyBorder(inset, inset, inset, inset));
+		block.add(well);
+		return well;
+	}
+
+	/** Takes the WELL {@link #section} handed back and adds the column. */
+	private void addSection(JPanel well)
+	{
+		java.awt.Container column = well.getParent();
+		JComponent block = column instanceof JComponent ? (JComponent) column : well;
+		cap(block);
+		content.add(block);
 	}
 
 	private static JPanel rows()

@@ -55,24 +55,33 @@ public class V2Checkbox extends JPanel
 	}
 
 	private final Box box;
+	/** Null when the caller asked for the box alone. */
 	private final OsrsLabel label;
 	private final Runnable onToggle;
 	private State state;
 	private boolean hover;
 
+	/**
+	 * @param text the row's label, or null for the BOX ALONE — a row that
+	 *             lays itself out (the farm-run picker positions arrows, box,
+	 *             sprite and name by hand) wants the art without the row
+	 */
 	public V2Checkbox(OsrsTheme theme, String text, boolean checked, Runnable onToggle)
 	{
 		this.state = checked ? State.ON : State.OFF;
 		this.onToggle = onToggle;
 		this.box = new Box(theme);
-		this.label = V2Label.body(text);
+		this.label = text == null ? null : V2Label.body(text);
 		setOpaque(false);
 		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 		setAlignmentX(LEFT_ALIGNMENT);
 		add(box);
-		add(javax.swing.Box.createHorizontalStrut(V2Tokens.TIGHT + V2Tokens.ROW));
-		add(label);
-		add(javax.swing.Box.createHorizontalGlue());
+		if (label != null)
+		{
+			add(javax.swing.Box.createHorizontalStrut(V2Tokens.TIGHT + V2Tokens.ROW));
+			add(label);
+			add(javax.swing.Box.createHorizontalGlue());
+		}
 		setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		// the row presses but never lights
 		addMouseListener(new MouseAdapter()
@@ -124,11 +133,38 @@ public class V2Checkbox extends JPanel
 		return hover;
 	}
 
+	/**
+	 * Colour the label as a STATUS the caller owns — the dailies scale (green
+	 * claimable, orange short, faint done). {@link #state} keeps its own
+	 * colouring for the plain case; call this after it, not before.
+	 */
+	public V2Checkbox labelColor(java.awt.Color color)
+	{
+		if (label != null)
+		{
+			label.setColor(color);
+		}
+		return this;
+	}
+
+	/** A trailing icon after the label — the dailies wilderness skull. */
+	public V2Checkbox badge(javax.swing.Icon icon)
+	{
+		javax.swing.JLabel holder = new javax.swing.JLabel(icon); // v2-exempt: an icon holder, not text
+		holder.setAlignmentY(CENTER_ALIGNMENT);
+		// before the trailing glue, which only exists when there is a label
+		add(holder, label == null ? getComponentCount() : getComponentCount() - 1);
+		return this;
+	}
+
 	public V2Checkbox state(State state)
 	{
 		this.state = state;
-		label.setColor(state == State.OFF || state == State.ON
-			? V2Tokens.TEXT : V2Tokens.FAINT);
+		if (label != null)
+		{
+			label.setColor(state == State.OFF || state == State.ON
+				? V2Tokens.TEXT : V2Tokens.FAINT);
+		}
 		setCursor(Cursor.getPredefinedCursor(state == State.LOCKED
 			|| state == State.DISABLED || state == State.DISABLED_ON
 			? Cursor.DEFAULT_CURSOR : Cursor.HAND_CURSOR));
@@ -157,7 +193,8 @@ public class V2Checkbox extends JPanel
 	 *  above and below only showed as slack in a list (Luke, 2026-07-25). */
 	private int rowHeight()
 	{
-		return Math.max(box.getPreferredSize().height, label.getPreferredSize().height);
+		return label == null ? box.getPreferredSize().height
+			: Math.max(box.getPreferredSize().height, label.getPreferredSize().height);
 	}
 
 	/** The 18px art itself — its own component so the row can lay out around

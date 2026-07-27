@@ -72,9 +72,32 @@ public class V2Tile extends JComponent
 	private static final String TICK = "ui/ticks/checkmark_small";
 
 	private final OsrsTheme theme;
-	private final BufferedImage emblem;
-	private final OsrsLabel caption;
+	/**
+	 * Any {@link java.awt.Image}, not just a {@code BufferedImage} — the
+	 * module tabs draw item sprites through {@code SpriteCache}, which hands
+	 * back {@code getScaledInstance}'s result. Widened rather than converted:
+	 * a copy per tile per rebuild, to satisfy a type, on the panel's busiest
+	 * path (Luke's Dailies pass, 2026-07-26).
+	 */
+	private java.awt.Image emblem;
+	/**
+	 * The caption text, kept UNWRAPPED. It is word-wrapped at paint time
+	 * against the tile's real width, because a grid sizes its tiles by its
+	 * column count and the constructor cannot know that yet (the Gear library
+	 * and the Build modules both need two lines — "Achievement diaries" is one
+	 * word too long for 52px).
+	 */
+	private final String captionText;
+	/** The wrapped label, rebuilt whenever the width it was wrapped at moves. */
+	private OsrsLabel caption;
+	private int captionWidth = -1;
+	/** How many lines the caption may take. */
+	private int captionLines = 1;
 	private final int size;
+	/** The tile's width, when it is not the square the height implies. */
+	private int width;
+	/** >1 when this tile stands for a group of members — a corner count. */
+	private int badge;
 	private boolean selected;
 	private boolean owned;
 	private boolean hover;
@@ -83,13 +106,14 @@ public class V2Tile extends JComponent
 	 *  whole way round, which is a plain status edge. */
 	private double progress = 1;
 
-	public V2Tile(OsrsTheme theme, BufferedImage emblem, String caption, int size,
+	public V2Tile(OsrsTheme theme, java.awt.Image emblem, String caption, int size,
 		Runnable onPress)
 	{
 		this.theme = theme;
 		this.emblem = emblem;
-		this.caption = caption == null ? null : V2Label.centred(caption);
+		this.captionText = caption;
 		this.size = size;
+		this.width = size;
 		setOpaque(false);
 		setAlignmentX(LEFT_ALIGNMENT);
 		setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -98,9 +122,24 @@ public class V2Tile extends JComponent
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
-				if (onPress != null)
+				if (e.isPopupTrigger())
+				{
+					right(e);
+				}
+				else if (javax.swing.SwingUtilities.isLeftMouseButton(e) && onPress != null)
 				{
 					onPress.run();
+				}
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e)
+			{
+				// popupTrigger lands on press on some platforms and release on
+				// others; the context menu has to answer on both
+				if (e.isPopupTrigger())
+				{
+					right(e);
 				}
 			}
 
@@ -118,6 +157,53 @@ public class V2Tile extends JComponent
 				repaint();
 			}
 		});
+	}
+
+	/** A context menu on this tile. */
+	public V2Tile onRightClick(java.util.function.Consumer<MouseEvent> onRight)
+	{
+		this.onRight = onRight;
+		return this;
+	}
+
+	private java.util.function.Consumer<MouseEvent> onRight;
+
+	private void right(MouseEvent e)
+	{
+		if (onRight != null)
+		{
+			onRight.accept(e);
+		}
+	}
+
+	/**
+	 * Wider than it is tall — a set tile spanning two grid columns. Without
+	 * this a tile is the square its {@code size} implies.
+	 */
+	public V2Tile width(int width)
+	{
+		this.width = width;
+		return this;
+	}
+
+	/** Let the caption wrap to at most this many lines. */
+	public V2Tile captionLines(int lines)
+	{
+		this.captionLines = lines;
+		return this;
+	}
+
+	/**
+	 * A member count in the top-left — "this tile stands for 4 variants".
+	 * Drawn in {@code TEXT}, not a status colour: it is a quantity, and Luke
+	 * asked for the light colour rather than orange when the Gear library
+	 * first grew grouped tiles.
+	 */
+	public V2Tile badge(int count)
+	{
+		this.badge = count;
+		badgeLabel.setText(String.valueOf(count));
+		return this;
 	}
 
 	public V2Tile selected(boolean selected)
@@ -146,6 +232,28 @@ public class V2Tile extends JComponent
 		repaint();
 		return this;
 	}
+
+	/** The emblem arrives async (an {@code AsyncBufferedImage} landing after
+	 *  the tile is built) — swap it in without rebuilding the grid. */
+	public V2Tile emblem(java.awt.Image emblem)
+	{
+		this.emblem = emblem;
+		repaint();
+		return this;
+	}
+
+	/**
+	 * What to draw when there is no emblem: a short code, centred. An honest
+	 * "the art has not arrived" rather than an empty stone (§8) — the gear
+	 * chart's own fallback, kept when its bespoke tile was retired.
+	 */
+	public V2Tile placeholder(String code)
+	{
+		this.placeholder = V2Label.centred(code);
+		return this;
+	}
+
+	private OsrsLabel placeholder;
 
 	/** A corner tick — owned, built, complete. */
 	public V2Tile owned(boolean owned)
@@ -190,15 +298,21 @@ public class V2Tile extends JComponent
 		{
 			// dead centre of the tile: the caption lives OUTSIDE the art now
 			// (Luke, 2026-07-25 — text on the tile pushed the icon off centre)
-			g2.drawImage(emblem, (getWidth() - emblem.getWidth()) / 2,
-				(size - emblem.getHeight()) / 2, null);
+			g2.drawImage(emblem, (getWidth() - emblem.getWidth(null)) / 2,
+				(size - emblem.getHeight(null)) / 2, null);
 		}
-		if (caption != null)
+		else if (placeholder != null)
 		{
-			caption.setSize(getWidth(), V2Tokens.LINE_PITCH + 5);
+			placeholder.setSize(getWidth(), size);
+			placeholder.paint(g2);
+		}
+		OsrsLabel text = caption();
+		if (text != null)
+		{
+			text.setSize(getWidth(), captionHeight());
 			g2.translate(0, size + V2Tokens.TIGHT);
-			caption.setColor(selected ? V2Tokens.HEADING : V2Tokens.TEXT);
-			caption.paint(g2);
+			text.setColor(selected ? V2Tokens.HEADING : V2Tokens.TEXT);
+			text.paint(g2);
 			g2.translate(0, -(size + V2Tokens.TIGHT));
 		}
 		if (status.edge != null)
@@ -238,15 +352,79 @@ public class V2Tile extends JComponent
 			BufferedImage tick = V2Sprites.get(theme, TICK);
 			g2.drawImage(tick, getWidth() - tick.getWidth() - V2Tokens.TIGHT, V2Tokens.TIGHT, null);
 		}
+		if (badge > 1)
+		{
+			badgeLabel.setSize(getWidth(), V2Tokens.LINE_PITCH + V2Tokens.ROW);
+			g2.translate(V2Tokens.ROW, V2Tokens.TIGHT);
+			badgeLabel.paint(g2);
+			g2.translate(-V2Tokens.ROW, -V2Tokens.TIGHT);
+		}
 		// the tile art stops at `size`; anything below it is the caption
 	}
+
+	/** Lazily wrapped against the width the grid actually gave this tile. */
+	private OsrsLabel caption()
+	{
+		if (captionText == null)
+		{
+			return null;
+		}
+		int width = Math.max(1, getWidth() - 2 * V2Tokens.TIGHT);
+		if (caption == null || captionWidth != width)
+		{
+			caption = captionLines > 1
+				? V2Label.wrappedCentred(clamp(captionText, width), width)
+				: V2Label.centred(captionText);
+			captionWidth = width;
+		}
+		return caption;
+	}
+
+	/**
+	 * Wrap, then keep at most {@link #captionLines} lines, ellipsizing the
+	 * last. Without the clamp a long name wrapped to three or four lines and
+	 * PAINTED all of them — the label draws what it holds, while the tile only
+	 * reserves height for two, so the tail bled over the row beneath (caught in
+	 * the Gear library render, 2026-07-26).
+	 */
+	private String clamp(String text, int width)
+	{
+		String[] lines = V2Label.wrappedCentred(text, width).text().split("\n");
+		if (lines.length <= captionLines)
+		{
+			return text;
+		}
+		StringBuilder out = new StringBuilder();
+		for (int i = 0; i < captionLines; i++)
+		{
+			out.append(i > 0 ? "\n" : "").append(lines[i]);
+		}
+		// the label ellipsizes a line that is too WIDE; too MANY lines is this
+		// method's problem, so the mark is added here
+		return out.append("…").toString();
+	}
+
+	/** How tall the caption band is — one line, or as many as it wraps to. */
+	private int captionHeight()
+	{
+		OsrsLabel text = caption();
+		if (text == null)
+		{
+			return 0;
+		}
+		int lines = Math.min(captionLines, text.text().split("\n").length);
+		return lines * V2Tokens.LINE_PITCH + 5;
+	}
+
+	/** Left-aligned so the count sits in the corner, not the middle. */
+	private final OsrsLabel badgeLabel = V2Label.detail("").leftAligned();
 
 	@Override
 	public Dimension getPreferredSize()
 	{
 		// the caption sits UNDER the art, so it costs height, not centring
-		return new Dimension(size, caption == null ? size
-			: size + V2Tokens.TIGHT + V2Tokens.LINE_PITCH + V2Tokens.ROW);
+		return new Dimension(width, captionText == null ? size
+			: size + V2Tokens.TIGHT + captionLines * V2Tokens.LINE_PITCH + V2Tokens.ROW);
 	}
 
 	@Override

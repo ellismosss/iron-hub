@@ -33,8 +33,12 @@ public class V2Surface extends JPanel
 	private boolean hover;
 	/** Painted by the nav row's own painter rather than from a slice. */
 	private boolean navTile;
-	/** Painted by a Swing Border rather than from a slice — the Frame. */
+	/** Painted by a Swing Border rather than from a slice — the Frame and the
+	 *  Slab. */
 	private javax.swing.border.Border frameBorder;
+	/** The Slab's interior, painted under {@link #frameBorder}. Null for the
+	 *  Frame, which is border-only. */
+	private java.awt.Paint slabFill;
 	/**
 	 * A slice cannot render below twice its corner size — the corners overlap
 	 * and the edges get a negative span. The panel frame's corners are 32px,
@@ -58,7 +62,13 @@ public class V2Surface extends JPanel
 	 */
 	public static V2Surface tile(OsrsTheme theme)
 	{
-		return new V2Surface(theme, V2Tokens.NAV_TILE_INSET + V2Tokens.PAD);
+		// vertical is TIGHTER than horizontal (Luke, 2026-07-25): the chamfer
+		// eats the corners, not the top and bottom edges, so 12px of air above
+		// and below a one-line row was padding nothing was asking for
+		V2Surface surface = new V2Surface(theme, V2Tokens.NAV_TILE_INSET + V2Tokens.PAD);
+		surface.setBorder(new EmptyBorder(V2Tokens.ROW, V2Tokens.NAV_TILE_INSET + V2Tokens.PAD,
+			V2Tokens.ROW, V2Tokens.NAV_TILE_INSET + V2Tokens.PAD));
+		return surface;
 	}
 
 	/**
@@ -82,6 +92,45 @@ public class V2Surface extends JPanel
 	}
 
 	/**
+	 * The engraved, corner-notched box — {@code StoneButton}'s design, and the
+	 * look every V1 stat box and stone panel wears (Luke, 2026-07-25). The one
+	 * surface in the V1 skin that V2 had no equivalent for.
+	 *
+	 * <p>Fill AND border, which is what separates it from the Frame — that one
+	 * is border-only. The fill is the SAME Card grain the Tile and the Card
+	 * wear (Luke, 2026-07-25), so the three read as one family and only their
+	 * edges differ: the Slab notches, the Tile chamfers, the Card is sprite
+	 * art. A flat {@code boxFill} was the first pass and sat visibly apart
+	 * from its neighbours.
+	 *
+	 * <p>Borrowed from {@code StoneBorder} rather than reproduced, on the same
+	 * terms as the Tile and the Frame — it is hand-painted from theme colours,
+	 * not sprite art, and when it becomes art this follows it for free.
+	 *
+	 * <p>Not to be confused with {@code V2Tokens.slab()}, which is the tan
+	 * nine-slice a progress bar is framed in. Different thing, unlucky name —
+	 * that one has no callers left and should take the {@code barFrame} name it
+	 * is actually used under.
+	 */
+	public static V2Surface slab(OsrsTheme theme)
+	{
+		// the Tile's content inset, NOT StoneBorder's own 4x6 pad: a surface in
+		// this set stands its content off by the same distance whatever edge it
+		// wears (Luke, 2026-07-25), and the border's cramped pad made the Slab
+		// read as a different system beside the Tile it sits next to
+		V2Surface surface = new V2Surface(theme,
+			V2Tokens.NAV_TILE_INSET + V2Tokens.PAD);
+		// same split as the Tile: the engraved notch is a CORNER feature, so
+		// the vertical inset can come back down (Luke, 2026-07-25)
+		surface.setBorder(new EmptyBorder(V2Tokens.ROW, V2Tokens.NAV_TILE_INSET + V2Tokens.PAD,
+			V2Tokens.ROW, V2Tokens.NAV_TILE_INSET + V2Tokens.PAD));
+		surface.navTile = false;
+		surface.slabFill = V2Sprites.grain(theme);
+		surface.frameBorder = new com.ironhub.ui.osrs.StoneBorder(theme, theme.background);
+		return surface;
+	}
+
+	/**
 	 * The Tile's surface, painted straight onto a Graphics — for things that
 	 * wear it without being containers, {@link V2Tile} above all. Shared rather
 	 * than reproduced so the clickable tile and the static one can never drift
@@ -96,10 +145,8 @@ public class V2Surface extends JPanel
 	 */
 	public static void paintTile(Graphics2D g, OsrsTheme theme, int w, int h, boolean selected)
 	{
-		java.awt.image.BufferedImage grain = V2Sprites.cardInterior(theme);
 		com.ironhub.ui.osrs.StoneNavButton.paintSlab(g, theme, w, h,
-			new java.awt.TexturePaint(grain,
-				new java.awt.Rectangle(0, 0, grain.getWidth(), grain.getHeight())),
+			V2Sprites.grain(theme),
 			selected ? theme.selectEdge : V2Tokens.dimEdge(theme));
 	}
 
@@ -123,10 +170,31 @@ public class V2Surface extends JPanel
 		com.ironhub.ui.osrs.StoneNavButton.paintSilhouette(g, w, h, V2Tokens.SHADOW);
 	}
 
+	/**
+	 * The chip surface — {@code button.png} sliced, the rounded rectangle a
+	 * {@link V2ChipRow} chip wears. For a one-off notice that needs to read as
+	 * a small transient thing rather than as a section (Luke, 2026-07-25: the
+	 * "Routes updated" banner). A row of choices is still {@code V2ChipRow};
+	 * this is the surface on its own.
+	 */
+	public static V2Surface chip(OsrsTheme theme)
+	{
+		return new V2Surface(theme, V2Tokens.chip());
+	}
+
 	/** Filled surface: cards, tooltips, and the button's hovered state. */
 	public static V2Surface card(OsrsTheme theme)
 	{
-		return new V2Surface(theme, V2Tokens.card());
+		V2Surface surface = new V2Surface(theme, V2Tokens.card());
+		// the 9px art inset is STRUCTURAL — it is where the bevel lives, and
+		// content inside it overlaps the art. What comes off is the spacing on
+		// top of it: PAD to TIGHT vertically, ROW horizontally (Luke,
+		// 2026-07-25). The Tile and Slab took the same trim.
+		surface.setBorder(new EmptyBorder(V2Tokens.SLICE_INSET + V2Tokens.TIGHT,
+			V2Tokens.SLICE_INSET + V2Tokens.ROW,
+			V2Tokens.SLICE_INSET + V2Tokens.TIGHT,
+			V2Tokens.SLICE_INSET + V2Tokens.ROW));
+		return surface;
 	}
 
 	/** The sunken well — framed lists, fields, tables. The same texture the
@@ -186,23 +254,67 @@ public class V2Surface extends JPanel
 	public V2Surface hoverable()
 	{
 		hovered = slice == null ? null : slice.variant("_hovered");
-		addMouseListener(new java.awt.event.MouseAdapter()
+		listenForHover(this);
+		return this;
+	}
+
+	/**
+	 * Watch this component and everything inside it, now and later.
+	 *
+	 * <p>A listener on the surface alone is not enough: Swing sends the
+	 * container a {@code mouseExited} the instant the pointer crosses onto a
+	 * child, so a Tile carrying a label — which every tile button is — goes
+	 * dark under the pointer. Every descendant reports instead, and an exit is
+	 * believed only once the pointer has left the surface's own bounds.
+	 *
+	 * <p>The {@code ContainerListener} covers children added AFTER
+	 * {@code hoverable()}, so a caller never has to build in a particular order
+	 * to get a working hover.
+	 */
+	private void listenForHover(Component target)
+	{
+		target.addMouseListener(new java.awt.event.MouseAdapter()
 		{
 			@Override
 			public void mouseEntered(java.awt.event.MouseEvent e)
 			{
-				hover = true;
-				repaint();
+				if (!hover)
+				{
+					hover = true;
+					repaint();
+				}
 			}
 
 			@Override
 			public void mouseExited(java.awt.event.MouseEvent e)
 			{
+				java.awt.Point p = javax.swing.SwingUtilities.convertPoint(
+					e.getComponent(), e.getPoint(), V2Surface.this);
+				if (contains(p))
+				{
+					return; // onto a child, still inside
+				}
 				hover = false;
 				repaint();
 			}
 		});
-		return this;
+		if (!(target instanceof java.awt.Container))
+		{
+			return;
+		}
+		java.awt.Container container = (java.awt.Container) target;
+		for (Component child : container.getComponents())
+		{
+			listenForHover(child);
+		}
+		container.addContainerListener(new java.awt.event.ContainerAdapter()
+		{
+			@Override
+			public void componentAdded(java.awt.event.ContainerEvent e)
+			{
+				listenForHover(e.getChild());
+			}
+		});
 	}
 
 	/** Paint the hovered art regardless of the pointer — how a selected chip
@@ -218,6 +330,45 @@ public class V2Surface extends JPanel
 			hover = lit;
 			repaint();
 		}
+	}
+
+	/**
+	 * A Tile that presses — a button wearing the Tile surface rather than the
+	 * metal frame (Luke, 2026-07-25). Nothing here is new art: the surface, the
+	 * chamfer and the pointer wash are the Tile's own, and this adds the hand
+	 * cursor, the hover and the click.
+	 *
+	 * @param compact true trims the Tile's content inset to its chamfer, for a
+	 *                button that is one line of text rather than a block
+	 */
+	public V2Surface pressable(Runnable onPress)
+	{
+		return pressable(onPress, false);
+	}
+
+	public V2Surface pressable(Runnable onPress, boolean compact)
+	{
+		if (compact)
+		{
+			int inset = V2Tokens.NAV_TILE_INSET;
+			setBorder(new EmptyBorder(V2Tokens.TIGHT, inset, V2Tokens.TIGHT, inset));
+		}
+		hoverable();
+		setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			// mousePressed, not mouseClicked: a click that drifts a pixel
+			// between press and release never fires
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				if (onPress != null)
+				{
+					onPress.run();
+				}
+			}
+		});
+		return this;
 	}
 
 	/** Add a child and the standard gap beneath it. */
@@ -242,6 +393,22 @@ public class V2Surface extends JPanel
 	{
 		if (frameBorder != null)
 		{
+			if (slabFill != null)
+			{
+				// fill first, border second: the border's corner stamps paint
+				// the notches through to the backing, so a fill drawn after
+				// would square them off again
+				((Graphics2D) g).setPaint(slabFill);
+				g.fillRect(0, 0, getWidth(), getHeight());
+				if (hover)
+				{
+					// BETWEEN the two, which is what clips it: the wash lands
+					// on the fill, then the border repaints the four notches
+					// over it (§8 — a wash never spills past the art)
+					g.setColor(V2Tokens.HIGHLIGHT);
+					g.fillRect(0, 0, getWidth(), getHeight());
+				}
+			}
 			frameBorder.paintBorder(this, g, 0, 0, getWidth(), getHeight());
 		}
 		else if (navTile)
@@ -255,6 +422,10 @@ public class V2Surface extends JPanel
 			// surfaces stack, so a brighter border on the Tile read as two
 			// different systems, while a flat fill left it sunk into the Frame
 			paintTile((Graphics2D) g, theme, getWidth(), getHeight(), false);
+			if (hover)
+			{
+				washTile((Graphics2D) g, getWidth(), getHeight());
+			}
 		}
 		else if (wellArt != null)
 		{

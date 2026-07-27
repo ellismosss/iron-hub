@@ -48,7 +48,7 @@ class WheresMyStuffTab extends JPanel
 	private final SpriteCache sprites;
 
 	private final JPanel content = new JPanel();
-	private final com.ironhub.ui.osrs.StoneTextField search;
+	private final com.ironhub.ui.v2.V2TextField search;
 	private String expanded; // storage id, or null
 
 	WheresMyStuffTab(AccountState state, WheresMyStuffModule module, OsrsTheme theme,
@@ -65,9 +65,9 @@ class WheresMyStuffTab extends JPanel
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
 		// mounted once so it keeps focus — only `content` is rebuilt
-		search = new com.ironhub.ui.osrs.StoneTextField(theme, "Find an item across your stuff…");
+		search = new com.ironhub.ui.v2.V2TextField(theme, "Find an item across your stuff…", null);
 		search.setAlignmentX(LEFT_ALIGNMENT);
-		search.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+		search.editor().getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
 		{
 			public void insertUpdate(javax.swing.event.DocumentEvent e)
 			{
@@ -262,28 +262,24 @@ class WheresMyStuffTab extends JPanel
 				nonEmpty++;
 			}
 		}
-		JPanel head = new JPanel();
-		head.setLayout(new BoxLayout(head, BoxLayout.X_AXIS));
-		head.setOpaque(false);
-		head.setAlignmentX(LEFT_ALIGNMENT);
-		head.setBorder(new EmptyBorder(2, 4, 1, 4));
+		// what is tracked is the one live readout on the page — the Card
+		com.ironhub.ui.v2.V2Surface hero = com.ironhub.ui.v2.V2Surface.card(theme);
+		JPanel head = rowLine();
 		head.add(new OsrsLabel(items + (items == 1 ? " item tracked" : " items tracked"),
 			OsrsSkin.VALUE, OsrsSkin.boldFont()).leftAligned().squeezable());
 		head.add(Box.createHorizontalGlue());
 		cap(head);
-		content.add(head);
+		hero.add(head);
 
-		JPanel under = new JPanel();
-		under.setLayout(new BoxLayout(under, BoxLayout.X_AXIS));
-		under.setOpaque(false);
-		under.setAlignmentX(LEFT_ALIGNMENT);
-		under.setBorder(new EmptyBorder(0, 4, 3, 4));
+		JPanel under = rowLine();
 		under.add(new OsrsLabel("across " + nonEmpty
 			+ (nonEmpty == 1 ? " storage" : " storages"), OsrsSkin.FAINT,
 			OsrsSkin.smallFont()).leftAligned());
 		under.add(Box.createHorizontalGlue());
 		cap(under);
-		content.add(under);
+		hero.add(under);
+		cap(hero);
+		content.add(hero);
 	}
 
 	private JComponent familyHeader(PersistedState.StorageSnapshot any)

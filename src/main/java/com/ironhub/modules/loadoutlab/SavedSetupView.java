@@ -77,12 +77,23 @@ public class SavedSetupView
 	private static final int LINK_OFF = SLOT / 2 - 3;
 
 	/** The game's side panel backing and its inventory grid (13,9 + 42x36). */
-	private static final int INV_WIDTH = 190;
-	private static final int INV_HEIGHT = 261;
-	private static final int INV_X = 13;
-	private static final int INV_Y = 9;
+	/**
+	 * The inventory frame and its grid, matched to {@code V2Inventory} (Luke,
+	 * 2026-07-25: "doesn't have the same padding around items as in DLV2").
+	 * DLV2's went to 276 tall so the icons clear the frame's upper and lower
+	 * bands; this one was left at 261, which is the whole difference. The
+	 * origin is DERIVED from the slack rather than hardcoded at 13/9, so a
+	 * height change re-centres the grid instead of stranding it at the top —
+	 * the same {@code floorDiv} centring V2Inventory uses.
+	 */
+	private static final int INV_WIDTH = com.ironhub.ui.v2.V2Inventory.WIDTH;
+	private static final int INV_HEIGHT = com.ironhub.ui.v2.V2Inventory.HEIGHT;
 	private static final int INV_DX = 42;
 	private static final int INV_DY = 36;
+	private static final int INV_X = Math.floorDiv(
+		INV_WIDTH - (3 * INV_DX + com.ironhub.ui.v2.V2Inventory.CELL_W), 2);
+	private static final int INV_Y = Math.floorDiv(
+		INV_HEIGHT - (6 * INV_DY + com.ironhub.ui.v2.V2Inventory.CELL_H), 2);
 
 	private final OsrsTheme theme;
 	private final ItemManager itemManager;   // null headless — sprites skipped
@@ -375,10 +386,26 @@ public class SavedSetupView
 
 		private final PersistedState.SavedSetup setup;
 		private final AsyncBufferedImage[] runes;
+		/**
+		 * How many squares to draw: the runes actually IN the pouch, not its
+		 * capacity (Luke, 2026-07-25 — "only 3 Squares if only 3 runes"). A
+		 * divine pouch reports four slots whether or not the fourth is filled,
+		 * and an empty square at the end reads as a slot you forgot to fill.
+		 */
+		private final int slots;
 
 		PouchCanvas(PersistedState.SavedSetup setup)
 		{
 			this.setup = setup;
+			int filled = 0;
+			for (int i = 0; i < setup.pouchRunes.length; i++)
+			{
+				if (setup.pouchRunes[i] > 0)
+				{
+					filled = i + 1; // the LAST filled slot, so a gap still draws
+				}
+			}
+			this.slots = filled;
 			this.runes = new AsyncBufferedImage[setup.pouchRunes.length];
 			setOpaque(false);
 			setToolTipText("");
@@ -401,7 +428,7 @@ public class SavedSetupView
 		@Override
 		public Dimension getPreferredSize()
 		{
-			return new Dimension(PITCH * setup.pouchRunes.length - (PITCH - SLOT), SLOT);
+			return new Dimension(Math.max(SLOT, PITCH * slots - (PITCH - SLOT)), SLOT);
 		}
 
 		@Override
@@ -420,7 +447,7 @@ public class SavedSetupView
 		protected void paintComponent(Graphics g)
 		{
 			Graphics2D g2 = (Graphics2D) g;
-			for (int i = 0; i < setup.pouchRunes.length; i++)
+			for (int i = 0; i < slots; i++)
 			{
 				int x = i * PITCH;
 				if (slotTile != null)
@@ -451,7 +478,7 @@ public class SavedSetupView
 		public String getToolTipText(MouseEvent e)
 		{
 			int i = e.getX() / PITCH;
-			if (i >= 0 && i < setup.pouchRunes.length && e.getX() % PITCH < SLOT)
+			if (i >= 0 && i < slots && e.getX() % PITCH < SLOT)
 			{
 				if (setup.pouchRunes[i] > 0)
 				{

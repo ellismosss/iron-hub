@@ -6,9 +6,8 @@ import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneButton;
-import com.ironhub.ui.osrs.StoneChipRow;
-import com.ironhub.ui.osrs.StonePanel;
+import com.ironhub.ui.v2.V2ChipRow;
+import com.ironhub.ui.v2.V2Surface;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.util.ArrayList;
@@ -42,7 +41,7 @@ class CluesTab extends JPanel
 	private final OsrsTheme theme;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 
-	private final StoneChipRow views;
+	private final V2ChipRow views;
 	private final JPanel content = new JPanel();
 	private boolean showAll;
 
@@ -56,7 +55,7 @@ class CluesTab extends JPanel
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		views = new StoneChipRow(theme, true, "Steps", "STASH");
+		views = new V2ChipRow(theme, true, "Steps", "STASH");
 		views.onChange(i -> rebuild());
 		add(views);
 		add(Box.createVerticalStrut(4));
@@ -90,7 +89,7 @@ class CluesTab extends JPanel
 		{
 			content.add(faintLine("Clue pack unavailable."));
 		}
-		else if (views.getSelected() == 1)
+		else if (views.selected() == 1)
 		{
 			rebuildStash();
 		}
@@ -202,7 +201,8 @@ class CluesTab extends JPanel
 		if (!doable && !clue.reqs.isEmpty())
 		{
 			boolean tracked = module.isGoal(clue);
-			StoneButton goal = new StoneButton(theme, tracked ? "×" : "+ Goal", () ->
+			JComponent goal = V2ChipRow.action(theme, tracked ? "×" : "+ Goal", null, null,
+				OsrsSkin.smallFont(), () ->
 			{
 				if (tracked)
 				{
@@ -216,7 +216,6 @@ class CluesTab extends JPanel
 			});
 			goal.setToolTipText(tracked ? "Remove from Goals"
 				: "Track unlocking this step in Goals");
-			goal.setMaximumSize(goal.getPreferredSize());
 			top.add(goal);
 		}
 		cap(top);
@@ -266,9 +265,8 @@ class CluesTab extends JPanel
 				ready++;
 			}
 		}
-		StonePanel summary = new StonePanel(theme);
-		summary.setLayout(new BoxLayout(summary, BoxLayout.Y_AXIS));
-		summary.setAlignmentX(LEFT_ALIGNMENT);
+		// the STASH standing is the one live readout on this view — the Card
+		V2Surface summary = V2Surface.card(theme);
 		JPanel line1 = bareRow();
 		line1.add(new OsrsLabel("STASH units", OsrsSkin.LABEL, OsrsSkin.boldFont()).leftAligned());
 		line1.add(Box.createHorizontalGlue());

@@ -46,6 +46,13 @@ public class CollectionLogTest
 		CollectionLogModule module = new CollectionLogModule(state, client, null,
 			new EventBus(), new IronHubConfig()
 		{
+			@Override
+			public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+			{
+				// Vanilla: osrsTheme() defaults to MYSTIC, and the renders
+				// exist to be judged against the Vanilla design system
+				return com.ironhub.ui.osrs.OsrsTheme.STONE;
+			}
 		}, new DataPack(new Gson()), null);
 		module.startUp();
 		return module;

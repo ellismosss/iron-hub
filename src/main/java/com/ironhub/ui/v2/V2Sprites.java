@@ -91,6 +91,31 @@ public final class V2Sprites
 		return Collections.unmodifiableMap(index());
 	}
 
+	/**
+	 * The curated icon for a skill, by its NAME — the one place that mapping is
+	 * written, so no module builds a sprite path out of a {@code Skill}. Takes
+	 * a String rather than the enum to keep this package free of the client's
+	 * API. Check {@link #has} first: the set covers the 23 skills that existed
+	 * when it was curated, and a skill added later has no art here.
+	 */
+	public static String skill(String name)
+	{
+		return "icons/skills/" + name.toLowerCase(java.util.Locale.ROOT);
+	}
+
+	/**
+	 * The Card's grain as a repeating paint — what every Tile surface is filled
+	 * with. Here rather than rebuilt at each call site: the hub's nav row, the
+	 * lab's copy of it and {@code V2Surface.paintTile} were three constructions
+	 * of one texture, which is three chances to drift.
+	 */
+	public static java.awt.TexturePaint grain(OsrsTheme theme)
+	{
+		BufferedImage art = cardInterior(theme);
+		return new java.awt.TexturePaint(art,
+			new java.awt.Rectangle(0, 0, art.getWidth(), art.getHeight()));
+	}
+
 	public static boolean has(String key)
 	{
 		return index().containsKey(key);
@@ -162,18 +187,35 @@ public final class V2Sprites
 		// update" whenever the source sprite is not already warm
 		BufferedImage art = trimmed(theme, key);
 		String cacheKey = "hl/" + theme.spriteVariant() + "/" + key;
-		return CACHE.computeIfAbsent(cacheKey, k ->
+		return CACHE.computeIfAbsent(cacheKey, k -> Optional.of(wash(art))).orElse(null);
+	}
+
+	/** The same wash over an emblem scaled to a box — {@link #highlighted} and
+	 *  {@link #fitted} composed, so a fitted button lights like every other. */
+	public static BufferedImage highlighted(OsrsTheme theme, String key, int box)
+	{
+		if (box <= 0)
 		{
-			BufferedImage lit = new BufferedImage(art.getWidth(), art.getHeight(),
-				BufferedImage.TYPE_INT_ARGB);
-			java.awt.Graphics2D g = lit.createGraphics();
-			g.drawImage(art, 0, 0, null);
-			g.setComposite(java.awt.AlphaComposite.SrcAtop);
-			g.setColor(V2Tokens.HIGHLIGHT);
-			g.fillRect(0, 0, art.getWidth(), art.getHeight());
-			g.dispose();
-			return Optional.of(lit);
-		}).orElse(null);
+			return highlighted(theme, key);
+		}
+		BufferedImage art = fitted(theme, key, box);
+		String cacheKey = "hl" + box + "/" + theme.spriteVariant() + "/" + key;
+		return CACHE.computeIfAbsent(cacheKey, k -> Optional.of(wash(art))).orElse(null);
+	}
+
+	/** A copy of the art with {@code HIGHLIGHT} composited SrcAtop — lit where
+	 *  the sprite draws, untouched where it is transparent. */
+	private static BufferedImage wash(BufferedImage art)
+	{
+		BufferedImage lit = new BufferedImage(art.getWidth(), art.getHeight(),
+			BufferedImage.TYPE_INT_ARGB);
+		java.awt.Graphics2D g = lit.createGraphics();
+		g.drawImage(art, 0, 0, null);
+		g.setComposite(java.awt.AlphaComposite.SrcAtop);
+		g.setColor(V2Tokens.HIGHLIGHT);
+		g.fillRect(0, 0, art.getWidth(), art.getHeight());
+		g.dispose();
+		return lit;
 	}
 
 	/**
@@ -237,6 +279,10 @@ public final class V2Sprites
 	{
 		// resolved BEFORE computeIfAbsent — see highlighted()
 		BufferedImage art = get(theme, key);
+		if (box <= 0)
+		{
+			return art; // no box asked for: the sprite's own size
+		}
 		String cacheKey = "fit" + box + "/" + theme.spriteVariant() + "/" + key;
 		return CACHE.computeIfAbsent(cacheKey, k ->
 		{

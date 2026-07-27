@@ -32,11 +32,18 @@ public final class OsrsSkin
 	/** Secondary/annotation text, and typed input (not sampled — a muted stone tone). */
 	public static final Color MUTED = new Color(0xB8AC9C);
 	/**
-	 * Placeholder text. DERIVED: the game has no placeholders to sample, so
-	 * this dims MUTED by the same ratio UiTokens uses from body to faint —
-	 * it must stay distinguishable from typed text, which is MUTED.
+	 * Placeholder and provenance text. DERIVED: the game has no placeholders to
+	 * sample, so this dims MUTED by the same ratio UiTokens uses from body to
+	 * faint — it must stay distinguishable from typed text, which is MUTED.
+	 *
+	 * <p>It now actually IS that ratio. {@code TEXT_FAINT / TEXT_MUTED} is
+	 * 0x6B/0x8C = 0.764, but this constant sat at 0.545 of MUTED and read as a
+	 * different rule altogether — against the stone background that is only
+	 * ~40 levels of separation, and Luke lost the faint lines in it
+	 * (2026-07-25). At the documented ratio it clears the panel by ~79 and
+	 * still sits far below MUTED.
 	 */
-	public static final Color FAINT = new Color(0x645E55);
+	public static final Color FAINT = new Color(0x8D8377);
 	/** Text drawn over a progress fill, per RuneLite's own ProgressBar. */
 	public static final Color BAR_TEXT = Color.WHITE;
 	/**

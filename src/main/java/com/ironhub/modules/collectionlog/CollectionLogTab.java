@@ -13,9 +13,10 @@ import com.ironhub.ui.osrs.OsrsIcons;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StonePanel;
-import com.ironhub.ui.osrs.StoneProgressBar;
-import com.ironhub.ui.osrs.StoneTextField;
+import com.ironhub.ui.v2.V2ProgressBar;
+import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2TextField;
+import com.ironhub.ui.v2.V2Tokens;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -85,10 +86,10 @@ class CollectionLogTab extends JPanel
 	private final Set<Integer> slayerActivities;
 
 	// persistent chrome
-	private final StonePanel hero;
-	private final StoneProgressBar bar;
+	private final V2Surface hero;
+	private final V2ProgressBar bar;
 	private final JPanel tabRow = new JPanel();
-	private final StoneTextField search;
+	private final V2TextField search;
 	private final JPanel content = new JPanel();
 
 	// view state
@@ -122,10 +123,9 @@ class CollectionLogTab extends JPanel
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		hero = new StonePanel(theme);
-		hero.setLayout(new BoxLayout(hero, BoxLayout.Y_AXIS));
-		hero.setAlignmentX(LEFT_ALIGNMENT);
-		bar = new StoneProgressBar(theme, OsrsSkin.PROGRESS_BLUE, 0);
+		// the log standing is the one live readout on the page — the Card
+		hero = V2Surface.card(theme);
+		bar = new V2ProgressBar(theme, V2ProgressBar.Size.ROW).fill(V2Tokens.BAR_BLUE);
 		add(hero);
 		add(Box.createVerticalStrut(4));
 
@@ -135,9 +135,9 @@ class CollectionLogTab extends JPanel
 		add(tabRow);
 		add(Box.createVerticalStrut(4));
 
-		search = new StoneTextField(theme, "Search items or pages…");
+		search = new V2TextField(theme, "Search items or pages…", null);
 		add(search);
-		search.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+		search.editor().getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
 		{
 			public void insertUpdate(javax.swing.event.DocumentEvent e)
 			{
@@ -248,8 +248,7 @@ class CollectionLogTab extends JPanel
 		hero.add(top);
 
 		hero.add(Box.createVerticalStrut(3));
-		bar.setFraction(ceiling > floor ? (double) (slots - floor) / (ceiling - floor) : 1);
-		bar.setAlignmentX(LEFT_ALIGNMENT);
+		bar.fraction(ceiling > floor ? (double) (slots - floor) / (ceiling - floor) : 1);
 		hero.add(bar);
 
 		JPanel labels = row();

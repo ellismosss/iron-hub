@@ -10,14 +10,18 @@ import com.ironhub.ui.components.SpriteCache;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneBorder;
-import com.ironhub.ui.osrs.StoneButton;
-import com.ironhub.ui.osrs.StoneCheckbox;
-import com.ironhub.ui.osrs.StoneChecklist;
-import com.ironhub.ui.osrs.StoneComboBoxUI;
-import com.ironhub.ui.osrs.StoneMeter;
-import com.ironhub.ui.osrs.StonePanel;
-import com.ironhub.ui.osrs.StoneTextField;
+import com.ironhub.ui.v2.V2Button;
+import com.ironhub.ui.v2.V2Checkbox;
+import com.ironhub.ui.v2.V2Checklist;
+import com.ironhub.ui.v2.V2ChipRow;
+import com.ironhub.ui.v2.V2Dropdown;
+import com.ironhub.ui.v2.V2EmptyState;
+import com.ironhub.ui.v2.V2ProgressBar;
+import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2TextField;
+import com.ironhub.ui.v2.V2Tile;
+import com.ironhub.ui.v2.V2Tokens;
+import com.ironhub.ui.v2.V2Well;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -83,7 +87,7 @@ class FarmingTab extends JPanel
 
 	// run builder state
 	private boolean builderOpen;
-	private final StoneTextField builderName;
+	private final V2TextField builderName;
 	private final Set<String> builderSelection = new LinkedHashSet<>();
 
 	FarmingTab(AccountState state, FarmingRunModule module,
@@ -94,7 +98,7 @@ class FarmingTab extends JPanel
 		this.itemManager = itemManager;
 		this.theme = theme;
 		this.sprites = new SpriteCache(itemManager, listener);
-		this.builderName = new StoneTextField(theme, "Run name…");
+		this.builderName = V2TextField.plain(theme, "Run name…", null);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
@@ -251,29 +255,37 @@ class FarmingTab extends JPanel
 	private JPanel teleportRow(List<FarmRunsPack.Location> group)
 	{
 		FarmRunsPack.Location rep = group.get(0);
-		JPanel row = new JPanel(new BorderLayout(UiTokens.ROW_GAP, 0));
+		// the row FOLLOWS its dropdown's height: the V2 dropdown grows in place
+		// when opened, and a row pinned to one control height would clip it
+		JPanel row = new JPanel(new BorderLayout(UiTokens.ROW_GAP, 0))
+		{
+			@Override
+			public Dimension getMaximumSize()
+			{
+				return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+			}
+		};
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
 
 		JPanel nameHolder = new JPanel(new BorderLayout());
 		nameHolder.setOpaque(false);
-		nameHolder.setPreferredSize(new Dimension(82, 22));
+		nameHolder.setPreferredSize(new Dimension(82, V2Tokens.CONTROL_HEIGHT));
 		OsrsLabel name = new OsrsLabel(rep.name, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned();
 		name.setToolTipText(rep.name);
 		nameHolder.add(name, BorderLayout.CENTER);
 		row.add(nameHolder, BorderLayout.WEST);
 
-		JComboBox<String> combo = StoneComboBoxUI.skin(new JComboBox<>(), theme);
-		combo.addItem("Auto");
+		List<String> options = new ArrayList<>();
+		options.add("Auto");
 		for (FarmRunsPack.Teleport teleport : rep.teleports)
 		{
-			combo.addItem(FarmingRunOverlay.teleportLabel(teleport));
+			options.add(FarmingRunOverlay.teleportLabel(teleport));
 		}
-		combo.setSelectedIndex(prefIndex(rep, state.getFarmTeleportPref(rep.id)));
-		combo.addActionListener(e ->
+		V2Dropdown combo = new V2Dropdown(theme, options.toArray(new String[0]));
+		combo.setSelected(prefIndex(rep, state.getFarmTeleportPref(rep.id)));
+		combo.onChange(i ->
 		{
-			int i = combo.getSelectedIndex();
 			String teleportId = i <= 0 ? null : rep.teleports.get(i - 1).id;
 			for (FarmRunsPack.Location loc : group)
 			{
@@ -383,7 +395,7 @@ class FarmingTab extends JPanel
 		com.ironhub.state.PersistedState.SavedSetup existing =
 			state.getFarmRunSetup(FarmingRunModule.bucketKey(bucket));
 		boolean flash = bucket.equals(justSavedBucket);
-		StoneButton button = new StoneButton(theme, flash ? "Saved" : bucket, () ->
+		V2Button button = new V2Button(theme, flash ? "Saved" : bucket, () ->
 		{
 			state.saveFarmRunSetup(FarmingRunModule.bucketKey(bucket), state.captureSetup());
 			justSavedBucket = bucket;
@@ -542,7 +554,7 @@ class FarmingTab extends JPanel
 		if (module.running())
 		{
 			topBar.add(Box.createVerticalStrut(4));
-			StoneButton end = new StoneButton(theme, "End run", () ->
+			V2Button end = new V2Button(theme, "End run", () ->
 			{
 				module.endRun(false);
 				rebuild();
@@ -676,11 +688,11 @@ class FarmingTab extends JPanel
 	/** Grid of clickable category icon tiles — the Time Tracking tab strip. */
 	private JComponent overviewTileStrip(java.util.Map<Tab, List<FarmingRunModule.OverviewPatch>> byCategory, long now)
 	{
-		JPanel strip = new JPanel(new java.awt.GridLayout(0, 5, 4, 4));
+		JPanel strip = new JPanel(new java.awt.GridLayout(0, 5, V2Tokens.ROW, V2Tokens.ROW));
 		strip.setOpaque(false);
 		strip.setAlignmentX(LEFT_ALIGNMENT);
 		int rows = (byCategory.size() + 4) / 5;
-		strip.setMaximumSize(new Dimension(Integer.MAX_VALUE, rows * 34));
+		strip.setMaximumSize(new Dimension(Integer.MAX_VALUE, rows * (TILE + V2Tokens.ROW)));
 		for (java.util.Map.Entry<Tab, List<FarmingRunModule.OverviewPatch>> entry : byCategory.entrySet())
 		{
 			strip.add(overviewTile(entry.getKey(), entry.getValue(), now));
@@ -688,9 +700,13 @@ class FarmingTab extends JPanel
 		return strip;
 	}
 
-	/** One category tile: its icon, a green bevel when every patch is ready/
-	 *  dead/empty, else an orange clockwise arc for progress toward the next
-	 *  ready patch. Click toggles the category's patch list. */
+	/**
+	 * One category tile — the DLV2 status tile (Luke, 2026-07-26), replacing
+	 * the hand-painted one this tab drew for itself: DONE when every patch is
+	 * ready/dead/empty, else READY wrapped to the progress of the nearest
+	 * patch, and PLAIN where nothing is planted. Click toggles the category's
+	 * patch list; the open one reads as selected.
+	 */
 	private JComponent overviewTile(Tab category, List<FarmingRunModule.OverviewPatch> patches, long now)
 	{
 		int seen = 0;
@@ -731,19 +747,36 @@ class FarmingTab extends JPanel
 					break;
 			}
 		}
-		// nothing planted anywhere in this category — no status border at all
+		// nothing planted anywhere in this category — no status edge at all
 		boolean onlyWeeds = seen > 0 && weeded == seen;
 		boolean ready = !onlyWeeds && seen > 0 && done == seen;
-		OverviewTile tile = new OverviewTile(onlyWeeds ? 0 : progress, ready, onlyWeeds,
-			category == expandedOverview, category.getName(), () ->
+		V2Tile tile = new V2Tile(theme, sprites.get(category.getItemID(), V2Tokens.TILE_ICON),
+			null, TILE, () ->
 			{
 				// single expansion: a second click on the open tile closes it
 				expandedOverview = category == expandedOverview ? null : category;
 				rebuildOverview();
 			});
-		tile.setIconImage(sprites.get(category.getItemID(), 24));
+		tile.selected(category == expandedOverview);
+		if (onlyWeeds)
+		{
+			tile.status(V2Tile.Status.PLAIN);
+		}
+		else if (ready)
+		{
+			tile.status(V2Tile.Status.DONE);
+		}
+		else
+		{
+			// the wrapping edge IS the progress arc this tab used to paint
+			tile.status(V2Tile.Status.READY).progress(progress);
+		}
+		tile.setToolTipText(category.getName());
 		return tile;
 	}
+
+	/** The tile's own height; its width comes from the grid's column. */
+	private static final int TILE = 30;
 
 	/** Sub-section label inside a merged tile (e.g. "Calquat Patches"). */
 	private JComponent overviewSubLabel(String name)
@@ -757,96 +790,6 @@ class FarmingTab extends JPanel
 		row.add(Box.createHorizontalGlue());
 		cap(row);
 		return row;
-	}
-
-	/**
-	 * Category tile with a status bevel/arc, on the nav stone's chamfered
-	 * slab (Luke, 2026-07-17): green inner bevel when every patch is ready,
-	 * an orange perimeter trace hugging the chamfer for progress, recess
-	 * fill while expanded. A weeds-only tile paints the bare silhouette —
-	 * nothing planted, no status.
-	 */
-	private class OverviewTile extends JComponent
-	{
-		private java.awt.Image icon;
-		private final double progress;
-		private final boolean ready;
-		private final boolean onlyWeeds;
-		private final boolean expanded;
-
-		OverviewTile(double progress, boolean ready, boolean onlyWeeds, boolean expanded,
-			String tooltip, Runnable onClick)
-		{
-			this.progress = progress;
-			this.ready = ready;
-			this.onlyWeeds = onlyWeeds;
-			this.expanded = expanded;
-			setPreferredSize(new Dimension(34, 30));
-			setMinimumSize(new Dimension(34, 30));
-			setToolTipText(tooltip);
-			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			addMouseListener(new MouseAdapter()
-			{
-				@Override
-				public void mousePressed(MouseEvent e)
-				{
-					onClick.run();
-				}
-			});
-		}
-
-		void setIconImage(java.awt.Image image)
-		{
-			this.icon = image;
-			repaint();
-		}
-
-		@Override
-		protected void paintComponent(java.awt.Graphics g)
-		{
-			java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
-			int w = getWidth();
-			int h = getHeight();
-			java.awt.Color fill = expanded ? theme.recess : theme.boxFill;
-			if (onlyWeeds)
-			{
-				// nothing planted — the bare chamfered silhouette, no engraving
-				com.ironhub.ui.osrs.StoneNavButton.paintSilhouette(g2, w, h, fill);
-			}
-			else
-			{
-				com.ironhub.ui.osrs.StoneNavButton.paintSlab(g2, theme, w, h, fill,
-					ready ? OsrsSkin.VALUE.darker() : theme.edgeLight);
-			}
-			if (icon != null)
-			{
-				g2.drawImage(icon, (w - 24) / 2, (h - 24) / 2, null);
-			}
-			if (!onlyWeeds && !ready && progress > 0)
-			{
-				g2.setColor(OsrsSkin.TITLE.darker());
-				paintPerimeterProgress(g2, w, h, progress);
-			}
-			g2.dispose();
-		}
-	}
-
-	/** Trace an orange line clockwise from the top-centre around the tile,
-	 *  hugging the slab's chamfered outline (both ring paths = 2px weight),
-	 *  for `fraction` of the way round. */
-	private static void paintPerimeterProgress(java.awt.Graphics2D g, int w, int h, double fraction)
-	{
-		for (int inset = 0; inset < 2; inset++)
-		{
-			java.util.List<java.awt.Point> path =
-				com.ironhub.ui.osrs.StoneNavButton.ringPath(inset, w, h);
-			int covered = (int) Math.round(fraction * path.size());
-			for (int i = 0; i < covered && i < path.size(); i++)
-			{
-				java.awt.Point p = path.get(i);
-				g.fillRect(p.x, p.y, 1, 1);
-			}
-		}
 	}
 
 	/** One patch line in the SKIN (Luke, 2026-07-17 — supersedes the last
@@ -902,9 +845,8 @@ class FarmingTab extends JPanel
 			column.add(Box.createVerticalStrut(2));
 			double fraction = patch.stages > 1
 				? patch.stage / (double) (patch.stages - 1) : 0;
-			StoneMeter meter = new StoneMeter(theme,
-				patch.cropState.getColor().darker(), fraction);
-			meter.setAlignmentX(LEFT_ALIGNMENT);
+			V2ProgressBar meter = new V2ProgressBar(theme, V2ProgressBar.Size.METER)
+				.fill(patch.cropState.getColor().darker()).fraction(fraction);
 			column.add(meter);
 		}
 		panel.add(column, BorderLayout.CENTER);
@@ -942,9 +884,8 @@ class FarmingTab extends JPanel
 	/** A label · value line in a stone box (the stat-row grammar). */
 	private JComponent overviewRow(String name, String value)
 	{
-		StonePanel row = new StonePanel(theme);
+		V2Surface row = V2Surface.tile(theme);
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-		row.setAlignmentX(LEFT_ALIGNMENT);
 		row.add(new OsrsLabel(name, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
 		row.add(Box.createHorizontalGlue());
 		row.add(OsrsLabel.value(value));
@@ -998,7 +939,7 @@ class FarmingTab extends JPanel
 		if (!module.combinedRun())
 		{
 			boolean hasSetup = state.getFarmRunSetup(module.runName()) != null;
-			StoneButton saveSetup = new StoneButton(theme,
+			V2Button saveSetup = new V2Button(theme,
 				hasSetup ? "Update bank setup" : "Save gear + inventory as bank setup", () ->
 			{
 				state.saveFarmRunSetup(module.runName(), state.captureSetup());
@@ -1027,10 +968,8 @@ class FarmingTab extends JPanel
 			runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		}
 
-		// the stop checklist, one stone box (the DailiesNewTab run grammar)
-		StonePanel list = new StonePanel(theme);
-		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
-		list.setAlignmentX(LEFT_ALIGNMENT);
+		// the stop checklist, one Well at the list inset (the DailiesNewTab grammar)
+		V2Surface list = listWell();
 		FarmingRunModule.Stop next = module.nextStop();
 		for (FarmingRunModule.Stop stop : module.stops())
 		{
@@ -1052,11 +991,8 @@ class FarmingTab extends JPanel
 			}
 		};
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-		row.setOpaque(isNext);
-		if (isNext)
-		{
-			row.setBackground(theme.selectFill);
-		}
+		// no fill of its own inside a Well — the orange name marks the next stop
+		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
 		boolean visited = module.isVisited(stop.location.id);
 		Color color = visited ? OsrsSkin.VALUE : isNext ? OsrsSkin.TITLE : OsrsSkin.MUTED;
@@ -1080,14 +1016,13 @@ class FarmingTab extends JPanel
 		if (!visited)
 		{
 			String id = stop.location.id;
-			StoneButton skip = new StoneButton(theme, isNext ? theme.selectFill : theme.boxFill,
-				"Skip", () ->
+			JComponent skip = V2ChipRow.action(theme, "Skip", null, null, OsrsSkin.smallFont(),
+				() ->
 			{
 				module.markThrough(id); // skip this stop (and any before it)
 				rebuild();
 			});
 			skip.setToolTipText("Skip this stop (and any before it)");
-			skip.setMaximumSize(skip.getPreferredSize());
 			row.add(skip);
 		}
 		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
@@ -1119,7 +1054,7 @@ class FarmingTab extends JPanel
 		int stops = module.selectedRunStops();
 		if (stops > 0)
 		{
-			StoneButton startAll = new StoneButton(theme,
+			V2Button startAll = new V2Button(theme,
 				"Start all runs · " + stops + " stops", module::startAllRuns);
 			startAll.setToolTipText("Every ticked run, as one sequence, trimmed to "
 				+ "the stops worth doing right now");
@@ -1128,12 +1063,7 @@ class FarmingTab extends JPanel
 		else
 		{
 			// nothing to do is a real state — a dead button would lie
-			StonePanel none = new StonePanel(theme);
-			none.setLayout(new BoxLayout(none, BoxLayout.X_AXIS));
-			none.setAlignmentX(LEFT_ALIGNMENT);
-			none.add(Box.createHorizontalGlue());
-			none.add(new OsrsLabel("Nothing to run", OsrsSkin.FAINT, OsrsSkin.font()));
-			none.add(Box.createHorizontalGlue());
+			V2Surface none = V2EmptyState.empty(theme, "Nothing to run");
 			none.setToolTipText("Nothing ticked is worth a trip right now");
 			cap(none);
 			runs.add(pad(none));
@@ -1155,12 +1085,7 @@ class FarmingTab extends JPanel
 
 		// picker order = the order "start all" walks (ready first, then the
 		// pack's); the rows sit inside one notched frame, checklist-style
-		StonePanel group = new StonePanel(theme);
-		group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
-		group.setAlignmentX(LEFT_ALIGNMENT);
-		int corner = theme.cornerStamp.length;
-		group.setBorder(new StoneBorder(theme, theme.background,
-			new Insets(corner, corner, corner, corner)));
+		V2Surface group = listWell();
 		java.util.Set<String> custom = state.getFarmRuns().keySet();
 		for (String name : module.pickerOrder())
 		{
@@ -1180,7 +1105,7 @@ class FarmingTab extends JPanel
 		runs.add(pad(group));
 		runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 
-		StoneButton newRun = new StoneButton(theme,
+		V2Button newRun = new V2Button(theme,
 			builderOpen ? "Cancel new run" : "New custom run…", () ->
 		{
 			builderOpen = !builderOpen;
@@ -1209,12 +1134,34 @@ class FarmingTab extends JPanel
 	 */
 	private class RunRow extends JPanel
 	{
-		private final StoneCheckbox box;
+		private final V2Checkbox box;
 		private final JComponent arrows;
 		private final JLabel icon;
 		private final OsrsLabel name;
 		private final OsrsLabel ready; // null when the run has no work waiting
 		private final JLabel delete;   // null for template runs
+		private boolean hover;
+
+		private boolean boxTicked()
+		{
+			return box.state() == V2Checkbox.State.ON;
+		}
+
+		private void setBoxTicked(boolean ticked)
+		{
+			box.state(ticked ? V2Checkbox.State.ON : V2Checkbox.State.OFF);
+		}
+
+		@Override
+		protected void paintComponent(java.awt.Graphics g)
+		{
+			if (hover)
+			{
+				g.setColor(V2Tokens.HIGHLIGHT);
+				g.fillRect(0, 0, getWidth(), getHeight());
+			}
+			super.paintComponent(g);
+		}
 
 		RunRow(String runName, Runnable start, Runnable onDelete)
 		{
@@ -1226,28 +1173,23 @@ class FarmingTab extends JPanel
 			boolean isReady = module.runReady(runName) && selected;
 
 			setLayout(null);
-			setOpaque(true);
-			setBackground(theme.boxFill);
+			// no fill of its own: the rows sit in a Well and the hover wash
+			// is what lights them (Luke's Dailies pass, 2026-07-26)
+			setOpaque(false);
 			setAlignmentX(LEFT_ALIGNMENT);
 			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
 			arrows = reorderArrows(runName);
 			add(arrows);
-			box = new StoneCheckbox(theme, selected);
+			// the box alone — this row lays its own parts out
+			box = new V2Checkbox(theme, null, selected, supersededBy != null ? null : () ->
+			{
+				boolean ticked = boxTicked();
+				setBoxTicked(!ticked);
+				state.setFarmRunSelected(runName, !ticked);
+			});
 			box.setToolTipText(supersededBy != null
 				? "Covered by " + supersededBy : "Include in Start all runs");
-			if (supersededBy == null)
-			{
-				box.addMouseListener(new MouseAdapter()
-				{
-					@Override
-					public void mousePressed(MouseEvent e)
-					{
-						box.setChecked(!box.isChecked());
-						state.setFarmRunSelected(runName, box.isChecked());
-					}
-				});
-			}
 			add(box);
 			icon = runIcon(runName);
 			add(icon);
@@ -1279,14 +1221,14 @@ class FarmingTab extends JPanel
 				@Override
 				public void mouseEntered(MouseEvent e)
 				{
-					setBackground(theme.hoverFill);
+					hover = true;
 					repaint();
 				}
 
 				@Override
 				public void mouseExited(MouseEvent e)
 				{
-					setBackground(theme.boxFill);
+					hover = false;
 					repaint();
 				}
 
@@ -1435,7 +1377,7 @@ class FarmingTab extends JPanel
 		runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 
 		String lastCategory = "";
-		StoneChecklist list = null;
+		V2Checklist list = null;
 		for (FarmRunsPack.Location location : module.pack().locations)
 		{
 			if (!location.category.equals(lastCategory))
@@ -1451,26 +1393,16 @@ class FarmingTab extends JPanel
 				header.add(Box.createHorizontalGlue());
 				cap(header);
 				runs.add(header);
-				list = new StoneChecklist(theme);
+				list = new V2Checklist(theme);
 				cap(list);
 				runs.add(pad(list));
 			}
 			String id = location.id;
-			list.row(location.name, builderSelection.contains(id), null, null, null, ticked ->
-			{
-				if (ticked)
-				{
-					builderSelection.add(id);
-				}
-				else
-				{
-					builderSelection.remove(id);
-				}
-			});
+			list.row(builderRow(location.name, id));
 		}
 
 		runs.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-		StoneButton save = new StoneButton(theme, "Save run", () ->
+		V2Button save = new V2Button(theme, "Save run", () ->
 		{
 			String name = builderName.getText().trim();
 			if (name.isEmpty() || builderSelection.isEmpty()
@@ -1494,6 +1426,39 @@ class FarmingTab extends JPanel
 			rebuild();
 		});
 		runs.add(pad(save));
+	}
+
+	/**
+	 * One builder tick. The box owns its own state: nothing rebuilds the
+	 * builder while it is open, so a rebuild-driven redraw would lose the
+	 * ticks the player has just made.
+	 */
+	private V2Checkbox builderRow(String name, String id)
+	{
+		V2Checkbox[] box = new V2Checkbox[1];
+		box[0] = new V2Checkbox(theme, name, builderSelection.contains(id), () ->
+		{
+			boolean ticked = box[0].state() != V2Checkbox.State.ON;
+			box[0].state(ticked ? V2Checkbox.State.ON : V2Checkbox.State.OFF);
+			if (ticked)
+			{
+				builderSelection.add(id);
+			}
+			else
+			{
+				builderSelection.remove(id);
+			}
+		});
+		return box[0];
+	}
+
+	/** A list Well at the list inset (§4) — stops, the run picker. */
+	private V2Surface listWell()
+	{
+		V2Surface well = V2Surface.well(theme);
+		int inset = V2Well.CAP + V2Tokens.TIGHT;
+		well.setBorder(new EmptyBorder(inset, inset, inset, inset));
+		return well;
 	}
 
 	/** 4 px side inset for content rows (the DailiesNewTab grammar). */

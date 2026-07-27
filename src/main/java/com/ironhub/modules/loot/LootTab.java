@@ -5,8 +5,7 @@ import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneChipRow;
-import com.ironhub.ui.osrs.StoneComboBoxUI;
+import com.ironhub.ui.v2.V2ChipRow;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -16,7 +15,6 @@ import java.util.Map;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -33,7 +31,9 @@ import net.runelite.client.util.QuantityFormatter;
  */
 class LootTab extends JPanel
 {
-	private static final int MAX_ROWS = 50;
+	/** Twenty rows per table (Luke, 2026-07-25). Fifty flat rows of sprites
+	 *  was both unreadable and a measured rebuild cost. */
+	private static final int MAX_ROWS = 20;
 
 	private final AccountState state;
 	private final ItemManager itemManager; // null in unit tests — icons skipped
@@ -41,8 +41,16 @@ class LootTab extends JPanel
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::sourcesChanged);
 	private final com.ironhub.ui.components.SpriteCache sprites;
 
-	private final JComboBox<String> source = new JComboBox<>();
-	private final StoneChipRow view;
+	/**
+	 * The DLV2 dropdown (Luke, 2026-07-25). It takes its options at
+	 * construction, where {@code JComboBox} was mutated in place — so the
+	 * source list is REBUILT into a holder whenever the sources change, and
+	 * the selected name is carried across by name rather than by index.
+	 */
+	private final JPanel sourceHolder = new JPanel(new java.awt.BorderLayout());
+	private com.ironhub.ui.v2.V2Dropdown source;
+	private String selectedSource;
+	private final V2ChipRow view;
 	private final JPanel killsLine = new JPanel();
 	private final JPanel list = new JPanel();
 	private final JPanel supplies = new JPanel();
@@ -61,17 +69,9 @@ class LootTab extends JPanel
 
 		add(Box.createVerticalStrut(4));
 
-		StoneComboBoxUI.skin(source, theme);
-		source.setAlignmentX(LEFT_ALIGNMENT);
-		source.setMaximumSize(new Dimension(Integer.MAX_VALUE, source.getPreferredSize().height));
-		source.addActionListener(e ->
-		{
-			if (!repopulating)
-			{
-				rebuild();
-			}
-		});
-		add(source);
+		sourceHolder.setOpaque(false);
+		sourceHolder.setAlignmentX(LEFT_ALIGNMENT);
+		add(sourceHolder);
 		add(Box.createVerticalStrut(3));
 
 		killsLine.setLayout(new BoxLayout(killsLine, BoxLayout.X_AXIS));
@@ -80,7 +80,7 @@ class LootTab extends JPanel
 		add(killsLine);
 		add(Box.createVerticalStrut(4));
 
-		view = new StoneChipRow(theme, true, "Total", "Per kill");
+		view = new V2ChipRow(theme, true, "Total", "Per kill");
 		view.onChange(i -> rebuild());
 		add(view);
 		add(Box.createVerticalStrut(4));
@@ -113,36 +113,38 @@ class LootTab extends JPanel
 			.thenComparing(s -> s));
 		if (!fresh.equals(sources))
 		{
-			String selected = (String) source.getSelectedItem();
-			// removeAllItems/addItem fire the combo's action listener per
-			// mutation — up to four full list rebuilds in one pass
-			// (2026-07-20 audit); the trailing rebuild() covers the result
-			repopulating = true;
-			try
+			sources = fresh;
+			// keep the player's pick across a repopulate, by NAME: the index
+			// moves as sources re-sort by kill count
+			if (selectedSource == null || !sources.contains(selectedSource))
 			{
-				sources = fresh;
-				source.removeAllItems();
-				sources.forEach(source::addItem);
-				if (selected != null && sources.contains(selected))
+				selectedSource = sources.isEmpty() ? null : sources.get(0);
+			}
+			sourceHolder.removeAll();
+			if (!sources.isEmpty())
+			{
+				source = new com.ironhub.ui.v2.V2Dropdown(theme, sources.toArray(new String[0]));
+				source.setSelected(Math.max(0, sources.indexOf(selectedSource)));
+				source.onChange(i ->
 				{
-					source.setSelectedItem(selected);
-				}
+					selectedSource = sources.get(i);
+					rebuild();
+				});
+				sourceHolder.add(source, java.awt.BorderLayout.CENTER);
 			}
-			finally
-			{
-				repopulating = false;
-			}
+			sourceHolder.setMaximumSize(new Dimension(Integer.MAX_VALUE,
+				sourceHolder.getPreferredSize().height));
+			sourceHolder.revalidate();
+			sourceHolder.repaint();
 		}
 		rebuild();
 	}
-
-	private boolean repopulating;
 
 	private void rebuild()
 	{
 		list.removeAll();
 		killsLine.removeAll();
-		String selected = (String) source.getSelectedItem();
+		String selected = selectedSource;
 
 		if (selected == null)
 		{
@@ -154,19 +156,21 @@ class LootTab extends JPanel
 			int kills = state.getKillCount(selected);
 			killsLine.add(new OsrsLabel(kills + (kills == 1 ? " kill" : " kills") + " recorded",
 				OsrsSkin.FAINT, OsrsSkin.font()).leftAligned());
-			boolean perKill = view.getSelected() == 1;
+			boolean perKill = view.selected() == 1;
 
 			Map<Integer, Integer> loot = state.lootFor(selected);
 			List<Integer> ids = new ArrayList<>(loot.keySet());
 			ids.sort(Comparator.comparingInt((Integer id) -> -loot.get(id))
 				.thenComparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)));
 
-			// flat rows in the Route-list grammar (Luke, 2026-07-17) — no
-			// frame around the list, light text, small icons
+			// its own Table, capped at MAX_ROWS (Luke, 2026-07-25)
+			list.add(section("All drops"));
+			com.ironhub.ui.v2.V2Table table = itemTable();
 			for (Integer id : ids.subList(0, Math.min(ids.size(), MAX_ROWS)))
 			{
-				list.add(itemRow(id, loot.get(id), kills, perKill));
+				table.row(itemCells(id, loot.get(id), kills, perKill));
 			}
+			list.add(table);
 			if (ids.size() > MAX_ROWS)
 			{
 				list.add(Box.createVerticalStrut(3));
@@ -191,14 +195,21 @@ class LootTab extends JPanel
 			supplies.add(section("Supplies used"));
 
 			int kills = state.getKillCount(selected);
-			boolean perKill = view.getSelected() == 1;
+			boolean perKill = view.selected() == 1;
 			List<Integer> ids = new ArrayList<>(used.keySet());
 			// same flat Route-list grammar as the loot rows above
 			ids.sort(Comparator.comparingInt((Integer id) -> -used.get(id))
 				.thenComparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)));
+			com.ironhub.ui.v2.V2Table table = itemTable();
 			for (Integer id : ids.subList(0, Math.min(ids.size(), MAX_ROWS)))
 			{
-				supplies.add(itemRow(id, used.get(id), kills, perKill));
+				table.row(itemCells(id, used.get(id), kills, perKill));
+			}
+			supplies.add(table);
+			if (ids.size() > MAX_ROWS)
+			{
+				supplies.add(Box.createVerticalStrut(3));
+				supplies.add(faintLine("+ " + (ids.size() - MAX_ROWS) + " more items"));
 			}
 		}
 		supplies.revalidate();
@@ -247,6 +258,42 @@ class LootTab extends JPanel
 		row.add(count);
 		cap(row);
 		return row;
+	}
+
+	/**
+	 * The three cells one item contributes to a {@link com.ironhub.ui.v2.V2Table}
+	 * (Luke, 2026-07-25): sprite, name, count. A Table rather than free rows so
+	 * the counts line up down the whole list, which a per-row glue can never
+	 * guarantee.
+	 */
+	private java.awt.Component[] itemCells(int itemId, int quantity, int kills, boolean perKill)
+	{
+		JLabel icon = new JLabel();
+		Dimension iconSize = new Dimension(16, 16);
+		icon.setPreferredSize(iconSize);
+		icon.setMinimumSize(iconSize);
+		icon.setMaximumSize(iconSize);
+		java.awt.Image sprite = sprites.get(itemId, -1, 16);
+		if (sprite != null)
+		{
+			icon.setIcon(new ImageIcon(sprite));
+		}
+		String name = state.itemName(itemId);
+		OsrsLabel nameLabel = new OsrsLabel(name, OsrsSkin.MUTED, OsrsSkin.font())
+			.leftAligned().squeezable();
+		nameLabel.setToolTipText(name);
+		OsrsLabel count = new OsrsLabel(perKill
+			? perKillText(quantity, kills)
+			: "×" + QuantityFormatter.quantityToStackSize(quantity),
+			OsrsSkin.MUTED, OsrsSkin.font());
+		count.setToolTipText(quantity + " over " + kills + (kills == 1 ? " kill" : " kills"));
+		return new java.awt.Component[]{icon, nameLabel, count};
+	}
+
+	/** A table of item rows on the Well — the name column takes the slack. */
+	private com.ironhub.ui.v2.V2Table itemTable()
+	{
+		return new com.ironhub.ui.v2.V2Table(theme, 1);
 	}
 
 	private JComponent faintLine(String text)

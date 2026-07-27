@@ -27,19 +27,29 @@ import javax.swing.border.EmptyBorder;
 public class HomePanel extends JPanel
 {
 	/**
-	 * name → tooltip, in Luke's order; icon files live at data/icons/osrs/nav/.
-	 * SIX blocks at the Design lab's full 33×36 stone size, flush like the
-	 * game's own tab row — Current task was cut so nothing gets squashed and
-	 * icons stay at native size, never rescaled (LANCZOS smoothing is what
-	 * made the first pass read soft; Luke: "much nicer and crisper").
+	 * name → tooltip → curated emblem → the box it is fitted into, in Luke's
+	 * order. SIX blocks at the Design lab's full 33×36 stone size, flush like
+	 * the game's own tab row.
+	 *
+	 * <p>The emblems are the V2 set (Luke, 2026-07-25), replacing the wiki PNGs
+	 * under {@code data/icons/osrs/nav/}. They are FITTED, not native: the six
+	 * sources span 15px to 36px and read as six unrelated icons at their own
+	 * sizes. Nearest neighbour throughout — §2's emblem exception — since
+	 * smoothing is what made the first nav pass read soft.
+	 *
+	 * <p>The box is per-emblem and tuned by eye, not one number: a single box
+	 * makes some read heavy and others thin. The swords are CAPPED at the
+	 * stone's own 33px rather than scaled with the rest — an emblem wider than
+	 * its stone has nowhere to go, and the stone cannot grow either, since six
+	 * at 33px already fill 198 of the 209px a 225 panel leaves.
 	 */
 	private static final String[][] NAV = {
-		{"goals", "Goals"},
-		{"combat", "Gear & Combat"},
-		{"dailies", "Dailies"},
-		{"progression", "Progression"},
-		{"bank", "Bank"},
-		{"settings", "Settings"},
+		{"goals", "Goals", "icons/planner", "26"},
+		{"combat", "Gear & Combat", "icons/combat/combat_large", "33"},
+		{"dailies", "Dailies", "icons/clock/clock_1", "26"},
+		{"progression", "Progression", "icons/storage", "22"},
+		{"bank", "Bank", "icons/bank", "22"},
+		{"settings", "Settings", "icons/settings", "26"},
 	};
 
 	private final AccountState state;
@@ -207,8 +217,11 @@ public class HomePanel extends JPanel
 		{
 			String name = block[1];
 			StoneNavButton stone = stones.computeIfAbsent(name, key ->
-				new StoneNavButton(theme, OsrsIcons.nav(theme, block[0]),
-					false, () -> toggleBlock(key)));
+				new StoneNavButton(theme, new javax.swing.ImageIcon(
+					com.ironhub.ui.v2.V2Sprites.fitted(theme, block[2],
+						Integer.parseInt(block[3]))),
+					false, () -> toggleBlock(key))
+					.textured(com.ironhub.ui.v2.V2Sprites.grain(theme)));
 			stone.setToolTipText(name);
 			row.add(stone);
 		}

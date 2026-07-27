@@ -25,8 +25,15 @@ public class ModuleRoutingTest
 	public void qolChecklistMountsInTheProgressionBlock() throws Exception
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
+		// Vanilla: osrsTheme() defaults to MYSTIC, and the renders exist to be
+		// judged against the Vanilla design system (Luke, 2026-07-25)
 		IronHubConfig config = new IronHubConfig()
 		{
+			@Override
+			public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+			{
+				return com.ironhub.ui.osrs.OsrsTheme.STONE;
+			}
 		};
 		QolModule qol = new QolModule(state, config, new DataPack(new Gson()), null);
 		assertTrue(qol.enabled());

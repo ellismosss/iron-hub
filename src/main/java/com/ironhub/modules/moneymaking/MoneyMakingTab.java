@@ -11,10 +11,9 @@ import com.ironhub.ui.osrs.OsrsIcons;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneButton;
-import com.ironhub.ui.osrs.StoneChipRow;
-import com.ironhub.ui.osrs.StonePanel;
-import com.ironhub.ui.osrs.StoneTextField;
+import com.ironhub.ui.v2.V2ChipRow;
+import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2TextField;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -155,7 +154,7 @@ class MoneyMakingTab extends JPanel
 		content.add(pad(filters));
 		content.add(strut(2));
 
-		StoneChipRow sort = new StoneChipRow(theme, true, "Sort: profit", "Sort: intensity");
+		V2ChipRow sort = new V2ChipRow(theme, true, "Sort: profit", "Sort: intensity");
 		sort.setSelected(sortByIntensity ? 1 : 0);
 		sort.onChange(i ->
 		{
@@ -207,62 +206,34 @@ class MoneyMakingTab extends JPanel
 		return grid;
 	}
 
-	/** A filter tile: highlighted (selectFill) with orange text when selected,
-	 *  just like All/Available (4). Icon optional. */
+	/**
+	 * A filter chip. This was a {@code StonePanel} with its own fills and its
+	 * own label colouring — a hand-rolled chip, §14's mistake (Luke's Bank
+	 * pass, 2026-07-26). It is the latching chip ATOM now.
+	 */
 	private JComponent selectTile(Icon icon, String label, boolean selected, Runnable onClick)
 	{
-		StonePanel tile = new StonePanel(theme);
-		tile.setBackground(selected ? theme.selectFill : theme.boxFill);
-		tile.setLayout(new BoxLayout(tile, BoxLayout.X_AXIS));
-		tile.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		tile.add(Box.createHorizontalGlue());
-		if (icon != null)
-		{
-			tile.add(new JLabel(icon));
-			if (label != null)
-			{
-				tile.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-			}
-		}
-		if (label != null)
-		{
-			tile.add(new OsrsLabel(label, selected ? OsrsSkin.TITLE : OsrsSkin.MUTED, OsrsSkin.smallFont()));
-		}
-		tile.add(Box.createHorizontalGlue());
-		tile.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				onClick.run();
-			}
-		});
-		return tile;
+		return V2ChipRow.toggle(theme, label == null ? "" : label, icon,
+			OsrsSkin.smallFont(), selected, true, on -> onClick.run());
 	}
 
-	/** The favourites tile: a red heart that highlights when active (3/5). */
+	/** The favourites chip: the red heart glyph, on the chip atom (3/5). */
 	private JComponent favouriteTile()
 	{
-		StonePanel tile = new StonePanel(theme);
-		tile.setBackground(favouritesOnly ? theme.selectFill : theme.boxFill);
-		tile.setLayout(new BoxLayout(tile, BoxLayout.X_AXIS));
-		tile.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		tile.setToolTipText("Show favourites only");
-		JLabel heart = new JLabel(new PaintedIcon(PaintedIcon.Shape.HEART, 13));
-		heart.setForeground(HEART_RED);
-		tile.add(Box.createHorizontalGlue());
-		tile.add(heart);
-		tile.add(Box.createHorizontalGlue());
-		tile.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
+		JComponent tile = V2ChipRow.toggle(theme, "", heartIcon(), favouritesOnly, true,
+			on ->
 			{
 				favouritesOnly = !favouritesOnly;
 				rebuild();
-			}
-		});
+			});
+		tile.setToolTipText("Show favourites only");
 		return tile;
+	}
+
+	/** The red heart glyph — an icon, kept exactly as it was. */
+	private Icon heartIcon()
+	{
+		return new PaintedIcon(PaintedIcon.Shape.HEART, 13, HEART_RED);
 	}
 
 	/** The filtered + sorted list, favourites floated to the top. */
@@ -320,9 +291,8 @@ class MoneyMakingTab extends JPanel
 		boolean can = canDo(m);
 		boolean fav = state.isMoneyFavourite(m.id);
 		boolean expanded = m.id.equals(expandedId);
-		StonePanel card = new StonePanel(theme);
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setAlignmentX(LEFT_ALIGNMENT);
+		// one method is a titled block in a list — the Slab (§12)
+		V2Surface card = V2Surface.slab(theme);
 		card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
 		JPanel top = row();
@@ -404,9 +374,8 @@ class MoneyMakingTab extends JPanel
 		// a Wiki button in the upper-right corner (7/12)
 		JPanel wikiTop = row();
 		wikiTop.add(Box.createHorizontalGlue());
-		StoneButton wiki = new StoneButton(theme, theme.boxFill, "Wiki",
+		JComponent wiki = V2ChipRow.action(theme, "Wiki", null, null, OsrsSkin.smallFont(),
 			() -> LinkBrowser.browse("https://oldschool.runescape.wiki/w/" + m.wiki));
-		wiki.setMaximumSize(wiki.getPreferredSize());
 		wikiTop.add(wiki);
 		cap(wikiTop);
 		block.add(wikiTop);
@@ -431,12 +400,13 @@ class MoneyMakingTab extends JPanel
 
 		// feature 7: gp target + method as a Goal
 		JPanel goalRow = row();
-		StoneTextField gp = new StoneTextField(theme, "gp target, e.g. 10M");
+		V2TextField gp = V2TextField.plain(theme, "gp target, e.g. 10M", null);
 		gp.setMaximumSize(new Dimension(115, gp.getPreferredSize().height));
 		goalRow.add(gp);
 		goalRow.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		boolean hasGoal = state.getGoalSeeds().containsKey("custom:money:" + m.id);
-		StoneButton addGoal = new StoneButton(theme, theme.boxFill, hasGoal ? "Tracked" : "+ Goal", () ->
+		JComponent addGoal = V2ChipRow.action(theme, hasGoal ? "Tracked" : "+ Goal", null, null,
+			OsrsSkin.smallFont(), () ->
 		{
 			if (state.getGoalSeeds().containsKey("custom:money:" + m.id))
 			{
@@ -449,7 +419,6 @@ class MoneyMakingTab extends JPanel
 				state.addGoalSeed(com.ironhub.state.GoalSeeds.money(m.id, m.name, amount));
 			}
 		});
-		addGoal.setMaximumSize(addGoal.getPreferredSize());
 		goalRow.add(addGoal);
 		goalRow.add(Box.createHorizontalGlue());
 		cap(goalRow);
@@ -461,8 +430,9 @@ class MoneyMakingTab extends JPanel
 		{
 			boolean tracking = state.getGoalSeeds().containsKey("custom:money-unlock:" + m.id);
 			JPanel unlockRow = row();
-			StoneButton unlock = new StoneButton(theme, theme.boxFill,
-				tracking ? "Unlock tracked" : "+ Set goal to unlock method", () ->
+			JComponent unlock = V2ChipRow.action(theme,
+				tracking ? "Unlock tracked" : "+ Set goal to unlock method", null, null,
+				OsrsSkin.smallFont(), () ->
 			{
 				if (tracking)
 				{
@@ -473,7 +443,6 @@ class MoneyMakingTab extends JPanel
 					state.addGoalSeed(com.ironhub.state.GoalSeeds.moneyUnlock(m.id, m.name, m.reqs));
 				}
 			});
-			unlock.setMaximumSize(unlock.getPreferredSize());
 			unlockRow.add(unlock);
 			unlockRow.add(Box.createHorizontalGlue());
 			cap(unlockRow);

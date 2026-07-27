@@ -6,11 +6,16 @@ import com.ironhub.ui.components.SpriteCache;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneButton;
-import com.ironhub.ui.osrs.StoneChecklist;
-import com.ironhub.ui.osrs.StonePanel;
-import com.ironhub.ui.osrs.StoneProgressBar;
-import com.ironhub.ui.osrs.StoneTile;
+import com.ironhub.ui.v2.V2Button;
+import com.ironhub.ui.v2.V2Checkbox;
+import com.ironhub.ui.v2.V2Checklist;
+import com.ironhub.ui.v2.V2ChipRow;
+import com.ironhub.ui.v2.V2EmptyState;
+import com.ironhub.ui.v2.V2ProgressBar;
+import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2Tile;
+import com.ironhub.ui.v2.V2Tokens;
+import com.ironhub.ui.v2.V2Well;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -120,7 +125,7 @@ class DailiesNewTab extends JPanel
 	private void buildActiveRun()
 	{
 		frame.add(strut(4));
-		StoneButton end = new StoneButton(theme, "End run", () ->
+		V2Button end = new V2Button(theme, "End run", () ->
 		{
 			module.endRun(false);
 			rebuild();
@@ -130,13 +135,15 @@ class DailiesNewTab extends JPanel
 		frame.add(strut(3));
 		int done = module.visitedCount();
 		int total = module.stops().size();
-		frame.add(pad(new StoneProgressBar(theme, OsrsSkin.VALUE.darker(), total == 0 ? 0 : (double) done / total)
+		frame.add(pad(new V2ProgressBar(theme, V2ProgressBar.Size.ROW)
+			.fraction(total == 0 ? 0 : (double) done / total)
 			.labels("Daily run", null, done + "/" + total)));
 
 		frame.add(section("Stops"));
-		StonePanel list = new StonePanel(theme);
-		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
-		list.setAlignmentX(LEFT_ALIGNMENT);
+		// the stops are a LIST, so they sit in a Well at the list inset (§4)
+		V2Surface list = V2Surface.well(theme);
+		int inset = V2Well.CAP + V2Tokens.TIGHT;
+		list.setBorder(new EmptyBorder(inset, inset, inset, inset));
 		DailiesPack.Daily next = module.nextStop();
 		for (DailiesPack.Daily daily : module.stops())
 		{
@@ -151,11 +158,9 @@ class DailiesNewTab extends JPanel
 	{
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-		row.setOpaque(isNext);
-		if (isNext)
-		{
-			row.setBackground(theme.selectFill);
-		}
+		// the next stop is lit by the Well's own wash, not a fill of its own —
+		// a solid selectFill inside a Well painted over the field texture
+		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
 		boolean visited = module.isVisited(daily.id);
 		Color color = visited ? OsrsSkin.VALUE : isNext ? OsrsSkin.TITLE : OsrsSkin.MUTED;
@@ -165,10 +170,9 @@ class DailiesNewTab extends JPanel
 		row.add(Box.createHorizontalGlue());
 		if (!visited)
 		{
-			StoneButton skip = new StoneButton(theme, isNext ? theme.selectFill : theme.boxFill,
-				"Skip", () -> module.markThrough(daily.id));
+			JComponent skip = V2ChipRow.action(theme, "Skip", null, null,
+				OsrsSkin.smallFont(), () -> module.markThrough(daily.id));
 			skip.setToolTipText("Skip this stop (and any before it)");
-			skip.setMaximumSize(skip.getPreferredSize());
 			row.add(skip);
 		}
 		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
@@ -189,7 +193,7 @@ class DailiesNewTab extends JPanel
 		int outstanding = module.outstanding();
 		if (outstanding > 0)
 		{
-			StoneButton start = new StoneButton(theme,
+			V2Button start = new V2Button(theme,
 				"Start daily run · " + outstanding + " stops", module::startRun);
 			start.setToolTipText("Guide me through the " + outstanding
 				+ " ticked dailies I can do right now");
@@ -198,19 +202,14 @@ class DailiesNewTab extends JPanel
 		else
 		{
 			// nothing to do is a real state — a dead button would lie
-			StonePanel none = new StonePanel(theme);
-			none.setLayout(new BoxLayout(none, BoxLayout.X_AXIS));
-			none.setAlignmentX(LEFT_ALIGNMENT);
-			none.add(Box.createHorizontalGlue());
-			none.add(new OsrsLabel("Nothing to run", OsrsSkin.FAINT, OsrsSkin.font()));
-			none.add(Box.createHorizontalGlue());
+			V2Surface none = V2EmptyState.empty(theme, "Nothing to run");
 			none.setToolTipText("Every ticked daily is done, locked, or unavailable");
 			cap(none);
 			frame.add(pad(none));
 		}
 
 		frame.add(section("Include in a run"));
-		StoneChecklist list = new StoneChecklist(theme);
+		V2Checklist list = new V2Checklist(theme);
 		for (DailiesPack.Daily daily : module.pack().dailies)
 		{
 			checklistRow(list, daily);
@@ -220,7 +219,7 @@ class DailiesNewTab extends JPanel
 
 		frame.add(strut(8));
 		boolean hasSetup = module.hasSetup();
-		StoneButton setup = new StoneButton(theme,
+		V2Button setup = new V2Button(theme,
 			hasSetup ? "Update gear & inventory" : "Configure gear & inventory", () ->
 		{
 			module.saveSetup();
@@ -247,15 +246,21 @@ class DailiesNewTab extends JPanel
 		}
 	}
 
-	private void checklistRow(StoneChecklist list, DailiesPack.Daily daily)
+	private void checklistRow(V2Checklist list, DailiesPack.Daily daily)
 	{
 		DailyTracker.State current = module.stateOf(daily);
 		boolean selected = module.selected(daily);
 		String label = daily.name + (current == DailyTracker.State.UNKNOWN ? " ?" : "");
-		Color color = selected ? statusColor(current) : OsrsSkin.FAINT;
-		list.row(label, selected, color, rowTooltip(daily, current),
-			daily.warning != null ? SKULL : null,
-			ticked -> onTicked(daily, ticked));
+		V2Checkbox row = new V2Checkbox(theme, label, selected,
+			() -> onTicked(daily, !module.selected(daily)));
+		// the dailies scale is the CALLER's, so it is applied after state()
+		row.labelColor(selected ? statusColor(current) : OsrsSkin.FAINT);
+		if (daily.warning != null)
+		{
+			row.badge(SKULL);
+		}
+		row.setToolTipText(rowTooltip(daily, current));
+		list.row(row);
 	}
 
 	private void onTicked(DailiesPack.Daily daily, boolean selected)
@@ -313,36 +318,52 @@ class DailiesNewTab extends JPanel
 
 	// ── status tiles ─────────────────────────────────────────────────
 
+	/** The DLV2 status tile (Luke, 2026-07-26), 5 to a row. */
 	private JComponent tileStrip()
 	{
 		List<DailiesPack.Daily> dailies = module.pack().dailies;
-		JPanel strip = new JPanel(new GridLayout(0, 5, 4, 4));
+		JPanel strip = new JPanel(new GridLayout(0, 5, V2Tokens.ROW, V2Tokens.ROW));
 		strip.setOpaque(false);
 		strip.setAlignmentX(LEFT_ALIGNMENT);
 		int rows = (dailies.size() + 4) / 5;
-		strip.setMaximumSize(new Dimension(Integer.MAX_VALUE, rows * (StoneTile.HEIGHT + 4)));
+		strip.setMaximumSize(new Dimension(Integer.MAX_VALUE, rows * (TILE + V2Tokens.ROW)));
 		for (DailiesPack.Daily daily : dailies)
 		{
 			DailyTracker.State current = module.stateOf(daily);
-			boolean mine = module.selected(daily) && current != DailyTracker.State.LOCKED;
-			StoneTile tile = new StoneTile(theme, mine ? tileBevel(current) : null, !mine, daily.name);
-			tile.setIconImage(sprites.get(daily.icon, StoneTile.ICON));
+			V2Tile tile = new V2Tile(theme, sprites.get(daily.icon, V2Tokens.TILE_ICON),
+				null, TILE, null);
+			tile.status(module.selected(daily) ? tileStatus(current)
+				: V2Tile.Status.UNAVAILABLE);
+			tile.setToolTipText(daily.name);
 			strip.add(tile);
 		}
 		return strip;
 	}
 
-	/** Green ready · orange short · the plain engraved bevel otherwise. */
-	private static Color tileBevel(DailyTracker.State current)
+	/** The tile's own height; its width comes from the grid's column. */
+	private static final int TILE = 30;
+
+	/**
+	 * The dailies scale in the DLV2 status vocabulary. It is the ATOM's
+	 * reading, not V1's: V1 painted a claimable daily green and a short one
+	 * orange, where DLV2 means DONE by green and ACTIONABLE NOW by orange
+	 * (Luke, 2026-07-26). So a claimed daily now reads green and a claimable
+	 * one orange — the same three colours, saying what they say everywhere
+	 * else in the system.
+	 */
+	private static V2Tile.Status tileStatus(DailyTracker.State current)
 	{
 		switch (current)
 		{
+			case DONE:
+				return V2Tile.Status.DONE;
 			case AVAILABLE:
-				return OsrsSkin.VALUE.darker();
+				return V2Tile.Status.READY;
 			case SHORT:
-				return OsrsSkin.TITLE.darker();
+			case LOCKED:
+				return V2Tile.Status.UNAVAILABLE;
 			default:
-				return null;
+				return V2Tile.Status.PLAIN;
 		}
 	}
 

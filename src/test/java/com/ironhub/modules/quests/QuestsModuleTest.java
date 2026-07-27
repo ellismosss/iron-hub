@@ -26,8 +26,16 @@ public class QuestsModuleTest
 	@Rule
 	public TemporaryFolder temp = new TemporaryFolder();
 
+	/** Vanilla, not the config default. {@code osrsTheme()} defaults to MYSTIC,
+	 *  so every render this test wrote came out grey — and the renders exist to
+	 *  be judged against the Vanilla design system (Luke, 2026-07-25). */
 	private final IronHubConfig config = new IronHubConfig()
 	{
+		@Override
+		public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+		{
+			return com.ironhub.ui.osrs.OsrsTheme.STONE;
+		}
 	};
 
 	private QuestsModule module(AccountState state)

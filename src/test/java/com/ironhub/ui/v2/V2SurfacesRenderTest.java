@@ -82,23 +82,40 @@ public class V2SurfacesRenderTest
 	}
 
 	/**
-	 * Every surface clears its OWN art by the same rule — the art's inset
-	 * plus PAD — and is square about it. The insets differ between families
-	 * because the art does (the card's bevel is 9px, the well's cap is 4),
-	 * but two cards anywhere in the plugin still have identical geometry.
+	 * Every surface clears its OWN art, and is symmetric about each axis.
+	 *
+	 * <p>It is no longer SQUARE. The Card, Tile and Slab all carry less air
+	 * above and below than they do at the sides (Luke, 2026-07-25): the bevel,
+	 * the chamfer and the notch are corner-and-edge features, and a one-line
+	 * row does not need the horizontal figure repeated vertically. What still
+	 * holds — and what this guards — is that content never sits ON the art,
+	 * and that two Cards anywhere in the plugin have identical geometry.
 	 */
 	@Test
 	public void everySurfaceInsetsItsContentSquarely()
 	{
 		java.awt.Insets card = V2Surface.card(OsrsTheme.STONE).getInsets();
-		assertEquals(V2Tokens.SLICE_INSET + V2Tokens.PAD, card.left);
+		java.awt.Insets tile = V2Surface.tile(OsrsTheme.STONE).getInsets();
+		java.awt.Insets slab = V2Surface.slab(OsrsTheme.STONE).getInsets();
 		java.awt.Insets well = V2Surface.well(OsrsTheme.STONE).getInsets();
+		// the well is the one that stayed square — its rows are its content
 		assertEquals(com.ironhub.ui.v2.V2Well.CAP + V2Tokens.PAD, well.left);
-		for (java.awt.Insets insets : new java.awt.Insets[]{card, well})
+		assertEquals(well.left, well.top);
+		// the Card clears its 9px bevel on every side
+		assertTrue("card content sits on the bevel: " + card,
+			card.left >= V2Tokens.SLICE_INSET && card.top >= V2Tokens.SLICE_INSET);
+		// the Tile and Slab clear the nav stone's chamfer horizontally
+		for (java.awt.Insets insets : new java.awt.Insets[]{tile, slab})
 		{
-			assertEquals(insets.left, insets.top);
-			assertEquals(insets.left, insets.right);
-			assertEquals(insets.left, insets.bottom);
+			assertTrue("tile/slab content sits on the chamfer: " + insets,
+				insets.left >= V2Tokens.NAV_TILE_INSET);
+		}
+		for (java.awt.Insets insets : new java.awt.Insets[]{card, tile, slab, well})
+		{
+			assertEquals("left and right must match: " + insets, insets.left, insets.right);
+			assertEquals("top and bottom must match: " + insets, insets.top, insets.bottom);
+			assertTrue("vertical must not exceed horizontal: " + insets,
+				insets.top <= insets.left);
 		}
 	}
 

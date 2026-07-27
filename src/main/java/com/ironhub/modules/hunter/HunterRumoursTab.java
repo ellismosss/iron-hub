@@ -9,10 +9,9 @@ import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneButton;
-import com.ironhub.ui.osrs.StoneChipRow;
-import com.ironhub.ui.osrs.StoneMeter;
-import com.ironhub.ui.osrs.StonePanel;
+import com.ironhub.ui.v2.V2ChipRow;
+import com.ironhub.ui.v2.V2ProgressBar;
+import com.ironhub.ui.v2.V2Surface;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.util.ArrayList;
@@ -45,7 +44,7 @@ class HunterRumoursTab extends JPanel
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 	private final com.ironhub.ui.components.SpriteCache sprites;
 
-	private final StoneChipRow views;
+	private final V2ChipRow views;
 	private final JPanel content = new JPanel();
 
 	HunterRumoursTab(AccountState state, HunterRumoursModule module, OsrsTheme theme,
@@ -61,7 +60,7 @@ class HunterRumoursTab extends JPanel
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		views = new StoneChipRow(theme, true, "Rumour", "History");
+		views = new V2ChipRow(theme, true, "Rumour", "History");
 		views.onChange(i -> rebuild());
 		add(views);
 		add(Box.createVerticalStrut(4));
@@ -94,7 +93,7 @@ class HunterRumoursTab extends JPanel
 		{
 			content.add(faintLine("Rumour pack unavailable."));
 		}
-		else if (views.getSelected() == 1)
+		else if (views.selected() == 1)
 		{
 			rebuildHistory();
 		}
@@ -113,9 +112,8 @@ class HunterRumoursTab extends JPanel
 		HunterRumoursPack.Rumour rumour = module.currentRumour();
 		PersistedState.RumourRecord active = module.active();
 
-		StonePanel hero = new StonePanel(theme);
-		hero.setLayout(new BoxLayout(hero, BoxLayout.Y_AXIS));
-		hero.setAlignmentX(LEFT_ALIGNMENT);
+		// the rumour is the one live thing on the page — the Card (§12)
+		V2Surface hero = V2Surface.card(theme);
 		JPanel title = row(0);
 		if (rumour == null)
 		{
@@ -142,10 +140,9 @@ class HunterRumoursTab extends JPanel
 		int pity = rumour.pityFor(outfit);
 		int caught = active == null ? 0 : active.caught;
 		hero.add(Box.createVerticalStrut(3));
-		StoneMeter meter = new StoneMeter(theme,
-			active != null && active.pieceFound ? OsrsSkin.VALUE : OsrsSkin.PROGRESS_BLUE,
-			pity == 0 ? 0 : Math.min(1.0, (double) caught / pity));
-		meter.setAlignmentX(LEFT_ALIGNMENT);
+		V2ProgressBar meter = new V2ProgressBar(theme, V2ProgressBar.Size.METER)
+			.fill(active != null && active.pieceFound ? OsrsSkin.VALUE : OsrsSkin.PROGRESS_BLUE)
+			.fraction(pity == 0 ? 0 : Math.min(1.0, (double) caught / pity));
 		hero.add(meter);
 		hero.add(Box.createVerticalStrut(2));
 		JPanel prog = row(0);
@@ -205,23 +202,21 @@ class HunterRumoursTab extends JPanel
 				+ " rumours — the Loadout tab shows it", OsrsSkin.VALUE, OsrsSkin.smallFont()));
 		}
 		JPanel gearButtons = row(2);
-		StoneButton save = new StoneButton(theme,
-			setup == null ? "Save current gear" : "Replace with current gear",
-			module::saveRumourSetup);
-		save.setMaximumSize(save.getPreferredSize());
+		JComponent save = V2ChipRow.action(theme,
+			setup == null ? "Save current gear" : "Replace with current gear", null, null,
+			OsrsSkin.smallFont(), module::saveRumourSetup);
 		gearButtons.add(save);
 		if (setup != null)
 		{
 			gearButtons.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 			boolean armed = module.bankShowArmed();
-			StoneButton show = new StoneButton(theme,
-				armed ? "Stop bank layout" : "Show in bank",
+			JComponent show = V2ChipRow.action(theme,
+				armed ? "Stop bank layout" : "Show in bank", null, null, OsrsSkin.smallFont(),
 				() ->
 				{
 					module.setBankShow(!armed);
 					javax.swing.SwingUtilities.invokeLater(this::rebuild);
 				});
-			show.setMaximumSize(show.getPreferredSize());
 			gearButtons.add(show);
 		}
 		gearButtons.add(Box.createHorizontalGlue());
@@ -263,9 +258,9 @@ class HunterRumoursTab extends JPanel
 		name.setToolTipText(area.name + (area.fairyRing != null ? " (fairy ring " + area.fairyRing + ")" : ""));
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
-		StoneButton route = new StoneButton(theme, "Route", () -> module.route(area.worldPoint()));
-		route.setMaximumSize(route.getPreferredSize());
-		row.add(route);
+		// the chip ATOM, so Route cannot look different to the chips beside it
+		row.add(V2ChipRow.action(theme, "Route", null, null, OsrsSkin.smallFont(),
+			() -> module.route(area.worldPoint())));
 		row.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
 		row.addMouseListener(new java.awt.event.MouseAdapter()
 		{
@@ -306,9 +301,7 @@ class HunterRumoursTab extends JPanel
 	private JComponent historyRow(PersistedState.RumourRecord record)
 	{
 		HunterRumoursPack.Rumour rumour = module.pack().rumour(record.rumourId);
-		StonePanel card = new StonePanel(theme);
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setAlignmentX(LEFT_ALIGNMENT);
+		V2Surface card = V2Surface.slab(theme);
 
 		JPanel top = row(0);
 		if (rumour != null)
@@ -425,9 +418,8 @@ class HunterRumoursTab extends JPanel
 
 	private JComponent statRow(String label, String value, String tooltip)
 	{
-		StonePanel row = new StonePanel(theme);
+		V2Surface row = V2Surface.tile(theme);
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-		row.setAlignmentX(LEFT_ALIGNMENT);
 		OsrsLabel key = new OsrsLabel(label, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned();
 		OsrsLabel val = OsrsLabel.value(value);
 		if (tooltip != null)

@@ -6,11 +6,11 @@ import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneButton;
-import com.ironhub.ui.osrs.StoneChipRow;
-import com.ironhub.ui.osrs.StonePanel;
-import com.ironhub.ui.osrs.StoneProgressBar;
-import com.ironhub.ui.osrs.StoneTextField;
+import com.ironhub.ui.v2.V2ChipRow;
+import com.ironhub.ui.v2.V2ProgressBar;
+import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2TextField;
+import com.ironhub.ui.v2.V2Tokens;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -48,11 +48,11 @@ class QuestsTab extends JPanel
 	private final OsrsTheme theme;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 
-	private final StonePanel hero;
-	private final StoneProgressBar capeBar;
-	private final StoneTextField search;
-	private final StoneChipRow types;
-	private final StoneChipRow sorts;
+	private final V2Surface hero;
+	private final V2ProgressBar capeBar;
+	private final V2TextField search;
+	private final V2ChipRow types;
+	private final V2ChipRow sorts;
 	private final JPanel list = new JPanel();
 	private boolean showCompleted;
 
@@ -66,21 +66,20 @@ class QuestsTab extends JPanel
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		hero = new StonePanel(theme);
-		hero.setLayout(new BoxLayout(hero, BoxLayout.Y_AXIS));
-		hero.setAlignmentX(LEFT_ALIGNMENT);
-		capeBar = new StoneProgressBar(theme, OsrsSkin.PROGRESS_BLUE, 0);
+		// the quest-cape standing is the one live readout on the page — the Card
+		hero = V2Surface.card(theme);
+		capeBar = new V2ProgressBar(theme, V2ProgressBar.Size.ROW).fill(V2Tokens.BAR_BLUE);
 		add(pad(hero));
 		add(Box.createVerticalStrut(6));
 
-		search = new StoneTextField(theme, "Search quests…");
+		search = new V2TextField(theme, "Search quests…", null);
 		add(pad(search));
 		add(Box.createVerticalStrut(4));
-		types = new StoneChipRow(theme, true, TYPES);
+		types = new V2ChipRow(theme, true, TYPES);
 		types.onChange(i -> rebuild());
 		add(pad(types));
 		add(Box.createVerticalStrut(4));
-		sorts = new StoneChipRow(theme, true, SORTS);
+		sorts = new V2ChipRow(theme, true, SORTS);
 		sorts.onChange(i -> rebuild());
 		add(pad(sorts));
 		add(Box.createVerticalStrut(4));
@@ -91,7 +90,7 @@ class QuestsTab extends JPanel
 		add(list);
 		add(Box.createVerticalGlue());
 
-		search.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+		search.editor().getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
 		{
 			@Override
 			public void insertUpdate(javax.swing.event.DocumentEvent e)
@@ -136,7 +135,7 @@ class QuestsTab extends JPanel
 
 	private void rebuild()
 	{
-		boolean miniquests = types.getSelected() == 1;
+		boolean miniquests = types.selected() == 1;
 
 		// the hero chart: the quest cape is every quest complete
 		long questsDone = 0;
@@ -167,8 +166,7 @@ class QuestsTab extends JPanel
 		cap(title);
 		hero.add(title);
 		hero.add(Box.createVerticalStrut(3));
-		capeBar.setFraction(questsTotal == 0 ? 0 : (double) questsDone / questsTotal);
-		capeBar.setAlignmentX(LEFT_ALIGNMENT);
+		capeBar.fraction(questsTotal == 0 ? 0 : (double) questsDone / questsTotal);
 		hero.add(capeBar);
 		hero.add(Box.createVerticalStrut(3));
 		JPanel meta = bareRow();
@@ -202,7 +200,7 @@ class QuestsTab extends JPanel
 			}
 			quests.add(quest);
 		}
-		quests.sort(comparator(SORTS[sorts.getSelected()]));
+		quests.sort(comparator(SORTS[sorts.selected()]));
 		if (quests.isEmpty())
 		{
 			list.add(faintLine(query.isEmpty()
@@ -374,7 +372,8 @@ class QuestsTab extends JPanel
 		if (state.getQuestState(quest) != QuestState.FINISHED)
 		{
 			boolean tracked = module.isGoal(quest.getName());
-			StoneButton goal = new StoneButton(theme, tracked ? "×" : "+", () ->
+			JComponent goal = V2ChipRow.action(theme, tracked ? "×" : "+", null, null,
+				OsrsSkin.smallFont(), () ->
 			{
 				if (tracked)
 				{
@@ -388,7 +387,6 @@ class QuestsTab extends JPanel
 			});
 			goal.setToolTipText(tracked ? "Remove from Goals"
 				: "Track completing this quest in Goals");
-			goal.setMaximumSize(goal.getPreferredSize());
 			row.add(goal);
 			row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		}

@@ -49,36 +49,6 @@ public class DesignLabV2Tab extends JPanel
 	 * Luke's pick from the curated set (2026-07-25), replacing the wiki PNGs
 	 * the live row still wears.
 	 */
-	private static final String[] NAV_EMBLEMS = {
-		"icons/planner",              // Goals
-		"icons/combat/combat_large",  // Gear & Combat
-		"icons/clock/clock_1",        // Dailies
-		"icons/storage",              // Progression
-		"icons/bank",                 // Bank
-		"icons/settings",             // Settings
-	};
-
-	/**
-	 * The box each emblem is fitted into. NOT one number: these six come from
-	 * different families and a single box makes some read heavy and others
-	 * thin. Tuned by eye against the row (Luke, 2026-07-25), then taken up ~20%
-	 * because the row read small in the 33x36 stone.
-	 *
-	 * <p>The swords are CAPPED at the stone's own width rather than scaled with
-	 * the rest: another 20% would have taken them past it, and an emblem wider
-	 * than its stone has nowhere to go. That cap is the row's ceiling — the
-	 * stone cannot grow either, since six of them at 33px already fill 198 of
-	 * the 209px a 225 panel leaves.
-	 */
-	private static final int[] NAV_BOX = {
-		26,  // planner  — back to its native 26
-		33,  // swords   — the stone's width; the cap, not a choice
-		26,  // clock    — 22 up to 26
-		22,  // storage  — 16 up to 22
-		22,  // bank     — 15 up to 22
-		26,  // settings — 22 up to 26
-	};
-
 	/**
 	 * The 28 items the inventory shows — real game items, drawn by
 	 * {@code ItemManager} rather than by any sprite in this repo (Luke,
@@ -106,6 +76,17 @@ public class DesignLabV2Tab extends JPanel
 		this(theme, null);
 	}
 
+	/** The curated skill set, in the game's own stat-panel order. */
+	private static final String[] SKILLS = {
+		"Attack", "Hitpoints", "Mining",
+		"Strength", "Agility", "Smithing",
+		"Defence", "Herblore", "Fishing",
+		"Ranged", "Thieving", "Cooking",
+		"Prayer", "Crafting", "Firemaking",
+		"Magic", "Fletching", "Woodcutting",
+		"Runecraft", "Slayer", "Farming",
+		"Construction", "Hunter"};
+
 	public DesignLabV2Tab(OsrsTheme theme, net.runelite.client.game.ItemManager itemManager)
 	{
 		this.theme = theme;
@@ -113,10 +94,11 @@ public class DesignLabV2Tab extends JPanel
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
-		// NO horizontal inset: DesignLabTab already insets this tab by 4px, and
-		// a second 4px here made the frame 209px where HomePanel's is 217
-		// (Luke, 2026-07-25: "there's definitely more than 4px on either side").
-		// The frame carries the edge now, so the tab must not double it.
+		// NO horizontal inset: the frame takes all 225px of the panel (Luke,
+		// 2026-07-25: "it could still be wider"). DesignLabTab's own border is
+		// EmptyBorder(4, 0, 4, 0) and its 4px belongs to the CHIP ROW, so
+		// nothing insets this tab — an earlier version of this comment said it
+		// did, and cost a round trip on the Goals frame.
 		setBorder(new EmptyBorder(V2Tokens.PAD, 0, V2Tokens.PAD, 0));
 		setAlignmentX(LEFT_ALIGNMENT);
 
@@ -126,6 +108,7 @@ public class DesignLabV2Tab extends JPanel
 		actions();
 		selection();
 		status();
+		skills();
 		layoutAtoms();
 		composites();
 
@@ -145,9 +128,8 @@ public class DesignLabV2Tab extends JPanel
 
 	/**
 	 * Move everything the sections just built inside the panel's own frame, at
-	 * the width the real nav row sits at — 217px, which is 225 less this tab's
-	 * own 4px edges, exactly as HomePanel's frame is 225 less its own
-	 * (Luke, 2026-07-25).
+	 * the panel's full 225px — measured 2026-07-25. Every migrated view wears
+	 * the same frame at the same width (§7).
 	 *
 	 * <p>Done by reparenting after the fact rather than by threading a
 	 * container through all seven section methods: {@code Container.add}
@@ -200,9 +182,10 @@ public class DesignLabV2Tab extends JPanel
 			// fitted, not native: the six sources span 15px to 36px, which
 			// reads as six unrelated icons in one row (Luke, 2026-07-25)
 			StoneNavButton stone = new StoneNavButton(theme,
-				new ImageIcon(V2Sprites.fitted(theme, NAV_EMBLEMS[i], NAV_BOX[i])),
+				new ImageIcon(V2Sprites.fitted(theme, blocks[i][2],
+					Integer.parseInt(blocks[i][3]))),
 				i == 0, null)
-				.textured(cardGrain());
+				.textured(V2Sprites.grain(theme));
 			stone.setToolTipText(blocks[i][1]);
 			stones.add(stone);
 		}
@@ -239,6 +222,14 @@ public class DesignLabV2Tab extends JPanel
 		well.stack(V2Label.heading("Well"), V2Tokens.ROW);
 		well.add(V2Label.body("Border only. Lists and fields."));
 		add(well);
+		gap(V2Tokens.ROW);
+
+		V2Surface slab = V2Surface.slab(theme);
+		slab.stack(V2Label.heading("Slab"), V2Tokens.ROW);
+		slab.add(V2Label.body("Engraved box. Stat boxes."));
+		add(slab);
+		gap(V2Tokens.TIGHT);
+		add(V2Label.faint("Tile's grain, notched corners"));
 		gap(V2Tokens.ROW);
 
 		// the real inventory, ported from Gear & Combat's SavedSetupView so
@@ -309,13 +300,19 @@ public class DesignLabV2Tab extends JPanel
 		add(V2Label.detail("Squares and wiki"));
 		JPanel squares = row();
 		for (String key : new String[]{V2SpriteButton.SQUARE_SMALL,
-			V2SpriteButton.SQUARE_LARGE, V2SpriteButton.WIKI})
+			V2SpriteButton.SQUARE_LARGE, V2SpriteButton.WIKI,
+			V2SpriteButton.WIKI_SMALL})
 		{
 			squares.add(new V2SpriteButton(theme, key, false, null));
 			squares.add(V2Layout.hgap(V2Tokens.PAD));
 		}
+		// a character over the art, for a mark the curated set has no sprite for
+		squares.add(new V2SpriteButton(theme, V2SpriteButton.EMPTY_BOX, false, null)
+			.letter("W"));
 		squares.add(V2Layout.glue());
 		add(squares);
+		add(V2Label.faint("wiki_small — one state, opens a page"));
+		add(V2Label.faint("W on the empty box — a letter, not a sprite"));
 		add(V2Label.faint("selected: the two squares and the wiki toggle"));
 		JPanel selected = row();
 		for (String key : new String[]{V2SpriteButton.SQUARE_SMALL,
@@ -463,6 +460,38 @@ public class DesignLabV2Tab extends JPanel
 		gap(V2Tokens.SECTION);
 	}
 
+	/**
+	 * Every skill icon in the curated set, at its own 25px size. Four rows of
+	 * six rather than one long line — the panel is 225px and a wrapping row is
+	 * how you see at a glance that a skill is MISSING, which is the only
+	 * question a sprite sheet has to answer.
+	 */
+	private void skills()
+	{
+		heading("Skill icons");
+		JPanel line = row();
+		int inRow = 0;
+		for (String name : SKILLS)
+		{
+			if (inRow == 6)
+			{
+				line.add(V2Layout.glue());
+				add(line);
+				add(V2Layout.gap(V2Tokens.ROW));
+				line = row();
+				inRow = 0;
+			}
+			line.add(new V2SpriteButton(theme, V2Sprites.skill(name), false, null));
+			line.add(V2Layout.hgap(V2Tokens.PAD));
+			inRow++;
+		}
+		line.add(V2Layout.glue());
+		add(line);
+		gap(V2Tokens.TIGHT);
+		add(V2Label.faint(SKILLS.length + " skills, 25px native"));
+		gap(V2Tokens.SECTION);
+	}
+
 	private void layoutAtoms()
 	{
 		heading("Hero");
@@ -573,13 +602,6 @@ public class DesignLabV2Tab extends JPanel
 	}
 
 	/** The Card's grain, repeating — what Tile and Card already wear. */
-	private java.awt.TexturePaint cardGrain()
-	{
-		BufferedImage grain = V2Sprites.cardInterior(theme);
-		return new java.awt.TexturePaint(grain,
-			new java.awt.Rectangle(0, 0, grain.getWidth(), grain.getHeight()));
-	}
-
 	private BufferedImage sprite(String key)
 	{
 		return V2Sprites.get(theme, key);

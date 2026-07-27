@@ -249,6 +249,13 @@ public class CombatAchievementsModuleTest
 
 		CombatAchievementsModule module = module(state, new IronHubConfig()
 		{
+			@Override
+			public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+			{
+				// Vanilla: osrsTheme() defaults to MYSTIC, and the renders
+				// exist to be judged against the Vanilla design system
+				return com.ironhub.ui.osrs.OsrsTheme.STONE;
+			}
 		});
 		module.startUp();
 		JComponent tab = module.buildTab();

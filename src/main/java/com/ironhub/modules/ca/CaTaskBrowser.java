@@ -7,13 +7,11 @@ import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneButton;
-import com.ironhub.ui.osrs.StoneChipRow;
-import com.ironhub.ui.osrs.StoneComboBoxUI;
-import com.ironhub.ui.osrs.StoneMeter;
-import com.ironhub.ui.osrs.StonePanel;
-import com.ironhub.ui.osrs.StoneProgressBar;
-import com.ironhub.ui.osrs.StoneTextField;
+import com.ironhub.ui.v2.V2ChipRow;
+import com.ironhub.ui.v2.V2Dropdown;
+import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2TextField;
+import com.ironhub.ui.v2.V2Tokens;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -81,14 +79,14 @@ class CaTaskBrowser extends JPanel
 	private java.util.function.Consumer<String> onShowBoss;
 
 	// controls
-	private final StoneChipRow views;
-	private final StoneTextField search;
+	private final V2ChipRow views;
+	private final V2TextField search;
 	private final JLabel filtersTriangle = triangle();
 	private final JPanel filtersPanel = new JPanel();
 	private final Map<CaTier, Boolean> tierEnabled = new EnumMap<>(CaTier.class);
-	private final JComboBox<String> statusFilter = new JComboBox<>(STATUS_OPTIONS);
-	private final JComboBox<String> typeFilter = new JComboBox<>(TYPE_OPTIONS);
-	private final JComboBox<String> sortFilter = new JComboBox<>(SORT_OPTIONS);
+	private final V2Dropdown statusFilter;
+	private final V2Dropdown typeFilter;
+	private final V2Dropdown sortFilter;
 	private final JLabel sortDirection;
 	private boolean filtersExpanded;
 	private boolean sortAscending = true;
@@ -123,14 +121,17 @@ class CaTaskBrowser extends JPanel
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		views = new StoneChipRow(theme, true, "All", "Goals");
+		views = new V2ChipRow(theme, true, "All", "Goals");
 		views.onChange(i -> rebuildContent());
 		add(pad(views));
 		add(strut(4));
 
-		search = new StoneTextField(theme, "Search tasks…");
+		statusFilter = combo(new V2Dropdown(theme, STATUS_OPTIONS));
+		typeFilter = combo(new V2Dropdown(theme, TYPE_OPTIONS));
+		sortFilter = combo(new V2Dropdown(theme, SORT_OPTIONS));
+		search = new V2TextField(theme, "Search tasks…", null);
 		add(pad(search));
-		search.getDocument().addDocumentListener(new DocumentListener()
+		search.editor().getDocument().addDocumentListener(new DocumentListener()
 		{
 			public void insertUpdate(DocumentEvent e)
 			{
@@ -270,13 +271,13 @@ class CaTaskBrowser extends JPanel
 		filtersPanel.add(tierRow);
 		filtersPanel.add(strut(UiTokens.PAD_TIGHT));
 
-		filtersPanel.add(filterRow("Status", combo(statusFilter)));
+		filtersPanel.add(filterRow("Status", statusFilter));
 		filtersPanel.add(strut(UiTokens.PAD_TIGHT));
-		filtersPanel.add(filterRow("Type", combo(typeFilter)));
+		filtersPanel.add(filterRow("Type", typeFilter));
 		filtersPanel.add(strut(UiTokens.PAD_TIGHT));
 		JPanel sortControls = new JPanel(new BorderLayout(UiTokens.PAD_TIGHT, 0));
 		sortControls.setOpaque(false);
-		sortControls.add(combo(sortFilter), BorderLayout.CENTER);
+		sortControls.add(sortFilter, BorderLayout.CENTER);
 		sortControls.add(sortDirection, BorderLayout.EAST);
 		filtersPanel.add(filterRow("Sort", sortControls));
 		section.add(filtersPanel);
@@ -312,22 +313,29 @@ class CaTaskBrowser extends JPanel
 		return toggle;
 	}
 
-	private JComboBox<String> combo(JComboBox<String> box)
+	private V2Dropdown combo(V2Dropdown box)
 	{
-		StoneComboBoxUI.skin(box, theme);
-		box.addActionListener(e -> rebuildContent());
+		box.onChange(i -> rebuildContent());
 		return box;
 	}
 
 	private JPanel filterRow(String label, Component control)
 	{
-		JPanel row = new JPanel(new BorderLayout(UiTokens.ROW_GAP, 0));
+		// the row FOLLOWS its dropdown: the V2 dropdown grows in place when
+		// opened, and a row pinned to one control height would clip the list
+		JPanel row = new JPanel(new BorderLayout(UiTokens.ROW_GAP, 0))
+		{
+			@Override
+			public Dimension getMaximumSize()
+			{
+				return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+			}
+		};
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
 		JPanel nameHolder = new JPanel(new BorderLayout());
 		nameHolder.setOpaque(false);
-		nameHolder.setPreferredSize(new Dimension(48, 22));
+		nameHolder.setPreferredSize(new Dimension(48, V2Tokens.CONTROL_HEIGHT));
 		nameHolder.add(new OsrsLabel(label, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned(),
 			BorderLayout.CENTER);
 		row.add(nameHolder, BorderLayout.WEST);
@@ -355,10 +363,10 @@ class CaTaskBrowser extends JPanel
 		}
 		else
 		{
-			List<CaTask> visible = filteredSorted(tasks, views.getSelected() == 1, null);
+			List<CaTask> visible = filteredSorted(tasks, views.selected() == 1, null);
 			if (visible.isEmpty())
 			{
-				content.add(note(views.getSelected() == 1
+				content.add(note(views.selected() == 1
 					? "No CA goals match the filters. The + on any row adds that task to Goals."
 					: "No tasks match the filters."));
 			}
@@ -371,8 +379,8 @@ class CaTaskBrowser extends JPanel
 	List<CaTask> filteredSorted(List<CaTask> tasks, boolean goalsOnly, String boss)
 	{
 		String term = search.getText().trim();
-		String status = (String) statusFilter.getSelectedItem();
-		String type = (String) typeFilter.getSelectedItem();
+		String status = STATUS_OPTIONS[statusFilter.selected()];
+		String type = TYPE_OPTIONS[typeFilter.selected()];
 		List<CaTask> visible = new ArrayList<>();
 		for (CaTask task : tasks)
 		{
@@ -405,7 +413,7 @@ class CaTaskBrowser extends JPanel
 
 	private Comparator<CaTask> comparator()
 	{
-		String sort = (String) sortFilter.getSelectedItem();
+		String sort = SORT_OPTIONS[sortFilter.selected()];
 		Comparator<CaTask> byTierThenName = Comparator
 			.<CaTask>comparingInt(t -> t.tier.ordinal())
 			.thenComparing(t -> t.name);
@@ -443,7 +451,8 @@ class CaTaskBrowser extends JPanel
 		JPanel row;
 		if (open)
 		{
-			row = new StonePanel(theme);
+			// the opened task is the one live readout in the list — the Card
+			row = V2Surface.card(theme);
 		}
 		else
 		{

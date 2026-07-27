@@ -116,14 +116,31 @@ public class LoadoutLabModule implements IronHubModule
 	private com.ironhub.data.ItemNameIndex nameIndex;
 	private com.ironhub.ui.osrs.OsrsTheme theme;
 	private JPanel holder;
+	/**
+	 * The view's inner host: the NORTH strip and the lab panel in CENTER. It
+	 * carries the layout {@code holder} used to, so {@code mountPanel} has one
+	 * place to swap the lab panel into. The FRAME around all this belongs to
+	 * the hub page now (Luke, 2026-07-25), which draws one for every module it
+	 * holds rather than one each.
+	 */
+	private JPanel frame;
 	private final JPanel setupView = new JPanel();
 	private final JPanel namesPanel = new JPanel();
 	private final JPanel searchPanel = new JPanel();
 	private final JPanel searchResults = new JPanel();
 	private final JPanel searchTitleHolder = new JPanel();
-	private com.ironhub.ui.osrs.StoneTextField searchField;
-	private com.ironhub.ui.osrs.StoneButton liveButton;
+	private com.ironhub.ui.v2.V2TextField searchField;
+	private javax.swing.JComponent liveButton;
 	private String lastAutoSelected = "";
+	/**
+	 * What the player CANCELLED, so auto-follow does not immediately put it
+	 * back (Luke, 2026-07-25: the Wiki gear section "still there after I cancel
+	 * the monster search"). Clearing the monster fires {@code onCleared}, but
+	 * the very next state tick re-selected the same slayer task or the NPC
+	 * still being fought — the section reappeared before the panel had
+	 * repainted. Held until the activity genuinely moves on.
+	 */
+	private String dismissedFollow = "";
 	/** Viewing state: a named setup diffed vs current, an unsaved edited
 	 *  draft (wins over the name), or — both null — the live view. */
 	private String viewedSetup;
@@ -264,7 +281,14 @@ public class LoadoutLabModule implements IronHubModule
 			top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
 			top.setOpaque(false);
 			top.add(buildSetupSection());
-			holder.add(top, BorderLayout.NORTH);
+			// NO frame of its own: the hub PAGE carries one around all three of
+			// its modules now (Luke, 2026-07-25). A plain panel, not a
+			// surface-less V2Surface — that one NPEs, because every paint path
+			// in it assumes some art to draw.
+			frame = new JPanel(new BorderLayout());
+			frame.setOpaque(false);
+			frame.add(top, BorderLayout.NORTH);
+			holder.add(frame, BorderLayout.CENTER);
 			mountPanel();
 			// full pass, not just the strip: with the pre-build listener now a
 			// no-op, the first build must also auto-follow the current activity
@@ -296,6 +320,7 @@ public class LoadoutLabModule implements IronHubModule
 		SwingUtilities.invokeLater(() ->
 		{
 			holder = null;
+			frame = null; // built with the holder, dropped with it
 			gatedListener = null; // the gate watched the dropped holder
 		});
 	}
@@ -307,7 +332,8 @@ public class LoadoutLabModule implements IronHubModule
 		JPanel section = new JPanel();
 		section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
 		section.setOpaque(false);
-		section.setBorder(new EmptyBorder(UiTokens.PAD, UiTokens.PAD, UiTokens.PAD_TIGHT, UiTokens.PAD));
+		// no horizontal inset of its own: the Frame carries the edge (§7)
+		section.setBorder(new EmptyBorder(0, 0, UiTokens.PAD_TIGHT, 0));
 
 		// Save/View-all sit BELOW the equipment viewer (Luke, 2026-07-21) —
 		// built once here, re-added into the render flow each pass
@@ -315,20 +341,24 @@ public class LoadoutLabModule implements IronHubModule
 		buttonsRow.setLayout(new BoxLayout(buttonsRow, BoxLayout.X_AXIS));
 		buttonsRow.setOpaque(false);
 		buttonsRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-		com.ironhub.ui.osrs.StoneButton save = new com.ironhub.ui.osrs.StoneButton(
-			theme, theme.boxFill, "Save setup", this::saveNamedSetup);
+		javax.swing.JComponent save = tileButton("Save setup",
+			com.ironhub.ui.osrs.OsrsSkin.MUTED, this::saveNamedSetup);
 		save.setToolTipText("Save what the view shows under a name");
-		com.ironhub.ui.osrs.StoneButton viewAll = new com.ironhub.ui.osrs.StoneButton(
-			theme, theme.boxFill, "View setups", this::toggleAllSetups);
+		javax.swing.JComponent viewAll = tileButton("View setups",
+			com.ironhub.ui.osrs.OsrsSkin.MUTED, this::toggleAllSetups);
 		viewAll.setToolTipText("List every saved setup; click one to compare it"
 			+ " against what you are wearing and carrying");
+		// centred as a pair (Luke, 2026-07-25): glue on BOTH sides, where they
+		// used to pack left and leave the row lopsided
+		buttonsRow.add(Box.createHorizontalGlue());
 		buttonsRow.add(save);
 		buttonsRow.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 		buttonsRow.add(viewAll);
+		buttonsRow.add(Box.createHorizontalGlue());
 		buttonsRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, buttonsRow.getPreferredSize().height));
 
-		liveButton = new com.ironhub.ui.osrs.StoneButton(
-			theme, theme.boxFill, "Back to live view", this::backToLive);
+		liveButton = tileButton("Back to live view",
+			com.ironhub.ui.osrs.OsrsSkin.MUTED, this::backToLive);
 		liveButton.setToolTipText("Stop viewing the setup and show what you"
 			+ " currently wear and carry");
 		liveButton.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
@@ -368,41 +398,24 @@ public class LoadoutLabModule implements IronHubModule
 		searchTitleHolder.setOpaque(false);
 		head.add(searchTitleHolder);
 		head.add(Box.createHorizontalGlue());
-		com.ironhub.ui.osrs.StoneButton cancel = new com.ironhub.ui.osrs.StoneButton(
-			theme, theme.boxFill, "Cancel", () ->
+		javax.swing.JComponent cancel = tileButton("Cancel",
+			com.ironhub.ui.osrs.OsrsSkin.MUTED, () ->
 		{
 			searchPanel.setVisible(false);
 			holder.revalidate();
 			holder.repaint();
 		});
-		cancel.setMaximumSize(cancel.getPreferredSize());
 		head.add(cancel);
 		head.setMaximumSize(new Dimension(Integer.MAX_VALUE, head.getPreferredSize().height));
 		searchPanel.add(head);
 		searchPanel.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 
-		searchField = new com.ironhub.ui.osrs.StoneTextField(theme, "Item name…");
+		// the DLV2 field — the game's own well with the magnifier in it, as the
+		// Goals search took (Luke, 2026-07-25). Its onChange carries the same
+		// contract as the three-method document listener it replaces.
+		searchField = new com.ironhub.ui.v2.V2TextField(theme, "Item name…",
+			this::updateSearchResults);
 		searchField.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-		searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
-		{
-			@Override
-			public void insertUpdate(javax.swing.event.DocumentEvent e)
-			{
-				updateSearchResults();
-			}
-
-			@Override
-			public void removeUpdate(javax.swing.event.DocumentEvent e)
-			{
-				updateSearchResults();
-			}
-
-			@Override
-			public void changedUpdate(javax.swing.event.DocumentEvent e)
-			{
-				updateSearchResults();
-			}
-		});
 		searchPanel.add(searchField);
 
 		searchResults.setLayout(new BoxLayout(searchResults, BoxLayout.Y_AXIS));
@@ -522,6 +535,15 @@ public class LoadoutLabModule implements IronHubModule
 				npcId = state.getCombatNpcId();
 				rechecked = false; // a fresh fight outranks the re-check
 			}
+		}
+		if (follow != null && follow.equals(dismissedFollow))
+		{
+			// the player cancelled exactly this one; leave it cancelled
+			return;
+		}
+		if (follow != null)
+		{
+			dismissedFollow = ""; // the activity moved on — follow again
 		}
 		if (follow != null && (rechecked || !follow.equals(lastAutoSelected)))
 		{
@@ -825,8 +847,8 @@ public class LoadoutLabModule implements IronHubModule
 		{
 			// natural widths: three chips split evenly clip "Recommended"
 			// inside 225px — the render caught it
-			com.ironhub.ui.osrs.StoneChipRow sourceChips =
-				new com.ironhub.ui.osrs.StoneChipRow(theme, false, "Current", "Slayer", "Recommended");
+			com.ironhub.ui.v2.V2ChipRow sourceChips =
+				new com.ironhub.ui.v2.V2ChipRow(theme, false, "Current", "Slayer", "Recommended");
 			sourceChips.setSelected(dpsMode ? 2 : viewSource == ViewSource.SLAYER ? 1 : 0);
 			sourceChips.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 			sourceChips.onChange(i ->
@@ -903,6 +925,10 @@ public class LoadoutLabModule implements IronHubModule
 			slot.revalidate();
 			slot.repaint();
 		}
+		// Wiki gear, Equipment stats and Inventory share ONE Tile (Luke,
+		// 2026-07-25): three folds of the same kind, so one surface holds them
+		// rather than three stacked down the column
+		com.ironhub.ui.v2.V2Surface folds = com.ironhub.ui.v2.V2Surface.tile(theme);
 		if (lab.getPanel() != null)
 		{
 			com.loadoutlab.ui.LoadoutLabPanel.TileStats tileStats = dps
@@ -930,20 +956,16 @@ public class LoadoutLabModule implements IronHubModule
 			javax.swing.JComponent wikiGear = wikiGearSection();
 			if (wikiGear != null)
 			{
-				setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-				setupView.add(wikiGear);
+				folds.add(wikiGear);
 			}
 			if (tileStats != null)
 			{
 				javax.swing.JComponent bonuses = lab.getPanel().bonusesTile(tileStats);
 				if (bonuses != null)
 				{
-					// the Equipment-Stats slab carries its OWN header (Luke)
-					setupView.add(Box.createVerticalStrut(2));
-					com.ironhub.ui.osrs.StonePanel statsSlab = new com.ironhub.ui.osrs.StonePanel(theme);
-					statsSlab.setLayout(new BoxLayout(statsSlab, BoxLayout.Y_AXIS));
-					statsSlab.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-					statsSlab.add(sectionToggle("Equipment stats", equipStatsCollapsed, () ->
+					// the Equipment-Stats fold carries its OWN header (Luke)
+					folds.add(Box.createVerticalStrut(2));
+					folds.add(sectionToggle("Equipment stats", equipStatsCollapsed, () ->
 					{
 						equipStatsCollapsed = !equipStatsCollapsed;
 						lastViewFp = 0;
@@ -951,23 +973,21 @@ public class LoadoutLabModule implements IronHubModule
 					}));
 					if (!equipStatsCollapsed)
 					{
-						statsSlab.add(Box.createVerticalStrut(2));
-						bonuses.setBorder(null); // the outer slab is the frame
-						statsSlab.add(bonuses);
+						folds.add(Box.createVerticalStrut(2));
+						bonuses.setBorder(null); // the Well is the frame now
+						com.ironhub.ui.v2.V2Surface results = resultsWell();
+						results.add(bonuses);
+						folds.add(results);
 					}
-					statsSlab.setMaximumSize(new Dimension(Integer.MAX_VALUE,
-						statsSlab.getPreferredSize().height));
-					setupView.add(statsSlab);
 				}
 			}
 		}
 		setupView.add(Box.createVerticalStrut(2));
 		setupView.add(liveButton);
 
-		// inventory fold: plain header + bare views (no slab — Luke),
-		// inventory grid first, the rune pouch beneath it. Persistent across
-		// BOTH views (round 4): it always shows what YOU carry — the calc's
-		// suggestion has no inventory to show
+		// inventory fold: the third of the three that share the Tile.
+		// Persistent across BOTH views (round 4): it always shows what YOU
+		// carry — the calc's suggestion has no inventory to show
 		PersistedState.SavedSetup carried = dps ? liveSetup() : display;
 		Color[] carriedTints = dps ? null : invTints;
 		boolean hasPouch = carried.pouchRunes.length > 0
@@ -975,8 +995,11 @@ public class LoadoutLabModule implements IronHubModule
 		boolean hasInventory = carried.inventory.length > 0;
 		if (hasPouch || hasInventory)
 		{
-			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-			setupView.add(sectionToggle("Inventory", inventoryCollapsed, () ->
+			if (folds.getComponentCount() > 0)
+			{
+				folds.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			}
+			folds.add(sectionToggle("Inventory", inventoryCollapsed, () ->
 			{
 				inventoryCollapsed = !inventoryCollapsed;
 				lastViewFp = 0;
@@ -986,34 +1009,31 @@ public class LoadoutLabModule implements IronHubModule
 			{
 				if (hasInventory)
 				{
-					setupView.add(Box.createVerticalStrut(2));
-					setupView.add(centered(view.inventory(carried, carriedTints)));
+					folds.add(Box.createVerticalStrut(2));
+					folds.add(centered(view.inventory(carried, carriedTints)));
 				}
 				if (hasPouch)
 				{
-					setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+					folds.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 					JPanel pouchRow = new JPanel();
 					pouchRow.setLayout(new BoxLayout(pouchRow, BoxLayout.X_AXIS));
 					pouchRow.setOpaque(false);
 					pouchRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 					pouchRow.add(Box.createHorizontalGlue());
-					if (itemManager != null)
-					{
-						// the pouch's own sprite names the row (Luke, round 6)
-						JLabel pouchIcon = new JLabel();
-						net.runelite.client.util.AsyncBufferedImage sprite =
-							itemManager.getImage(net.runelite.api.ItemID.RUNE_POUCH);
-						sprite.addTo(pouchIcon);
-						pouchRow.add(pouchIcon);
-						pouchRow.add(Box.createHorizontalStrut(4));
-					}
+					// no pouch sprite naming the row (Luke, 2026-07-25) — the
+					// runes in it say what it is
 					pouchRow.add(view.runePouch(carried));
 					pouchRow.add(Box.createHorizontalGlue());
 					pouchRow.setMaximumSize(new Dimension(Integer.MAX_VALUE,
 						pouchRow.getPreferredSize().height));
-					setupView.add(pouchRow);
+					folds.add(pouchRow);
 				}
 			}
+		}
+		if (folds.getComponentCount() > 0)
+		{
+			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			setupView.add(folds);
 		}
 
 		// the setups list opens BELOW the Inventory section (Luke, round 6)
@@ -1248,9 +1268,12 @@ public class LoadoutLabModule implements IronHubModule
 			list.add(setupRow(name, active));
 		}
 
-		com.ironhub.ui.osrs.StonePanel frame = new com.ironhub.ui.osrs.StonePanel(theme);
+		// a list, so the Well — and at the Checklist's inset, not the generic
+		// well's: CAP clears the end caps and TIGHT is the only air on top
+		com.ironhub.ui.v2.V2Surface frame = com.ironhub.ui.v2.V2Surface.well(theme);
+		int inset = com.ironhub.ui.v2.V2Well.CAP + com.ironhub.ui.v2.V2Tokens.TIGHT;
+		frame.setBorder(new EmptyBorder(inset, inset, inset, inset));
 		frame.setLayout(new BorderLayout());
-		frame.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 		javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(list,
 			javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 			javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER)
@@ -1342,7 +1365,7 @@ public class LoadoutLabModule implements IronHubModule
 		searchPanel.setVisible(true);
 		holder.revalidate();
 		holder.repaint();
-		searchField.requestFocusInWindow();
+		searchField.editor().requestFocusInWindow();
 	}
 
 	private void updateSearchResults()
@@ -1566,14 +1589,20 @@ public class LoadoutLabModule implements IronHubModule
 
 	/** The activity the fold describes: the selected monster wins, else the
 	 *  current slayer task; null hides the fold entirely. */
+	/**
+	 * The activity the wiki's recommended gear is looked up for: the SEARCHED
+	 * monster, and nothing else.
+	 *
+	 * <p>It used to fall back to {@code state.getSlayerTask()}, which is why
+	 * the section showed with no monster searched at all — a Skeletal Wyvern
+	 * task was enough to fill it (Luke's screenshot, 2026-07-25). Auto-follow
+	 * still sets {@code dpsMonster} when it picks your task's monster up, so
+	 * the task-driven case survives; what is gone is the section appearing off
+	 * a task name while the view shows your current gear against nothing.
+	 */
 	private String wikiGearActivity()
 	{
-		if (dpsMonster != null)
-		{
-			return dpsMonster.getName();
-		}
-		String task = state.getSlayerTask();
-		return task == null || task.isEmpty() ? null : task;
+		return dpsMonster == null ? null : dpsMonster.getName();
 	}
 
 	private com.ironhub.data.RecommendedEquipmentPack recEquipPack()
@@ -1624,9 +1653,9 @@ public class LoadoutLabModule implements IronHubModule
 		{
 			return null;
 		}
-		com.ironhub.ui.osrs.StonePanel slab = new com.ironhub.ui.osrs.StonePanel(theme);
-		slab.setLayout(new BoxLayout(slab, BoxLayout.Y_AXIS));
-		slab.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		// a bare column: Wiki gear, Equipment stats and Inventory share ONE
+		// Tile now (Luke, 2026-07-25), so a fold no longer brings its own
+		JPanel slab = com.ironhub.ui.v2.V2Layout.column();
 		slab.add(sectionToggle("Wiki gear", wikiGearCollapsed, () ->
 		{
 			wikiGearCollapsed = !wikiGearCollapsed;
@@ -1643,8 +1672,12 @@ public class LoadoutLabModule implements IronHubModule
 						? "Setup" : clip(a.getStyle(), 14))
 					.toArray(String[]::new);
 				idx = Math.min(idx, labels.length - 1);
-				com.ironhub.ui.osrs.StoneChipRow chips =
-					new com.ironhub.ui.osrs.StoneChipRow(theme, false, labels);
+				// STRETCH: four natural-width chips ("Ranged (Void)" among them)
+				// ran off the right edge of the panel in the client (Luke's
+				// screenshot, 2026-07-25). §7 — content that does not fit is
+				// truncated, never widened.
+				com.ironhub.ui.v2.V2ChipRow chips =
+					new com.ironhub.ui.v2.V2ChipRow(theme, true, labels);
 				chips.setSelected(idx);
 				chips.onChange(i ->
 				{
@@ -1658,15 +1691,18 @@ public class LoadoutLabModule implements IronHubModule
 			}
 			slab.add(Box.createVerticalStrut(2));
 			com.ironhub.data.RecommendedEquipmentPack.Activity entry = entries.get(idx);
+			// the slot rows are RESULTS, so they sit in a Well
+			com.ironhub.ui.v2.V2Surface results = resultsWell();
 			for (String slot : com.ironhub.data.RecommendedEquipmentPack.SLOT_ORDER)
 			{
 				java.util.List<com.ironhub.data.RecommendedEquipmentPack.Rec> recs =
 					entry.getSlots() == null ? null : entry.getSlots().get(slot);
 				if (recs != null && !recs.isEmpty())
 				{
-					slab.add(wikiGearRow(slot, recs));
+					results.add(wikiGearRow(slot, recs));
 				}
 			}
+			slab.add(results);
 			com.ironhub.ui.osrs.OsrsLabel provenance = new com.ironhub.ui.osrs.OsrsLabel(
 				"From the wiki: " + entry.getPage(),
 				com.ironhub.ui.osrs.OsrsSkin.FAINT, com.ironhub.ui.osrs.OsrsSkin.smallFont())
@@ -1710,7 +1746,7 @@ public class LoadoutLabModule implements IronHubModule
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setOpaque(false);
 		row.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-		row.setBorder(new javax.swing.border.EmptyBorder(1, 4, 1, 4));
+		row.setBorder(new javax.swing.border.EmptyBorder(1, 0, 1, 0));
 		if (itemManager != null && top.getItemId() != null)
 		{
 			java.awt.Image sprite = wikiSprites().getBox(top.getItemId(), 16);
@@ -1819,23 +1855,23 @@ public class LoadoutLabModule implements IronHubModule
 	/** The lab panel arrives async (its ~3MB dataset parses off-thread). */
 	private void mountPanel()
 	{
-		if (holder == null)
+		if (frame == null)
 		{
 			return;
 		}
 		// keep the NORTH strip; swap only the CENTER content
-		BorderLayout layout = (BorderLayout) holder.getLayout();
+		BorderLayout layout = (BorderLayout) frame.getLayout();
 		java.awt.Component center = layout.getLayoutComponent(BorderLayout.CENTER);
 		if (center != null)
 		{
-			holder.remove(center);
+			frame.remove(center);
 		}
 		if (lab.getPanel() != null)
 		{
 			// no section header any more (Luke, 2026-07-21): the calc panel
 			// simply shows while the DPS view is up ("DPS Calc" chip) and
 			// hides otherwise — renderView keeps the visibility in step
-			holder.add(lab.getPanel(), BorderLayout.CENTER);
+			frame.add(lab.getPanel(), BorderLayout.CENTER);
 			lab.getPanel().setVisible(viewSource == ViewSource.DPS && isLive());
 			wireHooks();
 			onStateChanged(); // panel just arrived: apply auto-follow now
@@ -1849,10 +1885,10 @@ public class LoadoutLabModule implements IronHubModule
 			loading.add(new com.ironhub.ui.osrs.OsrsLabel("Loading gear dataset…",
 				com.ironhub.ui.osrs.OsrsSkin.FAINT, com.ironhub.ui.osrs.OsrsSkin.font()));
 			loading.add(Box.createHorizontalGlue());
-			holder.add(loading, BorderLayout.CENTER);
+			frame.add(loading, BorderLayout.CENTER);
 		}
-		holder.revalidate();
-		holder.repaint();
+		frame.revalidate();
+		frame.repaint();
 	}
 
 
@@ -1894,6 +1930,11 @@ public class LoadoutLabModule implements IronHubModule
 					computing = false;
 					dpsResults = null;
 					dpsMonster = null;
+					// remember WHAT was cancelled: the task or the NPC being
+					// fought is still current, so auto-follow would re-select
+					// it on the next tick and undo the cancel
+					String npc = state.getCombatNpcName();
+					dismissedFollow = !npc.isEmpty() ? npc : state.getSlayerTask();
 					lastViewFp = 0;
 					renderView();
 				}
@@ -1914,6 +1955,41 @@ public class LoadoutLabModule implements IronHubModule
 	 * highest in green — switching the shared viewer, tile and the calc's
 	 * detail card (Luke: buttons replaced the three expandable panels).
 	 */
+	/**
+	 * A text button on the Tile surface — StoneButton's replacement in this
+	 * view (Luke, 2026-07-25). The label is centred in its own row, so the
+	 * caller can recolour it for a selected or best-of state (§8: selected is
+	 * the art plus a HEADING label, never a hotter fill).
+	 */
+	/** A results Well: the surface a block's rows sit in, at the Checklist's
+	 *  inset — CAP clears the well's end caps and TIGHT is the only air on top
+	 *  (Luke, 2026-07-25, the same call the Goals task list took). */
+	private com.ironhub.ui.v2.V2Surface resultsWell()
+	{
+		com.ironhub.ui.v2.V2Surface well = com.ironhub.ui.v2.V2Surface.well(theme);
+		int inset = com.ironhub.ui.v2.V2Well.CAP + com.ironhub.ui.v2.V2Tokens.TIGHT;
+		well.setBorder(new EmptyBorder(inset, inset, inset, inset));
+		return well;
+	}
+
+	private javax.swing.JComponent tileButton(String text, java.awt.Color color, Runnable onPress)
+	{
+		return tileButton(text, color, null, onPress);
+	}
+
+	/**
+	 * A text button as the CHIP ATOM (Luke, 2026-07-25). It used to build its
+	 * own thing out of the chip surface, which is why Save setup and the style
+	 * row stayed short when {@code CONTROL_HEIGHT} grew and Current/Slayer/
+	 * Recommended did not — a hand-rolled chip does not follow the chip's
+	 * token. §9: never hand-roll an atom's job.
+	 */
+	private javax.swing.JComponent tileButton(String text, java.awt.Color color,
+		javax.swing.Icon icon, Runnable onPress)
+	{
+		return com.ironhub.ui.v2.V2ChipRow.action(theme, text, color, icon, onPress);
+	}
+
 	private JPanel styleButtonsRow()
 	{
 		JPanel row = new JPanel(new java.awt.GridLayout(1, 3, 4, 0));
@@ -1934,8 +2010,16 @@ public class LoadoutLabModule implements IronHubModule
 			// protect-prayer icon names the style; the number is the dps
 			String label = dps == null ? "—" : String.format(Locale.ROOT, "%.1f", dps);
 			boolean selected = style == dpsStyle;
-			com.ironhub.ui.osrs.StoneButton button = new com.ironhub.ui.osrs.StoneButton(theme,
-				selected ? theme.selectFill : theme.boxFill, label, dps == null ? null : () ->
+			// the label's colour is decided BEFORE the button is built: a Tile
+			// carries no fill for "selected", so the label is what says it (§8)
+			java.awt.Color labelColor = dps != null && best != null && dps.equals(best)
+				? com.ironhub.ui.osrs.OsrsSkin.VALUE // best dps = green
+				: dps == null ? com.ironhub.ui.osrs.OsrsSkin.FAINT
+				: selected ? com.ironhub.ui.osrs.OsrsSkin.TITLE
+				// weaker styles read light, never orange (Luke)
+				: com.ironhub.ui.osrs.OsrsSkin.LABEL;
+			javax.swing.JComponent button = tileButton(label, labelColor,
+				styleButtonIcon(style), dps == null ? null : () ->
 			{
 				dpsStyle = style;
 				if (lab.getPanel() != null)
@@ -1945,20 +2029,6 @@ public class LoadoutLabModule implements IronHubModule
 				lastViewFp = 0;
 				renderView();
 			});
-			if (dps != null && best != null && dps.equals(best))
-			{
-				button.labelColor(com.ironhub.ui.osrs.OsrsSkin.VALUE); // best dps = green
-			}
-			else if (dps == null)
-			{
-				button.labelColor(com.ironhub.ui.osrs.OsrsSkin.FAINT);
-			}
-			else
-			{
-				// weaker styles read light, never orange (Luke)
-				button.labelColor(com.ironhub.ui.osrs.OsrsSkin.LABEL);
-			}
-			button.icon(styleButtonIcon(style));
 			button.setToolTipText(dps == null ? "No usable owned set for " + style
 				: "Show the best owned " + style.toString().toLowerCase(Locale.ROOT) + " set");
 			row.add(button);

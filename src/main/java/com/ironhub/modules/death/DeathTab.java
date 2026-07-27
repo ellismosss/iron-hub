@@ -6,12 +6,10 @@ import com.ironhub.ui.Format;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneBorder;
-import com.ironhub.ui.osrs.StoneButton;
-import com.ironhub.ui.osrs.StonePanel;
+import com.ironhub.ui.v2.V2ChipRow;
+import com.ironhub.ui.v2.V2Surface;
 import com.ironhub.ui.UiTokens;
 import java.awt.Dimension;
-import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -95,12 +93,8 @@ class DeathTab extends JPanel
 
 	private JPanel deathCard(AccountState.Death death, boolean newest)
 	{
-		StonePanel card = new StonePanel(theme, theme.background);
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setAlignmentX(LEFT_ALIGNMENT);
-		int corner = theme.cornerStamp.length;
-		card.setBorder(new StoneBorder(theme, theme.background,
-			new Insets(corner, corner, corner, corner)));
+		// one death is a titled block, not the page's live readout — the Slab
+		V2Surface card = V2Surface.slab(theme);
 
 		JPanel header = new JPanel();
 		header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
@@ -115,10 +109,10 @@ class DeathTab extends JPanel
 			OsrsSkin.MUTED, OsrsSkin.font());
 		header.add(where.leftAligned().squeezable());
 		header.add(Box.createHorizontalGlue());
-		StoneButton path = new StoneButton(theme, theme.boxFill,
-			"Path", () -> pathBridge.pathTo(death.where));
+		// the chip ATOM — this row sits among detail lines, so DETAIL font
+		JComponent path = V2ChipRow.action(theme, "Path", null, null, OsrsSkin.smallFont(),
+			() -> pathBridge.pathTo(death.where));
 		path.setToolTipText("Shortest Path to this spot");
-		path.setMaximumSize(path.getPreferredSize());
 		header.add(path);
 		cap(header);
 		card.add(header);

@@ -12,13 +12,15 @@ import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.components.RebuildGate;
 import com.ironhub.ui.components.SpriteCache;
 import com.ironhub.ui.osrs.OsrsLabel;
-import com.ironhub.ui.osrs.IconTile;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneChipRow;
-import com.ironhub.ui.osrs.StoneComboBoxUI;
-import com.ironhub.ui.osrs.StonePanel;
-import com.ironhub.ui.osrs.StoneTextField;
+import com.ironhub.ui.v2.V2Tile;
+import com.ironhub.ui.v2.V2Checkbox;
+import com.ironhub.ui.v2.V2ChipRow;
+import com.ironhub.ui.v2.V2Dropdown;
+import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2TextField;
+import com.ironhub.ui.v2.V2Tokens;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -87,12 +89,12 @@ class GearLibraryTab extends JPanel
 	private final GearTab chart;
 
 	// controls
-	private final StoneTextField search;
-	private final JComboBox<String> slotBox;
-	private final JComboBox<String> sortBox;
+	private final V2TextField search;
+	private final V2Dropdown slotBox;
+	private final V2Dropdown sortBox;
 	private final JLabel sortDirection;
-	private final StoneChipRow ownedChips;
-	private final StoneChipRow accessChips;
+	private final V2ChipRow ownedChips;
+	private final V2ChipRow accessChips;
 	private final JPanel list = new JPanel();
 	private final JLabel chartTriangle;
 	private final JPanel chartSlot = new JPanel();
@@ -137,9 +139,9 @@ class GearLibraryTab extends JPanel
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		search = new StoneTextField(theme, "Search all gear…");
+		search = new V2TextField(theme, "Search all gear…", null);
 		add(search);
-		search.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+		search.editor().getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
 		{
 			public void insertUpdate(javax.swing.event.DocumentEvent e)
 			{
@@ -158,12 +160,12 @@ class GearLibraryTab extends JPanel
 		});
 		add(Box.createVerticalStrut(4));
 
-		slotBox = StoneComboBoxUI.skin(new JComboBox<>(SLOT_LABELS), theme);
-		slotBox.addActionListener(e -> rebuildList());
-		sortBox = StoneComboBoxUI.skin(new JComboBox<>(sortLabels()), theme);
-		sortBox.addActionListener(e ->
+		slotBox = new V2Dropdown(theme, SLOT_LABELS);
+		slotBox.onChange(i -> rebuildList());
+		sortBox = new V2Dropdown(theme, sortLabels());
+		sortBox.onChange(i ->
 		{
-			EquipmentLibrary.Sort chosen = EquipmentLibrary.Sort.values()[sortBox.getSelectedIndex()];
+			EquipmentLibrary.Sort chosen = EquipmentLibrary.Sort.values()[i];
 			if (chosen != sort)
 			{
 				sort = chosen;
@@ -191,7 +193,7 @@ class GearLibraryTab extends JPanel
 		add(controlsRow());
 		add(Box.createVerticalStrut(4));
 
-		ownedChips = new StoneChipRow(theme, true, "All", "Owned", "Missing");
+		ownedChips = new V2ChipRow(theme, true, "All", "Owned", "Missing");
 		ownedChips.onChange(i ->
 		{
 			owned = EquipmentLibrary.Owned.values()[i];
@@ -199,7 +201,7 @@ class GearLibraryTab extends JPanel
 		});
 		add(ownedChips);
 		add(Box.createVerticalStrut(UiTokens.CHIP_GAP));
-		accessChips = new StoneChipRow(theme, true, "Any", "Members", "Free");
+		accessChips = new V2ChipRow(theme, true, "Any", "Members", "Free");
 		accessChips.onChange(i ->
 		{
 			access = EquipmentLibrary.Access.values()[i];
@@ -289,21 +291,28 @@ class GearLibraryTab extends JPanel
 	/** Slot dropdown, sort dropdown and the direction glyph in one row. */
 	private JComponent controlsRow()
 	{
-		JPanel row = new JPanel();
+		// the row FOLLOWS its dropdowns: they grow in place when opened, and a
+		// row pinned to one control height would clip the open list
+		JPanel row = new JPanel()
+		{
+			@Override
+			public Dimension getMaximumSize()
+			{
+				return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+			}
+		};
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		slotBox.setMaximumSize(new Dimension(90, 22));
-		slotBox.setPreferredSize(new Dimension(90, 22));
-		sortBox.setMaximumSize(new Dimension(92, 22));
-		sortBox.setPreferredSize(new Dimension(92, 22));
+		// width only — the height is the dropdown's own
+		slotBox.width(90);
+		sortBox.width(92);
 		row.add(slotBox);
 		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 		row.add(sortBox);
 		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 		row.add(sortDirection);
 		row.add(Box.createHorizontalGlue());
-		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
 		return row;
 	}
 
@@ -326,27 +335,12 @@ class GearLibraryTab extends JPanel
 	private JComponent toggle(String text, java.util.function.BooleanSupplier get,
 		java.util.function.Consumer<Boolean> set)
 	{
-		com.ironhub.ui.osrs.StoneCheckbox box =
-			new com.ironhub.ui.osrs.StoneCheckbox(theme, get.getAsBoolean());
-		OsrsLabel label = new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font());
-		MouseAdapter click = new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				set.accept(!get.getAsBoolean());
-			}
-		};
-		box.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		box.addMouseListener(click);
-		label.addMouseListener(click);
+		// the checkbox ATOM carries its own box, label, hover and hit target
 		JPanel unit = new JPanel();
 		unit.setLayout(new BoxLayout(unit, BoxLayout.X_AXIS));
 		unit.setOpaque(false);
-		unit.add(box);
-		unit.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		unit.add(label);
+		unit.add(new V2Checkbox(theme, text, get.getAsBoolean(),
+			() -> set.accept(!get.getAsBoolean())));
 		return unit;
 	}
 
@@ -571,7 +565,7 @@ class GearLibraryTab extends JPanel
 
 	private String slotKey()
 	{
-		int index = slotBox.getSelectedIndex();
+		int index = slotBox.selected();
 		return index >= 0 && index < SLOT_KEYS.length ? SLOT_KEYS[index] : null;
 	}
 
@@ -693,7 +687,7 @@ class GearLibraryTab extends JPanel
 
 	/** A unit's tile: a single item, or a group tile (variant count badge,
 	 *  larger when a set) whose click expands its members — one at a time. */
-	private IconTile unitTile(Unit unit)
+	private V2Tile unitTile(Unit unit)
 	{
 		if (!unit.isGroup())
 		{
@@ -705,30 +699,37 @@ class GearLibraryTab extends JPanel
 		boolean ownsAny = showTick() && unit.items.stream().anyMatch(this::owns);
 		boolean expanded = unit.base.equals(expandedGroup);
 		String noun = sets ? " pieces" : " variants";
-		return new IconTile(theme, unit.base, sprite, ownsAny, false, expanded,
-			unit.items.size(), sets,
-			unit.base + " — " + unit.items.size() + noun,
-			() ->
-			{
-				expandedGroup = expanded ? null : unit.base;
-				selected = -1;
-				rebuildGrid();
-			},
-			e -> { });
+		V2Tile tile = new V2Tile(theme, sprite, unit.base, TILE_ART, () ->
+		{
+			expandedGroup = expanded ? null : unit.base;
+			selected = -1;
+			rebuildGrid();
+		}).width(sets ? TILE_WIDTH_LARGE : TILE_WIDTH).captionLines(2)
+			.owned(ownsAny).selected(expanded).badge(unit.items.size());
+		tile.setToolTipText(unit.base + " — " + unit.items.size() + noun);
+		return tile;
 	}
 
-	private IconTile itemTile(EquipmentPack.Item item)
+	private V2Tile itemTile(EquipmentPack.Item item)
 	{
 		java.awt.Image sprite = sprites.get(item.primaryId(), -1, 28);
-		return new IconTile(theme, item.name, sprite, showTick() && owns(item),
-			isTracked(item), item.primaryId() == selected, 1, false, tileTooltip(item),
-			() ->
-			{
-				selected = item.primaryId() == selected ? -1 : item.primaryId();
-				rebuildGrid();
-			},
-			e -> rowMenu(item, e));
+		V2Tile tile = new V2Tile(theme, sprite, item.name, TILE_ART, () ->
+		{
+			selected = item.primaryId() == selected ? -1 : item.primaryId();
+			rebuildGrid();
+		}).width(TILE_WIDTH).captionLines(2)
+			.owned(showTick() && owns(item)).selected(item.primaryId() == selected);
+		// tracked is the READY status edge — V1 painted it as an orange bevel
+		tile.status(isTracked(item) ? V2Tile.Status.READY : V2Tile.Status.PLAIN);
+		tile.onRightClick(e -> rowMenu(item, e));
+		tile.setToolTipText(tileTooltip(item));
+		return tile;
 	}
+
+	/** The grid's tile geometry — the art band, the caption sits under it. */
+	private static final int TILE_ART = 34;
+	private static final int TILE_WIDTH = 52;
+	private static final int TILE_WIDTH_LARGE = 106;
 
 	/** The owned tick shows only in the "All" view — it is redundant when the
 	 *  Owned filter already means every tile is owned (Luke). */
@@ -767,15 +768,15 @@ class GearLibraryTab extends JPanel
 		row.add(Box.createHorizontalGlue());
 		// the current page is a tight typeable box (room for two digits) —
 		// jump straight to a page
-		StoneTextField pageField = new StoneTextField(theme, "");
+		V2TextField pageField = V2TextField.plain(theme, "", null);
 		pageField.setText(String.valueOf(page + 1));
-		Dimension boxSize = new Dimension(22, 18);
+		Dimension boxSize = new Dimension(28, V2Tokens.CONTROL_HEIGHT);
 		pageField.setMaximumSize(boxSize);
 		pageField.setPreferredSize(boxSize);
 		pageField.setMinimumSize(boxSize);
-		pageField.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+		pageField.editor().setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 		pageField.setToolTipText("Type a page number and press Enter");
-		pageField.addActionListener(e ->
+		pageField.editor().addActionListener(e ->
 		{
 			try
 			{
@@ -860,9 +861,8 @@ class GearLibraryTab extends JPanel
 
 	private JComponent detailCard(EquipmentPack.Item item, boolean own)
 	{
-		StonePanel card = new StonePanel(theme);
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setAlignmentX(LEFT_ALIGNMENT);
+		// the opened item is the one live readout on the page — the Card
+		V2Surface card = V2Surface.card(theme);
 
 		// the header carries a LARGER sprite on the left (Luke), vertically
 		// centred against the name / slot / value block, with the track
@@ -1089,7 +1089,7 @@ class GearLibraryTab extends JPanel
 	};
 
 	/** The Equipment-Stats groups, only rows that carry a bonus. */
-	private void addStatBlock(StonePanel card, EquipmentPack.Item item)
+	private void addStatBlock(V2Surface card, EquipmentPack.Item item)
 	{
 		boolean any = false;
 		for (int g = 0; g < STAT_GROUPS.length; g++)
@@ -1214,7 +1214,8 @@ class GearLibraryTab extends JPanel
 
 	private JComponent chartHeader()
 	{
-		StonePanel plate = new StonePanel(theme);
+		// a titled block that presses — the Slab (§12)
+		V2Surface plate = V2Surface.slab(theme);
 		plate.setLayout(new BoxLayout(plate, BoxLayout.X_AXIS));
 		plate.add(chartTriangle);
 		plate.add(Box.createHorizontalGlue());
@@ -1289,7 +1290,7 @@ class GearLibraryTab extends JPanel
 	void sortForTest(EquipmentLibrary.Sort sort)
 	{
 		this.sort = sort;
-		sortBox.setSelectedIndex(sort.ordinal());
+		sortBox.setSelected(sort.ordinal());
 		ascending = !sort.descendingByDefault;
 		refreshDirection();
 		rebuildList();

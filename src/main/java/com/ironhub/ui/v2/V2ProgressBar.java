@@ -58,9 +58,6 @@ public class V2ProgressBar extends JComponent
 
 	/** Side breathing room, so the trough does not hug the text. */
 	private static final int SIDE_PAD = 6;
-	/** Measured ink per font+string: {top relative to the baseline, height}. */
-	private static final java.util.Map<String, int[]> INK =
-		new java.util.concurrent.ConcurrentHashMap<>();
 	private double fraction;
 	private String left = "";
 	private String centre = "";
@@ -233,56 +230,12 @@ public class V2ProgressBar extends JComponent
 		// measured from the STRING that will be drawn, not from a sample glyph:
 		// "1,482 / 1,706" has a slash that rides high and commas that descend,
 		// so a digit's ink is not this string's ink
-		int[] ink = ink(g2.getFont(), centre.isEmpty() ? left + right : centre);
+		int[] ink = V2Label.ink(g2.getFont(), centre.isEmpty() ? left + right : centre);
 		int baseline = barY + (barH - ink[1]) / 2 - ink[0];
 		int w = getWidth();
 		label(g2, left, SIDE_PAD, baseline);
 		label(g2, centre, (w - fm.stringWidth(centre)) / 2, baseline);
 		label(g2, right, w - SIDE_PAD - fm.stringWidth(right), baseline);
-	}
-
-	/**
-	 * Where a string's ink actually lands, by RASTERISING it and looking:
-	 * {top relative to the baseline, height}.
-	 *
-	 * <p>Glyph metrics were the first attempt and they measured something the
-	 * client did not draw — the bar looked centred in the test renderer and sat
-	 * low in the real client (Luke, 2026-07-25, twice). Metrics can describe a
-	 * substituted font, or carry padding this font's bitmap glyphs do not use.
-	 * Drawing the glyph and scanning for ink cannot disagree with the screen,
-	 * because it IS the screen's answer. Once per font, then cached.
-	 */
-	private static int[] ink(java.awt.Font font, String text)
-	{
-		return INK.computeIfAbsent(font.getFontName() + "/" + font.getSize() + "/" + text, k ->
-		{
-			java.awt.Font f = font;
-			int box = Math.max(64, f.getSize() * 8);
-			int baseline = box / 2;
-			BufferedImage probe = new BufferedImage(box, box, BufferedImage.TYPE_INT_ARGB);
-			Graphics2D g = probe.createGraphics();
-			g.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
-				java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
-			g.setFont(f);
-			g.setColor(java.awt.Color.WHITE); // v2-exempt: an offscreen ruler, never shown
-			g.drawString(text, 2, baseline);
-			g.dispose();
-			int top = -1, bottom = -1;
-			for (int y = 0; y < box; y++)
-			{
-				for (int x = 0; x < box; x++)
-				{
-					if ((probe.getRGB(x, y) >>> 24) != 0)
-					{
-						top = top < 0 ? y : top;
-						bottom = y;
-						break;
-					}
-				}
-			}
-			return top < 0 ? new int[]{-f.getSize(), f.getSize()}
-				: new int[]{top - baseline, bottom - top + 1};
-		});
 	}
 
 	private void label(Graphics2D g2, String text, int x, int y)

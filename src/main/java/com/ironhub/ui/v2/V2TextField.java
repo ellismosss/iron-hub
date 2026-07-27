@@ -40,18 +40,41 @@ public class V2TextField extends JPanel
 	private final V2Well well = V2Tokens.well();
 	private final JTextField field = new JTextField();
 	private final String placeholder;
+	/**
+	 * Whether the magnifier leads the field.
+	 *
+	 * <p>It used to be unconditional, which put a SEARCH icon on a slayer note,
+	 * a page number and a supply target — none of which are searches, and the
+	 * icon's reserved column also squeezed a 40px numeric box down to nothing
+	 * so its digits clipped (Luke's Bank pass, 2026-07-26). Use
+	 * {@link #plain} for an entry field that is not a search.
+	 */
+	private final boolean magnifier;
 
 	public V2TextField(OsrsTheme theme, String placeholder, Runnable onChange)
 	{
+		this(theme, placeholder, onChange, true);
+	}
+
+	/** An entry field with no magnifier — a note, a number, a name. */
+	public static V2TextField plain(OsrsTheme theme, String placeholder, Runnable onChange)
+	{
+		return new V2TextField(theme, placeholder, onChange, false);
+	}
+
+	private V2TextField(OsrsTheme theme, String placeholder, Runnable onChange,
+		boolean magnifier)
+	{
 		this.theme = theme;
 		this.placeholder = placeholder;
+		this.magnifier = magnifier;
 		setOpaque(false);
 		setAlignmentX(LEFT_ALIGNMENT);
 		setLayout(new java.awt.BorderLayout());
 
-		int icon = V2Sprites.meta(SEARCH).width();
+		int icon = magnifier ? V2Sprites.meta(SEARCH).width() + V2Tokens.PAD : V2Tokens.PAD;
 		field.setOpaque(false);
-		field.setBorder(new EmptyBorder(V2Tokens.TIGHT + 1, icon + V2Tokens.PAD,
+		field.setBorder(new EmptyBorder(V2Tokens.TIGHT + 1, icon,
 			V2Tokens.TIGHT, V2Tokens.PAD));
 		field.setFont(V2Tokens.bodyFont());
 		field.setForeground(V2Tokens.TEXT);
@@ -111,8 +134,11 @@ public class V2TextField extends JPanel
 	{
 		Graphics2D g2 = (Graphics2D) g;
 		well.paint(g2, theme, 0, 0, getWidth(), getHeight());
-		BufferedImage icon = V2Sprites.get(theme, SEARCH);
-		g2.drawImage(icon, V2Tokens.PAD, (getHeight() - icon.getHeight()) / 2, null);
+		if (magnifier)
+		{
+			BufferedImage icon = V2Sprites.get(theme, SEARCH);
+			g2.drawImage(icon, V2Tokens.PAD, (getHeight() - icon.getHeight()) / 2, null);
+		}
 		super.paintComponent(g);
 	}
 
@@ -151,6 +177,7 @@ public class V2TextField extends JPanel
 	@Override
 	public Dimension getMinimumSize()
 	{
-		return new Dimension(4 * V2Tokens.SECTION, HEIGHT);
+		// a plain field may be a three-digit box; a search never is
+		return new Dimension(magnifier ? 4 * V2Tokens.SECTION : 2 * V2Tokens.SECTION, HEIGHT);
 	}
 }

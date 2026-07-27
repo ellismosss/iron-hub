@@ -9,9 +9,10 @@ import com.ironhub.ui.osrs.OsrsIcons;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneChipRow;
-import com.ironhub.ui.osrs.StonePanel;
-import com.ironhub.ui.osrs.StoneProgressBar;
+import com.ironhub.ui.v2.V2ChipRow;
+import com.ironhub.ui.v2.V2ProgressBar;
+import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2Tokens;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -72,10 +73,10 @@ class CombatAchievementsTab extends JPanel
 	private final OsrsTheme theme;
 	private final Runnable listener = RebuildGate.install(this, this::onStateChanged);
 
-	private final StonePanel hero;
-	private final StoneProgressBar heroBar;
-	private final StonePanel profile;
-	private final StoneChipRow views;
+	private final V2Surface hero;
+	private final V2ProgressBar heroBar;
+	private final V2Surface profile;
+	private final V2ChipRow views;
 	private final JPanel content = new JPanel();
 	private final JPanel browserSlot = new JPanel();
 	private final JLabel browserTriangle;
@@ -99,20 +100,18 @@ class CombatAchievementsTab extends JPanel
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		hero = new StonePanel(theme);
-		hero.setLayout(new BoxLayout(hero, BoxLayout.Y_AXIS));
-		hero.setAlignmentX(LEFT_ALIGNMENT);
-		heroBar = new StoneProgressBar(theme, OsrsSkin.PROGRESS_BLUE, 0);
+		// the points standing is the one live readout on the page — the Card
+		hero = V2Surface.card(theme);
+		heroBar = new V2ProgressBar(theme, V2ProgressBar.Size.ROW).fill(V2Tokens.BAR_BLUE);
 		add(hero);
 		add(Box.createVerticalStrut(4));
 
-		profile = new StonePanel(theme);
-		profile.setLayout(new BoxLayout(profile, BoxLayout.Y_AXIS));
-		profile.setAlignmentX(LEFT_ALIGNMENT);
+		// the account's own combat profile — a titled block, the Slab (§12)
+		profile = V2Surface.slab(theme);
 		add(profile);
 		add(Box.createVerticalStrut(4));
 
-		views = new StoneChipRow(theme, true, "Difficulty", "Bosses");
+		views = new V2ChipRow(theme, true, "Difficulty", "Bosses");
 		views.onChange(i ->
 		{
 			openTier = null;
@@ -227,8 +226,7 @@ class CombatAchievementsTab extends JPanel
 		hero.add(top);
 
 		hero.add(Box.createVerticalStrut(3));
-		heroBar.setFraction(ceiling > floor ? (double) (points - floor) / (ceiling - floor) : 1);
-		heroBar.setAlignmentX(LEFT_ALIGNMENT);
+		heroBar.fraction(ceiling > floor ? (double) (points - floor) / (ceiling - floor) : 1);
 		hero.add(heroBar);
 
 		JPanel labels = row();
@@ -334,7 +332,7 @@ class CombatAchievementsTab extends JPanel
 		{
 			bossPage(tasks);
 		}
-		else if (views.getSelected() == 1)
+		else if (views.selected() == 1)
 		{
 			bossGrid(tasks);
 		}
@@ -495,9 +493,7 @@ class CombatAchievementsTab extends JPanel
 	private JComponent pageHeader(String name, List<CaTask> tasks, String sub)
 	{
 		int done = (int) tasks.stream().filter(t -> t.completed).count();
-		StonePanel card = new StonePanel(theme);
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setAlignmentX(LEFT_ALIGNMENT);
+		V2Surface card = V2Surface.card(theme);
 		OsrsLabel title = new OsrsLabel(name, OsrsSkin.TITLE, OsrsSkin.boldFont())
 			.leftAligned().squeezable();
 		title.setToolTipText(name);
@@ -621,7 +617,8 @@ class CombatAchievementsTab extends JPanel
 
 	private JComponent browserHeader()
 	{
-		StonePanel plate = new StonePanel(theme);
+		// a titled block that presses — the Slab (§12)
+		V2Surface plate = V2Surface.slab(theme);
 		plate.setLayout(new BoxLayout(plate, BoxLayout.X_AXIS));
 		plate.add(browserTriangle);
 		plate.add(Box.createHorizontalGlue());

@@ -2,7 +2,9 @@ package com.ironhub.modules.ca;
 
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneNavButton;
+import com.ironhub.ui.v2.V2ProgressBar;
+import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2Tokens;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -26,6 +28,12 @@ import javax.swing.JComponent;
  *
  * <p>Sized by the caller: two across the panel for tiers (which also carry
  * the tier's wiki icon), three across for bosses.
+ *
+ * <p>A COMPOSITE, not a hand-rolled tile: the stone under it is the Tile
+ * surface itself ({@code V2Surface.paintTile}) and the foot bar is the METER
+ * atom, painted in place. Only the arrangement — icon left, title over a sub
+ * line, bar across the foot — is this class's own, because that arrangement is
+ * the game's Combat Achievements interface and no atom covers it.
  */
 class CaProgressTile extends JComponent
 {
@@ -43,6 +51,7 @@ class CaProgressTile extends JComponent
 	private final int width;
 	private final int height;
 	private boolean hover;
+	private final V2ProgressBar bar;
 
 	CaProgressTile(OsrsTheme theme, Image icon, String title, String sub, int done, int total,
 		int width, int height, String tooltip, Runnable onClick)
@@ -55,6 +64,7 @@ class CaProgressTile extends JComponent
 		this.total = total;
 		this.width = width;
 		this.height = height;
+		this.bar = new V2ProgressBar(theme, V2ProgressBar.Size.METER);
 		setToolTipText(tooltip);
 		setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		addMouseListener(new MouseAdapter()
@@ -113,8 +123,11 @@ class CaProgressTile extends JComponent
 		Graphics2D g2 = (Graphics2D) g;
 		int w = getWidth();
 		int h = getHeight();
-		StoneNavButton.paintSlab(g2, theme, w, h, hover ? theme.hoverFill : theme.boxFill,
-			theme.edgeLight);
+		V2Surface.paintTile(g2, theme, w, h, false);
+		if (hover)
+		{
+			V2Surface.washTile(g2, w, h);
+		}
 		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
 			RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 
@@ -144,15 +157,16 @@ class CaProgressTile extends JComponent
 			draw(g2, sub, OsrsSkin.MUTED, textLeft, top, available);
 		}
 
-		int barY = h - METER - 3;
-		g2.setColor(OsrsSkin.BAR_TROUGH);
-		g2.fillRect(4, barY, w - 8, METER);
-		if (total > 0 && done > 0)
-		{
-			int filled = Math.max(1, Math.round((w - 10) * (float) done / total));
-			g2.setColor(complete() ? OsrsSkin.VALUE : OsrsSkin.PROGRESS_BLUE);
-			g2.fillRect(5, barY + 1, filled, METER - 2);
-		}
+		// the METER atom across the foot, painted in place — this used to be a
+		// hand-filled trough and bar (Luke's Progression pass, 2026-07-26)
+		bar.fill(complete() ? V2Tokens.BAR_FILL : V2Tokens.BAR_BLUE)
+			.fraction(total == 0 ? 0 : done / (double) total);
+		int barY = h - bar.getPreferredSize().height - V2Tokens.ROW;
+		bar.setBounds(V2Tokens.ROW, barY, w - 2 * V2Tokens.ROW,
+			bar.getPreferredSize().height);
+		g2.translate(V2Tokens.ROW, barY);
+		bar.paint(g2);
+		g2.translate(-V2Tokens.ROW, -barY);
 	}
 
 	/**

@@ -220,10 +220,8 @@ class SailingUpgradesTab extends JPanel
 	{
 		BoatUpgradesPack.Upgrade next = module.nextRow(boatType, part.key);
 		BoatUpgradesPack.Upgrade current = module.currentRow(boatType, part.key);
-		JPanel card = new JPanel();
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setOpaque(false);
-		card.setAlignmentX(LEFT_ALIGNMENT);
+		// the opened facility is the one live readout on the page — the Card
+		com.ironhub.ui.v2.V2Surface card = com.ironhub.ui.v2.V2Surface.card(theme);
 
 		JPanel head = new JPanel();
 		head.setLayout(new BoxLayout(head, BoxLayout.X_AXIS));

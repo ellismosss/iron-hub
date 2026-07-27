@@ -108,6 +108,130 @@ public class V2ChipRow extends JPanel
 		return new Dimension(super.getPreferredSize().width, V2Tokens.CONTROL_HEIGHT);
 	}
 
+	/**
+	 * A cue on one chip that is not selected: its label reads DONE-green, which
+	 * is the one status colour that means "this is the good one" (§6). Ported
+	 * from {@code StoneChipRow} for the DPS chip, which wears it when the calc
+	 * beats the gear you have on (Luke).
+	 *
+	 * <p>Indexes the chip LIST, never {@code getComponents()} — a non-stretch
+	 * row interleaves spacer struts there, and the V1 version was caught
+	 * off-by-a-strut doing exactly that.
+	 */
+	public void highlight(int index, boolean on)
+	{
+		if (index >= 0 && index < chips.size())
+		{
+			chips.get(index).setHighlighted(on);
+		}
+	}
+
+	/**
+	 * ONE chip, standing alone, that fires and does not latch — an inline
+	 * action like Slayer's "Route" or "Open DPS calc" (Luke, 2026-07-25).
+	 *
+	 * <p>It returns the very same {@code Chip} the rows are built from, which
+	 * is the point: hand-rolling a chip-shaped thing out of the chip SURFACE
+	 * produced something visibly different — wrong height, wrong padding, no
+	 * hover wash — and "the Route chip looks different to the other chips" is
+	 * exactly what §9 means by never hand-rolling an atom's job.
+	 *
+	 * <p>Wrapped in a flow holder because {@code Chip} reports full width to a
+	 * BoxLayout, and an action chip must stay at its own size.
+	 */
+	public static JPanel action(OsrsTheme theme, String text, Runnable onPress)
+	{
+		return action(theme, text, null, null, onPress);
+	}
+
+	/**
+	 * The same, with the label in a given colour and/or led by an icon — the
+	 * DPS style row, whose chips read green for the best figure and carry a
+	 * protect-prayer glyph.
+	 *
+	 * @param labelColor null for the chip's own TEXT colour
+	 * @param icon       null for text alone
+	 */
+	public static JPanel action(OsrsTheme theme, String text, java.awt.Color labelColor,
+		javax.swing.Icon icon, Runnable onPress)
+	{
+		return action(theme, text, labelColor, icon, null, onPress);
+	}
+
+	/**
+	 * The same, in a given font — DETAIL for a chip that sits among detail
+	 * rows, so it does not shout over the text it belongs to (Luke,
+	 * 2026-07-25, Slayer's Route).
+	 *
+	 * @param font null for the chip's own body font
+	 */
+	public static JPanel action(OsrsTheme theme, String text, java.awt.Color labelColor,
+		javax.swing.Icon icon, java.awt.Font font, Runnable onPress)
+	{
+		JPanel holder = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0));
+		holder.setOpaque(false);
+		holder.setAlignmentX(LEFT_ALIGNMENT);
+		Chip chip = new Chip(theme, text, onPress);
+		chip.decorate(labelColor, icon, font);
+		holder.add(chip);
+		return holder;
+	}
+
+	/**
+	 * ONE chip that LATCHES — an on/off filter standing on its own ("Hide
+	 * complete"). Distinct from {@link #action}, which fires and never holds a
+	 * state, and from a row, which is one-of-many.
+	 *
+	 * <p>It exists because the Gear chart had built this out of a
+	 * {@code StonePanel} and re-implemented the chip's fills, hover and label
+	 * colouring by hand — §14's mistake, in the one shape the atom did not yet
+	 * cover (Luke's Progression pass, 2026-07-26).
+	 */
+	public static JPanel toggle(OsrsTheme theme, String text, boolean on,
+		java.util.function.Consumer<Boolean> onToggle)
+	{
+		return toggle(theme, text, null, on, false, onToggle);
+	}
+
+	/**
+	 * The same, optionally led by an icon and optionally filling its cell — the
+	 * money-making filter strip is a three-column grid whose third choice is a
+	 * heart glyph rather than a word.
+	 *
+	 * @param icon    null for text alone
+	 * @param stretch true to fill the space the layout gives it, false to keep
+	 *                the chip's own width
+	 */
+	public static JPanel toggle(OsrsTheme theme, String text, javax.swing.Icon icon,
+		boolean on, boolean stretch, java.util.function.Consumer<Boolean> onToggle)
+	{
+		return toggle(theme, text, icon, null, on, stretch, onToggle);
+	}
+
+	/** The same, in a given font — DETAIL for a grid of chips whose labels are
+	 *  longer than a three-across cell can hold at body weight. */
+	public static JPanel toggle(OsrsTheme theme, String text, javax.swing.Icon icon,
+		java.awt.Font font, boolean on, boolean stretch,
+		java.util.function.Consumer<Boolean> onToggle)
+	{
+		JPanel holder = stretch ? new JPanel(new java.awt.BorderLayout())
+			: new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0));
+		holder.setOpaque(false);
+		holder.setAlignmentX(LEFT_ALIGNMENT);
+		boolean[] state = {on};
+		Chip[] chip = new Chip[1];
+		chip[0] = new Chip(theme, text, () ->
+		{
+			state[0] = !state[0];
+			chip[0].setSelected(state[0]);
+			onToggle.accept(state[0]);
+		});
+		chip[0].decorate(null, icon, font);
+		chip[0].setSelected(on);
+		holder.add(chip[0]);
+		return holder;
+	}
+
 	private static class Chip extends JPanel
 	{
 		private final OsrsTheme theme;
@@ -120,11 +244,18 @@ public class V2ChipRow extends JPanel
 		private final OsrsLabel label;
 		private boolean selected;
 		private boolean hover;
+		/** A cue on an UNSELECTED chip — see {@link V2ChipRow#highlight}. */
+		private boolean highlighted;
+		/** Set by {@link #decorate}: an action chip's own label colour. */
+		private java.awt.Color fixedColor;
 
 		Chip(OsrsTheme theme, String text, Runnable onPress)
 		{
 			this.theme = theme;
-			this.label = V2Label.centred(text);
+			// squeezable: a chip narrower than its text ELLIPSIZES rather than
+			// hard-clipping at the art's edge (Luke's Bank pass, 2026-07-26 —
+			// the money-making category grid cut "Collecting" to "Collectin")
+			this.label = V2Label.centred(text).squeezable();
 			setOpaque(false);
 			setLayout(new java.awt.BorderLayout());
 			add(label, java.awt.BorderLayout.CENTER);
@@ -153,11 +284,51 @@ public class V2ChipRow extends JPanel
 			});
 		}
 
+		/**
+		 * An action chip's own look: a fixed label colour, and an icon before
+		 * the text. Both are the caller's, so {@link #setSelected} leaves them
+		 * alone — an action chip never latches, so it has no selected state to
+		 * fight over.
+		 */
+		void decorate(java.awt.Color labelColor, javax.swing.Icon icon, java.awt.Font font)
+		{
+			if (font != null)
+			{
+				label.font(font);
+			}
+			if (labelColor != null)
+			{
+				fixedColor = labelColor;
+				label.setColor(labelColor);
+			}
+			if (icon != null)
+			{
+				remove(label);
+				JPanel line = V2Layout.row();
+				line.add(V2Layout.glue());
+				line.add(new javax.swing.JLabel(icon)); // v2-exempt: an icon holder, not text
+				line.add(V2Layout.hgap(V2Tokens.ROW));
+				line.add(label);
+				line.add(V2Layout.glue());
+				add(line, java.awt.BorderLayout.CENTER);
+			}
+		}
+
 		void setSelected(boolean selected)
 		{
 			this.selected = selected;
-			label.setColor(selected ? V2Tokens.HEADING : V2Tokens.TEXT);
+			if (fixedColor == null)
+			{
+				label.setColor(selected ? V2Tokens.HEADING
+					: highlighted ? V2Tokens.DONE : V2Tokens.TEXT);
+			}
 			repaint();
+		}
+
+		void setHighlighted(boolean highlighted)
+		{
+			this.highlighted = highlighted;
+			setSelected(selected); // re-resolves the label colour
 		}
 
 		@Override

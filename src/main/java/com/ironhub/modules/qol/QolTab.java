@@ -6,13 +6,13 @@ import com.ironhub.ui.components.Status;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneBorder;
-import com.ironhub.ui.osrs.StonePanel;
-import com.ironhub.ui.osrs.StoneProgressBar;
+import com.ironhub.ui.v2.V2ProgressBar;
+import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2Tokens;
+import com.ironhub.ui.v2.V2Well;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.Box;
@@ -86,18 +86,16 @@ class QolTab extends JPanel
 			.count();
 		int total = pack.getUnlocks().size();
 		frame.add(section("QoL unlocks"));
-		frame.add(pad(new StoneProgressBar(theme, OsrsSkin.PROGRESS_BLUE,
-			total == 0 ? 0 : (double) owned / total)
+		frame.add(pad(new V2ProgressBar(theme, V2ProgressBar.Size.ROW)
+			.fill(V2Tokens.BAR_BLUE)
+			.fraction(total == 0 ? 0 : (double) owned / total)
 			.labels("Unlocked", null, owned + "/" + total)));
 		frame.add(strut(4));
 
-		// the rows sit inside one notched frame, checklist-style
-		StonePanel group = new StonePanel(theme);
-		group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
-		group.setAlignmentX(LEFT_ALIGNMENT);
-		int corner = theme.cornerStamp.length;
-		group.setBorder(new StoneBorder(theme, theme.background,
-			new Insets(corner, corner, corner, corner)));
+		// the rows sit inside one Well at the list inset (§4), checklist-style
+		V2Surface group = V2Surface.well(theme);
+		int inset = V2Well.CAP + V2Tokens.TIGHT;
+		group.setBorder(new javax.swing.border.EmptyBorder(inset, inset, inset, inset));
 		int hidden = 0;
 		for (QolPack.Unlock unlock : pack.getUnlocks())
 		{
