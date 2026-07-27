@@ -116,6 +116,8 @@ public class QuestsModuleTest
 		{
 			module.addGoal("Dragon Slayer II");
 			tab.selectSort(0); // difficulty
+			// a Novice quest sits inside the 50-row cap, so the Well renders
+			tab.expandForTest("Demon Slayer");
 		});
 		javax.swing.SwingUtilities.invokeAndWait(() -> { });
 		BufferedImage image = SwingRender.render(tab);
