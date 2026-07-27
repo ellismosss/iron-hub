@@ -88,10 +88,6 @@ class GearLibraryTab extends JPanel
 	/** The progression chart, hosted in a collapsible section below. */
 	private final GearTab chart;
 
-	// the hero card (the reference grammar's opening readout)
-	private final V2Surface hero;
-	private com.ironhub.ui.v2.V2ProgressBar heroBar;
-
 	// controls
 	private final V2TextField search;
 	private final V2Dropdown slotBox;
@@ -142,13 +138,6 @@ class GearLibraryTab extends JPanel
 		setOpaque(true);
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
-
-		// the library standing is the one live readout on the page — the
-		// Card, with the SPRITE bar (the reference hero shape, 2026-07-28)
-		hero = V2Surface.card(theme);
-		heroBar = new com.ironhub.ui.v2.V2ProgressBar(theme);
-		add(hero);
-		add(Box.createVerticalStrut(4));
 
 		search = new V2TextField(theme, "Search all gear…", null);
 		add(search);
@@ -334,15 +323,22 @@ class GearLibraryTab extends JPanel
 		sortDirection.getParent();
 	}
 
-	/** Grouping is one mode at a time: turning Sets on turns Variants off. */
+	/** Grouping is one mode at a time: turning Sets on turns Variants off.
+	 *  The ticks re-sync here so test seams and clicks agree. */
 	private void setGroupMode(GroupMode mode)
 	{
 		groupMode = mode;
 		expandedGroup = null;
+		syncToggles();
 		rebuildList();
 	}
 
-	/** A labelled checkbox bound to a boolean getter/setter. */
+	/** The mode checkboxes, so a mode change can untick its rival. */
+	private final java.util.Map<String, V2Checkbox> toggles = new java.util.HashMap<>();
+
+	/** A labelled checkbox bound to a boolean getter/setter. The atom fires
+	 *  the toggle and the CALLER flips its state (the V2Checkbox contract —
+	 *  missing the flip was why no tick ever showed; Luke, 2026-07-28). */
 	private JComponent toggle(String text, java.util.function.BooleanSupplier get,
 		java.util.function.Consumer<Boolean> set)
 	{
@@ -350,9 +346,28 @@ class GearLibraryTab extends JPanel
 		JPanel unit = new JPanel();
 		unit.setLayout(new BoxLayout(unit, BoxLayout.X_AXIS));
 		unit.setOpaque(false);
-		unit.add(new V2Checkbox(theme, text, get.getAsBoolean(),
-			() -> set.accept(!get.getAsBoolean())));
+		V2Checkbox box = new V2Checkbox(theme, text, get.getAsBoolean(), () ->
+		{
+			boolean on = !get.getAsBoolean();
+			set.accept(on);
+			syncToggles();
+		});
+		toggles.put(text, box);
+		unit.add(box);
 		return unit;
+	}
+
+	/** Every mode checkbox re-reads its getter — Sets and Variants are
+	 *  mutually exclusive, so a click on one can untick the other. */
+	private void syncToggles()
+	{
+		toggles.forEach((text, box) ->
+		{
+			boolean on = "Group variants".equals(text) ? groupMode == GroupMode.VARIANTS
+				: "Show sets".equals(text) ? groupMode == GroupMode.SETS
+				: hideLeagues;
+			box.state(on ? V2Checkbox.State.ON : V2Checkbox.State.OFF);
+		});
 	}
 
 	private JComponent toggleRow(JComponent... controls)
@@ -554,15 +569,9 @@ class GearLibraryTab extends JPanel
 		return base;
 	}
 
-	/** Two columns of large tiles for sets, four small ones otherwise. */
-	private int columns()
-	{
-		return groupMode == GroupMode.SETS ? 2 : COLUMNS;
-	}
-
 	private int pageSize()
 	{
-		return columns() * PAGE_ROWS;
+		return COLUMNS * PAGE_ROWS;
 	}
 
 	private List<Unit> pageUnits()
@@ -588,83 +597,13 @@ class GearLibraryTab extends JPanel
 		rebuildGrid();
 	}
 
-	/**
-	 * "Gear owned: N / T" between two equipment emblems over the sprite bar
-	 * (the reference hero shape) — the whole library's span, unmoved by the
-	 * filters — with the tracked and missing tallies on a counter line.
-	 */
-	private void rebuildHero()
-	{
-		int ownedCount = 0;
-		for (EquipmentPack.Item item : pack.items)
-		{
-			if (owns(item))
-			{
-				ownedCount++;
-			}
-		}
-		int total = pack.items.size();
-		hero.removeAll();
-		JPanel top = row();
-		top.add(emblem());
-		top.add(Box.createHorizontalGlue());
-		JPanel middle = new JPanel();
-		middle.setLayout(new BoxLayout(middle, BoxLayout.Y_AXIS));
-		middle.setOpaque(false);
-		middle.add(new OsrsLabel("Gear owned", OsrsSkin.TITLE, OsrsSkin.font()));
-		middle.add(new OsrsLabel(String.format(Locale.ROOT, "%,d / %,d", ownedCount, total),
-			OsrsSkin.TITLE, OsrsSkin.boldFont()));
-		top.add(middle);
-		top.add(Box.createHorizontalGlue());
-		top.add(emblem());
-		cap(top);
-		hero.add(top);
-		hero.add(Box.createVerticalStrut(3));
-		// the fill answers the SAME numbers as the label riding it
-		heroBar.fraction(total == 0 ? 0 : (double) ownedCount / total);
-		heroBar.labels("", String.format(Locale.ROOT, "%,d / %,d", ownedCount, total), "");
-		hero.add(heroBar);
-		hero.add(Box.createVerticalStrut(3));
-		JPanel counters = row();
-		counters.add(new OsrsLabel("Tracked: ",
-			OsrsSkin.LABEL, OsrsSkin.smallFont()).leftAligned());
-		counters.add(new OsrsLabel(String.valueOf(trackedGear().size()),
-			V2Tokens.STRONG, OsrsSkin.smallFont()).leftAligned());
-		counters.add(Box.createHorizontalGlue());
-		counters.add(new OsrsLabel(String.format(Locale.ROOT, "%,d missing", total - ownedCount),
-			OsrsSkin.MUTED, OsrsSkin.smallFont()));
-		cap(counters);
-		hero.add(counters);
-		cap(hero);
-		hero.revalidate();
-		hero.repaint();
-	}
-
-	/** The equipment-stats emblem at native size, flanking the hero. */
-	private JComponent emblem()
-	{
-		JLabel icon = new JLabel();
-		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-		java.awt.Image art = com.ironhub.ui.v2.V2Sprites.get(theme, "icons/equipment/equipment");
-		if (art != null)
-		{
-			icon.setIcon(new javax.swing.ImageIcon(art));
-		}
-		else
-		{
-			icon.setPreferredSize(new Dimension(33, 36));
-		}
-		return icon;
-	}
-
 	private void rebuildGrid()
 	{
 		lastPrint = fingerprint();
-		rebuildHero();
 		list.removeAll();
 		List<Unit> allUnits = visibleUnits();
 		int totalItems = visible().size();
-		int cols = columns();
+		int cols = COLUMNS;
 		int pages = Math.max(1, (allUnits.size() + pageSize() - 1) / pageSize());
 		if (page >= pages)
 		{
@@ -676,11 +615,6 @@ class GearLibraryTab extends JPanel
 		summary.add(new OsrsLabel(totalItems + (totalItems == 1 ? " item" : " items"),
 			OsrsSkin.MUTED, OsrsSkin.smallFont()));
 		summary.add(Box.createHorizontalGlue());
-		if (pages > 1)
-		{
-			summary.add(new OsrsLabel("page " + (page + 1) + " / " + pages,
-				OsrsSkin.FAINT, OsrsSkin.smallFont()));
-		}
 		cap(summary);
 		list.add(summary);
 
@@ -777,17 +711,17 @@ class GearLibraryTab extends JPanel
 			return itemTile(unit.lead());
 		}
 		EquipmentPack.Item lead = unit.lead();
-		boolean sets = groupMode == GroupMode.SETS;
-		java.awt.Image sprite = sprites.get(lead.primaryId(), -1, sets ? 32 : 28);
+		// sets ride the same 4-wide grid as everything else (Luke, 2026-07-28)
+		java.awt.Image sprite = sprites.get(lead.primaryId(), -1, 28);
 		boolean ownsAny = showTick() && unit.items.stream().anyMatch(this::owns);
 		boolean expanded = unit.base.equals(expandedGroup);
-		String noun = sets ? " pieces" : " variants";
+		String noun = groupMode == GroupMode.SETS ? " pieces" : " variants";
 		V2Tile tile = new V2Tile(theme, sprite, unit.base, TILE_ART, () ->
 		{
 			expandedGroup = expanded ? null : unit.base;
 			selected = -1;
 			rebuildGrid();
-		}).width(sets ? TILE_WIDTH_LARGE : TILE_WIDTH).captionLines(2)
+		}).width(TILE_WIDTH).captionLines(2)
 			.owned(ownsAny).selected(expanded).badge(unit.items.size());
 		tile.setToolTipText(unit.base + " — " + unit.items.size() + noun);
 		return tile;
@@ -812,7 +746,6 @@ class GearLibraryTab extends JPanel
 	/** The grid's tile geometry — the art band, the caption sits under it. */
 	private static final int TILE_ART = 34;
 	private static final int TILE_WIDTH = 52;
-	private static final int TILE_WIDTH_LARGE = 106;
 
 	/** The owned tick shows only in the "All" view — it is redundant when the
 	 *  Owned filter already means every tile is owned (Luke). */
@@ -843,12 +776,12 @@ class GearLibraryTab extends JPanel
 		return tip.toString();
 	}
 
+	/** The Quests pager exactly (Luke, 2026-07-28): centred ui/arrows
+	 *  around "Page x/y". */
 	private JComponent pager(int pages)
 	{
 		JPanel row = row();
-		row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP));
-		// the reference pager: ui/arrows sprite buttons (the typeable page
-		// box stays — twelve-plus pages deserve a jump)
+		row.add(Box.createHorizontalGlue());
 		row.add(new com.ironhub.ui.v2.V2SpriteButton(theme,
 			com.ironhub.ui.v2.V2SpriteButton.ARROW_LEFT, () ->
 			{
@@ -857,31 +790,10 @@ class GearLibraryTab extends JPanel
 					goToPage(page - 1);
 				}
 			}));
-		row.add(Box.createHorizontalGlue());
-		// the current page is a tight typeable box (room for two digits) —
-		// jump straight to a page
-		V2TextField pageField = V2TextField.plain(theme, "", null);
-		pageField.setText(String.valueOf(page + 1));
-		Dimension boxSize = new Dimension(28, V2Tokens.CONTROL_HEIGHT);
-		pageField.setMaximumSize(boxSize);
-		pageField.setPreferredSize(boxSize);
-		pageField.setMinimumSize(boxSize);
-		pageField.editor().setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-		pageField.setToolTipText("Type a page number and press Enter");
-		pageField.editor().addActionListener(e ->
-		{
-			try
-			{
-				goToPage(Integer.parseInt(pageField.getText().trim()) - 1);
-			}
-			catch (NumberFormatException ignored)
-			{
-				pageField.setText(String.valueOf(page + 1));
-			}
-		});
-		row.add(pageField);
-		row.add(new OsrsLabel(" / " + pages, OsrsSkin.MUTED, OsrsSkin.smallFont()));
-		row.add(Box.createHorizontalGlue());
+		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		row.add(new OsrsLabel("Page " + (page + 1) + "/" + pages,
+			OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 		row.add(new com.ironhub.ui.v2.V2SpriteButton(theme,
 			com.ironhub.ui.v2.V2SpriteButton.ARROW_RIGHT, () ->
 			{
@@ -890,6 +802,7 @@ class GearLibraryTab extends JPanel
 					goToPage(page + 1);
 				}
 			}));
+		row.add(Box.createHorizontalGlue());
 		cap(row);
 		return row;
 	}
