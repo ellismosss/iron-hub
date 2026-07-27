@@ -2,6 +2,13 @@
 	"version": 1,
 	"source": "design/use_these_sprites",
 	"sprites": {
+		"icons/achievement_dairy_large": {
+			"w": 492,
+			"h": 480,
+			"variants": [
+				"vanilla"
+			]
+		},
 		"icons/archive": {
 			"w": 22,
 			"h": 22,

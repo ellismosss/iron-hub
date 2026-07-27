@@ -561,7 +561,7 @@
       },
       {
        "task": "Imbue a Salve amulet at Nightmare Zone, or equip a Salve amulet that was imbued there.",
-       "note": "Note: You cannot use a Scroll of imbuing from Emir's Arena or use Zeal Tokens from Soul Wars.{{CiteTwitter|author=Mod Ash|url=https://twitter.com/JagexAsh/status/1356917400210448389|date=3 February 2021|archiveurl=https://reldo.runescape.wiki/i/100999|archivedate=5 February 2021|quote=Yes. Seems to be the case for everything that can be imbued in the two different places - rings, amulets, etc. I suspect that was to stop people getting the imbue in one place, then trying to refund it in the other place.}} In Deadman Mode, the task is \"Attempt to equip an imbued Salve amulet at the Nightmare Zone plinth.\" NOTE: Whilst the text reads imbued, you must wear a Salve (ei) not Salve (i)",
+       "note": "Note: You cannot use a Scroll of imbuing from Emir's Arena or use Zeal Tokens from Soul Wars. In Deadman Mode, the task is \"Attempt to equip an imbued Salve amulet at the Nightmare Zone plinth.\" NOTE: Whilst the text reads imbued, you must wear a Salve (ei) not Salve (i)",
        "varp": 1197,
        "bit": 10,
        "reqs": [
@@ -1122,7 +1122,7 @@
       "Pharaoh's sceptre will now hold up to 50 charges, up from 25",
       "Free carpet rides throughout the Kharidian Desert, down from a fee of 75-200 coins per ride",
       "Ropes are now permanently secured once placed at the Kalphite Lair entrance and Queen's Lair",
-      "Roughly 14% increased experience and 25% more marks of grace from the Pollnivneach Rooftop Course{{CiteDiscord|author=Mod Lykos|url=https://discord.com/channels/177206626514632704/514602892292784139/1397002033911038144|date=21 July 2025|archiveurl=https://reldo.runescape.wiki/i/27962726#chat-messages-514602892292784139-1397002033911038144|archivedate=7 March 2026|quote=for the Pollnivneach and Rellekka courses, there is a 1/3 chance to have the timer be two minutes if you've completed the hard tier of the respective diary|image=Lykos Desert and Frem diary mark of grace bonus.png}}",
+      "Roughly 14% increased experience and 25% more marks of grace from the Pollnivneach Rooftop Course",
       "Camulet can now be rubbed to teleport to the entrance of Enakhra's Temple, aside from the inner sanctuary of that temple",
       "Zahur now also cleans grimy herbs in noted form, and offers her potion-making services"
      ]
@@ -1861,7 +1861,7 @@
       "Antique lamp worth 50,000 experience in any skill of at least level 70",
       "The tree patch in Falador Park will never get diseased",
       "Access to the larger amethyst mine in the west of the Mining Guild",
-      "Slightly increased chance of receiving higher level ores when cleaning pay-dirt, by about 1% per ore{{CiteTwitter|author=Mod Ash|url=https://twitter.com/JagexAsh/status/1239199151243644928|date=15 March 2020|archiveurl=https://reldo.runescape.wiki/i/101939|archivedate=15 March 2020|quote=There's just one buff to pay-dirt, and it's for the elite diary only. This matches what the diary master says if asked.|name=Falador Diary reward tweet}}{{CiteTwitter|author=Mod Ash|url=https://twitter.com/JagexAsh/status/1536370067935358978|date=13 June 2022|archiveurl=https://reldo.runescape.wiki/i/109709|archivedate=9 July 2022|quote=The roll for each ore type is increased by about 1 percentage point.}}"
+      "Slightly increased chance of receiving higher level ores when cleaning pay-dirt, by about 1% per ore"
      ]
     }
    ]
@@ -2182,7 +2182,7 @@
      "rewards": [
       "Fremennik sea boots 2",
       "Antique lamp worth 7,500 experience in any skill of at least level 40",
-      "10% increased chance of gaining approval in Managing Miscellania when fishing or woodcutting (other activities always give approval){{CiteTwitter|author=Mod Ash|url=https://twitter.com/JagexAsh/status/1295656001136480256|date=18 August 2020|archiveurl=https://reldo.runescape.wiki/i/102109|archivedate=18 November 2022|quote=For Fishing & Woodcutting, approval tends to be given as a random chance of an increase; the 10% or 15% buff may not make much visible difference. And for the other skills, approval had a 100% chance of being given, so the buff is immaterial.|name=miscapprove}}",
+      "10% increased chance of gaining approval in Managing Miscellania when fishing or woodcutting (other activities always give approval)",
       "Fossegrimen will imbue your lyre with infinite charges for 600 of each required fish, down from 800"
      ]
     },
@@ -2319,7 +2319,7 @@
       },
       {
        "task": "Obtain the Blast Furnace Foremans permission to use the Blast Furnace for free.<br/>",
-       "note": "Note: With the requirements, talk to him and use the following dialogue options {{Chat option|1What?|3Can I use the furnace to smelt ore?|1I have level 60!}}. Selecting the wrong choices may require you to pay him, in which case you can hop to another world to try again.",
+       "note": "Note: With the requirements, talk to him and use the following dialogue options . Selecting the wrong choices may require you to pay him, in which case you can hop to another world to try again.",
        "varp": 1184,
        "bit": 30,
        "reqs": [
@@ -2336,7 +2336,7 @@
      "rewards": [
       "Fremennik sea boots 3",
       "Antique lamp worth 15,000 experience in any skill of at least level 50",
-      "Roughly 18% increased experience and 25% more marks of grace from the Rellekka Rooftop Course{{CiteDiscord|author=Mod Lykos|url=https://discord.com/channels/177206626514632704/514602892292784139/1397002033911038144|date=21 July 2025|quote=for the Pollnivneach and Rellekka courses, there is a 1/3 chance to have the timer be two minutes if you've completed the hard tier of the respective diary|image=Lykos Desert and Frem diary mark of grace bonus.png|archiveurl=https://reldo.runescape.wiki/i/27962785#chat-messages-514602892292784139-1397002033911038144|archivedate=2026-03-07}}",
+      "Roughly 18% increased experience and 25% more marks of grace from the Rellekka Rooftop Course",
       "Adamantite bars from aviansie killed in the God Wars Dungeon are now noted",
       "Enchanted lyre and its imbued variant can now be played to teleport to Waterbirth Island, aside from Rellekka",
       "Access to Tan Leather and Recharge Dragonstone from the Lunar spellbook",
@@ -2524,7 +2524,7 @@
       },
       {
        "task": "Defeat one of each elemental in the workshop.",
-       "note": "Note: These are the earth, water, air, and fire elemental found on the {{FloorNumber|uk=1}} of the workshop.",
+       "note": "Note: These are the earth, water, air, and fire elemental found on the of the workshop.",
        "varp": 1178,
        "bit": 7,
        "reqs": [
@@ -2580,7 +2580,7 @@
       "Kandarin headgear 1",
       "Antique lamp worth 2,500 experience in any skill of at least level 30",
       "Coal trucks can hold up to 140 coal, up from 120",
-      "The flax keeper will offer you 30 noted bow strings every day for 30 noted flax, for a profit of {{NoCoins|({{GEP|Bow string}}-{{GEP|Flax}})*30}} coins on the Grand Exchange",
+      "The flax keeper will offer you 30 noted bow strings every day for 30 noted flax, for a profit of coins on the Grand Exchange",
       "5% more marks of grace from the Seers' Village Rooftop Course"
      ]
     },
@@ -2800,7 +2800,7 @@
       "Kandarin headgear 2",
       "Antique lamp worth 7,500 experience in any skill of at least level 40",
       "Coal trucks can hold up to 280 coal, up from 140",
-      "The flax keeper will offer you 60 noted bow strings every day for 60 noted flax, for a profit of {{NoCoins|({{GEP|Bow string}}-{{GEP|Flax}})*60}} coins on the Grand Exchange",
+      "The flax keeper will offer you 60 noted bow strings every day for 60 noted flax, for a profit of coins on the Grand Exchange",
       "10% more marks of grace from the Seers' Village Rooftop Course, up from 5%",
       "10% increased experience from cutting maple trees in Seers' Village (stacks with the Lumberjack outfit)",
       "5% increased chance to save a \"harvest life\" at the herb patch in Catherby, slightly increasing your harvest yield",
@@ -2996,13 +2996,13 @@
       "Kandarin headgear 3",
       "Antique lamp worth 15,000 experience in any skill of at least level 50",
       "Coal trucks can hold up to 308 coal, up from 280",
-      "The flax keeper will offer you 120 noted bow strings every day for 120 noted flax, for a profit of {{NoCoins|({{GEP|Bow string}}-{{GEP|Flax}})*120}} coins on the Grand Exchange",
+      "The flax keeper will offer you 120 noted bow strings every day for 120 noted flax, for a profit of coins on the Grand Exchange",
       "15% more marks of grace from the Seers' Village Rooftop Course, up from 10%",
       "10% increased chance to save a \"harvest life\" at the herb patch in Catherby, up from 5%",
       "25% discount on Thormacs' enchanting services (requires completion of Scorpion Catcher)",
       "10% more honour points from Barbarian Assault",
       "Camelot Teleport can now be used to teleport to Seers' Village bank instead",
-      "10% increased chance to trigger the special effect of enchanted bolts, even in PvP (stacks additively with other increases, such as that of the Armadyl crossbow's special attack){{CiteTwitter|author=Mod Ash|url=https://twitter.com/JagexAsh/status/1480491964260925444|date=10 January 2022|archiveurl=https://reldo.runescape.wiki/i/105529|archivedate=11 January 2022|quote=The diary reward adds an extra 10% of the base chance.}}"
+      "10% increased chance to trigger the special effect of enchanted bolts, even in PvP (stacks additively with other increases, such as that of the Armadyl crossbow's special attack)"
      ]
     },
     {
@@ -3136,7 +3136,7 @@
       "Kandarin headgear 4",
       "Antique lamp worth 50,000 experience in any skill of at least level 70",
       "The first 200 coal placed in the coal trucks every day will automatically be transported to your bank",
-      "The flax keeper will offer you 250 noted bow strings every day for 250 noted flax, for a profit of {{NoCoins|({{GEP|Bow string}}-{{GEP|Flax}})*250}} coins on the Grand Exchange",
+      "The flax keeper will offer you 250 noted bow strings every day for 250 noted flax, for a profit of coins on the Grand Exchange",
       "15% increased chance to save a \"harvest life\" at the herb patch in Catherby, up from 10%",
       "50% discount on Thormacs' enchanting services, up from 25% (requires completion of Scorpion Catcher)",
       "Otto Godblessed now turns your Zamorakian spear into a Zamorakian hasta for 150,000 coins, down from 300,000 coins"
@@ -4173,7 +4173,7 @@
       "Free access to Crabclaw Isle, down from a fee of 5,000 coins",
       "40% discount on Eodan's tanning services, up from 20%",
       "5% chance to mine two dense essence blocks at once",
-      "Thirus offers you 20 dynamite for free every day, worth a total of {{NoCoins|{{GEP|Dynamite}}*20}} coins on the Grand Exchange"
+      "Thirus offers you 20 dynamite for free every day, worth a total of coins on the Grand Exchange"
      ]
     },
     {
@@ -4327,7 +4327,7 @@
       "Any slayer helmet can be used in place of a Shayzien helm (5) for its protection against lizardman shamans, after talking to Captain Cleive (requires having the helm in your collection log)",
       "60% discount on Eodan's tanning services, up from 40%",
       "5% increased chance to save a \"harvest life\" at the herb patches in Hosidius and the Farming Guild, slightly increasing your harvest yield",
-      "Thirus offers you 40 dynamite for free every day, worth a total of {{NoCoins|{{GEP|Dynamite}}*40}} coins on the Grand Exchange"
+      "Thirus offers you 40 dynamite for free every day, worth a total of coins on the Grand Exchange"
      ]
     },
     {
@@ -4461,7 +4461,7 @@
       "80% discount on Eodan's tanning service, up from 60%",
       "10% additional blood runes from the false blood altar (no additional experience granted)",
       "10% increased chance of obtaining higher-tier ores in the Blast mine",
-      "Thirus offers you 80 dynamite for free every day, worth a total of {{NoCoins|{{GEP|Dynamite}}*80}} coins on the Grand Exchange"
+      "Thirus offers you 80 dynamite for free every day, worth a total of coins on the Grand Exchange"
      ]
     }
    ]
@@ -5338,7 +5338,7 @@
        ]
       },
       {
-       "task": "Board the Swampy boat{{Sic}} at the Hollows.",
+       "task": "Board the Swampy boat at the Hollows.",
        "varp": 1180,
        "bit": 18,
        "reqs": [
@@ -5452,7 +5452,7 @@
       },
       {
        "task": "Climb up the advanced spike chain within Slayer Tower.",
-       "note": "Note: This chain is located on the {{FloorNumber|uk=1}} near the Infernal Mages, leading to the {{FloorNumber|uk=2}} to near the Nechryael.",
+       "note": "Note: This chain is located on the near the Infernal Mages, leading to the to near the Nechryael.",
        "varp": 1180,
        "bit": 24,
        "reqs": [
@@ -5704,7 +5704,7 @@
       },
       {
        "task": "Kill an Abyssal demon in the Slayer Tower.",
-       "note": "Note: Abyssal demons on the {{FloorNumber|uk=2}} do not require a Slayer task to kill like those in the basement.",
+       "note": "Note: Abyssal demons on the do not require a Slayer task to kill like those in the basement.",
        "varp": 1181,
        "bit": 7,
        "reqs": [
@@ -5938,7 +5938,7 @@
      "rewards": [
       "Varrock armour 1",
       "Antique lamp worth 2,500 experience in any skill of at least level 30",
-      "Zaff will sell you 15 noted battlestaves as a single stack every day for 105,000 coins, resellable on the Grand Exchange for a profit of {{NoCoins|{{GEPT|Battlestaff|15}}-105000}} coins (after tax)",
+      "Zaff will sell you 15 noted battlestaves as a single stack every day for 105,000 coins, resellable on the Grand Exchange for a profit of coins (after tax)",
       "The skull sceptre will now hold up to 14 charges, up from 10",
       "Individual parts used to make the skull sceptre now give an extra bone fragment per component when chiselled"
      ]
@@ -6127,7 +6127,7 @@
      "rewards": [
       "Varrock armour 2",
       "Antique lamp worth 7,500 experience in any skill of at least level 40",
-      "Zaff will sell you 30 noted battlestaves as a single stack every day for 210,000 coins, resellable on the Grand Exchange for a profit of {{NoCoins|{{GEPT|Battlestaff|30}}-210000}} coins (after tax)",
+      "Zaff will sell you 30 noted battlestaves as a single stack every day for 210,000 coins, resellable on the Grand Exchange for a profit of coins (after tax)",
       "The ability to toggle the destination of Varrock Teleport from Varrock Square to the Grand Exchange",
       "The skull sceptre will now hold up to 18 charges, up from 14",
       "Individual parts used to make the skull sceptre now give two extra bone fragments per component when chiselled"
@@ -6262,7 +6262,7 @@
       },
       {
        "task": "Pray at the altar in Varrock palace with Smite active.",
-       "note": "Note: The altar is found on the {{FloorNumber|uk=1}} of the palace.",
+       "note": "Note: The altar is found on the of the palace.",
        "varp": 1177,
        "bit": 5,
        "reqs": [
@@ -6287,7 +6287,7 @@
      "rewards": [
       "Varrock armour 3",
       "Antique lamp worth 15,000 experience in any skill of at least level 50",
-      "Zaff will sell you 60 noted battlestaves as a single stack every day for 420,000 coins, resellable on the Grand Exchange for a profit of {{NoCoins|{{GEPT|Battlestaff|60}}-420000}} coins (after tax)",
+      "Zaff will sell you 60 noted battlestaves as a single stack every day for 420,000 coins, resellable on the Grand Exchange for a profit of coins (after tax)",
       "The skull sceptre will now hold up to 22 charges, up from 18",
       "Individual parts used to make the skull sceptre now give three extra bone fragments per component when chiselled",
       "Access to the bank in the Cooks' Guild and a range at only 2 tiles away from it"
@@ -6400,7 +6400,7 @@
      "rewards": [
       "Varrock armour 4",
       "Antique lamp worth 50,000 experience in any skill of at least level 70",
-      "Zaff will sell you 120 noted battlestaves as a single stack every day for 840,000 coins, resellable on the Grand Exchange for a profit of {{NoCoins|{{GEPT|Battlestaff|120}}-840000}} coins (after tax)",
+      "Zaff will sell you 120 noted battlestaves as a single stack every day for 840,000 coins, resellable on the Grand Exchange for a profit of coins (after tax)",
       "The skull sceptre will now hold up to 26 charges, up from 22",
       "Individual parts used to make the skull sceptre now give four extra bone fragments per component when chiselled"
      ]
@@ -6543,7 +6543,7 @@
       "Western banner 1",
       "Antique lamp worth 2,500 experience in any skill of at least level 30",
       "25% chance of two chompy birds appearing at once when chompy bird hunting",
-      "Rantz offers you 25 ogre arrows for free every day, worth a total of {{NoCoins|{{GEP|Ogre arrow|25}}}} coins on the Grand Exchange"
+      "Rantz offers you 25 ogre arrows for free every day, worth a total of coins on the Grand Exchange"
      ]
     },
     {
@@ -6752,7 +6752,7 @@
       "Western banner 2",
       "Antique lamp worth 7,500 experience in any skill of at least level 40",
       "50% chance of two chompy birds appearing at once when chompy bird hunting",
-      "Rantz offers you 50 ogre arrows for free every day, worth a total of {{NoCoins|{{GEP|Ogre arrow|50}}}} coins on the Grand Exchange",
+      "Rantz offers you 50 ogre arrows for free every day, worth a total of coins on the Grand Exchange",
       "The crystal saw will now hold up to 56 charges, up from 28"
      ]
     },
@@ -6985,7 +6985,7 @@
      "rewards": [
       "Western banner 3",
       "Antique lamp worth 15,000 experience in any skill of at least level 50",
-      "Rantz offers you 100 ogre arrows for free every day, worth a total of {{NoCoins|{{GEP|Ogre arrow|100}}}} coins on the Grand Exchange",
+      "Rantz offers you 100 ogre arrows for free every day, worth a total of coins on the Grand Exchange",
       "Teleport crystals will now hold up to 5 charges, up from 3",
       "The void knight top and robe can now be upgraded into an elite void top and robe for 200 commendation points each, by speaking to the Elite Void Knight",
       "Access to the room with the monkey skull in the Temple of Marimbo Dungeon, allowing you to make the ancient gorilla greegree",
@@ -7113,7 +7113,7 @@
       "Antique lamp worth 50,000 experience in any skill of at least level 70",
       "Two chompy birds will always appear at once when chompy bird hunting",
       "Chance of receiving a chompy chick when chompy bird hunting, at a rate of 1/500",
-      "Rantz offers you 150 ogre arrows for free every day, worth a total of {{NoCoins|{{GEP|Ogre arrow|150}}}} coins on the Grand Exchange",
+      "Rantz offers you 150 ogre arrows for free every day, worth a total of coins on the Grand Exchange",
       "Nieve/Steve now grant as many slayer reward points as Duradel/Kuradal",
       "Resurrect with full health and restored stats once per day when you reach 0 hitpoints against Zulrah, allowing you to continue on with the fight (the task list of this diary will show you whether you've used this daily resurrection, and this is considered a \"safe death\" for Hardcore Ironman players)"
      ]
@@ -7250,7 +7250,7 @@
       "Wilderness sword 1",
       "Antique lamp worth 2,500 experience in any skill of at least level 30",
       "You can now use the Wilderness lever to teleport to Edgeville, as an alternative to East Ardougne",
-      "Lundail offers you 40 random runes for free every day, worth a total average of {{#vardefine:avgrune|{{#expr:({{GEP|Body rune}}+{{GEP|Mind rune}}+{{GEP|Nature rune}}+{{GEP|Chaos rune}}+{{GEP|Law rune}}+{{GEP|Cosmic rune}}+{{GEP|Death rune}})/7}}}}{{NoCoins|{{#var:avgrune}}*40}} coins on the Grand Exchange"
+      "Lundail offers you 40 random runes for free every day, worth a total average of coins on the Grand Exchange"
      ]
     },
     {
@@ -7368,7 +7368,7 @@
        "reqs": []
       },
       {
-       "task": "Smith a Golden helmet{{Sic}} in the Resource Area.",
+       "task": "Smith a Golden helmet in the Resource Area.",
        "note": "Note: You cannot do this while you already have a gold helmet in your inventory or bank, this must be dropped first. With 75 Smithing, you can bring 2 adamantite bars here as well to smith an adamant scimitar for a hard task.",
        "varp": 1192,
        "bit": 23,
@@ -7406,12 +7406,12 @@
       "Antique lamp worth 7,500 experience in any skill of at least level 40",
       "Entrance fee for the Resource Area lowered to 6,000 coins, down from 7,500 coins",
       "Possess up to 4 ecumenical keys at a time, up from 3",
-      "Lundail offers you 80 random runes for free every day, worth a total average of {{NoCoins|{{#var:avgrune}}*80}} coins on the Grand Exchange",
+      "Lundail offers you 80 random runes for free every day, worth a total average of coins on the Grand Exchange",
       "Access to the crevice shortcut in the Deep Wilderness Dungeon (with 46 Agility)",
       "Access to Callisto, Venenatis, and Vet'ion",
       "15% more chance to receive drops from cutting fallen ents",
       "Ability to obtain loot from chests in the Rogues' Castle <!--previously 33% increase in loot-->",
-      "Zombie pirates you kill have a 50% chance of dropping something in addition to their bones, up from 15%{{CiteTwitter|author=Jagex|url=https://x.com/OldSchoolRS/status/1805957139111858323|date=26 June 2024|archiveurl=https://reldo.runescape.wiki/i/27962683|archivedate=26 June 2024|quote=PSA: We've deployed a hotfix which reduces your chance to roll on the Zombie Pirates' drop table from 50% to 15% if you have not completed the Wilderness Medium Diary.}}"
+      "Zombie pirates you kill have a 50% chance of dropping something in addition to their bones, up from 15%"
      ]
     },
     {
@@ -7504,7 +7504,7 @@
        ]
       },
       {
-       "task": "Kill the Crazy Arc.<!--do not change is verbatim from in-game-->{{sic|Boss name is shortened from \"Crazy archaeologist\" in-game, this is transcribed verbatim.}}, Chaos Fanatic & Scorpia.",
+       "task": "Kill the Crazy Arc.<!--do not change is verbatim from in-game-->, Chaos Fanatic & Scorpia.",
        "note": "Note: While these bosses can be killed in any order, completing or updating any other task in-between will reset the progress for this task.",
        "varp": 1192,
        "bit": 31,
@@ -7568,7 +7568,7 @@
       "Entrance fee for the Resource Area lowered to 3,750 coins, down from 6,000 coins",
       "Possess up to 5 ecumenical keys at a time, up from 4",
       "Ecumenical keys can now be sold to the Lesser Fanatic in Edgeville for 61,500 coins each",
-      "Lundail offers you 120 random runes for free every day, worth an average of {{NoCoins|{{#var:avgrune}}*120}} coins on the Grand Exchange",
+      "Lundail offers you 120 random runes for free every day, worth an average of coins on the Grand Exchange",
       "50% more lava shards from grinding lava scales",
       "67% more loot from chests in the Rogues' Castle, up from 33%",
       "You can now select your destination when using Wilderness obelisks, instead of being teleported to a random obelisk",
@@ -7699,7 +7699,7 @@
       "Wilderness sword 4",
       "Antique lamp worth 50,000 experience in any skill of at least level 70",
       "Free access to the Resource Area, down from a fee of 3,750 coins",
-      "Lundail offers you 200 random runes for free every day, worth a total average of {{NoCoins|{{#var:avgrune}}*200}} coins on the Grand Exchange",
+      "Lundail offers you 200 random runes for free every day, worth a total average of coins on the Grand Exchange",
       "Dragon bones from dragons killed in the Wilderness are now noted, unless this feature is disabled by talking to the Lesser Fanatic in Edgeville (this excludes the dragon bones of King Black Dragon, as his lair is considered to be outside of the Wilderness)",
       "Catch rate of dark crabs increased by 112.5%"
      ]

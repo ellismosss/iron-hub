@@ -62,7 +62,7 @@ class DiariesTab extends JPanel
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 
 	private final V2Surface hero;
-	/** The medium (ROW) bar — no icons around it (Luke, 2026-07-28). */
+	/** The large sprite bar, back after the medium round (Luke, 2026-07-28). */
 	private final V2ProgressBar bar;
 	/** Checked = the finished tasks; unchecked = the to-do list (the CA
 	 *  filter grammar). */
@@ -76,6 +76,8 @@ class DiariesTab extends JPanel
 	private int expandedTier = -1;
 	/** Task rows open NON-exclusively into Wells, keyed by task slug. */
 	private final Set<String> expandedTasks = new HashSet<>();
+	/** Tier reward folds open into Wells, keyed "region#tierIndex". */
+	private final Set<String> rewardsOpen = new HashSet<>();
 	/** Usable temporary-boost headroom per skill, refreshed each rebuild. */
 	private java.util.Map<net.runelite.api.Skill, Integer> boosts = java.util.Map.of();
 
@@ -91,11 +93,13 @@ class DiariesTab extends JPanel
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
 		hero = V2Surface.card(theme);
-		bar = new V2ProgressBar(theme, V2ProgressBar.Size.ROW);
+		bar = new V2ProgressBar(theme);
 		add(hero);
 		add(Box.createVerticalStrut(4));
 
-		completedFilter = new V2Checkbox(theme, "Completed", false, this::toggleCompleted);
+		// checked by DEFAULT (Luke, 2026-07-28): completed tasks and tiers
+		// show; unchecking strips them down to the to-do list
+		completedFilter = new V2Checkbox(theme, "Completed", true, this::toggleCompleted);
 		JPanel filterRow = new JPanel();
 		filterRow.setLayout(new BoxLayout(filterRow, BoxLayout.X_AXIS));
 		filterRow.setOpaque(false);
@@ -126,6 +130,7 @@ class DiariesTab extends JPanel
 	{
 		expandedRegion = regionName;
 		expandedTier = 0;
+		rewardsOpen.add(regionName + "#0");
 		rebuild();
 	}
 
@@ -145,11 +150,12 @@ class DiariesTab extends JPanel
 		rebuildContent();
 	}
 
-	/** The Completed checkbox's verdict on one task. */
+	/** The Completed checkbox's verdict on one task: checked = completed
+	 *  tasks INCLUDED, unchecked = the to-do list only (Luke, 2026-07-28). */
 	private boolean filterPasses(DiariesPack.Region region, int tierIndex, DiariesPack.Task task)
 	{
-		boolean completed = completedFilter.state() == V2Checkbox.State.ON;
-		return module.taskComplete(region, tierIndex, task) == completed;
+		return completedFilter.state() == V2Checkbox.State.ON
+			|| !module.taskComplete(region, tierIndex, task);
 	}
 
 	private void rebuild()
@@ -162,8 +168,9 @@ class DiariesTab extends JPanel
 	// ── the hero card ─────────────────────────────────────────────────
 
 	/**
-	 * "Diary Tasks: 207 / 492" over ONE medium (ROW) bar — no icons (Luke,
-	 * 2026-07-28) — and the tier tally on a counter line.
+	 * "Diaries completed: 207 / 492" between two diary emblems, over the
+	 * large sprite bar (the Log/Combat framing; Luke, 2026-07-28), the tier
+	 * tally on a counter line.
 	 */
 	private void rebuildHero()
 	{
@@ -180,15 +187,19 @@ class DiariesTab extends JPanel
 
 		hero.removeAll();
 		JPanel top = row();
+		// two diary emblems flank the count, the Log/Combat framing (Luke,
+		// 2026-07-28); glue BOTH sides keeps the block centred between them
+		top.add(diaryIcon());
 		top.add(Box.createHorizontalGlue());
 		JPanel middle = new JPanel();
 		middle.setLayout(new BoxLayout(middle, BoxLayout.Y_AXIS));
 		middle.setOpaque(false);
-		middle.add(new OsrsLabel("Diary Tasks", OsrsSkin.TITLE, OsrsSkin.font()));
+		middle.add(new OsrsLabel("Diaries completed", OsrsSkin.TITLE, OsrsSkin.font()));
 		middle.add(new OsrsLabel(String.format(Locale.ROOT, "%,d / %,d", done, total),
 			OsrsSkin.TITLE, OsrsSkin.boldFont()));
 		top.add(middle);
 		top.add(Box.createHorizontalGlue());
+		top.add(diaryIcon());
 		cap(top);
 		hero.add(top);
 
@@ -212,6 +223,26 @@ class DiariesTab extends JPanel
 		cap(hero);
 		hero.revalidate();
 		hero.repaint();
+	}
+
+	/** The achievement-diary emblem (Luke's curated sprite), scaled to the
+	 *  hero's flank height — the source art is full wiki resolution. */
+	private JComponent diaryIcon()
+	{
+		JLabel icon = new JLabel();
+		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+		java.awt.image.BufferedImage art =
+			com.ironhub.ui.v2.V2Sprites.get(theme, "icons/achievement_dairy_large");
+		if (art != null)
+		{
+			icon.setIcon(new javax.swing.ImageIcon(
+				art.getScaledInstance(-1, 30, java.awt.Image.SCALE_SMOOTH)));
+		}
+		else
+		{
+			icon.setPreferredSize(new Dimension(30, 30));
+		}
+		return icon;
 	}
 
 	// ── the region cards ──────────────────────────────────────────────
@@ -447,7 +478,8 @@ class DiariesTab extends JPanel
 
 	/** The open tier's tasks, ON the region card itself with a subtle
 	 *  divider between each (Luke, 2026-07-28) — each row opening its
-	 *  requirements Well non-exclusively — then the tier's rewards. */
+	 *  requirements Well non-exclusively — then the tier's Rewards fold,
+	 *  whose click opens the reward lines in a Well. */
 	private void tierTasks(V2Surface card, DiariesPack.Region region, int tierIndex)
 	{
 		DiariesPack.Tier tier = region.tiers.get(tierIndex);
@@ -472,17 +504,50 @@ class DiariesTab extends JPanel
 				card.add(taskWell(region, tierIndex, task));
 			}
 		}
-		// the tier's rewards ride with its tasks (Luke, 2026-07-28), not a
-		// separate fold at the card's foot
+		// the tier's rewards ride with its tasks (Luke, 2026-07-28): a fold
+		// row whose click opens them in a Well
+		String rewardsKey = region.name + "#" + tierIndex;
+		boolean open = rewardsOpen.contains(rewardsKey);
 		card.add(Box.createVerticalStrut(3));
 		card.add(divider());
 		card.add(Box.createVerticalStrut(3));
-		card.add(new OsrsLabel("Rewards", OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
-		for (String reward : tier.rewards)
+		JPanel fold = row();
+		fold.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		JLabel triangle = new JLabel(new PaintedIcon(open
+			? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
+		triangle.setForeground(OsrsSkin.MUTED);
+		fold.add(triangle);
+		fold.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		fold.add(new OsrsLabel("Rewards", OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
+		fold.add(Box.createHorizontalGlue());
+		cap(fold);
+		clickAnywhere(fold, new MouseAdapter()
 		{
-			card.add(OsrsLabel.wrapped("· " + reward, REWARD_WRAP,
-				OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				if (!rewardsOpen.remove(rewardsKey))
+				{
+					rewardsOpen.add(rewardsKey);
+				}
+				rebuildContent();
+			}
+		});
+		card.add(fold);
+		if (open)
+		{
 			card.add(Box.createVerticalStrut(2));
+			V2Surface well = V2Surface.well(theme);
+			int inset = com.ironhub.ui.v2.V2Well.CAP + V2Tokens.TIGHT;
+			well.setBorder(new EmptyBorder(inset, inset, inset, inset));
+			for (String reward : tier.rewards)
+			{
+				well.add(OsrsLabel.wrapped("· " + reward, WELL_WRAP,
+					OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+				well.add(Box.createVerticalStrut(2));
+			}
+			cap(well);
+			card.add(well);
 		}
 	}
 
