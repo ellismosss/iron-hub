@@ -431,7 +431,7 @@ All in `com.ironhub.ui.v2`, all shown in **Design lab V2**.
 
 | Class | Covers | Sprites | States |
 |---|---|---|---|
-| `V2Surface` | Frame, Tile, **Slab**, Card, Well, **Chip** | `StoneFrame` · `StoneNavButton.paintSlab` · **`StoneBorder`** (all hand-painted) · `enter_wilderness_teleport` · the field well · `ui/buttons/button` | plain, hovered, pressable |
+| `V2Surface` | Frame, Tile, **Slab**, Card, Well, **Chip** | `StoneFrame` · `StoneNavButton.paintSlab` · **`StoneBorder`** (all hand-painted) · `enter_wilderness_teleport` · the field well · `ui/buttons/button` | plain, hovered, pressable, wash-hover (`washHoverable()` — the subtle inset wash for a surface whose hovered ART means "pressed in", paired with `setLit` while open) |
 | `V2Divider` | Divider | `..._side_panel_edge_horizontal` (rows 14..19 only) | — |
 | `V2Label` | Label, WrappedText | — (text) | heading, body, value, detail, faint, status |
 | `V2Layout` | columns, rows, gaps | — | — |

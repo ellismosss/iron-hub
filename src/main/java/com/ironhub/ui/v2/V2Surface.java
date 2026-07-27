@@ -259,6 +259,21 @@ public class V2Surface extends JPanel
 	}
 
 	/**
+	 * Hover as the SUBTLE inset wash instead of the art's hovered state —
+	 * for a pressable surface whose hovered art means "pressed in", so the
+	 * pointer alone must not light it (Luke, 2026-07-27, the clog's
+	 * Easiest-next-slots card: wash on hover, {@link #setLit} while open).
+	 */
+	public V2Surface washHoverable()
+	{
+		washOnHover = true;
+		listenForHover(this);
+		return this;
+	}
+
+	private boolean washOnHover;
+
+	/**
 	 * Watch this component and everything inside it, now and later.
 	 *
 	 * <p>A listener on the surface alone is not enough: Swing sends the
@@ -435,6 +450,12 @@ public class V2Surface extends JPanel
 		{
 			NineSlice art = hover && hovered != null ? hovered : slice;
 			art.paint((Graphics2D) g, theme, 0, 0, getWidth(), getHeight());
+			// hovered == null keeps a setLit surface from double-lighting
+			if (washOnHover && hover && hovered == null)
+			{
+				g.setColor(V2Tokens.HIGHLIGHT);
+				g.fillRect(2, 2, getWidth() - 4, getHeight() - 4);
+			}
 		}
 		super.paintComponent(g);
 	}

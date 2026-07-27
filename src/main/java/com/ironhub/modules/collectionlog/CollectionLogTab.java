@@ -976,20 +976,20 @@ class CollectionLogTab extends JPanel
 		card.add(head);
 		if (suggestionsCollapsed)
 		{
-			// pressable(null) = the art's hover + the hand cursor; the click
-			// itself goes on every layer below, because AWT delivers a press
-			// to the DEEPEST component only — a click on the text never
-			// reaches a listener on the card (Luke's report, 2026-07-27)
-			card.pressable(null);
+			// hover = the SUBTLE wash, never the hovered art — that art
+			// means "pressed in" here and shows only while open (Luke,
+			// 2026-07-27). The click goes on every layer below, because AWT
+			// delivers a press to the DEEPEST component only.
+			card.washHoverable();
 		}
 		else
 		{
 			// held in the PRESSED (hovered-art) state while its results are
-			// showing — pressable()'s pointer-exit would unlight it, so the
-			// open card pins the art instead (Luke, 2026-07-27)
+			// showing — no hover listener here, so the pointer leaving
+			// cannot unlight it (Luke, 2026-07-27)
 			card.setLit(true);
-			card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		}
+		card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		MouseAdapter toggle = new MouseAdapter()
 		{
 			@Override
