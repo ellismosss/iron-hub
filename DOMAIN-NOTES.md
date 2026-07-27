@@ -291,18 +291,24 @@ from the game. Decoded from the log's cs2
   Assault" → "High-level Gambles: N") come from per-draw scratch varps
   (2048/2941/2942) the game fills only while that page is on screen.
   There is no way to read them for a page you have not opened, so Iron Hub
-  keeps the lines it watched the game draw in the header container
-  (`InterfaceID.Collection.HEADER`, dynamic child 0 = the page name) and
-  says so on pages it has never seen.
+  keeps the lines it watched the game draw in the page header — read from
+  **`InterfaceID.Collection.HEADER_TEXT`'s children (child 0 = the page
+  name, the rest = the counter lines), NOT `Collection.HEADER`**: HEADER
+  (0x026d_0013) is the container and its child list is EMPTY, so reading it
+  captures nothing, ever — the bug shipped that way and no count was ever
+  stored until root-caused 2026-07-27 against core's ChatCommandsPlugin
+  (`COL_LOG_ENTRY_HEADER_TITLE_INDEX = 0` on HEADER_TEXT). Widget child
+  arrays can carry nulls; guard every entry.
 
 A read that comes back short of five tabs or 1,000 slots is treated as
 cache-layout drift: it returns empty and the persisted snapshot stands.
 The snapshot is what makes the browser work logged out.
 
 **Ranks** (data/clog-ranks.json, wiki-sourced): Bronze 100 → Dragon 1,200,
-then Gilded at 90% of the log's total rounded down to 25. The overview's
-"Collections Logged: 1,190/1,200" denominator is the NEXT RANK, not the
-log's size — the two staves flanking it are the ranks either side.
+then Gilded at 90% of the log's total rounded down to 25. The tab's hero
+shows the WHOLE log's total under "Collections Logged" (orange), with the
+NEXT-RANK band count ("1,190/1,200") riding the sprite bar in white — the
+two staves flanking it are the ranks either side (2026-07-27 shape).
 
 ## Farming time-tracking (module: farming, vendored engine: rl/)
 
