@@ -32,4 +32,22 @@ public class RollMathTest
 	{
 		Assert.assertEquals(21, RollMath.maxHitFromEffective(107, 64));
 	}
+
+	/**
+	 * Live-site parity anchor (2026-07-27): Luke's Dual macuahuitl set vs
+	 * Dust devil on Pound/Accurate (share dps.osrs.wiki?id=
+	 * ChildsControlsWarlock) - the calculator displays 5.389 DPS, which is
+	 * exactly this pipeline INCLUDING the min-1-damage-on-success term in
+	 * normalExpectedHit (max/2 alone gives 5.376). Pins the whole hit model
+	 * against an observed official number; do not "fix" the 1/(max+1) term.
+	 */
+	@Test
+	public void dpsPipelineMatchesLiveOfficialCalculator()
+	{
+		long attackRoll = 101 * (134 + 64); // eff 90+3+8, crush +134
+		long defenceRoll = (40 + 9) * 64L;  // Dust devil, crush +0
+		double accuracy = RollMath.normalAccuracy(attackRoll, defenceRoll);
+		double dps = RollMath.normalExpectedHit(accuracy, 28) / (4 * RollMath.SECONDS_PER_TICK);
+		Assert.assertEquals(5.389, dps, 5e-4);
+	}
 }

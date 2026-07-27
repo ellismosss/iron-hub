@@ -921,6 +921,31 @@ Attack-type icons: the wiki's own equipment-infobox set (White dagger /
 White scimitar / White warhammer / Ranged icon / Magic icon), fetched by
 the generator into data/icons/osrs/styles/.
 
+## DPS math parity with the official calculator (module: loadoutlab, engine: com.loadoutlab.engine)
+
+The engine's hit model is EXACTLY the official calculator's
+(tools.runescape.wiki/osrs-dps), verified against a live share 2026-07-27
+(Dual macuahuitl set vs Dust devil, share id ChildsControlsWarlock —
+site 5.389 = engine to four decimals; pinned in
+`RollMathTest.dpsPipelineMatchesLiveOfficialCalculator`). Two traps:
+
+- **The min-1-damage term is CORRECT, not a bug.** Expected hit is
+  `accuracy × (max/2 + 1/(max+1))` — a successful accuracy roll that
+  rolls 0 damage is bumped to 1, exactly like the official calc. Deriving
+  "uniform 0..max → acc × max/2" from the wiki's mechanics pages and
+  "fixing" the term makes every number ~0.3% LOWER than the site. The
+  site's magic +2 stance bonus applies only on Accurate; the engine
+  models magic at accurate-equivalent always, so exports map magic to
+  stance "Accurate" (site Autocast adds 0).
+- **Panel-vs-site disagreement is an INPUTS problem, not math.** The
+  panel auto-picks the best stance, assumes prayers/potions per the
+  Options toggles, and computes at `max(real+assumed boost, live boosted
+  levels)` — a user comparing against a hand-configured site tab sees a
+  few-percent gap from stance choice or a live boost alone. That is why
+  DpsExport carries the full scenario (style/boosts/prayers/spell,
+  prayer ids pinned to the site's Prayer enum, serializationVersion 10):
+  the "Open DPS calc" button must land on the panel's own number.
+
 ## The wiki as a data source (tools/knowledge/, all gen_* wiki generators)
 
 Hard-won source knowledge for ANY feature that harvests the OSRS wiki:

@@ -320,11 +320,15 @@ public class LoadoutLabPanel extends PluginPanel
 	private java.util.function.Function<com.loadoutlab.data.GearSlot, Integer> wornLookup;
 	private DpsCalcExport dpsCalcHook;
 
-	/** Iron Hub: open the wiki DPS calc mirroring the shown setup. */
+	/** Iron Hub: open the wiki DPS calc mirroring the shown setup - gear
+	 * AND the computed scenario (picked style, assumed prayers/boost
+	 * levels, spell), so the calculator shows the panel's own number. */
 	public interface DpsCalcExport
 	{
 		void open(int monsterId, String monsterName,
-			Map<com.loadoutlab.data.GearSlot, Integer> loadout, boolean onSlayerTask);
+			Map<com.loadoutlab.data.GearSlot, Integer> loadout, boolean onSlayerTask,
+			String attackType, String spellName,
+			com.loadoutlab.engine.PlayerLevels assumedLevels, String prayerName);
 	}
 
 	public void setWornLookup(java.util.function.Function<com.loadoutlab.data.GearSlot, Integer> lookup)
@@ -3271,8 +3275,9 @@ public class LoadoutLabPanel extends PluginPanel
 				&& detail.owned != null && !detail.owned.isEmpty())
 			{
 				Map<GearSlot, Integer> loadout = new java.util.EnumMap<>(GearSlot.class);
+				DpsResult shown = detail.owned.get(0);
 				for (Map.Entry<GearSlot, GearItem> slot
-					: detail.owned.get(0).getLoadout().getGear().entrySet())
+					: shown.getLoadout().getGear().entrySet())
 				{
 					if (slot.getValue() != null)
 					{
@@ -3280,7 +3285,9 @@ public class LoadoutLabPanel extends PluginPanel
 					}
 				}
 				dpsCalcHook.open(selectedMonster.getId(), selectedMonster.getName(),
-					loadout, slayerTask.isSelected());
+					loadout, slayerTask.isSelected(),
+					shown.getAttackType(), shown.getSpellName(),
+					detail.assumedLevels, detail.assumedPrayerName);
 			}
 		});
 		open.setToolTipText("Open the wiki DPS calculator with this monster and setup mirrored");

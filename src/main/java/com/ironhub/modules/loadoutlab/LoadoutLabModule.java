@@ -2277,7 +2277,9 @@ public class LoadoutLabModule implements IronHubModule
 
 	/** Open the wiki DPS calc with the lab's monster + shown setup. */
 	private void openDpsCalc(int monsterId, String monsterName,
-		Map<com.loadoutlab.data.GearSlot, Integer> loadout, boolean onSlayerTask)
+		Map<com.loadoutlab.data.GearSlot, Integer> loadout, boolean onSlayerTask,
+		String attackType, String spellName,
+		com.loadoutlab.engine.PlayerLevels assumedLevels, String prayerName)
 	{
 		if (httpClient == null)
 		{
@@ -2294,7 +2296,8 @@ public class LoadoutLabModule implements IronHubModule
 			}
 		});
 		com.google.gson.JsonObject payload = com.ironhub.modules.loadout.DpsExport.buildPayload(
-			gson, state, "Iron Hub - " + monsterName, equipment, monsterId, monsterName, onSlayerTask);
+			gson, state, "Iron Hub - " + monsterName, equipment, monsterId, monsterName,
+			onSlayerTask, attackType, spellName, assumedLevels, prayerName);
 		okhttp3.Request request = new okhttp3.Request.Builder()
 			.url(com.ironhub.modules.loadout.DpsExport.ENDPOINT)
 			.post(okhttp3.RequestBody.create(
