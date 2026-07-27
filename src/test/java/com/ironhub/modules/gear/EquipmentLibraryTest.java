@@ -129,7 +129,8 @@ public class EquipmentLibraryTest
 		assertEquals("Ancestral", GearLibraryTab.curatedSet("Ancestral robe top"));
 		// the curated catalogue (Luke, 2026-07-28): Bandos armour is not a
 		// listed set, god d'hides fold into Blessed, brothers into Barrows,
-		// and piece-word gating keeps pseudo-sets out
+		// weapons join their tier's set, and a one-word modifier line over
+		// a set ("Echo virtus") is its own set
 		assertEquals(null, GearLibraryTab.curatedSet("Bandos chestplate"));
 		assertEquals("Vestment", GearLibraryTab.curatedSet("Bandos mitre"));
 		assertEquals("Blessed d'hide", GearLibraryTab.curatedSet("Guthix d'hide body"));
@@ -137,10 +138,14 @@ public class EquipmentLibraryTest
 		assertEquals("3rd age melee", GearLibraryTab.curatedSet("3rd age platebody"));
 		assertEquals("Elder chaos druid", GearLibraryTab.curatedSet("Elder chaos top"));
 		assertEquals("Robes of darkness", GearLibraryTab.curatedSet("Gloves of darkness"));
-		assertEquals(null, GearLibraryTab.curatedSet("Rune heraldic helm (rune)"));
-		assertEquals(null, GearLibraryTab.curatedSet("Mystic steam staff"));
+		assertEquals("Rune", GearLibraryTab.curatedSet("Rune heraldic helm (rune)"));
+		assertEquals("Mystic", GearLibraryTab.curatedSet("Mystic steam staff"));
+		assertEquals("Echo Virtus", GearLibraryTab.curatedSet("Echo virtus mask"));
+		assertEquals("Twisted Ancestral", GearLibraryTab.curatedSet("Twisted ancestral hat"));
+		assertEquals("Radiant Oathplate", GearLibraryTab.curatedSet("Radiant oathplate chest"));
+		assertEquals("Dark Infinity", GearLibraryTab.curatedSet("Dark infinity top"));
 		// a weapon has no piece word — it stands alone
-		assertEquals(null, GearLibraryTab.curatedSet("Rune scimitar"));
+		assertEquals("Rune", GearLibraryTab.curatedSet("Rune scimitar"));
 		assertEquals(null, GearLibraryTab.curatedSet("Abyssal whip"));
 	}
 

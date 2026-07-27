@@ -564,7 +564,9 @@ class GearLibraryTab extends JPanel
 			// "Rune scimitar (saradomin)") — the shortest name is the base,
 			// ties keep the sort order
 			list.sort(java.util.Comparator.comparingInt((EquipmentPack.Item i) -> i.name.length()));
-			units.add(new Unit(base, list, CURATED_SETS.contains(base)));
+			// a unit is a SET exactly when its key came from the matcher —
+			// dynamic modifier sets included
+			units.add(new Unit(base, list, base.equals(curatedSet(list.get(0).name))));
 		});
 		return units;
 	}
@@ -615,8 +617,6 @@ class GearLibraryTab extends JPanel
 		"Priest", "Monk's", "Shade", "Druid's", "Ancient ceremonial", "Elite black",
 		"Vestment", "Sunfire fanatic"};
 
-	/** The set names a unit key can be (display form). */
-	private static final Set<String> CURATED_SETS = Set.of(SET_NAMES);
 	/** Lower-cased set names, longest first, so "Elite black" and
 	 *  "Black d'hide" win over "Black". */
 	private static final List<String> SETS_LOWER = buildSetsLower();
@@ -643,19 +643,6 @@ class GearLibraryTab extends JPanel
 		return map;
 	}
 
-	/** Armour piece words a set name may be followed by — the whole
-	 *  remainder must be one of these, so "Rune heraldic helm" and
-	 *  "Mystic steam staff" stay out of the sets. */
-	private static final Set<String> PIECE_WORDS = Set.of(
-		"robe top", "robe bottom", "robe bottoms", "robe legs", "robe skirt", "full helm",
-		"full helmet", "med helm", "great helm", "sq shield", "platebody", "plateskirt",
-		"platelegs", "chainbody", "chainskirt", "chestplate", "kiteshield", "robetop",
-		"robeskirt", "gauntlets", "vambraces", "tassets", "tasset", "greaves", "helmet",
-		"gloves", "bracers", "chaps", "boots", "coif", "cowl", "hood", "body", "legs",
-		"skirt", "helm", "mask", "hat", "top", "bottom", "bottoms", "spurs", "plate",
-		"armour", "kasa", "shirt", "gi", "robe", "gown", "torso", "sallet", "hauberk",
-		"cuisse", "faceguard", "chestguard", "legguards", "chest", "cloak", "shield");
-
 	private static final String[] BARROWS_BROTHERS = {
 		"ahrim's", "dharok's", "guthan's", "karil's", "torag's", "verac's"};
 	private static final String[] GOD_PREFIXES = {
@@ -667,10 +654,17 @@ class GearLibraryTab extends JPanel
 	private static final Set<String> THIRD_AGE_MELEE = Set.of(
 		"full helmet", "platebody", "platelegs", "kiteshield");
 
-	/** The curated set an item belongs to, or null for a non-set item. */
+	/**
+	 * The curated set an item belongs to, or null for a non-set item.
+	 * Weapons and ammo join their tier's set too (Luke, 2026-07-28), and a
+	 * one-word modifier line over a curated set — "Echo virtus mask",
+	 * "Twisted ancestral hat", "Radiant oathplate chest", "Dark infinity
+	 * top" — is its OWN set, named "<Modifier> <Set>".
+	 */
 	static String curatedSet(String name)
 	{
-		String lower = baseName(name).replace('\u2019', '\'').toLowerCase(Locale.ROOT);
+		String base = baseName(name).replace('\u2019', '\'');
+		String lower = base.toLowerCase(Locale.ROOT);
 		for (String brother : BARROWS_BROTHERS)
 		{
 			if (lower.startsWith(brother + " "))
@@ -715,9 +709,22 @@ class GearLibraryTab extends JPanel
 		}
 		for (String set : SETS_LOWER)
 		{
-			if (lower.startsWith(set + " ") && PIECE_WORDS.contains(lower.substring(set.length() + 1)))
+			if (lower.startsWith(set + " "))
 			{
 				return SET_DISPLAY.get(set);
+			}
+		}
+		// a modifier line: the set name starts at the SECOND word
+		int space = lower.indexOf(' ');
+		if (space > 0)
+		{
+			String rest = lower.substring(space + 1);
+			for (String set : SETS_LOWER)
+			{
+				if (rest.startsWith(set + " ") || rest.equals(set))
+				{
+					return base.substring(0, space) + " " + SET_DISPLAY.get(set);
+				}
 			}
 		}
 		return null;
