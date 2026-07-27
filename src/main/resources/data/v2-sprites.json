@@ -1469,6 +1469,13 @@
 				"vanilla"
 			]
 		},
+		"icons/quests_large": {
+			"w": 492,
+			"h": 480,
+			"variants": [
+				"vanilla"
+			]
+		},
 		"icons/refresh": {
 			"w": 19,
 			"h": 17,

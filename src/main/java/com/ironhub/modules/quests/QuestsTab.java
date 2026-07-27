@@ -56,8 +56,8 @@ class QuestsTab extends JPanel
 	static final String[] SORTS = {"Difficulty", "A-Z", "Started"};
 	private static final List<String> DIFFICULTY_ORDER = List.of(
 		"Novice", "Intermediate", "Experienced", "Master", "Grandmaster", "Special");
-	/** The Bank grammar row cap (2026-07-20 audit). */
-	private static final int MAX_ROWS = 50;
+	/** Page size — arrows below past this (Luke, 2026-07-28). */
+	private static final int PAGE_ROWS = 20;
 	private static final int WELL_WRAP = 165;
 	/** Marks a child that keeps its own click (glyphs, well actions). */
 	private static final String OWN_ACTION = "ironhub.quests.ownAction";
@@ -72,12 +72,14 @@ class QuestsTab extends JPanel
 	private final V2TextField search;
 	private final V2ChipRow types;
 	private final V2ChipRow sorts;
-	/** Checked (default) = completed quests shown too; unchecked = the
-	 *  to-do list only (the diaries include-filter grammar). */
+	/** Checked = completed quests shown too; unchecked (default) = the
+	 *  to-do list only (include semantics; Luke, 2026-07-28). */
 	private final V2Checkbox completedFilter;
 	private final JPanel list = new JPanel();
 	/** Rows open NON-exclusively into Wells, keyed by quest name. */
 	private final java.util.Set<String> expandedQuests = new java.util.HashSet<>();
+	/** The list's current page of 20 (reset when the filters move). */
+	private int page;
 
 	QuestsTab(AccountState state, QuestsModule module, OsrsTheme theme)
 	{
@@ -100,15 +102,15 @@ class QuestsTab extends JPanel
 		add(search);
 		add(Box.createVerticalStrut(4));
 		types = new V2ChipRow(theme, true, TYPES);
-		types.onChange(i -> rebuild());
+		types.onChange(i -> filtersChanged());
 		add(types);
 		add(Box.createVerticalStrut(4));
 		sorts = new V2ChipRow(theme, true, SORTS);
-		sorts.onChange(i -> rebuild());
+		sorts.onChange(i -> filtersChanged());
 		add(sorts);
 		add(Box.createVerticalStrut(4));
 
-		completedFilter = new V2Checkbox(theme, "Completed", true, this::toggleCompleted);
+		completedFilter = new V2Checkbox(theme, "Completed", false, this::toggleCompleted);
 		JPanel filterRow = new JPanel();
 		filterRow.setLayout(new BoxLayout(filterRow, BoxLayout.X_AXIS));
 		filterRow.setOpaque(false);
@@ -130,19 +132,19 @@ class QuestsTab extends JPanel
 			@Override
 			public void insertUpdate(javax.swing.event.DocumentEvent e)
 			{
-				rebuild();
+				filtersChanged();
 			}
 
 			@Override
 			public void removeUpdate(javax.swing.event.DocumentEvent e)
 			{
-				rebuild();
+				filtersChanged();
 			}
 
 			@Override
 			public void changedUpdate(javax.swing.event.DocumentEvent e)
 			{
-				rebuild();
+				filtersChanged();
 			}
 		});
 
@@ -181,6 +183,13 @@ class QuestsTab extends JPanel
 	{
 		completedFilter.state(completedFilter.state() == V2Checkbox.State.ON
 			? V2Checkbox.State.OFF : V2Checkbox.State.ON);
+		filtersChanged();
+	}
+
+	/** A filter moved — back to the first page. */
+	private void filtersChanged()
+	{
+		page = 0;
 		rebuild();
 	}
 
@@ -276,13 +285,18 @@ class QuestsTab extends JPanel
 		else
 		{
 			// the Goals grammar: every quest on ONE Tile, the open row's
-			// details in a Well beneath it
+			// details in a Well beneath it — 20 to a page, arrows below
+			// (Luke, 2026-07-28)
+			int pages = (quests.size() + PAGE_ROWS - 1) / PAGE_ROWS;
+			page = Math.max(0, Math.min(page, pages - 1));
+			int from = page * PAGE_ROWS;
+			List<Quest> shown = quests.subList(from,
+				Math.min(from + PAGE_ROWS, quests.size()));
 			V2Surface tile = V2Surface.tile(theme);
 			tile.setAlignmentX(LEFT_ALIGNMENT);
-			int limit = Math.min(quests.size(), MAX_ROWS);
-			for (int i = 0; i < limit; i++)
+			for (int i = 0; i < shown.size(); i++)
 			{
-				Quest quest = quests.get(i);
+				Quest quest = shown.get(i);
 				if (i > 0)
 				{
 					tile.add(Box.createVerticalStrut(3));
@@ -296,29 +310,58 @@ class QuestsTab extends JPanel
 			}
 			cap(tile);
 			list.add(tile);
-			if (quests.size() > limit)
+			if (pages > 1)
 			{
-				list.add(faintLine("+ " + (quests.size() - limit)
-					+ " more — refine your search"));
+				list.add(Box.createVerticalStrut(V2Tokens.TIGHT));
+				JPanel pager = row();
+				pager.add(Box.createHorizontalGlue());
+				pager.add(new com.ironhub.ui.v2.V2SpriteButton(theme,
+					com.ironhub.ui.v2.V2SpriteButton.ARROW_LEFT, () ->
+					{
+						if (page > 0)
+						{
+							page--;
+							rebuild();
+						}
+					}));
+				pager.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+				pager.add(new OsrsLabel("Page " + (page + 1) + "/" + pages,
+					OsrsSkin.MUTED, OsrsSkin.smallFont()));
+				pager.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+				pager.add(new com.ironhub.ui.v2.V2SpriteButton(theme,
+					com.ironhub.ui.v2.V2SpriteButton.ARROW_RIGHT, () ->
+					{
+						if (page < pages - 1)
+						{
+							page++;
+							rebuild();
+						}
+					}));
+				pager.add(Box.createHorizontalGlue());
+				cap(pager);
+				list.add(pager);
 			}
 		}
 		revalidate();
 		repaint();
 	}
 
-	/** The quest journal's own emblem at native size, flanking the hero. */
+	/** The quest-journal emblem (Luke's curated sprite), scaled to the
+	 *  hero's flank height — the source art is full wiki resolution. */
 	private JComponent questEmblem()
 	{
 		JLabel icon = new JLabel();
 		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-		java.awt.Image art = com.ironhub.ui.v2.V2Sprites.get(theme, "icons/quest/quest_blue_large");
+		java.awt.image.BufferedImage art =
+			com.ironhub.ui.v2.V2Sprites.get(theme, "icons/quests_large");
 		if (art != null)
 		{
-			icon.setIcon(new javax.swing.ImageIcon(art));
+			icon.setIcon(new javax.swing.ImageIcon(
+				art.getScaledInstance(-1, 30, java.awt.Image.SCALE_SMOOTH)));
 		}
 		else
 		{
-			icon.setPreferredSize(new Dimension(33, 36));
+			icon.setPreferredSize(new Dimension(30, 30));
 		}
 		return icon;
 	}
@@ -389,25 +432,23 @@ class QuestsTab extends JPanel
 	{
 		QuestState questState = state.getQuestState(quest);
 		Color color;
-		String iconKey;
 		switch (questState)
 		{
 			case FINISHED:
 				color = OsrsSkin.VALUE;
-				iconKey = "quest_green_small";
 				break;
 			case IN_PROGRESS:
 				color = OsrsSkin.TITLE;
-				iconKey = "quest_orange_small";
 				break;
 			default:
 				color = OsrsSkin.MUTED;
-				iconKey = "quest_red_small";
 				break;
 		}
 
 		JPanel head = row();
-		java.awt.Image icon = com.ironhub.ui.v2.V2Sprites.get(theme, "icons/quest/" + iconKey);
+		// one blue journal icon for every row (Luke, 2026-07-28) — the
+		// name's colour carries the state
+		java.awt.Image icon = com.ironhub.ui.v2.V2Sprites.get(theme, "icons/quest/quest_blue_small");
 		if (icon != null)
 		{
 			head.add(new JLabel(new javax.swing.ImageIcon(icon)));
