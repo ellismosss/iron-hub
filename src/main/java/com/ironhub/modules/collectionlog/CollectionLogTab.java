@@ -480,6 +480,9 @@ class CollectionLogTab extends JPanel
 	{
 		tabRow.removeAll();
 		List<PersistedState.ClogTab> catalog = state.getClogCatalog();
+		// glue BOTH sides — the five cards sit centred, not left (Luke,
+		// 2026-07-27)
+		tabRow.add(Box.createHorizontalGlue());
 		for (int i = 0; i < catalog.size(); i++)
 		{
 			PersistedState.ClogTab tab = catalog.get(i);
@@ -948,18 +951,43 @@ class CollectionLogTab extends JPanel
 	 */
 	private void suggestions()
 	{
-		V2Surface card = V2Surface.card(theme).pressable(() ->
-		{
-			suggestionsCollapsed = !suggestionsCollapsed;
-			rebuildContent();
-		});
+		V2Surface card = V2Surface.card(theme);
 		card.setAlignmentX(LEFT_ALIGNMENT);
 		JPanel head = row();
+		OsrsLabel title = new OsrsLabel("Easiest next slots", OsrsSkin.TITLE, OsrsSkin.boldFont());
 		head.add(Box.createHorizontalGlue());
-		head.add(new OsrsLabel("Easiest next slots", OsrsSkin.TITLE, OsrsSkin.boldFont()));
+		head.add(title);
 		head.add(Box.createHorizontalGlue());
 		cap(head);
 		card.add(head);
+		if (suggestionsCollapsed)
+		{
+			// pressable(null) = the art's hover + the hand cursor; the click
+			// itself goes on every layer below, because AWT delivers a press
+			// to the DEEPEST component only — a click on the text never
+			// reaches a listener on the card (Luke's report, 2026-07-27)
+			card.pressable(null);
+		}
+		else
+		{
+			// held in the PRESSED (hovered-art) state while its results are
+			// showing — pressable()'s pointer-exit would unlight it, so the
+			// open card pins the art instead (Luke, 2026-07-27)
+			card.setLit(true);
+			card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		}
+		MouseAdapter toggle = new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				suggestionsCollapsed = !suggestionsCollapsed;
+				rebuildContent();
+			}
+		};
+		card.addMouseListener(toggle);
+		head.addMouseListener(toggle);
+		title.addMouseListener(toggle);
 		cap(card);
 		content.add(card);
 		if (!suggestionsCollapsed)

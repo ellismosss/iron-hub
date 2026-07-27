@@ -117,13 +117,20 @@ class ClogTabTile extends JComponent
 			RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 		g2.setFont(OsrsSkin.smallFont());
 		FontMetrics fm = g2.getFontMetrics();
-		String text = obtained + "/" + total;
-		int x = (w - fm.stringWidth(text)) / 2;
+		// two segments (Luke, 2026-07-27): the obtained count grey at 0,
+		// white while filling, green complete; the "/total" green only once
+		// the tab is complete
+		String ownedText = String.valueOf(obtained);
+		String restText = "/" + total;
+		int x = (w - fm.stringWidth(ownedText + restText)) / 2;
 		int y = h - METER - 5;
 		g2.setColor(OsrsSkin.TEXT_SHADOW);
-		g2.drawString(text, x + 1, y + 1);
-		g2.setColor(complete() ? OsrsSkin.VALUE : selected ? OsrsSkin.TITLE : OsrsSkin.MUTED);
-		g2.drawString(text, x, y);
+		g2.drawString(ownedText + restText, x + 1, y + 1);
+		g2.setColor(complete() ? OsrsSkin.VALUE
+			: obtained == 0 ? OsrsSkin.FAINT : Color.WHITE);
+		g2.drawString(ownedText, x, y);
+		g2.setColor(complete() ? OsrsSkin.VALUE : OsrsSkin.MUTED);
+		g2.drawString(restText, x + fm.stringWidth(ownedText), y);
 
 		// the METER atom across the foot, painted in place
 		bar.fill(complete() ? V2Tokens.BAR_FILL : V2Tokens.BAR_BLUE)
