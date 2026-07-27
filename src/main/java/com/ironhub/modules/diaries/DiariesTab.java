@@ -5,7 +5,6 @@ import com.ironhub.modules.diaries.DiariesModule.DiaryRegion;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.components.PaintedIcon;
-import com.ironhub.ui.components.SpriteCache;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
@@ -16,12 +15,10 @@ import com.ironhub.ui.v2.V2Tokens;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -34,19 +31,18 @@ import javax.swing.border.EmptyBorder;
  * Achievement diaries in the clog/CA reference grammar (Luke, 2026-07-27/28):
  *
  * <ul>
- * <li>a hero Card whose progress readout is TWELVE small meters on a 3x4
- *     grid — one per diary, each beside the next piece of diary armour that
- *     region unlocks — with the Achievement diary cape at their right and
- *     the tier tally on a counter line beneath;
+ * <li>a hero Card with ONE medium (ROW) progress bar over the whole
+ *     journal — no icons (Luke, 2026-07-28) — and the tier tally on a
+ *     counter line beneath;
  * <li>a Completed checkbox under the hero (unchecked = the to-do list, the
  *     CA filter grammar) that the region cards and task lists obey;
  * <li>the twelve regions as full-width Cards carrying name, counts and the
  *     four-segment tier bar; clicking one expands the card (one at a time)
  *     into its four tier rows — each with its own meter, count and
  *     whole-tier goal glyph, collapsed until clicked;
- * <li>clicking a tier row opens that tier's tasks on a card beneath it,
- *     each task row opening its requirements Well non-exclusively, with
- *     the collapsible Rewards fold at the region card's foot.
+ * <li>clicking a tier row opens that tier's tasks ON THE SAME CARD, a
+ *     subtle divider between each, its rewards following the tasks — each
+ *     task row opening its requirements Well non-exclusively.
  * </ul>
  */
 class DiariesTab extends JPanel
@@ -57,40 +53,17 @@ class DiariesTab extends JPanel
 	private static final int REWARD_WRAP = 175;
 	/** The thin-meter height — the small bar variant (Luke, 2026-07-17). */
 	private static final int TIER_BAR_HEIGHT = 5;
-	/** The hero's 3x4 mini-meter grid (Luke, 2026-07-28). */
-	private static final int MINI_COLS = 3;
-	private static final int MINI_ICON = 16;
-	private static final int MINI_GRID_W = 150;
 	/** Marks a child that keeps its own click (the +/x goal glyphs). */
 	private static final String OWN_ACTION = "ironhub.diaries.ownAction";
-	/** The all-diaries reward flanking the hero meters. */
-	private static final int DIARY_CAPE = 19476;
-	/**
-	 * Each diary's armour ladder, tiers 1-4 — the hero grid shows the NEXT
-	 * piece a region unlocks. Ids verified against data/item-sources.json
-	 * (wiki-audited) — never guessed.
-	 */
-	private static final Map<String, int[]> REWARD_ARMOUR = Map.ofEntries(
-		Map.entry("Ardougne", new int[]{13121, 13122, 13123, 13124}),
-		Map.entry("Desert", new int[]{13133, 13134, 13135, 13136}),
-		Map.entry("Falador", new int[]{13117, 13118, 13119, 13120}),
-		Map.entry("Fremennik", new int[]{13129, 13130, 13131, 13132}),
-		Map.entry("Kandarin", new int[]{13137, 13138, 13139, 13140}),
-		Map.entry("Karamja", new int[]{11136, 11138, 11140, 13103}),
-		Map.entry("Kourend & Kebos", new int[]{22941, 22943, 22945, 22947}),
-		Map.entry("Lumbridge & Draynor", new int[]{13125, 13126, 13127, 13128}),
-		Map.entry("Morytania", new int[]{13112, 13113, 13114, 13115}),
-		Map.entry("Varrock", new int[]{13104, 13105, 13106, 13107}),
-		Map.entry("Western Provinces", new int[]{13141, 13142, 13143, 13144}),
-		Map.entry("Wilderness", new int[]{13108, 13109, 13110, 13111}));
 
 	private final DiariesModule module;
 	private final AccountState state;
 	private final OsrsTheme theme;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
-	private final SpriteCache sprites;
 
 	private final V2Surface hero;
+	/** The medium (ROW) bar — no icons around it (Luke, 2026-07-28). */
+	private final V2ProgressBar bar;
 	/** Checked = the finished tasks; unchecked = the to-do list (the CA
 	 *  filter grammar). */
 	private final V2Checkbox completedFilter;
@@ -103,8 +76,6 @@ class DiariesTab extends JPanel
 	private int expandedTier = -1;
 	/** Task rows open NON-exclusively into Wells, keyed by task slug. */
 	private final Set<String> expandedTasks = new HashSet<>();
-	/** Regions whose Rewards section is open. */
-	private final Set<String> rewardsOpen = new HashSet<>();
 	/** Usable temporary-boost headroom per skill, refreshed each rebuild. */
 	private java.util.Map<net.runelite.api.Skill, Integer> boosts = java.util.Map.of();
 
@@ -113,7 +84,6 @@ class DiariesTab extends JPanel
 		this.module = module;
 		this.state = state;
 		this.theme = theme;
-		this.sprites = new SpriteCache(module.itemManager(), listener);
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
@@ -121,6 +91,7 @@ class DiariesTab extends JPanel
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
 		hero = V2Surface.card(theme);
+		bar = new V2ProgressBar(theme, V2ProgressBar.Size.ROW);
 		add(hero);
 		add(Box.createVerticalStrut(4));
 
@@ -155,7 +126,6 @@ class DiariesTab extends JPanel
 	{
 		expandedRegion = regionName;
 		expandedTier = 0;
-		rewardsOpen.add(regionName);
 		rebuild();
 	}
 
@@ -192,10 +162,8 @@ class DiariesTab extends JPanel
 	// ── the hero card ─────────────────────────────────────────────────
 
 	/**
-	 * "Diary Tasks: 207 / 492" over twelve per-diary meters (3x4), each
-	 * beside the next piece of armour its region unlocks, the Achievement
-	 * diary cape at their right (Luke, 2026-07-28) and the tier tally on a
-	 * counter line.
+	 * "Diary Tasks: 207 / 492" over ONE medium (ROW) bar — no icons (Luke,
+	 * 2026-07-28) — and the tier tally on a counter line.
 	 */
 	private void rebuildHero()
 	{
@@ -225,27 +193,10 @@ class DiariesTab extends JPanel
 		hero.add(top);
 
 		hero.add(Box.createVerticalStrut(3));
-		int rows = (pack.regions.size() + MINI_COLS - 1) / MINI_COLS;
-		JPanel grid = new JPanel(new java.awt.GridLayout(rows, MINI_COLS,
-			V2Tokens.TIGHT, V2Tokens.TIGHT));
-		grid.setOpaque(false);
-		for (DiariesPack.Region region : pack.regions)
-		{
-			grid.add(miniMeter(region));
-		}
-		Dimension gridSize = new Dimension(MINI_GRID_W,
-			rows * MINI_ICON + (rows - 1) * V2Tokens.TIGHT);
-		grid.setPreferredSize(gridSize);
-		grid.setMaximumSize(gridSize);
-		grid.setMinimumSize(gridSize);
-		JPanel band = row();
-		band.add(Box.createHorizontalGlue());
-		band.add(grid);
-		band.add(Box.createHorizontalStrut(V2Tokens.ROW));
-		band.add(cape());
-		band.add(Box.createHorizontalGlue());
-		cap(band);
-		hero.add(band);
+		// the fill answers the SAME numbers as the label riding it
+		bar.fraction(total == 0 ? 0 : (double) done / total);
+		bar.labels("", String.format(Locale.ROOT, "%,d / %,d", done, total), "");
+		hero.add(bar);
 
 		hero.add(Box.createVerticalStrut(3));
 		Color tierColour = tiersDone == 0 ? V2Tokens.BLOCKED
@@ -261,71 +212,6 @@ class DiariesTab extends JPanel
 		cap(hero);
 		hero.revalidate();
 		hero.repaint();
-	}
-
-	/** One diary's cell on the hero grid: the next armour piece it unlocks
-	 *  beside a meter of its whole journal. */
-	private JComponent miniMeter(DiariesPack.Region region)
-	{
-		int done = module.regionDone(region);
-		int total = DiariesModule.regionTotal(region);
-		// the next tier still to finish names the next unlock; a finished
-		// diary shows its final piece over a full green meter
-		int next = 0;
-		while (next < region.tiers.size() - 1 && module.tierAllDone(region, next))
-		{
-			next++;
-		}
-		boolean complete = total > 0 && done >= total;
-		int[] ladder = REWARD_ARMOUR.get(region.name);
-		JPanel cell = row();
-		JLabel icon = new JLabel();
-		icon.setPreferredSize(new Dimension(MINI_ICON, MINI_ICON));
-		icon.setMaximumSize(new Dimension(MINI_ICON, MINI_ICON));
-		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-		if (ladder != null)
-		{
-			Image sprite = sprites.getBox(ladder[complete ? 3 : next], MINI_ICON);
-			if (sprite != null)
-			{
-				icon.setIcon(new javax.swing.ImageIcon(sprite));
-			}
-		}
-		cell.add(icon);
-		cell.add(Box.createHorizontalStrut(2));
-		cell.add(new V2ProgressBar(theme, V2ProgressBar.Size.METER)
-			.fill(complete ? V2Tokens.BAR_FILL : OsrsSkin.TITLE.darker())
-			.fraction(total == 0 ? 0 : (double) done / total));
-		String tip = region.name + " — " + done + "/" + total + " tasks · "
-			+ tierTally(region) + "/4 tiers";
-		cell.setToolTipText(tip);
-		icon.setToolTipText(tip);
-		return cell;
-	}
-
-	private int tierTally(DiariesPack.Region region)
-	{
-		DiaryRegion meta = DiariesModule.regionMeta(region.name);
-		return meta == null ? 0 : DiariesModule.tiersComplete(state, meta);
-	}
-
-	/** The Achievement diary cape at the meters' right — the reward the
-	 *  whole page climbs toward. */
-	private JComponent cape()
-	{
-		JLabel icon = new JLabel();
-		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-		Image sprite = sprites.get(DIARY_CAPE, -1, 32);
-		if (sprite != null)
-		{
-			icon.setIcon(new javax.swing.ImageIcon(sprite));
-		}
-		else
-		{
-			icon.setPreferredSize(new Dimension(24, 32));
-		}
-		icon.setToolTipText("Achievement diary cape — every task in every diary");
-		return icon;
 	}
 
 	// ── the region cards ──────────────────────────────────────────────
@@ -400,7 +286,7 @@ class DiariesTab extends JPanel
 			OsrsSkin.LABEL, OsrsSkin.smallFont()).leftAligned());
 		counts.add(new OsrsLabel(done + "/" + total, colour, OsrsSkin.smallFont()).leftAligned());
 		counts.add(Box.createHorizontalGlue());
-		counts.add(new OsrsLabel(tierTally(region) + "/4 tiers",
+		counts.add(new OsrsLabel((total - done) + " tasks left",
 			OsrsSkin.MUTED, OsrsSkin.smallFont()));
 		cap(counts);
 		card.add(counts);
@@ -433,19 +319,35 @@ class DiariesTab extends JPanel
 			card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 			for (int i = 0; i < region.tiers.size(); i++)
 			{
+				// a tier with nothing behind the filter hides completely
+				// (Luke, 2026-07-28: no completed tiers on the to-do list)
+				if (!anyTierTaskPasses(region, i))
+				{
+					continue;
+				}
 				card.add(tierRow(region, i));
 				if (expandedTier == i)
 				{
 					card.add(Box.createVerticalStrut(2));
-					card.add(tierTasksCard(region, i));
+					tierTasks(card, region, i);
 					card.add(Box.createVerticalStrut(2));
 				}
 			}
-			card.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-			card.add(rewardsSection(region));
 		}
 		cap(card);
 		return card;
+	}
+
+	private boolean anyTierTaskPasses(DiariesPack.Region region, int tierIndex)
+	{
+		for (DiariesPack.Task task : region.tiers.get(tierIndex).tasks)
+		{
+			if (filterPasses(region, tierIndex, task))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/** Four tier segments, in-game-journal style: green complete, orange partial. */
@@ -543,14 +445,14 @@ class DiariesTab extends JPanel
 		return row;
 	}
 
-	/** The open tier's tasks on their own card (Luke, 2026-07-28), each row
-	 *  opening its requirements Well non-exclusively. */
-	private JComponent tierTasksCard(DiariesPack.Region region, int tierIndex)
+	/** The open tier's tasks, ON the region card itself with a subtle
+	 *  divider between each (Luke, 2026-07-28) — each row opening its
+	 *  requirements Well non-exclusively — then the tier's rewards. */
+	private void tierTasks(V2Surface card, DiariesPack.Region region, int tierIndex)
 	{
-		V2Surface card = V2Surface.card(theme);
-		card.setAlignmentX(LEFT_ALIGNMENT);
+		DiariesPack.Tier tier = region.tiers.get(tierIndex);
 		boolean any = false;
-		for (DiariesPack.Task task : region.tiers.get(tierIndex).tasks)
+		for (DiariesPack.Task task : tier.tasks)
 		{
 			if (!filterPasses(region, tierIndex, task))
 			{
@@ -559,7 +461,9 @@ class DiariesTab extends JPanel
 			if (any)
 			{
 				card.add(Box.createVerticalStrut(3));
+				card.add(divider());
 			}
+			card.add(Box.createVerticalStrut(3));
 			any = true;
 			card.add(taskHead(region, tierIndex, task));
 			if (expandedTasks.contains(DiariesModule.slug(task)))
@@ -568,14 +472,31 @@ class DiariesTab extends JPanel
 				card.add(taskWell(region, tierIndex, task));
 			}
 		}
-		if (!any)
+		// the tier's rewards ride with its tasks (Luke, 2026-07-28), not a
+		// separate fold at the card's foot
+		card.add(Box.createVerticalStrut(3));
+		card.add(divider());
+		card.add(Box.createVerticalStrut(3));
+		card.add(new OsrsLabel("Rewards", OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
+		for (String reward : tier.rewards)
 		{
-			card.add(new OsrsLabel(completedFilter.state() == V2Checkbox.State.ON
-					? "No completed tasks in this tier yet." : "Every task here is complete.",
+			card.add(OsrsLabel.wrapped("· " + reward, REWARD_WRAP,
 				OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+			card.add(Box.createVerticalStrut(2));
 		}
-		cap(card);
-		return card;
+	}
+
+	/** A subtle 1px divider between task rows (Luke, 2026-07-28). */
+	private JComponent divider()
+	{
+		JPanel line = new JPanel();
+		line.setBackground(theme.recess);
+		line.setOpaque(true);
+		line.setAlignmentX(LEFT_ALIGNMENT);
+		line.setPreferredSize(new Dimension(0, 1));
+		line.setMinimumSize(new Dimension(0, 1));
+		line.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+		return line;
 	}
 
 	private static String tierGoalId(DiariesPack.Region region, int tierIndex)
@@ -748,60 +669,6 @@ class DiariesTab extends JPanel
 			// already done in-game: prove the goal immediately
 			state.setUnlocked("diarytask_" + slug, true);
 		}
-	}
-
-	// ── rewards ───────────────────────────────────────────────────────
-
-	private JComponent rewardsSection(DiariesPack.Region region)
-	{
-		boolean open = rewardsOpen.contains(region.name);
-		JPanel section = new JPanel();
-		section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
-		section.setOpaque(false);
-		section.setAlignmentX(LEFT_ALIGNMENT);
-
-		JPanel header = row();
-		header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		JLabel triangle = new JLabel(new PaintedIcon(open
-			? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
-		triangle.setForeground(OsrsSkin.MUTED);
-		header.add(triangle);
-		header.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		header.add(new OsrsLabel("Rewards", OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
-		header.add(Box.createHorizontalGlue());
-		cap(header);
-		clickAnywhere(header, new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				if (!rewardsOpen.remove(region.name))
-				{
-					rewardsOpen.add(region.name);
-				}
-				rebuildContent();
-			}
-		});
-		section.add(header);
-
-		if (open)
-		{
-			section.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-			for (DiariesPack.Tier tier : region.tiers)
-			{
-				section.add(new OsrsLabel(tier.tier, OsrsSkin.TITLE, OsrsSkin.boldFont())
-					.leftAligned());
-				for (String reward : tier.rewards)
-				{
-					section.add(OsrsLabel.wrapped("· " + reward, REWARD_WRAP,
-						OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
-					section.add(Box.createVerticalStrut(2));
-				}
-				section.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-			}
-		}
-		cap(section);
-		return section;
 	}
 
 	// ── layout helpers ────────────────────────────────────────────────

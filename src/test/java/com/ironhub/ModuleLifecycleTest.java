@@ -49,7 +49,7 @@ public class ModuleLifecycleTest
 		Set<IronHubModule> modules = new IronHubPlugin().provideModules(
 			new GearProgressionModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null, null),
 			new QuestsModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null),
-			new DiariesModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
+			new DiariesModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new CombatAchievementsModule(state, config, null,
 				new net.runelite.client.eventbus.EventBus(),
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null),

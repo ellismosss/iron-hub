@@ -43,7 +43,7 @@ public class DiariesModuleTest
 				// exist to be judged against the Vanilla design system
 				return com.ironhub.ui.osrs.OsrsTheme.STONE;
 			}
-		}, new DataPack(new Gson()), null);
+		}, new DataPack(new Gson()));
 		module.startUp();
 		return module;
 	}

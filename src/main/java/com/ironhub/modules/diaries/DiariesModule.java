@@ -71,27 +71,18 @@ public class DiariesModule implements IronHubModule
 	private final IronHubConfig config;
 	private final DataPack dataPack;
 	private final com.ironhub.data.BoostsPack boostsPack;
-	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
 	private DiariesPack pack;
 	private DiariesTab tab;
 	/** Parsed requirement per pack string — parse once, shared across tasks. */
 
 	@Inject
-	public DiariesModule(AccountState state, IronHubConfig config, DataPack dataPack,
-		net.runelite.client.game.ItemManager itemManager)
+	public DiariesModule(AccountState state, IronHubConfig config, DataPack dataPack)
 	{
 		this.state = state;
 		this.config = config;
 		this.dataPack = dataPack;
-		this.itemManager = itemManager;
 		this.boostsPack = dataPack == null ? null
 			: dataPack.load("boosts", com.ironhub.data.BoostsPack.class);
-	}
-
-	/** The item cache behind the region cards' reward emblems. */
-	net.runelite.client.game.ItemManager itemManager()
-	{
-		return itemManager;
 	}
 
 	@Override
