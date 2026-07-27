@@ -384,6 +384,31 @@ public class CollectionLogModule implements IronHubModule
 		return false;
 	}
 
+	/**
+	 * The sidebar's own Sync log button (Luke, 2026-07-27): runs the same
+	 * full sync the in-log header button does, but only when the log is
+	 * already open — we never open the interface ourselves (no client
+	 * automation, §Hub rules). The callback lands on the EDT with whether
+	 * a sync actually started.
+	 */
+	void syncFromPanel(java.util.function.Consumer<Boolean> started)
+	{
+		if (clientThread == null || client == null)
+		{
+			started.accept(false);
+			return;
+		}
+		clientThread.invoke(() ->
+		{
+			boolean open = client.getWidget(InterfaceID.Collection.SEARCH_TOGGLE) != null;
+			if (open)
+			{
+				triggerFullSync();
+			}
+			javax.swing.SwingUtilities.invokeLater(() -> started.accept(open));
+		});
+	}
+
 	/** Press the game's own Search and run the enumerate script; the
 	 *  per-item 4100 callbacks are harvested in onScriptPreFired.
 	 *  Package-private for tests. */

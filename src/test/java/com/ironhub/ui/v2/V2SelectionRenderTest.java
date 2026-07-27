@@ -87,25 +87,19 @@ public class V2SelectionRenderTest
 		page.add(captioned);
 		page.add(Box.createVerticalStrut(V2Tokens.ROW));
 
-		// captionInside + corner: the clog page grid's shape — bold caption
-		// ON the art, detail count top-right (Luke, 2026-07-27)
+		// the card tile: caption inside in a status colour, corner count,
+		// meter strip — the clog page grid's shape (Luke, 2026-07-27)
 		JPanel inside = horizontal();
 		String[] insideNames = {"Abyssal Sire", "Barrows Chests", "Wintertodt"};
 		String[] counts = {"7/33", "24/24", "0/12"};
+		double[] fills = {7 / 33.0, 1, 0};
 		for (int i = 0; i < insideNames.length; i++)
 		{
 			V2Tile tile = new V2Tile(theme, emblem(theme, "icons/skills/slayer"),
-				insideNames[i], 56, null)
-				.width(68).captionLines(2).captionInside().corner(counts[i])
-				.captionStatus(i == 1 ? V2Tokens.DONE : V2Tokens.ACTION);
-			if (i == 0)
-			{
-				tile.status(V2Tile.Status.READY).progress(7 / 33.0);
-			}
-			else if (i == 1)
-			{
-				tile.status(V2Tile.Status.DONE);
-			}
+				insideNames[i], 68, null)
+				.card().captionLines(2).captionInside().corner(counts[i])
+				.captionStatus(i == 1 ? V2Tokens.DONE : V2Tokens.ACTION)
+				.meter(fills[i]);
 			inside.add(tile);
 			inside.add(Box.createHorizontalStrut(V2Tokens.ROW));
 		}

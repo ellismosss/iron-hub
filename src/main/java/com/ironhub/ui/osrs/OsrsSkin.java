@@ -46,6 +46,10 @@ public final class OsrsSkin
 	public static final Color FAINT = new Color(0x8D8377);
 	/** Text drawn over a progress fill, per RuneLite's own ProgressBar. */
 	public static final Color BAR_TEXT = Color.WHITE;
+
+	/** The collection log header's own counter yellow — a count that is
+	 *  started but not finished (the game's red/yellow/green scale). */
+	public static final Color COUNT_YELLOW = new Color(0xFFFF00);
 	/**
 	 * Bar trough — Luke's value, and theme-independent like the rest of the
 	 * bar: these follow RuneLite's ProgressBar rather than game art (the game

@@ -373,23 +373,17 @@ public class DesignLabV2Tab extends JPanel
 		captioned.add(V2Layout.glue());
 		add(captioned);
 		gap(V2Tokens.ROW);
-		add(V2Label.detail("Caption inside, corner count"));
+		add(V2Label.detail("Card tile: caption inside, corner count, meter"));
 		JPanel inside = row();
 		String[] pages = {"Abyssal Sire", "Barrows Chests", "Wintertodt"};
 		String[] counts = {"7/33", "24/24", "0/12"};
+		double[] fills = {7 / 33.0, 1, 0};
 		for (int i = 0; i < pages.length; i++)
 		{
-			V2Tile tile = new V2Tile(theme, sprite("icons/skills/slayer"), pages[i], 56, null)
-				.width(68).captionLines(2).captionInside().corner(counts[i])
-				.captionStatus(i == 1 ? V2Tokens.DONE : V2Tokens.ACTION);
-			if (i == 1)
-			{
-				tile.status(V2Tile.Status.DONE);
-			}
-			else if (i == 0)
-			{
-				tile.status(V2Tile.Status.READY).progress(7 / 33.0);
-			}
+			V2Tile tile = new V2Tile(theme, sprite("icons/skills/slayer"), pages[i], 68, null)
+				.card().captionLines(2).captionInside().corner(counts[i])
+				.captionStatus(i == 1 ? V2Tokens.DONE : V2Tokens.ACTION)
+				.meter(fills[i]);
 			inside.add(tile);
 			inside.add(V2Layout.hgap(V2Tokens.ROW));
 		}

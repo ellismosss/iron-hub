@@ -51,15 +51,19 @@ import net.runelite.client.util.LinkBrowser;
  * follows the game's own overview screen, adapted to 225px:
  *
  * <ul>
- * <li>a hero banner framing "Collections Logged: n/N" between the rank you
- *     have reached and the one you are climbing to, each shown by its staff;
+ * <li>a hero banner framing the log's total between the rank you have
+ *     reached and the one you are climbing to (staves in bordered squares,
+ *     the tier count riding the sprite bar), with a panel-side Sync log
+ *     button and the overview's latest-collections icon strip beneath;
  * <li>the log's five tabs as icon tiles with their counts and fill bars;
- * <li>a category view of that tab's pages as a 3-wide grid of DLV2 icon
- *     tiles (Luke, 2026-07-27), drilling into the page's own item grid —
- *     sprites solid when owned, ghosted when not, exactly as the interface
- *     draws them;
- * <li>and the old Time-To-Next-Slot ranking kept, moved to its own section
- *     at the foot and clamped to ten rows.
+ * <li>a category view of that tab's pages as a 2-wide grid of square DLV2
+ *     CARD tiles (Luke, 2026-07-27) — bold inside captions on the log's
+ *     orange/green scale, corner counts, meter strips — expanding a page's
+ *     results in-line, one at a time: counters in the game's own label/value
+ *     colours, then the item grid, sprites solid when owned, ghosted when
+ *     not, exactly as the interface draws them;
+ * <li>and the old Time-To-Next-Slot ranking on its own fold-out card at the
+ *     foot, clamped to ten table rows.
  * </ul>
  *
  * <p>Everything above the fold comes from the game's own catalog
@@ -76,12 +80,21 @@ class CollectionLogTab extends JPanel
 	/** The newest slots the overview shows. */
 	private static final int LATEST = 10;
 	private static final String[] TAB_ICONS = {"bosses", "raids", "clues", "minigames", "other"};
-	/** The category view's page grid: two PERFECT SQUARES across the 217px
-	 *  content column (2x106 + 4 = 216; Luke, 2026-07-27), captions inside. */
+	/** The category view's page grid: two PERFECT-SQUARE Cards across the
+	 *  217px content column (2x106 + 4 = 216; Luke, 2026-07-27), captions
+	 *  inside, a plain meter strip instead of a status edge. */
 	private static final int PAGE_COLS = 2;
 	private static final int PAGE_TILE = 106;
+	/** The page emblem, sized to actually fill the card's art band. */
+	private static final int PAGE_EMBLEM = 44;
+	/** Announced but unreleased — a greyed tile at the end of the Raids
+	 *  grid until the game's own catalog carries the page, at which point
+	 *  the placeholder yields automatically. */
+	private static final String UPCOMING_RAID = "The Fractured Archive";
 	/** Marks a child that keeps its own click (the +/x glyphs). */
 	private static final String OWN_ACTION = "clog.ownAction";
+	/** The latest-collections strip's icon cap (7 x 28px fits the column). */
+	private static final int LATEST_STRIP = 7;
 	private static final int CARD_WRAP = 180;
 
 	private final CollectionLogModule module;
@@ -94,6 +107,10 @@ class CollectionLogTab extends JPanel
 	// persistent chrome
 	private final V2Surface hero;
 	private final V2ProgressBar bar;
+	/** The game overview's recent-slots icon strip, under the hero. */
+	private final JPanel latestStrip = new JPanel();
+	/** Panel Sync log feedback ("Open your collection log first"). */
+	private String syncNote;
 	private final JPanel tabRow = new JPanel();
 	private final V2TextField search;
 	private final JPanel content = new JPanel();
@@ -103,6 +120,8 @@ class CollectionLogTab extends JPanel
 	private String openPage;  // null = the tab's page list
 	/** The category grid's ONE in-line expanded page (Luke, 2026-07-27). */
 	private String expandedPage;
+	/** The Easiest-next-slots card starts folded (Luke, 2026-07-27). */
+	private boolean suggestionsCollapsed = true;
 	private List<Object> lastFingerprint = List.of();
 
 	CollectionLogTab(CollectionLogModule module, AccountState state, ItemManager itemManager,
@@ -131,11 +150,17 @@ class CollectionLogTab extends JPanel
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		// the log standing is the one live readout on the page — the Card
+		// the log standing is the one live readout on the page — the Card,
+		// with the SPRITE bar and the tier value riding on it (Luke,
+		// 2026-07-27, matching the game's own overview)
 		hero = V2Surface.card(theme);
-		bar = new V2ProgressBar(theme, V2ProgressBar.Size.ROW).fill(V2Tokens.BAR_BLUE);
+		bar = new V2ProgressBar(theme);
 		add(hero);
 		add(Box.createVerticalStrut(4));
+		latestStrip.setLayout(new BoxLayout(latestStrip, BoxLayout.Y_AXIS));
+		latestStrip.setOpaque(false);
+		latestStrip.setAlignmentX(LEFT_ALIGNMENT);
+		add(latestStrip);
 
 		tabRow.setLayout(new BoxLayout(tabRow, BoxLayout.X_AXIS));
 		tabRow.setOpaque(false);
@@ -201,6 +226,7 @@ class CollectionLogTab extends JPanel
 		print.add(openTab);
 		print.add(openPage);
 		print.add(expandedPage);
+		print.add(suggestionsCollapsed);
 		return print;
 	}
 
@@ -241,46 +267,148 @@ class CollectionLogTab extends JPanel
 
 		hero.removeAll();
 		JPanel top = row();
-		top.add(staff(reached));
+		// the staves sit IN-LINE with the two text lines, like the CA tab's
+		// Ghommal's hilts, each inside a darker bordered square (Luke,
+		// 2026-07-27, matching the game's overview)
+		top.add(iconBox(staff(reached)));
 		// glue BOTH sides: the count stays centred between the two staves
 		top.add(Box.createHorizontalGlue());
 		JPanel middle = new JPanel();
 		middle.setLayout(new BoxLayout(middle, BoxLayout.Y_AXIS));
 		middle.setOpaque(false);
 		middle.add(new OsrsLabel("Collections Logged", OsrsSkin.TITLE, OsrsSkin.font()));
-		middle.add(new OsrsLabel(String.format(Locale.ROOT, "%,d / %,d", slots, ceiling),
-			OsrsSkin.VALUE, OsrsSkin.boldFont()));
+		// the WHOLE log's progress, in orange; the tier band's own count
+		// rides on the bar below (Luke, 2026-07-27)
+		middle.add(new OsrsLabel(String.format(Locale.ROOT, "%,d / %,d", slots, total),
+			OsrsSkin.TITLE, OsrsSkin.boldFont()));
 		top.add(middle);
 		top.add(Box.createHorizontalGlue());
-		top.add(staff(next));
+		top.add(iconBox(staff(next)));
 		cap(top);
 		hero.add(top);
 
 		hero.add(Box.createVerticalStrut(3));
 		bar.fraction(ceiling > floor ? (double) (slots - floor) / (ceiling - floor) : 1);
+		bar.labels("", String.format(Locale.ROOT, "%,d / %,d", slots, ceiling), "");
 		hero.add(bar);
 
 		JPanel labels = row();
-		labels.add(new OsrsLabel(reached == null ? "Unranked" : ranks.label(reached),
-			OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		labels.add(rankLabel(reached == null ? "Unranked" : ranks.label(reached)));
 		labels.add(Box.createHorizontalGlue());
-		labels.add(new OsrsLabel(next == null ? "Every rank claimed" : ranks.label(next),
-			OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		labels.add(rankLabel(next == null ? "Every rank claimed" : ranks.label(next)));
 		cap(labels);
 		hero.add(labels);
 
 		hero.add(Box.createVerticalStrut(2));
-		hero.add(syncLine());
+		JPanel syncRow = row();
+		JComponent line = syncLine();
+		syncRow.add(line);
+		syncRow.add(Box.createHorizontalGlue());
+		syncRow.add(com.ironhub.ui.v2.V2ChipRow.action(theme, "Sync log", this::requestSync));
+		cap(syncRow);
+		hero.add(syncRow);
+		if (syncNote != null)
+		{
+			hero.add(smallLine(syncNote, OsrsSkin.TITLE));
+		}
 		cap(hero);
 		hero.revalidate();
 		hero.repaint();
+		rebuildLatestStrip();
+	}
+
+	/** Panel-side Sync log: same sync as the in-log button, when the log is
+	 *  open — otherwise an honest pointer, never an interface we open. */
+	private void requestSync()
+	{
+		module.syncFromPanel(started ->
+		{
+			syncNote = started ? null : "Open your collection log first";
+			rebuildHero();
+		});
+	}
+
+	/** "VII: Rune" — the numeral orange, the rank name white (Luke,
+	 *  2026-07-27, the game's own formatting). */
+	private JComponent rankLabel(String label)
+	{
+		int split = label.indexOf(": ");
+		if (split < 0)
+		{
+			return new OsrsLabel(label, OsrsSkin.MUTED, OsrsSkin.smallFont());
+		}
+		JPanel pair = row();
+		pair.add(new OsrsLabel(label.substring(0, split + 2),
+			OsrsSkin.LABEL, OsrsSkin.smallFont()).leftAligned());
+		pair.add(new OsrsLabel(label.substring(split + 2),
+			V2Tokens.STRONG, OsrsSkin.smallFont()).leftAligned());
+		pair.setMaximumSize(pair.getPreferredSize());
+		return pair;
+	}
+
+	/** A darker square behind an icon, 1px black outside a 1px grey inside —
+	 *  the game overview's own framing (Luke, 2026-07-27). */
+	private JComponent iconBox(JComponent inner)
+	{
+		JPanel box = new JPanel(new BorderLayout());
+		box.setBackground(theme.recess);
+		box.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+			new javax.swing.border.LineBorder(Color.BLACK, 1),
+			new javax.swing.border.LineBorder(OsrsSkin.FAINT, 1)));
+		box.add(inner, BorderLayout.CENTER);
+		Dimension size = new Dimension(inner.getPreferredSize().width + 8,
+			inner.getPreferredSize().height + 8);
+		box.setPreferredSize(size);
+		box.setMaximumSize(size);
+		return box;
+	}
+
+	/** The game overview's "Latest collections" strip: the newest obtained
+	 *  slots as bordered icons under the hero (Luke, 2026-07-27). */
+	private void rebuildLatestStrip()
+	{
+		latestStrip.removeAll();
+		List<Integer> latest = latestSlots();
+		if (!latest.isEmpty())
+		{
+			latestStrip.add(smallLine("Latest collections:", OsrsSkin.LABEL));
+			latestStrip.add(Box.createVerticalStrut(2));
+			JPanel icons = row();
+			int shown = 0;
+			for (int id : latest)
+			{
+				if (shown++ >= LATEST_STRIP)
+				{
+					break;
+				}
+				JLabel icon = new JLabel();
+				java.awt.Image sprite = sprites.getBox(id, 22);
+				if (sprite != null)
+				{
+					icon.setIcon(new javax.swing.ImageIcon(sprite));
+				}
+				icon.setPreferredSize(new Dimension(24, 24));
+				icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+				icon.setToolTipText(itemName(id));
+				JComponent box = iconBox(icon);
+				box.setAlignmentY(CENTER_ALIGNMENT);
+				icons.add(box);
+				icons.add(Box.createHorizontalStrut(2));
+			}
+			icons.add(Box.createHorizontalGlue());
+			cap(icons);
+			latestStrip.add(icons);
+			latestStrip.add(Box.createVerticalStrut(4));
+		}
+		latestStrip.revalidate();
+		latestStrip.repaint();
 	}
 
 	/** A rank's staff sprite, tooltipped with the rank it stands for. */
 	private JComponent staff(ClogRanksPack.Rank rank)
 	{
 		JLabel icon = new JLabel();
-		icon.setAlignmentY(TOP_ALIGNMENT);
+		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 		if (rank == null)
 		{
 			icon.setPreferredSize(new Dimension(24, 32));
@@ -419,18 +547,16 @@ class CollectionLogTab extends JPanel
 		content.repaint();
 	}
 
-	/** The overview's own body: what you have collected most recently. */
+	/** The overview's own body. Latest collections moved to the strip under
+	 *  the hero (Luke, 2026-07-27) — what remains is the honest note while
+	 *  there is nothing dated to show there. */
 	private void overview()
 	{
-		content.add(section("Latest collections"));
-		List<Integer> latest = latestSlots();
-		if (latest.isEmpty())
+		if (latestSlots().isEmpty())
 		{
-			content.add(note("Slots you fill from here on show up here — an import tells us "
-				+ "what you own, never when you got it."));
-			return;
+			content.add(note("Slots you fill from here on appear under the banner — an "
+				+ "import tells us what you own, never when you got it."));
 		}
-		content.add(gridOf(latest, true));
 	}
 
 	/** Slots we watched fill, newest first. */
@@ -462,21 +588,39 @@ class CollectionLogTab extends JPanel
 			overview();
 			return;
 		}
-		content.add(section(tab.name));
+		// the category header centred over its grid, orange bold — the log's
+		// own tab title framing (Luke, 2026-07-27)
+		JPanel head = row();
+		head.add(Box.createHorizontalGlue());
+		head.add(new OsrsLabel(tab.name, OsrsSkin.TITLE, OsrsSkin.boldFont()));
+		head.add(Box.createHorizontalGlue());
+		cap(head);
+		content.add(head);
+		content.add(Box.createVerticalStrut(V2Tokens.TIGHT));
 		List<PersistedState.ClogPage> pages = tab.pages.size() > MAX_PAGES
 			? tab.pages.subList(0, MAX_PAGES) : tab.pages;
-		for (int start = 0; start < pages.size(); start += PAGE_COLS)
+		boolean phantomRaid = "Raids".equalsIgnoreCase(tab.name)
+			&& tab.pages.stream().noneMatch(p -> UPCOMING_RAID.equalsIgnoreCase(p.name));
+		int tiles = pages.size() + (phantomRaid ? 1 : 0);
+		for (int start = 0; start < tiles; start += PAGE_COLS)
 		{
-			List<PersistedState.ClogPage> rowPages =
-				pages.subList(start, Math.min(start + PAGE_COLS, pages.size()));
+			List<PersistedState.ClogPage> rowPages = new ArrayList<>();
 			JPanel row = row();
-			for (int i = 0; i < rowPages.size(); i++)
+			for (int i = start; i < Math.min(start + PAGE_COLS, tiles); i++)
 			{
-				if (i > 0)
+				if (i > start)
 				{
 					row.add(Box.createHorizontalStrut(V2Tokens.ROW));
 				}
-				row.add(pageTile(rowPages.get(i)));
+				if (i < pages.size())
+				{
+					rowPages.add(pages.get(i));
+					row.add(pageTile(pages.get(i)));
+				}
+				else
+				{
+					row.add(upcomingRaidTile());
+				}
 			}
 			row.add(Box.createHorizontalGlue());
 			cap(row);
@@ -499,6 +643,16 @@ class CollectionLogTab extends JPanel
 		}
 	}
 
+	private V2Tile upcomingRaidTile()
+	{
+		V2Tile tile = new V2Tile(theme, null, UPCOMING_RAID, PAGE_TILE, null)
+			.card().captionLines(2).captionInside()
+			.status(V2Tile.Status.UNAVAILABLE);
+		tile.setToolTipText(UPCOMING_RAID + " — upcoming raid, not yet in the game");
+		tile.setCursor(Cursor.getDefaultCursor());
+		return tile;
+	}
+
 	private V2Tile pageTile(PersistedState.ClogPage page)
 	{
 		Set<Integer> items = pageItems(page);
@@ -506,25 +660,20 @@ class CollectionLogTab extends JPanel
 		boolean complete = owned >= items.size() && !items.isEmpty();
 		boolean expanded = page.name.equals(expandedPage);
 		java.awt.Image emblem = page.items.length == 0
-			? null : sprites.get(page.items[0], V2Tokens.TILE_ICON);
+			? null : sprites.getBox(page.items[0], PAGE_EMBLEM);
 		V2Tile tile = new V2Tile(theme, emblem, page.name, PAGE_TILE, () ->
 			{
 				// single expansion: a second click on the open tile closes it
 				expandedPage = expanded ? null : page.name;
 				rebuildContent();
 			})
-			.captionLines(2).captionInside()
+			.card().captionLines(2).captionInside()
 			.captionStatus(complete ? V2Tokens.DONE : V2Tokens.ACTION)
 			.corner(owned + "/" + items.size())
-			.selected(expanded);
-		if (complete)
-		{
-			tile.status(V2Tile.Status.DONE);
-		}
-		else if (owned > 0)
-		{
-			tile.status(V2Tile.Status.READY).progress((double) owned / items.size());
-		}
+			.selected(expanded)
+			// the meter strip is the progress readout — no status edges on
+			// a card tile (Luke, 2026-07-27)
+			.meter(items.isEmpty() ? Double.NaN : (double) owned / items.size());
 		tile.setToolTipText(page.name + " — " + owned + "/" + items.size());
 		return tile;
 	}
@@ -608,34 +757,43 @@ class CollectionLogTab extends JPanel
 	{
 		Set<Integer> items = pageItems(page);
 		int owned = obtainedIn(items);
-		// the game's own red/yellow/green scale, in the skin's palette (it
-		// has no red, and nothing here is a warning): faint / orange / green
-		Color colour = owned == 0 ? OsrsSkin.FAINT
-			: owned >= items.size() ? OsrsSkin.VALUE : OsrsSkin.TITLE;
-		JPanel counts = row();
-		counts.setBorder(new EmptyBorder(0, UiTokens.ROW_GAP, 0, UiTokens.ROW_GAP));
-		counts.add(new OsrsLabel("Obtained: " + owned + "/" + items.size(),
-			colour, OsrsSkin.font()));
-		counts.add(Box.createHorizontalGlue());
-		cap(counts);
-		content.add(counts);
+		// the game's own counter formatting (Luke, 2026-07-27): the label in
+		// the log's orange, the count on its red/yellow/green scale
+		Color countColour = owned == 0 ? V2Tokens.BLOCKED
+			: owned >= items.size() ? OsrsSkin.VALUE : OsrsSkin.COUNT_YELLOW;
+		content.add(counterLine("Obtained: ", owned + "/" + items.size(), countColour));
 
 		List<String> kc = state.clogPageCounts(page.name);
 		for (String line : kc)
 		{
-			content.add(smallLine(line, OsrsSkin.MUTED));
+			// "Kree'arra kills: 30" / "Personal best: 1:23.60" — the label
+			// orange, the value white, exactly as the game draws them
+			int split = line.indexOf(": ");
+			if (split < 0)
+			{
+				content.add(smallLine(line, OsrsSkin.LABEL));
+			}
+			else
+			{
+				content.add(counterLine(line.substring(0, split + 2),
+					line.substring(split + 2), V2Tokens.STRONG));
+			}
 		}
-		if (kc.isEmpty())
-		{
-			OsrsLabel hint = smallLine("Kill counts show once you open this page in-game",
-				OsrsSkin.FAINT);
-			hint.setToolTipText("The game only fills a page's counters while that page is "
-				+ "on screen, so Iron Hub can only show the ones you have looked at.");
-			content.add(hint);
-		}
-
 		content.add(Box.createVerticalStrut(3));
 		content.add(gridOf(new ArrayList<>(items), false));
+	}
+
+	/** One counter row in the game's own detail formatting: an orange label,
+	 *  a coloured value. */
+	private JComponent counterLine(String label, String value, Color valueColour)
+	{
+		JPanel row = row();
+		row.setBorder(new EmptyBorder(0, UiTokens.ROW_GAP, 0, UiTokens.ROW_GAP));
+		row.add(new OsrsLabel(label, OsrsSkin.LABEL, OsrsSkin.smallFont()).leftAligned());
+		row.add(new OsrsLabel(value, valueColour, OsrsSkin.smallFont()).leftAligned());
+		row.add(Box.createHorizontalGlue());
+		cap(row);
+		return row;
 	}
 
 	private JComponent backRow(String target)
@@ -781,78 +939,79 @@ class CollectionLogTab extends JPanel
 
 	// ── the ranking, kept as its own section at the foot ──────────────
 
+	/** "Easiest next slots" on its own Card — a bold orange header that
+	 *  toggles the ranking open as a Table (Luke, 2026-07-27). */
 	private void suggestions()
 	{
-		content.add(section("Easiest next slots"));
-		List<ClogRanker.Ranked> ranked = ranking();
-		if (ranked.isEmpty())
+		V2Surface card = V2Surface.card(theme);
+		card.setAlignmentX(LEFT_ALIGNMENT);
+		JPanel head = row();
+		head.add(new com.ironhub.ui.v2.V2Glyph(theme, suggestionsCollapsed
+			? com.ironhub.ui.v2.V2Glyph.CHEVRON_CLOSED
+			: com.ironhub.ui.v2.V2Glyph.CHEVRON_OPEN));
+		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		head.add(new OsrsLabel("Easiest next slots", OsrsSkin.TITLE, OsrsSkin.boldFont())
+			.leftAligned());
+		head.add(Box.createHorizontalGlue());
+		head.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		cap(head);
+		clickAnywhere(head, new MouseAdapter()
 		{
-			content.add(note("Every rankable slot is obtained."));
-			return;
-		}
-		// ten rows, no more (Luke): this is a nudge at the foot of a browser,
-		// not the browser itself
-		int limit = Math.min(SUGGESTIONS, ranked.size());
-		for (int i = 0; i < limit; i++)
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				suggestionsCollapsed = !suggestionsCollapsed;
+				rebuildContent();
+			}
+		});
+		card.add(head);
+		if (!suggestionsCollapsed)
 		{
-			content.add(suggestionRow(ranked.get(i)));
+			List<ClogRanker.Ranked> ranked = ranking();
+			card.add(Box.createVerticalStrut(2));
+			if (ranked.isEmpty())
+			{
+				card.add(note("Every rankable slot is obtained."));
+			}
+			else
+			{
+				// ten rows, no more (Luke): this is a nudge at the foot of a
+				// browser, not the browser itself
+				com.ironhub.ui.v2.V2Table table = new com.ironhub.ui.v2.V2Table(theme, 1);
+				int limit = Math.min(SUGGESTIONS, ranked.size());
+				for (int i = 0; i < limit; i++)
+				{
+					suggestionTableRow(table, ranked.get(i));
+				}
+				card.add(table);
+			}
 		}
+		cap(card);
+		content.add(card);
 	}
 
-	private JComponent suggestionRow(ClogRanker.Ranked ranked)
+	/** One ranked activity as a table row: icon · name · ~time · goal. */
+	private void suggestionTableRow(com.ironhub.ui.v2.V2Table table, ClogRanker.Ranked ranked)
 	{
-		JPanel row = row();
-		row.setBorder(new EmptyBorder(1, UiTokens.ROW_GAP, 1, UiTokens.ROW_GAP));
-		row.setOpaque(true);
-		row.setBackground(theme.background);
+		JLabel icon = new JLabel();
 		if (ranked.display != null)
 		{
-			JLabel icon = new JLabel();
 			java.awt.Image sprite = sprites.get(ranked.display.itemId, -1, 16);
 			if (sprite != null)
 			{
 				icon.setIcon(new javax.swing.ImageIcon(sprite));
 			}
-			row.add(icon);
-			row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 		}
-		// the ACTIVITY names the row, as it always has: two activities can
-		// share a next slot ("Revenant ether"), and two identical rows read
-		// as a bug rather than as two places to go
 		OsrsLabel name = new OsrsLabel(ranked.activity.name,
 			ranked.locked ? OsrsSkin.FAINT : OsrsSkin.MUTED, OsrsSkin.font())
 			.leftAligned().squeezable();
-		name.setToolTipText((ranked.display == null ? ranked.activity.name
+		String tip = (ranked.display == null ? ranked.activity.name
 			: "Next: " + ranked.display.name)
 			+ (ranked.locked ? " — locked · needs " + ranked.missing : "")
-			+ " · " + ranked.slotsLeft + " of " + ranked.slotsTotal + " slots left");
-		row.add(name);
-		row.add(Box.createHorizontalGlue());
-		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		OsrsLabel time = new OsrsLabel("~" + Format.hours(ranked.hours),
-			OsrsSkin.MUTED, OsrsSkin.smallFont());
-		time.setToolTipText("Expected time to this activity's next slot at ironman rates");
-		row.add(time);
-		if (ranked.display != null)
+			+ " · " + ranked.slotsLeft + " of " + ranked.slotsTotal + " slots left";
+		name.setToolTipText(tip);
+		MouseAdapter skip = new MouseAdapter()
 		{
-			row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-			row.add(goalGlyph(ranked.display.itemId, ranked.display.name));
-		}
-		cap(row);
-		MouseAdapter interaction = new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				row.setBackground(theme.hoverFill);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				row.setBackground(theme.background);
-			}
-
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
@@ -871,8 +1030,21 @@ class CollectionLogTab extends JPanel
 				}
 			}
 		};
-		clickAnywhere(row, interaction);
-		return row;
+		icon.addMouseListener(skip);
+		name.addMouseListener(skip);
+		OsrsLabel time = new OsrsLabel("~" + Format.hours(ranked.hours),
+			OsrsSkin.MUTED, OsrsSkin.smallFont());
+		time.setToolTipText("Expected time to this activity's next slot at ironman rates");
+		if (ranked.display != null)
+		{
+			table.row(icon, name, com.ironhub.ui.v2.V2Table.right(time),
+				goalGlyph(ranked.display.itemId, ranked.display.name));
+		}
+		else
+		{
+			table.row(icon, name, com.ironhub.ui.v2.V2Table.right(time),
+				com.ironhub.ui.v2.V2Table.blank());
+		}
 	}
 
 	private void skipMenu(ClogRanker.Ranked ranked, MouseEvent e)

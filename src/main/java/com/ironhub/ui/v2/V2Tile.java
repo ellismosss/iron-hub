@@ -245,6 +245,45 @@ public class V2Tile extends JComponent
 	private java.awt.Color captionStatus;
 
 	/**
+	 * Wear the Card's sprite art instead of the chamfered stone — the clog
+	 * page grid (Luke, 2026-07-27). The hover/selected wash and the
+	 * UNAVAILABLE shade become plain inset washes: the stone silhouette and
+	 * the status ring are traced around the chamfer, which the Card art does
+	 * not have, so a card tile says its progress with {@link #meter} and its
+	 * standing with the caption instead of an edge.
+	 */
+	public V2Tile card()
+	{
+		this.cardSurface = true;
+		return this;
+	}
+
+	private boolean cardSurface;
+
+	/**
+	 * A thin METER progress strip along the tile's bottom, plain — no
+	 * segment notches. The card-tile replacement for the wrapping status
+	 * edge (Luke, 2026-07-27). NaN clears it.
+	 */
+	public V2Tile meter(double fraction)
+	{
+		if (Double.isNaN(fraction))
+		{
+			this.meterBar = null;
+			return this;
+		}
+		if (meterBar == null)
+		{
+			meterBar = new V2ProgressBar(theme, V2ProgressBar.Size.METER);
+		}
+		meterBar.fraction(fraction);
+		repaint();
+		return this;
+	}
+
+	private V2ProgressBar meterBar;
+
+	/**
 	 * A member count in the top-left — "this tile stands for 4 variants".
 	 * Drawn in {@code TEXT}, not a status colour: it is a quantity, and Luke
 	 * asked for the light colour rather than orange when the Gear library
@@ -336,21 +375,38 @@ public class V2Tile extends JComponent
 		// V2Tokens.navStone(), which is RuneLite's dark grey tab stone and
 		// nothing to do with the tile we built (Luke, 2026-07-25: "some weird
 		// dark sprites")
-		V2Surface.paintTile(g2, theme, getWidth(), size, selected);
-		// selected carries the wash permanently, so a picked tile stays lifted
-		// whether or not the pointer is on it — the bevel says WHICH is picked
-		if (hover || selected)
+		if (cardSurface)
 		{
-			V2Surface.washTile(g2, getWidth(), size);
+			V2Tokens.card().paint(g2, theme, 0, 0, getWidth(), size);
+			if (hover || selected)
+			{
+				g2.setColor(V2Tokens.HIGHLIGHT);
+				g2.fillRect(2, 2, getWidth() - 4, size - 4);
+			}
+		}
+		else
+		{
+			V2Surface.paintTile(g2, theme, getWidth(), size, selected);
+			// selected carries the wash permanently, so a picked tile stays
+			// lifted whether or not the pointer is on it — the bevel says
+			// WHICH is picked
+			if (hover || selected)
+			{
+				V2Surface.washTile(g2, getWidth(), size);
+			}
 		}
 
 
-		// captionInside gives the emblem the band above the caption; the
+		// bands, bottom-up: the meter strip hugs the bottom bevel, the inside
+		// caption sits above it, the emblem centres in what is left. The
 		// outside caption keeps the whole art to itself (Luke, 2026-07-25 —
 		// text on the tile pushed the icon off centre, so the icon's band
 		// always excludes the text's)
-		int artBand = captionInside && captionText != null
-			? size - captionHeight() - V2Tokens.TIGHT : size;
+		int edgeInset = cardSurface ? V2Tokens.SLICE_INSET : V2Tokens.ROW;
+		int meterTop = meterBar == null ? size : size - edgeInset - 5;
+		int captionTop = captionInside && captionText != null
+			? meterTop - V2Tokens.TIGHT - captionHeight() : meterTop;
+		int artBand = captionTop;
 		if (emblem != null)
 		{
 			g2.drawImage(emblem, (getWidth() - emblem.getWidth(null)) / 2,
@@ -361,11 +417,17 @@ public class V2Tile extends JComponent
 			placeholder.setSize(getWidth(), artBand);
 			placeholder.paint(g2);
 		}
+		if (meterBar != null)
+		{
+			meterBar.setSize(getWidth() - 2 * edgeInset, 5);
+			g2.translate(edgeInset, meterTop);
+			meterBar.paint(g2);
+			g2.translate(-edgeInset, -meterTop);
+		}
 		OsrsLabel text = caption();
 		if (text != null)
 		{
-			int top = captionInside ? size - captionHeight() - V2Tokens.TIGHT
-				: size + V2Tokens.TIGHT;
+			int top = captionInside ? captionTop : size + V2Tokens.TIGHT;
 			text.setSize(getWidth(), captionHeight());
 			g2.translate(0, top);
 			text.setColor(captionStatus != null ? captionStatus
@@ -373,7 +435,7 @@ public class V2Tile extends JComponent
 			text.paint(g2);
 			g2.translate(0, -top);
 		}
-		if (status.edge != null)
+		if (status.edge != null && !cardSurface)
 		{
 			// Traced around the chamfer, not drawn as a rectangle: a drawRect
 			// cuts straight across all four notched corners (Luke, 2026-07-25).
@@ -403,7 +465,15 @@ public class V2Tile extends JComponent
 		// tile") — the whole tile has to recede, not just its middle.
 		if (status == Status.UNAVAILABLE)
 		{
-			V2Surface.shadeTile(g2, getWidth(), size);
+			if (cardSurface)
+			{
+				g2.setColor(V2Tokens.SHADOW);
+				g2.fillRect(2, 2, getWidth() - 4, size - 4);
+			}
+			else
+			{
+				V2Surface.shadeTile(g2, getWidth(), size);
+			}
 		}
 		if (corner != null)
 		{
