@@ -939,39 +939,36 @@ class CollectionLogTab extends JPanel
 
 	// ── the ranking, kept as its own section at the foot ──────────────
 
-	/** "Easiest next slots" on its own Card — a bold orange header that
-	 *  toggles the ranking open as a Table (Luke, 2026-07-27). */
+	/**
+	 * "Easiest next slots": a pressable Card holding just the bold orange
+	 * text — the card art's own hovered state lights it under the pointer
+	 * (no chevron; the art carries no separate pressed sprite and §8 never
+	 * invents one) — with the ranking on its own WELL below, which is what
+	 * a themed V2Table wears (Luke, 2026-07-27).
+	 */
 	private void suggestions()
 	{
-		V2Surface card = V2Surface.card(theme);
+		V2Surface card = V2Surface.card(theme).pressable(() ->
+		{
+			suggestionsCollapsed = !suggestionsCollapsed;
+			rebuildContent();
+		});
 		card.setAlignmentX(LEFT_ALIGNMENT);
 		JPanel head = row();
-		head.add(new com.ironhub.ui.v2.V2Glyph(theme, suggestionsCollapsed
-			? com.ironhub.ui.v2.V2Glyph.CHEVRON_CLOSED
-			: com.ironhub.ui.v2.V2Glyph.CHEVRON_OPEN));
-		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		head.add(new OsrsLabel("Easiest next slots", OsrsSkin.TITLE, OsrsSkin.boldFont())
-			.leftAligned());
 		head.add(Box.createHorizontalGlue());
-		head.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		head.add(new OsrsLabel("Easiest next slots", OsrsSkin.TITLE, OsrsSkin.boldFont()));
+		head.add(Box.createHorizontalGlue());
 		cap(head);
-		clickAnywhere(head, new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				suggestionsCollapsed = !suggestionsCollapsed;
-				rebuildContent();
-			}
-		});
 		card.add(head);
+		cap(card);
+		content.add(card);
 		if (!suggestionsCollapsed)
 		{
+			content.add(Box.createVerticalStrut(2));
 			List<ClogRanker.Ranked> ranked = ranking();
-			card.add(Box.createVerticalStrut(2));
 			if (ranked.isEmpty())
 			{
-				card.add(note("Every rankable slot is obtained."));
+				content.add(note("Every rankable slot is obtained."));
 			}
 			else
 			{
@@ -983,11 +980,9 @@ class CollectionLogTab extends JPanel
 				{
 					suggestionTableRow(table, ranked.get(i));
 				}
-				card.add(table);
+				content.add(table);
 			}
 		}
-		cap(card);
-		content.add(card);
 	}
 
 	/** One ranked activity as a table row: icon · name · ~time · goal. */
