@@ -91,13 +91,17 @@ public class V2SelectionRenderTest
 		// meter strip — the clog page grid's shape (Luke, 2026-07-27)
 		JPanel inside = horizontal();
 		String[] insideNames = {"Abyssal Sire", "Barrows Chests", "Wintertodt"};
-		String[] counts = {"7/33", "24/24", "0/12"};
+		String[] insideOwned = {"7", "24", "0"};
+		String[] insideTotals = {"/33", "/24", "/12"};
+		java.awt.Color[] ownedColours = {V2Tokens.ACTION, V2Tokens.DONE, V2Tokens.BLOCKED};
 		double[] fills = {7 / 33.0, 1, 0};
 		for (int i = 0; i < insideNames.length; i++)
 		{
 			V2Tile tile = new V2Tile(theme, emblem(theme, "icons/skills/slayer"),
 				insideNames[i], 68, null)
-				.card().captionLines(2).captionInside().corner(counts[i])
+				.card().captionLines(2).captionInside()
+				.corner(insideOwned[i], ownedColours[i], insideTotals[i],
+					i == 1 ? V2Tokens.DONE : V2Tokens.ACTION)
 				.captionStatus(i == 1 ? V2Tokens.DONE : V2Tokens.ACTION)
 				.meter(fills[i]);
 			inside.add(tile);

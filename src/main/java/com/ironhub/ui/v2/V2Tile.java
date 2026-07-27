@@ -218,10 +218,27 @@ public class V2Tile extends JComponent
 	public V2Tile corner(String text)
 	{
 		this.corner = text == null || text.isEmpty() ? null : V2Label.detail(text);
+		this.cornerRight = null;
+		return this;
+	}
+
+	/**
+	 * The corner note in TWO coloured segments — the clog count grammar
+	 * (Luke, 2026-07-27): the obtained count red/orange/green, the "/total"
+	 * orange until done.
+	 */
+	public V2Tile corner(String left, java.awt.Color leftColour,
+		String right, java.awt.Color rightColour)
+	{
+		this.corner = V2Label.detail(left);
+		this.corner.setColor(leftColour);
+		this.cornerRight = V2Label.detail(right);
+		this.cornerRight.setColor(rightColour);
 		return this;
 	}
 
 	private OsrsLabel corner;
+	private OsrsLabel cornerRight;
 
 	/**
 	 * The caption in a status colour — the clog grid's orange-until-done,
@@ -477,11 +494,21 @@ public class V2Tile extends JComponent
 		}
 		if (corner != null)
 		{
-			Dimension ink = corner.getPreferredSize();
-			corner.setSize(ink);
-			g2.translate(getWidth() - ink.width - V2Tokens.TIGHT, V2Tokens.TIGHT);
+			Dimension left = corner.getPreferredSize();
+			Dimension right = cornerRight == null
+				? new Dimension(0, 0) : cornerRight.getPreferredSize();
+			int x = getWidth() - left.width - right.width - V2Tokens.TIGHT;
+			corner.setSize(left);
+			g2.translate(x, V2Tokens.TIGHT);
 			corner.paint(g2);
-			g2.translate(-(getWidth() - ink.width - V2Tokens.TIGHT), -V2Tokens.TIGHT);
+			g2.translate(-x, -V2Tokens.TIGHT);
+			if (cornerRight != null)
+			{
+				cornerRight.setSize(right);
+				g2.translate(x + left.width, V2Tokens.TIGHT);
+				cornerRight.paint(g2);
+				g2.translate(-(x + left.width), -V2Tokens.TIGHT);
+			}
 		}
 		else if (owned)
 		{

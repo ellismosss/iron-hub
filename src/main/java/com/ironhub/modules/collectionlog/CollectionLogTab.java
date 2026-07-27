@@ -670,6 +670,12 @@ class CollectionLogTab extends JPanel
 		boolean expanded = page.name.equals(expandedPage);
 		java.awt.Image emblem = page.items.length == 0
 			? null : sprites.getBox(page.items[0], PAGE_EMBLEM);
+		// the corner count wears the category cards' grammar (Luke,
+		// 2026-07-27): obtained red at 0 / orange filling / green done,
+		// "/total" orange until the page completes green
+		Color cornerOwned = complete ? V2Tokens.DONE
+			: owned == 0 ? V2Tokens.BLOCKED : V2Tokens.ACTION;
+		Color cornerRest = complete ? V2Tokens.DONE : V2Tokens.ACTION;
 		V2Tile tile = new V2Tile(theme, emblem, page.name, PAGE_TILE, () ->
 			{
 				// single expansion: a second click on the open tile closes it
@@ -678,7 +684,7 @@ class CollectionLogTab extends JPanel
 			})
 			.card().captionLines(2).captionInside()
 			.captionStatus(complete ? V2Tokens.DONE : V2Tokens.ACTION)
-			.corner(owned + "/" + items.size())
+			.corner(String.valueOf(owned), cornerOwned, "/" + items.size(), cornerRest)
 			.selected(expanded)
 			// the meter strip is the progress readout — no status edges on
 			// a card tile, and no hover tooltip on a card (Luke, 2026-07-27)

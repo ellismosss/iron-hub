@@ -4,7 +4,6 @@ import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
 import com.ironhub.ui.v2.V2ProgressBar;
 import com.ironhub.ui.v2.V2Tokens;
-import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
@@ -117,9 +116,9 @@ class ClogTabTile extends JComponent
 			RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 		g2.setFont(OsrsSkin.smallFont());
 		FontMetrics fm = g2.getFontMetrics();
-		// two segments (Luke, 2026-07-27): the obtained count grey at 0,
-		// white while filling, green complete; the "/total" green only once
-		// the tab is complete
+		// two segments (Luke's second pass, 2026-07-27): the obtained count
+		// red at 0, orange while filling, green complete; the "/total"
+		// ALWAYS orange until the tab completes green
 		String ownedText = String.valueOf(obtained);
 		String restText = "/" + total;
 		int x = (w - fm.stringWidth(ownedText + restText)) / 2;
@@ -127,9 +126,9 @@ class ClogTabTile extends JComponent
 		g2.setColor(OsrsSkin.TEXT_SHADOW);
 		g2.drawString(ownedText + restText, x + 1, y + 1);
 		g2.setColor(complete() ? OsrsSkin.VALUE
-			: obtained == 0 ? OsrsSkin.FAINT : Color.WHITE);
+			: obtained == 0 ? V2Tokens.BLOCKED : OsrsSkin.TITLE);
 		g2.drawString(ownedText, x, y);
-		g2.setColor(complete() ? OsrsSkin.VALUE : OsrsSkin.MUTED);
+		g2.setColor(complete() ? OsrsSkin.VALUE : OsrsSkin.TITLE);
 		g2.drawString(restText, x + fm.stringWidth(ownedText), y);
 
 		// the METER atom across the foot, painted in place

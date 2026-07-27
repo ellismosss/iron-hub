@@ -376,12 +376,16 @@ public class DesignLabV2Tab extends JPanel
 		add(V2Label.detail("Card tile: caption inside, corner count, meter"));
 		JPanel inside = row();
 		String[] pages = {"Abyssal Sire", "Barrows Chests", "Wintertodt"};
-		String[] counts = {"7/33", "24/24", "0/12"};
+		String[] owned = {"7", "24", "0"};
+		String[] totals = {"/33", "/24", "/12"};
+		java.awt.Color[] ownedColours = {V2Tokens.ACTION, V2Tokens.DONE, V2Tokens.BLOCKED};
 		double[] fills = {7 / 33.0, 1, 0};
 		for (int i = 0; i < pages.length; i++)
 		{
 			V2Tile tile = new V2Tile(theme, sprite("icons/skills/slayer"), pages[i], 68, null)
-				.card().captionLines(2).captionInside().corner(counts[i])
+				.card().captionLines(2).captionInside()
+				.corner(owned[i], ownedColours[i], totals[i],
+					i == 1 ? V2Tokens.DONE : V2Tokens.ACTION)
 				.captionStatus(i == 1 ? V2Tokens.DONE : V2Tokens.ACTION)
 				.meter(fills[i]);
 			inside.add(tile);
