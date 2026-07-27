@@ -117,9 +117,9 @@ public class WrapperIntegrationRenderTest
 
 			// the Wiki gear fold (KB-runtime slice 3): the selected monster is
 			// the dust devil, whose "Slayer task/Dust devils" wiki gear table
-			// renders under the monster card — ownership-tinted rows, "+"
-			// goal affordances on unowned top picks; expanding must grow the
-			// tab by the slot rows
+			// renders under the monster card — each slot shows the best OWNED
+			// pick (else the wiki's weakest as the entry step, with a "+"
+			// goal affordance); expanding must grow the tab by the slot rows
 			int collapsedHeight = image[0].getHeight();
 			javax.swing.SwingUtilities.invokeAndWait(() ->
 				module.setWikiGearExpandedForTest(true));

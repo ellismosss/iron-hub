@@ -1584,8 +1584,9 @@ public class LoadoutLabModule implements IronHubModule
 
 	// ── Wiki gear (design/KB-RUNTIME.md): recommended-equipment.json's
 	// per-activity gear tables, joined to the selected monster / current
-	// slayer task, ownership-tinted, unowned top picks routable into the
-	// Goal planner as one-shot stock goals. ──
+	// slayer task. Each slot shows YOUR best owned pick (else the wiki's
+	// weakest as the entry step), with the unowned entry routable into the
+	// Goal planner as a one-shot stock goal. ──
 
 	/** The activity the fold describes: the selected monster wins, else the
 	 *  current slayer task; null hides the fold entirely. */
@@ -1721,10 +1722,12 @@ public class LoadoutLabModule implements IronHubModule
 		return slab;
 	}
 
-	/** One slot row: sprite + faint slot label + the wiki's TOP pick, green
-	 *  when you own it (variants count); when you own a lower-ranked
-	 *  alternative the hover says which; an unowned top pick offers "+"
-	 *  (a one-shot stock goal — the planner routes the obtainment). */
+	/** One slot row: sprite + faint slot label + your BEST OWNED pick
+	 *  (variants count) shown green; own nothing in the slot and the row
+	 *  shows the wiki's WEAKEST option — the entry step, never a flex you
+	 *  cannot wear (Luke, 2026-07-27) — with "+" routing it into the Goal
+	 *  planner as a one-shot stock goal. The hover names the wiki's top
+	 *  pick either way. */
 	private javax.swing.JComponent wikiGearRow(String slot,
 		java.util.List<com.ironhub.data.RecommendedEquipmentPack.Rec> recs)
 	{
@@ -1741,15 +1744,18 @@ public class LoadoutLabModule implements IronHubModule
 				break; // rank order — the first owned is your best
 			}
 		}
+		boolean shownOwned = ownedBest != null;
+		com.ironhub.data.RecommendedEquipmentPack.Rec shown =
+			shownOwned ? ownedBest : recs.get(recs.size() - 1);
 		boolean topOwned = ownedBest == top;
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setOpaque(false);
 		row.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 		row.setBorder(new javax.swing.border.EmptyBorder(1, 0, 1, 0));
-		if (itemManager != null && top.getItemId() != null)
+		if (itemManager != null && shown.getItemId() != null)
 		{
-			java.awt.Image sprite = wikiSprites().getBox(top.getItemId(), 16);
+			java.awt.Image sprite = wikiSprites().getBox(shown.getItemId(), 16);
 			if (sprite != null)
 			{
 				row.add(new JLabel(new javax.swing.ImageIcon(sprite)));
@@ -1761,37 +1767,43 @@ public class LoadoutLabModule implements IronHubModule
 			.leftAligned();
 		row.add(slotLabel);
 		row.add(Box.createHorizontalStrut(4));
-		java.awt.Color color = topOwned ? com.ironhub.ui.osrs.OsrsSkin.VALUE
-			: top.getItemId() == null ? com.ironhub.ui.osrs.OsrsSkin.FAINT
+		java.awt.Color color = shownOwned ? com.ironhub.ui.osrs.OsrsSkin.VALUE
+			: shown.getItemId() == null ? com.ironhub.ui.osrs.OsrsSkin.FAINT
 			: com.ironhub.ui.osrs.OsrsSkin.MUTED;
 		com.ironhub.ui.osrs.OsrsLabel name = new com.ironhub.ui.osrs.OsrsLabel(
-			top.displayName(), color, com.ironhub.ui.osrs.OsrsSkin.smallFont())
+			shown.displayName(), color, com.ironhub.ui.osrs.OsrsSkin.smallFont())
 			.leftAligned().squeezable();
-		StringBuilder tip = new StringBuilder("<html><b>").append(top.displayName()).append("</b>");
+		StringBuilder tip = new StringBuilder("<html><b>").append(shown.displayName()).append("</b>");
 		if (topOwned)
 		{
-			tip.append("<br>You own this");
+			tip.append("<br>You own this — the wiki's top pick");
 		}
-		else if (ownedBest != null)
+		else if (shownOwned)
 		{
-			tip.append("<br>You own: ").append(ownedBest.displayName())
-				.append(" (the wiki's #").append(ownedRank).append(" pick)");
-		}
-		else if (top.getItemId() != null)
-		{
-			String sources = itemSourcesPack().sourceLine(top.getItemId());
-			if (sources != null)
-			{
-				tip.append("<br>").append(sources);
-			}
+			tip.append("<br>You own this (the wiki's #").append(ownedRank).append(" pick)")
+				.append("<br>Wiki's best: ").append(top.displayName());
 		}
 		else
 		{
-			tip.append("<br>Ownership not detectable for this family");
+			tip.append("<br>You own none of the wiki's picks — this is the entry option")
+				.append("<br>Wiki's best: ").append(top.displayName());
+			if (shown.getItemId() != null)
+			{
+				String sources = itemSourcesPack().sourceLine(shown.getItemId());
+				if (sources != null)
+				{
+					tip.append("<br>").append(sources);
+				}
+			}
+			else
+			{
+				tip.append("<br>Ownership not detectable for this family");
+			}
 		}
 		if (recs.size() > 1)
 		{
-			tip.append("<br>Alternatives: ").append(recs.stream().skip(1).limit(3)
+			tip.append("<br>Alternatives: ").append(recs.stream()
+				.filter(r -> r != shown).limit(3)
 				.map(com.ironhub.data.RecommendedEquipmentPack.Rec::displayName)
 				.collect(java.util.stream.Collectors.joining(", ")));
 		}
@@ -1800,9 +1812,9 @@ public class LoadoutLabModule implements IronHubModule
 		row.setToolTipText(tip.toString());
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
-		if (!topOwned && top.getItemId() != null)
+		if (!shownOwned && shown.getItemId() != null)
 		{
-			int itemId = top.getItemId();
+			int itemId = shown.getItemId();
 			String goalId = "supply:" + itemId;
 			boolean isGoal = state.goalSeedIds("supply").contains(goalId);
 			JLabel glyph = new JLabel(isGoal ? "×" : "+");
@@ -1835,7 +1847,7 @@ public class LoadoutLabModule implements IronHubModule
 					else
 					{
 						state.addGoalSeed(com.ironhub.state.GoalSeeds.supply(
-							itemId, top.displayName(), 1));
+							itemId, shown.displayName(), 1));
 					}
 					lastViewFp = 0;
 					renderView();
@@ -2004,7 +2016,17 @@ public class LoadoutLabModule implements IronHubModule
 				best = dps;
 			}
 		}
-		for (com.loadoutlab.engine.CombatStyle style : com.loadoutlab.engine.CombatStyle.concreteValues())
+		// highest dps leftmost, no-set styles trail (Luke, 2026-07-27);
+		// ties keep the melee/ranged/magic order (stable sort)
+		java.util.List<com.loadoutlab.engine.CombatStyle> styles = new java.util.ArrayList<>(
+			java.util.Arrays.asList(com.loadoutlab.engine.CombatStyle.concreteValues()));
+		styles.sort((a, b) ->
+		{
+			Double da = suggestedDps(a);
+			Double db = suggestedDps(b);
+			return Double.compare(db == null ? -1 : db, da == null ? -1 : da);
+		});
+		for (com.loadoutlab.engine.CombatStyle style : styles)
 		{
 			Double dps = suggestedDps(style);
 			// protect-prayer icon names the style; the number is the dps
