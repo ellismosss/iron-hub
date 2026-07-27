@@ -111,13 +111,16 @@ class GearLibraryTab extends JPanel
 	private static final int COLUMNS = 4;
 	private static final int PAGE_ROWS = 15;
 	private boolean chartExpanded;
-	/** How the grid folds items: not at all, by variant, or by armour set. */
-	private enum GroupMode { NONE, VARIANTS, SETS }
-	private GroupMode groupMode = GroupMode.NONE;
-	/** Hide Leagues / Deadman rewards. */
+	/** The two foldings COMPOSE (Luke, 2026-07-28): sets group the grid,
+	 *  variants fold an expanded set's members (or the grid when sets off). */
+	private boolean groupVariants;
+	private boolean groupSets;
+	/** Hide Leagues / Deadman rewards ("Show seasonal" unchecked). */
 	private boolean hideLeagues;
 	/** The one group whose members are expanded (only one at a time, Luke). */
 	private String expandedGroup;
+	/** With both modes on: the one variant group open INSIDE the open set. */
+	private String expandedMemberGroup;
 	private List<Object> lastPrint = List.of();
 
 	GearLibraryTab(AccountState state, EquipmentPack pack, ItemSourcesPack itemSources,
@@ -210,15 +213,25 @@ class GearLibraryTab extends JPanel
 		add(accessChips);
 		add(Box.createVerticalStrut(UiTokens.CHIP_GAP));
 		add(toggleRow(
-			toggle("Group variants", () -> groupMode == GroupMode.VARIANTS,
-				on -> setGroupMode(on ? GroupMode.VARIANTS : GroupMode.NONE)),
-			toggle("Show sets", () -> groupMode == GroupMode.SETS,
-				on -> setGroupMode(on ? GroupMode.SETS : GroupMode.NONE))));
+			toggle("Group variants", () -> groupVariants, on ->
+			{
+				groupVariants = on;
+				clearExpansion();
+				rebuildList();
+			}),
+			toggle("Show sets", () -> groupSets, on ->
+			{
+				groupSets = on;
+				clearExpansion();
+				rebuildList();
+			})));
 		add(Box.createVerticalStrut(UiTokens.CHIP_GAP));
 		add(toggleRow(
-			toggle("Hide Leagues / DMM", () -> hideLeagues, on ->
+			// checked = seasonal items included (Luke, 2026-07-28 rename —
+			// the old "Hide Leagues / DMM" read backwards)
+			toggle("Show seasonal", () -> !hideLeagues, on ->
 			{
-				hideLeagues = on;
+				hideLeagues = !on;
 				rebuildList();
 			})));
 		add(Box.createVerticalStrut(6));
@@ -323,14 +336,10 @@ class GearLibraryTab extends JPanel
 		sortDirection.getParent();
 	}
 
-	/** Grouping is one mode at a time: turning Sets on turns Variants off.
-	 *  The ticks re-sync here so test seams and clicks agree. */
-	private void setGroupMode(GroupMode mode)
+	private void clearExpansion()
 	{
-		groupMode = mode;
 		expandedGroup = null;
-		syncToggles();
-		rebuildList();
+		expandedMemberGroup = null;
 	}
 
 	/** The mode checkboxes, so a mode change can untick its rival. */
@@ -357,15 +366,14 @@ class GearLibraryTab extends JPanel
 		return unit;
 	}
 
-	/** Every mode checkbox re-reads its getter — Sets and Variants are
-	 *  mutually exclusive, so a click on one can untick the other. */
+	/** Every mode checkbox re-reads its getter, so seams and clicks agree. */
 	private void syncToggles()
 	{
 		toggles.forEach((text, box) ->
 		{
-			boolean on = "Group variants".equals(text) ? groupMode == GroupMode.VARIANTS
-				: "Show sets".equals(text) ? groupMode == GroupMode.SETS
-				: hideLeagues;
+			boolean on = "Group variants".equals(text) ? groupVariants
+				: "Show sets".equals(text) ? groupSets
+				: !hideLeagues;
 			box.state(on ? V2Checkbox.State.ON : V2Checkbox.State.OFF);
 		});
 	}
@@ -450,9 +458,11 @@ class GearLibraryTab extends JPanel
 		}
 		print.add(selected);
 		print.add(page);
-		print.add(groupMode);
+		print.add(groupVariants);
+		print.add(groupSets);
 		print.add(hideLeagues);
 		print.add(expandedGroup);
+		print.add(expandedMemberGroup);
 		print.add(owned);
 		print.add(chartExpanded);
 		return print;
@@ -502,13 +512,14 @@ class GearLibraryTab extends JPanel
 			hideLeagues);
 	}
 
-	/** The filtered result as units — one per item (NONE), one per variant
-	 *  group (VARIANTS, base name = name minus trailing parentheticals), or
-	 *  one per armour set (SETS, set name = name minus its piece-type word). */
+	/** The filtered result as units — one per item, one per variant group
+	 *  (base name = name minus trailing parentheticals), or one per armour
+	 *  set (set name = name minus its piece-type word). Sets win the grid;
+	 *  variants then fold inside an expanded set ({@link #memberUnits}). */
 	private List<Unit> visibleUnits()
 	{
 		List<EquipmentPack.Item> items = visible();
-		if (groupMode == GroupMode.NONE)
+		if (!groupSets && !groupVariants)
 		{
 			List<Unit> units = new ArrayList<>(items.size());
 			for (EquipmentPack.Item item : items)
@@ -517,22 +528,43 @@ class GearLibraryTab extends JPanel
 			}
 			return units;
 		}
+		return fold(items, groupSets ? GearLibraryTab::setKey : GearLibraryTab::baseName);
+	}
+
+	private static List<Unit> fold(List<EquipmentPack.Item> items,
+		java.util.function.Function<String, String> key)
+	{
 		java.util.LinkedHashMap<String, List<EquipmentPack.Item>> groups =
 			new java.util.LinkedHashMap<>();
 		for (EquipmentPack.Item item : items)
 		{
-			String key = groupMode == GroupMode.SETS ? setKey(item.name) : baseName(item.name);
-			groups.computeIfAbsent(key, k -> new ArrayList<>()).add(item);
+			groups.computeIfAbsent(key.apply(item.name), k -> new ArrayList<>()).add(item);
 		}
 		List<Unit> units = new ArrayList<>(groups.size());
-		groups.forEach((key, list) ->
+		groups.forEach((base, list) ->
 		{
 			// the base variant leads its group (Luke: "Rune scimitar" before
 			// "Rune scimitar (saradomin)") — the shortest name is the base,
 			// ties keep the sort order
 			list.sort(java.util.Comparator.comparingInt((EquipmentPack.Item i) -> i.name.length()));
-			units.add(new Unit(key, list));
+			units.add(new Unit(base, list));
 		});
+		return units;
+	}
+
+	/** An expanded set's members: variant groups when both modes are on,
+	 *  else one unit per piece. */
+	private List<Unit> memberUnits(Unit group)
+	{
+		if (groupSets && groupVariants)
+		{
+			return fold(group.items, GearLibraryTab::baseName);
+		}
+		List<Unit> units = new ArrayList<>(group.items.size());
+		for (EquipmentPack.Item item : group.items)
+		{
+			units.add(new Unit(item.name, List.of(item)));
+		}
 		return units;
 	}
 
@@ -626,10 +658,68 @@ class GearLibraryTab extends JPanel
 			return;
 		}
 
-		List<Unit> units = pageUnits();
-		for (int start = 0; start < units.size(); start += cols)
+		renderUnits(pageUnits());
+
+		if (pages > 1)
 		{
-			List<Unit> rowUnits = units.subList(start, Math.min(start + cols, units.size()));
+			list.add(pager(pages));
+		}
+		list.revalidate();
+		list.repaint();
+	}
+
+	/**
+	 * The grid, packed. Small tiles flow four across; a SET group is a
+	 * double tile taking four tiles' space, the smalls that follow it in
+	 * sort order wrapping beside it in a 2x2 block (Luke, 2026-07-28).
+	 */
+	private void renderUnits(List<Unit> units)
+	{
+		List<Unit> pending = new ArrayList<>();
+		int i = 0;
+		while (i < units.size())
+		{
+			Unit unit = units.get(i);
+			if (!(groupSets && unit.isGroup()))
+			{
+				pending.add(unit);
+				i++;
+				continue;
+			}
+			flushSmallRows(pending);
+			List<Unit> band = new ArrayList<>();
+			band.add(unit);
+			i++;
+			if (i < units.size() && units.get(i).isGroup())
+			{
+				// two sets meet: they pair up side by side
+				band.add(units.get(i));
+				i++;
+				addBandRow(band, List.of());
+			}
+			else
+			{
+				List<Unit> wrap = new ArrayList<>();
+				while (i < units.size() && wrap.size() < 4 && !units.get(i).isGroup())
+				{
+					wrap.add(units.get(i));
+					i++;
+				}
+				addBandRow(band, wrap);
+				band.addAll(wrap);
+			}
+			addExpansions(band);
+		}
+		flushSmallRows(pending);
+	}
+
+	/** Pending small units as centred 4-wide rows, expansions after each. */
+	private void flushSmallRows(List<Unit> pending)
+	{
+		for (int start = 0; start < pending.size(); start += COLUMNS)
+		{
+			List<Unit> rowUnits = pending.subList(start,
+				Math.min(start + COLUMNS, pending.size()));
 			JPanel gridRow = row();
 			// glue BOTH sides — rows centre in the column (the reference grammar)
 			gridRow.add(Box.createHorizontalGlue());
@@ -645,40 +735,149 @@ class GearLibraryTab extends JPanel
 			cap(gridRow);
 			list.add(gridRow);
 			list.add(Box.createVerticalStrut(3));
-			// after the row: a selected singleton's detail card, and the one
-			// expanded group's members (each 4-wide, adhering to the filters)
-			for (Unit unit : rowUnits)
+			addExpansions(rowUnits);
+		}
+		pending.clear();
+	}
+
+	/** One band: the big set tile(s) with up to four smalls stacked 2x2
+	 *  beside them. */
+	private void addBandRow(List<Unit> bigs, List<Unit> wrap)
+	{
+		JPanel bandRow = row();
+		bandRow.add(Box.createHorizontalGlue());
+		for (int b = 0; b < bigs.size(); b++)
+		{
+			if (b > 0)
 			{
-				if (!unit.isGroup() && unit.lead().primaryId() == selected)
+				bandRow.add(Box.createHorizontalStrut(3));
+			}
+			JComponent tile = unitTile(bigs.get(b));
+			tile.setAlignmentY(TOP_ALIGNMENT);
+			bandRow.add(tile);
+		}
+		if (!wrap.isEmpty())
+		{
+			bandRow.add(Box.createHorizontalStrut(3));
+			JPanel stack = new JPanel();
+			stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
+			stack.setOpaque(false);
+			stack.setAlignmentY(TOP_ALIGNMENT);
+			for (int start = 0; start < wrap.size(); start += 2)
+			{
+				if (start > 0)
 				{
-					list.add(detailCard(unit.lead(), owns(unit.lead())));
+					stack.add(Box.createVerticalStrut(3));
+				}
+				JPanel mini = row();
+				for (int col = 0; col < 2 && start + col < wrap.size(); col++)
+				{
+					if (col > 0)
+					{
+						mini.add(Box.createHorizontalStrut(3));
+					}
+					mini.add(unitTile(wrap.get(start + col)));
+				}
+				mini.add(Box.createHorizontalGlue());
+				cap(mini);
+				stack.add(mini);
+			}
+			stack.setMaximumSize(stack.getPreferredSize());
+			bandRow.add(stack);
+		}
+		bandRow.add(Box.createHorizontalGlue());
+		cap(bandRow);
+		list.add(bandRow);
+		list.add(Box.createVerticalStrut(3));
+	}
+
+	/** A shown unit's expansions: the selected singleton's detail card, or
+	 *  the one expanded group's members. */
+	private void addExpansions(List<Unit> shown)
+	{
+		for (Unit unit : shown)
+		{
+			if (!unit.isGroup() && unit.lead().primaryId() == selected)
+			{
+				list.add(detailCard(unit.lead(), owns(unit.lead())));
+				list.add(Box.createVerticalStrut(3));
+			}
+			else if (unit.isGroup() && unit.base.equals(expandedGroup))
+			{
+				addMemberBlock(unit);
+			}
+		}
+	}
+
+	/** An expanded set's members (4-wide, indented): variant groups when
+	 *  both modes are on — one openable at a time — else the pieces
+	 *  themselves, with the selected member's detail card under its row. */
+	private void addMemberBlock(Unit group)
+	{
+		List<Unit> members = memberUnits(group);
+		for (int start = 0; start < members.size(); start += COLUMNS)
+		{
+			List<Unit> rowUnits = members.subList(start,
+				Math.min(start + COLUMNS, members.size()));
+			JPanel gridRow = row();
+			gridRow.setBorder(new EmptyBorder(0, 8, 0, 0)); // indent members
+			for (int col = 0; col < rowUnits.size(); col++)
+			{
+				if (col > 0)
+				{
+					gridRow.add(Box.createHorizontalStrut(3));
+				}
+				gridRow.add(memberTile(rowUnits.get(col)));
+			}
+			gridRow.add(Box.createHorizontalGlue());
+			cap(gridRow);
+			list.add(gridRow);
+			list.add(Box.createVerticalStrut(3));
+			for (Unit member : rowUnits)
+			{
+				if (!member.isGroup() && member.lead().primaryId() == selected)
+				{
+					list.add(detailCard(member.lead(), owns(member.lead())));
 					list.add(Box.createVerticalStrut(3));
 				}
-				else if (unit.isGroup() && unit.base.equals(expandedGroup))
+				else if (member.isGroup() && member.base.equals(expandedMemberGroup))
 				{
-					addMemberBlock(unit);
+					addVariantItems(member);
 				}
 			}
 		}
-
-		if (pages > 1)
-		{
-			list.add(pager(pages));
-		}
-		list.revalidate();
-		list.repaint();
 	}
 
-	/** An expanded group's member tiles (4-wide, indented), with the selected
-	 *  member's detail card under its sub-row. */
-	private void addMemberBlock(Unit group)
+	/** A member unit's tile: a piece, or a variant group inside the set. */
+	private JComponent memberTile(Unit member)
 	{
-		for (int start = 0; start < group.items.size(); start += COLUMNS)
+		if (!member.isGroup())
 		{
-			List<EquipmentPack.Item> rowItems =
-				group.items.subList(start, Math.min(start + COLUMNS, group.items.size()));
+			return itemTile(member.lead());
+		}
+		boolean open = member.base.equals(expandedMemberGroup);
+		java.awt.Image sprite = sprites.get(member.lead().primaryId(), -1, 28);
+		boolean ownsAny = showTick() && member.items.stream().anyMatch(this::owns);
+		V2Tile tile = new V2Tile(theme, sprite, member.base, TILE_ART, () ->
+		{
+			expandedMemberGroup = open ? null : member.base;
+			selected = -1;
+			rebuildGrid();
+		}).width(TILE_WIDTH).captionLines(2)
+			.owned(ownsAny).selected(open).badge(member.items.size());
+		tile.setToolTipText(member.base + " — " + member.items.size() + " variants");
+		return tile;
+	}
+
+	/** The open variant group's items, indented one step further. */
+	private void addVariantItems(Unit member)
+	{
+		for (int start = 0; start < member.items.size(); start += COLUMNS)
+		{
+			List<EquipmentPack.Item> rowItems = member.items.subList(start,
+				Math.min(start + COLUMNS, member.items.size()));
 			JPanel gridRow = row();
-			gridRow.setBorder(new EmptyBorder(0, 8, 0, 0)); // indent members
+			gridRow.setBorder(new EmptyBorder(0, 16, 0, 0));
 			for (int col = 0; col < rowItems.size(); col++)
 			{
 				if (col > 0)
@@ -691,11 +890,11 @@ class GearLibraryTab extends JPanel
 			cap(gridRow);
 			list.add(gridRow);
 			list.add(Box.createVerticalStrut(3));
-			for (EquipmentPack.Item member : rowItems)
+			for (EquipmentPack.Item item : rowItems)
 			{
-				if (member.primaryId() == selected)
+				if (item.primaryId() == selected)
 				{
-					list.add(detailCard(member, owns(member)));
+					list.add(detailCard(item, owns(item)));
 					list.add(Box.createVerticalStrut(3));
 				}
 			}
@@ -711,17 +910,20 @@ class GearLibraryTab extends JPanel
 			return itemTile(unit.lead());
 		}
 		EquipmentPack.Item lead = unit.lead();
-		// sets ride the same 4-wide grid as everything else (Luke, 2026-07-28)
-		java.awt.Image sprite = sprites.get(lead.primaryId(), -1, 28);
+		// a SET is a double tile — four tiles' worth of grid (Luke,
+		// 2026-07-28); a variant group stays a regular tile
+		boolean big = groupSets;
+		java.awt.Image sprite = sprites.get(lead.primaryId(), -1, big ? 40 : 28);
 		boolean ownsAny = showTick() && unit.items.stream().anyMatch(this::owns);
 		boolean expanded = unit.base.equals(expandedGroup);
-		String noun = groupMode == GroupMode.SETS ? " pieces" : " variants";
-		V2Tile tile = new V2Tile(theme, sprite, unit.base, TILE_ART, () ->
+		String noun = groupSets ? " pieces" : " variants";
+		V2Tile tile = new V2Tile(theme, sprite, unit.base, big ? TILE_ART_BIG : TILE_ART, () ->
 		{
 			expandedGroup = expanded ? null : unit.base;
+			expandedMemberGroup = null;
 			selected = -1;
 			rebuildGrid();
-		}).width(TILE_WIDTH).captionLines(2)
+		}).width(big ? TILE_WIDTH_BIG : TILE_WIDTH).captionLines(2)
 			.owned(ownsAny).selected(expanded).badge(unit.items.size());
 		tile.setToolTipText(unit.base + " — " + unit.items.size() + noun);
 		return tile;
@@ -746,6 +948,9 @@ class GearLibraryTab extends JPanel
 	/** The grid's tile geometry — the art band, the caption sits under it. */
 	private static final int TILE_ART = 34;
 	private static final int TILE_WIDTH = 52;
+	/** The double set tile: two columns wide, two small tiles tall. */
+	private static final int TILE_WIDTH_BIG = 2 * TILE_WIDTH + 3;
+	private static final int TILE_ART_BIG = 2 * TILE_ART + 3;
 
 	/** The owned tick shows only in the "All" view — it is redundant when the
 	 *  Owned filter already means every tile is owned (Luke). */
@@ -791,8 +996,29 @@ class GearLibraryTab extends JPanel
 				}
 			}));
 		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		row.add(new OsrsLabel("Page " + (page + 1) + "/" + pages,
-			OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		row.add(new OsrsLabel("Page ", OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		// the page number is TYPEABLE — Enter jumps (Luke, 2026-07-28)
+		V2TextField pageField = V2TextField.plain(theme, "", null);
+		pageField.setText(String.valueOf(page + 1));
+		Dimension boxSize = new Dimension(28, V2Tokens.CONTROL_HEIGHT);
+		pageField.setMaximumSize(boxSize);
+		pageField.setPreferredSize(boxSize);
+		pageField.setMinimumSize(boxSize);
+		pageField.editor().setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+		pageField.setToolTipText("Type a page number and press Enter");
+		pageField.editor().addActionListener(e ->
+		{
+			try
+			{
+				goToPage(Integer.parseInt(pageField.getText().trim()) - 1);
+			}
+			catch (NumberFormatException ignored)
+			{
+				pageField.setText(String.valueOf(page + 1));
+			}
+		});
+		row.add(pageField);
+		row.add(new OsrsLabel("/" + pages, OsrsSkin.MUTED, OsrsSkin.smallFont()));
 		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 		row.add(new com.ironhub.ui.v2.V2SpriteButton(theme,
 			com.ironhub.ui.v2.V2SpriteButton.ARROW_RIGHT, () ->
@@ -1260,12 +1486,18 @@ class GearLibraryTab extends JPanel
 
 	void groupVariantsForTest(boolean on)
 	{
-		setGroupMode(on ? GroupMode.VARIANTS : GroupMode.NONE);
+		groupVariants = on;
+		clearExpansion();
+		syncToggles();
+		rebuildList();
 	}
 
 	void showSetsForTest(boolean on)
 	{
-		setGroupMode(on ? GroupMode.SETS : GroupMode.NONE);
+		groupSets = on;
+		clearExpansion();
+		syncToggles();
+		rebuildList();
 	}
 
 	void hideLeaguesForTest(boolean on)
