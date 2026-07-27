@@ -131,39 +131,59 @@ class PohTab extends JPanel
 				complete++;
 			}
 		}
-		JPanel title = new JPanel();
-		title.setLayout(new BoxLayout(title, BoxLayout.X_AXIS));
-		title.setOpaque(false);
-		title.setAlignmentX(LEFT_ALIGNMENT);
-		title.add(new OsrsLabel("Rooms", OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
-		title.add(Box.createHorizontalGlue());
-		title.add(new OsrsLabel(complete + "/" + pack.spaces.size() + " hotspots built",
-			OsrsSkin.MUTED, OsrsSkin.smallFont()));
-		cap(title);
-		header.add(title);
+		// the house standing is the one live readout on the page — the Card,
+		// with the SPRITE bar between two house emblems (the reference hero
+		// shape, 2026-07-28)
+		com.ironhub.ui.v2.V2Surface hero = com.ironhub.ui.v2.V2Surface.card(theme);
+		JPanel top = new JPanel();
+		top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
+		top.setOpaque(false);
+		top.setAlignmentX(LEFT_ALIGNMENT);
+		top.add(houseEmblem());
+		top.add(Box.createHorizontalGlue());
+		JPanel middle = new JPanel();
+		middle.setLayout(new BoxLayout(middle, BoxLayout.Y_AXIS));
+		middle.setOpaque(false);
+		middle.add(new OsrsLabel("Hotspots built", OsrsSkin.TITLE, OsrsSkin.font()));
+		middle.add(new OsrsLabel(complete + " / " + pack.spaces.size(),
+			OsrsSkin.TITLE, OsrsSkin.boldFont()));
+		top.add(middle);
+		top.add(Box.createHorizontalGlue());
+		top.add(houseEmblem());
+		cap(top);
+		hero.add(top);
+		hero.add(Box.createVerticalStrut(3));
+		// the fill answers the SAME numbers as the label riding it
+		com.ironhub.ui.v2.V2ProgressBar bar = new com.ironhub.ui.v2.V2ProgressBar(theme);
+		bar.fraction(pack.spaces.isEmpty() ? 0 : (double) complete / pack.spaces.size());
+		bar.labels("", complete + " / " + pack.spaces.size(), "");
+		hero.add(bar);
 
-		// Detection only runs in building mode (it is the only way to know the
-		// house is yours), so say so rather than leaving an empty grid looking
-		// broken — that silence is exactly what read as a bug before.
+		// the sync row exists only while it would ADD something (the clog
+		// grammar): the building-mode hint until anything is marked, the
+		// reset once something is
 		if (!anyBuilt(pack))
 		{
-			header.add(Box.createVerticalStrut(2));
-			header.add(OsrsLabel.wrapped("Enter building mode in your house to sync what "
+			hero.add(Box.createVerticalStrut(2));
+			hero.add(OsrsLabel.wrapped("Enter building mode in your house to sync what "
 					+ "you have built, or click any tier to mark it yourself.",
-				205, OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+				180, OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
 			// what detection can actually see, so a failure reports itself
 			// instead of looking like an empty grid
-			header.add(Box.createVerticalStrut(2));
-			header.add(OsrsLabel.wrapped(module.diagnostics(), 205,
+			hero.add(Box.createVerticalStrut(2));
+			hero.add(OsrsLabel.wrapped(module.diagnostics(), 180,
 				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
 		}
-		else
+		cap(hero);
+		header.add(hero);
+		if (anyBuilt(pack))
 		{
 			// Only offered once something IS marked — a reset with nothing to
 			// forget is a button that does nothing.
 			header.add(Box.createVerticalStrut(4));
 			header.add(resetButton());
 		}
+		header.add(Box.createVerticalStrut(4));
 
 		tree.setModel(buildModel(pack));
 		revalidate();
@@ -317,6 +337,23 @@ class PohTab extends JPanel
 			OsrsSkin.FAINT));
 		cap(card);
 		return card;
+	}
+
+	/** The house emblem at native size, flanking the hero. */
+	private JComponent houseEmblem()
+	{
+		JLabel icon = new JLabel();
+		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+		java.awt.Image art = com.ironhub.ui.v2.V2Sprites.get(theme, "icons/house");
+		if (art != null)
+		{
+			icon.setIcon(new javax.swing.ImageIcon(art));
+		}
+		else
+		{
+			icon.setPreferredSize(new Dimension(32, 32));
+		}
+		return icon;
 	}
 
 	private String roomId(PohPack.Space space)

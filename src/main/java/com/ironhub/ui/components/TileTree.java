@@ -33,13 +33,15 @@ import javax.swing.border.EmptyBorder;
  */
 public class TileTree extends JPanel
 {
-	private static final int TOP_COLS = 4;
-	private static final int SUB_COLS = 3;   // indented, so one fewer than the top
+	/** Top tiles wear the clog page-card grammar since 2026-07-28: two
+	 *  perfect-square Cards across the column. */
+	private static final int TOP_COLS = 2;
+	private static final int TOP_TILE = 106;
+	private static final int TOP_EMBLEM = 44;
+	private static final int SUB_COLS = 3;
 	private static final int INDENT = 8;
 	private static final int GAP = 3;
-	/** The tile's ART height; the caption sits under it. V1's IconTile was
-	 *  52x56 with the caption INSIDE the art — the V2 tile puts it outside, so
-	 *  the art is the old height less its two caption lines. */
+	/** The member tile's ART height; the caption sits under it. */
 	private static final int TILE_ART = 34;
 	private static final int TILE_WIDTH = 52;
 
@@ -140,11 +142,13 @@ public class TileTree extends JPanel
 		{
 			List<Top> rowTops = model.subList(start, Math.min(start + TOP_COLS, model.size()));
 			JPanel row = row(0);
+			// glue BOTH sides — card rows centre in the column
+			row.add(Box.createHorizontalGlue());
 			for (int i = 0; i < rowTops.size(); i++)
 			{
 				if (i > 0)
 				{
-					row.add(Box.createHorizontalStrut(GAP));
+					row.add(Box.createHorizontalStrut(com.ironhub.ui.v2.V2Tokens.ROW));
 				}
 				row.add(topTile(rowTops.get(i)));
 			}
@@ -165,17 +169,32 @@ public class TileTree extends JPanel
 		repaint();
 	}
 
+	/** A top as a square CARD in the clog page-grid grammar: emblem, bold
+	 *  inside caption on the orange/green scale, corner count of built
+	 *  members, meter strip, no tooltip. */
 	private V2Tile topTile(Top top)
 	{
-		Image icon = top.icon != null ? sprites.get(top.icon, -1, 26) : null;
+		Image icon = top.icon != null ? sprites.getBox(top.icon, TOP_EMBLEM) : null;
 		boolean open = top.id.equals(expandedTop);
-		return tile(top.label, icon, top.owned, top.tracked, open, top.badge, top.tooltip,
-			() ->
+		int done = (int) top.leaves.stream().filter(l -> l.owned).count();
+		int total = top.leaves.size();
+		boolean complete = total > 0 && done >= total;
+		java.awt.Color cornerDone = complete ? com.ironhub.ui.v2.V2Tokens.DONE
+			: done == 0 ? com.ironhub.ui.v2.V2Tokens.BLOCKED : com.ironhub.ui.v2.V2Tokens.ACTION;
+		java.awt.Color cornerRest = complete ? com.ironhub.ui.v2.V2Tokens.DONE
+			: com.ironhub.ui.v2.V2Tokens.ACTION;
+		return new V2Tile(theme, icon, top.label, TOP_TILE, () ->
 			{
 				expandedTop = open ? null : top.id;
 				selectedLeaf = null;
 				render();
-			});
+			})
+			.card().captionLines(2).captionInside()
+			.captionStatus(complete ? com.ironhub.ui.v2.V2Tokens.DONE
+				: com.ironhub.ui.v2.V2Tokens.ACTION)
+			.corner(String.valueOf(done), cornerDone, "/" + total, cornerRest)
+			.selected(open)
+			.meter(total == 0 ? Double.NaN : (double) done / total);
 	}
 
 	/**
