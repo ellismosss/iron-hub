@@ -123,14 +123,25 @@ public class EquipmentLibraryTest
 	@Test
 	public void setKeyStripsThePieceWord()
 	{
-		assertEquals("Rune", GearLibraryTab.setKey("Rune platebody"));
-		assertEquals("Rune", GearLibraryTab.setKey("Rune full helm"));
-		assertEquals("Masori", GearLibraryTab.setKey("Masori body (f)"));
-		assertEquals("Ancestral", GearLibraryTab.setKey("Ancestral robe top"));
-		assertEquals("Bandos", GearLibraryTab.setKey("Bandos chestplate"));
+		assertEquals("Rune", GearLibraryTab.curatedSet("Rune platebody"));
+		assertEquals("Rune", GearLibraryTab.curatedSet("Rune full helm"));
+		assertEquals("Masori", GearLibraryTab.curatedSet("Masori body (f)"));
+		assertEquals("Ancestral", GearLibraryTab.curatedSet("Ancestral robe top"));
+		// the curated catalogue (Luke, 2026-07-28): Bandos armour is not a
+		// listed set, god d'hides fold into Blessed, brothers into Barrows,
+		// and piece-word gating keeps pseudo-sets out
+		assertEquals(null, GearLibraryTab.curatedSet("Bandos chestplate"));
+		assertEquals("Vestment", GearLibraryTab.curatedSet("Bandos mitre"));
+		assertEquals("Blessed d'hide", GearLibraryTab.curatedSet("Guthix d'hide body"));
+		assertEquals("Barrows", GearLibraryTab.curatedSet("Dharok's platebody"));
+		assertEquals("3rd age melee", GearLibraryTab.curatedSet("3rd age platebody"));
+		assertEquals("Elder chaos druid", GearLibraryTab.curatedSet("Elder chaos top"));
+		assertEquals("Robes of darkness", GearLibraryTab.curatedSet("Gloves of darkness"));
+		assertEquals(null, GearLibraryTab.curatedSet("Rune heraldic helm (rune)"));
+		assertEquals(null, GearLibraryTab.curatedSet("Mystic steam staff"));
 		// a weapon has no piece word — it stands alone
-		assertEquals("Rune scimitar", GearLibraryTab.setKey("Rune scimitar"));
-		assertEquals("Abyssal whip", GearLibraryTab.setKey("Abyssal whip"));
+		assertEquals(null, GearLibraryTab.curatedSet("Rune scimitar"));
+		assertEquals(null, GearLibraryTab.curatedSet("Abyssal whip"));
 	}
 
 	/** Hiding Leagues/Deadman rewards drops the flagged items. */

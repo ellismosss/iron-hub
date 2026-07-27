@@ -483,16 +483,24 @@ class GearLibraryTab extends JPanel
 
 	// ── the grid ──────────────────────────────────────────────────────
 
-	/** A rendered position: a single item, or a group of variants (>1). */
+	/** A rendered position: a single item, a variant group, or a SET. */
 	private static final class Unit
 	{
 		final String base;
 		final List<EquipmentPack.Item> items;
+		/** True only for a curated armour set — the double tile. */
+		final boolean set;
 
 		Unit(String base, List<EquipmentPack.Item> items)
 		{
+			this(base, items, false);
+		}
+
+		Unit(String base, List<EquipmentPack.Item> items, boolean set)
+		{
 			this.base = base;
 			this.items = items;
+			this.set = set;
 		}
 
 		EquipmentPack.Item lead()
@@ -528,7 +536,16 @@ class GearLibraryTab extends JPanel
 			}
 			return units;
 		}
-		return fold(items, groupSets ? GearLibraryTab::setKey : GearLibraryTab::baseName);
+		// sets mode keys through the curated catalogue; anything outside a
+		// set falls back to variant folding (when on) or stands alone
+		java.util.function.Function<String, String> key = !groupSets
+			? GearLibraryTab::baseName
+			: name ->
+			{
+				String set = curatedSet(name);
+				return set != null ? set : groupVariants ? baseName(name) : name;
+			};
+		return fold(items, key);
 	}
 
 	private static List<Unit> fold(List<EquipmentPack.Item> items,
@@ -547,7 +564,7 @@ class GearLibraryTab extends JPanel
 			// "Rune scimitar (saradomin)") — the shortest name is the base,
 			// ties keep the sort order
 			list.sort(java.util.Comparator.comparingInt((EquipmentPack.Item i) -> i.name.length()));
-			units.add(new Unit(base, list));
+			units.add(new Unit(base, list, CURATED_SETS.contains(base)));
 		});
 		return units;
 	}
@@ -575,30 +592,135 @@ class GearLibraryTab extends JPanel
 		return base.isEmpty() ? name : base;
 	}
 
-	/** Piece-type words, longest first, stripped to find an armour set's
-	 *  name ("Masori body (f)" → "Masori", "Ancestral robe top" → "Ancestral"). */
-	private static final String[] PIECE_TOKENS = {
-		"robe top", "robe bottom", "robe legs", "robe skirt", "full helm", "med helm",
-		"sq shield", "platebody", "plateskirt", "platelegs", "chainbody", "chainskirt",
-		"chestplate", "kiteshield", "robetop", "robeskirt", "gauntlets", "vambraces",
-		"tassets", "greaves", "helmet", "gloves", "bracers", "chaps", "boots", "coif",
-		"cowl", "hood", "body", "legs", "skirt", "helm", "mask", "hat", "top", "spurs"};
+	/**
+	 * Luke's curated armour sets (2026-07-28) — the ONLY names that group
+	 * as sets. The old piece-word heuristic invented pseudo-sets ("Rune
+	 * heraldic") and promoted variant pairs to set tiles; now an item joins
+	 * a set only when its base name is a curated set name plus a recognised
+	 * piece word, with explicit rules for the families whose piece names
+	 * don't carry the set's name (Barrows brothers, god d'hides and
+	 * vestments, 3rd age tools/melee, "… of darkness", Elder chaos).
+	 */
+	private static final String[] SET_NAMES = {
+		"3rd age tools", "3rd age druidic", "3rd age melee", "Bronze", "Iron", "Steel",
+		"Black", "Mithril", "Adamant", "Rune", "Dragon", "White", "Initiate", "Shayzien",
+		"Samurai", "Proselyte", "Inquisitor's", "Rock-shell", "Void Knight", "Granite",
+		"Blood moon", "Obsidian", "Barrows", "Justiciar", "Oathplate", "Torva", "Yak-hide",
+		"Fighter", "Leather", "Frog-leather", "Snakeskin", "Ranger", "Green d'hide",
+		"Spined", "Blue d'hide", "Red d'hide", "Black d'hide", "Mixed hide",
+		"Blessed d'hide", "Hueycoatl hide", "Crystal", "Armadyl", "Eclipse moon", "Masori",
+		"Zamorak monk", "Wizard", "Ghostly", "Dark Squall", "Elder chaos druid", "Xerician",
+		"Mystic", "Enchanted", "Robes of darkness", "Skeletal", "Splitbark", "Swampbark",
+		"Infinity", "Bloodbark", "Lunar", "Dagon'hai", "Blue moon", "Ancestral", "Virtus",
+		"Priest", "Monk's", "Shade", "Druid's", "Ancient ceremonial", "Elite black",
+		"Vestment", "Sunfire fanatic"};
 
-	/** An item's armour-set name: its base name minus a trailing piece word,
-	 *  or the whole name for a standalone item (a singleton "set"). */
-	static String setKey(String name)
+	/** The set names a unit key can be (display form). */
+	private static final Set<String> CURATED_SETS = Set.of(SET_NAMES);
+	/** Lower-cased set names, longest first, so "Elite black" and
+	 *  "Black d'hide" win over "Black". */
+	private static final List<String> SETS_LOWER = buildSetsLower();
+	private static final java.util.Map<String, String> SET_DISPLAY = buildSetDisplay();
+
+	private static List<String> buildSetsLower()
 	{
-		String base = baseName(name);
-		String lower = base.toLowerCase(Locale.ROOT);
-		for (String token : PIECE_TOKENS)
+		List<String> lower = new ArrayList<>();
+		for (String set : SET_NAMES)
 		{
-			if (lower.endsWith(" " + token))
+			lower.add(set.toLowerCase(Locale.ROOT));
+		}
+		lower.sort(java.util.Comparator.comparingInt(String::length).reversed());
+		return lower;
+	}
+
+	private static java.util.Map<String, String> buildSetDisplay()
+	{
+		java.util.Map<String, String> map = new java.util.HashMap<>();
+		for (String set : SET_NAMES)
+		{
+			map.put(set.toLowerCase(Locale.ROOT), set);
+		}
+		return map;
+	}
+
+	/** Armour piece words a set name may be followed by — the whole
+	 *  remainder must be one of these, so "Rune heraldic helm" and
+	 *  "Mystic steam staff" stay out of the sets. */
+	private static final Set<String> PIECE_WORDS = Set.of(
+		"robe top", "robe bottom", "robe bottoms", "robe legs", "robe skirt", "full helm",
+		"full helmet", "med helm", "great helm", "sq shield", "platebody", "plateskirt",
+		"platelegs", "chainbody", "chainskirt", "chestplate", "kiteshield", "robetop",
+		"robeskirt", "gauntlets", "vambraces", "tassets", "tasset", "greaves", "helmet",
+		"gloves", "bracers", "chaps", "boots", "coif", "cowl", "hood", "body", "legs",
+		"skirt", "helm", "mask", "hat", "top", "bottom", "bottoms", "spurs", "plate",
+		"armour", "kasa", "shirt", "gi", "robe", "gown", "torso", "sallet", "hauberk",
+		"cuisse", "faceguard", "chestguard", "legguards", "chest", "cloak", "shield");
+
+	private static final String[] BARROWS_BROTHERS = {
+		"ahrim's", "dharok's", "guthan's", "karil's", "torag's", "verac's"};
+	private static final String[] GOD_PREFIXES = {
+		"saradomin", "guthix", "zamorak", "armadyl", "bandos", "ancient"};
+	private static final Set<String> VESTMENT_PIECES = Set.of(
+		"mitre", "stole", "crozier", "robe top", "robe legs", "cloak");
+	private static final Set<String> THIRD_AGE_TOOLS = Set.of(
+		"axe", "pickaxe", "harpoon", "felling axe");
+	private static final Set<String> THIRD_AGE_MELEE = Set.of(
+		"full helmet", "platebody", "platelegs", "kiteshield");
+
+	/** The curated set an item belongs to, or null for a non-set item. */
+	static String curatedSet(String name)
+	{
+		String lower = baseName(name).replace('\u2019', '\'').toLowerCase(Locale.ROOT);
+		for (String brother : BARROWS_BROTHERS)
+		{
+			if (lower.startsWith(brother + " "))
 			{
-				String prefix = base.substring(0, base.length() - token.length() - 1).trim();
-				return prefix.isEmpty() ? base : prefix;
+				return "Barrows";
 			}
 		}
-		return base;
+		for (String god : GOD_PREFIXES)
+		{
+			if (lower.startsWith(god + " "))
+			{
+				String rest = lower.substring(god.length() + 1);
+				if (rest.startsWith("d'hide") || rest.equals("coif") || rest.equals("bracers"))
+				{
+					return "Blessed d'hide";
+				}
+				if (VESTMENT_PIECES.contains(rest))
+				{
+					return "Vestment";
+				}
+			}
+		}
+		if (lower.startsWith("3rd age "))
+		{
+			String rest = lower.substring("3rd age ".length());
+			if (THIRD_AGE_TOOLS.contains(rest))
+			{
+				return "3rd age tools";
+			}
+			if (THIRD_AGE_MELEE.contains(rest))
+			{
+				return "3rd age melee";
+			}
+		}
+		if (lower.endsWith(" of darkness"))
+		{
+			return "Robes of darkness";
+		}
+		if (lower.startsWith("elder chaos "))
+		{
+			return "Elder chaos druid";
+		}
+		for (String set : SETS_LOWER)
+		{
+			if (lower.startsWith(set + " ") && PIECE_WORDS.contains(lower.substring(set.length() + 1)))
+			{
+				return SET_DISPLAY.get(set);
+			}
+		}
+		return null;
 	}
 
 	private int pageSize()
@@ -682,7 +804,7 @@ class GearLibraryTab extends JPanel
 		java.util.ArrayDeque<Unit> smalls = new java.util.ArrayDeque<>();
 		for (Unit unit : units)
 		{
-			(groupSets && unit.isGroup() ? bigs : smalls).add(unit);
+			(unit.set && unit.isGroup() ? bigs : smalls).add(unit);
 		}
 		while (!bigs.isEmpty())
 		{
@@ -912,13 +1034,13 @@ class GearLibraryTab extends JPanel
 			return itemTile(unit.lead());
 		}
 		EquipmentPack.Item lead = unit.lead();
-		// a SET is a double tile — four tiles' worth of grid (Luke,
+		// a curated SET is a double tile — four tiles' worth of grid (Luke,
 		// 2026-07-28); a variant group stays a regular tile
-		boolean big = groupSets;
+		boolean big = unit.set;
 		java.awt.Image sprite = sprites.get(lead.primaryId(), -1, big ? 40 : 28);
 		boolean ownsAny = showTick() && unit.items.stream().anyMatch(this::owns);
 		boolean expanded = unit.base.equals(expandedGroup);
-		String noun = groupSets ? " pieces" : " variants";
+		String noun = unit.set ? " pieces" : " variants";
 		V2Tile tile = new V2Tile(theme, sprite, unit.base, big ? TILE_ART_BIG : TILE_ART, () ->
 		{
 			expandedGroup = expanded ? null : unit.base;

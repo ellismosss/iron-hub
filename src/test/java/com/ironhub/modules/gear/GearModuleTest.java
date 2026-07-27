@@ -270,9 +270,13 @@ public class GearModuleTest
 		List<com.ironhub.data.EquipmentPack.Item> setItems = tab.visibleForTest();
 		if (!setItems.isEmpty())
 		{
-			tab.expandGroupForTest(GearLibraryTab.setKey(
+			String set = GearLibraryTab.curatedSet(
 				setItems.stream().filter(i -> i.name.startsWith("Rune plate")).findFirst()
-					.orElse(setItems.get(0)).name));
+					.orElse(setItems.get(0)).name);
+			if (set != null)
+			{
+				tab.expandGroupForTest(set);
+			}
 		}
 		javax.imageio.ImageIO.write(SwingRender.render(tab), "png",
 			new java.io.File("build/reports/gear-sets.png"));
