@@ -194,6 +194,36 @@ public class V2Tile extends JComponent
 	}
 
 	/**
+	 * Caption painted ON the art band — bottom-anchored, BOLD — instead of
+	 * under the tile, so the tile is exactly {@code size} tall (the clog
+	 * page grid; Luke, 2026-07-27). This coexists with the 2025 outside-
+	 * caption ruling rather than reversing it: the emblem centres in the
+	 * band the caption leaves free, so it is not pushed off centre, which
+	 * was that ruling's whole complaint.
+	 */
+	public V2Tile captionInside()
+	{
+		this.captionInside = true;
+		this.caption = null; // rebuilt bold on next paint
+		return this;
+	}
+
+	private boolean captionInside;
+
+	/**
+	 * A short detail-font note in the top-right corner — "12/24". Takes the
+	 * owned tick's spot: when both are set the corner text wins, the edge
+	 * status already says "done".
+	 */
+	public V2Tile corner(String text)
+	{
+		this.corner = text == null || text.isEmpty() ? null : V2Label.detail(text);
+		return this;
+	}
+
+	private OsrsLabel corner;
+
+	/**
 	 * A member count in the top-left — "this tile stands for 4 variants".
 	 * Drawn in {@code TEXT}, not a status colour: it is a quantity, and Luke
 	 * asked for the light colour rather than orange when the Gear library
@@ -294,26 +324,32 @@ public class V2Tile extends JComponent
 		}
 
 
+		// captionInside gives the emblem the band above the caption; the
+		// outside caption keeps the whole art to itself (Luke, 2026-07-25 —
+		// text on the tile pushed the icon off centre, so the icon's band
+		// always excludes the text's)
+		int artBand = captionInside && captionText != null
+			? size - captionHeight() - V2Tokens.TIGHT : size;
 		if (emblem != null)
 		{
-			// dead centre of the tile: the caption lives OUTSIDE the art now
-			// (Luke, 2026-07-25 — text on the tile pushed the icon off centre)
 			g2.drawImage(emblem, (getWidth() - emblem.getWidth(null)) / 2,
-				(size - emblem.getHeight(null)) / 2, null);
+				Math.max(V2Tokens.TIGHT, (artBand - emblem.getHeight(null)) / 2), null);
 		}
 		else if (placeholder != null)
 		{
-			placeholder.setSize(getWidth(), size);
+			placeholder.setSize(getWidth(), artBand);
 			placeholder.paint(g2);
 		}
 		OsrsLabel text = caption();
 		if (text != null)
 		{
+			int top = captionInside ? size - captionHeight() - V2Tokens.TIGHT
+				: size + V2Tokens.TIGHT;
 			text.setSize(getWidth(), captionHeight());
-			g2.translate(0, size + V2Tokens.TIGHT);
+			g2.translate(0, top);
 			text.setColor(selected ? V2Tokens.HEADING : V2Tokens.TEXT);
 			text.paint(g2);
-			g2.translate(0, -(size + V2Tokens.TIGHT));
+			g2.translate(0, -top);
 		}
 		if (status.edge != null)
 		{
@@ -347,7 +383,15 @@ public class V2Tile extends JComponent
 		{
 			V2Surface.shadeTile(g2, getWidth(), size);
 		}
-		if (owned)
+		if (corner != null)
+		{
+			Dimension ink = corner.getPreferredSize();
+			corner.setSize(ink);
+			g2.translate(getWidth() - ink.width - V2Tokens.TIGHT, V2Tokens.TIGHT);
+			corner.paint(g2);
+			g2.translate(-(getWidth() - ink.width - V2Tokens.TIGHT), -V2Tokens.TIGHT);
+		}
+		else if (owned)
 		{
 			BufferedImage tick = V2Sprites.get(theme, TICK);
 			g2.drawImage(tick, getWidth() - tick.getWidth() - V2Tokens.TIGHT, V2Tokens.TIGHT, null);
@@ -372,9 +416,18 @@ public class V2Tile extends JComponent
 		int width = Math.max(1, getWidth() - 2 * V2Tokens.TIGHT);
 		if (caption == null || captionWidth != width)
 		{
-			caption = captionLines > 1
-				? V2Label.wrappedCentred(clamp(captionText, width), width)
-				: V2Label.centred(captionText);
+			if (captionInside)
+			{
+				// on the art the caption is BOLD, or the stone eats it
+				caption = OsrsLabel.wrapped(clamp(captionText, width), width,
+					V2Tokens.TEXT, V2Tokens.headingFont());
+			}
+			else
+			{
+				caption = captionLines > 1
+					? V2Label.wrappedCentred(clamp(captionText, width), width)
+					: V2Label.centred(captionText);
+			}
 			captionWidth = width;
 		}
 		return caption;
@@ -389,7 +442,11 @@ public class V2Tile extends JComponent
 	 */
 	private String clamp(String text, int width)
 	{
-		String[] lines = V2Label.wrappedCentred(text, width).text().split("\n");
+		// measure with the font that will paint — bold wraps sooner
+		OsrsLabel measured = captionInside
+			? OsrsLabel.wrapped(text, width, V2Tokens.TEXT, V2Tokens.headingFont())
+			: V2Label.wrappedCentred(text, width);
+		String[] lines = measured.text().split("\n");
 		if (lines.length <= captionLines)
 		{
 			return text;
@@ -422,8 +479,9 @@ public class V2Tile extends JComponent
 	@Override
 	public Dimension getPreferredSize()
 	{
-		// the caption sits UNDER the art, so it costs height, not centring
-		return new Dimension(width, captionText == null ? size
+		// the caption sits UNDER the art, so it costs height, not centring —
+		// unless it is INSIDE, where the tile is exactly its art
+		return new Dimension(width, captionText == null || captionInside ? size
 			: size + V2Tokens.TIGHT + captionLines * V2Tokens.LINE_PITCH + V2Tokens.ROW);
 	}
 

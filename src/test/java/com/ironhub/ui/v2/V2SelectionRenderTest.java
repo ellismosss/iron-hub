@@ -85,6 +85,31 @@ public class V2SelectionRenderTest
 		}
 		captioned.add(Box.createHorizontalGlue());
 		page.add(captioned);
+		page.add(Box.createVerticalStrut(V2Tokens.ROW));
+
+		// captionInside + corner: the clog page grid's shape — bold caption
+		// ON the art, detail count top-right (Luke, 2026-07-27)
+		JPanel inside = horizontal();
+		String[] insideNames = {"Abyssal Sire", "Barrows Chests", "Wintertodt"};
+		String[] counts = {"7/33", "24/24", "0/12"};
+		for (int i = 0; i < insideNames.length; i++)
+		{
+			V2Tile tile = new V2Tile(theme, emblem(theme, "icons/skills/slayer"),
+				insideNames[i], 56, null)
+				.width(68).captionLines(2).captionInside().corner(counts[i]);
+			if (i == 0)
+			{
+				tile.status(V2Tile.Status.READY).progress(7 / 33.0);
+			}
+			else if (i == 1)
+			{
+				tile.status(V2Tile.Status.DONE);
+			}
+			inside.add(tile);
+			inside.add(Box.createHorizontalStrut(V2Tokens.ROW));
+		}
+		inside.add(Box.createHorizontalGlue());
+		page.add(inside);
 		page.add(Box.createVerticalStrut(V2Tokens.SECTION));
 
 		page.add(V2Label.heading("Tabs and slots"));

@@ -77,10 +77,11 @@ class CollectionLogTab extends JPanel
 	private static final int LATEST = 10;
 	private static final String[] TAB_ICONS = {"bosses", "raids", "clues", "minigames", "other"};
 	/** The category view's page grid: 3 tiles across the 217px content
-	 *  column (3x68 + 2x4 = 212), TileTree's art-band height. */
+	 *  column (3x68 + 2x4 = 212). The caption paints INSIDE the art, so the
+	 *  tile is V1 IconTile's 56px — two caption lines under a 22px emblem. */
 	private static final int PAGE_COLS = 3;
 	private static final int PAGE_TILE_WIDTH = 68;
-	private static final int PAGE_TILE_ART = 34;
+	private static final int PAGE_TILE_ART = 56;
 	/** Marks a child that keeps its own click (the +/x glyphs). */
 	private static final String OWN_ACTION = "clog.ownAction";
 	private static final int CARD_WRAP = 180;
@@ -496,10 +497,11 @@ class CollectionLogTab extends JPanel
 			? null : sprites.get(page.items[0], V2Tokens.TILE_ICON);
 		V2Tile tile = new V2Tile(theme, emblem, page.name, PAGE_TILE_ART,
 			() -> openPage(page.name))
-			.width(PAGE_TILE_WIDTH).captionLines(2);
+			.width(PAGE_TILE_WIDTH).captionLines(2).captionInside()
+			.corner(owned + "/" + items.size());
 		if (complete)
 		{
-			tile.status(V2Tile.Status.DONE).owned(true);
+			tile.status(V2Tile.Status.DONE);
 		}
 		else if (owned > 0)
 		{
