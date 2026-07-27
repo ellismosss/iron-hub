@@ -48,10 +48,12 @@ import net.runelite.client.util.LinkBrowser;
 
 /**
  * The searchable task list behind the Combat Achievements surface: All and
- * Goals views, search, collapsible filters (tier toggles, status, type,
- * sort), and flat hoverable rows that expand into stone cards carrying the
- * description, community completion rate, wiki link and per-task tracking.
- * Feature parity with the Combat Achievements Tracker hub plugin.
+ * Goals views, search, sorting, and flat hoverable rows that expand into
+ * stone cards carrying the description, community completion rate, wiki
+ * link and per-task tracking. The status/type/tier FILTERS moved up to the
+ * tab, under the Difficulty/Bosses chips, and apply here too (Luke,
+ * 2026-07-27). Feature parity with the Combat Achievements Tracker hub
+ * plugin.
  *
  * <p>Since 2026-07-24 this is a SECTION of {@link CombatAchievementsTab}
  * (Luke: "move the existing module into a collapsible section below"), so
@@ -60,9 +62,6 @@ import net.runelite.client.util.LinkBrowser;
  */
 class CaTaskBrowser extends JPanel
 {
-	private static final String[] STATUS_OPTIONS = {"All", "Completed", "Incomplete"};
-	private static final String[] TYPE_OPTIONS = {"All types", "Stamina", "Perfection",
-		"Kill Count", "Mechanical", "Restriction", "Speed"};
 	private static final String[] SORT_OPTIONS = {"Tier", "Name", "Completion", "Community %"};
 	/** Wrap widths: free-standing notes vs text inside a stone card. */
 	private static final int NOTE_WIDTH = 195;
@@ -81,15 +80,12 @@ class CaTaskBrowser extends JPanel
 	// controls
 	private final V2ChipRow views;
 	private final V2TextField search;
-	private final JLabel filtersTriangle = triangle();
-	private final JPanel filtersPanel = new JPanel();
-	private final Map<CaTier, Boolean> tierEnabled = new EnumMap<>(CaTier.class);
-	private final V2Dropdown statusFilter;
-	private final V2Dropdown typeFilter;
 	private final V2Dropdown sortFilter;
 	private final JLabel sortDirection;
-	private boolean filtersExpanded;
 	private boolean sortAscending = true;
+	/** The tab owns the status/type/tier filters since 2026-07-27 (Luke:
+	 *  they sit under the Difficulty/Bosses chips and filter everything). */
+	private CombatAchievementsTab owner;
 
 	// content
 	private final JPanel content = new JPanel();
@@ -111,10 +107,6 @@ class CaTaskBrowser extends JPanel
 		this.module = module;
 		this.state = state;
 		this.theme = theme;
-		for (CaTier tier : CaTier.values())
-		{
-			tierEnabled.put(tier, true);
-		}
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
@@ -126,8 +118,6 @@ class CaTaskBrowser extends JPanel
 		add(pad(views));
 		add(strut(4));
 
-		statusFilter = combo(new V2Dropdown(theme, STATUS_OPTIONS));
-		typeFilter = combo(new V2Dropdown(theme, TYPE_OPTIONS));
 		sortFilter = combo(new V2Dropdown(theme, SORT_OPTIONS));
 		search = new V2TextField(theme, "Search tasks…", null);
 		add(pad(search));
@@ -152,7 +142,12 @@ class CaTaskBrowser extends JPanel
 
 		sortDirection = glyph(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_UP, 10),
 			"Flip sort direction", this::flipSortDirection);
-		add(buildFiltersSection());
+		// sorting stays here; the filters live under the tab's view chips
+		JPanel sortControls = new JPanel(new BorderLayout(UiTokens.PAD_TIGHT, 0));
+		sortControls.setOpaque(false);
+		sortControls.add(sortFilter, BorderLayout.CENTER);
+		sortControls.add(sortDirection, BorderLayout.EAST);
+		add(pad(filterRow("Sort", sortControls)));
 		add(strut(4));
 
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
@@ -190,12 +185,16 @@ class CaTaskBrowser extends JPanel
 		rebuildContent();
 	}
 
-	/** Test seam: open the filters section. */
-	void expandFiltersForTest()
+	/** The tab hands itself over for the shared filters. */
+	void filtersFrom(CombatAchievementsTab owner)
 	{
-		filtersExpanded = true;
-		filtersTriangle.setIcon(new PaintedIcon(PaintedIcon.Shape.TRIANGLE_DOWN, 10));
-		filtersPanel.setVisible(true);
+		this.owner = owner;
+	}
+
+	/** The tab's filters changed — re-run the list. */
+	void refilter()
+	{
+		rebuildContent();
 	}
 
 	/** Cheap path for AccountState notifications: stats always, rows only
@@ -232,85 +231,6 @@ class CaTaskBrowser extends JPanel
 	private boolean isGoal(CaTask task)
 	{
 		return state.getSelectedGoals().contains("ca:" + task.id);
-	}
-
-	// ── filters ───────────────────────────────────────────────────────
-
-	private JPanel buildFiltersSection()
-	{
-		JPanel section = new JPanel();
-		section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
-		section.setOpaque(false);
-		section.setAlignmentX(LEFT_ALIGNMENT);
-
-		section.add(collapsibleHeader(filtersTriangle, "Filters",
-			"Show or hide the tier, status, type and sort filters", () ->
-		{
-			filtersExpanded = !filtersExpanded;
-			filtersTriangle.setIcon(new PaintedIcon(filtersExpanded
-				? PaintedIcon.Shape.TRIANGLE_DOWN : PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
-			filtersPanel.setVisible(filtersExpanded);
-			revalidate();
-			repaint();
-		}));
-
-		filtersPanel.setLayout(new BoxLayout(filtersPanel, BoxLayout.Y_AXIS));
-		filtersPanel.setOpaque(false);
-		filtersPanel.setAlignmentX(LEFT_ALIGNMENT);
-		filtersPanel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 4, 0, 4));
-		filtersPanel.setVisible(false);
-
-		JPanel tierRow = new JPanel(new GridLayout(1, CaTier.values().length, 2, 0));
-		tierRow.setOpaque(false);
-		tierRow.setAlignmentX(LEFT_ALIGNMENT);
-		tierRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ICON_CELL_SIZE));
-		for (CaTier tier : CaTier.values())
-		{
-			tierRow.add(tierToggle(tier));
-		}
-		filtersPanel.add(tierRow);
-		filtersPanel.add(strut(UiTokens.PAD_TIGHT));
-
-		filtersPanel.add(filterRow("Status", statusFilter));
-		filtersPanel.add(strut(UiTokens.PAD_TIGHT));
-		filtersPanel.add(filterRow("Type", typeFilter));
-		filtersPanel.add(strut(UiTokens.PAD_TIGHT));
-		JPanel sortControls = new JPanel(new BorderLayout(UiTokens.PAD_TIGHT, 0));
-		sortControls.setOpaque(false);
-		sortControls.add(sortFilter, BorderLayout.CENTER);
-		sortControls.add(sortDirection, BorderLayout.EAST);
-		filtersPanel.add(filterRow("Sort", sortControls));
-		section.add(filtersPanel);
-		return section;
-	}
-
-	/** Wiki tier icon toggle; select fill + bevel = tier shown. */
-	private JLabel tierToggle(CaTier tier)
-	{
-		JLabel toggle = new JLabel(TIER_ICONS.get(tier));
-		toggle.setOpaque(true);
-		toggle.setHorizontalAlignment(JLabel.CENTER);
-		toggle.setToolTipText(tier.display + " tier (click to show/hide)");
-		toggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		Runnable style = () ->
-		{
-			boolean on = tierEnabled.get(tier);
-			toggle.setBackground(on ? theme.selectFill : theme.recess);
-			// MatteBorder fills strips — a drawRect border halves on Retina
-			toggle.setBorder(new MatteBorder(1, 1, 1, 1, on ? theme.selectEdge : theme.edgeDark));
-		};
-		style.run();
-		toggle.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				tierEnabled.put(tier, !tierEnabled.get(tier));
-				style.run();
-				rebuildContent();
-			}
-		});
-		return toggle;
 	}
 
 	private V2Dropdown combo(V2Dropdown box)
@@ -379,8 +299,6 @@ class CaTaskBrowser extends JPanel
 	List<CaTask> filteredSorted(List<CaTask> tasks, boolean goalsOnly, String boss)
 	{
 		String term = search.getText().trim();
-		String status = STATUS_OPTIONS[statusFilter.selected()];
-		String type = TYPE_OPTIONS[typeFilter.selected()];
 		List<CaTask> visible = new ArrayList<>();
 		for (CaTask task : tasks)
 		{
@@ -392,16 +310,12 @@ class CaTaskBrowser extends JPanel
 			{
 				continue;
 			}
-			if (!tierEnabled.get(task.tier) || !task.matches(term))
+			if (!task.matches(term))
 			{
 				continue;
 			}
-			if ("Completed".equals(status) && !task.completed
-				|| "Incomplete".equals(status) && task.completed)
-			{
-				continue;
-			}
-			if (!"All types".equals(type) && !type.equals(task.type))
+			// the tab's shared status/type/tier filters (Luke, 2026-07-27)
+			if (owner != null && !owner.filterPasses(task, true))
 			{
 				continue;
 			}

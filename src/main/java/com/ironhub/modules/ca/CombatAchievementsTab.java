@@ -68,6 +68,15 @@ class CombatAchievementsTab extends JPanel
 	private static final int PAGE_EMBLEM = 44;
 	/** Boss pages: 10 rows of 2 per page, arrows below (Luke, 2026-07-27). */
 	private static final int BOSS_PAGE_ROWS = 10;
+	/** The shared filters, under the view chips (Luke, 2026-07-27). */
+	static final String[] STATUS_OPTIONS = {"All", "Completed", "Incomplete"};
+	static final String[] TYPE_OPTIONS = {"All types", "Stamina", "Perfection",
+		"Kill Count", "Mechanical", "Restriction", "Speed"};
+	private static final String[] TIER_OPTIONS = {"All tiers", "Easy", "Medium",
+		"Hard", "Elite", "Master", "Grandmaster"};
+	/** The game's own tier swords, the _large variants (Luke, 2026-07-27). */
+	private static final String[] TIER_SWORDS = {"bronze_sword", "steel_sword",
+		"black_sword", "rune_sword", "dragon_sword", "armadyl_godsword"};
 	/** Row ceiling for a page's task list (the Bank tab's grammar). */
 	private static final int MAX_TASKS = 50;
 	private static final int WRAP = 185;
@@ -81,6 +90,12 @@ class CombatAchievementsTab extends JPanel
 	private final V2ProgressBar heroBar;
 	private final V2Surface profile;
 	private final V2ChipRow views;
+	private final com.ironhub.ui.v2.V2Dropdown statusFilter;
+	private final com.ironhub.ui.v2.V2Dropdown typeFilter;
+	private final com.ironhub.ui.v2.V2Dropdown tierFilter;
+	/** The tier dropdown's row — hidden on the Difficulty view, whose cards
+	 *  already partition by tier. */
+	private final JPanel tierFilterRow;
 	private final JPanel content = new JPanel();
 	private final JPanel browserSlot = new JPanel();
 	/** The All-tasks header card — lit while the browser is open. */
@@ -139,6 +154,51 @@ class CombatAchievementsTab extends JPanel
 		add(Box.createVerticalStrut(4));
 
 		views = new V2ChipRow(theme, true, "Difficulty", "Bosses");
+		add(views);
+		add(Box.createVerticalStrut(4));
+
+		// the filters, moved out of All tasks (Luke, 2026-07-27): status +
+		// type side by side, the tier dropdown below on the Bosses view
+		// only. Status defaults to Incomplete — the log is a to-do list.
+		statusFilter = new com.ironhub.ui.v2.V2Dropdown(theme, STATUS_OPTIONS).width(106);
+		statusFilter.setSelected(2);
+		typeFilter = new com.ironhub.ui.v2.V2Dropdown(theme, TYPE_OPTIONS).width(107);
+		tierFilter = new com.ironhub.ui.v2.V2Dropdown(theme, TIER_OPTIONS);
+		statusFilter.onChange(i -> filtersChanged());
+		typeFilter.onChange(i -> filtersChanged());
+		tierFilter.onChange(i -> filtersChanged());
+		// rows FOLLOW their dropdowns' height — an open list grows in place
+		JPanel filterPair = new JPanel()
+		{
+			@Override
+			public Dimension getMaximumSize()
+			{
+				return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+			}
+		};
+		filterPair.setLayout(new BoxLayout(filterPair, BoxLayout.X_AXIS));
+		filterPair.setOpaque(false);
+		filterPair.setAlignmentX(LEFT_ALIGNMENT);
+		filterPair.add(statusFilter);
+		filterPair.add(Box.createHorizontalStrut(V2Tokens.ROW));
+		filterPair.add(typeFilter);
+		add(filterPair);
+		add(Box.createVerticalStrut(4));
+		tierFilterRow = new JPanel()
+		{
+			@Override
+			public Dimension getMaximumSize()
+			{
+				return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+			}
+		};
+		tierFilterRow.setLayout(new BoxLayout(tierFilterRow, BoxLayout.Y_AXIS));
+		tierFilterRow.setOpaque(false);
+		tierFilterRow.setAlignmentX(LEFT_ALIGNMENT);
+		tierFilterRow.add(tierFilter);
+		tierFilterRow.add(Box.createVerticalStrut(4));
+		tierFilterRow.setVisible(false);
+		add(tierFilterRow);
 		views.onChange(i ->
 		{
 			openTier = null;
@@ -146,8 +206,6 @@ class CombatAchievementsTab extends JPanel
 			bossGridPage = 0;
 			rebuildContent();
 		});
-		add(views);
-		add(Box.createVerticalStrut(4));
 
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 		content.setOpaque(false);
@@ -162,6 +220,7 @@ class CombatAchievementsTab extends JPanel
 		add(browserSlot);
 		add(Box.createVerticalGlue());
 		browser = new CaTaskBrowser(module, state, config, theme);
+		browser.filtersFrom(this);
 		browser.onShowBoss(boss ->
 		{
 			views.setSelected(1);
@@ -206,9 +265,22 @@ class CombatAchievementsTab extends JPanel
 		print.add(openTier);
 		print.add(openBoss);
 		print.add(bossGridPage);
+		print.add(statusFilter.selected());
+		print.add(typeFilter.selected());
+		print.add(tierFilter.selected());
 		print.add(browserExpanded);
 		print.add(profileExpanded);
 		return print;
+	}
+
+	/** A shared filter moved — both the grids and the browser re-run. */
+	private void filtersChanged()
+	{
+		rebuildContent();
+		if (browser != null)
+		{
+			browser.refilter();
+		}
 	}
 
 	private void rebuildAll()
@@ -382,6 +454,9 @@ class CombatAchievementsTab extends JPanel
 	private void rebuildContent()
 	{
 		content.removeAll();
+		// visibility follows the VIEW however it was switched — chip click,
+		// the browser's boss jump, or a test seam
+		tierFilterRow.setVisible(views.selected() == 1);
 		List<CaTask> tasks = module.tasks();
 		if (tasks.isEmpty())
 		{
@@ -559,26 +634,37 @@ class CombatAchievementsTab extends JPanel
 	private void tierDetail(List<CaTask> tasks)
 	{
 		List<CaTask> mine = new ArrayList<>();
+		List<CaTask> shown = new ArrayList<>();
 		for (CaTask task : tasks)
 		{
 			if (task.tier == openTier)
 			{
 				mine.add(task);
+				if (filterPasses(task, false))
+				{
+					shown.add(task);
+				}
 			}
 		}
+		// the header counts the TIER, the list obeys the filters
 		content.add(pageHeader(openTier.display, mine,
 			openTier.points + " points per task"));
-		addTaskRows(mine);
+		addTaskRows(shown);
 	}
 
 	private void bossDetail(List<CaTask> tasks)
 	{
 		List<CaTask> mine = new ArrayList<>();
+		List<CaTask> shown = new ArrayList<>();
 		for (CaTask task : tasks)
 		{
 			if (openBoss.equals(task.boss))
 			{
 				mine.add(task);
+				if (filterPasses(task, true))
+				{
+					shown.add(task);
+				}
 			}
 		}
 		CaBoss boss = bossByName(openBoss);
@@ -598,7 +684,7 @@ class CombatAchievementsTab extends JPanel
 			sub.append(CaProfile.count(kills)).append(" kills");
 		}
 		content.add(pageHeader(openBoss, mine, sub.toString()));
-		addTaskRows(mine);
+		addTaskRows(shown);
 	}
 
 	/** Name, "Tasks Completed: n/N" in the game's colour scale, and a line
@@ -813,24 +899,34 @@ class CombatAchievementsTab extends JPanel
 		return icon == null ? null : icon.getImage();
 	}
 
-	/** The tier's sword scaled to the clog cards' emblem box — the native
-	 *  sprite floated tiny in a 106px card (Luke, 2026-07-27). */
-	private static Image tierEmblem(CaTier tier)
+	/** The game's own _large tier sword, never a resized small one (Luke,
+	 *  2026-07-27). */
+	private Image tierEmblem(CaTier tier)
 	{
-		Image icon = tierIcon(tier);
-		if (icon == null)
+		return com.ironhub.ui.v2.V2Sprites.get(theme,
+			"icons/combat_achievements/" + TIER_SWORDS[tier.ordinal()] + "_large");
+	}
+
+	/**
+	 * The shared filters' verdict on one task. The tier filter applies only
+	 * where the caller says so — the Difficulty cards already partition by
+	 * tier, so their lists skip it (and the tab hides the dropdown there).
+	 */
+	boolean filterPasses(CaTask task, boolean applyTier)
+	{
+		String status = STATUS_OPTIONS[statusFilter.selected()];
+		if ("Completed".equals(status) && !task.completed
+			|| "Incomplete".equals(status) && task.completed)
 		{
-			return null;
+			return false;
 		}
-		int w = icon.getWidth(null);
-		int h = icon.getHeight(null);
-		if (w <= 0 || h <= 0)
+		String type = TYPE_OPTIONS[typeFilter.selected()];
+		if (!"All types".equals(type) && !type.equals(task.type))
 		{
-			return icon;
+			return false;
 		}
-		double scale = (double) PAGE_EMBLEM / Math.max(w, h);
-		return icon.getScaledInstance((int) Math.round(w * scale),
-			(int) Math.round(h * scale), Image.SCALE_SMOOTH);
+		return !applyTier || tierFilter.selected() == 0
+			|| task.tier == CaTier.values()[tierFilter.selected() - 1];
 	}
 
 	/** A boss card's emblem: the boss's own collection-log page's first

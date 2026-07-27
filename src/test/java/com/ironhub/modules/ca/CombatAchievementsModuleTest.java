@@ -303,7 +303,6 @@ public class CombatAchievementsModuleTest
 		caTab.showBossesForTest();
 		caTab.expandBrowserForTest();
 		caTab.browserForTest().expandForTest(2);
-		caTab.browserForTest().expandFiltersForTest();
 		write(SwingRender.render((JPanel) tab), "ca-tab-browser.png");
 		module.shutDown();
 	}
