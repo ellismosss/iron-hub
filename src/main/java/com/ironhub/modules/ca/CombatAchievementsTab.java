@@ -108,6 +108,8 @@ class CombatAchievementsTab extends JPanel
 	private int bossGridPage;
 	/** The Combat Profile card starts folded (Luke, 2026-07-27). */
 	private boolean profileExpanded;
+	/** Task tiles open NON-exclusively; collapsed by default. */
+	private final java.util.Set<Integer> expandedTasks = new java.util.HashSet<>();
 	private List<Object> lastPrint = List.of();
 	/** Boss-card emblems arrive async from the item cache. */
 	private final Runnable spriteListener = RebuildGate.install(this, this::rebuildAll);
@@ -235,6 +237,7 @@ class CombatAchievementsTab extends JPanel
 		print.add(completedFilter.state());
 		print.add(typeFilter.selected());
 		print.add(new ArrayList<>(tierEnabled.values()));
+		print.add(new ArrayList<>(expandedTasks));
 		print.add(profileExpanded);
 		return print;
 	}
@@ -773,62 +776,86 @@ class CombatAchievementsTab extends JPanel
 		}
 	}
 
+	/**
+	 * One achievement on its own TILE (Luke, 2026-07-27): collapsed = the
+	 * name alone in the body font with the "+" goal button top-right; a
+	 * click expands it — NON-exclusively — adding the faint detail row
+	 * (tier · type · points · community completion) and the description.
+	 * Right-click keeps the wiki page.
+	 */
 	private JComponent taskRow(CaTask task)
 	{
-		JPanel card = new JPanel();
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setOpaque(true);
-		card.setBackground(theme.background);
-		card.setAlignmentX(LEFT_ALIGNMENT);
-		card.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 3, UiTokens.ROW_GAP));
+		boolean expanded = expandedTasks.contains(task.id);
+		V2Surface tile = V2Surface.tile(theme);
+		tile.setAlignmentX(LEFT_ALIGNMENT);
 
 		JPanel head = row();
-		Image icon = tierIcon(task.tier);
-		if (icon != null)
-		{
-			JLabel holder = new JLabel(new javax.swing.ImageIcon(icon));
-			holder.setToolTipText(task.tier.display);
-			head.add(holder);
-			head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		}
 		OsrsLabel name = new OsrsLabel(task.name,
-			task.completed ? OsrsSkin.VALUE : OsrsSkin.TITLE, OsrsSkin.boldFont())
+			task.completed ? OsrsSkin.VALUE : V2Tokens.TEXT, OsrsSkin.font())
 			.leftAligned().squeezable();
-		name.setToolTipText(task.name + " · " + task.tier.display + " · " + task.type);
 		head.add(name);
 		head.add(Box.createHorizontalGlue());
 		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		head.add(goalGlyph(task));
+		JComponent glyph = goalGlyph(task);
+		glyph.setAlignmentY(TOP_ALIGNMENT);
+		head.add(glyph);
 		cap(head);
-		card.add(head);
-		card.add(OsrsLabel.wrapped(task.description, WRAP,
-			task.completed ? OsrsSkin.FAINT : OsrsSkin.MUTED, OsrsSkin.smallFont())
-			.leftAligned());
+		tile.add(head);
 
-		card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		card.setToolTipText("Open the wiki page for " + task.name);
-		clickAnywhere(card, new MouseAdapter()
+		if (expanded)
 		{
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				card.setBackground(theme.hoverFill);
-			}
+			String pct = task.communityPct == null ? "unknown"
+				: String.format(Locale.ROOT, "%.1f%% of players", task.communityPct);
+			tile.add(new OsrsLabel(task.tier.display + " · " + task.type + " · "
+				+ task.tier.points + (task.tier.points == 1 ? " pt" : " pts") + " · " + pct,
+				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned().squeezable());
+			tile.add(OsrsLabel.wrapped(task.description, WRAP,
+				task.completed ? OsrsSkin.FAINT : OsrsSkin.MUTED, OsrsSkin.smallFont())
+				.leftAligned());
+		}
 
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				card.setBackground(theme.background);
-			}
-
+		tile.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		clickAnywhere(tile, new MouseAdapter()
+		{
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
-				LinkBrowser.browse(task.wikiUrl());
+				if (e.isPopupTrigger())
+				{
+					wikiMenu(task, e);
+					return;
+				}
+				if (expanded)
+				{
+					expandedTasks.remove(task.id);
+				}
+				else
+				{
+					expandedTasks.add(task.id);
+				}
+				rebuildContent();
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e)
+			{
+				if (e.isPopupTrigger())
+				{
+					wikiMenu(task, e);
+				}
 			}
 		});
-		cap(card);
-		return card;
+		cap(tile);
+		return tile;
+	}
+
+	private void wikiMenu(CaTask task, MouseEvent e)
+	{
+		javax.swing.JPopupMenu menu = new javax.swing.JPopupMenu();
+		javax.swing.JMenuItem wiki = new javax.swing.JMenuItem("Open wiki page");
+		wiki.addActionListener(a -> LinkBrowser.browse(task.wikiUrl()));
+		menu.add(wiki);
+		menu.show(e.getComponent(), e.getX(), e.getY());
 	}
 
 	// ── stats ─────────────────────────────────────────────────────────
@@ -1021,6 +1048,13 @@ class CombatAchievementsTab extends JPanel
 	}
 
 	// ── test seams ────────────────────────────────────────────────────
+
+	/** Test seam: open one task tile in the expanded lists. */
+	void expandTaskForTest(int id)
+	{
+		expandedTasks.add(id);
+		rebuildContent();
+	}
 
 	void showBossesForTest()
 	{

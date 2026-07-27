@@ -297,6 +297,7 @@ public class CombatAchievementsModuleTest
 		write(SwingRender.render((JPanel) tab), "ca-tab-boss-page.png");
 
 		caTab.openTierForTest(CaTier.ELITE);
+		caTab.expandTaskForTest(2); // Perfect Zulrah's tile, open
 		write(SwingRender.render((JPanel) tab), "ca-tab-tier-page.png");
 
 		module.shutDown();
