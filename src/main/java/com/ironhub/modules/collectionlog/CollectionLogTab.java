@@ -985,9 +985,11 @@ class CollectionLogTab extends JPanel
 		else
 		{
 			// held in the PRESSED (hovered-art) state while its results are
-			// showing — no hover listener here, so the pointer leaving
-			// cannot unlight it (Luke, 2026-07-27)
+			// showing — lit is its own flag now, so the pointer leaving
+			// cannot unlight it, and hovering washes the lit art the same
+			// way it washes the plain one (Luke, 2026-07-27)
 			card.setLit(true);
+			card.washHoverable();
 		}
 		card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		MouseAdapter toggle = new MouseAdapter()

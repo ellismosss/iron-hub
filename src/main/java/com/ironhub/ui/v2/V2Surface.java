@@ -333,19 +333,24 @@ public class V2Surface extends JPanel
 	}
 
 	/** Paint the hovered art regardless of the pointer — how a selected chip
-	 *  reads, alongside its label going HEADING orange (§8). */
+	 *  reads, alongside its label going HEADING orange (§8). Lit is its OWN
+	 *  flag, not the pointer's: a hover listener's exit must never unlight a
+	 *  lit surface, and a lit surface can still take the pointer wash
+	 *  (Luke, 2026-07-27). */
 	public void setLit(boolean lit)
 	{
 		if (hovered == null && slice != null)
 		{
 			hovered = slice.variant("_hovered");
 		}
-		if (hover != lit)
+		if (this.lit != lit)
 		{
-			hover = lit;
+			this.lit = lit;
 			repaint();
 		}
 	}
+
+	private boolean lit;
 
 	/**
 	 * A Tile that presses — a button wearing the Tile surface rather than the
@@ -448,10 +453,12 @@ public class V2Surface extends JPanel
 		}
 		else
 		{
-			NineSlice art = hover && hovered != null ? hovered : slice;
+			NineSlice art = (lit || hover) && hovered != null ? hovered : slice;
 			art.paint((Graphics2D) g, theme, 0, 0, getWidth(), getHeight());
-			// hovered == null keeps a setLit surface from double-lighting
-			if (washOnHover && hover && hovered == null)
+			// the wash rides the POINTER, on plain and lit art alike — a
+			// lit (pressed-in) surface still shows it under the pointer
+			// (Luke, 2026-07-27)
+			if (washOnHover && hover)
 			{
 				g.setColor(V2Tokens.HIGHLIGHT);
 				g.fillRect(2, 2, getWidth() - 4, getHeight() - 4);
