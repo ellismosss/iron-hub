@@ -948,9 +948,12 @@ class GearLibraryTab extends JPanel
 	/** The grid's tile geometry — the art band, the caption sits under it. */
 	private static final int TILE_ART = 34;
 	private static final int TILE_WIDTH = 52;
-	/** The double set tile: two columns wide, two small tiles tall. */
+	/** The double set tile: two columns wide, and EXACTLY two small tiles
+	 *  tall — its art band absorbs the second row's caption + gutter, since
+	 *  the big tile carries only one caption (Luke, 2026-07-28). */
 	private static final int TILE_WIDTH_BIG = 2 * TILE_WIDTH + 3;
-	private static final int TILE_ART_BIG = 2 * TILE_ART + 3;
+	private static final int TILE_ART_BIG = TILE_ART
+		+ (TILE_ART + V2Tokens.TIGHT + 2 * V2Tokens.LINE_PITCH + V2Tokens.ROW) + 3;
 
 	/** The owned tick shows only in the "All" view — it is redundant when the
 	 *  Owned filter already means every tile is owned (Luke). */
