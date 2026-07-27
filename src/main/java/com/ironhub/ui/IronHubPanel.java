@@ -401,6 +401,9 @@ public class IronHubPanel extends PluginPanel
 			line.setLayout(new BoxLayout(line, BoxLayout.X_AXIS));
 			line.setOpaque(false);
 			line.setAlignmentX(Component.LEFT_ALIGNMENT);
+			// glue BOTH sides — the tile rows centre in the panel (Luke,
+			// 2026-07-27)
+			line.add(Box.createHorizontalGlue());
 			for (int col = 0; col < TILE_COLUMNS && i + col < sections.size(); col++)
 			{
 				Section section = sections.get(i + col);
