@@ -299,11 +299,6 @@ public class CombatAchievementsModuleTest
 		caTab.openTierForTest(CaTier.ELITE);
 		write(SwingRender.render((JPanel) tab), "ca-tab-tier-page.png");
 
-		// the old module, folded away at the foot
-		caTab.showBossesForTest();
-		caTab.expandBrowserForTest();
-		caTab.browserForTest().expandForTest(2);
-		write(SwingRender.render((JPanel) tab), "ca-tab-browser.png");
 		module.shutDown();
 	}
 

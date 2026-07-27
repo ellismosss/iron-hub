@@ -50,8 +50,8 @@ import net.runelite.client.util.LinkBrowser;
  *     fill bars) and Bosses (the interface's own grid, three across, in its
  *     own order) — each tile opening a page listing every combat achievement
  *     under it;
- * <li>and the searchable task list ({@link CaTaskBrowser}) folded into a
- *     collapsible section at the foot.
+ * <li>per-task goal tracking on the expanded rows' +/x glyphs — the old
+ *     All-tasks browser section is gone (Luke, 2026-07-27).
  * </ul>
  *
  * Frameless: the hub host provides the frame.
@@ -68,6 +68,8 @@ class CombatAchievementsTab extends JPanel
 	private static final int PAGE_EMBLEM = 44;
 	/** Boss pages: 10 rows of 2 per page, arrows below (Luke, 2026-07-27). */
 	private static final int BOSS_PAGE_ROWS = 10;
+	/** The tier-toggle tiles' art height (3x2 grid of 69px tiles). */
+	private static final int TIER_TOGGLE = 32;
 	/** The shared filters, under the view chips (Luke, 2026-07-27). */
 	static final String[] TYPE_OPTIONS = {"All types", "Stamina", "Perfection",
 		"Kill Count", "Mechanical", "Restriction", "Speed"};
@@ -97,10 +99,6 @@ class CombatAchievementsTab extends JPanel
 	 *  already partition by tier. */
 	private final JPanel tierFilterRow;
 	private final JPanel content = new JPanel();
-	private final JPanel browserSlot = new JPanel();
-	/** The All-tasks header card — lit while the browser is open. */
-	private V2Surface browserCard;
-	private final CaTaskBrowser browser;
 
 	/** null = nothing expanded; otherwise the ONE tier or boss whose tasks
 	 *  show in-line under its grid row (the clog grammar). */
@@ -108,7 +106,6 @@ class CombatAchievementsTab extends JPanel
 	private String openBoss;
 	/** The boss grid's current page (10 rows of 2 per page). */
 	private int bossGridPage;
-	private boolean browserExpanded;
 	/** The Combat Profile card starts folded (Luke, 2026-07-27). */
 	private boolean profileExpanded;
 	private List<Object> lastPrint = List.of();
@@ -166,7 +163,7 @@ class CombatAchievementsTab extends JPanel
 			tierEnabled.put(tier, true);
 		}
 		completedFilter = new com.ironhub.ui.v2.V2Checkbox(theme, "Completed", false,
-			this::filtersChanged);
+			this::toggleCompleted);
 		typeFilter = new com.ironhub.ui.v2.V2Dropdown(theme, TYPE_OPTIONS).width(107);
 		typeFilter.onChange(i -> filtersChanged());
 		JPanel filterPair = new JPanel();
@@ -183,16 +180,7 @@ class CombatAchievementsTab extends JPanel
 		tierFilterRow.setLayout(new BoxLayout(tierFilterRow, BoxLayout.Y_AXIS));
 		tierFilterRow.setOpaque(false);
 		tierFilterRow.setAlignmentX(LEFT_ALIGNMENT);
-		JPanel tierToggles = new JPanel(new java.awt.GridLayout(1, CaTier.values().length, 2, 0));
-		tierToggles.setOpaque(false);
-		tierToggles.setAlignmentX(LEFT_ALIGNMENT);
-		tierToggles.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiTokens.ICON_CELL_SIZE));
-		for (CaTier tier : CaTier.values())
-		{
-			tierToggles.add(tierToggle(tier));
-		}
-		tierFilterRow.add(tierToggles);
-		tierFilterRow.add(Box.createVerticalStrut(4));
+		rebuildTierToggles();
 		tierFilterRow.setVisible(false);
 		add(tierFilterRow);
 		views.onChange(i ->
@@ -208,22 +196,7 @@ class CombatAchievementsTab extends JPanel
 		content.setAlignmentX(LEFT_ALIGNMENT);
 		add(content);
 
-		add(Box.createVerticalStrut(6));
-		add(browserHeader());
-		browserSlot.setLayout(new BoxLayout(browserSlot, BoxLayout.Y_AXIS));
-		browserSlot.setOpaque(false);
-		browserSlot.setAlignmentX(LEFT_ALIGNMENT);
-		add(browserSlot);
 		add(Box.createVerticalGlue());
-		browser = new CaTaskBrowser(module, state, config, theme);
-		browser.filtersFrom(this);
-		browser.onShowBoss(boss ->
-		{
-			views.setSelected(1);
-			openTier = null;
-			openBoss = boss;
-			rebuildContent();
-		});
 
 		state.addListener(listener);
 		rebuildAll();
@@ -231,14 +204,12 @@ class CombatAchievementsTab extends JPanel
 
 	void dispose()
 	{
-		browser.dispose();
 		state.removeListener(listener);
 	}
 
 	/** Module callback after the catalog (re)loads on the client thread. */
 	void onTasksUpdated()
 	{
-		browser.onTasksUpdated();
 		rebuildAll();
 	}
 
@@ -264,50 +235,63 @@ class CombatAchievementsTab extends JPanel
 		print.add(completedFilter.state());
 		print.add(typeFilter.selected());
 		print.add(new ArrayList<>(tierEnabled.values()));
-		print.add(browserExpanded);
 		print.add(profileExpanded);
 		return print;
 	}
 
-	/** Wiki tier icon toggle; select fill + bevel = tier shown — the
-	 *  browser's original filter, relocated (Luke, 2026-07-27). */
-	private JLabel tierToggle(CaTier tier)
+	/** The six tier toggles as DLV2 Tiles on a 3x2 grid (Luke, 2026-07-27):
+	 *  the small sword as emblem, selected = shown, non-exclusive. */
+	private void rebuildTierToggles()
 	{
-		JLabel toggle = new JLabel(CaTaskBrowser.tierIcon(tier));
-		toggle.setOpaque(true);
-		toggle.setHorizontalAlignment(JLabel.CENTER);
-		toggle.setToolTipText(tier.display + " tier (click to show/hide)");
-		toggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		Runnable style = () ->
+		tierFilterRow.removeAll();
+		CaTier[] tiers = CaTier.values();
+		for (int start = 0; start < tiers.length; start += 3)
 		{
-			boolean on = tierEnabled.get(tier);
-			toggle.setBackground(on ? theme.selectFill : theme.recess);
-			// MatteBorder fills strips — a drawRect border halves on Retina
-			toggle.setBorder(new javax.swing.border.MatteBorder(1, 1, 1, 1,
-				on ? theme.selectEdge : theme.edgeDark));
-		};
-		style.run();
-		toggle.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
+			JPanel line = row();
+			line.add(Box.createHorizontalGlue());
+			for (int col = 0; col < 3 && start + col < tiers.length; col++)
 			{
-				tierEnabled.put(tier, !tierEnabled.get(tier));
-				style.run();
-				filtersChanged();
+				if (col > 0)
+				{
+					line.add(Box.createHorizontalStrut(V2Tokens.ROW));
+				}
+				CaTier tier = tiers[start + col];
+				V2Tile toggle = new V2Tile(theme,
+					com.ironhub.ui.v2.V2Sprites.get(theme, "icons/combat_achievements/"
+						+ TIER_SWORDS[tier.ordinal()] + "_small"),
+					null, TIER_TOGGLE, () ->
+					{
+						tierEnabled.put(tier, !tierEnabled.get(tier));
+						rebuildTierToggles();
+						filtersChanged();
+					})
+					.width(69)
+					.selected(tierEnabled.get(tier));
+				toggle.setToolTipText(tier.display + " tier (click to show/hide)");
+				line.add(toggle);
 			}
-		});
-		return toggle;
+			line.add(Box.createHorizontalGlue());
+			cap(line);
+			tierFilterRow.add(line);
+			tierFilterRow.add(Box.createVerticalStrut(V2Tokens.ROW));
+		}
+		tierFilterRow.revalidate();
+		tierFilterRow.repaint();
 	}
 
-	/** A shared filter moved — both the grids and the browser re-run. */
+	/** The atom fires the toggle and the CALLER flips the state — missing
+	 *  the flip was why the box never showed its tick (Luke, 2026-07-27). */
+	private void toggleCompleted()
+	{
+		completedFilter.state(completedFilter.state() == com.ironhub.ui.v2.V2Checkbox.State.ON
+			? com.ironhub.ui.v2.V2Checkbox.State.OFF : com.ironhub.ui.v2.V2Checkbox.State.ON);
+		filtersChanged();
+	}
+
+	/** A shared filter moved — the grids re-run. */
 	private void filtersChanged()
 	{
 		rebuildContent();
-		if (browser != null)
-		{
-			browser.refilter();
-		}
 	}
 
 	private void rebuildAll()
@@ -785,7 +769,7 @@ class CombatAchievementsTab extends JPanel
 		if (limit < sorted.size())
 		{
 			content.add(note("+ " + (sorted.size() - limit)
-				+ " more — the task list below searches them all"));
+				+ " more — narrow the filters to see the rest"));
 		}
 	}
 
@@ -813,6 +797,8 @@ class CombatAchievementsTab extends JPanel
 		name.setToolTipText(task.name + " · " + task.tier.display + " · " + task.type);
 		head.add(name);
 		head.add(Box.createHorizontalGlue());
+		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		head.add(goalGlyph(task));
 		cap(head);
 		card.add(head);
 		card.add(OsrsLabel.wrapped(task.description, WRAP,
@@ -843,52 +829,6 @@ class CombatAchievementsTab extends JPanel
 		});
 		cap(card);
 		return card;
-	}
-
-	// ── the task browser, folded away at the foot ─────────────────────
-
-	/** "All tasks" as the clog's Easiest-next-slots shape (Luke,
-	 *  2026-07-27): a pressable TEXT-ONLY Card — subtle wash on hover, the
-	 *  hovered art pinned while the browser is open, no chevron, no
-	 *  tooltip — with the browser mounting below it. */
-	private JComponent browserHeader()
-	{
-		browserCard = V2Surface.card(theme);
-		browserCard.setAlignmentX(LEFT_ALIGNMENT);
-		JPanel head = row();
-		head.add(Box.createHorizontalGlue());
-		head.add(new OsrsLabel("All tasks", OsrsSkin.TITLE, OsrsSkin.boldFont()));
-		head.add(Box.createHorizontalGlue());
-		cap(head);
-		browserCard.add(head);
-		browserCard.washHoverable();
-		browserCard.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		com.ironhub.ui.v2.MouseRelay.install(browserCard);
-		browserCard.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				toggleBrowser();
-			}
-		});
-		cap(browserCard);
-		return browserCard;
-	}
-
-	private void toggleBrowser()
-	{
-		browserExpanded = !browserExpanded;
-		browserCard.setLit(browserExpanded);
-		browserSlot.removeAll();
-		if (browserExpanded)
-		{
-			browserSlot.add(browser);
-		}
-		browserSlot.revalidate();
-		browserSlot.repaint();
-		revalidate();
-		repaint();
 	}
 
 	// ── stats ─────────────────────────────────────────────────────────
@@ -943,10 +883,94 @@ class CombatAchievementsTab extends JPanel
 		return null;
 	}
 
+	private static final Map<CaTier, Image> TIER_ICONS = loadTierIcons();
+
 	private static Image tierIcon(CaTier tier)
 	{
-		javax.swing.ImageIcon icon = CaTaskBrowser.tierIcon(tier);
-		return icon == null ? null : icon.getImage();
+		return TIER_ICONS.get(tier);
+	}
+
+	/** The bundled wiki tier icons (formerly the browser's). */
+	private static Map<CaTier, Image> loadTierIcons()
+	{
+		Map<CaTier, Image> icons = new java.util.EnumMap<>(CaTier.class);
+		for (CaTier tier : CaTier.values())
+		{
+			try (java.io.InputStream in =
+				CombatAchievementsTab.class.getResourceAsStream(tier.iconResource()))
+			{
+				if (in != null)
+				{
+					icons.put(tier, javax.imageio.ImageIO.read(in)
+						.getScaledInstance(-1, 16, Image.SCALE_SMOOTH));
+				}
+			}
+			catch (java.io.IOException ignored)
+			{
+			}
+		}
+		return icons;
+	}
+
+	private boolean isGoal(CaTask task)
+	{
+		return state.getSelectedGoals().contains("ca:" + task.id);
+	}
+
+	/** The row's +/x: add to or remove from the Goal planner. */
+	private JComponent goalGlyph(CaTask task)
+	{
+		boolean goal = isGoal(task);
+		JLabel glyph = new JLabel(goal ? "×" : "+");
+		OsrsSkin.crisp(glyph);
+		glyph.setFont(OsrsSkin.font());
+		glyph.setForeground(OsrsSkin.FAINT);
+		glyph.setToolTipText(goal ? "Remove from Goal planner" : "Add to Goal planner");
+		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		glyph.putClientProperty(OWN_ACTION, Boolean.TRUE);
+		glyph.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.TITLE);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.FAINT);
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				toggleGoal(task);
+				rebuildContent();
+			}
+		});
+		return glyph;
+	}
+
+	/** The +/x glyph: the task joins or leaves the Goal planner as a
+	 *  "ca:" goal — the browser's affordance, kept when the All-tasks
+	 *  section was removed (Luke, 2026-07-27). */
+	private void toggleGoal(CaTask task)
+	{
+		if (isGoal(task))
+		{
+			state.removeGoalSeed("ca:" + task.id);
+		}
+		else
+		{
+			state.addGoalSeed(com.ironhub.state.GoalSeeds.ca(
+				task.id, task.name, task.description, task.tier.display));
+			if (task.completed)
+			{
+				// already done in-game: prove the goal immediately
+				state.setUnlocked("catask_" + task.id, true);
+			}
+		}
 	}
 
 	/** The game's own _large tier sword, never a resized small one (Luke,
@@ -1022,19 +1046,6 @@ class CombatAchievementsTab extends JPanel
 		rebuildContent();
 	}
 
-	void expandBrowserForTest()
-	{
-		if (!browserExpanded)
-		{
-			toggleBrowser();
-		}
-	}
-
-	CaTaskBrowser browserForTest()
-	{
-		return browser;
-	}
-
 	// ── layout helpers ────────────────────────────────────────────────
 
 	private static JPanel row()
@@ -1057,16 +1068,29 @@ class CombatAchievementsTab extends JPanel
 		return holder;
 	}
 
+	/** Marks a child that keeps its own click (the +/x goal glyph). */
+	private static final String OWN_ACTION = "ironhub.ca.ownAction";
+
 	private static void clickAnywhere(JComponent container, MouseAdapter click)
 	{
 		container.addMouseListener(click);
 		for (java.awt.Component child : container.getComponents())
 		{
+			if (child instanceof JComponent
+				&& Boolean.TRUE.equals(((JComponent) child).getClientProperty(OWN_ACTION)))
+			{
+				continue;
+			}
 			child.addMouseListener(click);
 			if (child instanceof JComponent)
 			{
 				for (java.awt.Component inner : ((JComponent) child).getComponents())
 				{
+					if (inner instanceof JComponent && Boolean.TRUE.equals(
+						((JComponent) inner).getClientProperty(OWN_ACTION)))
+					{
+						continue;
+					}
 					inner.addMouseListener(click);
 				}
 			}
