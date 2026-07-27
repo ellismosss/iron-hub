@@ -88,6 +88,10 @@ class GearLibraryTab extends JPanel
 	/** The progression chart, hosted in a collapsible section below. */
 	private final GearTab chart;
 
+	// the hero card (the reference grammar's opening readout)
+	private final V2Surface hero;
+	private com.ironhub.ui.v2.V2ProgressBar heroBar;
+
 	// controls
 	private final V2TextField search;
 	private final V2Dropdown slotBox;
@@ -138,6 +142,13 @@ class GearLibraryTab extends JPanel
 		setOpaque(true);
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
+
+		// the library standing is the one live readout on the page — the
+		// Card, with the SPRITE bar (the reference hero shape, 2026-07-28)
+		hero = V2Surface.card(theme);
+		heroBar = new com.ironhub.ui.v2.V2ProgressBar(theme);
+		add(hero);
+		add(Box.createVerticalStrut(4));
 
 		search = new V2TextField(theme, "Search all gear…", null);
 		add(search);
@@ -577,9 +588,79 @@ class GearLibraryTab extends JPanel
 		rebuildGrid();
 	}
 
+	/**
+	 * "Gear owned: N / T" between two equipment emblems over the sprite bar
+	 * (the reference hero shape) — the whole library's span, unmoved by the
+	 * filters — with the tracked and missing tallies on a counter line.
+	 */
+	private void rebuildHero()
+	{
+		int ownedCount = 0;
+		for (EquipmentPack.Item item : pack.items)
+		{
+			if (owns(item))
+			{
+				ownedCount++;
+			}
+		}
+		int total = pack.items.size();
+		hero.removeAll();
+		JPanel top = row();
+		top.add(emblem());
+		top.add(Box.createHorizontalGlue());
+		JPanel middle = new JPanel();
+		middle.setLayout(new BoxLayout(middle, BoxLayout.Y_AXIS));
+		middle.setOpaque(false);
+		middle.add(new OsrsLabel("Gear owned", OsrsSkin.TITLE, OsrsSkin.font()));
+		middle.add(new OsrsLabel(String.format(Locale.ROOT, "%,d / %,d", ownedCount, total),
+			OsrsSkin.TITLE, OsrsSkin.boldFont()));
+		top.add(middle);
+		top.add(Box.createHorizontalGlue());
+		top.add(emblem());
+		cap(top);
+		hero.add(top);
+		hero.add(Box.createVerticalStrut(3));
+		// the fill answers the SAME numbers as the label riding it
+		heroBar.fraction(total == 0 ? 0 : (double) ownedCount / total);
+		heroBar.labels("", String.format(Locale.ROOT, "%,d / %,d", ownedCount, total), "");
+		hero.add(heroBar);
+		hero.add(Box.createVerticalStrut(3));
+		JPanel counters = row();
+		counters.add(new OsrsLabel("Tracked: ",
+			OsrsSkin.LABEL, OsrsSkin.smallFont()).leftAligned());
+		counters.add(new OsrsLabel(String.valueOf(trackedGear().size()),
+			V2Tokens.STRONG, OsrsSkin.smallFont()).leftAligned());
+		counters.add(Box.createHorizontalGlue());
+		counters.add(new OsrsLabel(String.format(Locale.ROOT, "%,d missing", total - ownedCount),
+			OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		cap(counters);
+		hero.add(counters);
+		cap(hero);
+		hero.revalidate();
+		hero.repaint();
+	}
+
+	/** The equipment-stats emblem at native size, flanking the hero. */
+	private JComponent emblem()
+	{
+		JLabel icon = new JLabel();
+		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+		java.awt.Image art = com.ironhub.ui.v2.V2Sprites.get(theme, "icons/equipment/equipment");
+		if (art != null)
+		{
+			icon.setIcon(new javax.swing.ImageIcon(art));
+		}
+		else
+		{
+			icon.setPreferredSize(new Dimension(33, 36));
+		}
+		return icon;
+	}
+
 	private void rebuildGrid()
 	{
 		lastPrint = fingerprint();
+		rebuildHero();
 		list.removeAll();
 		List<Unit> allUnits = visibleUnits();
 		int totalItems = visible().size();
@@ -616,6 +697,8 @@ class GearLibraryTab extends JPanel
 		{
 			List<Unit> rowUnits = units.subList(start, Math.min(start + cols, units.size()));
 			JPanel gridRow = row();
+			// glue BOTH sides — rows centre in the column (the reference grammar)
+			gridRow.add(Box.createHorizontalGlue());
 			for (int col = 0; col < rowUnits.size(); col++)
 			{
 				if (col > 0)
@@ -764,7 +847,16 @@ class GearLibraryTab extends JPanel
 	{
 		JPanel row = row();
 		row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP));
-		row.add(pagerButton("< Prev", page > 0, () -> goToPage(page - 1)));
+		// the reference pager: ui/arrows sprite buttons (the typeable page
+		// box stays — twelve-plus pages deserve a jump)
+		row.add(new com.ironhub.ui.v2.V2SpriteButton(theme,
+			com.ironhub.ui.v2.V2SpriteButton.ARROW_LEFT, () ->
+			{
+				if (page > 0)
+				{
+					goToPage(page - 1);
+				}
+			}));
 		row.add(Box.createHorizontalGlue());
 		// the current page is a tight typeable box (room for two digits) —
 		// jump straight to a page
@@ -790,7 +882,14 @@ class GearLibraryTab extends JPanel
 		row.add(pageField);
 		row.add(new OsrsLabel(" / " + pages, OsrsSkin.MUTED, OsrsSkin.smallFont()));
 		row.add(Box.createHorizontalGlue());
-		row.add(pagerButton("Next >", page < pages - 1, () -> goToPage(page + 1)));
+		row.add(new com.ironhub.ui.v2.V2SpriteButton(theme,
+			com.ironhub.ui.v2.V2SpriteButton.ARROW_RIGHT, () ->
+			{
+				if (page < pages - 1)
+				{
+					goToPage(page + 1);
+				}
+			}));
 		cap(row);
 		return row;
 	}
@@ -801,25 +900,6 @@ class GearLibraryTab extends JPanel
 		page = Math.max(0, Math.min(target, pages - 1));
 		selected = -1;
 		rebuildGrid();
-	}
-
-	private JComponent pagerButton(String text, boolean enabled, Runnable onClick)
-	{
-		OsrsLabel label = new OsrsLabel(text, enabled ? OsrsSkin.LABEL : OsrsSkin.FAINT,
-			OsrsSkin.smallFont());
-		if (enabled)
-		{
-			label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			label.addMouseListener(new MouseAdapter()
-			{
-				@Override
-				public void mousePressed(MouseEvent e)
-				{
-					onClick.run();
-				}
-			});
-		}
-		return label;
 	}
 
 	/** The item's market value: the swept live GE price, else high alch.
