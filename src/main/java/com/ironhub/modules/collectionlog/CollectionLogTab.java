@@ -16,6 +16,7 @@ import com.ironhub.ui.osrs.OsrsTheme;
 import com.ironhub.ui.v2.V2ProgressBar;
 import com.ironhub.ui.v2.V2Surface;
 import com.ironhub.ui.v2.V2TextField;
+import com.ironhub.ui.v2.V2Tile;
 import com.ironhub.ui.v2.V2Tokens;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -53,9 +54,10 @@ import net.runelite.client.util.LinkBrowser;
  * <li>a hero banner framing "Collections Logged: n/N" between the rank you
  *     have reached and the one you are climbing to, each shown by its staff;
  * <li>the log's five tabs as icon tiles with their counts and fill bars;
- * <li>a category view listing that tab's pages, drilling into the page's own
- *     item grid — sprites solid when owned, ghosted when not, exactly as the
- *     interface draws them;
+ * <li>a category view of that tab's pages as a 3-wide grid of DLV2 icon
+ *     tiles (Luke, 2026-07-27), drilling into the page's own item grid —
+ *     sprites solid when owned, ghosted when not, exactly as the interface
+ *     draws them;
  * <li>and the old Time-To-Next-Slot ranking kept, moved to its own section
  *     at the foot and clamped to ten rows.
  * </ul>
@@ -74,6 +76,11 @@ class CollectionLogTab extends JPanel
 	/** The newest slots the overview shows. */
 	private static final int LATEST = 10;
 	private static final String[] TAB_ICONS = {"bosses", "raids", "clues", "minigames", "other"};
+	/** The category view's page grid: 3 tiles across the 217px content
+	 *  column (3x68 + 2x4 = 212), TileTree's art-band height. */
+	private static final int PAGE_COLS = 3;
+	private static final int PAGE_TILE_WIDTH = 68;
+	private static final int PAGE_TILE_ART = 34;
 	/** Marks a child that keeps its own click (the +/x glyphs). */
 	private static final String OWN_ACTION = "clog.ownAction";
 	private static final int CARD_WRAP = 180;
@@ -439,7 +446,10 @@ class CollectionLogTab extends JPanel
 		return dated.size() > LATEST ? dated.subList(0, LATEST) : dated;
 	}
 
-	/** A tab's pages, each with its own fill count. */
+	/** A tab's pages as a 3-wide grid of DLV2 icon tiles (Luke, 2026-07-27):
+	 *  emblem = the page's own first slot, the log's colouring kept — DONE
+	 *  tick when a page is finished, the orange wrapping edge as its fill
+	 *  arc while it is not (the Farming overview's grammar). */
 	private void categoryView()
 	{
 		PersistedState.ClogTab tab = tabByName(openTab);
@@ -450,17 +460,53 @@ class CollectionLogTab extends JPanel
 			return;
 		}
 		content.add(section(tab.name));
-		int shown = 0;
-		for (PersistedState.ClogPage page : tab.pages)
+		List<PersistedState.ClogPage> pages = tab.pages.size() > MAX_PAGES
+			? tab.pages.subList(0, MAX_PAGES) : tab.pages;
+		for (int start = 0; start < pages.size(); start += PAGE_COLS)
 		{
-			if (shown++ >= MAX_PAGES)
+			List<PersistedState.ClogPage> rowPages =
+				pages.subList(start, Math.min(start + PAGE_COLS, pages.size()));
+			JPanel row = row();
+			for (int i = 0; i < rowPages.size(); i++)
 			{
-				content.add(note("+ " + (tab.pages.size() - MAX_PAGES)
-					+ " more — search to narrow the list"));
-				break;
+				if (i > 0)
+				{
+					row.add(Box.createHorizontalStrut(V2Tokens.ROW));
+				}
+				row.add(pageTile(rowPages.get(i)));
 			}
-			content.add(pageRow(page));
+			row.add(Box.createHorizontalGlue());
+			cap(row);
+			content.add(row);
+			content.add(Box.createVerticalStrut(V2Tokens.ROW));
 		}
+		if (tab.pages.size() > MAX_PAGES)
+		{
+			content.add(note("+ " + (tab.pages.size() - MAX_PAGES)
+				+ " more — search to narrow the list"));
+		}
+	}
+
+	private V2Tile pageTile(PersistedState.ClogPage page)
+	{
+		Set<Integer> items = pageItems(page);
+		int owned = obtainedIn(items);
+		boolean complete = owned >= items.size() && !items.isEmpty();
+		java.awt.Image emblem = page.items.length == 0
+			? null : sprites.get(page.items[0], V2Tokens.TILE_ICON);
+		V2Tile tile = new V2Tile(theme, emblem, page.name, PAGE_TILE_ART,
+			() -> openPage(page.name))
+			.width(PAGE_TILE_WIDTH).captionLines(2);
+		if (complete)
+		{
+			tile.status(V2Tile.Status.DONE).owned(true);
+		}
+		else if (owned > 0)
+		{
+			tile.status(V2Tile.Status.READY).progress((double) owned / items.size());
+		}
+		tile.setToolTipText(page.name + " — " + owned + "/" + items.size());
+		return tile;
 	}
 
 	private JComponent pageRow(PersistedState.ClogPage page)
