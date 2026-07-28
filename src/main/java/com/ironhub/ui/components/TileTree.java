@@ -54,6 +54,7 @@ public class TileTree extends JPanel
 		public String label;
 		public String tooltip;
 		public Integer icon;      // item id, or null for a caption-only tile
+		public Image art;         // bundled sprite — wins over the item icon
 		public boolean owned;     // green corner tick
 		public boolean tracked;   // orange bevel
 		public int badge;         // top-left count, shown when > 1
@@ -67,6 +68,7 @@ public class TileTree extends JPanel
 		public String label;
 		public String tooltip;
 		public Integer icon;
+		public Image art;         // bundled sprite — wins over the item icon
 		public boolean owned;
 		public boolean tracked;
 		public int badge;
@@ -176,7 +178,8 @@ public class TileTree extends JPanel
 	 *  members, meter strip, no tooltip. */
 	private V2Tile topTile(Top top)
 	{
-		Image icon = top.icon != null ? sprites.getBox(top.icon, TOP_EMBLEM) : null;
+		Image icon = top.art != null ? top.art
+			: top.icon != null ? sprites.getBox(top.icon, TOP_EMBLEM) : null;
 		boolean open = top.id.equals(expandedTop);
 		int done = (int) top.leaves.stream().filter(l -> l.owned).count();
 		int total = top.leaves.size();
@@ -257,7 +260,8 @@ public class TileTree extends JPanel
 
 	private V2Tile leafTile(Leaf leaf)
 	{
-		Image icon = leaf.icon != null ? sprites.get(leaf.icon, -1, 32) : null;
+		Image icon = leaf.art != null ? leaf.art
+			: leaf.icon != null ? sprites.get(leaf.icon, -1, 32) : null;
 		boolean sel = leaf.id.equals(selectedLeaf);
 		return tile(leaf.label, icon, leaf.owned, leaf.tracked, sel, leaf.badge, leaf.tooltip,
 			() ->

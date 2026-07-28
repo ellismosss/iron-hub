@@ -68,10 +68,10 @@ class SailingUpgradesTab extends JPanel
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		header.setLayout(new BoxLayout(header, BoxLayout.X_AXIS));
+		header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
 		header.setOpaque(false);
 		header.setAlignmentX(LEFT_ALIGNMENT);
-		header.setBorder(new EmptyBorder(2, 4, 4, 4));
+		header.setBorder(new EmptyBorder(0, 0, 4, 0));
 		add(header);
 		add(tree);
 		add(Box.createVerticalGlue());
@@ -110,32 +110,80 @@ class SailingUpgradesTab extends JPanel
 		boosts = module.boostsPack() == null ? java.util.Map.of()
 			: com.ironhub.requirements.Boosts.available(module.boostsPack(), state);
 		List<Integer> boats = module.knownBoats();
-		if (boats.isEmpty())
-		{
-			header.add(OsrsLabel.wrapped("Board your boat (or enter the shipyard) and Iron "
-				+ "Hub will sync its parts here.", 210, OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
-			tree.setModel(List.of());
-			finish();
-			return;
-		}
 		int available = 0;
+		int complete = 0;
+		int total = 0;
 		for (int boatType : boats)
 		{
 			for (BoatUpgradesPack.Part part : module.partsFor(boatType))
 			{
+				total++;
 				BoatUpgradesPack.Upgrade next = module.nextRow(boatType, part.key);
-				if (next != null && (met(next.reqs) || boostMet(next.reqs)))
+				if (next == null)
+				{
+					complete++;
+				}
+				else if (met(next.reqs) || boostMet(next.reqs))
 				{
 					available++;
 				}
 			}
 		}
-		header.add(new OsrsLabel("Boats", OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
-		header.add(Box.createHorizontalGlue());
-		header.add(new OsrsLabel(available + " upgrade" + (available == 1 ? "" : "s") + " available",
-			available == 0 ? OsrsSkin.FAINT : OsrsSkin.VALUE, OsrsSkin.smallFont()));
+		// the fleet standing is the one live readout on the page — the Card,
+		// with the SPRITE bar between two ship's wheels (the reference hero
+		// shape, 2026-07-28); the boarding hint lives INSIDE the hero while
+		// no boat has been seen (the clog sync-row rule)
+		com.ironhub.ui.v2.V2Surface hero = com.ironhub.ui.v2.V2Surface.card(theme);
+		JPanel top = new JPanel();
+		top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
+		top.setOpaque(false);
+		top.setAlignmentX(LEFT_ALIGNMENT);
+		top.add(wheelEmblem());
+		top.add(Box.createHorizontalGlue());
+		JPanel middle = new JPanel();
+		middle.setLayout(new BoxLayout(middle, BoxLayout.Y_AXIS));
+		middle.setOpaque(false);
+		middle.add(new OsrsLabel("Facilities complete", OsrsSkin.TITLE, OsrsSkin.font()));
+		middle.add(new OsrsLabel(complete + " / " + total,
+			OsrsSkin.TITLE, OsrsSkin.boldFont()));
+		top.add(middle);
+		top.add(Box.createHorizontalGlue());
+		top.add(wheelEmblem());
+		cap(top);
+		hero.add(top);
+		hero.add(Box.createVerticalStrut(3));
+		// the fill answers the SAME numbers as the label riding it
+		com.ironhub.ui.v2.V2ProgressBar bar = new com.ironhub.ui.v2.V2ProgressBar(theme);
+		bar.fraction(total == 0 ? 0 : (double) complete / total);
+		bar.labels("", complete + " / " + total, "");
+		hero.add(bar);
+		if (boats.isEmpty())
+		{
+			hero.add(Box.createVerticalStrut(2));
+			hero.add(OsrsLabel.wrapped("Board your boat (or enter the shipyard) and Iron "
+				+ "Hub will sync its parts here.", 180,
+				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+		}
+		else
+		{
+			hero.add(Box.createVerticalStrut(2));
+			JPanel counters = new JPanel();
+			counters.setLayout(new BoxLayout(counters, BoxLayout.X_AXIS));
+			counters.setOpaque(false);
+			counters.setAlignmentX(LEFT_ALIGNMENT);
+			counters.add(new OsrsLabel("Upgrades available: ",
+				OsrsSkin.LABEL, OsrsSkin.smallFont()).leftAligned());
+			counters.add(new OsrsLabel(String.valueOf(available),
+				available == 0 ? OsrsSkin.FAINT : OsrsSkin.VALUE,
+				OsrsSkin.smallFont()).leftAligned());
+			counters.add(Box.createHorizontalGlue());
+			cap(counters);
+			hero.add(counters);
+		}
+		cap(hero);
+		header.add(hero);
 
-		tree.setModel(buildModel(boats));
+		tree.setModel(boats.isEmpty() ? List.of() : buildModel(boats));
 		finish();
 	}
 
@@ -155,6 +203,13 @@ class SailingUpgradesTab extends JPanel
 			TileTree.Top boat = new TileTree.Top();
 			boat.id = "boat:" + boatType;
 			boat.label = SailingUpgradesModule.boatLabel(boatType);
+			// the game's own boat sprite as the card emblem
+			String boatKey = "icons/sailing/"
+				+ boat.label.toLowerCase(java.util.Locale.ROOT);
+			if (com.ironhub.ui.v2.V2Sprites.has(boatKey))
+			{
+				boat.art = com.ironhub.ui.v2.V2Sprites.get(theme, boatKey);
+			}
 			List<BoatUpgradesPack.Part> parts = module.partsFor(boatType);
 			for (BoatUpgradesPack.Part part : parts)
 			{
@@ -178,7 +233,10 @@ class SailingUpgradesTab extends JPanel
 		TileTree.Leaf leaf = new TileTree.Leaf();
 		leaf.id = boatType + ":" + part.key;
 		leaf.label = part.name;
-		leaf.icon = repIcon(current != null ? current : next);   // a representative build material
+		// the game's own facility sprite when one exists; otherwise a
+		// representative build material
+		leaf.art = facilityArt(part.key);
+		leaf.icon = leaf.art != null ? null : repIcon(current != null ? current : next);
 		leaf.owned = next == null;                                // ladder complete
 		leaf.tracked = next != null && (met(next.reqs) || boostMet(next.reqs));  // buildable now
 		leaf.badge = module.pack().rowsFor(part.key, boatType).size();
@@ -204,6 +262,31 @@ class SailingUpgradesTab extends JPanel
 		}
 		return (current == null ? "not built" : current.name + " built")
 			+ " · next " + next.name + " (Sailing " + next.sailing + ")";
+	}
+
+	/** The bundled sailing sprite for a facility, or null. */
+	private java.awt.Image facilityArt(String partKey)
+	{
+		String name;
+		switch (partKey)
+		{
+			case "Hull": name = "hull"; break;
+			case "Helm": name = "helm"; break;
+			case "Sails": name = "sails"; break;
+			case "Keel": name = "keel"; break;
+			case "Cargo Hold": name = "cargo_hold"; break;
+			case "Cannon": name = "cannon"; break;
+			case "Wind Device": name = "wind_catcher"; break;
+			case "Anchor": name = "anchor"; break;
+			case "Eternal Brazier": name = "brazier"; break;
+			case "Chum Station":
+			case "Inoculation Station":
+			case "Salvaging Station": name = "stations"; break;
+			default: return null;
+		}
+		String key = "icons/sailing/" + name;
+		return com.ironhub.ui.v2.V2Sprites.has(key)
+			? com.ironhub.ui.v2.V2Sprites.get(theme, key) : null;
 	}
 
 	/** A representative item icon for a facility tile: its build material (no
@@ -412,6 +495,23 @@ class SailingUpgradesTab extends JPanel
 		holder.add(Box.createHorizontalGlue());
 		cap(holder);
 		return holder;
+	}
+
+	/** The ship's wheel at native size, flanking the hero. */
+	private JComponent wheelEmblem()
+	{
+		JLabel icon = new JLabel();
+		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+		String key = "icons/sailing/steering_large";
+		if (com.ironhub.ui.v2.V2Sprites.has(key))
+		{
+			icon.setIcon(new ImageIcon(com.ironhub.ui.v2.V2Sprites.get(theme, key)));
+		}
+		else
+		{
+			icon.setPreferredSize(new Dimension(24, 24));
+		}
+		return icon;
 	}
 
 	private static OsrsLabel wikiGlyph(String page)
