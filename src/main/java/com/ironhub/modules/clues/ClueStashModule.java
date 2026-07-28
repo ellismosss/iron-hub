@@ -142,6 +142,81 @@ public class ClueStashModule implements IronHubModule
 		return pack;
 	}
 
+	/**
+	 * The view clue requirements evaluate against: ownership counts the
+	 * "Where's my stuff" storages too — a clue outfit in a POH magic
+	 * wardrobe or armour case IS owned (Luke, 2026-07-28; the old
+	 * bank+carried-only note was stale once WMS landed).
+	 */
+	private final com.ironhub.state.StateView owningView = new com.ironhub.state.StateView()
+	{
+		@Override
+		public int getRealLevel(net.runelite.api.Skill skill)
+		{
+			return state.getRealLevel(skill);
+		}
+
+		@Override
+		public int getXp(net.runelite.api.Skill skill)
+		{
+			return state.getXp(skill);
+		}
+
+		@Override
+		public net.runelite.api.QuestState getQuestState(net.runelite.api.Quest quest)
+		{
+			return state.getQuestState(quest);
+		}
+
+		@Override
+		public int ownedCount(int itemId)
+		{
+			return state.ownedCount(itemId) + state.storedCount(itemId);
+		}
+
+		@Override
+		public int canonicalStock(int itemId)
+		{
+			int base = net.runelite.client.game.ItemVariationMapping.map(itemId);
+			int total = 0;
+			for (int variant : net.runelite.client.game.ItemVariationMapping.getVariations(base))
+			{
+				total += ownedCount(variant);
+			}
+			return total;
+		}
+
+		@Override
+		public boolean isUnlocked(String key)
+		{
+			return state.isUnlocked(key);
+		}
+
+		@Override
+		public int getQuestPoints()
+		{
+			return state.getQuestPoints();
+		}
+
+		@Override
+		public int getKillCount(String source)
+		{
+			return state.getKillCount(source);
+		}
+
+		@Override
+		public int getVarbit(int varbitId)
+		{
+			return state.getVarbit(varbitId);
+		}
+	};
+
+	/** The storage-aware ownership view the tab evaluates against. */
+	com.ironhub.state.StateView owningView()
+	{
+		return owningView;
+	}
+
 	/** The item cache behind the tier-card scroll emblems. */
 	net.runelite.client.game.ItemManager itemManager()
 	{
@@ -163,13 +238,13 @@ public class ClueStashModule implements IronHubModule
 			.toArray(Requirement[]::new));
 	}
 
-	static boolean doable(ClueStepsPack.Clue clue, AccountState state)
+	static boolean doable(ClueStepsPack.Clue clue, com.ironhub.state.StateView state)
 	{
 		return requirement(clue).isMet(state);
 	}
 
 	/** "needs: <first missing item>" line, or null when doable. */
-	static String blocking(ClueStepsPack.Clue clue, AccountState state)
+	static String blocking(ClueStepsPack.Clue clue, com.ironhub.state.StateView state)
 	{
 		List<Requirement> missing = requirement(clue).missing(state);
 		return missing.isEmpty() ? null : missing.get(0).describe();
@@ -182,7 +257,7 @@ public class ClueStashModule implements IronHubModule
 		{
 			return null;
 		}
-		for (Requirement leaf : requirement(clue).missing(state))
+		for (Requirement leaf : requirement(clue).missing(owningView))
 		{
 			Integer itemId = leaf.itemId();
 			String line = itemId == null ? null
@@ -195,7 +270,7 @@ public class ClueStashModule implements IronHubModule
 		return null;
 	}
 
-	static long doableCount(List<ClueStepsPack.Clue> clues, AccountState state)
+	static long doableCount(List<ClueStepsPack.Clue> clues, com.ironhub.state.StateView state)
 	{
 		return clues.stream().filter(c -> doable(c, state)).count();
 	}
@@ -233,7 +308,7 @@ public class ClueStashModule implements IronHubModule
 		{
 			ClueStepsPack.Clue clue = pack.clue(id);
 			if (clue != null && !state.isUnlocked("cluestep_" + id)
-				&& doable(clue, state))
+				&& doable(clue, owningView))
 			{
 				if (newlyDone == null)
 				{
@@ -413,6 +488,6 @@ public class ClueStashModule implements IronHubModule
 			return false;
 		}
 		ClueStepsPack.Clue clue = pack.clue(unit.clueId);
-		return clue != null && !clue.reqs.isEmpty() && doable(clue, state);
+		return clue != null && !clue.reqs.isEmpty() && doable(clue, owningView);
 	}
 }

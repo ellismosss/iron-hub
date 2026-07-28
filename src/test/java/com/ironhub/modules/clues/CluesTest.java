@@ -147,6 +147,32 @@ public class CluesTest
 		module.shutDown();
 	}
 
+	/** A clue outfit sitting in a "Where's my stuff" storage (POH costume
+	 *  room etc.) counts as owned — the module's owningView (Luke,
+	 *  2026-07-28; the old bank+carried-only note was stale once WMS
+	 *  landed). */
+	@Test
+	public void storageOwnedOutfitCountsAsDoable()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		ClueStashModule module = module(state);
+		ClueStepsPack.Clue clue = swampShack();
+		assertFalse(ClueStashModule.doable(clue, module.owningView()));
+
+		// the same outfit, seen only in a POH fancy dress box
+		java.util.Map<Integer, Integer> items = new java.util.HashMap<>();
+		for (String raw : clue.reqs)
+		{
+			String alt = raw.startsWith("any:") ? raw.substring(4).split("\\|")[0] : raw;
+			items.put(Integer.parseInt(alt.split(":")[1]), 1);
+		}
+		state.putStorageContents("poh_fancy_dress", "Fancy dress box", "poh",
+			"Fancy dress box (PoH)", items, java.util.Map.of(), 1L);
+		assertTrue(ClueStashModule.doable(clue, module.owningView()));
+		// the raw account view still says no — the storages are the difference
+		assertFalse(ClueStashModule.doable(clue, state));
+	}
+
 	@Test
 	public void tabRendersBothViewsHeadless() throws Exception
 	{

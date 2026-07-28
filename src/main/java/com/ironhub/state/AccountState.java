@@ -386,6 +386,18 @@ public class AccountState implements StateView
 		return label;
 	}
 
+	/** Quantity of this exact item id across every tracked storage — the
+	 *  "Where's my stuff" snapshots (never bank/inventory/worn). */
+	public int storedCount(int itemId)
+	{
+		int total = 0;
+		for (PersistedState.StorageSnapshot snap : storageContents.values())
+		{
+			total += snap.items.getOrDefault(itemId, 0);
+		}
+		return total;
+	}
+
 	/** True if this exact item id is in bank/inventory/worn OR any tracked
 	 *  storage — the ownership test surfaces use ("You own this"). */
 	public boolean ownedAnywhere(int itemId)

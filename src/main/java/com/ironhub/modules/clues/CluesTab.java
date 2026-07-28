@@ -201,7 +201,7 @@ class CluesTab extends JPanel
 			for (ClueStepsPack.Clue clue : pack.clues)
 			{
 				steps++;
-				if (ClueStashModule.doable(clue, state))
+				if (ClueStashModule.doable(clue, module.owningView()))
 				{
 					doable++;
 				}
@@ -314,7 +314,7 @@ class CluesTab extends JPanel
 		{
 			List<ClueStepsPack.Clue> clues = byTier.get(tier);
 			if (clues != null && clues.stream()
-				.anyMatch(c -> showDoable || !ClueStashModule.doable(c, state)))
+				.anyMatch(c -> showDoable || !ClueStashModule.doable(c, module.owningView())))
 			{
 				tiers.add(tier);
 			}
@@ -337,7 +337,7 @@ class CluesTab extends JPanel
 				String tier = tiers.get(start + col);
 				List<ClueStepsPack.Clue> clues = byTier.get(tier);
 				int doable = (int) clues.stream()
-					.filter(c -> ClueStashModule.doable(c, state)).count();
+					.filter(c -> ClueStashModule.doable(c, module.owningView())).count();
 				line.add(tierTile(tier, doable, clues.size()));
 			}
 			line.add(Box.createHorizontalGlue());
@@ -362,8 +362,8 @@ class CluesTab extends JPanel
 			showFilled = !showFilled;
 			rebuildContent();
 		}));
-		content.add(note("Ownership counts your bank and carried items — POH costume "
-			+ "storage is not readable."));
+		content.add(note("Ownership counts your bank, carried items, and every storage "
+			+ "Where's my stuff has seen (as of its last visit)."));
 		content.add(Box.createVerticalStrut(4));
 
 		Map<String, List<ClueStepsPack.Stash>> byTier = new LinkedHashMap<>();
@@ -457,7 +457,7 @@ class CluesTab extends JPanel
 	private void stepsDetail(String tier, List<ClueStepsPack.Clue> clues)
 	{
 		int doable = (int) clues.stream()
-			.filter(c -> ClueStashModule.doable(c, state)).count();
+			.filter(c -> ClueStashModule.doable(c, module.owningView())).count();
 		content.add(tierHeader(tier, "Steps doable: ", doable, clues.size(), null));
 		content.add(Box.createVerticalStrut(V2Tokens.TIGHT));
 
@@ -467,14 +467,14 @@ class CluesTab extends JPanel
 		Map<ClueStepsPack.Clue, Double> gapBy = new java.util.IdentityHashMap<>();
 		for (ClueStepsPack.Clue clue : clues)
 		{
-			boolean can = ClueStashModule.doable(clue, state);
+			boolean can = ClueStashModule.doable(clue, module.owningView());
 			doableBy.put(clue, can);
 			double gap = 0;
 			if (!can && clue.reqs != null)
 			{
 				for (String req : clue.reqs)
 				{
-					gap += com.ironhub.requirements.Requirements.parse(req).gap(state);
+					gap += com.ironhub.requirements.Requirements.parse(req).gap(module.owningView());
 				}
 			}
 			gapBy.put(clue, gap);
@@ -514,14 +514,38 @@ class CluesTab extends JPanel
 		}
 	}
 
-	/** One step's ROW: the emote text on the doable scale and the +/x goal
-	 *  glyph while blocked. A click opens the step's Well non-exclusively. */
+	/**
+	 * One step's ROW: the outfit as ITEM ICONS — solid when the requirement
+	 * is met, greyed when not (Luke, 2026-07-28; the clog grid's ghosting)
+	 * — and the +/x goal glyph while blocked. A click opens the step's
+	 * Well with the clue text and requirements.
+	 */
 	private JComponent stepHead(ClueStepsPack.Clue clue, boolean doable)
 	{
 		JPanel head = row();
-		OsrsLabel text = OsrsLabel.wrapped(clue.text, ROW_WRAP,
-			doable ? OsrsSkin.VALUE : OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned();
-		head.add(text);
+		boolean anyIcon = false;
+		for (String raw : clue.reqs)
+		{
+			Requirement req = com.ironhub.requirements.Requirements.parse(raw);
+			boolean met = req.isMet(module.owningView());
+			int itemId = reqIcon(raw, met);
+			if (itemId <= 0)
+			{
+				continue;
+			}
+			if (anyIcon)
+			{
+				head.add(Box.createHorizontalStrut(2));
+			}
+			anyIcon = true;
+			head.add(reqIconLabel(itemId, met));
+		}
+		if (!anyIcon)
+		{
+			// a step with no readable outfit falls back to its text
+			head.add(OsrsLabel.wrapped(clue.text, ROW_WRAP,
+				doable ? OsrsSkin.VALUE : OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+		}
 		head.add(Box.createHorizontalGlue());
 		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 		if (!doable && !clue.reqs.isEmpty())
@@ -563,17 +587,84 @@ class CluesTab extends JPanel
 		return head;
 	}
 
-	/** The open step's Well: its standing, then every outfit item in met
-	 *  colours — a missing item carries its where-from line (formerly a
-	 *  hover tooltip). */
+	/**
+	 * The icon for one requirement: the first OWNED alternative when met,
+	 * else the first alternative. The pack's reqs are all
+	 * {@code item:<id>:<qty>:<name>} (optionally {@code any:}-grouped), so
+	 * the raw string parses directly.
+	 */
+	private int reqIcon(String raw, boolean met)
+	{
+		String body = raw.startsWith("any:") ? raw.substring(4) : raw;
+		String[] alts = body.split("\\|");
+		int first = altItemId(alts[0]);
+		if (met)
+		{
+			for (String alt : alts)
+			{
+				int id = altItemId(alt);
+				if (id > 0 && module.owningView().canonicalStock(id) > 0)
+				{
+					return id;
+				}
+			}
+		}
+		return first;
+	}
+
+	private static int altItemId(String alt)
+	{
+		String[] parts = alt.split(":");
+		if (parts.length < 2 || !"item".equals(parts[0]))
+		{
+			return -1;
+		}
+		try
+		{
+			return Integer.parseInt(parts[1]);
+		}
+		catch (NumberFormatException e)
+		{
+			return -1;
+		}
+	}
+
+	/** One outfit icon: solid when its requirement is met, GREYED when not
+	 *  (GrayFilter, the Swing disabled treatment); a recessed slot headless. */
+	private JComponent reqIconLabel(int itemId, boolean met)
+	{
+		JLabel slot = new JLabel();
+		slot.setPreferredSize(new Dimension(22, 22));
+		slot.setMinimumSize(new Dimension(22, 22));
+		slot.setMaximumSize(new Dimension(22, 22));
+		slot.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+		Image sprite = sprites.getBox(itemId, 20);
+		if (sprite != null)
+		{
+			slot.setIcon(new javax.swing.ImageIcon(met ? sprite
+				: javax.swing.GrayFilter.createDisabledImage(sprite)));
+		}
+		else
+		{
+			slot.setOpaque(true);
+			slot.setBackground(theme.recess);
+		}
+		return slot;
+	}
+
+	/** The open step's Well: the clue text, its standing, then every outfit
+	 *  item in met colours — a missing item carries its where-from line
+	 *  (formerly a hover tooltip). */
 	private JComponent stepWell(ClueStepsPack.Clue clue, boolean doable)
 	{
 		V2Surface well = V2Surface.well(theme);
 		int inset = com.ironhub.ui.v2.V2Well.CAP + V2Tokens.TIGHT;
 		well.setBorder(new EmptyBorder(inset, inset, inset, inset));
+		// the step's text leads (Luke, 2026-07-28 — the row is icons now)
+		well.add(OsrsLabel.wrapped(clue.text, WELL_WRAP,
+			V2Tokens.STRONG, OsrsSkin.smallFont()).leftAligned());
 		JPanel meta = row();
-		meta.add(new OsrsLabel(clue.tier, V2Tokens.STRONG, OsrsSkin.smallFont()).leftAligned());
-		meta.add(new OsrsLabel(" · " + (doable ? "Doable now" : "Missing items"),
+		meta.add(new OsrsLabel(doable ? "Doable now" : "Missing items",
 			OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
 		meta.add(Box.createHorizontalGlue());
 		cap(meta);
@@ -581,7 +672,7 @@ class CluesTab extends JPanel
 		for (String raw : clue.reqs)
 		{
 			Requirement req = com.ironhub.requirements.Requirements.parse(raw);
-			boolean met = req.isMet(state);
+			boolean met = req.isMet(module.owningView());
 			String line = "· " + req.describe();
 			if (!met)
 			{
@@ -722,7 +813,7 @@ class CluesTab extends JPanel
 			{
 				Requirement req = com.ironhub.requirements.Requirements.parse(raw);
 				well.add(OsrsLabel.wrapped("· " + req.describe(), WELL_WRAP,
-					req.isMet(state) ? OsrsSkin.VALUE : OsrsSkin.MUTED,
+					req.isMet(module.owningView()) ? OsrsSkin.VALUE : OsrsSkin.MUTED,
 					OsrsSkin.smallFont()).leftAligned());
 			}
 		}
