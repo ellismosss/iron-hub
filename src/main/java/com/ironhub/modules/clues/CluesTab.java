@@ -136,6 +136,12 @@ class CluesTab extends JPanel
 	/** The unit key the router last auto-pathed to — the route re-posts
 	 *  only when the NEXT stop actually changes, never per rebuild. */
 	private String lastAutoRouted;
+	/** The FROZEN route (Luke, 2026-07-28: "follow a set route unless
+	 *  skipped"): the NN order locked in when the tier starts — moving
+	 *  never reshuffles it; filled stops drop out, newly-ready units
+	 *  append, and only fill/Skip advance the pointer. */
+	private String routeTier;
+	private final List<String> routeOrder = new ArrayList<>();
 	/** clue id -> its STASH unit, built once per pack. */
 	private Map<String, ClueStepsPack.Stash> unitByClue;
 
@@ -467,19 +473,41 @@ class CluesTab extends JPanel
 		cap(title);
 		card.add(title);
 
-		// the next stop: first ready unit the player hasn't skipped this
-		// session (all skipped = the skips have served their purpose)
+		// reconcile the frozen route: a new tier re-freezes from scratch,
+		// stops no longer ready leave, newcomers append — existing stops
+		// KEEP their position, so moving never re-points the router
+		Map<String, StashRouter.Stop> readyByKey = new LinkedHashMap<>();
+		for (StashRouter.Stop stop : plan.route)
+		{
+			readyByKey.put(stop.unit.key, stop);
+		}
+		if (!plan.tier.equals(routeTier))
+		{
+			routeTier = plan.tier;
+			routeOrder.clear();
+			routeSkips.clear();
+		}
+		routeOrder.removeIf(key -> !readyByKey.containsKey(key));
+		for (StashRouter.Stop stop : plan.route)
+		{
+			if (!routeOrder.contains(stop.unit.key))
+			{
+				routeOrder.add(stop.unit.key);
+			}
+		}
+
+		// the next stop: first on the frozen route the player hasn't
+		// skipped (all skipped = the skips have served their purpose)
 		StashRouter.Stop next = null;
-		if (!plan.route.isEmpty()
-			&& plan.route.stream().allMatch(s -> routeSkips.contains(s.unit.key)))
+		if (!routeOrder.isEmpty() && routeSkips.containsAll(routeOrder))
 		{
 			routeSkips.clear();
 		}
-		for (StashRouter.Stop stop : plan.route)
+		for (String key : routeOrder)
 		{
-			if (!routeSkips.contains(stop.unit.key))
+			if (!routeSkips.contains(key))
 			{
-				next = stop;
+				next = readyByKey.get(key);
 				break;
 			}
 		}

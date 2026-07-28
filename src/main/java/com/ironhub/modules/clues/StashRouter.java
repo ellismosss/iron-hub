@@ -174,6 +174,15 @@ final class StashRouter
 		}
 		aggregateLoadout(plan, ready, owning);
 		orderRoute(plan, ready, from);
+		// distance shown is always FROM THE PLAYER — the NN chain's hop
+		// lengths are ordering internals, not a readout
+		if (from != null)
+		{
+			for (Stop stop : plan.route)
+			{
+				stop.distance = distance(from, stop.unit.worldPoint());
+			}
+		}
 		aggregateMissing(plan, state);
 	}
 
@@ -237,16 +246,17 @@ final class StashRouter
 	}
 
 	/** Greedy nearest-neighbour from the player: good enough for a
-	 *  bank-and-hop circuit, no TSP theatrics. */
+	 *  bank-and-hop circuit, no TSP theatrics. The tab FREEZES this order
+	 *  per tier — moving never reshuffles a route mid-run. */
 	private static void orderRoute(Plan plan, List<Stop> pool, WorldPoint from)
 	{
 		WorldPoint cursor = from;
 		while (!pool.isEmpty())
 		{
 			Stop next = pool.get(0);
-			int best = Integer.MAX_VALUE;
 			if (cursor != null)
 			{
+				int best = Integer.MAX_VALUE;
 				for (Stop stop : pool)
 				{
 					int d = distance(cursor, stop.unit.worldPoint());
@@ -256,7 +266,6 @@ final class StashRouter
 						next = stop;
 					}
 				}
-				next.distance = best;
 			}
 			pool.remove(next);
 			plan.route.add(next);

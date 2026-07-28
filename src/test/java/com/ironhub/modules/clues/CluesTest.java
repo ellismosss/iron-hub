@@ -258,6 +258,61 @@ public class CluesTest
 		module.shutDown();
 	}
 
+	/** "Follow a set route unless skipped" (Luke, 2026-07-28): the NN
+	 *  order freezes when the tier starts — MOVING never re-points the
+	 *  router, and a fill advances to the frozen next even when a fresh
+	 *  nearest-neighbour pass would now pick a different unit. */
+	@Test
+	public void frozenRouteSurvivesMovement() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		StateFixture.bank(state, Map.of(
+			1635, 1, 1654, 1, 1949, 1, 1007, 1, 1351, 1, 1061, 1));
+		EventBus bus = new EventBus();
+		java.util.List<net.runelite.client.events.PluginMessage> posted = new java.util.ArrayList<>();
+		bus.register(new Object()
+		{
+			@net.runelite.client.eventbus.Subscribe
+			public void onPluginMessage(net.runelite.client.events.PluginMessage message)
+			{
+				posted.add(message);
+			}
+		});
+		net.runelite.api.Client client = org.mockito.Mockito.mock(net.runelite.api.Client.class);
+		net.runelite.api.Player player = org.mockito.Mockito.mock(net.runelite.api.Player.class);
+		org.mockito.Mockito.when(client.getLocalPlayer()).thenReturn(player);
+		org.mockito.Mockito.when(player.getWorldLocation())
+			.thenReturn(new net.runelite.api.coords.WorldPoint(3222, 3218, 0)); // Lumbridge
+		ClueStashModule module = new ClueStashModule(state, config, new DataPack(new Gson()),
+			bus, client, null, new com.ironhub.integrations.ShortestPathBridge(bus, null));
+		module.startUp();
+		module.onGameTick(null);
+		javax.swing.JComponent tab = module.buildTab();
+		// from Lumbridge the frozen order is Bob's Axes → Fine Clothes → Gypsy
+		assertEquals(1, posted.size());
+		net.runelite.api.coords.WorldPoint target =
+			(net.runelite.api.coords.WorldPoint) posted.get(0).getData().get("target");
+		assertEquals(3233, target.getX()); // Bob's Axes
+
+		// walk to Varrock square: a fresh NN pass would now pick Gypsy —
+		// the frozen route must not re-point
+		org.mockito.Mockito.when(player.getWorldLocation())
+			.thenReturn(new net.runelite.api.coords.WorldPoint(3212, 3422, 0));
+		module.onGameTick(null);
+		((CluesTab) tab).openRouteMissingForTest();
+		assertEquals(1, posted.size());
+
+		// filling Bob's advances to the FROZEN next (Fine Clothes), not the
+		// now-nearest Gypsy tent
+		state.setStashFilled(34738, true);
+		((CluesTab) tab).openRouteMissingForTest();
+		assertEquals(2, posted.size());
+		target = (net.runelite.api.coords.WorldPoint) posted.get(1).getData().get("target");
+		assertEquals(3209, target.getX()); // Fine Clothes entrance
+		module.shutDown();
+	}
+
 	@Test
 	public void tabRendersBothViewsHeadless() throws Exception
 	{
