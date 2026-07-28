@@ -503,17 +503,26 @@ public class ClueStashModule implements IronHubModule
 
 	// ── the STASH stocking router ─────────────────────────────────────
 
-	/** The active tier's marching orders, routed from where the player
-	 *  stands (or the tier's first unit when logged out / headless). */
-	StashRouter.Plan routePlan()
+	/** The player's position, cached each GameTick: the tab plans routes
+	 *  on the EDT, and Actor.getWorldLocation() ASSERTS the client thread
+	 *  (Luke's report 2026-07-28 — the assertion killed rebuildContent and
+	 *  the tab showed only its hero). */
+	private volatile WorldPoint lastPlayerPoint;
+
+	@Subscribe
+	public void onGameTick(net.runelite.api.events.GameTick event)
 	{
-		return StashRouter.plan(pack, state, owningView, playerPoint());
+		if (client != null && client.getLocalPlayer() != null)
+		{
+			lastPlayerPoint = client.getLocalPlayer().getWorldLocation();
+		}
 	}
 
-	private WorldPoint playerPoint()
+	/** The active tier's marching orders, routed from where the player
+	 *  last stood (or the tier's first unit when logged out / headless). */
+	StashRouter.Plan routePlan()
 	{
-		return client == null || client.getLocalPlayer() == null ? null
-			: client.getLocalPlayer().getWorldLocation();
+		return StashRouter.plan(pack, state, owningView, lastPlayerPoint);
 	}
 
 	/** Hand the stop to the Shortest Path plugin (unheard when absent). */

@@ -181,6 +181,39 @@ public class CluesTest
 		assertFalse(ClueStashModule.doable(clue, state));
 	}
 
+	/** The tab plans routes on the EDT, and Actor.getWorldLocation()
+	 *  ASSERTS the client thread (Luke's 2026-07-28 report: the assertion
+	 *  killed rebuildContent — hero card, nothing else). routePlan must
+	 *  therefore never touch the client; it reads the position cached by
+	 *  onGameTick, which DOES run on the client thread. */
+	@Test
+	public void routePlanNeverTouchesTheClient()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		net.runelite.api.Client client = org.mockito.Mockito.mock(net.runelite.api.Client.class);
+		net.runelite.api.Player player = org.mockito.Mockito.mock(net.runelite.api.Player.class);
+		org.mockito.Mockito.when(client.getLocalPlayer()).thenReturn(player);
+		org.mockito.Mockito.when(player.getWorldLocation())
+			.thenReturn(new net.runelite.api.coords.WorldPoint(3222, 3218, 0)); // Lumbridge
+		ClueStashModule module = new ClueStashModule(state, config,
+			new DataPack(new Gson()), new EventBus(), client, null, null);
+
+		// no tick yet: planning must not reach for the client
+		org.mockito.Mockito.verifyNoInteractions(client);
+		assertEquals("Beginner", module.routePlan().tier);
+		org.mockito.Mockito.verifyNoInteractions(client);
+
+		// a game tick caches the position; the planner orders from it
+		module.onGameTick(null);
+		StateFixture.bank(state, new java.util.HashMap<>(Map.of(
+			1635, 1, 1654, 1, 1949, 1, 1007, 1, 1351, 1, 1061, 1)));
+		// any client read AFTER the tick is the EDT crash again
+		org.mockito.Mockito.when(client.getLocalPlayer())
+			.thenThrow(new AssertionError("must be called on client thread"));
+		StashRouter.Plan plan = module.routePlan();
+		assertEquals(34738, plan.route.get(0).unit.objectId); // Bob's Axes, Lumbridge
+	}
+
 	@Test
 	public void tabRendersBothViewsHeadless() throws Exception
 	{
