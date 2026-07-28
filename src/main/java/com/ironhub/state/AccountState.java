@@ -390,10 +390,22 @@ public class AccountState implements StateView
 	 *  "Where's my stuff" snapshots (never bank/inventory/worn). */
 	public int storedCount(int itemId)
 	{
+		return storedCount(itemId, null);
+	}
+
+	/** Stored count skipping one storage family: the clue view excludes
+	 *  "stash" — an outfit sealed inside a STASH unit must not read as
+	 *  available for filling ANOTHER unit (Luke, 2026-07-28: the router
+	 *  asked him to strip one STASH to dress the next). */
+	public int storedCount(int itemId, String excludeFamily)
+	{
 		int total = 0;
 		for (PersistedState.StorageSnapshot snap : storageContents.values())
 		{
-			total += snap.items.getOrDefault(itemId, 0);
+			if (excludeFamily == null || !excludeFamily.equals(snap.family))
+			{
+				total += snap.items.getOrDefault(itemId, 0);
+			}
 		}
 		return total;
 	}

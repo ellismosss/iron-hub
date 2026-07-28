@@ -174,7 +174,9 @@ public class ClueStashModule implements IronHubModule
 		@Override
 		public int ownedCount(int itemId)
 		{
-			return state.ownedCount(itemId) + state.storedCount(itemId);
+			// storages count EXCEPT other STASH units — an outfit sealed in
+			// one is not available for filling the next (Luke, 2026-07-28)
+			return state.ownedCount(itemId) + state.storedCount(itemId, "stash");
 		}
 
 		@Override

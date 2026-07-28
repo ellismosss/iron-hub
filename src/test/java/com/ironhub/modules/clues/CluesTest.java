@@ -181,6 +181,27 @@ public class CluesTest
 		assertFalse(ClueStashModule.doable(clue, state));
 	}
 
+	/** An outfit SEALED INSIDE a STASH unit is not available for filling
+	 *  another — Luke's 2026-07-28 report: the router asked him to strip
+	 *  one STASH to dress the next. WMS mirrors filled units as family
+	 *  "stash" storages; the owning view must skip exactly that family. */
+	@Test
+	public void outfitInsideAnotherStashDoesNotCount()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		ClueStashModule module = module(state);
+		ClueStepsPack.Clue clue = swampShack();
+		java.util.Map<Integer, Integer> items = new java.util.HashMap<>();
+		for (String raw : clue.reqs)
+		{
+			String alt = raw.startsWith("any:") ? raw.substring(4).split("\\|")[0] : raw;
+			items.put(Integer.parseInt(alt.split(":")[1]), 1);
+		}
+		state.putStorageContents("stash:34742", "Some STASH unit", "stash",
+			"Some STASH unit (STASH)", items, java.util.Map.of(), 1L);
+		assertFalse(ClueStashModule.doable(clue, module.owningView()));
+	}
+
 	/** The tab plans routes on the EDT, and Actor.getWorldLocation()
 	 *  ASSERTS the client thread (Luke's 2026-07-28 report: the assertion
 	 *  killed rebuildContent — hero card, nothing else). routePlan must
