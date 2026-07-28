@@ -38,12 +38,14 @@ public class TileTree extends JPanel
 	private static final int TOP_COLS = 2;
 	private static final int TOP_TILE = 106;
 	private static final int TOP_EMBLEM = 44;
-	private static final int SUB_COLS = 3;
+	/** Member tiles: 2-wide and taller than the old 3-wide smalls (Luke,
+	 *  2026-07-28) — two across the indented column, a deeper art band. */
+	private static final int SUB_COLS = 2;
 	private static final int INDENT = 8;
 	private static final int GAP = 3;
 	/** The member tile's ART height; the caption sits under it. */
-	private static final int TILE_ART = 34;
-	private static final int TILE_WIDTH = 52;
+	private static final int TILE_ART = 48;
+	private static final int TILE_WIDTH = 102;
 
 	/** A member tile (level 2) and the detail it opens (level 3). */
 	public static final class Leaf
@@ -255,7 +257,7 @@ public class TileTree extends JPanel
 
 	private V2Tile leafTile(Leaf leaf)
 	{
-		Image icon = leaf.icon != null ? sprites.get(leaf.icon, -1, 26) : null;
+		Image icon = leaf.icon != null ? sprites.get(leaf.icon, -1, 32) : null;
 		boolean sel = leaf.id.equals(selectedLeaf);
 		return tile(leaf.label, icon, leaf.owned, leaf.tracked, sel, leaf.badge, leaf.tooltip,
 			() ->
