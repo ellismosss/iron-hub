@@ -1,62 +1,122 @@
 package com.ironhub.modules.clues;
 
 import com.ironhub.data.ClueStepsPack;
+import com.ironhub.requirements.Requirement;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
+import com.ironhub.ui.components.SpriteCache;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
+import com.ironhub.ui.v2.V2Checkbox;
 import com.ironhub.ui.v2.V2ChipRow;
+import com.ironhub.ui.v2.V2ProgressBar;
 import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2Tile;
+import com.ironhub.ui.v2.V2Tokens;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Clues & STASH tab: chip views Steps · STASH. Steps = emote clue-step
- * doability per tier against owned items, blocked steps first with their
- * first missing item and a "+ Goal" affordance into Goals.
- * STASH = built/filled/ready-to-fill counts per tier with unit rows
- * (click toggles filled — the manual escape hatch for pre-plugin fills).
- * Clue collection-log slots deliberately live elsewhere. Frameless —
- * the host's header plate names the module.
+ * Clues &amp; STASH, rebuilt from the ground up in the reference grammar
+ * (Luke, 2026-07-28 — "build them from the ground up"):
+ *
+ * <ul>
+ * <li>a hero Card — "STASH units filled" between the beginner and master
+ *     scrolls over the large sprite bar, with the steps-doable tally and
+ *     the ready-to-fill count on a counter line;
+ * <li>Steps · STASH chips, then an include-semantics checkbox per view
+ *     ("Doable" / "Filled", both defaulting OFF so each view opens on its
+ *     to-do list);
+ * <li>the six tiers as 2-wide square CARD tiles — the tier's own clue
+ *     scroll as the emblem, corner counts (doable or filled), meter
+ *     strips — expanding IN-LINE below their row, one at a time;
+ * <li>the expanded tier in the Goals grammar: a header card with the
+ *     counts, then every step / unit on ONE Tile, rows opening Wells
+ *     non-exclusively — a step's Well carries its standing and every
+ *     outfit item in met colours with where-from lines (formerly hover
+ *     tooltips); a unit's Well carries its status, outfit, and the
+ *     manual Mark-filled action (moved off the row click).
+ * </ul>
  */
 class CluesTab extends JPanel
 {
-	private static final int MAX_ROWS_PER_TIER = 15;
 	private static final String[] TIERS =
 		{"Beginner", "Easy", "Medium", "Hard", "Elite", "Master"};
+	/** Each tier's clue scroll — ids verified against item-sources.json. */
+	private static final int[] SCROLLS = {23182, 2677, 2801, 2722, 12073, 19835};
+	/** The clog page grid's geometry: two perfect squares across 217px. */
+	private static final int TIER_COLS = 2;
+	private static final int TIER_TILE = 106;
+	private static final int TIER_EMBLEM = 44;
+	/** Row ceiling (the Bank tab's grammar). */
+	private static final int MAX_ROWS = 50;
+	private static final int ROW_WRAP = 160;
+	private static final int WELL_WRAP = 150;
+	/** Marks a child that keeps its own click (glyphs, well actions). */
+	private static final String OWN_ACTION = "ironhub.clues.ownAction";
 
 	private final AccountState state;
 	private final ClueStashModule module;
 	private final OsrsTheme theme;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
+	private final SpriteCache sprites;
 
+	private final V2Surface hero;
+	private final V2ProgressBar bar;
 	private final V2ChipRow views;
 	private final JPanel content = new JPanel();
-	private boolean showAll;
+
+	/** The ONE expanded tier (the clog grammar), or null. */
+	private String expandedTier;
+	/** Step rows open NON-exclusively into Wells, keyed by clue id. */
+	private final Set<String> expandedSteps = new HashSet<>();
+	/** Unit rows open NON-exclusively into Wells, keyed by object id. */
+	private final Set<Integer> expandedUnits = new HashSet<>();
+	/** Include filters (the diaries grammar): checked = the done things
+	 *  show too; both default OFF so each view opens on its to-do list. */
+	private boolean showDoable;
+	private boolean showFilled;
 
 	CluesTab(AccountState state, ClueStashModule module, OsrsTheme theme)
 	{
 		this.state = state;
 		this.module = module;
 		this.theme = theme;
+		this.sprites = new SpriteCache(module.itemManager(), listener);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
+		hero = V2Surface.card(theme);
+		bar = new V2ProgressBar(theme);
+		add(hero);
+		add(Box.createVerticalStrut(4));
+
 		views = new V2ChipRow(theme, true, "Steps", "STASH");
-		views.onChange(i -> rebuild());
+		views.onChange(i ->
+		{
+			expandedTier = null;
+			rebuildContent();
+		});
 		add(views);
 		add(Box.createVerticalStrut(4));
 
@@ -75,320 +135,705 @@ class CluesTab extends JPanel
 		state.removeListener(listener);
 	}
 
+	// ── test seams ────────────────────────────────────────────────────
+
 	/** Test seam: 0 = Steps, 1 = STASH. */
 	void selectView(int index)
 	{
 		views.setSelected(index);
+		expandedTier = null;
 		rebuild();
 	}
 
-	void rebuild()
+	void expandTierForTest(String tier)
 	{
-		content.removeAll();
-		if (module.pack() == null)
+		expandedTier = tier;
+		rebuild();
+	}
+
+	void expandStepForTest(String clueId)
+	{
+		expandedSteps.add(clueId);
+		rebuild();
+	}
+
+	void expandUnitForTest(int objectId)
+	{
+		expandedUnits.add(objectId);
+		rebuild();
+	}
+
+	private void rebuild()
+	{
+		rebuildHero();
+		rebuildContent();
+	}
+
+	// ── the hero card ─────────────────────────────────────────────────
+
+	/**
+	 * "STASH units filled: f / F" between the beginner and master scrolls
+	 * — the tier span the page climbs — with the steps-doable tally and
+	 * the ready-to-fill count on a counter line.
+	 */
+	private void rebuildHero()
+	{
+		ClueStepsPack pack = module.pack();
+		int filled = 0;
+		int units = 0;
+		int doable = 0;
+		int steps = 0;
+		int ready = 0;
+		if (pack != null)
 		{
-			content.add(faintLine("Clue pack unavailable."));
+			for (ClueStepsPack.Stash unit : pack.stash)
+			{
+				units++;
+				if (state.isStashFilled(unit.objectId))
+				{
+					filled++;
+				}
+				if (module.readyToFill(unit))
+				{
+					ready++;
+				}
+			}
+			for (ClueStepsPack.Clue clue : pack.clues)
+			{
+				steps++;
+				if (ClueStashModule.doable(clue, state))
+				{
+					doable++;
+				}
+			}
 		}
-		else if (views.selected() == 1)
+		hero.removeAll();
+		JPanel top = row();
+		top.add(scrollEmblem(SCROLLS[0]));
+		top.add(Box.createHorizontalGlue());
+		JPanel middle = new JPanel();
+		middle.setLayout(new BoxLayout(middle, BoxLayout.Y_AXIS));
+		middle.setOpaque(false);
+		middle.add(new OsrsLabel("STASH units filled", OsrsSkin.TITLE, OsrsSkin.font()));
+		middle.add(new OsrsLabel(filled + " / " + units, OsrsSkin.TITLE, OsrsSkin.boldFont()));
+		top.add(middle);
+		top.add(Box.createHorizontalGlue());
+		top.add(scrollEmblem(SCROLLS[SCROLLS.length - 1]));
+		cap(top);
+		hero.add(top);
+		hero.add(Box.createVerticalStrut(3));
+		// the fill answers the SAME numbers as the label riding it
+		bar.fraction(units == 0 ? 0 : (double) filled / units);
+		bar.labels("", filled + " / " + units, "");
+		hero.add(bar);
+		hero.add(Box.createVerticalStrut(3));
+		Color doableColour = doable == 0 ? V2Tokens.BLOCKED
+			: doable >= steps ? OsrsSkin.VALUE : OsrsSkin.COUNT_YELLOW;
+		JPanel counters = row();
+		counters.add(new OsrsLabel("Steps doable: ",
+			OsrsSkin.LABEL, OsrsSkin.smallFont()).leftAligned());
+		counters.add(new OsrsLabel(doable + "/" + steps,
+			doableColour, OsrsSkin.smallFont()).leftAligned());
+		counters.add(Box.createHorizontalGlue());
+		counters.add(new OsrsLabel(ready + " ready to fill",
+			ready > 0 ? OsrsSkin.VALUE : OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		cap(counters);
+		hero.add(counters);
+		cap(hero);
+		hero.revalidate();
+		hero.repaint();
+	}
+
+	/** A tier's clue scroll, flanking the hero. */
+	private JComponent scrollEmblem(int itemId)
+	{
+		JLabel icon = new JLabel();
+		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+		Image sprite = sprites.get(itemId, -1, 30);
+		if (sprite != null)
 		{
-			rebuildStash();
+			icon.setIcon(new javax.swing.ImageIcon(sprite));
 		}
 		else
 		{
-			rebuildSteps();
+			icon.setPreferredSize(new Dimension(26, 30));
+		}
+		return icon;
+	}
+
+	// ── the tier grid ─────────────────────────────────────────────────
+
+	private void rebuildContent()
+	{
+		content.removeAll();
+		ClueStepsPack pack = module.pack();
+		if (pack == null)
+		{
+			content.add(note("Clue pack unavailable."));
+		}
+		else if (views.selected() == 1)
+		{
+			stashGrid(pack);
+		}
+		else
+		{
+			stepsGrid(pack);
 		}
 		content.revalidate();
 		content.repaint();
 	}
 
-	// ── Steps view ────────────────────────────────────────────────────
-
-	private void rebuildSteps()
+	/** The per-view include checkbox on its own row (the diaries filter
+	 *  grammar) — rebuilt with the content, so it reads its boolean. */
+	private JComponent filterRow(String label, boolean value, Runnable flip)
 	{
-		Map<String, List<ClueStepsPack.Clue>> byTier = groupClues();
-		content.add(toggleRow(showAll ? "Hide doable steps" : "Show doable steps"));
-		for (String tier : TIERS)
-		{
-			List<ClueStepsPack.Clue> clues = byTier.get(tier);
-			if (clues == null)
-			{
-				continue;
-			}
-			// evaluate each clue's requirement graph ONCE per rebuild — the
-			// count, filter and sort key each re-ran it, the sort per
-			// comparison (2026-07-20 audit)
-			Map<ClueStepsPack.Clue, Boolean> doableByClue = new java.util.IdentityHashMap<>();
-			Map<ClueStepsPack.Clue, Double> gapByClue = new java.util.IdentityHashMap<>();
-			for (ClueStepsPack.Clue clue : clues)
-			{
-				boolean doable = ClueStashModule.doable(clue, state);
-				doableByClue.put(clue, doable);
-				// blocked steps rank closest-to-doable first — the graph's
-				// own distance (2026-07-20 intelligence arc)
-				double gap = 0;
-				if (!doable && clue.reqs != null)
-				{
-					for (String req : clue.reqs)
-					{
-						gap += com.ironhub.requirements.Requirements.parse(req).gap(state);
-					}
-				}
-				gapByClue.put(clue, gap);
-			}
-			long doable = doableByClue.values().stream().filter(Boolean::booleanValue).count();
-			content.add(section(tier, doable + "/" + clues.size() + " doable"));
-
-			List<ClueStepsPack.Clue> shown = new ArrayList<>();
-			for (ClueStepsPack.Clue clue : clues)
-			{
-				if (showAll || !doableByClue.get(clue))
-				{
-					shown.add(clue);
-				}
-			}
-			// blocked (actionable) rows first — closest-to-doable leading —
-			// then doable when shown
-			shown.sort(java.util.Comparator.comparing(doableByClue::get)
-				.thenComparing(gapByClue::get));
-			if (shown.isEmpty())
-			{
-				content.add(faintLine("All " + tier.toLowerCase() + " steps doable."));
-				continue;
-			}
-			int rows = 0;
-			for (ClueStepsPack.Clue clue : shown)
-			{
-				if (rows++ >= MAX_ROWS_PER_TIER)
-				{
-					content.add(faintLine("+ " + (shown.size() - MAX_ROWS_PER_TIER) + " more steps"));
-					break;
-				}
-				content.add(clueRow(clue));
-			}
-		}
+		JPanel holder = row();
+		holder.setMaximumSize(new Dimension(Integer.MAX_VALUE, V2Tokens.CONTROL_HEIGHT));
+		holder.add(new V2Checkbox(theme, label, value, flip));
+		holder.add(Box.createHorizontalGlue());
+		return holder;
 	}
 
-	private Map<String, List<ClueStepsPack.Clue>> groupClues()
+	private void stepsGrid(ClueStepsPack pack)
 	{
+		content.add(filterRow("Doable", showDoable, () ->
+		{
+			showDoable = !showDoable;
+			rebuildContent();
+		}));
+		content.add(Box.createVerticalStrut(4));
+
 		Map<String, List<ClueStepsPack.Clue>> byTier = new LinkedHashMap<>();
-		for (ClueStepsPack.Clue clue : module.pack().clues)
+		for (ClueStepsPack.Clue clue : pack.clues)
 		{
 			byTier.computeIfAbsent(clue.tier, t -> new ArrayList<>()).add(clue);
 		}
-		return byTier;
-	}
-
-	/** One step: green doable / muted blocked with its first missing item
-	 *  and a "+ Goal" button that tracks unlocking it in Goals. */
-	private JComponent clueRow(ClueStepsPack.Clue clue)
-	{
-		JPanel row = new JPanel();
-		row.setLayout(new BoxLayout(row, BoxLayout.Y_AXIS));
-		row.setOpaque(false);
-		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setBorder(new EmptyBorder(1, 2, 1, 2));
-
-		boolean doable = ClueStashModule.doable(clue, state);
-		JPanel top = new JPanel();
-		top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
-		top.setOpaque(false);
-		top.setAlignmentX(LEFT_ALIGNMENT);
-		OsrsLabel name = new OsrsLabel(clue.text, doable ? OsrsSkin.VALUE : OsrsSkin.MUTED,
-			OsrsSkin.font()).leftAligned().squeezable();
-		name.setToolTipText("<html><div style='width:200px'>" + clue.text + "</div></html>");
-		top.add(name);
-		top.add(Box.createHorizontalGlue());
-		if (!doable && !clue.reqs.isEmpty())
+		// a card with nothing behind the filter does not show (the CA rule)
+		List<String> tiers = new ArrayList<>();
+		for (String tier : TIERS)
 		{
-			boolean tracked = module.isGoal(clue);
-			JComponent goal = V2ChipRow.action(theme, tracked ? "×" : "+ Goal", null, null,
-				OsrsSkin.smallFont(), () ->
+			List<ClueStepsPack.Clue> clues = byTier.get(tier);
+			if (clues != null && clues.stream()
+				.anyMatch(c -> showDoable || !ClueStashModule.doable(c, state)))
 			{
-				if (tracked)
-				{
-					module.removeGoal(clue);
-				}
-				else
-				{
-					module.addGoal(clue);
-				}
-				SwingUtilities.invokeLater(this::rebuild);
-			});
-			goal.setToolTipText(tracked ? "Remove from Goals"
-				: "Track unlocking this step in Goals");
-			top.add(goal);
+				tiers.add(tier);
+			}
 		}
-		cap(top);
-		row.add(top);
-
-		if (!doable)
+		if (tiers.isEmpty())
 		{
-			String needs = "needs: " + ClueStashModule.blocking(clue, state);
-			OsrsLabel blocker = new OsrsLabel(needs, OsrsSkin.FAINT, OsrsSkin.smallFont())
-				.leftAligned().squeezable();
-			// the hover answers the next question: where the item comes from
-			String source = module.blockingSource(clue);
-			blocker.setToolTipText(source == null ? needs
-				: "<html>" + needs + "<br>" + source + "</html>");
-			blocker.setBorder(new EmptyBorder(0, 8, 0, 0));
-			row.add(blocker);
+			content.add(note("Every emote step is doable."));
+			return;
 		}
-		cap(row);
-		return row;
+		for (int start = 0; start < tiers.size(); start += TIER_COLS)
+		{
+			JPanel line = row();
+			line.add(Box.createHorizontalGlue());
+			for (int col = 0; col < TIER_COLS && start + col < tiers.size(); col++)
+			{
+				if (col > 0)
+				{
+					line.add(Box.createHorizontalStrut(V2Tokens.ROW));
+				}
+				String tier = tiers.get(start + col);
+				List<ClueStepsPack.Clue> clues = byTier.get(tier);
+				int doable = (int) clues.stream()
+					.filter(c -> ClueStashModule.doable(c, state)).count();
+				line.add(tierTile(tier, doable, clues.size()));
+			}
+			line.add(Box.createHorizontalGlue());
+			cap(line);
+			content.add(line);
+			content.add(Box.createVerticalStrut(V2Tokens.ROW));
+			for (int col = 0; col < TIER_COLS && start + col < tiers.size(); col++)
+			{
+				if (tiers.get(start + col).equals(expandedTier))
+				{
+					stepsDetail(expandedTier, byTier.get(expandedTier));
+					content.add(Box.createVerticalStrut(V2Tokens.ROW));
+				}
+			}
+		}
 	}
 
-	// ── STASH view ────────────────────────────────────────────────────
-
-	private void rebuildStash()
+	private void stashGrid(ClueStepsPack pack)
 	{
+		content.add(filterRow("Filled", showFilled, () ->
+		{
+			showFilled = !showFilled;
+			rebuildContent();
+		}));
+		content.add(note("Ownership counts your bank and carried items — POH costume "
+			+ "storage is not readable."));
+		content.add(Box.createVerticalStrut(4));
+
 		Map<String, List<ClueStepsPack.Stash>> byTier = new LinkedHashMap<>();
-		for (ClueStepsPack.Stash unit : module.pack().stash)
+		for (ClueStepsPack.Stash unit : pack.stash)
 		{
 			byTier.computeIfAbsent(unit.tier, t -> new ArrayList<>()).add(unit);
 		}
-
-		int built = 0;
-		int filled = 0;
-		int ready = 0;
-		for (ClueStepsPack.Stash unit : module.pack().stash)
-		{
-			if (state.isStashBuilt(unit.objectId))
-			{
-				built++;
-			}
-			if (state.isStashFilled(unit.objectId))
-			{
-				filled++;
-			}
-			if (module.readyToFill(unit))
-			{
-				ready++;
-			}
-		}
-		// the STASH standing is the one live readout on this view — the Card
-		V2Surface summary = V2Surface.card(theme);
-		JPanel line1 = bareRow();
-		line1.add(new OsrsLabel("STASH units", OsrsSkin.LABEL, OsrsSkin.boldFont()).leftAligned());
-		line1.add(Box.createHorizontalGlue());
-		line1.add(OsrsLabel.value(built + " built · " + filled + " filled"));
-		cap(line1);
-		summary.add(line1);
-		JPanel line2 = bareRow();
-		line2.add(new OsrsLabel("Sets owned, not stored", OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
-		line2.add(Box.createHorizontalGlue());
-		line2.add(new OsrsLabel(String.valueOf(ready),
-			ready > 0 ? OsrsSkin.VALUE : OsrsSkin.FAINT, OsrsSkin.boldFont()));
-		cap(line2);
-		summary.add(line2);
-		cap(summary);
-		content.add(summary);
-		content.add(textLine("Ownership counts your bank and carried items — POH costume storage is not readable.",
-			OsrsSkin.FAINT, OsrsSkin.smallFont()));
-
-		content.add(toggleRow(showAll ? "Hide filled units" : "Show filled units"));
+		List<String> tiers = new ArrayList<>();
 		for (String tier : TIERS)
 		{
 			List<ClueStepsPack.Stash> units = byTier.get(tier);
-			if (units == null)
+			if (units != null && units.stream()
+				.anyMatch(u -> showFilled || !state.isStashFilled(u.objectId)))
 			{
-				continue;
+				tiers.add(tier);
 			}
-			int tierBuilt = 0;
-			int tierFilled = 0;
-			for (ClueStepsPack.Stash unit : units)
+		}
+		if (tiers.isEmpty())
+		{
+			content.add(note("Every STASH unit is filled."));
+			return;
+		}
+		for (int start = 0; start < tiers.size(); start += TIER_COLS)
+		{
+			JPanel line = row();
+			line.add(Box.createHorizontalGlue());
+			for (int col = 0; col < TIER_COLS && start + col < tiers.size(); col++)
 			{
-				if (state.isStashBuilt(unit.objectId))
+				if (col > 0)
 				{
-					tierBuilt++;
+					line.add(Box.createHorizontalStrut(V2Tokens.ROW));
 				}
-				if (state.isStashFilled(unit.objectId))
-				{
-					tierFilled++;
-				}
+				String tier = tiers.get(start + col);
+				List<ClueStepsPack.Stash> units = byTier.get(tier);
+				int filled = (int) units.stream()
+					.filter(u -> state.isStashFilled(u.objectId)).count();
+				line.add(tierTile(tier, filled, units.size()));
 			}
-			content.add(section(tier,
-				tierBuilt + "/" + units.size() + " built · " + tierFilled + " filled"));
-			List<ClueStepsPack.Stash> shown = new ArrayList<>();
-			for (ClueStepsPack.Stash unit : units)
+			line.add(Box.createHorizontalGlue());
+			cap(line);
+			content.add(line);
+			content.add(Box.createVerticalStrut(V2Tokens.ROW));
+			for (int col = 0; col < TIER_COLS && start + col < tiers.size(); col++)
 			{
-				if (showAll || !state.isStashFilled(unit.objectId))
+				if (tiers.get(start + col).equals(expandedTier))
 				{
-					shown.add(unit);
+					stashDetail(expandedTier, byTier.get(expandedTier));
+					content.add(Box.createVerticalStrut(V2Tokens.ROW));
 				}
-			}
-			if (shown.isEmpty())
-			{
-				content.add(faintLine("All " + tier.toLowerCase() + " units filled."));
-				continue;
-			}
-			int rows = 0;
-			for (ClueStepsPack.Stash unit : shown)
-			{
-				if (rows++ >= MAX_ROWS_PER_TIER)
-				{
-					content.add(faintLine("+ " + (shown.size() - MAX_ROWS_PER_TIER) + " more units"));
-					break;
-				}
-				content.add(stashRow(unit));
 			}
 		}
 	}
 
-	/** One unit: green filled / orange built-empty / faint not built, a
-	 *  ready badge when its outfit is owned, click = manual filled toggle. */
-	private JComponent stashRow(ClueStepsPack.Stash unit)
+	/** One tier as a square Card in the clog page-grid grammar: the tier's
+	 *  clue scroll as the emblem, corner count, meter strip, no tooltip. */
+	private V2Tile tierTile(String tier, int done, int total)
 	{
-		JPanel row = bareRow();
-		row.setBorder(new EmptyBorder(1, UiTokens.ROW_GAP, 1, UiTokens.ROW_GAP));
+		boolean complete = total > 0 && done >= total;
+		boolean open = tier.equals(expandedTier);
+		int scroll = SCROLLS[tierIndex(tier)];
+		Image emblem = sprites.getBox(scroll, TIER_EMBLEM);
+		Color cornerDone = complete ? V2Tokens.DONE
+			: done == 0 ? V2Tokens.BLOCKED : V2Tokens.ACTION;
+		Color cornerRest = complete ? V2Tokens.DONE : V2Tokens.ACTION;
+		return new V2Tile(theme, emblem, tier, TIER_TILE, () ->
+			{
+				expandedTier = open ? null : tier;
+				rebuildContent();
+			})
+			.card().captionLines(2).captionInside()
+			.captionStatus(complete ? V2Tokens.DONE : V2Tokens.ACTION)
+			.corner(String.valueOf(done), cornerDone, "/" + total, cornerRest)
+			.selected(open)
+			.meter(total == 0 ? Double.NaN : (double) done / total);
+	}
+
+	private static int tierIndex(String tier)
+	{
+		for (int i = 0; i < TIERS.length; i++)
+		{
+			if (TIERS[i].equals(tier))
+			{
+				return i;
+			}
+		}
+		return 0;
+	}
+
+	// ── the expanded tier: steps ──────────────────────────────────────
+
+	private void stepsDetail(String tier, List<ClueStepsPack.Clue> clues)
+	{
+		int doable = (int) clues.stream()
+			.filter(c -> ClueStashModule.doable(c, state)).count();
+		content.add(tierHeader(tier, "Steps doable: ", doable, clues.size(), null));
+		content.add(Box.createVerticalStrut(V2Tokens.TIGHT));
+
+		// evaluate each step ONCE per rebuild (2026-07-20 audit); blocked
+		// steps first, closest-to-doable leading — the graph's own distance
+		Map<ClueStepsPack.Clue, Boolean> doableBy = new java.util.IdentityHashMap<>();
+		Map<ClueStepsPack.Clue, Double> gapBy = new java.util.IdentityHashMap<>();
+		for (ClueStepsPack.Clue clue : clues)
+		{
+			boolean can = ClueStashModule.doable(clue, state);
+			doableBy.put(clue, can);
+			double gap = 0;
+			if (!can && clue.reqs != null)
+			{
+				for (String req : clue.reqs)
+				{
+					gap += com.ironhub.requirements.Requirements.parse(req).gap(state);
+				}
+			}
+			gapBy.put(clue, gap);
+		}
+		List<ClueStepsPack.Clue> shown = new ArrayList<>();
+		for (ClueStepsPack.Clue clue : clues)
+		{
+			if (showDoable || !doableBy.get(clue))
+			{
+				shown.add(clue);
+			}
+		}
+		shown.sort(java.util.Comparator.comparing(doableBy::get).thenComparing(gapBy::get));
+
+		V2Surface tile = V2Surface.tile(theme);
+		tile.setAlignmentX(LEFT_ALIGNMENT);
+		int limit = Math.min(MAX_ROWS, shown.size());
+		for (int i = 0; i < limit; i++)
+		{
+			ClueStepsPack.Clue clue = shown.get(i);
+			if (i > 0)
+			{
+				tile.add(Box.createVerticalStrut(3));
+			}
+			tile.add(stepHead(clue, doableBy.get(clue)));
+			if (expandedSteps.contains(clue.id))
+			{
+				tile.add(Box.createVerticalStrut(2));
+				tile.add(stepWell(clue, doableBy.get(clue)));
+			}
+		}
+		cap(tile);
+		content.add(tile);
+		if (shown.size() > limit)
+		{
+			content.add(note("+ " + (shown.size() - limit) + " more steps"));
+		}
+	}
+
+	/** One step's ROW: the emote text on the doable scale and the +/x goal
+	 *  glyph while blocked. A click opens the step's Well non-exclusively. */
+	private JComponent stepHead(ClueStepsPack.Clue clue, boolean doable)
+	{
+		JPanel head = row();
+		OsrsLabel text = OsrsLabel.wrapped(clue.text, ROW_WRAP,
+			doable ? OsrsSkin.VALUE : OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned();
+		head.add(text);
+		head.add(Box.createHorizontalGlue());
+		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		if (!doable && !clue.reqs.isEmpty())
+		{
+			boolean tracked = module.isGoal(clue);
+			JPanel anchor = new JPanel(new java.awt.BorderLayout());
+			anchor.setOpaque(false);
+			anchor.putClientProperty(OWN_ACTION, Boolean.TRUE);
+			anchor.add(goalGlyph(tracked,
+				tracked ? "Remove from Goals" : "Track unlocking this step in Goals",
+				() ->
+				{
+					if (tracked)
+					{
+						module.removeGoal(clue);
+					}
+					else
+					{
+						module.addGoal(clue);
+					}
+					javax.swing.SwingUtilities.invokeLater(this::rebuildContent);
+				}), java.awt.BorderLayout.NORTH);
+			head.add(anchor);
+		}
+		head.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		clickAnywhere(head, new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				if (!expandedSteps.remove(clue.id))
+				{
+					expandedSteps.add(clue.id);
+				}
+				rebuildContent();
+			}
+		});
+		cap(head);
+		return head;
+	}
+
+	/** The open step's Well: its standing, then every outfit item in met
+	 *  colours — a missing item carries its where-from line (formerly a
+	 *  hover tooltip). */
+	private JComponent stepWell(ClueStepsPack.Clue clue, boolean doable)
+	{
+		V2Surface well = V2Surface.well(theme);
+		int inset = com.ironhub.ui.v2.V2Well.CAP + V2Tokens.TIGHT;
+		well.setBorder(new EmptyBorder(inset, inset, inset, inset));
+		JPanel meta = row();
+		meta.add(new OsrsLabel(clue.tier, V2Tokens.STRONG, OsrsSkin.smallFont()).leftAligned());
+		meta.add(new OsrsLabel(" · " + (doable ? "Doable now" : "Missing items"),
+			OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+		meta.add(Box.createHorizontalGlue());
+		cap(meta);
+		well.add(meta);
+		for (String raw : clue.reqs)
+		{
+			Requirement req = com.ironhub.requirements.Requirements.parse(raw);
+			boolean met = req.isMet(state);
+			String line = "· " + req.describe();
+			if (!met)
+			{
+				Integer itemId = firstMissingItem(req);
+				String source = itemId == null || module.itemSources() == null ? null
+					: module.itemSources().sourceLine(itemId, state,
+						state.getItemSourcePref(itemId));
+				if (source != null)
+				{
+					line += " — " + source;
+				}
+			}
+			well.add(OsrsLabel.wrapped(line, WELL_WRAP,
+				met ? OsrsSkin.VALUE : OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+		}
+		cap(well);
+		return well;
+	}
+
+	private Integer firstMissingItem(Requirement req)
+	{
+		for (Requirement leaf : req.missing(state))
+		{
+			Integer itemId = leaf.itemId();
+			if (itemId != null)
+			{
+				return itemId;
+			}
+		}
+		return null;
+	}
+
+	// ── the expanded tier: STASH ──────────────────────────────────────
+
+	private void stashDetail(String tier, List<ClueStepsPack.Stash> units)
+	{
+		int filled = (int) units.stream()
+			.filter(u -> state.isStashFilled(u.objectId)).count();
+		int built = (int) units.stream()
+			.filter(u -> state.isStashBuilt(u.objectId)).count();
+		content.add(tierHeader(tier, "Units filled: ", filled, units.size(),
+			built + "/" + units.size() + " built"));
+		content.add(Box.createVerticalStrut(V2Tokens.TIGHT));
+
+		List<ClueStepsPack.Stash> shown = new ArrayList<>();
+		for (ClueStepsPack.Stash unit : units)
+		{
+			if (showFilled || !state.isStashFilled(unit.objectId))
+			{
+				shown.add(unit);
+			}
+		}
+		V2Surface tile = V2Surface.tile(theme);
+		tile.setAlignmentX(LEFT_ALIGNMENT);
+		int limit = Math.min(MAX_ROWS, shown.size());
+		for (int i = 0; i < limit; i++)
+		{
+			ClueStepsPack.Stash unit = shown.get(i);
+			if (i > 0)
+			{
+				tile.add(Box.createVerticalStrut(3));
+			}
+			tile.add(unitHead(unit));
+			if (expandedUnits.contains(unit.objectId))
+			{
+				tile.add(Box.createVerticalStrut(2));
+				tile.add(unitWell(unit));
+			}
+		}
+		cap(tile);
+		content.add(tile);
+		if (shown.size() > limit)
+		{
+			content.add(note("+ " + (shown.size() - limit) + " more units"));
+		}
+	}
+
+	/** One unit's ROW: the location on the filled scale, a green "ready"
+	 *  tag when its outfit is owned. A click opens the unit's Well. */
+	private JComponent unitHead(ClueStepsPack.Stash unit)
+	{
 		boolean filled = state.isStashFilled(unit.objectId);
 		boolean built = state.isStashBuilt(unit.objectId);
-		Color color = filled ? OsrsSkin.VALUE : built ? OsrsSkin.LABEL : OsrsSkin.FAINT;
-		OsrsLabel name = new OsrsLabel(unit.name, color, OsrsSkin.font()).leftAligned().squeezable();
-		String status = filled ? "Filled" : built ? "Built, empty" : "Not built";
-		name.setToolTipText("<html><div style='width:200px'>" + unit.name + " — " + status
-			+ ".<br>Click to toggle filled (for STASHes filled before Iron Hub).</div></html>");
-		row.add(name);
-		row.add(Box.createHorizontalGlue());
+		Color colour = filled ? OsrsSkin.VALUE : built ? OsrsSkin.TITLE : OsrsSkin.MUTED;
+		JPanel head = row();
+		OsrsLabel name = OsrsLabel.wrapped(unit.name, ROW_WRAP, colour, OsrsSkin.smallFont())
+			.leftAligned();
+		head.add(name);
+		head.add(Box.createHorizontalGlue());
+		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 		if (module.readyToFill(unit))
 		{
-			row.add(new OsrsLabel("ready", OsrsSkin.VALUE, OsrsSkin.smallFont()));
+			head.add(new OsrsLabel("ready", OsrsSkin.VALUE, OsrsSkin.smallFont()));
 		}
-		row.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		row.addMouseListener(new java.awt.event.MouseAdapter()
+		head.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		clickAnywhere(head, new MouseAdapter()
 		{
 			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
+			public void mousePressed(MouseEvent e)
 			{
-				module.toggleFilled(unit); // listener rebuilds
+				if (!expandedUnits.remove(unit.objectId))
+				{
+					expandedUnits.add(unit.objectId);
+				}
+				rebuildContent();
 			}
 		});
-		cap(row);
-		return row;
+		cap(head);
+		return head;
 	}
 
-	// ── shared bits ───────────────────────────────────────────────────
-
-	private JComponent toggleRow(String label)
+	/** The open unit's Well: its status, the outfit in met colours, and the
+	 *  manual Mark-filled action — the escape hatch for STASHes filled
+	 *  before Iron Hub, moved off the row click. */
+	private JComponent unitWell(ClueStepsPack.Stash unit)
 	{
-		JPanel row = bareRow();
-		OsrsLabel toggle = new OsrsLabel(label, OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned();
-		toggle.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		toggle.addMouseListener(new java.awt.event.MouseAdapter()
+		boolean filled = state.isStashFilled(unit.objectId);
+		boolean built = state.isStashBuilt(unit.objectId);
+		String standing = filled ? "Filled" : built ? "Built, empty" : "Not built";
+		V2Surface well = V2Surface.well(theme);
+		int inset = com.ironhub.ui.v2.V2Well.CAP + V2Tokens.TIGHT;
+		well.setBorder(new EmptyBorder(inset, inset, inset, inset));
+		JPanel meta = row();
+		meta.add(new OsrsLabel(standing, V2Tokens.STRONG, OsrsSkin.smallFont()).leftAligned());
+		if (module.readyToFill(unit))
 		{
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
+			meta.add(new OsrsLabel(" · ready to fill",
+				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+		}
+		meta.add(Box.createHorizontalGlue());
+		cap(meta);
+		well.add(meta);
+		ClueStepsPack.Clue clue = unit.clueId == null || module.pack() == null
+			? null : module.pack().clue(unit.clueId);
+		if (clue != null)
+		{
+			for (String raw : clue.reqs)
 			{
-				showAll = !showAll;
-				SwingUtilities.invokeLater(CluesTab.this::rebuild);
+				Requirement req = com.ironhub.requirements.Requirements.parse(raw);
+				well.add(OsrsLabel.wrapped("· " + req.describe(), WELL_WRAP,
+					req.isMet(state) ? OsrsSkin.VALUE : OsrsSkin.MUTED,
+					OsrsSkin.smallFont()).leftAligned());
 			}
+		}
+		well.add(Box.createVerticalStrut(2));
+		JPanel actions = row();
+		OsrsLabel mark = actionLabel(filled ? "Unmark filled" : "Mark filled", () ->
+		{
+			module.toggleFilled(unit);
+			javax.swing.SwingUtilities.invokeLater(this::rebuild);
 		});
-		row.add(toggle);
-		row.add(Box.createHorizontalGlue());
-		cap(row);
-		return row;
+		mark.setToolTipText("For STASHes filled before Iron Hub existed");
+		actions.add(mark);
+		actions.add(Box.createHorizontalGlue());
+		cap(actions);
+		well.add(actions);
+		cap(well);
+		return well;
 	}
 
-	private JPanel bareRow()
+	// ── shared pieces ─────────────────────────────────────────────────
+
+	/** Tier name, a counter in the game's colour scale, and optional sub
+	 *  text — the header card an expanded tier opens with (the CA shape). */
+	private JComponent tierHeader(String tier, String label, int done, int total, String sub)
+	{
+		V2Surface card = V2Surface.card(theme);
+		JPanel titleRow = row();
+		titleRow.add(new OsrsLabel(tier, OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
+		titleRow.add(Box.createHorizontalGlue());
+		cap(titleRow);
+		card.add(titleRow);
+		Color colour = done == 0 ? V2Tokens.BLOCKED
+			: done >= total ? OsrsSkin.VALUE : OsrsSkin.COUNT_YELLOW;
+		JPanel counts = row();
+		counts.add(new OsrsLabel(label, OsrsSkin.LABEL, OsrsSkin.smallFont()).leftAligned());
+		counts.add(new OsrsLabel(done + "/" + total, colour, OsrsSkin.smallFont()).leftAligned());
+		counts.add(Box.createHorizontalGlue());
+		if (sub != null)
+		{
+			counts.add(new OsrsLabel(sub, OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		}
+		cap(counts);
+		card.add(counts);
+		cap(card);
+		return card;
+	}
+
+	/** A Well action in skin colours — faint until hovered (the quests
+	 *  grammar). */
+	private static OsrsLabel actionLabel(String text, Runnable onClick)
+	{
+		OsrsLabel label = new OsrsLabel(text, OsrsSkin.LABEL, OsrsSkin.smallFont()).leftAligned();
+		label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		label.putClientProperty(OWN_ACTION, Boolean.TRUE);
+		label.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				label.setColor(OsrsSkin.TITLE);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				label.setColor(OsrsSkin.LABEL);
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				onClick.run();
+			}
+		});
+		return label;
+	}
+
+	/** The +/× goal affordance in skin colours — faint until hovered. */
+	private static JLabel goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
+	{
+		JLabel glyph = new JLabel(isGoal ? "×" : "+");
+		OsrsSkin.crisp(glyph);
+		glyph.setFont(OsrsSkin.font());
+		glyph.setForeground(OsrsSkin.FAINT);
+		glyph.setToolTipText(tooltip);
+		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		glyph.putClientProperty(OWN_ACTION, Boolean.TRUE);
+		glyph.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.TITLE);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				glyph.setForeground(OsrsSkin.FAINT);
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				onClick.run();
+			}
+		});
+		return glyph;
+	}
+
+	private static JPanel row()
 	{
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
@@ -397,33 +842,34 @@ class CluesTab extends JPanel
 		return row;
 	}
 
-	private JComponent section(String text, String count)
+	private JComponent note(String text)
 	{
-		JPanel row = bareRow();
-		row.setBorder(new EmptyBorder(8, 4, 3, 4));
-		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font()));
-		row.add(Box.createHorizontalGlue());
-		row.add(new OsrsLabel(count, OsrsSkin.VALUE, OsrsSkin.font()));
-		cap(row);
-		return row;
-	}
-
-	private JComponent textLine(String text, Color color, java.awt.Font font)
-	{
-		JPanel holder = bareRow();
-		holder.setBorder(new EmptyBorder(1, UiTokens.ROW_GAP, 1, UiTokens.ROW_GAP));
-		holder.add(OsrsLabel.wrapped(text, 195, color, font).leftAligned());
+		JPanel holder = row();
+		holder.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP));
+		holder.add(OsrsLabel.wrapped(text, 185, OsrsSkin.FAINT, OsrsSkin.smallFont())
+			.leftAligned());
 		holder.add(Box.createHorizontalGlue());
 		cap(holder);
 		return holder;
 	}
 
-	private JComponent faintLine(String text)
+	/** Attach a click to a container AND its passive children — AWT delivers
+	 *  a press to the DEEPEST component only (the MouseRelay lesson). */
+	private static void clickAnywhere(JComponent container, MouseAdapter click)
 	{
-		return textLine(text, OsrsSkin.FAINT, OsrsSkin.font());
+		container.addMouseListener(click);
+		for (java.awt.Component child : container.getComponents())
+		{
+			if (child instanceof JComponent
+				&& Boolean.TRUE.equals(((JComponent) child).getClientProperty(OWN_ACTION)))
+			{
+				continue;
+			}
+			child.addMouseListener(click);
+		}
 	}
 
-	private void cap(JComponent c)
+	private static void cap(JComponent c)
 	{
 		c.setMaximumSize(new Dimension(Integer.MAX_VALUE, c.getPreferredSize().height));
 	}

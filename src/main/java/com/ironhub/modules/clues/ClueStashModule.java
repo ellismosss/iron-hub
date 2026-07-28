@@ -52,6 +52,7 @@ public class ClueStashModule implements IronHubModule
 	private final com.ironhub.data.ItemSourcesPack itemSources;
 	private final EventBus eventBus; // null in unit tests
 	private final Client client;     // null in unit tests
+	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
 
 	private final Runnable listener = this::onStateChanged;
 	private CluesTab tab;
@@ -61,8 +62,10 @@ public class ClueStashModule implements IronHubModule
 
 	@Inject
 	public ClueStashModule(AccountState state, IronHubConfig config, DataPack dataPack,
-		EventBus eventBus, Client client)
+		EventBus eventBus, Client client,
+		net.runelite.client.game.ItemManager itemManager)
 	{
+		this.itemManager = itemManager;
 		this.state = state;
 		this.config = config;
 		this.pack = dataPack == null ? null : dataPack.load("clue-steps", ClueStepsPack.class);
@@ -137,6 +140,18 @@ public class ClueStashModule implements IronHubModule
 	ClueStepsPack pack()
 	{
 		return pack;
+	}
+
+	/** The item cache behind the tier-card scroll emblems. */
+	net.runelite.client.game.ItemManager itemManager()
+	{
+		return itemManager;
+	}
+
+	/** The KB projection behind the Wells' where-from lines. */
+	com.ironhub.data.ItemSourcesPack itemSources()
+	{
+		return itemSources;
 	}
 
 	// ── clue-step doability (the requirement graph) ───────────────────

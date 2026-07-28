@@ -42,7 +42,7 @@ public class CluesTest
 
 	private ClueStashModule module(AccountState state)
 	{
-		return new ClueStashModule(state, config, new DataPack(new Gson()), new EventBus(), null);
+		return new ClueStashModule(state, config, new DataPack(new Gson()), new EventBus(), null, null);
 	}
 
 	/** The Lumbridge swamp shack dance: bronze dagger, iron full helm, gold ring. */
@@ -168,6 +168,16 @@ public class CluesTest
 		for (int view = 0; view < names.length; view++)
 		{
 			((CluesTab) tab).selectView(view);
+			// open a tier, a step and a unit so the render shows the grammar
+			((CluesTab) tab).expandTierForTest(clue.tier);
+			if (view == 0)
+			{
+				((CluesTab) tab).expandStepForTest(clue.id);
+			}
+			else
+			{
+				((CluesTab) tab).expandUnitForTest(unit.objectId);
+			}
 			java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
 			assertTrue(names[view] + " render too small", image.getHeight() > 150);
 			java.io.File out = new java.io.File("build/reports/clues-" + names[view] + ".png");
