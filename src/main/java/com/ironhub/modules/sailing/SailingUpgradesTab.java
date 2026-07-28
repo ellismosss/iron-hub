@@ -335,6 +335,19 @@ class SailingUpgradesTab extends JPanel
 			cap(card);
 			return card;
 		}
+		// the NEXT upgrade by NAME (Luke, 2026-07-28 — the card named the
+		// one after but never this one), in the counter grammar
+		JPanel nextRow = new JPanel();
+		nextRow.setLayout(new BoxLayout(nextRow, BoxLayout.X_AXIS));
+		nextRow.setOpaque(false);
+		nextRow.setAlignmentX(LEFT_ALIGNMENT);
+		nextRow.setBorder(new EmptyBorder(1, UiTokens.PAD, 1, 0));
+		nextRow.add(new OsrsLabel("Next: ", OsrsSkin.LABEL, OsrsSkin.smallFont()).leftAligned());
+		nextRow.add(new OsrsLabel(next.name, com.ironhub.ui.v2.V2Tokens.STRONG,
+			OsrsSkin.smallFont()).leftAligned().squeezable());
+		nextRow.add(Box.createHorizontalGlue());
+		cap(nextRow);
+		card.add(nextRow);
 		card.add(detail("Sailing " + next.sailing + " · Construction " + next.construction, OsrsSkin.MUTED));
 		String missing = missingText(next.reqs);
 		if (missing != null && boostMet(next.reqs))
