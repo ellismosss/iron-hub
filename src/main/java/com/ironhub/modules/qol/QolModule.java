@@ -27,6 +27,7 @@ public class QolModule implements IronHubModule
 	private final IronHubConfig config;
 	private final DataPack dataPack;
 	private final javax.inject.Provider<com.ironhub.modules.goals.GoalPlannerModule> planner; // null in tests
+	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
 	private QolTab tab;
 	private int seedProfileGeneration = -1;
 	private final Runnable seedListener = this::onProfileMaybeChanged;
@@ -45,12 +46,14 @@ public class QolModule implements IronHubModule
 
 	@Inject
 	public QolModule(AccountState state, IronHubConfig config, DataPack dataPack,
-		javax.inject.Provider<com.ironhub.modules.goals.GoalPlannerModule> planner)
+		javax.inject.Provider<com.ironhub.modules.goals.GoalPlannerModule> planner,
+		net.runelite.client.game.ItemManager itemManager)
 	{
 		this.state = state;
 		this.config = config;
 		this.dataPack = dataPack;
 		this.planner = planner;
+		this.itemManager = itemManager;
 	}
 
 	/** The current plan already obtains this item under some OTHER goal
@@ -133,7 +136,7 @@ public class QolModule implements IronHubModule
 		if (tab == null)
 		{
 			tab = new QolTab(state, dataPack.load("qol", QolPack.class),
-				config.osrsTheme(), this::planWantsItem);
+				config.osrsTheme(), this::planWantsItem, itemManager);
 		}
 		return tab;
 	}

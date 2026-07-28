@@ -114,6 +114,21 @@ public class QolModuleTest
 		assertTrue(state.getGoalSeeds().isEmpty());
 	}
 
+	/** The curated category map covers today's pack exactly — a new pack
+	 *  entry must be filed (or it lands on the "Other" card, which this
+	 *  test flags), and a renamed id must not linger in the map. */
+	@Test
+	public void categoriesCoverThePack()
+	{
+		java.util.Set<String> packIds = new java.util.HashSet<>();
+		pack.getUnlocks().forEach(u -> packIds.add(u.getId()));
+		java.util.List<String> mapped = new java.util.ArrayList<>();
+		QolTab.CATEGORIES.values().forEach(mapped::addAll);
+		assertEquals("an id is in two categories", mapped.size(),
+			new java.util.HashSet<>(mapped).size());
+		assertEquals("map and pack must agree", packIds, new java.util.HashSet<>(mapped));
+	}
+
 	@Test
 	public void tabRendersHeadless() throws Exception
 	{
@@ -135,10 +150,14 @@ public class QolModuleTest
 				// exist to be judged against the Vanilla design system
 				return com.ironhub.ui.osrs.OsrsTheme.STONE;
 			}
-		}, new DataPack(new Gson()), null);
+		}, new DataPack(new Gson()), null, null);
 		module.startUp();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
+		// open the tracked unlock's detail so the goal glyph + requirement
+		// lines render (the tree keeps the selection across rebuilds)
+		javax.swing.SwingUtilities.invokeAndWait(() -> ((QolTab) tab).expand("herb_sack"));
+		javax.swing.SwingUtilities.invokeAndWait(() -> { });
 		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
 		assertTrue(image.getHeight() > 200);
 		java.io.File out = new java.io.File("build/reports/qol-tab.png");

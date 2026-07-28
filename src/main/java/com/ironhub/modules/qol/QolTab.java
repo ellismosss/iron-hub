@@ -2,70 +2,135 @@ package com.ironhub.modules.qol;
 
 import com.ironhub.data.QolPack;
 import com.ironhub.state.AccountState;
+import com.ironhub.ui.components.SpriteCache;
 import com.ironhub.ui.components.Status;
+import com.ironhub.ui.components.TileTree;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.v2.V2ProgressBar;
 import com.ironhub.ui.v2.V2Surface;
-import com.ironhub.ui.v2.V2Tokens;
-import com.ironhub.ui.v2.V2Well;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.util.LinkBrowser;
 
 /**
- * QoL tab content in the OSRS stonework skin: unlocked-count progress bar +
- * one row per unlock (owned / obtainable now / locked with its blocking
- * requirement in the tooltip). Same brain as before — only the clothing
- * changed.
+ * QoL tab in the uniform Build design system ({@link TileTree}, the House
+ * grammar — Luke, 2026-07-28): a hero Card ("Unlocks obtained" between two
+ * inventory emblems over the sprite bar, with the available-now tally on a
+ * counter line), then the unlocks as CATEGORY cards — 2-wide squares with
+ * corner obtained/total counts and meter strips — expanding into 2-wide
+ * unlock tiles (green tick = obtained, orange edge = obtainable right now),
+ * each opening a detail card with the unlock's benefit prose, met-coloured
+ * requirement lines, and the goal/wiki affordances. Same brain as before —
+ * status/blocking stay on {@link QolModule}. Frameless — the host names
+ * the module.
  */
 class QolTab extends JPanel
 {
+	/**
+	 * The flat 98-unlock pack grouped for the card grid — curated here
+	 * because the pack has no category column. Members render in this
+	 * order (progression order where one exists). QolModuleTest pins that
+	 * the map covers the pack exactly; anything future lands on an
+	 * "Other" card rather than vanishing.
+	 */
+	static final Map<String, List<String>> CATEGORIES = new LinkedHashMap<>();
+	/** Each category's emblem — a representative member's item sprite. */
+	private static final Map<String, String> EMBLEMS = new LinkedHashMap<>();
+
+	private static void category(String name, String emblem, String... ids)
+	{
+		CATEGORIES.put(name, List.of(ids));
+		EMBLEMS.put(name, emblem);
+	}
+
+	static
+	{
+		category("Diary rewards", "achievement_diary_cape",
+			"achievement_diary_cape", "ardougne_cloak_1", "ardougne_cloak_2",
+			"ardougne_cloak_3", "ardougne_cloak_4", "desert_amulet_4",
+			"explorer_s_ring_2", "explorer_s_ring_3", "explorer_s_ring_4",
+			"falador_shield_3", "fremennik_sea_boots_4", "kandarin_headgear_4",
+			"karamja_gloves_3", "karamja_gloves_4", "morytania_legs_3",
+			"rada_s_blessing_4", "varrock_armour_3", "western_banner_4",
+			"wilderness_sword_4");
+		category("Tools", "crystal_pickaxe",
+			"crystal_axe", "infernal_axe", "dragon_harpoon", "crystal_harpoon",
+			"infernal_harpoon", "crystal_pickaxe", "infernal_pickaxe",
+			"crystal_saw", "amy_s_saw", "imcando_hammer", "magic_secateurs",
+			"farming_cape", "bruma_torch");
+		category("Storage", "herb_sack",
+			"herb_sack", "silklined_herb_sack", "seed_box", "coal_bag",
+			"log_basket", "forestry_kit", "forestry_basket", "plank_sack",
+			"fish_barrel", "fish_sack_barrel", "tackle_box", "looting_bag",
+			"bottomless_compost_bucket", "basket", "empty_sack",
+			"reagent_pouch", "gnomish_firelighter", "steel_key_ring");
+		category("Transport", "royal_seed_pod",
+			"dramen_staff", "ectophial", "camulet", "royal_seed_pod",
+			"master_scroll_book", "book_of_the_dead", "basic_quetzal_whistle",
+			"enhanced_quetzal_whistle", "perfected_quetzal_whistle");
+		category("Combat", "dragon_defender",
+			"dragon_defender", "ava_accumulator", "ava_assembler",
+			"rune_pouch", "divine_rune_pouch", "bolt_pouch");
+		category("Essence pouches", "colossal_pouch",
+			"small_pouch", "medium_pouch", "large_pouch", "giant_pouch",
+			"colossal_pouch");
+		category("Gem containers", "gem_sack",
+			"gem_pouch", "gem_satchel", "gem_tote", "gem_sack", "gem_bag");
+		category("Hunter pouches", "huntsman_s_kit",
+			"small_fur_pouch", "medium_fur_pouch", "large_fur_pouch",
+			"small_meat_pouch", "large_meat_pouch", "huntsman_s_kit");
+		category("Shades of Mort'ton", "gold_coffin",
+			"flamtaer_bag", "bronze_coffin", "steel_coffin", "black_coffin",
+			"silver_coffin", "gold_coffin");
+		category("Graceful outfit", "graceful_top",
+			"graceful_hood", "graceful_top", "graceful_legs",
+			"graceful_gloves", "graceful_boots", "graceful_cape");
+		category("Rogue outfit", "rogue_top",
+			"rogue_mask", "rogue_top", "rogue_trousers", "rogue_gloves",
+			"rogue_boots");
+	}
+
 	private final AccountState state;
 	private final QolPack pack;
 	private final OsrsTheme theme;
 	private final java.util.function.IntPredicate planWantsItem;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
-
-	private final JPanel frame = new JPanel();
-	/** Obtained rows hide by default (Luke) — the toggle shows them. */
-	private boolean showObtained;
-	/** Single expanded unlock (click a row) — its benefit + requirement lines. */
-	private String expandedId;
-
-	QolTab(AccountState state, QolPack pack, OsrsTheme theme)
-	{
-		this(state, pack, theme, id -> false);
-	}
+	private final SpriteCache sprites;
+	private final JPanel header = new JPanel();
+	private final TileTree tree;
 
 	QolTab(AccountState state, QolPack pack, OsrsTheme theme,
-		java.util.function.IntPredicate planWantsItem)
+		java.util.function.IntPredicate planWantsItem, ItemManager itemManager)
 	{
 		this.state = state;
 		this.pack = pack;
 		this.theme = theme;
 		this.planWantsItem = planWantsItem;
-		// frameless: the host's stone header plate names the module
+		this.sprites = new SpriteCache(itemManager, listener);
+		this.tree = new TileTree(theme, sprites);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		frame.setLayout(new BoxLayout(frame, BoxLayout.Y_AXIS));
-		frame.setOpaque(false);
-		frame.setAlignmentX(LEFT_ALIGNMENT);
-		add(frame);
+		header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
+		header.setOpaque(false);
+		header.setAlignmentX(LEFT_ALIGNMENT);
+		header.setBorder(new EmptyBorder(2, 4, 4, 4));
+		add(header);
+		add(tree);
 		add(Box.createVerticalGlue());
 
 		state.addListener(listener);
@@ -77,78 +142,201 @@ class QolTab extends JPanel
 		state.removeListener(listener);
 	}
 
+	/** Test seam: open an unlock's detail (expands its category, selects it). */
+	void expand(String unlockId)
+	{
+		for (Map.Entry<String, List<String>> e : CATEGORIES.entrySet())
+		{
+			if (e.getValue().contains(unlockId))
+			{
+				tree.selectForTest("cat:" + e.getKey(), unlockId);
+				return;
+			}
+		}
+	}
+
 	private void rebuild()
 	{
-		frame.removeAll();
-
-		long owned = pack.getUnlocks().stream()
-			.filter(u -> QolModule.status(state, u) == Status.OWNED)
-			.count();
-		int total = pack.getUnlocks().size();
-		frame.add(section("QoL unlocks"));
-		frame.add(pad(new V2ProgressBar(theme, V2ProgressBar.Size.ROW)
-			.fill(V2Tokens.BAR_BLUE)
-			.fraction(total == 0 ? 0 : (double) owned / total)
-			.labels("Unlocked", null, owned + "/" + total)));
-		frame.add(strut(4));
-
-		// the rows sit inside one Well at the list inset (§4), checklist-style
-		V2Surface group = V2Surface.well(theme);
-		int inset = V2Well.CAP + V2Tokens.TIGHT;
-		group.setBorder(new javax.swing.border.EmptyBorder(inset, inset, inset, inset));
-		int hidden = 0;
+		int owned = 0;
+		int available = 0;
 		for (QolPack.Unlock unlock : pack.getUnlocks())
 		{
-			if (!showObtained && QolModule.status(state, unlock) == Status.OWNED)
+			Status status = QolModule.status(state, unlock);
+			if (status == Status.OWNED)
 			{
-				hidden++;
-				continue;
+				owned++;
 			}
-			group.add(unlockRow(unlock));
-			if (unlock.getId().equals(expandedId))
+			else if (status == Status.AVAILABLE)
 			{
-				group.add(expansion(unlock));
+				available++;
 			}
 		}
-		cap(group);
-		frame.add(pad(group));
-		// obtained items hide by default — the small-font toggle (the
-		// diaries Show-completed grammar)
-		if (hidden > 0 || showObtained)
-		{
-			OsrsLabel toggle = new OsrsLabel(showObtained ? "Hide obtained"
-				: "Show obtained (" + hidden + ")", OsrsSkin.FAINT, OsrsSkin.smallFont())
-				.leftAligned();
-			toggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			toggle.addMouseListener(new MouseAdapter()
-			{
-				@Override
-				public void mousePressed(MouseEvent e)
-				{
-					showObtained = !showObtained;
-					SwingUtilities.invokeLater(QolTab.this::rebuild);
-				}
-			});
-			frame.add(pad(toggle));
-		}
-		frame.add(strut(4));
+		int total = pack.getUnlocks().size();
+
+		header.removeAll();
+		V2Surface hero = V2Surface.card(theme);
+		JPanel top = row();
+		top.add(inventoryEmblem());
+		top.add(Box.createHorizontalGlue());
+		JPanel middle = new JPanel();
+		middle.setLayout(new BoxLayout(middle, BoxLayout.Y_AXIS));
+		middle.setOpaque(false);
+		middle.add(new OsrsLabel("Unlocks obtained", OsrsSkin.TITLE, OsrsSkin.font()));
+		middle.add(new OsrsLabel(owned + " / " + total, OsrsSkin.TITLE, OsrsSkin.boldFont()));
+		top.add(middle);
+		top.add(Box.createHorizontalGlue());
+		top.add(inventoryEmblem());
+		cap(top);
+		hero.add(top);
+		hero.add(Box.createVerticalStrut(3));
+		// the fill answers the SAME numbers as the label riding it
+		com.ironhub.ui.v2.V2ProgressBar bar = new com.ironhub.ui.v2.V2ProgressBar(theme);
+		bar.fraction(total == 0 ? 0 : (double) owned / total);
+		bar.labels("", owned + " / " + total, "");
+		hero.add(bar);
+		hero.add(Box.createVerticalStrut(3));
+		JPanel counters = row();
+		counters.add(new OsrsLabel("Obtainable now: ",
+			OsrsSkin.LABEL, OsrsSkin.smallFont()).leftAligned());
+		counters.add(new OsrsLabel(String.valueOf(available),
+			available > 0 ? OsrsSkin.COUNT_YELLOW : OsrsSkin.MUTED,
+			OsrsSkin.smallFont()).leftAligned());
+		counters.add(Box.createHorizontalGlue());
+		cap(counters);
+		hero.add(counters);
+		cap(hero);
+		header.add(hero);
+		header.add(Box.createVerticalStrut(4));
+
+		tree.setModel(buildModel());
 		revalidate();
 		repaint();
 	}
 
-	/** The expanded card under a clicked row: what the unlock DOES (the
-	 *  KB's benefit prose) and its requirement lines, met-coloured like a
-	 *  Task's steps (prose lines stay display-only faint). */
-	private JComponent expansion(QolPack.Unlock unlock)
+	// ── model: categories -> unlocks -> detail card ───────────────────────
+
+	private List<TileTree.Top> buildModel()
 	{
-		JPanel card = new JPanel();
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setOpaque(false);
-		card.setAlignmentX(LEFT_ALIGNMENT);
-		card.setBorder(new EmptyBorder(1, 10, 3, 2));
+		Map<String, QolPack.Unlock> byId = new LinkedHashMap<>();
+		for (QolPack.Unlock unlock : pack.getUnlocks())
+		{
+			byId.put(unlock.getId(), unlock);
+		}
+		List<TileTree.Top> tops = new ArrayList<>();
+		java.util.Set<String> placed = new java.util.HashSet<>();
+		for (Map.Entry<String, List<String>> e : CATEGORIES.entrySet())
+		{
+			TileTree.Top top = new TileTree.Top();
+			top.id = "cat:" + e.getKey();
+			top.label = e.getKey();
+			for (String id : e.getValue())
+			{
+				QolPack.Unlock unlock = byId.get(id);
+				if (unlock != null)
+				{
+					top.leaves.add(leaf(unlock));
+					placed.add(id);
+				}
+			}
+			QolPack.Unlock emblem = byId.get(EMBLEMS.get(e.getKey()));
+			if (emblem != null)
+			{
+				top.icon = emblem.getItemIds().get(0);
+			}
+			if (!top.leaves.isEmpty())
+			{
+				tops.add(top);
+			}
+		}
+		// a pack entry the curated map doesn't know yet still shows up
+		TileTree.Top other = new TileTree.Top();
+		other.id = "cat:Other";
+		other.label = "Other";
+		for (QolPack.Unlock unlock : pack.getUnlocks())
+		{
+			if (!placed.contains(unlock.getId()))
+			{
+				other.leaves.add(leaf(unlock));
+			}
+		}
+		if (!other.leaves.isEmpty())
+		{
+			other.icon = other.leaves.get(0).icon;
+			tops.add(other);
+		}
+		for (TileTree.Top top : tops)
+		{
+			top.tracked = top.leaves.stream().anyMatch(l -> l.tracked);
+		}
+		return tops;
+	}
+
+	private TileTree.Leaf leaf(QolPack.Unlock unlock)
+	{
+		Status status = QolModule.status(state, unlock);
+		TileTree.Leaf leaf = new TileTree.Leaf();
+		leaf.id = unlock.getId();
+		leaf.label = unlock.getName();
+		leaf.icon = unlock.getItemIds().isEmpty() ? null : unlock.getItemIds().get(0);
+		leaf.owned = status == Status.OWNED;
+		leaf.tracked = status == Status.AVAILABLE;
+		leaf.tooltip = unlock.getName() + " — " + standing(status, unlock);
+		leaf.detail = () -> detailCard(unlock, status);
+		return leaf;
+	}
+
+	private String standing(Status status, QolPack.Unlock unlock)
+	{
+		if (status == Status.OWNED)
+		{
+			return "obtained";
+		}
+		if (status == Status.AVAILABLE)
+		{
+			return "obtainable now";
+		}
+		String blocking = QolModule.blockingLine(state, unlock);
+		return blocking == null ? "locked" : "needs " + blocking;
+	}
+
+	/** The level-3 detail: name + goal/wiki affordances, the benefit prose,
+	 *  and the requirement lines met-coloured like a Task's steps. */
+	private JComponent detailCard(QolPack.Unlock unlock, Status status)
+	{
+		V2Surface card = V2Surface.card(theme);
+		Color nameColor = status == Status.OWNED ? OsrsSkin.VALUE
+			: status == Status.AVAILABLE ? OsrsSkin.TITLE : OsrsSkin.MUTED;
+		JPanel top = row();
+		top.add(new OsrsLabel(unlock.getName(), nameColor, OsrsSkin.font())
+			.leftAligned().squeezable());
+		top.add(Box.createHorizontalGlue());
+		boolean isGoal = state.getGoalSeeds().containsKey("qol:" + unlock.getId());
+		boolean planned = !isGoal && !unlock.getItemIds().isEmpty()
+			&& planWantsItem.test(unlock.getItemIds().get(0));
+		if (planned)
+		{
+			// already routed by ANOTHER goal (gear chart etc.) — say so
+			// instead of offering a duplicate goal
+			JLabel mark = new JLabel("·");
+			OsrsSkin.crisp(mark);
+			mark.setFont(OsrsSkin.font());
+			mark.setForeground(OsrsSkin.VALUE);
+			mark.setToolTipText(unlock.getName() + " — already in your current plan");
+			top.add(mark);
+		}
+		else
+		{
+			top.add(goalGlyph(isGoal, isGoal ? unlock.getName() + " — tracked; click to untrack"
+				: "Track unlocking " + unlock.getName() + " in Goals",
+				() -> toggleGoal(unlock)));
+		}
+		top.add(Box.createHorizontalStrut(4));
+		top.add(wikiGlyph(unlock.getName()));
+		cap(top);
+		card.add(top);
 		if (unlock.getBenefit() != null)
 		{
-			card.add(OsrsLabel.wrapped(unlock.getBenefit(), 190,
+			card.add(OsrsLabel.wrapped(unlock.getBenefit(), 185,
 				OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
 		}
 		for (String req : unlock.getRequirements())
@@ -173,84 +361,6 @@ class QolTab extends JPanel
 		return card;
 	}
 
-	/** One unlock: name coloured by status, blocking requirement in the
-	 *  tooltip, a compact wiki affordance on the right. */
-	private JComponent unlockRow(QolPack.Unlock unlock)
-	{
-		JPanel row = new JPanel();
-		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-		row.setOpaque(false);
-		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setBorder(new EmptyBorder(1, 2, 1, 2));
-
-		// the old tab's status scale in skin colours:
-		// green = owned, orange = doable now, faint = locked
-		Status status = QolModule.status(state, unlock);
-		Color color = status == Status.OWNED ? OsrsSkin.VALUE
-			: status == Status.AVAILABLE ? OsrsSkin.TITLE : OsrsSkin.FAINT;
-		// the hover leads with what the unlock DOES (Luke's ask)
-		String tooltip = unlock.getName();
-		if (unlock.getBenefit() != null)
-		{
-			tooltip = "<html><div style='width:220px'>" + unlock.getName()
-				+ "<br>" + unlock.getBenefit();
-		}
-		if (status == Status.LOCKED)
-		{
-			String blocking = QolModule.blockingLine(state, unlock);
-			if (blocking != null)
-			{
-				tooltip += (unlock.getBenefit() != null ? "<br>" : " — ")
-					+ "needs " + blocking;
-			}
-		}
-		if (unlock.getBenefit() != null)
-		{
-			tooltip += "</div></html>";
-		}
-		OsrsLabel name = new OsrsLabel(unlock.getName(), color, OsrsSkin.font())
-			.leftAligned().squeezable();
-		name.setToolTipText(tooltip);
-		row.setToolTipText(tooltip);
-		// click the row to expand its detail (requirements like a Task)
-		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		row.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				expandedId = unlock.getId().equals(expandedId) ? null : unlock.getId();
-				SwingUtilities.invokeLater(QolTab.this::rebuild);
-			}
-		});
-		row.add(name);
-		row.add(Box.createHorizontalGlue());
-		boolean isGoal = state.getGoalSeeds().containsKey("qol:" + unlock.getId());
-		boolean planned = !isGoal && !unlock.getItemIds().isEmpty()
-			&& planWantsItem.test(unlock.getItemIds().get(0));
-		if (planned)
-		{
-			// already routed by ANOTHER goal (gear chart etc.) — say so
-			// instead of offering a duplicate goal
-			JLabel mark = new JLabel("·");
-			OsrsSkin.crisp(mark);
-			mark.setFont(OsrsSkin.font());
-			mark.setForeground(OsrsSkin.VALUE);
-			mark.setToolTipText(unlock.getName() + " — already in your current plan");
-			row.add(mark);
-		}
-		else
-		{
-			row.add(goalGlyph(isGoal, isGoal ? unlock.getName() + " — tracked; click to untrack"
-				: "Track unlocking " + unlock.getName() + " in Goals",
-				() -> toggleGoal(unlock)));
-		}
-		row.add(Box.createHorizontalStrut(4));
-		row.add(wikiGlyph(unlock.getName()));
-		cap(row);
-		return row;
-	}
-
 	/** The '+' action: unlock joins the Goal planner as a "qol:" goal;
 	 *  achieved by owning it (fully graph-detectable, no proof flag). */
 	private void toggleGoal(QolPack.Unlock unlock)
@@ -267,8 +377,25 @@ class QolTab extends JPanel
 		}
 	}
 
-	/** The +/× goal affordance in skin colours — its own action, faint
-	 *  until hovered (the diaries/GoalsTab glyph grammar). */
+	/** The inventory emblem at native size, flanking the hero. */
+	private JComponent inventoryEmblem()
+	{
+		JLabel icon = new JLabel();
+		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+		java.awt.Image art = com.ironhub.ui.v2.V2Sprites.get(theme, "icons/inventory/inventory");
+		if (art != null)
+		{
+			icon.setIcon(new javax.swing.ImageIcon(art));
+		}
+		else
+		{
+			icon.setPreferredSize(new Dimension(30, 30));
+		}
+		return icon;
+	}
+
+	/** The +/× goal affordance — a dedicated control (JLabel so its own
+	 *  listener wins over the detail card's surface). */
 	private static JLabel goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
 	{
 		JLabel glyph = new JLabel(isGoal ? "×" : "+");
@@ -276,25 +403,26 @@ class QolTab extends JPanel
 		glyph.setFont(OsrsSkin.font());
 		glyph.setForeground(OsrsSkin.FAINT);
 		glyph.setToolTipText(tooltip);
-		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		glyph.addMouseListener(new MouseAdapter()
+		glyph.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		glyph.addMouseListener(new java.awt.event.MouseAdapter()
 		{
 			@Override
-			public void mouseEntered(MouseEvent e)
+			public void mouseEntered(java.awt.event.MouseEvent e)
 			{
 				glyph.setForeground(OsrsSkin.TITLE);
 			}
 
 			@Override
-			public void mouseExited(MouseEvent e)
+			public void mouseExited(java.awt.event.MouseEvent e)
 			{
 				glyph.setForeground(OsrsSkin.FAINT);
 			}
 
 			@Override
-			public void mousePressed(MouseEvent e)
+			public void mousePressed(java.awt.event.MouseEvent e)
 			{
 				onClick.run();
+				e.consume();
 			}
 		});
 		return glyph;
@@ -308,63 +436,44 @@ class QolTab extends JPanel
 		glyph.setFont(OsrsSkin.font());
 		glyph.setForeground(OsrsSkin.FAINT);
 		glyph.setToolTipText("Open the wiki page");
-		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		glyph.addMouseListener(new MouseAdapter()
+		glyph.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		glyph.addMouseListener(new java.awt.event.MouseAdapter()
 		{
 			@Override
-			public void mouseEntered(MouseEvent e)
+			public void mouseEntered(java.awt.event.MouseEvent e)
 			{
 				glyph.setForeground(OsrsSkin.LABEL);
 			}
 
 			@Override
-			public void mouseExited(MouseEvent e)
+			public void mouseExited(java.awt.event.MouseEvent e)
 			{
 				glyph.setForeground(OsrsSkin.FAINT);
 			}
 
 			@Override
-			public void mousePressed(MouseEvent e)
+			public void mousePressed(java.awt.event.MouseEvent e)
 			{
 				LinkBrowser.browse("https://oldschool.runescape.wiki/w/"
 					+ pageName.replace(' ', '_'));
+				e.consume();
 			}
 		});
 		return glyph;
 	}
 
-	// ── layout helpers (the DailiesNewTab grammar) ────────────────────
+	// ── layout helpers ────────────────────────────────────────────────────
 
-	private JComponent section(String text)
+	private JPanel row()
 	{
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setBorder(new EmptyBorder(8, 8, 3, 8));
-		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font()));
-		row.add(Box.createHorizontalGlue());
-		cap(row);
 		return row;
 	}
 
-	private JComponent pad(JComponent inner)
-	{
-		JPanel holder = new JPanel(new java.awt.BorderLayout());
-		holder.setOpaque(false);
-		holder.setAlignmentX(LEFT_ALIGNMENT);
-		holder.setBorder(new EmptyBorder(0, 4, 0, 4));
-		holder.add(inner);
-		cap(holder);
-		return holder;
-	}
-
-	private JComponent strut(int height)
-	{
-		return (JComponent) Box.createVerticalStrut(height);
-	}
-
-	private void cap(JComponent c)
+	private static void cap(JComponent c)
 	{
 		c.setMaximumSize(new Dimension(Integer.MAX_VALUE, c.getPreferredSize().height));
 	}

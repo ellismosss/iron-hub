@@ -35,7 +35,7 @@ public class ModuleRoutingTest
 				return com.ironhub.ui.osrs.OsrsTheme.STONE;
 			}
 		};
-		QolModule qol = new QolModule(state, config, new DataPack(new Gson()), null);
+		QolModule qol = new QolModule(state, config, new DataPack(new Gson()), null, null);
 		assertTrue(qol.enabled());
 		assertNotNull(qol.buildTab());
 

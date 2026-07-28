@@ -178,11 +178,22 @@ def benefits():
     for name, effect in conn.execute("SELECT name, effect FROM qol_items"):
         if not effect:
             continue
-        text = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", r"\1", effect)
-        text = re.sub(r"'{2,}", "", re.sub(r"\{\{[^}]*\}\}", "", text)).strip()
+        # file links go first — the display-text regex would keep their
+        # "left|150px" tail (the Bruma torch bug, 2026-07-28)
+        text = re.sub(r"\[\[[Ff]ile:[^\]]*\]\]", "", effect)
+        text = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", r"\1", text)
+        # templates innermost-first, so nested ones vanish completely
+        while True:
+            stripped = re.sub(r"\{\{[^{}]*\}\}", "", text)
+            if stripped == text:
+                break
+            text = stripped
+        text = re.sub(r"'{2,}", "", text).strip()
         if len(text) > 300:
             text = text[:297].rstrip() + "..."
-        if text:
+        # an effect that was ALL markup leaves residue, not prose — no
+        # benefit beats a garbled one
+        if text and not re.search(r"[{}\[\]|]", text):
             out[name.lower()] = text
     conn.close()
     return out
