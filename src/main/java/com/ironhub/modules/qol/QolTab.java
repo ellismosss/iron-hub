@@ -49,10 +49,28 @@ class QolTab extends JPanel
 	/** Each category's emblem — a representative member's item sprite. */
 	private static final Map<String, String> EMBLEMS = new LinkedHashMap<>();
 
+	/**
+	 * Tiered families fold into ONE tile (Luke, 2026-07-28): the members
+	 * in ascending order, the tile answering the family as a whole, its
+	 * detail card the tier ladder. Keyed by label; membership drives the
+	 * fold in {@link #buildModel}.
+	 */
+	static final Map<String, List<String>> FAMILIES = new LinkedHashMap<>();
+	private static final Map<String, String> FAMILY_OF = new LinkedHashMap<>();
+
 	private static void category(String name, String emblem, String... ids)
 	{
 		CATEGORIES.put(name, List.of(ids));
 		EMBLEMS.put(name, emblem);
+	}
+
+	private static void family(String label, String... ids)
+	{
+		FAMILIES.put(label, List.of(ids));
+		for (String id : ids)
+		{
+			FAMILY_OF.put(id, label);
+		}
 	}
 
 	static
@@ -72,6 +90,7 @@ class QolTab extends JPanel
 			"farming_cape", "bruma_torch");
 		category("Storage", "herb_sack",
 			"herb_sack", "silklined_herb_sack", "seed_box", "coal_bag",
+			"gem_bag", "gem_pouch", "gem_satchel", "gem_tote", "gem_sack",
 			"log_basket", "forestry_kit", "forestry_basket", "plank_sack",
 			"fish_barrel", "fish_sack_barrel", "tackle_box", "looting_bag",
 			"bottomless_compost_bucket", "basket", "empty_sack",
@@ -80,26 +99,32 @@ class QolTab extends JPanel
 			"dramen_staff", "ectophial", "camulet", "royal_seed_pod",
 			"master_scroll_book", "book_of_the_dead", "basic_quetzal_whistle",
 			"enhanced_quetzal_whistle", "perfected_quetzal_whistle");
-		category("Combat", "dragon_defender",
-			"dragon_defender", "ava_accumulator", "ava_assembler",
+		category("Combat", "ava_assembler",
+			"ava_accumulator", "ava_assembler",
 			"rune_pouch", "divine_rune_pouch", "bolt_pouch");
 		category("Essence pouches", "colossal_pouch",
 			"small_pouch", "medium_pouch", "large_pouch", "giant_pouch",
 			"colossal_pouch");
-		category("Gem containers", "gem_sack",
-			"gem_pouch", "gem_satchel", "gem_tote", "gem_sack", "gem_bag");
 		category("Hunter pouches", "huntsman_s_kit",
 			"small_fur_pouch", "medium_fur_pouch", "large_fur_pouch",
 			"small_meat_pouch", "large_meat_pouch", "huntsman_s_kit");
 		category("Shades of Mort'ton", "gold_coffin",
 			"flamtaer_bag", "bronze_coffin", "steel_coffin", "black_coffin",
 			"silver_coffin", "gold_coffin");
-		category("Graceful outfit", "graceful_top",
+		category("Outfits", "graceful_top",
 			"graceful_hood", "graceful_top", "graceful_legs",
-			"graceful_gloves", "graceful_boots", "graceful_cape");
-		category("Rogue outfit", "rogue_top",
+			"graceful_gloves", "graceful_boots", "graceful_cape",
 			"rogue_mask", "rogue_top", "rogue_trousers", "rogue_gloves",
 			"rogue_boots");
+		family("Ardougne cloak", "ardougne_cloak_1", "ardougne_cloak_2",
+			"ardougne_cloak_3", "ardougne_cloak_4");
+		family("Explorer's ring", "explorer_s_ring_2", "explorer_s_ring_3",
+			"explorer_s_ring_4");
+		family("Karamja gloves", "karamja_gloves_3", "karamja_gloves_4");
+		family("Quetzal whistle", "basic_quetzal_whistle",
+			"enhanced_quetzal_whistle", "perfected_quetzal_whistle");
+		family("Gem containers", "gem_bag", "gem_pouch", "gem_satchel",
+			"gem_tote", "gem_sack");
 	}
 
 	private final AccountState state;
@@ -142,14 +167,17 @@ class QolTab extends JPanel
 		state.removeListener(listener);
 	}
 
-	/** Test seam: open an unlock's detail (expands its category, selects it). */
+	/** Test seam: open an unlock's detail (expands its category, selects it —
+	 *  a family member selects its family tile). */
 	void expand(String unlockId)
 	{
+		String family = FAMILY_OF.get(unlockId);
+		String leafId = family != null ? "fam:" + family : unlockId;
 		for (Map.Entry<String, List<String>> e : CATEGORIES.entrySet())
 		{
 			if (e.getValue().contains(unlockId))
 			{
-				tree.selectForTest("cat:" + e.getKey(), unlockId);
+				tree.selectForTest("cat:" + e.getKey(), leafId);
 				return;
 			}
 		}
@@ -224,6 +252,7 @@ class QolTab extends JPanel
 		}
 		List<TileTree.Top> tops = new ArrayList<>();
 		java.util.Set<String> placed = new java.util.HashSet<>();
+		java.util.Set<String> foldedFamilies = new java.util.HashSet<>();
 		for (Map.Entry<String, List<String>> e : CATEGORIES.entrySet())
 		{
 			TileTree.Top top = new TileTree.Top();
@@ -232,10 +261,28 @@ class QolTab extends JPanel
 			for (String id : e.getValue())
 			{
 				QolPack.Unlock unlock = byId.get(id);
-				if (unlock != null)
+				if (unlock == null)
+				{
+					continue;
+				}
+				placed.add(id);
+				String familyLabel = FAMILY_OF.get(id);
+				if (familyLabel == null)
 				{
 					top.leaves.add(leaf(unlock));
-					placed.add(id);
+				}
+				else if (foldedFamilies.add(familyLabel))
+				{
+					List<QolPack.Unlock> members = new ArrayList<>();
+					for (String memberId : FAMILIES.get(familyLabel))
+					{
+						QolPack.Unlock member = byId.get(memberId);
+						if (member != null)
+						{
+							members.add(member);
+						}
+					}
+					top.leaves.add(familyLeaf(familyLabel, members));
 				}
 			}
 			QolPack.Unlock emblem = byId.get(EMBLEMS.get(e.getKey()));
@@ -299,11 +346,77 @@ class QolTab extends JPanel
 		return blocking == null ? "locked" : "needs " + blocking;
 	}
 
+	/** One family as a tile: highest owned member's face (else the entry
+	 *  tier's), done when every tier is, orange edge when a tier is
+	 *  obtainable right now, member count as the badge. */
+	private TileTree.Leaf familyLeaf(String label, List<QolPack.Unlock> members)
+	{
+		List<Status> statuses = new ArrayList<>();
+		for (QolPack.Unlock member : members)
+		{
+			statuses.add(QolModule.status(state, member));
+		}
+		int owned = (int) statuses.stream().filter(s -> s == Status.OWNED).count();
+		QolPack.Unlock face = members.get(0);
+		for (int i = members.size() - 1; i >= 0; i--)
+		{
+			if (statuses.get(i) == Status.OWNED)
+			{
+				face = members.get(i);
+				break;
+			}
+		}
+		TileTree.Leaf leaf = new TileTree.Leaf();
+		leaf.id = "fam:" + label;
+		leaf.label = label;
+		leaf.icon = face.getItemIds().isEmpty() ? null : face.getItemIds().get(0);
+		leaf.owned = owned == members.size();
+		leaf.tracked = !leaf.owned && statuses.contains(Status.AVAILABLE);
+		leaf.badge = members.size();
+		leaf.tooltip = label + " — " + owned + "/" + members.size() + " obtained";
+		leaf.detail = () -> familyDetail(members);
+		return leaf;
+	}
+
 	/** The level-3 detail: name + goal/wiki affordances, the benefit prose,
 	 *  and the requirement lines met-coloured like a Task's steps. */
 	private JComponent detailCard(QolPack.Unlock unlock, Status status)
 	{
 		V2Surface card = V2Surface.card(theme);
+		card.add(nameRow(unlock, status));
+		addProse(card, unlock);
+		if (unlock.getBenefit() == null && unlock.getRequirements().isEmpty())
+		{
+			card.add(new OsrsLabel("No further detail known", OsrsSkin.FAINT,
+				OsrsSkin.smallFont()).leftAligned());
+		}
+		cap(card);
+		return card;
+	}
+
+	/** A family's detail: the tier ladder — every member's name row in
+	 *  status colours, the FIRST unowned tier expanded with its benefit
+	 *  and requirements (the House next-tier grammar). */
+	private JComponent familyDetail(List<QolPack.Unlock> members)
+	{
+		V2Surface card = V2Surface.card(theme);
+		boolean expanded = false;
+		for (QolPack.Unlock member : members)
+		{
+			Status status = QolModule.status(state, member);
+			card.add(nameRow(member, status));
+			if (!expanded && status != Status.OWNED)
+			{
+				expanded = true;
+				addProse(card, member);
+			}
+		}
+		cap(card);
+		return card;
+	}
+
+	private JPanel nameRow(QolPack.Unlock unlock, Status status)
+	{
 		Color nameColor = status == Status.OWNED ? OsrsSkin.VALUE
 			: status == Status.AVAILABLE ? OsrsSkin.TITLE : OsrsSkin.MUTED;
 		JPanel top = row();
@@ -333,7 +446,11 @@ class QolTab extends JPanel
 		top.add(Box.createHorizontalStrut(4));
 		top.add(wikiGlyph(unlock.getName()));
 		cap(top);
-		card.add(top);
+		return top;
+	}
+
+	private void addProse(V2Surface card, QolPack.Unlock unlock)
+	{
 		if (unlock.getBenefit() != null)
 		{
 			card.add(OsrsLabel.wrapped(unlock.getBenefit(), 185,
@@ -352,13 +469,6 @@ class QolTab extends JPanel
 				: parsed.describe() + (met ? " — met" : " — not met"));
 			card.add(line);
 		}
-		if (unlock.getBenefit() == null && unlock.getRequirements().isEmpty())
-		{
-			card.add(new OsrsLabel("No further detail known", OsrsSkin.FAINT,
-				OsrsSkin.smallFont()).leftAligned());
-		}
-		cap(card);
-		return card;
 	}
 
 	/** The '+' action: unlock joins the Goal planner as a "qol:" goal;

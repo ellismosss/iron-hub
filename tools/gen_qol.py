@@ -50,8 +50,8 @@ LEGACY = [
      "requirements": ["skill:Ranged:50", "quest:Animal Magnetism"]},
     {"id": "ava_assembler", "name": "Ava's assembler", "itemIds": [22109],
      "requirements": ["quest:Dragon Slayer II"]},
-    {"id": "dragon_defender", "name": "Dragon defender", "itemIds": [12954],
-     "requirements": ["skill:Attack:60", "skill:Defence:60"]},
+    # Dragon defender removed (Luke, 2026-07-28) — a combat drop, not a
+    # QoL unlock; Gear progression already covers it
 ]
 
 # utility unlocks beyond storage items (same list the KB catalog uses);

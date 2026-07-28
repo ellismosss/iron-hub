@@ -40,18 +40,18 @@ public class QolModuleTest
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 
-		// locked: 60/60 attack/defence not met — blocking line names the leaf
-		assertEquals(Status.LOCKED, QolModule.status(state, byId("dragon_defender")));
-		assertEquals("60 Attack", QolModule.blockingLine(state, byId("dragon_defender")));
+		// locked: Ranged 50 not met — blocking line names the leaf
+		assertEquals(Status.LOCKED, QolModule.status(state, byId("ava_accumulator")));
+		assertEquals("50 Ranged", QolModule.blockingLine(state, byId("ava_accumulator")));
 
 		// available: requirements met, item not owned
-		StateFixture.stat(state, Skill.ATTACK, 60, 0);
-		StateFixture.stat(state, Skill.DEFENCE, 60, 0);
-		assertEquals(Status.AVAILABLE, QolModule.status(state, byId("dragon_defender")));
+		StateFixture.stat(state, Skill.RANGED, 50, 0);
+		StateFixture.quest(state, Quest.ANIMAL_MAGNETISM, QuestState.FINISHED);
+		assertEquals(Status.AVAILABLE, QolModule.status(state, byId("ava_accumulator")));
 
 		// owned: item in bank wins regardless of requirements
-		StateFixture.bank(state, Map.of(12954, 1));
-		assertEquals(Status.OWNED, QolModule.status(state, byId("dragon_defender")));
+		StateFixture.bank(state, Map.of(10499, 1));
+		assertEquals(Status.OWNED, QolModule.status(state, byId("ava_accumulator")));
 
 		// quest requirement drives availability
 		assertEquals(Status.LOCKED, QolModule.status(state, byId("ava_assembler")));
@@ -127,13 +127,19 @@ public class QolModuleTest
 		assertEquals("an id is in two categories", mapped.size(),
 			new java.util.HashSet<>(mapped).size());
 		assertEquals("map and pack must agree", packIds, new java.util.HashSet<>(mapped));
+		// families fold only ids the pack (and one category) actually has
+		QolTab.FAMILIES.forEach((label, members) ->
+			members.forEach(id -> assertTrue(label + " member " + id + " not in pack",
+				packIds.contains(id))));
 	}
 
 	@Test
 	public void tabRendersHeadless() throws Exception
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
-		StateFixture.bank(state, Map.of(12791, 1)); // rune pouch owned
+		// rune pouch owned + an Ardougne cloak 3 (family shows 3/4 via the
+		// baked higher-tier implications)
+		StateFixture.bank(state, Map.of(12791, 1, 13123, 1));
 		StateFixture.stat(state, Skill.ATTACK, 70, 0);
 		StateFixture.stat(state, Skill.DEFENCE, 70, 0);
 
@@ -163,6 +169,12 @@ public class QolModuleTest
 		java.io.File out = new java.io.File("build/reports/qol-tab.png");
 		out.getParentFile().mkdirs();
 		javax.imageio.ImageIO.write(image, "png", out);
+		// the family fold: the Ardougne cloak ladder, cloaks 1-3 proven by
+		// the owned cloak 3, tier 4's prose expanded
+		javax.swing.SwingUtilities.invokeAndWait(() -> ((QolTab) tab).expand("ardougne_cloak_2"));
+		javax.swing.SwingUtilities.invokeAndWait(() -> { });
+		javax.imageio.ImageIO.write(SwingRender.render((JPanel) tab), "png",
+			new java.io.File("build/reports/qol-tab-family.png"));
 		module.shutDown();
 	}
 }

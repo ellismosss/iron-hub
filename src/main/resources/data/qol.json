@@ -260,17 +260,6 @@
    "benefit": "The divine rune pouch is an upgraded variant of the rune pouch, which holds four types of runes instead of three. Each rune can be stacked up to 16,000, the same as a normal rune pouch. The pouch is made by using a needle or costume needle to stitch together a thread of Elidinis and the rune pouc..."
   },
   {
-   "id": "dragon_defender",
-   "name": "Dragon defender",
-   "itemIds": [
-    12954
-   ],
-   "requirements": [
-    "skill:Attack:60",
-    "skill:Defence:60"
-   ]
-  },
-  {
    "id": "dragon_harpoon",
    "name": "Dragon harpoon",
    "itemIds": [
