@@ -214,6 +214,50 @@ public class CluesTest
 		assertEquals(34738, plan.route.get(0).unit.objectId); // Bob's Axes, Lumbridge
 	}
 
+	/** The router auto-paths: the FIRST plan posts the next stop to the
+	 *  Shortest Path bridge, a fill advancing the route posts the new next
+	 *  — and an unchanged next stop posts NOTHING on later rebuilds. */
+	@Test
+	public void autoRoutesTheNextStopAndOnlyOnChange() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		StateFixture.bank(state, Map.of(
+			1635, 1, 1654, 1, 1949, 1, 1007, 1, 1351, 1, 1061, 1));
+		EventBus bus = new EventBus();
+		java.util.List<net.runelite.client.events.PluginMessage> posted = new java.util.ArrayList<>();
+		bus.register(new Object()
+		{
+			@net.runelite.client.eventbus.Subscribe
+			public void onPluginMessage(net.runelite.client.events.PluginMessage message)
+			{
+				posted.add(message);
+			}
+		});
+		ClueStashModule module = new ClueStashModule(state, config, new DataPack(new Gson()),
+			bus, null, null, new com.ironhub.integrations.ShortestPathBridge(bus, null));
+		module.startUp();
+		javax.swing.JComponent tab = module.buildTab(); // first plan → first auto-route
+		assertEquals(1, posted.size());
+		assertEquals("path", posted.get(0).getName());
+		// no player position: the route starts at the tier's first unit
+		net.runelite.api.coords.WorldPoint target =
+			(net.runelite.api.coords.WorldPoint) posted.get(0).getData().get("target");
+		assertEquals(3206, target.getX()); // Gypsy tent entrance, Varrock
+
+		// a rebuild with the same next stop posts nothing new
+		((CluesTab) tab).openRouteMissingForTest();
+		assertEquals(1, posted.size());
+
+		// filling the routed unit advances the route — and re-routes
+		state.setStashFilled(34736, true);
+		((CluesTab) tab).openRouteMissingForTest();
+		assertEquals(2, posted.size());
+		target = (net.runelite.api.coords.WorldPoint) posted.get(1).getData().get("target");
+		assertEquals(3209, target.getX()); // Fine Clothes entrance next door
+		module.shutDown();
+	}
+
 	@Test
 	public void tabRendersBothViewsHeadless() throws Exception
 	{

@@ -207,6 +207,9 @@ final class StashRouter
 			}
 		}
 		plan.loadout.addAll(byReq.values());
+		// an A-Z list reads like the bank withdrawal it is (Luke, 2026-07-28)
+		plan.loadout.sort(java.util.Comparator.comparing(l -> l.label,
+			String.CASE_INSENSITIVE_ORDER));
 	}
 
 	/** Owned count across a raw requirement's alternatives — the pack's

@@ -534,6 +534,15 @@ public class ClueStashModule implements IronHubModule
 		}
 	}
 
+	/** Drop the path once the route has nowhere left to point. */
+	void clearRoute()
+	{
+		if (pathBridge != null && config.shortestPathBridge())
+		{
+			pathBridge.clearPath();
+		}
+	}
+
 	/** An unfilled unit whose outfit the player fully owns (the
 	 *  storage-aware view — a wardrobed outfit counts). */
 	boolean readyToFill(ClueStepsPack.Stash unit)

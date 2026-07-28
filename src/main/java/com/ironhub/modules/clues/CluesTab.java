@@ -131,8 +131,11 @@ class CluesTab extends JPanel
 	/** Router stops skipped this session (by unit key) — cleared once
 	 *  every ready stop is skipped. */
 	private final Set<String> routeSkips = new HashSet<>();
-	/** The router's "Missing for <tier>" fold. */
+	/** The router's "Items for this tier" fold. */
 	private boolean routeMissingOpen;
+	/** The unit key the router last auto-pathed to — the route re-posts
+	 *  only when the NEXT stop actually changes, never per rebuild. */
+	private String lastAutoRouted;
 	/** clue id -> its STASH unit, built once per pack. */
 	private Map<String, ClueStepsPack.Stash> unitByClue;
 
@@ -445,7 +448,13 @@ class CluesTab extends JPanel
 		StashRouter.Plan plan = module.routePlan();
 		if (plan.tier == null)
 		{
-			return null; // every unit filled — nothing to route
+			// every unit filled — nothing to route; drop a lingering path
+			if (lastAutoRouted != null)
+			{
+				lastAutoRouted = null;
+				module.clearRoute();
+			}
+			return null;
 		}
 		V2Surface card = V2Surface.card(theme);
 		JPanel title = row();
@@ -473,6 +482,19 @@ class CluesTab extends JPanel
 				next = stop;
 				break;
 			}
+		}
+		// auto-route (Luke, 2026-07-28): the path follows the NEXT stop by
+		// itself — on the first plan, after a fill advances the route, and
+		// after a Skip — re-posting only when the stop changes
+		if (next != null && !next.unit.key.equals(lastAutoRouted))
+		{
+			lastAutoRouted = next.unit.key;
+			module.routeTo(next.unit);
+		}
+		else if (next == null && lastAutoRouted != null)
+		{
+			lastAutoRouted = null;
+			module.clearRoute();
 		}
 		if (next != null)
 		{

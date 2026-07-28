@@ -88,8 +88,14 @@ public class StashRouterTest
 		StashRouter.Plan plan = plan(state, null);
 		assertTrue(plan.route.isEmpty());
 		assertEquals(3, plan.waiting.size());
-		// the loadout is EVERY item the tier wants — all six Beginner pieces
+		// the loadout is EVERY item the tier wants — all six Beginner
+		// pieces, A-Z like the bank withdrawal it is
 		assertEquals(6, plan.loadout.size());
+		for (int i = 1; i < plan.loadout.size(); i++)
+		{
+			assertTrue("loadout must be A-Z", String.CASE_INSENSITIVE_ORDER.compare(
+				plan.loadout.get(i - 1).label, plan.loadout.get(i).label) <= 0);
+		}
 		assertTrue(plan.loadout.stream().anyMatch(l ->
 			l.label.equals("Gold ring") && l.needed == 1 && l.have == 0 && !l.met()));
 		assertTrue(plan.loadout.stream().anyMatch(l -> l.label.equals("Bronze axe")));
