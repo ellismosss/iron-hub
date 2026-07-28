@@ -82,6 +82,14 @@ public class CluesTest
 		assertEquals(ClueStashModule.EMPTIED, ClueStashModule.classify("you withdraw your items from the stash unit."));
 		assertEquals(ClueStashModule.BUILT, ClueStashModule.classify("you build a stash unit here."));
 		assertEquals(ClueStashModule.NO_CHANGE, ClueStashModule.classify("a stash of gold?"));
+		// inspecting an UNBUILT spot must not read as building it (the
+		// 2026-07-28 false-mark report): prospective wording is ignored
+		assertEquals(ClueStashModule.NO_CHANGE, ClueStashModule.classify(
+			"you can build a stash unit here. it requires level 77 construction."));
+		assertEquals(ClueStashModule.NO_CHANGE, ClueStashModule.classify(
+			"a stash unit can be built here with the right materials."));
+		assertEquals(ClueStashModule.NO_CHANGE, ClueStashModule.classify(
+			"you need to complete more hard clues before building this stash unit."));
 
 		// filling implies built; manual toggle round-trips
 		state.setStashFilled(unit.objectId, true);

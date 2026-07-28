@@ -337,6 +337,24 @@ class CluesTab extends JPanel
 			rebuildContent();
 		}));
 		filterRow.add(Box.createHorizontalGlue());
+		boolean anyMarks = pack.stash.stream().anyMatch(u ->
+			state.isStashBuilt(u.objectId) || state.isStashFilled(u.objectId));
+		if (anyMarks)
+		{
+			OsrsLabel reset = actionLabel("Reset STASH detection", () ->
+			{
+				int answer = javax.swing.JOptionPane.showConfirmDialog(this,
+					"Forget every STASH built/filled mark for this account?",
+					"Reset STASH detection", javax.swing.JOptionPane.YES_NO_OPTION);
+				if (answer == javax.swing.JOptionPane.YES_OPTION)
+				{
+					module.resetDetection(); // listener rebuilds
+				}
+			});
+			reset.setToolTipText("Forget every built/filled mark so detection "
+				+ "can restart clean — manual marks go too");
+			filterRow.add(reset);
+		}
 		content.add(filterRow);
 		content.add(Box.createVerticalStrut(4));
 
@@ -754,8 +772,8 @@ class CluesTab extends JPanel
 		return slot;
 	}
 
-	/** The step's STASH unit at the row's right, badged filled or not —
-	 *  and darkened like an unowned item until it is BUILT. */
+	/** The step's STASH unit at the row's right, badged filled or not,
+	 *  darkened until BUILT — and saying so on hover (Luke, 2026-07-28). */
 	private JComponent stashIcon(ClueStepsPack.Stash unit)
 	{
 		boolean filled = state.isStashFilled(unit.objectId);
@@ -770,7 +788,11 @@ class CluesTab extends JPanel
 				art = darkened(art);
 			}
 		}
-		return badgedSlot(art, filled, STASH_ICON + 4);
+		JComponent slot = badgedSlot(art, filled, STASH_ICON + 4);
+		slot.setToolTipText("STASH unit — "
+			+ (built || filled ? "built" : "not built") + " · "
+			+ (filled ? "filled" : "not filled"));
+		return slot;
 	}
 
 	/** A fixed slot painting its art centred with a checkmark / red cross

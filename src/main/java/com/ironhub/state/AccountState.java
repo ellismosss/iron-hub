@@ -1060,6 +1060,19 @@ public class AccountState implements StateView
 		return new HashSet<>(stashFilled);
 	}
 
+	/** Forget every STASH built/filled mark — detection restarts clean. */
+	public void clearStashDetection()
+	{
+		boolean changed = !stashBuilt.isEmpty() || !stashFilled.isEmpty();
+		stashBuilt.clear();
+		stashFilled.clear();
+		if (changed)
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
 	public void setStashBuilt(int objectId, boolean built)
 	{
 		boolean changed = built ? stashBuilt.add(objectId) : stashBuilt.remove(objectId);

@@ -413,9 +413,21 @@ public class ClueStashModule implements IronHubModule
 	static final int BUILT = 4;
 
 	/** Loose keyword classification (STASH Tracker parity — wording
-	 *  tweaks don't break detection). Message must already contain "stash". */
+	 *  tweaks don't break detection). Message must already contain "stash".
+	 *  PROSPECTIVE wording is ignored (Luke's 2026-07-28 report: inspecting
+	 *  an UNBUILT spot pops "you can build a STASH unit here… requires
+	 *  level X Construction", which read as a build and false-marked
+	 *  never-built elite/master units). */
 	static int classify(String message)
 	{
+		// telling you what you COULD do is not you doing it
+		if (message.contains("require") || message.contains("need")
+			|| message.contains("can be") || message.contains("able to")
+			|| message.contains("you can ") || message.contains("must")
+			|| message.contains(" level"))
+		{
+			return NO_CHANGE;
+		}
 		if (message.contains("deposit") || message.contains("store") || message.contains("fill"))
 		{
 			return FILLED;
@@ -470,6 +482,13 @@ public class ClueStashModule implements IronHubModule
 			}
 		}
 		return best;
+	}
+
+	/** Forget every STASH built/filled mark, detected and manual, so
+	 *  detection can restart from a clean slate (the false-mark recovery). */
+	void resetDetection()
+	{
+		state.clearStashDetection();
 	}
 
 	/** Manual filled toggle from the tab — the escape hatch for STASHes
