@@ -33,9 +33,9 @@ import net.runelite.client.util.LinkBrowser;
  * open its tier ladder — built green, the next tier with its requirements
  * and materials, later tiers faint. A room/hotspot tile carries a green
  * corner tick when its ladder is complete and an orange bevel when the next
- * tier is buildable right now. Clicking a tier row toggles the manual built
- * mark (the escape hatch for houses built before Iron Hub). Frameless — the
- * host names the module.
+ * tier is buildable right now. Built state comes from DETECTION only —
+ * the manual mark-as-built click was removed (Luke, 2026-07-28). Frameless
+ * — the host names the module.
  */
 class PohTab extends JPanel
 {
@@ -166,7 +166,7 @@ class PohTab extends JPanel
 		{
 			hero.add(Box.createVerticalStrut(2));
 			hero.add(OsrsLabel.wrapped("Enter building mode in your house to sync what "
-					+ "you have built, or click any tier to mark it yourself.",
+					+ "you have built.",
 				180, OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
 			// what detection can actually see, so a failure reports itself
 			// instead of looking like an empty grid
@@ -192,12 +192,9 @@ class PohTab extends JPanel
 
 	// ── model: rooms -> hotspots -> tier-ladder detail ────────────────────
 
-	/**
-	 * Forget every built mark, detected and manual, and re-sweep. Detection
-	 * persists, so a second visit shows what an earlier session already found
-	 * — this is how you watch it work from a blank slate. Confirmed first,
-	 * because manual marks for a pre-Iron-Hub house are not recoverable.
-	 */
+	/** Forget every built mark and re-sweep. Detection persists, so a
+	 *  second visit shows what an earlier session already found — this is
+	 *  how you watch it work from a blank slate. */
 	private JComponent resetButton()
 	{
 		com.ironhub.ui.v2.V2Button button = new com.ironhub.ui.v2.V2Button(
@@ -213,7 +210,7 @@ class PohTab extends JPanel
 			});
 		button.setAlignmentX(LEFT_ALIGNMENT);
 		button.setToolTipText("<html><div style='width:200px'>Forget every built mark "
-			+ "so detection can be tested from scratch. Manual marks go too.</div></html>");
+			+ "so detection can run from scratch.</div></html>");
 		return button;
 	}
 
@@ -333,8 +330,6 @@ class PohTab extends JPanel
 		{
 			card.add(tierRow(space, tier, tier == next));
 		}
-		card.add(line("Click a tier to mark it built (for houses built before Iron Hub) · W = wiki",
-			OsrsSkin.FAINT));
 		cap(card);
 		return card;
 	}
@@ -402,8 +397,7 @@ class PohTab extends JPanel
 				? ColorScheme.PROGRESS_INPROGRESS_COLOR : OsrsSkin.MUTED)
 			: OsrsSkin.FAINT;
 		OsrsLabel name = new OsrsLabel(tier.name, color, OsrsSkin.font()).leftAligned().squeezable();
-		name.setToolTipText(built ? tier.name + " — built (click to unmark)"
-			: tier.name + " — click to mark as built");
+		name.setToolTipText(tier.name);
 		top.add(name);
 		top.add(Box.createHorizontalGlue());
 		top.add(new OsrsLabel("Lv " + tier.level,
@@ -438,15 +432,6 @@ class PohTab extends JPanel
 				row.add(materialRow(m));
 			}
 		}
-		row.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		row.addMouseListener(new java.awt.event.MouseAdapter()
-		{
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
-			{
-				module.toggleBuilt(tier); // listener rebuilds
-			}
-		});
 		cap(row);
 		return row;
 	}

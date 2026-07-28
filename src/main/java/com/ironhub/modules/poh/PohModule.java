@@ -538,8 +538,8 @@ public class PohModule implements IronHubModule
 		sweepQueued = true;
 	}
 
-	/** Manual mark toggle — the escape hatch for houses built before the
-	 *  plugin (there is no readable POH layout outside the house). */
+	/** Programmatic built toggle — a test/fixture seam only since the UI's
+	 *  manual mark-as-built click was removed (Luke, 2026-07-28). */
 	void toggleBuilt(PohPack.Tier tier)
 	{
 		state.setPohBuilt(tier.id, !state.isPohBuilt(tier.id));
