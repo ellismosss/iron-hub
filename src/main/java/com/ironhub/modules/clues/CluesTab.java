@@ -63,6 +63,15 @@ class CluesTab extends JPanel
 		{"Beginner", "Easy", "Medium", "Hard", "Elite", "Master"};
 	/** Each tier's clue scroll — ids verified against item-sources.json. */
 	private static final int[] SCROLLS = {23182, 2677, 2801, 2722, 12073, 19835};
+	/** Each tier's fill sprite for the hero bar's six sections (Luke's
+	 *  2026-07-28 drop; master arrived as progress_bar_green_master). */
+	private static final String[] TIER_BARS = {
+		"ui/progress_bar/progress_bar_clues_beginner",
+		"ui/progress_bar/progress_bar_clues_easy",
+		"ui/progress_bar/progress_bar_clues_medium",
+		"ui/progress_bar/progress_bar_clues_hard",
+		"ui/progress_bar/progress_bar_clues_elite",
+		"ui/progress_bar/progress_bar_green_master"};
 	/** The clog page grid's geometry: two perfect squares across 217px. */
 	private static final int TIER_COLS = 2;
 	private static final int TIER_TILE = 106;
@@ -205,6 +214,27 @@ class CluesTab extends JPanel
 				}
 			}
 		}
+		// the bar's six sections: each tier's doable-steps progress
+		int[] tierSteps = new int[TIERS.length];
+		int[] tierDoable = new int[TIERS.length];
+		if (pack != null)
+		{
+			for (ClueStepsPack.Clue clue : pack.clues)
+			{
+				int idx = tierIndex(clue.tier);
+				tierSteps[idx]++;
+				if (ClueStashModule.doable(clue, module.owningView()))
+				{
+					tierDoable[idx]++;
+				}
+			}
+		}
+		double[] sections = new double[TIERS.length];
+		for (int i = 0; i < TIERS.length; i++)
+		{
+			sections[i] = tierSteps[i] == 0 ? Double.NaN
+				: (double) tierDoable[i] / tierSteps[i];
+		}
 		hero.removeAll();
 		JPanel top = row();
 		top.add(scrollEmblem(SCROLLS[0]));
@@ -220,9 +250,10 @@ class CluesTab extends JPanel
 		cap(top);
 		hero.add(top);
 		hero.add(Box.createVerticalStrut(3));
-		// the fill answers the SAME numbers as the label riding it
-		bar.fraction(units == 0 ? 0 : (double) filled / units);
-		bar.labels("", filled + " / " + units, "");
+		// ONE bar split six ways (Luke, 2026-07-28): each section is a
+		// tier's doable-steps progress in that tier's own colour — no
+		// riding label, the sections are the reading
+		bar.sections(sections, TIER_BARS);
 		hero.add(bar);
 		hero.add(Box.createVerticalStrut(3));
 		Color doableColour = doable == 0 ? V2Tokens.BLOCKED

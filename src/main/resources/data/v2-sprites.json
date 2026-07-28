@@ -3376,7 +3376,49 @@
 				"vanilla"
 			]
 		},
+		"ui/progress_bar/progress_bar_clues_beginner": {
+			"w": 1,
+			"h": 27,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"ui/progress_bar/progress_bar_clues_easy": {
+			"w": 1,
+			"h": 27,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"ui/progress_bar/progress_bar_clues_elite": {
+			"w": 1,
+			"h": 27,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"ui/progress_bar/progress_bar_clues_hard": {
+			"w": 1,
+			"h": 27,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"ui/progress_bar/progress_bar_clues_medium": {
+			"w": 1,
+			"h": 27,
+			"variants": [
+				"vanilla"
+			]
+		},
 		"ui/progress_bar/progress_bar_green": {
+			"w": 1,
+			"h": 27,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"ui/progress_bar/progress_bar_green_master": {
 			"w": 1,
 			"h": 27,
 			"variants": [

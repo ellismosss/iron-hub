@@ -63,6 +63,10 @@ public class V2ProgressBar extends JComponent
 	private String centre = "";
 	private String right = "";
 	private int segments = 1;
+	/** FULL only: equal sections, each with its own fill sprite and
+	 *  fraction — ONE bar in ONE frame (the clues hero, 2026-07-28). */
+	private double[] sectionFractions;
+	private String[] sectionFills;
 
 	public V2ProgressBar(OsrsTheme theme)
 	{
@@ -147,6 +151,20 @@ public class V2ProgressBar extends JComponent
 		return this;
 	}
 
+	/**
+	 * Split the FULL bar into equal sections, each filled by its own
+	 * fraction with its own sprite — never six separate bars (Luke,
+	 * 2026-07-28): one trough, one frame, the fill divided. A NaN section
+	 * leaves its stretch of trough empty.
+	 */
+	public V2ProgressBar sections(double[] fractions, String[] fillKeys)
+	{
+		this.sectionFractions = fractions;
+		this.sectionFills = fillKeys;
+		repaint();
+		return this;
+	}
+
 	/** The V1 meter's task-count notches. METER size only. */
 	public V2ProgressBar segments(int segments)
 	{
@@ -185,7 +203,28 @@ public class V2ProgressBar extends JComponent
 		{
 			g2.drawImage(trough, barX + x, barY, barX + x + 1, barY + sh, 0, sy, 1, sy + sh, null);
 		}
-		if (!Double.isNaN(fraction) && fraction > 0)
+		if (sectionFractions != null && sectionFills != null)
+		{
+			int n = sectionFractions.length;
+			for (int i = 0; i < n; i++)
+			{
+				double f = sectionFractions[i];
+				if (Double.isNaN(f) || f <= 0)
+				{
+					continue;
+				}
+				BufferedImage sectionFill = V2Sprites.get(theme, sectionFills[i]);
+				int x0 = barX + (int) Math.round((double) i * barW / n);
+				int x1 = barX + (int) Math.round((double) (i + 1) * barW / n);
+				int filled = (int) Math.round(Math.min(1, f) * (x1 - x0));
+				for (int x = 0; x < filled; x++)
+				{
+					g2.drawImage(sectionFill, x0 + x, barY, x0 + x + 1, barY + sh,
+						0, sy, 1, sy + sh, null);
+				}
+			}
+		}
+		else if (!Double.isNaN(fraction) && fraction > 0)
 		{
 			int filled = (int) Math.round(Math.min(1, fraction) * barW);
 			for (int x = 0; x < filled; x++)
