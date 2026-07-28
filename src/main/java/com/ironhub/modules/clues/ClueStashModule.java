@@ -53,6 +53,7 @@ public class ClueStashModule implements IronHubModule
 	private final EventBus eventBus; // null in unit tests
 	private final Client client;     // null in unit tests
 	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
+	private final com.ironhub.integrations.ShortestPathBridge pathBridge; // null in unit tests
 
 	private final Runnable listener = this::onStateChanged;
 	private CluesTab tab;
@@ -63,9 +64,11 @@ public class ClueStashModule implements IronHubModule
 	@Inject
 	public ClueStashModule(AccountState state, IronHubConfig config, DataPack dataPack,
 		EventBus eventBus, Client client,
-		net.runelite.client.game.ItemManager itemManager)
+		net.runelite.client.game.ItemManager itemManager,
+		com.ironhub.integrations.ShortestPathBridge pathBridge)
 	{
 		this.itemManager = itemManager;
+		this.pathBridge = pathBridge;
 		this.state = state;
 		this.config = config;
 		this.pack = dataPack == null ? null : dataPack.load("clue-steps", ClueStepsPack.class);
@@ -498,8 +501,32 @@ public class ClueStashModule implements IronHubModule
 		state.setStashFilled(unit.objectId, !state.isStashFilled(unit.objectId));
 	}
 
-	/** An unfilled unit whose outfit the player fully owns (bank + carried;
-	 *  POH costume storage is not readable). */
+	// ── the STASH stocking router ─────────────────────────────────────
+
+	/** The active tier's marching orders, routed from where the player
+	 *  stands (or the tier's first unit when logged out / headless). */
+	StashRouter.Plan routePlan()
+	{
+		return StashRouter.plan(pack, state, owningView, playerPoint());
+	}
+
+	private WorldPoint playerPoint()
+	{
+		return client == null || client.getLocalPlayer() == null ? null
+			: client.getLocalPlayer().getWorldLocation();
+	}
+
+	/** Hand the stop to the Shortest Path plugin (unheard when absent). */
+	void routeTo(ClueStepsPack.Stash unit)
+	{
+		if (pathBridge != null && config.shortestPathBridge())
+		{
+			pathBridge.pathTo(unit.worldPoint());
+		}
+	}
+
+	/** An unfilled unit whose outfit the player fully owns (the
+	 *  storage-aware view — a wardrobed outfit counts). */
 	boolean readyToFill(ClueStepsPack.Stash unit)
 	{
 		if (state.isStashFilled(unit.objectId) || unit.clueId == null || pack == null)

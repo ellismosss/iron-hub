@@ -42,7 +42,7 @@ public class CluesTest
 
 	private ClueStashModule module(AccountState state)
 	{
-		return new ClueStashModule(state, config, new DataPack(new Gson()), new EventBus(), null, null);
+		return new ClueStashModule(state, config, new DataPack(new Gson()), new EventBus(), null, null, null);
 	}
 
 	/** The Lumbridge swamp shack dance: bronze dagger, iron full helm, gold ring. */
@@ -186,7 +186,10 @@ public class CluesTest
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StateFixture.profile(state, 42L);
-		StateFixture.bank(state, Map.of(1205, 1, 1153, 1, 1635, 1));
+		// swamp-shack outfit pieces + the full Beginner outfits so the
+		// router card has ready stops to march through
+		StateFixture.bank(state, Map.of(1205, 1, 1153, 1,
+			1635, 1, 1654, 1, 1949, 1, 1007, 1, 1351, 1, 1061, 1));
 		ClueStashModule module = module(state);
 		module.startUp();
 
@@ -207,6 +210,11 @@ public class CluesTest
 		java.io.File out = new java.io.File("build/reports/clues-tab.png");
 		out.getParentFile().mkdirs();
 		javax.imageio.ImageIO.write(image, "png", out);
+
+		// the router card with its missing-for-tier Well open
+		((CluesTab) tab).openRouteMissingForTest();
+		javax.imageio.ImageIO.write(SwingRender.render((JPanel) tab), "png",
+			new java.io.File("build/reports/clues-router.png"));
 		module.shutDown();
 	}
 }

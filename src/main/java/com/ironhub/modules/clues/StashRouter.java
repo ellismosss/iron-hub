@@ -1,0 +1,282 @@
+package com.ironhub.modules.clues;
+
+import com.ironhub.data.ClueStepsPack;
+import com.ironhub.requirements.Requirement;
+import com.ironhub.state.AccountState;
+import com.ironhub.state.StateView;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import net.runelite.api.Skill;
+import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.gameval.ItemID;
+
+/**
+ * The STASH stocking router (Luke's 2026-07-28 goal): one tier at a time
+ * — the first tier with unfilled units is the ACTIVE one — split its
+ * unfilled units into a ready-to-fill ROUTE (outfit fully owned, ordered
+ * nearest-neighbour from the player) and a WAITING list, and aggregate
+ * everything the tier still needs: the missing outfit items across its
+ * steps plus the build materials for its unbuilt units (per-tier recipe
+ * verified against the wiki STASH page, 2026-07-28). Pure logic — the
+ * tab renders it, {@link ClueStashModule} feeds it state.
+ */
+final class StashRouter
+{
+	static final String[] TIERS =
+		{"Beginner", "Easy", "Medium", "Hard", "Elite", "Master"};
+
+	/** Crossing planes on foot costs a staircase hunt — weigh it like a
+	 *  detour so a same-plane unit slightly further wins the tie. */
+	private static final int PLANE_PENALTY = 30;
+
+	/** One tier's build recipe: Construction level, 2 planks of a kind,
+	 *  10 nails of any one metal, gold leaves for Master. */
+	static final class Build
+	{
+		final int level;
+		final int plankId;
+		final String plankName;
+		final int goldLeaves;
+
+		Build(int level, int plankId, String plankName, int goldLeaves)
+		{
+			this.level = level;
+			this.plankId = plankId;
+			this.plankName = plankName;
+			this.goldLeaves = goldLeaves;
+		}
+	}
+
+	static final Map<String, Build> BUILDS = new LinkedHashMap<>();
+
+	static
+	{
+		BUILDS.put("Beginner", new Build(12, ItemID.WOODPLANK, "planks", 0));
+		BUILDS.put("Easy", new Build(27, ItemID.WOODPLANK, "planks", 0));
+		BUILDS.put("Medium", new Build(42, ItemID.PLANK_OAK, "oak planks", 0));
+		BUILDS.put("Hard", new Build(55, ItemID.PLANK_TEAK, "teak planks", 0));
+		BUILDS.put("Elite", new Build(77, ItemID.PLANK_MAHOGANY, "mahogany planks", 0));
+		BUILDS.put("Master", new Build(88, ItemID.PLANK_MAHOGANY, "mahogany planks", 1));
+	}
+
+	static final int PLANKS_EACH = 2;
+	static final int NAILS_EACH = 10;
+	/** ItemID.NAILS is the steel one. */
+	private static final int[] NAIL_TYPES = {ItemID.NAILS_BRONZE, ItemID.NAILS_IRON,
+		ItemID.NAILS, ItemID.NAILS_BLACK, ItemID.NAILS_MITHRIL,
+		ItemID.NAILS_ADAMANT, ItemID.NAILS_RUNE};
+	private static final int[] HAMMERS = {ItemID.HAMMER, ItemID.IMCANDO_HAMMER,
+		ItemID.IMCANDO_HAMMER_OFFHAND};
+	private static final int[] SAWS = {ItemID.POH_SAW, ItemID.EYEGLO_CRYSTAL_SAW,
+		ItemID.WEARABLE_SAW, ItemID.WEARABLE_SAW_OFFHAND};
+
+	/** One unfilled unit of the active tier. */
+	static final class Stop
+	{
+		ClueStepsPack.Stash unit;
+		ClueStepsPack.Clue clue;      // null when the pack has no step for it
+		boolean built;
+		boolean ready;                // outfit fully owned (storages count)
+		int distance = -1;            // tiles from the previous stop, -1 unknown
+	}
+
+	/** The active tier's marching orders. */
+	static final class Plan
+	{
+		String tier;                  // null when every unit everywhere is filled
+		int filled;
+		int units;
+		int unbuilt;
+		final List<Stop> route = new ArrayList<>();    // ready, nearest-first
+		final List<Stop> waiting = new ArrayList<>();  // missing outfit items
+		final List<String> missing = new ArrayList<>();  // aggregated needs lines
+	}
+
+	private StashRouter()
+	{
+	}
+
+	/**
+	 * Plan the active tier. {@code owning} answers outfit ownership (the
+	 * storage-aware view); {@code state} answers built/filled marks and
+	 * SPENDABLE stock for build materials; {@code from} is the player's
+	 * position or null (route then starts at the tier's first unit).
+	 */
+	static Plan plan(ClueStepsPack pack, AccountState state, StateView owning, WorldPoint from)
+	{
+		Plan plan = new Plan();
+		for (String tier : TIERS)
+		{
+			List<ClueStepsPack.Stash> units = new ArrayList<>();
+			int filled = 0;
+			for (ClueStepsPack.Stash unit : pack.stash)
+			{
+				if (!tier.equals(unit.tier))
+				{
+					continue;
+				}
+				units.add(unit);
+				if (state.isStashFilled(unit.objectId))
+				{
+					filled++;
+				}
+			}
+			if (units.isEmpty() || filled >= units.size())
+			{
+				continue;
+			}
+			plan.tier = tier;
+			plan.filled = filled;
+			plan.units = units.size();
+			fill(plan, pack, units, state, owning, from);
+			return plan;
+		}
+		return plan; // tier == null: everything filled
+	}
+
+	private static void fill(Plan plan, ClueStepsPack pack, List<ClueStepsPack.Stash> units,
+		AccountState state, StateView owning, WorldPoint from)
+	{
+		List<Stop> ready = new ArrayList<>();
+		for (ClueStepsPack.Stash unit : units)
+		{
+			if (state.isStashFilled(unit.objectId))
+			{
+				continue;
+			}
+			Stop stop = new Stop();
+			stop.unit = unit;
+			stop.clue = unit.clueId == null ? null : pack.clue(unit.clueId);
+			stop.built = state.isStashBuilt(unit.objectId);
+			stop.ready = stop.clue != null && !stop.clue.reqs.isEmpty()
+				&& ClueStashModule.doable(stop.clue, owning);
+			if (!stop.built)
+			{
+				plan.unbuilt++;
+			}
+			(stop.ready ? ready : plan.waiting).add(stop);
+		}
+		orderRoute(plan, ready, from);
+		aggregateMissing(plan, state, owning);
+	}
+
+	/** Greedy nearest-neighbour from the player: good enough for a
+	 *  bank-and-hop circuit, no TSP theatrics. */
+	private static void orderRoute(Plan plan, List<Stop> pool, WorldPoint from)
+	{
+		WorldPoint cursor = from;
+		while (!pool.isEmpty())
+		{
+			Stop next = pool.get(0);
+			int best = Integer.MAX_VALUE;
+			if (cursor != null)
+			{
+				for (Stop stop : pool)
+				{
+					int d = distance(cursor, stop.unit.worldPoint());
+					if (d < best)
+					{
+						best = d;
+						next = stop;
+					}
+				}
+				next.distance = best;
+			}
+			pool.remove(next);
+			plan.route.add(next);
+			cursor = next.unit.worldPoint();
+		}
+	}
+
+	private static int distance(WorldPoint a, WorldPoint b)
+	{
+		return a.distanceTo2D(b) + (a.getPlane() == b.getPlane() ? 0 : PLANE_PENALTY);
+	}
+
+	/**
+	 * Everything the tier still needs, as lines: each missing outfit
+	 * requirement once (with a step count when several share it), then the
+	 * build shortfalls for the unbuilt units — level, planks, nails,
+	 * gold leaves, hammer, saw.
+	 */
+	private static void aggregateMissing(Plan plan, AccountState state, StateView owning)
+	{
+		Map<String, Integer> needs = new LinkedHashMap<>();
+		for (Stop stop : plan.waiting)
+		{
+			if (stop.clue == null)
+			{
+				continue;
+			}
+			for (Requirement req : ClueStashModule.requirement(stop.clue).missing(owning))
+			{
+				needs.merge(req.describe(), 1, Integer::sum);
+			}
+		}
+		needs.forEach((line, count) -> plan.missing.add(
+			count > 1 ? line + " (" + count + " steps)" : line));
+
+		if (plan.unbuilt == 0)
+		{
+			return;
+		}
+		Build build = BUILDS.get(plan.tier);
+		if (state.getRealLevel(Skill.CONSTRUCTION) < build.level)
+		{
+			plan.missing.add("Level " + build.level + " Construction to build");
+		}
+		int planksNeeded = plan.unbuilt * PLANKS_EACH;
+		int planksHave = state.canonicalStock(build.plankId);
+		if (planksHave < planksNeeded)
+		{
+			plan.missing.add((planksNeeded - planksHave) + " " + build.plankName
+				+ " to build (" + planksHave + "/" + planksNeeded + ")");
+		}
+		// ponytail: one build takes 10 nails of ONE metal — judge against the
+		// single deepest stack; mixed part-stacks that only sum to 10 misread
+		// as covered only in a case nobody stocks nails into
+		int nailsNeeded = plan.unbuilt * NAILS_EACH;
+		int nailsHave = 0;
+		for (int nailId : NAIL_TYPES)
+		{
+			nailsHave = Math.max(nailsHave, state.canonicalStock(nailId));
+		}
+		if (nailsHave < nailsNeeded)
+		{
+			plan.missing.add((nailsNeeded - nailsHave) + " nails of one metal to build ("
+				+ nailsHave + "/" + nailsNeeded + ")");
+		}
+		if (build.goldLeaves > 0)
+		{
+			int leavesNeeded = plan.unbuilt * build.goldLeaves;
+			int leavesHave = state.canonicalStock(ItemID.GOLD_LEAF);
+			if (leavesHave < leavesNeeded)
+			{
+				plan.missing.add((leavesNeeded - leavesHave) + " gold leaf to build ("
+					+ leavesHave + "/" + leavesNeeded + ")");
+			}
+		}
+		if (!ownsAny(state, HAMMERS))
+		{
+			plan.missing.add("A hammer to build");
+		}
+		if (!ownsAny(state, SAWS))
+		{
+			plan.missing.add("A saw to build");
+		}
+	}
+
+	private static boolean ownsAny(AccountState state, int[] itemIds)
+	{
+		for (int itemId : itemIds)
+		{
+			if (state.canonicalStock(itemId) > 0)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+}

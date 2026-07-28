@@ -128,6 +128,11 @@ class CluesTab extends JPanel
 	private boolean showDoable;
 	/** The expanded tier's page of 10 steps (Luke, 2026-07-28). */
 	private int page;
+	/** Router stops skipped this session (by unit key) — cleared once
+	 *  every ready stop is skipped. */
+	private final Set<String> routeSkips = new HashSet<>();
+	/** The router's "Missing for <tier>" fold. */
+	private boolean routeMissingOpen;
 	/** clue id -> its STASH unit, built once per pack. */
 	private Map<String, ClueStepsPack.Stash> unitByClue;
 
@@ -173,6 +178,12 @@ class CluesTab extends JPanel
 	void expandStepForTest(String clueId)
 	{
 		expandedSteps.add(clueId);
+		rebuild();
+	}
+
+	void openRouteMissingForTest()
+	{
+		routeMissingOpen = true;
 		rebuild();
 	}
 
@@ -328,6 +339,13 @@ class CluesTab extends JPanel
 			content.repaint();
 			return;
 		}
+		JComponent router = routerCard(pack);
+		if (router != null)
+		{
+			content.add(router);
+			content.add(Box.createVerticalStrut(4));
+		}
+
 		JPanel filterRow = row();
 		filterRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, V2Tokens.CONTROL_HEIGHT));
 		filterRow.add(new V2Checkbox(theme, "Show doable", showDoable, () ->
@@ -409,6 +427,136 @@ class CluesTab extends JPanel
 		}
 		content.revalidate();
 		content.repaint();
+	}
+
+	// ── the STASH route card ──────────────────────────────────────────
+
+	/**
+	 * The stocking router (Luke's 2026-07-28 goal): the first tier with
+	 * unfilled units is the ACTIVE one — the card names it, shows the
+	 * NEXT ready-to-fill unit (nearest first, by way of the player's
+	 * position) with the outfit to carry, hands the stop to Shortest
+	 * Path on "Route", and folds everything the tier still needs —
+	 * missing outfit items and build materials — into a Well. Detection
+	 * marking a unit filled advances the route by itself.
+	 */
+	private JComponent routerCard(ClueStepsPack pack)
+	{
+		StashRouter.Plan plan = module.routePlan();
+		if (plan.tier == null)
+		{
+			return null; // every unit filled — nothing to route
+		}
+		V2Surface card = V2Surface.card(theme);
+		JPanel title = row();
+		title.add(new OsrsLabel("STASH route: ", OsrsSkin.LABEL, OsrsSkin.font()).leftAligned());
+		title.add(new OsrsLabel(plan.tier, OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
+		title.add(Box.createHorizontalGlue());
+		Color countColour = plan.filled == 0 ? V2Tokens.BLOCKED : V2Tokens.ACTION;
+		title.add(new OsrsLabel(plan.filled + "/" + plan.units + " filled",
+			countColour, OsrsSkin.smallFont()));
+		cap(title);
+		card.add(title);
+
+		// the next stop: first ready unit the player hasn't skipped this
+		// session (all skipped = the skips have served their purpose)
+		StashRouter.Stop next = null;
+		if (!plan.route.isEmpty()
+			&& plan.route.stream().allMatch(s -> routeSkips.contains(s.unit.key)))
+		{
+			routeSkips.clear();
+		}
+		for (StashRouter.Stop stop : plan.route)
+		{
+			if (!routeSkips.contains(stop.unit.key))
+			{
+				next = stop;
+				break;
+			}
+		}
+		if (next != null)
+		{
+			card.add(Box.createVerticalStrut(2));
+			card.add(OsrsLabel.wrapped("Next: " + next.unit.name, ROW_WRAP + 30,
+				V2Tokens.STRONG, OsrsSkin.smallFont()).leftAligned());
+			String standing = (next.distance >= 0 ? next.distance + " tiles away · " : "")
+				+ (next.built ? "built, take the outfit" : "not built — take materials too");
+			card.add(new OsrsLabel(standing, OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+			if (next.clue != null && !next.clue.reqs.isEmpty())
+			{
+				card.add(Box.createVerticalStrut(2));
+				JPanel outfit = row();
+				for (String raw : next.clue.reqs)
+				{
+					outfit.add(badgedItem(raw, true, ICON_SLOT_SMALL));
+					outfit.add(Box.createHorizontalStrut(2));
+				}
+				outfit.add(Box.createHorizontalGlue());
+				cap(outfit);
+				card.add(outfit);
+			}
+			card.add(Box.createVerticalStrut(2));
+			JPanel actions = row();
+			StashRouter.Stop stop = next;
+			OsrsLabel route = actionLabel("Route there", () -> module.routeTo(stop.unit));
+			route.setToolTipText("Send this stop to the Shortest Path plugin");
+			actions.add(route);
+			actions.add(Box.createHorizontalStrut(V2Tokens.ROW));
+			if (plan.route.size() > 1)
+			{
+				actions.add(actionLabel("Skip", () ->
+				{
+					routeSkips.add(stop.unit.key);
+					javax.swing.SwingUtilities.invokeLater(this::rebuildContent);
+				}));
+			}
+			actions.add(Box.createHorizontalGlue());
+			cap(actions);
+			card.add(actions);
+		}
+		else
+		{
+			card.add(new OsrsLabel("Nothing ready to fill on this tier.",
+				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+		}
+
+		card.add(Box.createVerticalStrut(2));
+		JPanel counters = row();
+		counters.add(new OsrsLabel(plan.route.size() + " ready · "
+				+ plan.waiting.size() + " waiting on items · " + plan.unbuilt + " unbuilt",
+			OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+		counters.add(Box.createHorizontalGlue());
+		cap(counters);
+		card.add(counters);
+		if (!plan.missing.isEmpty())
+		{
+			JPanel foldRow = row();
+			foldRow.add(actionLabel(routeMissingOpen ? "Hide missing"
+				: "Missing for this tier (" + plan.missing.size() + ")", () ->
+			{
+				routeMissingOpen = !routeMissingOpen;
+				javax.swing.SwingUtilities.invokeLater(this::rebuildContent);
+			}));
+			foldRow.add(Box.createHorizontalGlue());
+			cap(foldRow);
+			card.add(foldRow);
+		}
+		if (routeMissingOpen && !plan.missing.isEmpty())
+		{
+			V2Surface well = V2Surface.well(theme);
+			int inset = com.ironhub.ui.v2.V2Well.CAP + V2Tokens.TIGHT;
+			well.setBorder(new EmptyBorder(inset, inset, inset, inset));
+			for (String line : plan.missing)
+			{
+				well.add(OsrsLabel.wrapped("· " + line, WELL_WRAP,
+					OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+			}
+			cap(well);
+			card.add(Box.createVerticalStrut(2));
+			card.add(well);
+		}
+		cap(card);
+		return card;
 	}
 
 	/** One tier as a square Card in the clog page-grid grammar: the tier's
