@@ -76,11 +76,34 @@ class CluesTab extends JPanel
 	private static final int TIER_COLS = 2;
 	private static final int TIER_TILE = 106;
 	private static final int TIER_EMBLEM = 44;
-	/** Outfit icons big enough to FILL the row (Luke, 2026-07-28). */
-	private static final int ICON_SLOT = 36;
-	private static final int ICON_ART = 32;
+	/** Outfit icons sized so a 5-6 icon step still fits the row cleanly
+	 *  beside the STASH icon and glyph (Luke, 2026-07-28). */
+	private static final int ICON_SLOT = 22;
+	private static final int ICON_ART = 20;
+	private static final int STASH_ICON = 18;
+	private static final int BADGE = 10;
+	/**
+	 * Emote phrases -> icons/emote sprite keys, matched word-bounded and
+	 * longest-first against the clue text ("Bow" never fires on
+	 * "crossbow"). Aliases cover wordings that differ from file stems.
+	 */
+	private static final String[][] EMOTES = {
+		{"jump for joy", "jump_for_joy"}, {"blow a raspberry", "raspberry"},
+		{"blow a kiss", "blow_kiss"}, {"slap your head", "slap_head"},
+		{"goblin salute", "goblin_salute"}, {"goblin bow", "goblin_bow"},
+		{"zombie walk", "zombie_walk"}, {"zombie dance", "zombie_dance"},
+		{"crab dance", "crab_dance"}, {"star jump", "star_jump"},
+		{"push up", "push_up"}, {"sit up", "sit_up"}, {"sit down", "sit_down"},
+		{"fortis salute", "fortis_salute"}, {"air guitar", "air_guitar"},
+		{"headbang", "headbang"}, {"beckon", "beckon"}, {"cheer", "cheer"},
+		{"clap", "clap"}, {"dance", "dance"}, {"jig", "jig"}, {"panic", "panic"},
+		{"salute", "salute"}, {"shrug", "shrug"}, {"spin", "spin"},
+		{"stamp", "stamp"}, {"stomp", "stamp"}, {"think", "think"},
+		{"wave", "wave"}, {"yawn", "yawn"}, {"bow", "bow"}, {"cry", "cry"},
+		{"laugh", "laugh"}, {"flap", "flap"}, {"jog", "jog"}, {"lean", "lean"},
+		{"angry", "angry"}, {"scared", "scared"}};
 	/** Row ceiling (the Bank tab's grammar). */
-	private static final int MAX_ROWS = 50;
+	private static final int PAGE_ROWS = 10;
 	private static final int ROW_WRAP = 160;
 	private static final int WELL_WRAP = 150;
 	/** Marks a child that keeps its own click (glyphs, well actions). */
@@ -103,6 +126,8 @@ class CluesTab extends JPanel
 	/** Include filter (the diaries grammar): checked = doable steps show
 	 *  too; OFF by default so the tab opens on the to-do list. */
 	private boolean showDoable;
+	/** The expanded tier's page of 10 steps (Luke, 2026-07-28). */
+	private int page;
 	/** clue id -> its STASH unit, built once per pack. */
 	private Map<String, ClueStepsPack.Stash> unitByClue;
 
@@ -308,12 +333,11 @@ class CluesTab extends JPanel
 		filterRow.add(new V2Checkbox(theme, "Doable", showDoable, () ->
 		{
 			showDoable = !showDoable;
+			page = 0;
 			rebuildContent();
 		}));
 		filterRow.add(Box.createHorizontalGlue());
 		content.add(filterRow);
-		content.add(note("Ownership counts your bank, carried items, and every storage "
-			+ "Where's my stuff has seen (as of its last visit)."));
 		content.add(Box.createVerticalStrut(4));
 
 		Map<String, List<ClueStepsPack.Clue>> byTier = new LinkedHashMap<>();
@@ -382,6 +406,7 @@ class CluesTab extends JPanel
 		return new V2Tile(theme, emblem, tier, TIER_TILE, () ->
 			{
 				expandedTier = open ? null : tier;
+				page = 0;
 				rebuildContent();
 			})
 			.card().captionLines(2).captionInside()
@@ -456,12 +481,17 @@ class CluesTab extends JPanel
 		}
 		shown.sort(java.util.Comparator.comparing(doableBy::get).thenComparing(gapBy::get));
 
+		// ten steps to a page, arrows below (Luke, 2026-07-28)
+		int pages = Math.max(1, (shown.size() + PAGE_ROWS - 1) / PAGE_ROWS);
+		page = Math.max(0, Math.min(page, pages - 1));
+		int from = page * PAGE_ROWS;
+		List<ClueStepsPack.Clue> pageShown = shown.subList(from,
+			Math.min(from + PAGE_ROWS, shown.size()));
 		V2Surface tile = V2Surface.tile(theme);
 		tile.setAlignmentX(LEFT_ALIGNMENT);
-		int limit = Math.min(MAX_ROWS, shown.size());
-		for (int i = 0; i < limit; i++)
+		for (int i = 0; i < pageShown.size(); i++)
 		{
-			ClueStepsPack.Clue clue = shown.get(i);
+			ClueStepsPack.Clue clue = pageShown.get(i);
 			if (i > 0)
 			{
 				// a subtle divider between steps (the diaries grammar)
@@ -478,9 +508,36 @@ class CluesTab extends JPanel
 		}
 		cap(tile);
 		content.add(tile);
-		if (shown.size() > limit)
+		if (pages > 1)
 		{
-			content.add(note("+ " + (shown.size() - limit) + " more steps"));
+			content.add(Box.createVerticalStrut(V2Tokens.TIGHT));
+			JPanel pager = row();
+			pager.add(Box.createHorizontalGlue());
+			pager.add(new com.ironhub.ui.v2.V2SpriteButton(theme,
+				com.ironhub.ui.v2.V2SpriteButton.ARROW_LEFT, () ->
+				{
+					if (page > 0)
+					{
+						page--;
+						rebuildContent();
+					}
+				}));
+			pager.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+			pager.add(new OsrsLabel("Page " + (page + 1) + "/" + pages,
+				OsrsSkin.MUTED, OsrsSkin.smallFont()));
+			pager.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+			pager.add(new com.ironhub.ui.v2.V2SpriteButton(theme,
+				com.ironhub.ui.v2.V2SpriteButton.ARROW_RIGHT, () ->
+				{
+					if (page < pages - 1)
+					{
+						page++;
+						rebuildContent();
+					}
+				}));
+			pager.add(Box.createHorizontalGlue());
+			cap(pager);
+			content.add(pager);
 		}
 	}
 
@@ -512,15 +569,25 @@ class CluesTab extends JPanel
 	}
 
 	/**
-	 * One step's ROW: the outfit as ITEM ICONS spread across the row's full
-	 * width — dark-ghosted when the requirement is unmet (Luke, 2026-07-28)
-	 * — its STASH unit's state as a coloured dot, and the +/x goal glyph
-	 * while blocked. A click opens the step's Well.
+	 * One step's ROW: its emote icon(s) then the outfit as ITEM ICONS, all
+	 * LEFT-aligned (Luke, 2026-07-28), each item badged with a checkmark or
+	 * red cross and dark-ghosted when unobtained; the STASH unit's icon
+	 * alone at the RIGHT with its own badge, then the +/x goal glyph while
+	 * blocked. A click opens the step's Well.
 	 */
 	private JComponent stepHead(ClueStepsPack.Clue clue, boolean doable)
 	{
 		JPanel head = row();
-		boolean anyIcon = false;
+		boolean any = false;
+		for (String emote : emotesFor(clue))
+		{
+			if (any)
+			{
+				head.add(Box.createHorizontalStrut(2));
+			}
+			any = true;
+			head.add(emoteIcon(emote));
+		}
 		for (String raw : clue.reqs)
 		{
 			Requirement req = com.ironhub.requirements.Requirements.parse(raw);
@@ -530,26 +597,25 @@ class CluesTab extends JPanel
 			{
 				continue;
 			}
-			if (anyIcon)
+			if (any)
 			{
-				// glue BETWEEN the icons spreads them across the row
-				head.add(Box.createHorizontalGlue());
+				head.add(Box.createHorizontalStrut(2));
 			}
-			anyIcon = true;
-			head.add(reqIconLabel(itemId, met));
+			any = true;
+			head.add(badgedItem(itemId, met));
 		}
-		if (!anyIcon)
+		if (!any)
 		{
 			// a step with no readable outfit falls back to its text
 			head.add(OsrsLabel.wrapped(clue.text, ROW_WRAP,
 				doable ? OsrsSkin.VALUE : OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
-			head.add(Box.createHorizontalGlue());
 		}
+		head.add(Box.createHorizontalGlue());
 		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 		ClueStepsPack.Stash unit = unitFor(clue);
 		if (unit != null)
 		{
-			head.add(stashDot(unit));
+			head.add(stashIcon(unit));
 			head.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		}
 		if (!doable && !clue.reqs.isEmpty())
@@ -572,9 +638,8 @@ class CluesTab extends JPanel
 					}
 					javax.swing.SwingUtilities.invokeLater(this::rebuildContent);
 				}), java.awt.BorderLayout.NORTH);
-			// pin the anchor to its preferred size — a JPanel's default max
-			// (Integer.MAX_VALUE) out-competes glue (Short.MAX_VALUE) for
-			// the row's spare width and swallowed the whole row
+			// pin the anchor — a JPanel's default max out-competes glue for
+			// the row's spare width and swallows the row
 			anchor.setMaximumSize(anchor.getPreferredSize());
 			head.add(anchor);
 		}
@@ -595,32 +660,112 @@ class CluesTab extends JPanel
 		return head;
 	}
 
-	/** The step's STASH state at a glance: green filled, orange built and
-	 *  empty, faint unbuilt — the Well names it in words. PAINTED, not a
-	 *  glyph (the OSRS font carries no bullet — GlyphSafetyTest). */
-	private JComponent stashDot(ClueStepsPack.Stash unit)
+	/** The emote sprite keys a step's text names, in text order — at most
+	 *  two, and one when the outfit is already five wide. */
+	private List<String> emotesFor(ClueStepsPack.Clue clue)
+	{
+		String lower = clue.text.toLowerCase(java.util.Locale.ROOT);
+		java.util.TreeMap<Integer, String> byPosition = new java.util.TreeMap<>();
+		Set<String> seen = new HashSet<>();
+		for (String[] emote : EMOTES)
+		{
+			java.util.regex.Matcher m = java.util.regex.Pattern
+				.compile("\\b" + java.util.regex.Pattern.quote(emote[0]) + "\\b")
+				.matcher(lower);
+			if (m.find() && seen.add(emote[1]))
+			{
+				byPosition.put(m.start(), emote[1]);
+			}
+		}
+		int cap = clue.reqs.size() >= 5 ? 1 : 2;
+		List<String> out = new ArrayList<>();
+		for (String key : byPosition.values())
+		{
+			if (out.size() >= cap)
+			{
+				break;
+			}
+			out.add(key);
+		}
+		return out;
+	}
+
+	/** An emote's icon at slot size (the 48px source scales down). */
+	private JComponent emoteIcon(String key)
+	{
+		JLabel slot = new JLabel();
+		slot.setPreferredSize(new Dimension(ICON_SLOT, ICON_SLOT));
+		slot.setMinimumSize(new Dimension(ICON_SLOT, ICON_SLOT));
+		slot.setMaximumSize(new Dimension(ICON_SLOT, ICON_SLOT));
+		slot.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+		String path = "icons/emote/" + key;
+		if (com.ironhub.ui.v2.V2Sprites.has(path))
+		{
+			slot.setIcon(new javax.swing.ImageIcon(com.ironhub.ui.v2.V2Sprites.get(theme, path)
+				.getScaledInstance(-1, ICON_ART, Image.SCALE_SMOOTH)));
+		}
+		return slot;
+	}
+
+	/** An outfit item with its verdict badged on: checkmark when the
+	 *  requirement is met, red cross when not — and the unmet sprite
+	 *  darkened (Luke, 2026-07-28). */
+	private JComponent badgedItem(int itemId, boolean met)
+	{
+		Image sprite = sprites.getBox(itemId, ICON_ART);
+		return badgedSlot(sprite == null ? null : met ? sprite : darkened(sprite),
+			met, ICON_SLOT);
+	}
+
+	/** The step's STASH unit at the row's right, badged filled or not. */
+	private JComponent stashIcon(ClueStepsPack.Stash unit)
 	{
 		boolean filled = state.isStashFilled(unit.objectId);
-		boolean built = state.isStashBuilt(unit.objectId);
-		Color colour = filled ? OsrsSkin.VALUE : built ? OsrsSkin.TITLE : OsrsSkin.FAINT;
-		JComponent dot = new JComponent()
+		Image art = null;
+		if (com.ironhub.ui.v2.V2Sprites.has("icons/stash_unit"))
+		{
+			art = com.ironhub.ui.v2.V2Sprites.get(theme, "icons/stash_unit")
+				.getScaledInstance(-1, STASH_ICON, Image.SCALE_SMOOTH);
+		}
+		return badgedSlot(art, filled, STASH_ICON + 4);
+	}
+
+	/** A fixed slot painting its art centred with a checkmark / red cross
+	 *  at the bottom-right corner; a recessed box headless. */
+	private JComponent badgedSlot(Image art, boolean ok, int size)
+	{
+		String badgeKey = ok ? "ui/ticks/checkmark_small" : "ui/ticks/red_cross_small";
+		Image badge = com.ironhub.ui.v2.V2Sprites.has(badgeKey)
+			? com.ironhub.ui.v2.V2Sprites.get(theme, badgeKey)
+				.getScaledInstance(-1, BADGE, Image.SCALE_SMOOTH)
+			: null;
+		JComponent slot = new JComponent()
 		{
 			@Override
 			protected void paintComponent(java.awt.Graphics g)
 			{
-				java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
-				g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
-					java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
-				g2.setColor(colour);
-				g2.fillOval(1, (getHeight() - 6) / 2, 6, 6);
-				g2.dispose();
+				if (art != null)
+				{
+					g.drawImage(art, (getWidth() - art.getWidth(null)) / 2,
+						(getHeight() - art.getHeight(null)) / 2, null);
+				}
+				else
+				{
+					g.setColor(theme.recess);
+					g.fillRect(1, 1, getWidth() - 2, getHeight() - 2);
+				}
+				if (badge != null)
+				{
+					g.drawImage(badge, getWidth() - badge.getWidth(null),
+						getHeight() - badge.getHeight(null), null);
+				}
 			}
 		};
-		Dimension size = new Dimension(8, 10);
-		dot.setPreferredSize(size);
-		dot.setMinimumSize(size);
-		dot.setMaximumSize(size);
-		return dot;
+		Dimension d = new Dimension(size, size);
+		slot.setPreferredSize(d);
+		slot.setMinimumSize(d);
+		slot.setMaximumSize(d);
+		return slot;
 	}
 
 	/**
@@ -697,7 +842,7 @@ class CluesTab extends JPanel
 		java.awt.Graphics2D g = out.createGraphics();
 		g.drawImage(sprite, 0, 0, null);
 		// paint black over the sprite's own pixels only
-		g.setComposite(java.awt.AlphaComposite.SrcAtop.derive(0.65f));
+		g.setComposite(java.awt.AlphaComposite.SrcAtop.derive(0.45f));
 		g.setColor(Color.BLACK);
 		g.fillRect(0, 0, out.getWidth(), out.getHeight());
 		g.dispose();

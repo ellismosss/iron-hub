@@ -926,6 +926,720 @@
 				"vanilla"
 			]
 		},
+		"icons/emote/air_guitar": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/air_guitar_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/angry": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/beckon": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/blow_kiss": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/blow_kiss_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/bow": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/cheer": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/clap": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/climb_rope": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/climb_rope_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/crab_dance": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/crab_dance_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/crazy_dance": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/crazy_dance_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/cry": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/dance": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/explorer": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/explorer_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/flap": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/flap_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/flex": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/flex_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/fortis_salute": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/fortis_salute_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/glass_box": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/glass_box_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/glass_wall": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/glass_wall_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/goblin_bow": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/goblin_bow_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/goblin_salute": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/goblin_salute_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/headbang": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/hypermobile_drinker": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/hypermobile_drinker_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/idea": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/idea_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/jig": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/jog": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/jog_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/jump_for_joy": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/laugh": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/lean": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/lean_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/no": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/panic": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/party": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/party_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/penguin_bow": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/penguin_cheer": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/penguin_clap": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/penguin_flap": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/penguin_preen": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/penguin_shiver": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/penguin_spin": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/penguin_wave": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/premier_shield": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/premier_shield_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/push_up": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/push_up_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/rabbit_hop": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/rabbit_hop_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/raspberry": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/relic_unlock": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/relic_unlock_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/relic_unlock_shattered": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/relic_unlock_trailblazer": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/relic_unlock_trailblazer_reloaded": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/salute": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/scared": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/scared_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/shrug": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/shrug_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/sit_down": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/sit_up": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/sit_up_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/skillcape": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/skillcape_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/slap_head": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/slap_head_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/smooth_dance": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/smooth_dance_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/spin": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/stamp": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/stamp_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/star_jump": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/star_jump_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/think": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/trick": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/trick_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/uri_transform": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/uri_transform_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/wave": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/yawn": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/yes": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/zombie_dance": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/zombie_dance_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/zombie_hand": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/zombie_hand_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/zombie_walk": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/emote/zombie_walk_locked": {
+			"w": 48,
+			"h": 48,
+			"variants": [
+				"vanilla"
+			]
+		},
 		"icons/equipment/deposit_equipment": {
 			"w": 29,
 			"h": 22,
@@ -1809,6 +2523,13 @@
 		"icons/star/star_member": {
 			"w": 16,
 			"h": 16,
+			"variants": [
+				"vanilla"
+			]
+		},
+		"icons/stash_unit": {
+			"w": 2072,
+			"h": 2080,
 			"variants": [
 				"vanilla"
 			]

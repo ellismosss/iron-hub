@@ -46,6 +46,7 @@ FOLDERS = {
 	"icons/clock": "icons/clock",
 	"icons/combat": "icons/combat",
 	"icons/combat_achievements": "icons/combat_achievements",
+	"icons/emote": "icons/emote",
 	"icons/equipment": "icons/equipment",
 	"icons/inventory": "icons/inventory",
 	"icons/magic": "icons/magic",
