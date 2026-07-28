@@ -76,11 +76,11 @@ class CluesTab extends JPanel
 	private static final int TIER_COLS = 2;
 	private static final int TIER_TILE = 106;
 	private static final int TIER_EMBLEM = 44;
-	/** Outfit icons sized so a 5-6 icon step still fits the row cleanly
-	 *  beside the STASH icon and glyph (Luke, 2026-07-28). */
-	private static final int ICON_SLOT = 22;
-	private static final int ICON_ART = 20;
-	private static final int STASH_ICON = 18;
+	/** Outfit icons: BIG by default, stepping down only when a 5-6 icon
+	 *  step needs the room (Luke, 2026-07-28 — "all too small"). */
+	private static final int ICON_SLOT_BIG = 30;
+	private static final int ICON_SLOT_SMALL = 24;
+	private static final int STASH_ICON = 22;
 	private static final int BADGE = 10;
 	/**
 	 * Emote phrases -> icons/emote sprite keys, matched word-bounded and
@@ -330,7 +330,7 @@ class CluesTab extends JPanel
 		}
 		JPanel filterRow = row();
 		filterRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, V2Tokens.CONTROL_HEIGHT));
-		filterRow.add(new V2Checkbox(theme, "Doable", showDoable, () ->
+		filterRow.add(new V2Checkbox(theme, "Show doable", showDoable, () ->
 		{
 			showDoable = !showDoable;
 			page = 0;
@@ -578,22 +578,24 @@ class CluesTab extends JPanel
 	private JComponent stepHead(ClueStepsPack.Clue clue, boolean doable)
 	{
 		JPanel head = row();
+		List<String> emotes = emotesFor(clue);
+		// big icons by default; step down only when the row is crowded
+		int slot = emotes.size() + clue.reqs.size() >= 5 ? ICON_SLOT_SMALL : ICON_SLOT_BIG;
 		boolean any = false;
-		for (String emote : emotesFor(clue))
+		for (String emote : emotes)
 		{
 			if (any)
 			{
 				head.add(Box.createHorizontalStrut(2));
 			}
 			any = true;
-			head.add(emoteIcon(emote));
+			head.add(emoteIcon(emote, slot));
 		}
 		for (String raw : clue.reqs)
 		{
 			Requirement req = com.ironhub.requirements.Requirements.parse(raw);
 			boolean met = req.isMet(module.owningView());
-			int itemId = reqIcon(raw, met);
-			if (itemId <= 0)
+			if (altItemId((raw.startsWith("any:") ? raw.substring(4) : raw).split("\\|")[0]) <= 0)
 			{
 				continue;
 			}
@@ -602,7 +604,7 @@ class CluesTab extends JPanel
 				head.add(Box.createHorizontalStrut(2));
 			}
 			any = true;
-			head.add(badgedItem(itemId, met));
+			head.add(badgedItem(raw, met, slot));
 		}
 		if (!any)
 		{
@@ -690,42 +692,83 @@ class CluesTab extends JPanel
 		return out;
 	}
 
-	/** An emote's icon at slot size (the 48px source scales down). */
-	private JComponent emoteIcon(String key)
+	/** An emote's icon (the 48px source scales down), named on hover. */
+	private JComponent emoteIcon(String key, int slotSize)
 	{
 		JLabel slot = new JLabel();
-		slot.setPreferredSize(new Dimension(ICON_SLOT, ICON_SLOT));
-		slot.setMinimumSize(new Dimension(ICON_SLOT, ICON_SLOT));
-		slot.setMaximumSize(new Dimension(ICON_SLOT, ICON_SLOT));
+		Dimension d = new Dimension(slotSize, slotSize);
+		slot.setPreferredSize(d);
+		slot.setMinimumSize(d);
+		slot.setMaximumSize(d);
 		slot.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 		String path = "icons/emote/" + key;
 		if (com.ironhub.ui.v2.V2Sprites.has(path))
 		{
 			slot.setIcon(new javax.swing.ImageIcon(com.ironhub.ui.v2.V2Sprites.get(theme, path)
-				.getScaledInstance(-1, ICON_ART, Image.SCALE_SMOOTH)));
+				.getScaledInstance(-1, slotSize - 2, Image.SCALE_SMOOTH)));
 		}
+		String name = key.replace('_', ' ');
+		slot.setToolTipText(Character.toUpperCase(name.charAt(0)) + name.substring(1));
 		return slot;
 	}
 
 	/** An outfit item with its verdict badged on: checkmark when the
-	 *  requirement is met, red cross when not — and the unmet sprite
-	 *  darkened (Luke, 2026-07-28). */
-	private JComponent badgedItem(int itemId, boolean met)
+	 *  requirement is met, red cross when not — the unmet sprite darkened,
+	 *  and the item NAMED on hover; an owned item that is nowhere in
+	 *  bank/carried says which storage holds it (Luke, 2026-07-28). */
+	private JComponent badgedItem(String raw, boolean met, int slotSize)
 	{
-		Image sprite = sprites.getBox(itemId, ICON_ART);
-		return badgedSlot(sprite == null ? null : met ? sprite : darkened(sprite),
-			met, ICON_SLOT);
+		String body = raw.startsWith("any:") ? raw.substring(4) : raw;
+		String[] alts = body.split("\\|");
+		String chosen = alts[0];
+		if (met)
+		{
+			for (String alt : alts)
+			{
+				int id = altItemId(alt);
+				if (id > 0 && module.owningView().canonicalStock(id) > 0)
+				{
+					chosen = alt;
+					break;
+				}
+			}
+		}
+		int itemId = altItemId(chosen);
+		String[] parts = chosen.split(":", 4);
+		String name = parts.length >= 4 ? parts[3] : "item " + itemId;
+		Image sprite = sprites.getBox(itemId, slotSize - 2);
+		JComponent slot = badgedSlot(sprite == null ? null : met ? sprite : darkened(sprite),
+			met, slotSize);
+		String tip = name;
+		if (state.ownedCount(itemId) == 0)
+		{
+			// owned, but nowhere on the account's person or bank — name the
+			// storage that holds it (ONLY then; Luke, 2026-07-28)
+			String label = state.storedLabel(itemId);
+			if (label != null)
+			{
+				tip += " — stored in " + label;
+			}
+		}
+		slot.setToolTipText(tip);
+		return slot;
 	}
 
-	/** The step's STASH unit at the row's right, badged filled or not. */
+	/** The step's STASH unit at the row's right, badged filled or not —
+	 *  and darkened like an unowned item until it is BUILT. */
 	private JComponent stashIcon(ClueStepsPack.Stash unit)
 	{
 		boolean filled = state.isStashFilled(unit.objectId);
+		boolean built = state.isStashBuilt(unit.objectId);
 		Image art = null;
 		if (com.ironhub.ui.v2.V2Sprites.has("icons/stash_unit"))
 		{
 			art = com.ironhub.ui.v2.V2Sprites.get(theme, "icons/stash_unit")
 				.getScaledInstance(-1, STASH_ICON, Image.SCALE_SMOOTH);
+			if (!built && !filled)
+			{
+				art = darkened(art);
+			}
 		}
 		return badgedSlot(art, filled, STASH_ICON + 4);
 	}
@@ -768,31 +811,6 @@ class CluesTab extends JPanel
 		return slot;
 	}
 
-	/**
-	 * The icon for one requirement: the first OWNED alternative when met,
-	 * else the first alternative. The pack's reqs are all
-	 * {@code item:<id>:<qty>:<name>} (optionally {@code any:}-grouped), so
-	 * the raw string parses directly.
-	 */
-	private int reqIcon(String raw, boolean met)
-	{
-		String body = raw.startsWith("any:") ? raw.substring(4) : raw;
-		String[] alts = body.split("\\|");
-		int first = altItemId(alts[0]);
-		if (met)
-		{
-			for (String alt : alts)
-			{
-				int id = altItemId(alt);
-				if (id > 0 && module.owningView().canonicalStock(id) > 0)
-				{
-					return id;
-				}
-			}
-		}
-		return first;
-	}
-
 	private static int altItemId(String alt)
 	{
 		String[] parts = alt.split(":");
@@ -810,34 +828,14 @@ class CluesTab extends JPanel
 		}
 	}
 
-	/** One outfit icon: solid when its requirement is met, DARKENED when
-	 *  not (Luke, 2026-07-28 — grey read lighter); a recessed slot headless. */
-	private JComponent reqIconLabel(int itemId, boolean met)
-	{
-		JLabel slot = new JLabel();
-		slot.setPreferredSize(new Dimension(ICON_SLOT, ICON_SLOT));
-		slot.setMinimumSize(new Dimension(ICON_SLOT, ICON_SLOT));
-		slot.setMaximumSize(new Dimension(ICON_SLOT, ICON_SLOT));
-		slot.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-		Image sprite = sprites.getBox(itemId, ICON_ART);
-		if (sprite != null)
-		{
-			slot.setIcon(new javax.swing.ImageIcon(met ? sprite : darkened(sprite)));
-		}
-		else
-		{
-			slot.setOpaque(true);
-			slot.setBackground(theme.recess);
-		}
-		return slot;
-	}
-
 	/** A DARK ghost of a sprite: the sprite's own pixels washed toward
 	 *  black, never the washed-out GrayFilter look. */
 	private static Image darkened(Image sprite)
 	{
+		// a fresh getScaledInstance reports -1 until rendered once — force it
+		javax.swing.ImageIcon load = new javax.swing.ImageIcon(sprite);
 		java.awt.image.BufferedImage out = new java.awt.image.BufferedImage(
-			sprite.getWidth(null), sprite.getHeight(null),
+			Math.max(1, load.getIconWidth()), Math.max(1, load.getIconHeight()),
 			java.awt.image.BufferedImage.TYPE_INT_ARGB);
 		java.awt.Graphics2D g = out.createGraphics();
 		g.drawImage(sprite, 0, 0, null);
