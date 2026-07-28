@@ -9,7 +9,6 @@ import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
 import com.ironhub.ui.v2.V2Checkbox;
-import com.ironhub.ui.v2.V2ChipRow;
 import com.ironhub.ui.v2.V2ProgressBar;
 import com.ironhub.ui.v2.V2Surface;
 import com.ironhub.ui.v2.V2Tile;
@@ -21,10 +20,10 @@ import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.Box;
@@ -36,24 +35,26 @@ import javax.swing.border.EmptyBorder;
 
 /**
  * Clues &amp; STASH, rebuilt from the ground up in the reference grammar
- * (Luke, 2026-07-28 — "build them from the ground up"):
+ * (Luke, 2026-07-28) — and since the same day ONE combined view: each
+ * clue step row carries its STASH unit's state, so the old Steps · STASH
+ * chip split is gone.
  *
  * <ul>
  * <li>a hero Card — "STASH units filled" between the beginner and master
  *     scrolls over the large sprite bar, with the steps-doable tally and
  *     the ready-to-fill count on a counter line;
- * <li>Steps · STASH chips, then an include-semantics checkbox per view
- *     ("Doable" / "Filled", both defaulting OFF so each view opens on its
+ * <li>a "Doable" include checkbox (default OFF — the tab opens on the
  *     to-do list);
  * <li>the six tiers as 2-wide square CARD tiles — the tier's own clue
- *     scroll as the emblem, corner counts (doable or filled), meter
- *     strips — expanding IN-LINE below their row, one at a time;
- * <li>the expanded tier in the Goals grammar: a header card with the
- *     counts, then every step / unit on ONE Tile, rows opening Wells
- *     non-exclusively — a step's Well carries its standing and every
- *     outfit item in met colours with where-from lines (formerly hover
- *     tooltips); a unit's Well carries its status, outfit, and the
- *     manual Mark-filled action (moved off the row click).
+ *     scroll as the emblem, corner counts, meter strips — expanding
+ *     IN-LINE below their row, one at a time;
+ * <li>the expanded tier: a header card (steps doable · STASH filled),
+ *     then every step on ONE Tile with subtle dividers between rows —
+ *     each row the step's OUTFIT as item icons filling the row's width,
+ *     dark-ghosted when unobtained, with a STASH state dot (green
+ *     filled · orange built-empty · faint unbuilt) — opening a Well
+ *     with the clue text, standing, STASH state, the outfit in met
+ *     colours with where-from lines, and the manual Mark-filled action.
  * </ul>
  */
 class CluesTab extends JPanel
@@ -66,6 +67,9 @@ class CluesTab extends JPanel
 	private static final int TIER_COLS = 2;
 	private static final int TIER_TILE = 106;
 	private static final int TIER_EMBLEM = 44;
+	/** Outfit icons big enough to FILL the row (Luke, 2026-07-28). */
+	private static final int ICON_SLOT = 36;
+	private static final int ICON_ART = 32;
 	/** Row ceiling (the Bank tab's grammar). */
 	private static final int MAX_ROWS = 50;
 	private static final int ROW_WRAP = 160;
@@ -81,19 +85,17 @@ class CluesTab extends JPanel
 
 	private final V2Surface hero;
 	private final V2ProgressBar bar;
-	private final V2ChipRow views;
 	private final JPanel content = new JPanel();
 
 	/** The ONE expanded tier (the clog grammar), or null. */
 	private String expandedTier;
 	/** Step rows open NON-exclusively into Wells, keyed by clue id. */
 	private final Set<String> expandedSteps = new HashSet<>();
-	/** Unit rows open NON-exclusively into Wells, keyed by object id. */
-	private final Set<Integer> expandedUnits = new HashSet<>();
-	/** Include filters (the diaries grammar): checked = the done things
-	 *  show too; both default OFF so each view opens on its to-do list. */
+	/** Include filter (the diaries grammar): checked = doable steps show
+	 *  too; OFF by default so the tab opens on the to-do list. */
 	private boolean showDoable;
-	private boolean showFilled;
+	/** clue id -> its STASH unit, built once per pack. */
+	private Map<String, ClueStepsPack.Stash> unitByClue;
 
 	CluesTab(AccountState state, ClueStashModule module, OsrsTheme theme)
 	{
@@ -109,15 +111,6 @@ class CluesTab extends JPanel
 		hero = V2Surface.card(theme);
 		bar = new V2ProgressBar(theme);
 		add(hero);
-		add(Box.createVerticalStrut(4));
-
-		views = new V2ChipRow(theme, true, "Steps", "STASH");
-		views.onChange(i ->
-		{
-			expandedTier = null;
-			rebuildContent();
-		});
-		add(views);
 		add(Box.createVerticalStrut(4));
 
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
@@ -137,14 +130,6 @@ class CluesTab extends JPanel
 
 	// ── test seams ────────────────────────────────────────────────────
 
-	/** Test seam: 0 = Steps, 1 = STASH. */
-	void selectView(int index)
-	{
-		views.setSelected(index);
-		expandedTier = null;
-		rebuild();
-	}
-
 	void expandTierForTest(String tier)
 	{
 		expandedTier = tier;
@@ -157,16 +142,29 @@ class CluesTab extends JPanel
 		rebuild();
 	}
 
-	void expandUnitForTest(int objectId)
-	{
-		expandedUnits.add(objectId);
-		rebuild();
-	}
-
 	private void rebuild()
 	{
 		rebuildHero();
 		rebuildContent();
+	}
+
+	private ClueStepsPack.Stash unitFor(ClueStepsPack.Clue clue)
+	{
+		if (unitByClue == null)
+		{
+			unitByClue = new HashMap<>();
+			if (module.pack() != null)
+			{
+				for (ClueStepsPack.Stash unit : module.pack().stash)
+				{
+					if (unit.clueId != null)
+					{
+						unitByClue.putIfAbsent(unit.clueId, unit);
+					}
+				}
+			}
+		}
+		return unitByClue.get(clue.id);
 	}
 
 	// ── the hero card ─────────────────────────────────────────────────
@@ -270,37 +268,21 @@ class CluesTab extends JPanel
 		if (pack == null)
 		{
 			content.add(note("Clue pack unavailable."));
+			content.revalidate();
+			content.repaint();
+			return;
 		}
-		else if (views.selected() == 1)
-		{
-			stashGrid(pack);
-		}
-		else
-		{
-			stepsGrid(pack);
-		}
-		content.revalidate();
-		content.repaint();
-	}
-
-	/** The per-view include checkbox on its own row (the diaries filter
-	 *  grammar) — rebuilt with the content, so it reads its boolean. */
-	private JComponent filterRow(String label, boolean value, Runnable flip)
-	{
-		JPanel holder = row();
-		holder.setMaximumSize(new Dimension(Integer.MAX_VALUE, V2Tokens.CONTROL_HEIGHT));
-		holder.add(new V2Checkbox(theme, label, value, flip));
-		holder.add(Box.createHorizontalGlue());
-		return holder;
-	}
-
-	private void stepsGrid(ClueStepsPack pack)
-	{
-		content.add(filterRow("Doable", showDoable, () ->
+		JPanel filterRow = row();
+		filterRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, V2Tokens.CONTROL_HEIGHT));
+		filterRow.add(new V2Checkbox(theme, "Doable", showDoable, () ->
 		{
 			showDoable = !showDoable;
 			rebuildContent();
 		}));
+		filterRow.add(Box.createHorizontalGlue());
+		content.add(filterRow);
+		content.add(note("Ownership counts your bank, carried items, and every storage "
+			+ "Where's my stuff has seen (as of its last visit)."));
 		content.add(Box.createVerticalStrut(4));
 
 		Map<String, List<ClueStepsPack.Clue>> byTier = new LinkedHashMap<>();
@@ -322,7 +304,6 @@ class CluesTab extends JPanel
 		if (tiers.isEmpty())
 		{
 			content.add(note("Every emote step is doable."));
-			return;
 		}
 		for (int start = 0; start < tiers.size(); start += TIER_COLS)
 		{
@@ -348,73 +329,13 @@ class CluesTab extends JPanel
 			{
 				if (tiers.get(start + col).equals(expandedTier))
 				{
-					stepsDetail(expandedTier, byTier.get(expandedTier));
+					tierDetail(expandedTier, byTier.get(expandedTier));
 					content.add(Box.createVerticalStrut(V2Tokens.ROW));
 				}
 			}
 		}
-	}
-
-	private void stashGrid(ClueStepsPack pack)
-	{
-		content.add(filterRow("Filled", showFilled, () ->
-		{
-			showFilled = !showFilled;
-			rebuildContent();
-		}));
-		content.add(note("Ownership counts your bank, carried items, and every storage "
-			+ "Where's my stuff has seen (as of its last visit)."));
-		content.add(Box.createVerticalStrut(4));
-
-		Map<String, List<ClueStepsPack.Stash>> byTier = new LinkedHashMap<>();
-		for (ClueStepsPack.Stash unit : pack.stash)
-		{
-			byTier.computeIfAbsent(unit.tier, t -> new ArrayList<>()).add(unit);
-		}
-		List<String> tiers = new ArrayList<>();
-		for (String tier : TIERS)
-		{
-			List<ClueStepsPack.Stash> units = byTier.get(tier);
-			if (units != null && units.stream()
-				.anyMatch(u -> showFilled || !state.isStashFilled(u.objectId)))
-			{
-				tiers.add(tier);
-			}
-		}
-		if (tiers.isEmpty())
-		{
-			content.add(note("Every STASH unit is filled."));
-			return;
-		}
-		for (int start = 0; start < tiers.size(); start += TIER_COLS)
-		{
-			JPanel line = row();
-			line.add(Box.createHorizontalGlue());
-			for (int col = 0; col < TIER_COLS && start + col < tiers.size(); col++)
-			{
-				if (col > 0)
-				{
-					line.add(Box.createHorizontalStrut(V2Tokens.ROW));
-				}
-				String tier = tiers.get(start + col);
-				List<ClueStepsPack.Stash> units = byTier.get(tier);
-				int filled = (int) units.stream()
-					.filter(u -> state.isStashFilled(u.objectId)).count();
-				line.add(tierTile(tier, filled, units.size()));
-			}
-			line.add(Box.createHorizontalGlue());
-			cap(line);
-			content.add(line);
-			content.add(Box.createVerticalStrut(V2Tokens.ROW));
-			for (int col = 0; col < TIER_COLS && start + col < tiers.size(); col++)
-			{
-				if (tiers.get(start + col).equals(expandedTier))
-				{
-					stashDetail(expandedTier, byTier.get(expandedTier));
-					content.add(Box.createVerticalStrut(V2Tokens.ROW));
-				}
-			}
-		}
+		content.revalidate();
+		content.repaint();
 	}
 
 	/** One tier as a square Card in the clog page-grid grammar: the tier's
@@ -423,8 +344,7 @@ class CluesTab extends JPanel
 	{
 		boolean complete = total > 0 && done >= total;
 		boolean open = tier.equals(expandedTier);
-		int scroll = SCROLLS[tierIndex(tier)];
-		Image emblem = sprites.getBox(scroll, TIER_EMBLEM);
+		Image emblem = sprites.getBox(SCROLLS[tierIndex(tier)], TIER_EMBLEM);
 		Color cornerDone = complete ? V2Tokens.DONE
 			: done == 0 ? V2Tokens.BLOCKED : V2Tokens.ACTION;
 		Color cornerRest = complete ? V2Tokens.DONE : V2Tokens.ACTION;
@@ -452,13 +372,28 @@ class CluesTab extends JPanel
 		return 0;
 	}
 
-	// ── the expanded tier: steps ──────────────────────────────────────
+	// ── the expanded tier ─────────────────────────────────────────────
 
-	private void stepsDetail(String tier, List<ClueStepsPack.Clue> clues)
+	private void tierDetail(String tier, List<ClueStepsPack.Clue> clues)
 	{
 		int doable = (int) clues.stream()
 			.filter(c -> ClueStashModule.doable(c, module.owningView())).count();
-		content.add(tierHeader(tier, "Steps doable: ", doable, clues.size(), null));
+		int units = 0;
+		int filled = 0;
+		for (ClueStepsPack.Clue clue : clues)
+		{
+			ClueStepsPack.Stash unit = unitFor(clue);
+			if (unit != null)
+			{
+				units++;
+				if (state.isStashFilled(unit.objectId))
+				{
+					filled++;
+				}
+			}
+		}
+		content.add(tierHeader(tier, doable, clues.size(),
+			units > 0 ? filled + "/" + units + " STASH filled" : null));
 		content.add(Box.createVerticalStrut(V2Tokens.TIGHT));
 
 		// evaluate each step ONCE per rebuild (2026-07-20 audit); blocked
@@ -474,7 +409,8 @@ class CluesTab extends JPanel
 			{
 				for (String req : clue.reqs)
 				{
-					gap += com.ironhub.requirements.Requirements.parse(req).gap(module.owningView());
+					gap += com.ironhub.requirements.Requirements.parse(req)
+						.gap(module.owningView());
 				}
 			}
 			gapBy.put(clue, gap);
@@ -497,6 +433,9 @@ class CluesTab extends JPanel
 			ClueStepsPack.Clue clue = shown.get(i);
 			if (i > 0)
 			{
+				// a subtle divider between steps (the diaries grammar)
+				tile.add(Box.createVerticalStrut(3));
+				tile.add(divider());
 				tile.add(Box.createVerticalStrut(3));
 			}
 			tile.add(stepHead(clue, doableBy.get(clue)));
@@ -514,11 +453,38 @@ class CluesTab extends JPanel
 		}
 	}
 
+	/** Tier name, "Steps doable: d/D" in the game's colour scale, and the
+	 *  tier's STASH tally at the right. */
+	private JComponent tierHeader(String tier, int done, int total, String sub)
+	{
+		V2Surface card = V2Surface.card(theme);
+		JPanel titleRow = row();
+		titleRow.add(new OsrsLabel(tier, OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
+		titleRow.add(Box.createHorizontalGlue());
+		cap(titleRow);
+		card.add(titleRow);
+		Color colour = done == 0 ? V2Tokens.BLOCKED
+			: done >= total ? OsrsSkin.VALUE : OsrsSkin.COUNT_YELLOW;
+		JPanel counts = row();
+		counts.add(new OsrsLabel("Steps doable: ",
+			OsrsSkin.LABEL, OsrsSkin.smallFont()).leftAligned());
+		counts.add(new OsrsLabel(done + "/" + total, colour, OsrsSkin.smallFont()).leftAligned());
+		counts.add(Box.createHorizontalGlue());
+		if (sub != null)
+		{
+			counts.add(new OsrsLabel(sub, OsrsSkin.MUTED, OsrsSkin.smallFont()));
+		}
+		cap(counts);
+		card.add(counts);
+		cap(card);
+		return card;
+	}
+
 	/**
-	 * One step's ROW: the outfit as ITEM ICONS — solid when the requirement
-	 * is met, greyed when not (Luke, 2026-07-28; the clog grid's ghosting)
-	 * — and the +/x goal glyph while blocked. A click opens the step's
-	 * Well with the clue text and requirements.
+	 * One step's ROW: the outfit as ITEM ICONS spread across the row's full
+	 * width — dark-ghosted when the requirement is unmet (Luke, 2026-07-28)
+	 * — its STASH unit's state as a coloured dot, and the +/x goal glyph
+	 * while blocked. A click opens the step's Well.
 	 */
 	private JComponent stepHead(ClueStepsPack.Clue clue, boolean doable)
 	{
@@ -535,7 +501,8 @@ class CluesTab extends JPanel
 			}
 			if (anyIcon)
 			{
-				head.add(Box.createHorizontalStrut(2));
+				// glue BETWEEN the icons spreads them across the row
+				head.add(Box.createHorizontalGlue());
 			}
 			anyIcon = true;
 			head.add(reqIconLabel(itemId, met));
@@ -545,9 +512,15 @@ class CluesTab extends JPanel
 			// a step with no readable outfit falls back to its text
 			head.add(OsrsLabel.wrapped(clue.text, ROW_WRAP,
 				doable ? OsrsSkin.VALUE : OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+			head.add(Box.createHorizontalGlue());
 		}
-		head.add(Box.createHorizontalGlue());
 		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		ClueStepsPack.Stash unit = unitFor(clue);
+		if (unit != null)
+		{
+			head.add(stashDot(unit));
+			head.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		}
 		if (!doable && !clue.reqs.isEmpty())
 		{
 			boolean tracked = module.isGoal(clue);
@@ -568,6 +541,10 @@ class CluesTab extends JPanel
 					}
 					javax.swing.SwingUtilities.invokeLater(this::rebuildContent);
 				}), java.awt.BorderLayout.NORTH);
+			// pin the anchor to its preferred size — a JPanel's default max
+			// (Integer.MAX_VALUE) out-competes glue (Short.MAX_VALUE) for
+			// the row's spare width and swallowed the whole row
+			anchor.setMaximumSize(anchor.getPreferredSize());
 			head.add(anchor);
 		}
 		head.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -585,6 +562,34 @@ class CluesTab extends JPanel
 		});
 		cap(head);
 		return head;
+	}
+
+	/** The step's STASH state at a glance: green filled, orange built and
+	 *  empty, faint unbuilt — the Well names it in words. PAINTED, not a
+	 *  glyph (the OSRS font carries no bullet — GlyphSafetyTest). */
+	private JComponent stashDot(ClueStepsPack.Stash unit)
+	{
+		boolean filled = state.isStashFilled(unit.objectId);
+		boolean built = state.isStashBuilt(unit.objectId);
+		Color colour = filled ? OsrsSkin.VALUE : built ? OsrsSkin.TITLE : OsrsSkin.FAINT;
+		JComponent dot = new JComponent()
+		{
+			@Override
+			protected void paintComponent(java.awt.Graphics g)
+			{
+				java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+				g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+					java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+				g2.setColor(colour);
+				g2.fillOval(1, (getHeight() - 6) / 2, 6, 6);
+				g2.dispose();
+			}
+		};
+		Dimension size = new Dimension(8, 10);
+		dot.setPreferredSize(size);
+		dot.setMinimumSize(size);
+		dot.setMaximumSize(size);
+		return dot;
 	}
 
 	/**
@@ -629,20 +634,19 @@ class CluesTab extends JPanel
 		}
 	}
 
-	/** One outfit icon: solid when its requirement is met, GREYED when not
-	 *  (GrayFilter, the Swing disabled treatment); a recessed slot headless. */
+	/** One outfit icon: solid when its requirement is met, DARKENED when
+	 *  not (Luke, 2026-07-28 — grey read lighter); a recessed slot headless. */
 	private JComponent reqIconLabel(int itemId, boolean met)
 	{
 		JLabel slot = new JLabel();
-		slot.setPreferredSize(new Dimension(22, 22));
-		slot.setMinimumSize(new Dimension(22, 22));
-		slot.setMaximumSize(new Dimension(22, 22));
+		slot.setPreferredSize(new Dimension(ICON_SLOT, ICON_SLOT));
+		slot.setMinimumSize(new Dimension(ICON_SLOT, ICON_SLOT));
+		slot.setMaximumSize(new Dimension(ICON_SLOT, ICON_SLOT));
 		slot.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-		Image sprite = sprites.getBox(itemId, 20);
+		Image sprite = sprites.getBox(itemId, ICON_ART);
 		if (sprite != null)
 		{
-			slot.setIcon(new javax.swing.ImageIcon(met ? sprite
-				: javax.swing.GrayFilter.createDisabledImage(sprite)));
+			slot.setIcon(new javax.swing.ImageIcon(met ? sprite : darkened(sprite)));
 		}
 		else
 		{
@@ -652,20 +656,61 @@ class CluesTab extends JPanel
 		return slot;
 	}
 
-	/** The open step's Well: the clue text, its standing, then every outfit
-	 *  item in met colours — a missing item carries its where-from line
-	 *  (formerly a hover tooltip). */
+	/** A DARK ghost of a sprite: the sprite's own pixels washed toward
+	 *  black, never the washed-out GrayFilter look. */
+	private static Image darkened(Image sprite)
+	{
+		java.awt.image.BufferedImage out = new java.awt.image.BufferedImage(
+			sprite.getWidth(null), sprite.getHeight(null),
+			java.awt.image.BufferedImage.TYPE_INT_ARGB);
+		java.awt.Graphics2D g = out.createGraphics();
+		g.drawImage(sprite, 0, 0, null);
+		// paint black over the sprite's own pixels only
+		g.setComposite(java.awt.AlphaComposite.SrcAtop.derive(0.65f));
+		g.setColor(Color.BLACK);
+		g.fillRect(0, 0, out.getWidth(), out.getHeight());
+		g.dispose();
+		return out;
+	}
+
+	/** A subtle 1px divider between step rows (the diaries grammar). */
+	private JComponent divider()
+	{
+		JPanel line = new JPanel();
+		line.setBackground(theme.recess);
+		line.setOpaque(true);
+		line.setAlignmentX(LEFT_ALIGNMENT);
+		line.setPreferredSize(new Dimension(0, 1));
+		line.setMinimumSize(new Dimension(0, 1));
+		line.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+		return line;
+	}
+
+	/**
+	 * The open step's Well: the clue text, its standing and STASH state,
+	 * every outfit item in met colours — a missing item carries its
+	 * where-from line — and the manual Mark-filled action (the escape
+	 * hatch for STASHes filled before Iron Hub).
+	 */
 	private JComponent stepWell(ClueStepsPack.Clue clue, boolean doable)
 	{
 		V2Surface well = V2Surface.well(theme);
 		int inset = com.ironhub.ui.v2.V2Well.CAP + V2Tokens.TIGHT;
 		well.setBorder(new EmptyBorder(inset, inset, inset, inset));
-		// the step's text leads (Luke, 2026-07-28 — the row is icons now)
 		well.add(OsrsLabel.wrapped(clue.text, WELL_WRAP,
 			V2Tokens.STRONG, OsrsSkin.smallFont()).leftAligned());
+		ClueStepsPack.Stash unit = unitFor(clue);
 		JPanel meta = row();
 		meta.add(new OsrsLabel(doable ? "Doable now" : "Missing items",
-			OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+			doable ? OsrsSkin.VALUE : OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+		if (unit != null)
+		{
+			boolean filled = state.isStashFilled(unit.objectId);
+			boolean built = state.isStashBuilt(unit.objectId);
+			meta.add(new OsrsLabel(" · STASH "
+					+ (filled ? "filled" : built ? "built, empty" : "not built"),
+				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+		}
 		meta.add(Box.createHorizontalGlue());
 		cap(meta);
 		well.add(meta);
@@ -688,13 +733,29 @@ class CluesTab extends JPanel
 			well.add(OsrsLabel.wrapped(line, WELL_WRAP,
 				met ? OsrsSkin.VALUE : OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
 		}
+		if (unit != null)
+		{
+			boolean filled = state.isStashFilled(unit.objectId);
+			well.add(Box.createVerticalStrut(2));
+			JPanel actions = row();
+			OsrsLabel mark = actionLabel(filled ? "Unmark filled" : "Mark filled", () ->
+			{
+				module.toggleFilled(unit);
+				javax.swing.SwingUtilities.invokeLater(this::rebuild);
+			});
+			mark.setToolTipText("For STASHes filled before Iron Hub existed");
+			actions.add(mark);
+			actions.add(Box.createHorizontalGlue());
+			cap(actions);
+			well.add(actions);
+		}
 		cap(well);
 		return well;
 	}
 
 	private Integer firstMissingItem(Requirement req)
 	{
-		for (Requirement leaf : req.missing(state))
+		for (Requirement leaf : req.missing(module.owningView()))
 		{
 			Integer itemId = leaf.itemId();
 			if (itemId != null)
@@ -705,161 +766,7 @@ class CluesTab extends JPanel
 		return null;
 	}
 
-	// ── the expanded tier: STASH ──────────────────────────────────────
-
-	private void stashDetail(String tier, List<ClueStepsPack.Stash> units)
-	{
-		int filled = (int) units.stream()
-			.filter(u -> state.isStashFilled(u.objectId)).count();
-		int built = (int) units.stream()
-			.filter(u -> state.isStashBuilt(u.objectId)).count();
-		content.add(tierHeader(tier, "Units filled: ", filled, units.size(),
-			built + "/" + units.size() + " built"));
-		content.add(Box.createVerticalStrut(V2Tokens.TIGHT));
-
-		List<ClueStepsPack.Stash> shown = new ArrayList<>();
-		for (ClueStepsPack.Stash unit : units)
-		{
-			if (showFilled || !state.isStashFilled(unit.objectId))
-			{
-				shown.add(unit);
-			}
-		}
-		V2Surface tile = V2Surface.tile(theme);
-		tile.setAlignmentX(LEFT_ALIGNMENT);
-		int limit = Math.min(MAX_ROWS, shown.size());
-		for (int i = 0; i < limit; i++)
-		{
-			ClueStepsPack.Stash unit = shown.get(i);
-			if (i > 0)
-			{
-				tile.add(Box.createVerticalStrut(3));
-			}
-			tile.add(unitHead(unit));
-			if (expandedUnits.contains(unit.objectId))
-			{
-				tile.add(Box.createVerticalStrut(2));
-				tile.add(unitWell(unit));
-			}
-		}
-		cap(tile);
-		content.add(tile);
-		if (shown.size() > limit)
-		{
-			content.add(note("+ " + (shown.size() - limit) + " more units"));
-		}
-	}
-
-	/** One unit's ROW: the location on the filled scale, a green "ready"
-	 *  tag when its outfit is owned. A click opens the unit's Well. */
-	private JComponent unitHead(ClueStepsPack.Stash unit)
-	{
-		boolean filled = state.isStashFilled(unit.objectId);
-		boolean built = state.isStashBuilt(unit.objectId);
-		Color colour = filled ? OsrsSkin.VALUE : built ? OsrsSkin.TITLE : OsrsSkin.MUTED;
-		JPanel head = row();
-		OsrsLabel name = OsrsLabel.wrapped(unit.name, ROW_WRAP, colour, OsrsSkin.smallFont())
-			.leftAligned();
-		head.add(name);
-		head.add(Box.createHorizontalGlue());
-		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		if (module.readyToFill(unit))
-		{
-			head.add(new OsrsLabel("ready", OsrsSkin.VALUE, OsrsSkin.smallFont()));
-		}
-		head.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		clickAnywhere(head, new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				if (!expandedUnits.remove(unit.objectId))
-				{
-					expandedUnits.add(unit.objectId);
-				}
-				rebuildContent();
-			}
-		});
-		cap(head);
-		return head;
-	}
-
-	/** The open unit's Well: its status, the outfit in met colours, and the
-	 *  manual Mark-filled action — the escape hatch for STASHes filled
-	 *  before Iron Hub, moved off the row click. */
-	private JComponent unitWell(ClueStepsPack.Stash unit)
-	{
-		boolean filled = state.isStashFilled(unit.objectId);
-		boolean built = state.isStashBuilt(unit.objectId);
-		String standing = filled ? "Filled" : built ? "Built, empty" : "Not built";
-		V2Surface well = V2Surface.well(theme);
-		int inset = com.ironhub.ui.v2.V2Well.CAP + V2Tokens.TIGHT;
-		well.setBorder(new EmptyBorder(inset, inset, inset, inset));
-		JPanel meta = row();
-		meta.add(new OsrsLabel(standing, V2Tokens.STRONG, OsrsSkin.smallFont()).leftAligned());
-		if (module.readyToFill(unit))
-		{
-			meta.add(new OsrsLabel(" · ready to fill",
-				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
-		}
-		meta.add(Box.createHorizontalGlue());
-		cap(meta);
-		well.add(meta);
-		ClueStepsPack.Clue clue = unit.clueId == null || module.pack() == null
-			? null : module.pack().clue(unit.clueId);
-		if (clue != null)
-		{
-			for (String raw : clue.reqs)
-			{
-				Requirement req = com.ironhub.requirements.Requirements.parse(raw);
-				well.add(OsrsLabel.wrapped("· " + req.describe(), WELL_WRAP,
-					req.isMet(module.owningView()) ? OsrsSkin.VALUE : OsrsSkin.MUTED,
-					OsrsSkin.smallFont()).leftAligned());
-			}
-		}
-		well.add(Box.createVerticalStrut(2));
-		JPanel actions = row();
-		OsrsLabel mark = actionLabel(filled ? "Unmark filled" : "Mark filled", () ->
-		{
-			module.toggleFilled(unit);
-			javax.swing.SwingUtilities.invokeLater(this::rebuild);
-		});
-		mark.setToolTipText("For STASHes filled before Iron Hub existed");
-		actions.add(mark);
-		actions.add(Box.createHorizontalGlue());
-		cap(actions);
-		well.add(actions);
-		cap(well);
-		return well;
-	}
-
 	// ── shared pieces ─────────────────────────────────────────────────
-
-	/** Tier name, a counter in the game's colour scale, and optional sub
-	 *  text — the header card an expanded tier opens with (the CA shape). */
-	private JComponent tierHeader(String tier, String label, int done, int total, String sub)
-	{
-		V2Surface card = V2Surface.card(theme);
-		JPanel titleRow = row();
-		titleRow.add(new OsrsLabel(tier, OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
-		titleRow.add(Box.createHorizontalGlue());
-		cap(titleRow);
-		card.add(titleRow);
-		Color colour = done == 0 ? V2Tokens.BLOCKED
-			: done >= total ? OsrsSkin.VALUE : OsrsSkin.COUNT_YELLOW;
-		JPanel counts = row();
-		counts.add(new OsrsLabel(label, OsrsSkin.LABEL, OsrsSkin.smallFont()).leftAligned());
-		counts.add(new OsrsLabel(done + "/" + total, colour, OsrsSkin.smallFont()).leftAligned());
-		counts.add(Box.createHorizontalGlue());
-		if (sub != null)
-		{
-			counts.add(new OsrsLabel(sub, OsrsSkin.MUTED, OsrsSkin.smallFont()));
-		}
-		cap(counts);
-		card.add(counts);
-		cap(card);
-		return card;
-	}
 
 	/** A Well action in skin colours — faint until hovered (the quests
 	 *  grammar). */

@@ -190,26 +190,15 @@ public class CluesTest
 
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
-		String[] names = {"steps", "stash"};
-		for (int view = 0; view < names.length; view++)
-		{
-			((CluesTab) tab).selectView(view);
-			// open a tier, a step and a unit so the render shows the grammar
-			((CluesTab) tab).expandTierForTest(clue.tier);
-			if (view == 0)
-			{
-				((CluesTab) tab).expandStepForTest(clue.id);
-			}
-			else
-			{
-				((CluesTab) tab).expandUnitForTest(unit.objectId);
-			}
-			java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
-			assertTrue(names[view] + " render too small", image.getHeight() > 150);
-			java.io.File out = new java.io.File("build/reports/clues-" + names[view] + ".png");
-			out.getParentFile().mkdirs();
-			javax.imageio.ImageIO.write(image, "png", out);
-		}
+		// ONE combined view since 2026-07-28: open a tier and a step so the
+		// render shows the grammar (icons, dots, well, mark-filled action)
+		((CluesTab) tab).expandTierForTest(clue.tier);
+		((CluesTab) tab).expandStepForTest(clue.id);
+		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
+		assertTrue("render too small", image.getHeight() > 150);
+		java.io.File out = new java.io.File("build/reports/clues-tab.png");
+		out.getParentFile().mkdirs();
+		javax.imageio.ImageIO.write(image, "png", out);
 		module.shutDown();
 	}
 }
