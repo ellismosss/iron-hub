@@ -528,11 +528,12 @@ class CluesTab extends JPanel
 		counters.add(Box.createHorizontalGlue());
 		cap(counters);
 		card.add(counters);
-		if (!plan.missing.isEmpty())
+		boolean anyNeeds = !plan.loadout.isEmpty() || !plan.missing.isEmpty();
+		if (anyNeeds)
 		{
 			JPanel foldRow = row();
-			foldRow.add(actionLabel(routeMissingOpen ? "Hide missing"
-				: "Missing for this tier (" + plan.missing.size() + ")", () ->
+			foldRow.add(actionLabel(routeMissingOpen ? "Hide tier items"
+				: "Items for this tier (" + plan.loadout.size() + ")", () ->
 			{
 				routeMissingOpen = !routeMissingOpen;
 				javax.swing.SwingUtilities.invokeLater(this::rebuildContent);
@@ -541,11 +542,24 @@ class CluesTab extends JPanel
 			cap(foldRow);
 			card.add(foldRow);
 		}
-		if (routeMissingOpen && !plan.missing.isEmpty())
+		if (routeMissingOpen && anyNeeds)
 		{
 			V2Surface well = V2Surface.well(theme);
 			int inset = com.ironhub.ui.v2.V2Well.CAP + V2Tokens.TIGHT;
 			well.setBorder(new EmptyBorder(inset, inset, inset, inset));
+			// every item the tier's unfilled units want — each STASH keeps
+			// its copy, so counts are per step — met in green
+			for (StashRouter.Loadout item : plan.loadout)
+			{
+				String line = "· " + item.label;
+				if (item.needed > 1 || !item.met())
+				{
+					line += " — " + Math.min(item.have, item.needed) + "/" + item.needed;
+				}
+				well.add(OsrsLabel.wrapped(line, WELL_WRAP,
+					item.met() ? OsrsSkin.VALUE : OsrsSkin.MUTED,
+					OsrsSkin.smallFont()).leftAligned());
+			}
 			for (String line : plan.missing)
 			{
 				well.add(OsrsLabel.wrapped("· " + line, WELL_WRAP,

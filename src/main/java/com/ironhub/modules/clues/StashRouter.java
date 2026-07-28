@@ -1,7 +1,6 @@
 package com.ironhub.modules.clues;
 
 import com.ironhub.data.ClueStepsPack;
-import com.ironhub.requirements.Requirement;
 import com.ironhub.state.AccountState;
 import com.ironhub.state.StateView;
 import java.util.ArrayList;
@@ -82,6 +81,20 @@ final class StashRouter
 		int distance = -1;            // tiles from the previous stop, -1 unknown
 	}
 
+	/** One requirement across the whole tier: every STASH keeps its own
+	 *  copy, so three steps wanting a gold ring want THREE gold rings. */
+	static final class Loadout
+	{
+		String label;   // the requirement's describe()
+		int needed;     // unfilled steps asking for it
+		int have;       // owned across its alternatives (storages count)
+
+		boolean met()
+		{
+			return have >= needed;
+		}
+	}
+
 	/** The active tier's marching orders. */
 	static final class Plan
 	{
@@ -91,7 +104,8 @@ final class StashRouter
 		int unbuilt;
 		final List<Stop> route = new ArrayList<>();    // ready, nearest-first
 		final List<Stop> waiting = new ArrayList<>();  // missing outfit items
-		final List<String> missing = new ArrayList<>();  // aggregated needs lines
+		final List<Loadout> loadout = new ArrayList<>();  // every item the tier needs
+		final List<String> missing = new ArrayList<>();   // build shortfall lines
 	}
 
 	private StashRouter()
@@ -158,8 +172,65 @@ final class StashRouter
 			}
 			(stop.ready ? ready : plan.waiting).add(stop);
 		}
+		aggregateLoadout(plan, ready, owning);
 		orderRoute(plan, ready, from);
-		aggregateMissing(plan, state, owning);
+		aggregateMissing(plan, state);
+	}
+
+	/**
+	 * The whole tier's shopping list (Luke, 2026-07-28): every requirement
+	 * across the unfilled units, counted — filling a STASH keeps the
+	 * outfit, so a shared item is needed once PER STEP — with how many the
+	 * player owns across the requirement's alternatives.
+	 */
+	private static void aggregateLoadout(Plan plan, List<Stop> ready, StateView owning)
+	{
+		Map<String, Loadout> byReq = new LinkedHashMap<>();
+		List<Stop> unfilled = new ArrayList<>(ready);
+		unfilled.addAll(plan.waiting);
+		for (Stop stop : unfilled)
+		{
+			if (stop.clue == null)
+			{
+				continue;
+			}
+			for (String raw : stop.clue.reqs)
+			{
+				Loadout entry = byReq.computeIfAbsent(raw, r ->
+				{
+					Loadout fresh = new Loadout();
+					fresh.label = com.ironhub.requirements.Requirements.parse(r).describe();
+					fresh.have = ownedFor(r, owning);
+					return fresh;
+				});
+				entry.needed++;
+			}
+		}
+		plan.loadout.addAll(byReq.values());
+	}
+
+	/** Owned count across a raw requirement's alternatives — the pack's
+	 *  outfit reqs are "item:id:qty:Name" or "any:item:...|item:...". */
+	private static int ownedFor(String raw, StateView owning)
+	{
+		String body = raw.startsWith("any:") ? raw.substring(4) : raw;
+		int total = 0;
+		for (String alt : body.split("\\|"))
+		{
+			String[] parts = alt.split(":");
+			if (parts.length >= 2 && "item".equals(parts[0]))
+			{
+				try
+				{
+					total += owning.canonicalStock(Integer.parseInt(parts[1]));
+				}
+				catch (NumberFormatException e)
+				{
+					// a malformed alt counts nothing
+				}
+			}
+		}
+		return total;
 	}
 
 	/** Greedy nearest-neighbour from the player: good enough for a
@@ -195,29 +266,11 @@ final class StashRouter
 		return a.distanceTo2D(b) + (a.getPlane() == b.getPlane() ? 0 : PLANE_PENALTY);
 	}
 
-	/**
-	 * Everything the tier still needs, as lines: each missing outfit
-	 * requirement once (with a step count when several share it), then the
-	 * build shortfalls for the unbuilt units — level, planks, nails,
-	 * gold leaves, hammer, saw.
-	 */
-	private static void aggregateMissing(Plan plan, AccountState state, StateView owning)
+	/** The build shortfalls for the unbuilt units, as lines — level,
+	 *  planks, nails, gold leaves, hammer, saw. The outfit side lives in
+	 *  {@link Plan#loadout} with counts. */
+	private static void aggregateMissing(Plan plan, AccountState state)
 	{
-		Map<String, Integer> needs = new LinkedHashMap<>();
-		for (Stop stop : plan.waiting)
-		{
-			if (stop.clue == null)
-			{
-				continue;
-			}
-			for (Requirement req : ClueStashModule.requirement(stop.clue).missing(owning))
-			{
-				needs.merge(req.describe(), 1, Integer::sum);
-			}
-		}
-		needs.forEach((line, count) -> plan.missing.add(
-			count > 1 ? line + " (" + count + " steps)" : line));
-
 		if (plan.unbuilt == 0)
 		{
 			return;

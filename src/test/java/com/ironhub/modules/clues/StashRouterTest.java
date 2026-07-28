@@ -82,20 +82,46 @@ public class StashRouterTest
 	}
 
 	@Test
-	public void missingAggregatesOutfitsAndBuildMaterials()
+	public void loadoutListsTheWholeTierAndMissingListsBuildMaterials()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 		StashRouter.Plan plan = plan(state, null);
 		assertTrue(plan.route.isEmpty());
 		assertEquals(3, plan.waiting.size());
-		// every step's outfit is missing, and so is everything to build with
-		assertTrue(plan.missing.stream().anyMatch(l -> l.contains("Gold ring")));
-		assertTrue(plan.missing.stream().anyMatch(l -> l.contains("Bronze axe")));
+		// the loadout is EVERY item the tier wants — all six Beginner pieces
+		assertEquals(6, plan.loadout.size());
+		assertTrue(plan.loadout.stream().anyMatch(l ->
+			l.label.equals("Gold ring") && l.needed == 1 && l.have == 0 && !l.met()));
+		assertTrue(plan.loadout.stream().anyMatch(l -> l.label.equals("Bronze axe")));
+		// missing carries the build side
 		assertTrue(plan.missing.stream().anyMatch(l -> l.contains("Level 12 Construction")));
 		assertTrue(plan.missing.stream().anyMatch(l -> l.contains("6 planks")));
 		assertTrue(plan.missing.stream().anyMatch(l -> l.contains("30 nails")));
 		assertTrue(plan.missing.stream().anyMatch(l -> l.contains("A hammer")));
 		assertTrue(plan.missing.stream().anyMatch(l -> l.contains("A saw")));
+	}
+
+	/** Filling a STASH keeps the outfit inside it — two Easy steps wearing
+	 *  a gold ring need TWO gold rings, and one owned is only 1/2. */
+	@Test
+	public void sharedItemsCountPerStep()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		for (com.ironhub.data.ClueStepsPack.Stash unit : pack.stash)
+		{
+			if ("Beginner".equals(unit.tier))
+			{
+				state.setStashFilled(unit.objectId, true);
+			}
+		}
+		StateFixture.bank(state, Map.of(1635, 1)); // one gold ring
+		StashRouter.Plan plan = plan(state, null);
+		assertEquals("Easy", plan.tier);
+		StashRouter.Loadout ring = plan.loadout.stream()
+			.filter(l -> l.label.equals("Gold ring")).findFirst().orElseThrow();
+		assertEquals(2, ring.needed);
+		assertEquals(1, ring.have);
+		assertFalse(ring.met());
 	}
 
 	@Test
@@ -107,10 +133,10 @@ public class StashRouterTest
 			ItemID.NAILS_BRONZE, 100, ItemID.HAMMER, 1, ItemID.POH_SAW, 1));
 		StashRouter.Plan plan = plan(state, null);
 		assertEquals("Beginner", plan.tier);
-		assertFalse(plan.missing.stream().anyMatch(l -> l.contains("to build")));
-		assertFalse(plan.missing.stream().anyMatch(l -> l.contains("hammer")));
-		// the outfits are still missing
-		assertTrue(plan.missing.stream().anyMatch(l -> l.contains("Gold ring")));
+		assertTrue("only build lines live in missing", plan.missing.isEmpty());
+		// the outfits are still wanted by the loadout
+		assertTrue(plan.loadout.stream().anyMatch(l ->
+			l.label.equals("Gold ring") && !l.met()));
 	}
 
 	/** 10 nails must be ONE metal: 6 bronze + 4 iron builds nothing. */
