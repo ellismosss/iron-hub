@@ -529,13 +529,24 @@ the same claim varbit and the stop culls itself.
 
 ## STASH units & emote clue steps (module: clues, pack: clue-steps.json)
 
-**A built STASH's game object only renders for the player who built it** —
-the `ObjectID.HH_*` object spawning in the scene is proof the LOCAL player
-built that unit (the STASH Tracker plugin's core trick, ported). The
-gameval `ObjectID` class is **split across `ObjectID` and `ObjectID1`**
-for class-file size — resolve constants against both.
+**Built state is a varbit — authoritative (2026-07-29, the S.T.A.S.H
+chart arc)**: every unit has a 1-bit gameval `HH_CONSTRUCTED_<X>` varbit
+named after its object (`ObjectID.HH_<X>` — a strict 1:1 name rule
+across all 119 once BOTH `ObjectID` and `ObjectID1` are read; the
+gameval `ObjectID` class is **split across the two** for class-file
+size). One 32-bit varp per tier backs them (`VarPlayerID.HH_CONSTRUCTED_
+<TIER>`), which is also the proof they are 1-bit built flags — Easy's
+25+ALL varbits share varp 1365. This is the same state the in-game
+S.T.A.S.H chart (PoH study wall chart) and Watson's noticeboard render.
+The module syncs from `VarbitChanged` plus one full sweep per session,
+SETTING AND CLEARING — false marks heal themselves. The old
+built-object-spawn premise (a built STASH's object only renders for its
+builder — the STASH Tracker trick) is retired; the pack bakes
+`varbitId` per unit (gen_clue_steps.py resolves and uniqueness-checks
+at generation).
 
-**Filled state has no varbit**: it comes from deposit/withdraw chat
+**Filled state has no varbit** (the tier varps have no spare bits): it
+comes from deposit/withdraw chat
 messages (GAMEMESSAGE/SPAM/MESBOX containing "stash", keyword-loose),
 attributed to the STASH the player clicked within 5s, else the nearest
 unit within 5 tiles. A STASH **filled before the plugin existed is

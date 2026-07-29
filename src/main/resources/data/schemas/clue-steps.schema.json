@@ -33,12 +33,13 @@
 			"minItems": 110,
 			"items": {
 				"type": "object",
-				"required": ["key", "tier", "objectId", "name", "x", "y", "plane"],
+				"required": ["key", "tier", "objectId", "varbitId", "name", "x", "y", "plane"],
 				"additionalProperties": false,
 				"properties": {
 					"key": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
 					"tier": {"enum": ["Beginner", "Easy", "Medium", "Hard", "Elite", "Master"]},
 					"objectId": {"type": "integer", "minimum": 1},
+					"varbitId": {"type": "integer", "minimum": 1},
 					"name": {"type": "string", "minLength": 1},
 					"x": {"type": "integer"},
 					"y": {"type": "integer"},

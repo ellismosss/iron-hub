@@ -78,6 +78,10 @@ public class ClueStepsPack
 	public static class Stash
 	{
 		public String key;
+		/** The unit's BUILT varbit (gameval HH_CONSTRUCTED_*) — 1 bit,
+		 *  authoritative, streamed like any varp (the S.T.A.S.H chart
+		 *  reads the same state). */
+		public int varbitId;
 		public String tier;
 		public int objectId;
 		public String name;

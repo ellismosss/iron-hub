@@ -105,6 +105,73 @@ public class CluesTest
 		module.shutDown();
 	}
 
+	/** Every unit carries its gameval HH_CONSTRUCTED_* built varbit —
+	 *  unique, present, the S.T.A.S.H chart's own source (2026-07-29). */
+	@Test
+	public void everyUnitHasAUniqueBuiltVarbit()
+	{
+		java.util.Set<Integer> seen = new java.util.HashSet<>();
+		for (ClueStepsPack.Stash unit : pack.stash)
+		{
+			assertTrue(unit.key, unit.varbitId > 0);
+			assertTrue("duplicate varbit " + unit.varbitId, seen.add(unit.varbitId));
+		}
+		assertEquals(pack.stash.size(), seen.size());
+	}
+
+	/** The built varbits are AUTHORITATIVE both ways: 1 marks built, 0
+	 *  clears built AND filled (nothing stands there), so stale or false
+	 *  marks heal themselves. */
+	@Test
+	public void builtVarbitsSetAndClear()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		ClueStashModule module = module(state);
+		ClueStepsPack.Stash unit = pack.stash.get(0);
+
+		net.runelite.api.events.VarbitChanged event =
+			org.mockito.Mockito.mock(net.runelite.api.events.VarbitChanged.class);
+		org.mockito.Mockito.when(event.getVarbitId()).thenReturn(unit.varbitId);
+		org.mockito.Mockito.when(event.getValue()).thenReturn(1);
+		module.onVarbitChanged(event);
+		assertTrue(state.isStashBuilt(unit.objectId));
+
+		state.setStashFilled(unit.objectId, true);
+		org.mockito.Mockito.when(event.getValue()).thenReturn(0);
+		module.onVarbitChanged(event);
+		assertFalse(state.isStashBuilt(unit.objectId));
+		assertFalse(state.isStashFilled(unit.objectId));
+
+		// an unrelated varbit is ignored
+		org.mockito.Mockito.when(event.getVarbitId()).thenReturn(-1);
+		org.mockito.Mockito.when(event.getValue()).thenReturn(1);
+		module.onVarbitChanged(event);
+		assertFalse(state.isStashBuilt(unit.objectId));
+	}
+
+	/** One full sweep per session covers the mid-session plugin enable
+	 *  that VarbitChanged never fires for. */
+	@Test
+	public void gameTickSweepsBuiltVarbitsOnce()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		net.runelite.api.Client client = org.mockito.Mockito.mock(net.runelite.api.Client.class);
+		org.mockito.Mockito.when(client.getGameState())
+			.thenReturn(net.runelite.api.GameState.LOGGED_IN);
+		ClueStepsPack.Stash built = pack.stash.get(0);
+		org.mockito.Mockito.when(client.getVarbitValue(built.varbitId)).thenReturn(1);
+		ClueStashModule module = new ClueStashModule(state, config, new DataPack(new Gson()),
+			new EventBus(), client, null, null);
+		module.onGameTick(null);
+		assertTrue(state.isStashBuilt(built.objectId));
+		assertFalse(state.isStashBuilt(pack.stash.get(1).objectId));
+		// swept once — later ticks don't re-read
+		org.mockito.Mockito.clearInvocations(client);
+		module.onGameTick(null);
+		org.mockito.Mockito.verify(client,
+			org.mockito.Mockito.never()).getVarbitValue(org.mockito.Mockito.anyInt());
+	}
+
 	@Test
 	public void readyToFillNeedsOwnershipAndAnUnfilledUnit()
 	{

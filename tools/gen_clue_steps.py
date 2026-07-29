@@ -367,15 +367,25 @@ ST_ENTRY = re.compile(
 
 def parse_stash_units(object_ids: dict):
     src = fetch(ST_URL, f"st-StashUnit-{ST_COMMIT[:7]}.java")
+    # gameval names each unit's BUILT varbit after its object: object
+    # HH_<X> -> varbit HH_CONSTRUCTED_<X> (verified 1:1 across all 119,
+    # 2026-07-29 — the S.T.A.S.H chart arc). Authoritative built state.
+    varbit_ids = constants_of("net.runelite.api.gameval.VarbitID")
+    object_names = {v: k for k, v in object_ids.items() if k.startswith("HH_")}
     units = []
     for m in ST_ENTRY.finditer(src):
         const = m.group(3)
         if const not in object_ids:
             raise SystemExit(f"unresolved ObjectID.{const}")
+        object_id = object_ids[const]
+        varbit_name = "HH_CONSTRUCTED_" + object_names[object_id][3:]
+        if varbit_name not in varbit_ids:
+            raise SystemExit(f"no built varbit {varbit_name} for {const}")
         units.append({
             "key": m.group(1),
             "tier": m.group(2).capitalize(),
-            "objectId": object_ids[const],
+            "objectId": object_id,
+            "varbitId": varbit_ids[varbit_name],
             "name": m.group(4),
             "x": int(m.group(5)),
             "y": int(m.group(6)),
@@ -383,6 +393,8 @@ def parse_stash_units(object_ids: dict):
         })
     if len(units) < 110:
         raise SystemExit(f"suspiciously few STASH units: {len(units)}")
+    if len({u["varbitId"] for u in units}) != len(units):
+        raise SystemExit("duplicate built varbits across STASH units")
     return units
 
 

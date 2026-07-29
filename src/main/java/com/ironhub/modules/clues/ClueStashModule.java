@@ -18,7 +18,6 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
-import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
@@ -30,12 +29,13 @@ import net.runelite.client.util.Text;
  * doability against owned items via the requirement graph — with a `+`
  * that adds unlocking a step to Goals.
  *
- * <p>STASH detection ports the STASH Tracker plugin (BSD-2, Nearvaas,
- * github.com/Nearvaas/S.T.A.S.H-Toolkit): a built STASH's game object
- * only renders for the player who built it, so seeing it spawn proves
- * "built"; deposit/withdraw chat messages — attributed to the STASH the
- * player just clicked, else the nearest unit — flip "filled". A manual
- * toggle in the tab covers STASHes filled before the plugin existed.</p>
+ * <p>BUILT state reads the per-unit {@code HH_CONSTRUCTED_*} varbits
+ * (authoritative — the S.T.A.S.H chart's own source; 2026-07-29).
+ * FILLED still ports the STASH Tracker plugin's chat detection (BSD-2,
+ * Nearvaas, github.com/Nearvaas/S.T.A.S.H-Toolkit): deposit/withdraw
+ * messages — attributed to the STASH the player just clicked, else the
+ * nearest unit — flip "filled". A manual toggle in the tab covers
+ * STASHes filled before the plugin existed.</p>
  */
 @Slf4j
 @Singleton
@@ -373,20 +373,66 @@ public class ClueStashModule implements IronHubModule
 		markProofs();
 	}
 
-	// ── STASH detection (STASH Tracker port) ──────────────────────────
+	// ── STASH detection ───────────────────────────────────────────────
 
-	/** A built STASH's object only renders for the player who built it. */
-	@Subscribe
-	public void onGameObjectSpawned(GameObjectSpawned event)
+	/**
+	 * BUILT state is AUTHORITATIVE since 2026-07-29 (Luke found the
+	 * S.T.A.S.H chart): every unit has a 1-bit gameval
+	 * {@code HH_CONSTRUCTED_*} varbit — the same state the chart and
+	 * Watson's noticeboard render — streamed like any varp. The old
+	 * built-object-spawn premise is gone; varbits set AND clear, so a
+	 * stale or false mark heals itself. Filled has no varbit — chat
+	 * detection and the manual toggle still carry it (a cleared built
+	 * varbit clears filled too: nothing stands there).
+	 */
+	private java.util.Map<Integer, ClueStepsPack.Stash> stashByVarbit;
+	private boolean varbitsSwept;
+
+	private ClueStepsPack.Stash byVarbit(int varbitId)
 	{
-		if (pack == null)
+		if (stashByVarbit == null)
 		{
-			return;
+			stashByVarbit = new java.util.HashMap<>();
+			if (pack != null)
+			{
+				for (ClueStepsPack.Stash unit : pack.stash)
+				{
+					stashByVarbit.put(unit.varbitId, unit);
+				}
+			}
 		}
-		ClueStepsPack.Stash unit = pack.stashByObjectId(event.getGameObject().getId());
-		if (unit != null)
+		return stashByVarbit.get(varbitId);
+	}
+
+	private void applyBuiltVarbit(ClueStepsPack.Stash unit, int value)
+	{
+		if (value > 0)
 		{
 			state.setStashBuilt(unit.objectId, true);
+		}
+		else
+		{
+			state.setStashFilled(unit.objectId, false);
+			state.setStashBuilt(unit.objectId, false);
+		}
+	}
+
+	@Subscribe
+	public void onVarbitChanged(net.runelite.api.events.VarbitChanged event)
+	{
+		ClueStepsPack.Stash unit = byVarbit(event.getVarbitId());
+		if (unit != null)
+		{
+			applyBuiltVarbit(unit, event.getValue());
+		}
+	}
+
+	@Subscribe
+	public void onGameStateChanged(net.runelite.api.events.GameStateChanged event)
+	{
+		if (event.getGameState() == net.runelite.api.GameState.LOGGED_IN)
+		{
+			varbitsSwept = false; // re-sweep each session (profile may differ)
 		}
 	}
 
@@ -554,9 +600,24 @@ public class ClueStashModule implements IronHubModule
 	@Subscribe
 	public void onGameTick(net.runelite.api.events.GameTick event)
 	{
-		if (client != null && client.getLocalPlayer() != null)
+		if (client == null)
+		{
+			return;
+		}
+		if (client.getLocalPlayer() != null)
 		{
 			lastPlayerPoint = client.getLocalPlayer().getWorldLocation();
+		}
+		// one full varbit sweep per session, on the client thread — the
+		// mid-session plugin enable that VarbitChanged never covers
+		if (!varbitsSwept && pack != null
+			&& client.getGameState() == net.runelite.api.GameState.LOGGED_IN)
+		{
+			varbitsSwept = true;
+			for (ClueStepsPack.Stash unit : pack.stash)
+			{
+				applyBuiltVarbit(unit, client.getVarbitValue(unit.varbitId));
+			}
 		}
 	}
 
