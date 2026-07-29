@@ -136,11 +136,14 @@ class CluesTab extends JPanel
 	/** The unit key the router last auto-pathed to — the route re-posts
 	 *  only when the NEXT stop actually changes, never per rebuild. */
 	private String lastAutoRouted;
+	/** The routed tier, or null — routing is OPT-IN per tier (Luke,
+	 *  2026-07-28: no auto-route on opening the section; a button next to
+	 *  each tier starts it). */
+	private String activeRouteTier;
 	/** The FROZEN route (Luke, 2026-07-28: "follow a set route unless
-	 *  skipped"): the NN order locked in when the tier starts — moving
+	 *  skipped"): the NN order locked in when the route starts — moving
 	 *  never reshuffles it; filled stops drop out, newly-ready units
 	 *  append, and only fill/Skip advance the pointer. */
-	private String routeTier;
 	private final List<String> routeOrder = new ArrayList<>();
 	/** clue id -> its STASH unit, built once per pack. */
 	private Map<String, ClueStepsPack.Stash> unitByClue;
@@ -193,6 +196,15 @@ class CluesTab extends JPanel
 	void openRouteMissingForTest()
 	{
 		routeMissingOpen = true;
+		rebuild();
+	}
+
+	void startRouteForTest(String tier)
+	{
+		activeRouteTier = tier;
+		routeOrder.clear();
+		routeSkips.clear();
+		lastAutoRouted = null;
 		rebuild();
 	}
 
@@ -253,7 +265,7 @@ class CluesTab extends JPanel
 			for (ClueStepsPack.Clue clue : pack.clues)
 			{
 				steps++;
-				if (ClueStashModule.doable(clue, module.owningView()))
+				if (module.satisfied(clue))
 				{
 					doable++;
 				}
@@ -268,7 +280,7 @@ class CluesTab extends JPanel
 			{
 				int idx = tierIndex(clue.tier);
 				tierSteps[idx]++;
-				if (ClueStashModule.doable(clue, module.owningView()))
+				if (module.satisfied(clue))
 				{
 					tierDoable[idx]++;
 				}
@@ -396,7 +408,7 @@ class CluesTab extends JPanel
 		{
 			List<ClueStepsPack.Clue> clues = byTier.get(tier);
 			if (clues != null && clues.stream()
-				.anyMatch(c -> showDoable || !ClueStashModule.doable(c, module.owningView())))
+				.anyMatch(c -> showDoable || !module.satisfied(c)))
 			{
 				tiers.add(tier);
 			}
@@ -418,7 +430,7 @@ class CluesTab extends JPanel
 				String tier = tiers.get(start + col);
 				List<ClueStepsPack.Clue> clues = byTier.get(tier);
 				int doable = (int) clues.stream()
-					.filter(c -> ClueStashModule.doable(c, module.owningView())).count();
+					.filter(module::satisfied).count();
 				line.add(tierTile(tier, doable, clues.size()));
 			}
 			line.add(Box.createHorizontalGlue());
@@ -449,12 +461,44 @@ class CluesTab extends JPanel
 	 * missing outfit items and build materials — into a Well. Detection
 	 * marking a unit filled advances the route by itself.
 	 */
+	/** Start routing a tier: fresh freeze, fresh skips, path follows. */
+	private void startRoute(String tier)
+	{
+		activeRouteTier = tier;
+		routeOrder.clear();
+		routeSkips.clear();
+		lastAutoRouted = null;
+		javax.swing.SwingUtilities.invokeLater(this::rebuildContent);
+	}
+
+	/** Stop routing: forget the freeze and drop the posted path. */
+	private void stopRoute()
+	{
+		activeRouteTier = null;
+		routeOrder.clear();
+		routeSkips.clear();
+		if (lastAutoRouted != null)
+		{
+			lastAutoRouted = null;
+			module.clearRoute();
+		}
+		javax.swing.SwingUtilities.invokeLater(this::rebuildContent);
+	}
+
 	private JComponent routerCard(ClueStepsPack pack)
 	{
-		StashRouter.Plan plan = module.routePlan();
-		if (plan.tier == null)
+		if (activeRouteTier == null)
 		{
-			// every unit filled — nothing to route; drop a lingering path
+			return null; // routing is opt-in — the tier headers carry the button
+		}
+		StashRouter.Plan plan = module.routePlan(activeRouteTier);
+		if (plan.units == 0 || plan.filled >= plan.units)
+		{
+			// the routed tier is done — the route has served its purpose
+			// (cleared inline: we are already mid-rebuild)
+			activeRouteTier = null;
+			routeOrder.clear();
+			routeSkips.clear();
 			if (lastAutoRouted != null)
 			{
 				lastAutoRouted = null;
@@ -473,19 +517,13 @@ class CluesTab extends JPanel
 		cap(title);
 		card.add(title);
 
-		// reconcile the frozen route: a new tier re-freezes from scratch,
-		// stops no longer ready leave, newcomers append — existing stops
-		// KEEP their position, so moving never re-points the router
+		// reconcile the frozen route: stops no longer ready leave,
+		// newcomers append — existing stops KEEP their position, so moving
+		// never re-points the router
 		Map<String, StashRouter.Stop> readyByKey = new LinkedHashMap<>();
 		for (StashRouter.Stop stop : plan.route)
 		{
 			readyByKey.put(stop.unit.key, stop);
-		}
-		if (!plan.tier.equals(routeTier))
-		{
-			routeTier = plan.tier;
-			routeOrder.clear();
-			routeSkips.clear();
 		}
 		routeOrder.removeIf(key -> !readyByKey.containsKey(key));
 		for (StashRouter.Stop stop : plan.route)
@@ -559,7 +597,9 @@ class CluesTab extends JPanel
 					routeSkips.add(stop.unit.key);
 					javax.swing.SwingUtilities.invokeLater(this::rebuildContent);
 				}));
+				actions.add(Box.createHorizontalStrut(V2Tokens.ROW));
 			}
+			actions.add(actionLabel("Stop route", this::stopRoute));
 			actions.add(Box.createHorizontalGlue());
 			cap(actions);
 			card.add(actions);
@@ -568,6 +608,11 @@ class CluesTab extends JPanel
 		{
 			card.add(new OsrsLabel("Nothing ready to fill on this tier.",
 				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+			JPanel actions = row();
+			actions.add(actionLabel("Stop route", this::stopRoute));
+			actions.add(Box.createHorizontalGlue());
+			cap(actions);
+			card.add(actions);
 		}
 
 		card.add(Box.createVerticalStrut(2));
@@ -663,7 +708,7 @@ class CluesTab extends JPanel
 	private void tierDetail(String tier, List<ClueStepsPack.Clue> clues)
 	{
 		int doable = (int) clues.stream()
-			.filter(c -> ClueStashModule.doable(c, module.owningView())).count();
+			.filter(module::satisfied).count();
 		int units = 0;
 		int filled = 0;
 		for (ClueStepsPack.Clue clue : clues)
@@ -679,7 +724,8 @@ class CluesTab extends JPanel
 			}
 		}
 		content.add(tierHeader(tier, doable, clues.size(),
-			units > 0 ? filled + "/" + units + " STASH filled" : null));
+			units > 0 ? filled + "/" + units + " STASH filled" : null,
+			filled < units));
 		content.add(Box.createVerticalStrut(V2Tokens.TIGHT));
 
 		// evaluate each step ONCE per rebuild (2026-07-20 audit); blocked
@@ -688,7 +734,7 @@ class CluesTab extends JPanel
 		Map<ClueStepsPack.Clue, Double> gapBy = new java.util.IdentityHashMap<>();
 		for (ClueStepsPack.Clue clue : clues)
 		{
-			boolean can = ClueStashModule.doable(clue, module.owningView());
+			boolean can = module.satisfied(clue);
 			doableBy.put(clue, can);
 			double gap = 0;
 			if (!can && clue.reqs != null)
@@ -773,12 +819,26 @@ class CluesTab extends JPanel
 
 	/** Tier name, "Steps doable: d/D" in the game's colour scale, and the
 	 *  tier's STASH tally at the right. */
-	private JComponent tierHeader(String tier, int done, int total, String sub)
+	private JComponent tierHeader(String tier, int done, int total, String sub,
+		boolean routable)
 	{
 		V2Surface card = V2Surface.card(theme);
 		JPanel titleRow = row();
 		titleRow.add(new OsrsLabel(tier, OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
 		titleRow.add(Box.createHorizontalGlue());
+		// routing is opt-in per tier (Luke, 2026-07-28) — this button is
+		// the only thing that starts it
+		if (tier.equals(activeRouteTier))
+		{
+			titleRow.add(actionLabel("Stop route", this::stopRoute));
+		}
+		else if (routable)
+		{
+			OsrsLabel start = actionLabel("Route this tier", () -> startRoute(tier));
+			start.setToolTipText("Plan a stocking route through this tier's "
+				+ "unfilled STASH units");
+			titleRow.add(start);
+		}
 		cap(titleRow);
 		card.add(titleRow);
 		Color colour = done == 0 ? V2Tokens.BLOCKED
@@ -821,10 +881,14 @@ class CluesTab extends JPanel
 			any = true;
 			head.add(emoteIcon(emote, slot));
 		}
+		// a filled unit's outfit is inside it — the icons read met, never
+		// dark-ghosted (Luke, 2026-07-28)
+		ClueStepsPack.Stash rowUnit = unitFor(clue);
+		boolean unitFilled = rowUnit != null && state.isStashFilled(rowUnit.objectId);
 		for (String raw : clue.reqs)
 		{
 			Requirement req = com.ironhub.requirements.Requirements.parse(raw);
-			boolean met = req.isMet(module.owningView());
+			boolean met = unitFilled || req.isMet(module.owningView());
 			if (altItemId((raw.startsWith("any:") ? raw.substring(4) : raw).split("\\|")[0]) <= 0)
 			{
 				continue;
@@ -844,10 +908,9 @@ class CluesTab extends JPanel
 		}
 		head.add(Box.createHorizontalGlue());
 		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		ClueStepsPack.Stash unit = unitFor(clue);
-		if (unit != null)
+		if (rowUnit != null)
 		{
-			head.add(stashIcon(unit));
+			head.add(stashIcon(rowUnit));
 			head.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		}
 		if (!doable && !clue.reqs.isEmpty())
@@ -1108,15 +1171,19 @@ class CluesTab extends JPanel
 		well.add(OsrsLabel.wrapped(clue.text, WELL_WRAP,
 			V2Tokens.STRONG, OsrsSkin.smallFont()).leftAligned());
 		ClueStepsPack.Stash unit = unitFor(clue);
+		boolean unitFilled = unit != null && state.isStashFilled(unit.objectId);
 		JPanel meta = row();
-		meta.add(new OsrsLabel(doable ? "Doable now" : "Missing items",
-			doable ? OsrsSkin.VALUE : OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
-		if (unit != null)
+		// a filled unit means the outfit is exactly where it belongs — the
+		// step is COMPLETE, not "missing items" (Luke, 2026-07-28)
+		meta.add(new OsrsLabel(unitFilled ? "Complete — outfit in its STASH"
+				: doable ? "Doable now" : "Missing items",
+			unitFilled || doable ? OsrsSkin.VALUE : OsrsSkin.FAINT,
+			OsrsSkin.smallFont()).leftAligned());
+		if (unit != null && !unitFilled)
 		{
-			boolean filled = state.isStashFilled(unit.objectId);
 			boolean built = state.isStashBuilt(unit.objectId);
 			meta.add(new OsrsLabel(" · STASH "
-					+ (filled ? "filled" : built ? "built, empty" : "not built"),
+					+ (built ? "built, empty" : "not built"),
 				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
 		}
 		meta.add(Box.createHorizontalGlue());
@@ -1125,7 +1192,7 @@ class CluesTab extends JPanel
 		for (String raw : clue.reqs)
 		{
 			Requirement req = com.ironhub.requirements.Requirements.parse(raw);
-			boolean met = req.isMet(module.owningView());
+			boolean met = unitFilled || req.isMet(module.owningView());
 			String line = "· " + req.describe();
 			if (!met)
 			{

@@ -181,6 +181,28 @@ public class CluesTest
 		assertFalse(ClueStashModule.doable(clue, state));
 	}
 
+	/** Filling a step's OWN unit satisfies that step — after a filling run
+	 *  the deposited outfits are sealed (rightly unavailable for OTHER
+	 *  units), but the filled steps must read COMPLETE, not "missing
+	 *  items" (Luke's 2026-07-28 report after filling Beginner+Easy). */
+	@Test
+	public void filledUnitSatisfiesItsOwnStep()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		ClueStashModule module = module(state);
+		ClueStepsPack.Clue clue = swampShack();
+		ClueStepsPack.Stash unit = pack.stash.stream()
+			.filter(u -> clue.id.equals(u.clueId)).findFirst().orElseThrow();
+
+		// nothing owned, nothing filled: not satisfied
+		assertFalse(module.satisfied(clue));
+		// the outfit went INTO the unit: doable stays false (items sealed),
+		// but the step is satisfied — its STASH holds the outfit
+		state.setStashFilled(unit.objectId, true);
+		assertFalse(ClueStashModule.doable(clue, module.owningView()));
+		assertTrue(module.satisfied(clue));
+	}
+
 	/** An outfit SEALED INSIDE a STASH unit is not available for filling
 	 *  another — Luke's 2026-07-28 report: the router asked him to strip
 	 *  one STASH to dress the next. WMS mirrors filled units as family
@@ -221,7 +243,7 @@ public class CluesTest
 
 		// no tick yet: planning must not reach for the client
 		org.mockito.Mockito.verifyNoInteractions(client);
-		assertEquals("Beginner", module.routePlan().tier);
+		assertEquals("Beginner", module.routePlan("Beginner").tier);
 		org.mockito.Mockito.verifyNoInteractions(client);
 
 		// a game tick caches the position; the planner orders from it
@@ -231,7 +253,7 @@ public class CluesTest
 		// any client read AFTER the tick is the EDT crash again
 		org.mockito.Mockito.when(client.getLocalPlayer())
 			.thenThrow(new AssertionError("must be called on client thread"));
-		StashRouter.Plan plan = module.routePlan();
+		StashRouter.Plan plan = module.routePlan("Beginner");
 		assertEquals(34738, plan.route.get(0).unit.objectId); // Bob's Axes, Lumbridge
 	}
 
@@ -258,7 +280,10 @@ public class CluesTest
 		ClueStashModule module = new ClueStashModule(state, config, new DataPack(new Gson()),
 			bus, null, null, new com.ironhub.integrations.ShortestPathBridge(bus, null));
 		module.startUp();
-		javax.swing.JComponent tab = module.buildTab(); // first plan → first auto-route
+		javax.swing.JComponent tab = module.buildTab();
+		// routing is OPT-IN (Luke, 2026-07-28): opening the section posts NOTHING
+		assertTrue(posted.isEmpty());
+		((CluesTab) tab).startRouteForTest("Beginner"); // the tier button
 		assertEquals(1, posted.size());
 		assertEquals("path", posted.get(0).getName());
 		// no player position: the route starts at the tier's first unit
@@ -310,6 +335,8 @@ public class CluesTest
 		module.startUp();
 		module.onGameTick(null);
 		javax.swing.JComponent tab = module.buildTab();
+		assertTrue(posted.isEmpty()); // opt-in: nothing until the button
+		((CluesTab) tab).startRouteForTest("Beginner");
 		// from Lumbridge the frozen order is Bob's Axes → Fine Clothes → Gypsy
 		assertEquals(1, posted.size());
 		net.runelite.api.coords.WorldPoint target =
@@ -355,7 +382,9 @@ public class CluesTest
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
 		// ONE combined view since 2026-07-28: open a tier and a step so the
-		// render shows the grammar (icons, dots, well, mark-filled action)
+		// render shows the grammar (icons, dots, well, mark-filled action);
+		// start a Beginner route so the router card renders too
+		((CluesTab) tab).startRouteForTest("Beginner");
 		((CluesTab) tab).expandTierForTest(clue.tier);
 		((CluesTab) tab).expandStepForTest(clue.id);
 		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);

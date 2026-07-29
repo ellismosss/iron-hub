@@ -38,28 +38,37 @@ public class StashRouterTest
 
 	private StashRouter.Plan plan(AccountState state, WorldPoint from)
 	{
-		// AccountState IS a StateView; the module's storage-aware wrapper
-		// only widens ownership, which these fixtures put in the bank anyway
-		return StashRouter.plan(pack, state, state, from);
+		return plan(state, from, "Beginner");
 	}
 
+	private StashRouter.Plan plan(AccountState state, WorldPoint from, String tier)
+	{
+		// AccountState IS a StateView; the module's storage-aware wrapper
+		// only widens ownership, which these fixtures put in the bank anyway
+		return StashRouter.plan(pack, state, state, from, tier);
+	}
+
+	/** Routing is per-CHOSEN-tier (Luke, 2026-07-28) — a complete tier
+	 *  reports its tally with an empty plan, any tier can be asked for. */
 	@Test
-	public void beginnerIsTheActiveTierUntilFilled()
+	public void plansTheChosenTierAndReportsCompletion()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
-		StashRouter.Plan plan = plan(state, null);
+		StashRouter.Plan plan = plan(state, null, "Beginner");
 		assertEquals("Beginner", plan.tier);
 		assertEquals(3, plan.units);
 		assertEquals(0, plan.filled);
 		assertEquals(3, plan.unbuilt);
+		// any tier is askable, no first-incomplete auto-pick
+		assertEquals(31, plan(state, null, "Easy").units);
 
-		// filling all three advances the router to Easy — one tier at a time
 		state.setStashFilled(34736, true);
 		state.setStashFilled(34737, true);
 		state.setStashFilled(34738, true);
-		plan = plan(state, null);
-		assertEquals("Easy", plan.tier);
-		assertEquals(0, plan.filled);
+		plan = plan(state, null, "Beginner");
+		assertEquals(3, plan.filled);
+		assertTrue("complete tier plans nothing", plan.route.isEmpty());
+		assertTrue(plan.waiting.isEmpty());
 	}
 
 	@Test
@@ -113,15 +122,8 @@ public class StashRouterTest
 	public void sharedItemsCountPerStep()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
-		for (com.ironhub.data.ClueStepsPack.Stash unit : pack.stash)
-		{
-			if ("Beginner".equals(unit.tier))
-			{
-				state.setStashFilled(unit.objectId, true);
-			}
-		}
 		StateFixture.bank(state, Map.of(1635, 1)); // one gold ring
-		StashRouter.Plan plan = plan(state, null);
+		StashRouter.Plan plan = plan(state, null, "Easy");
 		assertEquals("Easy", plan.tier);
 		StashRouter.Loadout ring = plan.loadout.stream()
 			.filter(l -> l.label.equals("Gold ring")).findFirst().orElseThrow();

@@ -113,41 +113,40 @@ final class StashRouter
 	}
 
 	/**
-	 * Plan the active tier. {@code owning} answers outfit ownership (the
-	 * storage-aware view); {@code state} answers built/filled marks and
-	 * SPENDABLE stock for build materials; {@code from} is the player's
-	 * position or null (route then starts at the tier's first unit).
+	 * Plan the CHOSEN tier (Luke, 2026-07-28: routing is per-tier and
+	 * opt-in — no more first-incomplete auto-pick). {@code owning} answers
+	 * outfit ownership (the storage-aware view); {@code state} answers
+	 * built/filled marks and SPENDABLE stock for build materials;
+	 * {@code from} is the player's position or null (route then starts at
+	 * the tier's first unit). A complete tier returns an empty plan with
+	 * its tally — the tab deactivates on it.
 	 */
-	static Plan plan(ClueStepsPack pack, AccountState state, StateView owning, WorldPoint from)
+	static Plan plan(ClueStepsPack pack, AccountState state, StateView owning,
+		WorldPoint from, String tier)
 	{
 		Plan plan = new Plan();
-		for (String tier : TIERS)
+		plan.tier = tier;
+		List<ClueStepsPack.Stash> units = new ArrayList<>();
+		int filled = 0;
+		for (ClueStepsPack.Stash unit : pack.stash)
 		{
-			List<ClueStepsPack.Stash> units = new ArrayList<>();
-			int filled = 0;
-			for (ClueStepsPack.Stash unit : pack.stash)
-			{
-				if (!tier.equals(unit.tier))
-				{
-					continue;
-				}
-				units.add(unit);
-				if (state.isStashFilled(unit.objectId))
-				{
-					filled++;
-				}
-			}
-			if (units.isEmpty() || filled >= units.size())
+			if (!tier.equals(unit.tier))
 			{
 				continue;
 			}
-			plan.tier = tier;
-			plan.filled = filled;
-			plan.units = units.size();
-			fill(plan, pack, units, state, owning, from);
-			return plan;
+			units.add(unit);
+			if (state.isStashFilled(unit.objectId))
+			{
+				filled++;
+			}
 		}
-		return plan; // tier == null: everything filled
+		plan.filled = filled;
+		plan.units = units.size();
+		if (!units.isEmpty() && filled < units.size())
+		{
+			fill(plan, pack, units, state, owning, from);
+		}
+		return plan;
 	}
 
 	private static void fill(Plan plan, ClueStepsPack pack, List<ClueStepsPack.Stash> units,

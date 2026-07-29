@@ -280,6 +280,46 @@ public class ClueStashModule implements IronHubModule
 		return clues.stream().filter(c -> doable(c, state)).count();
 	}
 
+	private java.util.Map<String, ClueStepsPack.Stash> unitByClue;
+
+	/** The step's own STASH unit, or null. */
+	ClueStepsPack.Stash unitFor(ClueStepsPack.Clue clue)
+	{
+		if (unitByClue == null)
+		{
+			unitByClue = new java.util.HashMap<>();
+			if (pack != null)
+			{
+				for (ClueStepsPack.Stash unit : pack.stash)
+				{
+					if (unit.clueId != null)
+					{
+						unitByClue.putIfAbsent(unit.clueId, unit);
+					}
+				}
+			}
+		}
+		return unitByClue.get(clue.id);
+	}
+
+	/**
+	 * A step is SATISFIED when its own STASH is filled — the outfit is
+	 * exactly where it belongs — or when the outfit is owned loose. Without
+	 * the filled leg, depositing an outfit made its own step read "missing
+	 * items" (Luke's 2026-07-28 report after a Beginner+Easy filling run:
+	 * sealed items stopped counting as owned, which is right for OTHER
+	 * units and nonsense for the step's own).
+	 */
+	boolean satisfied(ClueStepsPack.Clue clue)
+	{
+		ClueStepsPack.Stash unit = unitFor(clue);
+		if (unit != null && state.isStashFilled(unit.objectId))
+		{
+			return true;
+		}
+		return doable(clue, owningView);
+	}
+
 	// ── goal planner integration ──────────────────────────────────────
 
 	/** Add unlocking this clue step to Goals; a step already
@@ -313,7 +353,7 @@ public class ClueStashModule implements IronHubModule
 		{
 			ClueStepsPack.Clue clue = pack.clue(id);
 			if (clue != null && !state.isUnlocked("cluestep_" + id)
-				&& doable(clue, owningView))
+				&& satisfied(clue))
 			{
 				if (newlyDone == null)
 				{
@@ -520,11 +560,11 @@ public class ClueStashModule implements IronHubModule
 		}
 	}
 
-	/** The active tier's marching orders, routed from where the player
+	/** The chosen tier's marching orders, routed from where the player
 	 *  last stood (or the tier's first unit when logged out / headless). */
-	StashRouter.Plan routePlan()
+	StashRouter.Plan routePlan(String tier)
 	{
-		return StashRouter.plan(pack, state, owningView, lastPlayerPoint);
+		return StashRouter.plan(pack, state, owningView, lastPlayerPoint, tier);
 	}
 
 	/** Hand the stop to the Shortest Path plugin (unheard when absent). */
