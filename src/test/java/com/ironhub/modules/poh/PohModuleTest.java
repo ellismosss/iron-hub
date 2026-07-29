@@ -562,6 +562,34 @@ public class PohModuleTest
 		module.shutDown();
 	}
 
+	/** Building a tier subsumes the ones below (Luke, 2026-07-29): the
+	 *  green tick asks for the TOP tier, and startUp normalizes persisted
+	 *  top-only marks so lower tiers read built too. */
+	@Test
+	public void higherTierSubsumesLower()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		PohModule module = module(state);
+		PohPack.Space pool = pack.spaces.stream()
+			.filter(s -> s.id.equals("superior_garden__pool")).findFirst().orElseThrow();
+
+		// a persisted top-only mark (the pre-rule state)
+		state.setPohBuilt(pool.tiers.get(2).id, true);
+		assertFalse(state.isPohBuilt(pool.tiers.get(0).id));
+		module.startUp(); // normalization runs here
+		assertTrue(state.isPohBuilt(pool.tiers.get(0).id));
+		assertTrue(state.isPohBuilt(pool.tiers.get(1).id));
+		assertFalse("never upward", state.isPohBuilt(pool.tiers.get(3).id));
+
+		// fully built = the TOP tier stands, not just anything
+		assertTrue(module.isBuilt(pool));
+		assertFalse(module.fullyBuilt(pool));
+		state.setPohBuilt(pool.tiers.get(pool.tiers.size() - 1).id, true);
+		assertTrue(module.fullyBuilt(pool));
+		module.shutDown();
+	}
+
 	@Test
 	public void tabRendersHeadless() throws Exception
 	{
@@ -587,6 +615,8 @@ public class PohModuleTest
 			module.toggleBuilt(pool.tiers.get(1));
 			module.toggleGoal(pool.tiers.get(3)); // track a later tier
 			tab.expand("superior_garden__pool");
+			// a BUILT tier clicked open shows its materials (2026-07-29)
+			tab.expandTier(pool.tiers.get(0).id);
 		});
 		javax.swing.SwingUtilities.invokeAndWait(() -> { }); // drain queued rebuilds
 		BufferedImage image = SwingRender.render(tab);

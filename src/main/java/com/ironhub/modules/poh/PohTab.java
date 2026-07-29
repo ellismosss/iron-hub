@@ -47,6 +47,9 @@ class PohTab extends JPanel
 	private final SpriteCache sprites;
 	private final JPanel header = new JPanel();
 	private final TileTree tree;
+	/** The tier row clicked open to show its materials (Luke, 2026-07-29);
+	 *  null = the default, the hotspot's NEXT tier. */
+	private String expandedTierId;
 
 	/** Usable temporary-boost headroom per skill, refreshed each rebuild. */
 	private Map<net.runelite.api.Skill, Integer> boosts = Map.of();
@@ -84,6 +87,13 @@ class PohTab extends JPanel
 	void dispose()
 	{
 		state.removeListener(listener);
+	}
+
+	/** Test seam: open a tier row's materials fold. */
+	void expandTier(String tierId)
+	{
+		expandedTierId = tierId;
+		rebuild();
 	}
 
 	/** Test seam: open a hotspot's detail (expands its room, selects it). */
@@ -272,7 +282,8 @@ class PohTab extends JPanel
 			room.owned = room.leaves.stream().allMatch(l -> l.owned);
 			room.tracked = room.leaves.stream().anyMatch(l -> l.tracked);
 			int done = (int) room.leaves.stream().filter(l -> l.owned).count();
-			room.tooltip = room.label + " — " + done + "/" + room.leaves.size() + " hotspots built";
+			room.tooltip = room.label + " — " + done + "/" + room.leaves.size()
+				+ " hotspots fully upgraded";
 		}
 		return rooms;
 	}
@@ -285,7 +296,9 @@ class PohTab extends JPanel
 		leaf.id = space.id;
 		leaf.label = space.name;
 		leaf.icon = space.icon;
-		leaf.owned = built != null;                                  // something stands here
+		// green only at the TOP of the ladder (Luke, 2026-07-29) — a
+		// standing lower tier is progress, not done
+		leaf.owned = module.fullyBuilt(space);
 		leaf.tracked = next != null && (met(next.reqs) || boostMet(next.reqs)); // upgradable now
 		leaf.badge = space.tiers.size();
 		leaf.tooltip = "<html><div style='width:200px'>" + space.name + " — "
@@ -326,9 +339,14 @@ class PohTab extends JPanel
 			card.add(line(space.benefit, OsrsSkin.MUTED));
 		}
 		PohPack.Tier next = module.nextTier(space);
+		// a clicked tier's materials replace the default next-tier fold
+		// (Luke, 2026-07-29: any tier in the list expands on click)
+		String openId = expandedTierId != null
+			&& space.tiers.stream().anyMatch(t -> t.id.equals(expandedTierId))
+			? expandedTierId : next != null ? next.id : null;
 		for (PohPack.Tier tier : space.tiers)
 		{
-			card.add(tierRow(space, tier, tier == next));
+			card.add(tierRow(space, tier, tier == next, tier.id.equals(openId)));
 		}
 		cap(card);
 		return card;
@@ -379,7 +397,8 @@ class PohTab extends JPanel
 
 	// ── tier ladder (the build/upgrade tracking, unchanged grammar) ───────
 
-	private JComponent tierRow(PohPack.Space space, PohPack.Tier tier, boolean isNext)
+	private JComponent tierRow(PohPack.Space space, PohPack.Tier tier, boolean isNext,
+		boolean expanded)
 	{
 		boolean built = state.isPohBuilt(tier.id);
 		JPanel row = new JPanel();
@@ -410,23 +429,39 @@ class PohTab extends JPanel
 		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		top.add(wikiGlyph(tier.page));
 		cap(top);
+		// any tier expands on click to show its materials (Luke,
+		// 2026-07-29); the glyphs keep their own clicks — Swing hands the
+		// press to the deepest child WITH a listener, and only they have one
+		top.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		top.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				expandedTierId = tier.id.equals(expandedTierId) ? null : tier.id;
+				javax.swing.SwingUtilities.invokeLater(PohTab.this::rebuild);
+			}
+		});
 		row.add(top);
 
-		if (!built && isNext)
+		if (expanded)
 		{
-			String missing = missingText(tier.reqs);
-			boolean boostable = missing != null && boostMet(tier.reqs);
-			OsrsLabel needs = new OsrsLabel(missing == null ? "Buildable now"
-					: boostable ? "Buildable with a boost"
-					: "Needs: " + missing,
-				missing == null || boostable ? OsrsSkin.VALUE : OsrsSkin.FAINT,
-				OsrsSkin.smallFont()).leftAligned().squeezable();
-			if (boostable)
+			if (!built)
 			{
-				needs.setToolTipText("<html><div style='width:200px'>"
-					+ boostDetail(tier.reqs) + "</div></html>");
+				String missing = missingText(tier.reqs);
+				boolean boostable = missing != null && boostMet(tier.reqs);
+				OsrsLabel needs = new OsrsLabel(missing == null ? "Buildable now"
+						: boostable ? "Buildable with a boost"
+						: "Needs: " + missing,
+					missing == null || boostable ? OsrsSkin.VALUE : OsrsSkin.FAINT,
+					OsrsSkin.smallFont()).leftAligned().squeezable();
+				if (boostable)
+				{
+					needs.setToolTipText("<html><div style='width:200px'>"
+						+ boostDetail(tier.reqs) + "</div></html>");
+				}
+				row.add(needs);
 			}
-			row.add(needs);
 			for (PohPack.Material m : tier.materials)
 			{
 				row.add(materialRow(m));

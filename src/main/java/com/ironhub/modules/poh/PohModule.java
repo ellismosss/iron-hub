@@ -165,6 +165,7 @@ public class PohModule implements IronHubModule
 			eventBus.register(this);
 		}
 		refreshPohSeeds();
+		implyLowerTiers();
 		state.addListener(goalProofListener);
 	}
 
@@ -502,7 +503,9 @@ public class PohModule implements IronHubModule
 					best = vote.getValue();
 				}
 			}
-			// 2. mark what we can attribute
+			// 2. mark what we can attribute — a standing tier subsumes every
+			// tier below it (Luke, 2026-07-29: a Gilded altar means the
+			// cheaper altars are "built" too, progression-wise)
 			for (Integer objectId : objectIds)
 			{
 				List<PohPack.Placement> places = pack.placementsByObjectId(objectId);
@@ -511,7 +514,14 @@ public class PohModule implements IronHubModule
 					if (places.size() == 1 || place.space.room == null
 						|| place.space.room.equals(room))
 					{
-						built.add(place.tier.id);
+						for (PohPack.Tier tier : place.space.tiers)
+						{
+							built.add(tier.id);
+							if (tier == place.tier)
+							{
+								break;
+							}
+						}
 					}
 				}
 			}
@@ -684,6 +694,48 @@ public class PohModule implements IronHubModule
 	boolean isBuilt(PohPack.Space space)
 	{
 		return builtTier(space) != null;
+	}
+
+	/** The hotspot's TOP tier stands — the tile's green tick (Luke,
+	 *  2026-07-29: any-tier-built read as "done" on maxable hotspots). */
+	boolean fullyBuilt(PohPack.Space space)
+	{
+		return !space.tiers.isEmpty()
+			&& state.isPohBuilt(space.tiers.get(space.tiers.size() - 1).id);
+	}
+
+	/** Normalize persisted marks to the subsume rule: earlier sessions
+	 *  marked only the standing tier, so a Gilded altar left the cheaper
+	 *  altars unmarked (Luke, 2026-07-29). */
+	private void implyLowerTiers()
+	{
+		if (pack == null)
+		{
+			return;
+		}
+		List<String> add = new ArrayList<>();
+		for (PohPack.Space space : pack.spaces)
+		{
+			int highest = -1;
+			for (int i = 0; i < space.tiers.size(); i++)
+			{
+				if (state.isPohBuilt(space.tiers.get(i).id))
+				{
+					highest = i;
+				}
+			}
+			for (int i = 0; i < highest; i++)
+			{
+				if (!state.isPohBuilt(space.tiers.get(i).id))
+				{
+					add.add(space.tiers.get(i).id);
+				}
+			}
+		}
+		if (!add.isEmpty())
+		{
+			state.setPohBuiltBulk(add);
+		}
 	}
 
 	/** Highest built tier of a space, or null. */
