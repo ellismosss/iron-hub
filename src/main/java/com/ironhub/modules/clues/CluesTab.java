@@ -402,20 +402,17 @@ class CluesTab extends JPanel
 		{
 			byTier.computeIfAbsent(clue.tier, t -> new ArrayList<>()).add(clue);
 		}
-		// a card with nothing behind the filter does not show (the CA rule)
+		// every tier card ALWAYS shows (Luke, 2026-07-29: a completed
+		// Beginner vanished under the old filter-empty rule — a finished
+		// tier is a reading, not clutter); the Show-doable filter governs
+		// the rows inside an expanded tier, never the cards
 		List<String> tiers = new ArrayList<>();
 		for (String tier : TIERS)
 		{
-			List<ClueStepsPack.Clue> clues = byTier.get(tier);
-			if (clues != null && clues.stream()
-				.anyMatch(c -> showDoable || !module.satisfied(c)))
+			if (byTier.containsKey(tier))
 			{
 				tiers.add(tier);
 			}
-		}
-		if (tiers.isEmpty())
-		{
-			content.add(note("Every emote step is doable."));
 		}
 		for (int start = 0; start < tiers.size(); start += TIER_COLS)
 		{
@@ -756,6 +753,12 @@ class CluesTab extends JPanel
 			}
 		}
 		shown.sort(java.util.Comparator.comparing(doableBy::get).thenComparing(gapBy::get));
+		if (shown.isEmpty())
+		{
+			// a finished tier expands to say so, not to an empty Tile
+			content.add(note("Every step in this tier is complete."));
+			return;
+		}
 
 		// ten steps to a page, arrows below (Luke, 2026-07-28)
 		int pages = Math.max(1, (shown.size() + PAGE_ROWS - 1) / PAGE_ROWS);
