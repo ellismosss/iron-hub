@@ -298,8 +298,21 @@ class MoneyMakingTab extends JPanel
 		JPanel top = row();
 		top.add(heart(m, fav));
 		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		// the method's representative item sprite (M1 2026-08-03, reversing
+		// the earlier no-icon note 6) — the pack's icon id, shared cache,
+		// null until the async sprite lands (the cache's rebuild callback
+		// repaints it in)
+		if (m.icon > 0)
+		{
+			java.awt.Image icon = sprites.getBox(m.icon, 16);
+			if (icon != null)
+			{
+				top.add(new javax.swing.JLabel(new javax.swing.ImageIcon(icon)));
+				top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+			}
+		}
 		// light-grey text when available (1/8), greyed when not (9) — the profit
-		// stays orange; no method icon (6)
+		// stays orange
 		top.add(new OsrsLabel(m.name, can ? OsrsSkin.MUTED : OsrsSkin.FAINT, OsrsSkin.font())
 			.leftAligned().squeezable());
 		top.add(Box.createHorizontalGlue());
