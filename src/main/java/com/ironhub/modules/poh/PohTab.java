@@ -79,6 +79,11 @@ class PohTab extends JPanel
 	/** The tier row clicked open to show its materials (Luke, 2026-07-29);
 	 *  null = the default, the hotspot's NEXT tier. */
 	private String expandedTierId;
+	/** The material whose where-from well is open (P1 2026-08-03); one at
+	 *  a time, cleared by clicking it again. */
+	private Integer expandedMaterialId;
+	/** Wrap for where-from lines inside the tier row's well. */
+	private static final int WELL_WRAP = 180;
 
 	String expandedTier()
 	{
@@ -495,8 +500,12 @@ class PohTab extends JPanel
 			{
 				String missing = missingText(tier.reqs);
 				boolean boostable = missing != null && boostMet(tier.reqs);
+				// the label NAMES the usable boost (P2 2026-08-03) — the
+				// pack already knows; the tooltip keeps the full detail
+				String boostBy = boostable ? boostNames(tier.reqs) : null;
 				OsrsLabel needs = new OsrsLabel(missing == null ? "Buildable now"
 						: boostable ? "Buildable with a boost"
+							+ (boostBy == null ? "" : " — " + boostBy)
 						: "Needs: " + missing,
 					missing == null || boostable ? OsrsSkin.VALUE : OsrsSkin.FAINT,
 					OsrsSkin.smallFont()).leftAligned().squeezable();
@@ -510,6 +519,10 @@ class PohTab extends JPanel
 			for (PohPack.Material m : tier.materials)
 			{
 				row.add(materialRow(m));
+				if (expandedMaterialId != null && expandedMaterialId == m.itemId)
+				{
+					row.add(whereFromWell(m.itemId));
+				}
 			}
 		}
 		cap(row);
@@ -551,7 +564,50 @@ class PohTab extends JPanel
 		r.add(new OsrsLabel(enough ? "have " + m.qty : owned + "/" + m.qty,
 			enough ? OsrsSkin.VALUE : UiTokens.STATUS_WARNING, OsrsSkin.smallFont()));
 		cap(r);
+		// clicking opens the where-from well beneath the row (P1 2026-08-03)
+		// — the SAME item-sources projection Goals consumes, another consumer
+		if (module.itemSources() != null && module.itemSources().entry(m.itemId) != null)
+		{
+			r.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+			r.addMouseListener(new java.awt.event.MouseAdapter()
+			{
+				@Override
+				public void mousePressed(java.awt.event.MouseEvent e)
+				{
+					expandedMaterialId = expandedMaterialId != null
+						&& expandedMaterialId == m.itemId ? null : m.itemId;
+					rebuild();
+				}
+			});
+			com.ironhub.ui.v2.MouseRelay.install(r); // the tooltip eats presses
+		}
 		return r;
+	}
+
+	/** The clicked material's obtainment routes: every KB source, one line
+	 *  each, straight off the shared {@code ItemSourcesPack} projection —
+	 *  the same lines the Goals cards print (P1 2026-08-03). */
+	private JComponent whereFromWell(int itemId)
+	{
+		com.ironhub.ui.v2.V2Surface well = com.ironhub.ui.v2.V2Surface.well(theme);
+		int inset = com.ironhub.ui.v2.V2Well.CAP + com.ironhub.ui.v2.V2Tokens.TIGHT;
+		well.setBorder(new EmptyBorder(inset, inset, inset, inset));
+		com.ironhub.data.ItemSourcesPack.Entry entry = module.itemSources().entry(itemId);
+		java.util.List<com.ironhub.data.ItemSourcesPack.Source> sources =
+			entry == null || entry.getSources() == null ? List.of() : entry.getSources();
+		if (sources.isEmpty())
+		{
+			well.add(new OsrsLabel("No known source.", OsrsSkin.FAINT,
+				OsrsSkin.smallFont()).leftAligned());
+		}
+		for (com.ironhub.data.ItemSourcesPack.Source s : sources)
+		{
+			well.add(OsrsLabel.wrapped("· "
+					+ com.ironhub.data.ItemSourcesPack.label(s, state), WELL_WRAP,
+				OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+		}
+		cap(well);
+		return well;
 	}
 
 	// ── requirement helpers ───────────────────────────────────────────────
@@ -605,6 +661,37 @@ class PohTab extends JPanel
 			}
 		}
 		return true;
+	}
+
+	/** Compact names of the usable boosts across every boost-reachable
+	 *  missing leaf, distinct, for the inline label (P2 2026-08-03). */
+	private String boostNames(List<String> reqs)
+	{
+		java.util.LinkedHashSet<String> names = new java.util.LinkedHashSet<>();
+		for (String req : reqs)
+		{
+			Requirement parsed = Requirements.parse(req);
+			if (parsed.isMet(state))
+			{
+				continue;
+			}
+			for (Requirement leaf : parsed.missing(state))
+			{
+				net.runelite.api.Skill skill = leaf.boostableSkill();
+				if (skill == null || !leaf.isMetWithBoosts(state, boosts)
+					|| module.boostsPack() == null)
+				{
+					continue;
+				}
+				String s = com.ironhub.requirements.Boosts.shortNames(
+					module.boostsPack(), state, skill);
+				if (s != null)
+				{
+					names.add(s);
+				}
+			}
+		}
+		return names.isEmpty() ? null : String.join(" / ", names);
 	}
 
 	private String boostDetail(List<String> reqs)
