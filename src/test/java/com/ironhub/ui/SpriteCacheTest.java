@@ -49,6 +49,36 @@ public class SpriteCacheTest
 		Mockito.verifyNoMoreInteractions(itemManager);
 	}
 
+	/**
+	 * The cached sprite must be a fully realised BufferedImage. The old
+	 * getScaledInstance result was a lazily-produced image: every consumer
+	 * draws with a null observer, so the first paint started production,
+	 * drew nothing, and no repaint fired when the pixels landed — blank
+	 * icons until an unrelated repaint.
+	 */
+	@Test
+	public void cachedSpriteIsAFullyRealisedImage() throws Exception
+	{
+		ItemManager itemManager = Mockito.mock(ItemManager.class);
+		AsyncBufferedImage image = image();
+		Mockito.when(itemManager.getImage(995)).thenReturn(image);
+		SpriteCache cache = new SpriteCache(itemManager, () ->
+		{
+		});
+
+		assertNull(cache.get(995, 24));
+		image.loaded(); // resolves — the cache scales eagerly, here
+		javax.swing.SwingUtilities.invokeAndWait(() ->
+		{
+		});
+
+		java.awt.Image cached = cache.get(995, 24);
+		org.junit.Assert.assertTrue("scaled sprite must be a real BufferedImage",
+			cached instanceof BufferedImage);
+		org.junit.Assert.assertEquals(24, ((BufferedImage) cached).getWidth());
+		org.junit.Assert.assertEquals(24, ((BufferedImage) cached).getHeight());
+	}
+
 	/** Headless tests and a client with no ItemManager: no icon, no crash. */
 	@Test
 	public void toleratesNoItemManagerAndNoIcon()

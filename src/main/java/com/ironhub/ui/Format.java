@@ -24,7 +24,12 @@ public final class Format
 		}
 		if (seconds < 3600)
 		{
-			return Math.round(seconds / 60.0) + "m";
+			long roundedMinutes = Math.round(seconds / 60.0);
+			if (roundedMinutes < 60)
+			{
+				return roundedMinutes + "m";
+			}
+			// 59.5-60 min rounds up — carry into the hour form ("1h", never "60m")
 		}
 		long wholeHours = (long) hours;
 		long minutes = Math.round((hours - wholeHours) * 60.0);

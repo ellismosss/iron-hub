@@ -86,21 +86,35 @@ public class SpriteCache
 		}
 		image.onLoaded(() ->
 		{
-			// runs on the client thread — scale once, here, and never again
-			Image result;
+			// runs on the client thread — scale once, here, and never again.
+			// Rendered into a real BufferedImage, NOT getScaledInstance: that
+			// returns a lazily-produced image, and the panels draw with a null
+			// observer, so its first paint started production, drew nothing,
+			// and nobody repainted when the pixels landed — blank icons until
+			// an unrelated repaint. Drawing a loaded BufferedImage source is
+			// synchronous and complete.
+			int w;
+			int h;
 			if (width == BOX_FIT)
 			{
-				int w = Math.max(1, image.getWidth());
-				int h = Math.max(1, image.getHeight());
-				double s = height / (double) Math.max(w, h);
-				result = image.getScaledInstance(
-					Math.max(1, (int) Math.round(w * s)), Math.max(1, (int) Math.round(h * s)),
-					Image.SCALE_SMOOTH);
+				int sw = Math.max(1, image.getWidth());
+				int sh = Math.max(1, image.getHeight());
+				double s = height / (double) Math.max(sw, sh);
+				w = Math.max(1, (int) Math.round(sw * s));
+				h = Math.max(1, (int) Math.round(sh * s));
 			}
 			else
 			{
-				result = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+				w = Math.max(1, width);
+				h = Math.max(1, height);
 			}
+			java.awt.image.BufferedImage result = new java.awt.image.BufferedImage(
+				w, h, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+			java.awt.Graphics2D g = result.createGraphics();
+			g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
+				java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			g.drawImage(image, 0, 0, w, h, null);
+			g.dispose();
 			SwingUtilities.invokeLater(() ->
 			{
 				scaled.put(key, result);

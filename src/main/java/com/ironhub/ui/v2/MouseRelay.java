@@ -24,8 +24,11 @@ import javax.swing.SwingUtilities;
  *
  * <p>The child's own listeners still run first — a "+" glyph keeps its
  * action, a label keeps its popup — the root just SEES the event too.
- * Enter/exit are deliberately not relayed: crossing between two children
- * would read as leaving the root. Watches descendants added later via
+ * Enter/exit between children are not relayed (crossing children would
+ * read as leaving the root) — but an exit whose point lands OUTSIDE the
+ * root is a real departure and IS relayed, or a root clearing its hover
+ * in its own mouseExited never hears the pointer leave from over a child
+ * and the hover band sticks lit. Watches descendants added later via
  * container events, the {@code listenForHover} approach generalised.
  */
 public final class MouseRelay
@@ -74,6 +77,17 @@ public final class MouseRelay
 				public void mouseDragged(MouseEvent e)
 				{
 					relay(e, root);
+				}
+
+				@Override
+				public void mouseExited(MouseEvent e)
+				{
+					java.awt.Point p = SwingUtilities.convertPoint(
+						(Component) e.getSource(), e.getPoint(), root);
+					if (!root.contains(p))
+					{
+						relay(e, root); // left the root itself, not child-to-child
+					}
 				}
 			};
 			component.addMouseListener(forward);

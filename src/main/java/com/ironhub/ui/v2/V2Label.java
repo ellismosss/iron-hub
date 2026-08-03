@@ -93,8 +93,9 @@ public final class V2Label
 		return OsrsLabel.wrapped(text, width, V2Tokens.TEXT, V2Tokens.detailFont()).leftAligned();
 	}
 
-	/** Measured ink per font+string: {top relative to the baseline, height}. */
-	private static final java.util.Map<String, int[]> INK =
+	/** Measured ink per font+string: {top relative to the baseline, height}.
+	 *  Package-private so the bound is pinnable. */
+	static final java.util.Map<String, int[]> INK =
 		new java.util.concurrent.ConcurrentHashMap<>();
 
 	/**
@@ -110,6 +111,13 @@ public final class V2Label
 	 */
 	static int[] ink(java.awt.Font font, String text)
 	{
+		if (INK.size() > 512)
+		{
+			// live progress bars feed value strings through here, one entry
+			// each — dump and remeasure rather than grow without bound
+			// ponytail: clear-at-cap; LRU if remeasure churn ever shows
+			INK.clear();
+		}
 		return INK.computeIfAbsent(font.getFontName() + "/" + font.getSize() + "/" + text, k ->
 		{
 			java.awt.Font f = font;

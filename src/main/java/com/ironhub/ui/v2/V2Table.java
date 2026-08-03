@@ -213,9 +213,9 @@ public class V2Table extends JPanel
 			java.awt.Insets insets = getInsets();
 			int[] widths = widths(parent.getWidth() - insets.left - insets.right);
 			int y = insets.top;
+			int height = rowHeight();
 			for (Component[] row : rows)
 			{
-				int height = rowHeight(row);
 				int x = insets.left;
 				for (int c = 0; c < row.length; c++)
 				{
@@ -231,12 +231,13 @@ public class V2Table extends JPanel
 		 * not per row. Per-row heights made a table of 13px ticks and 17px
 		 * ticks step up and down the list (Luke, 2026-07-25).
 		 */
-		private int rowHeight(Component[] row)
+		private int rowHeight()
 		{
 			// no ROW_HEIGHT floor: 20 is the checkbox's row, and a table of 13px
 			// ticks and small-font text does not need it. The floor was what
 			// made the Table read looser than the Checklist even though every
-			// measurement matched (Luke, 2026-07-25).
+			// measurement matched (Luke, 2026-07-25). One table-wide scan per
+			// layout pass — the value is the same for every row by design.
 			int height = 0;
 			for (Component[] any : rows)
 			{
@@ -252,11 +253,7 @@ public class V2Table extends JPanel
 		public Dimension preferredLayoutSize(Container parent)
 		{
 			java.awt.Insets insets = getInsets();
-			int height = insets.top + insets.bottom;
-			for (Component[] row : rows)
-			{
-				height += rowHeight(row);
-			}
+			int height = insets.top + insets.bottom + rowHeight() * rows.size();
 			return new Dimension(V2Tokens.CONTENT_WIDTH,
 				Math.max(0, height));
 		}
