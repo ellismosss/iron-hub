@@ -72,8 +72,6 @@ class FarmingTab extends JPanel
 	private Tab expandedOverview;
 
 	private final JPanel topBar = new JPanel();
-	private final JPanel statsHolder = new JPanel();
-	private final JPanel xpStats = new JPanel();
 	private final JPanel overview = new JPanel();
 	private final JPanel runs = new JPanel();
 	private final JLabel teleportTriangle = triangle();
@@ -117,16 +115,9 @@ class FarmingTab extends JPanel
 		overview.setAlignmentX(LEFT_ALIGNMENT);
 		add(overview);
 
-		add(section("Runs"));
-		statsHolder.setLayout(new BoxLayout(statsHolder, BoxLayout.Y_AXIS));
-		statsHolder.setOpaque(false);
-		statsHolder.setAlignmentX(LEFT_ALIGNMENT);
-		add(statsHolder);
-		add(Box.createVerticalStrut(UiTokens.ROW_GAP));
-		xpStats.setLayout(new BoxLayout(xpStats, BoxLayout.Y_AXIS));
-		xpStats.setOpaque(false);
-		xpStats.setAlignmentX(LEFT_ALIGNMENT);
-		add(xpStats);
+		// after the 15 tiles the next element is the Start Run button —
+		// full stop (F2, Luke 2026-08-03): the stats prose, the xp-per-run
+		// tiles and the runs-to-next-level copy are gone
 		runs.setLayout(new BoxLayout(runs, BoxLayout.Y_AXIS));
 		runs.setOpaque(false);
 		runs.setAlignmentX(LEFT_ALIGNMENT);
@@ -271,7 +262,8 @@ class FarmingTab extends JPanel
 		JPanel nameHolder = new JPanel(new BorderLayout());
 		nameHolder.setOpaque(false);
 		nameHolder.setPreferredSize(new Dimension(82, V2Tokens.CONTROL_HEIGHT));
-		OsrsLabel name = new OsrsLabel(rep.name, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned();
+		// location text in DETAIL (F4, Luke 2026-08-03)
+		OsrsLabel name = new OsrsLabel(rep.name, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned();
 		name.setToolTipText(rep.name);
 		nameHolder.add(name, BorderLayout.CENTER);
 		row.add(nameHolder, BorderLayout.WEST);
@@ -282,7 +274,8 @@ class FarmingTab extends JPanel
 		{
 			options.add(FarmingRunOverlay.teleportLabel(teleport));
 		}
-		V2Dropdown combo = new V2Dropdown(theme, options.toArray(new String[0]));
+		V2Dropdown combo = new V2Dropdown(theme, options.toArray(new String[0]))
+			.detailClosed(); // dropdown text in DETAIL too (F4)
 		combo.setSelected(prefIndex(rep, state.getFarmTeleportPref(rep.id)));
 		combo.onChange(i ->
 		{
@@ -367,9 +360,6 @@ class FarmingTab extends JPanel
 		setupPanel.removeAll();
 		if (setupsOpen)
 		{
-			setupPanel.add(hint("Wear and carry the loadout you restock with, "
-				+ "then click its run type. The bank shows it during those runs.",
-				OsrsSkin.FAINT));
 			JPanel grid = new JPanel(new java.awt.GridLayout(0, 2, UiTokens.PAD_TIGHT, UiTokens.PAD_TIGHT));
 			grid.setOpaque(false);
 			grid.setAlignmentX(LEFT_ALIGNMENT);
@@ -469,74 +459,11 @@ class FarmingTab extends JPanel
 
 	void rebuild()
 	{
-		statsHolder.removeAll();
-		OsrsLabel stats = new OsrsLabel(FarmingRunModule.statsLine(state.getHerbRunsMs()),
-			OsrsSkin.FAINT, OsrsSkin.font()).leftAligned();
-		stats.setAlignmentX(LEFT_ALIGNMENT);
-		statsHolder.add(pad(stats));
 		rebuildTopBar();
 		rebuildOverview();
 		rebuildRuns();
 		rebuildTeleports();
 		rebuildSetups();
-		rebuildXpStats();
-	}
-
-	/**
-	 * "Tree runs · 12.4k xp · 3 to 76" over the persisted completed-run log:
-	 * average Farming xp your tree stops earn per run and how many such runs
-	 * the next Farming level costs; likewise the potential Herblore xp your
-	 * herb runs pick (cleaning + standard potions) toward the next Herblore
-	 * level. A next level that unlocks something says so. Silent without
-	 * history — never an invented rate.
-	 */
-	private void rebuildXpStats()
-	{
-		xpStats.removeAll();
-		addSkillStat("Tree runs", module.avgTreeRunXp(), "xp/run",
-			net.runelite.api.Skill.FARMING, "Farming",
-			"Average Farming xp your tree stops earn per completed run");
-		addSkillStat("Herb runs", module.avgHerbPotentialXp(), "pot. xp/run",
-			net.runelite.api.Skill.HERBLORE, "Herblore",
-			"Average potential Herblore xp per completed run — cleaning each "
-				+ "picked herb and making its standard potion");
-		xpStats.revalidate();
-		xpStats.repaint();
-	}
-
-	private void addSkillStat(String label, double avg, String unit,
-		net.runelite.api.Skill apiSkill, String skillName, String tooltip)
-	{
-		if (Double.isNaN(avg))
-		{
-			return;
-		}
-		int xp = state.getXp(apiSkill);
-		int level = net.runelite.api.Experience.getLevelForXp(xp);
-		int runs = FarmingRunModule.runsToNextLevel(avg, xp);
-		JComponent row = overviewRow(label, compactXp(avg) + " " + unit);
-		row.setToolTipText(tooltip);
-		xpStats.add(pad(row));
-		xpStats.add(Box.createVerticalStrut(2));
-
-		// "Farming 76 in ~11 runs: Grow attas plants …" — the countdown and
-		// what the level is worth, in one wrapped line under the rate
-		if (runs > 0)
-		{
-			List<String> unlocks = module.nextLevelUnlocks(skillName, apiSkill);
-			String text = skillName + " " + (level + 1) + " in ~" + runs
-				+ (runs == 1 ? " run" : " runs");
-			if (!unlocks.isEmpty())
-			{
-				text += ": " + unlocks.get(0) + (unlocks.size() > 1 ? " …" : "");
-			}
-			JComponent line = hint(text, OsrsSkin.FAINT);
-			if (!unlocks.isEmpty())
-			{
-				line.setToolTipText("<html>" + String.join("<br>", unlocks) + "</html>");
-			}
-			xpStats.add(pad(line));
-		}
 	}
 
 	/** "9,850" below ten thousand, "12.4k" above — the row must fit 225px. */
@@ -574,6 +501,37 @@ class FarmingTab extends JPanel
 
 	// ── patch overview (all categories + bird houses + contract) ──────
 
+	/** The F1 tile set (Luke, 2026-08-03) — EXACTLY these fifteen, in this
+	 *  order, always shown. Tab.OVERVIEW is the Farming-contract slot (the
+	 *  contract is not a patch category and has no tab of its own). */
+	private static final Tab[] OVERVIEW_TILES = {
+		Tab.HERB, Tab.TREE, Tab.FRUIT_TREE, Tab.BIRD_HOUSE, Tab.SPECIAL,
+		Tab.FLOWER, Tab.ALLOTMENT, Tab.BUSH, Tab.GRAPE, Tab.HOPS,
+		Tab.OVERVIEW, Tab.HESPORI, Tab.BIG_COMPOST, Tab.ANIMA, Tab.REDWOOD,
+	};
+
+	/** The tile's display name — Luke's F1 wording for the merged ones. */
+	private static String tileName(Tab tile)
+	{
+		switch (tile)
+		{
+			case TREE:
+				return "Tree (incl. hardwood + spirit trees)";
+			case FRUIT_TREE:
+				return "Fruit tree (incl. calquat, celastrus, crystal)";
+			case SPECIAL:
+				return "Special (incl. coral + seaweed)";
+			case BIG_COMPOST:
+				return "Compost bins (incl. big compost bin)";
+			case OVERVIEW:
+				return "Farming contract";
+			case BIRD_HOUSE:
+				return "Bird houses";
+			default:
+				return tile.getName();
+		}
+	}
+
 	private void rebuildOverview()
 	{
 		overview.removeAll();
@@ -584,11 +542,6 @@ class FarmingTab extends JPanel
 			overview.add(pad(hint("Enable the core Time Tracking plugin — Iron Hub "
 				+ "reads its patch data.", OsrsSkin.TITLE)));
 		}
-		else if (!tracking.hasAnyData())
-		{
-			overview.add(pad(hint("No tracking data yet. The Time Tracking plugin "
-				+ "records each patch as you visit it.", OsrsSkin.FAINT)));
-		}
 
 		if (tracking == null)
 		{
@@ -598,18 +551,14 @@ class FarmingTab extends JPanel
 		}
 
 		long now = Instant.now().getEpochSecond();
-		// Time Tracking's layout: a strip of clickable category icon tiles;
-		// clicking a tile toggles that category's patch list (nothing expanded
-		// = just the strip, minimal). Only categories with data get a tile.
 		java.util.Map<Tab, List<FarmingRunModule.OverviewPatch>> byCategory = module.overviewByCategory();
 		if (expandedOverview != null && !byCategory.containsKey(expandedOverview))
 		{
 			expandedOverview = null; // its data went away
 		}
-		if (!byCategory.isEmpty())
+		overview.add(pad(overviewTileStrip(byCategory, tracking, now)));
+		overview.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 		{
-			overview.add(pad(overviewTileStrip(byCategory, now)));
-			overview.add(Box.createVerticalStrut(UiTokens.ROW_GAP));
 			for (java.util.Map.Entry<Tab, List<FarmingRunModule.OverviewPatch>> entry : byCategory.entrySet())
 			{
 				if (entry.getKey() != expandedOverview)
@@ -685,19 +634,79 @@ class FarmingTab extends JPanel
 	private static final int RUN_ROW_HEIGHT = 23;
 	private static final int ARROWS_WIDTH = 11;
 
-	/** Grid of clickable category icon tiles — the Time Tracking tab strip. */
-	private JComponent overviewTileStrip(java.util.Map<Tab, List<FarmingRunModule.OverviewPatch>> byCategory, long now)
+	/** The fixed 15-tile grid (F1): every tile always present, in Luke's
+	 *  order; a category with no tracking data yet is PLAIN with an honest
+	 *  tooltip, never hidden. */
+	private JComponent overviewTileStrip(java.util.Map<Tab, List<FarmingRunModule.OverviewPatch>> byCategory,
+		FarmTrackingService tracking, long now)
 	{
 		JPanel strip = new JPanel(new java.awt.GridLayout(0, 5, V2Tokens.ROW, V2Tokens.ROW));
 		strip.setOpaque(false);
 		strip.setAlignmentX(LEFT_ALIGNMENT);
-		int rows = (byCategory.size() + 4) / 5;
+		int rows = (OVERVIEW_TILES.length + 4) / 5;
 		strip.setMaximumSize(new Dimension(Integer.MAX_VALUE, rows * (TILE + V2Tokens.ROW)));
-		for (java.util.Map.Entry<Tab, List<FarmingRunModule.OverviewPatch>> entry : byCategory.entrySet())
+		for (Tab tile : OVERVIEW_TILES)
 		{
-			strip.add(overviewTile(entry.getKey(), entry.getValue(), now));
+			if (tile == Tab.BIRD_HOUSE)
+			{
+				strip.add(summaryTile(tile, tracking.birdHouseSummary(),
+					tracking.birdHouseCompletionTime(), now));
+			}
+			else if (tile == Tab.OVERVIEW)
+			{
+				// the Farming-contract slot: ready = green, active = orange
+				boolean has = tracking.contract().hasContract();
+				V2Tile contract = new V2Tile(theme,
+					sprites.get(tile.getItemID(), V2Tokens.TILE_ICON), null, TILE, null);
+				contract.status(!has ? V2Tile.Status.PLAIN
+					: tracking.contractReady() ? V2Tile.Status.DONE : V2Tile.Status.READY);
+				contract.setToolTipText(tileName(tile) + (!has ? " — none active"
+					: tracking.contractReady() ? " — ready" : " — growing"));
+				strip.add(contract);
+			}
+			else
+			{
+				List<FarmingRunModule.OverviewPatch> patches = byCategory.get(tile);
+				if (patches == null)
+				{
+					V2Tile unseen = new V2Tile(theme,
+						sprites.get(tile.getItemID(), V2Tokens.TILE_ICON), null, TILE, null);
+					unseen.status(V2Tile.Status.PLAIN);
+					unseen.setToolTipText(tileName(tile) + " — no tracking data yet");
+					strip.add(unseen);
+				}
+				else
+				{
+					strip.add(overviewTile(tile, patches, now));
+				}
+			}
 		}
 		return strip;
+	}
+
+	/** A tracker-summary tile (bird houses): Ready green, in-progress
+	 *  orange, unknown plain. */
+	private JComponent summaryTile(Tab tile, SummaryState summary, long completion, long now)
+	{
+		V2Tile out = new V2Tile(theme, sprites.get(tile.getItemID(), V2Tokens.TILE_ICON),
+			null, TILE, null);
+		String status = statusText(summary, false, completion, now);
+		if (summary == SummaryState.UNKNOWN)
+		{
+			out.status(V2Tile.Status.PLAIN);
+			out.setToolTipText(tileName(tile) + " — no tracking data yet");
+		}
+		else if ("Ready".equals(status) || "Empty".equals(status))
+		{
+			out.status(V2Tile.Status.DONE);
+			out.setToolTipText(tileName(tile) + " — " + status.toLowerCase(Locale.ROOT));
+		}
+		else
+		{
+			out.status(V2Tile.Status.READY);
+			out.setToolTipText(tileName(tile) + " — " + status);
+		}
+		return out;
 	}
 
 	/**
@@ -771,7 +780,7 @@ class FarmingTab extends JPanel
 			// the wrapping edge IS the progress arc this tab used to paint
 			tile.status(V2Tile.Status.READY).progress(progress);
 		}
-		tile.setToolTipText(category.getName());
+		tile.setToolTipText(tileName(category));
 		return tile;
 	}
 

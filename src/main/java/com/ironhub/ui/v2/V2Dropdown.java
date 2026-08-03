@@ -50,6 +50,11 @@ public class V2Dropdown extends JPanel
 	 *  0 = the full content width. {@code setPreferredSize} cannot do this:
 	 *  the size overrides below ignore it (§14's {@code getMaximumSize} trap). */
 	private int width;
+	/** The CLOSED row in DETAIL instead of the heading — for a stack of
+	 *  preference dropdowns where eight orange headings would shout (the
+	 *  farm teleport prefs, F4 2026-08-03). The open list keeps heading-
+	 *  for-selected so the current pick still reads. */
+	private boolean detailClosed;
 
 	public V2Dropdown(OsrsTheme theme, String... options)
 	{
@@ -74,6 +79,14 @@ public class V2Dropdown extends JPanel
 	public V2Dropdown onChange(IntConsumer onChange)
 	{
 		this.onChange = onChange;
+		return this;
+	}
+
+	/** See {@link #detailClosed}. */
+	public V2Dropdown detailClosed()
+	{
+		this.detailClosed = true;
+		rebuild();
 		return this;
 	}
 
@@ -390,8 +403,9 @@ public class V2Dropdown extends JPanel
 			setBorder(new javax.swing.border.EmptyBorder(0, V2Tokens.PAD, 0,
 				V2Sprites.meta("ui/arrows/arrow_down").width() + V2Tokens.PAD));
 			// the selection is the HEADING; everything under it is DETAIL, so
-			// the row you are on is the one that reads (Luke, 2026-07-25)
-			OsrsLabel text = index == selected
+			// the row you are on is the one that reads (Luke, 2026-07-25) —
+			// unless the consumer asked for a quiet DETAIL closed row (F4)
+			OsrsLabel text = index == selected && !detailClosed
 				? V2Label.heading(options[index]) : V2Label.detail(options[index]);
 			add(text, java.awt.BorderLayout.CENTER);
 			addMouseListener(new MouseAdapter()

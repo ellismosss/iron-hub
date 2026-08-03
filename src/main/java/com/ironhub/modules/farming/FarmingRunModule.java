@@ -1278,8 +1278,7 @@ public class FarmingRunModule implements IronHubModule
 			int ultra = state.ownedCount(net.runelite.api.gameval.ItemID.BUCKET_ULTRACOMPOST);
 			if (ultra < compostable)
 			{
-				warnings.put("Ultracompost " + ultra + "/" + compostable
-						+ " — a Supercompost run makes more",
+				warnings.put("Ultracompost " + ultra + "/" + compostable,
 					itemSources == null ? null : itemSources.sourceLine(
 						net.runelite.api.gameval.ItemID.BUCKET_ULTRACOMPOST));
 			}
@@ -2027,20 +2026,44 @@ public class FarmingRunModule implements IronHubModule
 	/** The overview tile a patch tab belongs to — Calquat/Celastrus fold into
 	 *  the Tree tile; Hespori/Cactus/Belladonna/Mushroom into the Special tile
 	 *  (which also carries anima/spirit trees/compost via their own tab). */
-	static Tab displayGroup(Tab tab)
+	/** The F1 tile taxonomy (Luke, 2026-08-03), keyed on the PATCH
+	 *  IMPLEMENTATION rather than the tracker's tab — the tab cannot say
+	 *  "spirit trees belong to Tree" (they ride Tab.SPECIAL) or split
+	 *  compost bins out of Special. Tree = tree + hardwood + spirit;
+	 *  Fruit tree = fruit + calquat + celastrus + crystal; Compost bins =
+	 *  both bins; Hespori/Anima/Redwood stand alone; the rest of the
+	 *  specials (cactus, belladonna, mushroom, coral, seaweed) are
+	 *  Special. */
+	static Tab displayGroup(com.ironhub.modules.farming.rl.PatchImplementation impl)
 	{
-		switch (tab)
+		switch (impl)
 		{
+			case TREE:
+			case HARDWOOD_TREE:
+			case SPIRIT_TREE:
+				return Tab.TREE;
+			case FRUIT_TREE:
 			case CALQUAT:
 			case CELASTRUS:
-				return Tab.TREE;
+			case CRYSTAL_TREE:
+				return Tab.FRUIT_TREE;
+			case COMPOST:
+			case BIG_COMPOST:
+				return Tab.BIG_COMPOST;
 			case HESPORI:
+				return Tab.HESPORI;
+			case ANIMA:
+				return Tab.ANIMA;
+			case REDWOOD:
+				return Tab.REDWOOD;
 			case CACTUS:
 			case BELLADONNA:
 			case MUSHROOM:
+			case CORAL:
+			case SEAWEED:
 				return Tab.SPECIAL;
 			default:
-				return tab;
+				return impl.getTab();
 		}
 	}
 
@@ -2062,10 +2085,10 @@ public class FarmingRunModule implements IronHubModule
 		for (java.util.Map.Entry<Tab, java.util.Set<com.ironhub.modules.farming.rl.FarmingPatch>> entry
 			: tracking.tracker().getTabData())
 		{
-			Tab group = displayGroup(entry.getKey());
-			List<OverviewPatch> patches = grouped.computeIfAbsent(group, g -> new java.util.ArrayList<>());
 			for (com.ironhub.modules.farming.rl.FarmingPatch patch : entry.getValue())
 			{
+				Tab group = displayGroup(patch.getImplementation());
+				List<OverviewPatch> patches = grouped.computeIfAbsent(group, g -> new java.util.ArrayList<>());
 				PatchPrediction prediction = tracking.tracker().predictPatch(patch);
 				String name = patch.getRegion().getName();
 				if (patch.getName() != null && !patch.getName().isEmpty())
