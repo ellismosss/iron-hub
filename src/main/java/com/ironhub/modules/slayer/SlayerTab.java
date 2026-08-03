@@ -11,7 +11,6 @@ import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
 import com.ironhub.ui.osrs.StoneButton;
 import com.ironhub.ui.v2.V2ChipRow;
-import com.ironhub.ui.osrs.StoneComboBoxUI;
 import com.ironhub.ui.osrs.StoneMeter;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -22,7 +21,6 @@ import java.util.Locale;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -661,21 +659,24 @@ class SlayerTab extends JPanel
 			String current = module.masterName();
 			masterChoice = current.isEmpty() ? pack.masters.get(pack.masters.size() - 1).name : current;
 		}
-		JComboBox<String> masterBox = new JComboBox<>();
-		for (SlayerTasksPack.Master master : pack.masters)
+		// the shared V2 dropdown (S15, 2026-08-03) — one atom for every
+		// picker in the plugin; anchoring and close-on-select come with it
+		String[] masterNames = pack.masters.stream()
+			.map(m -> m.name).toArray(String[]::new);
+		com.ironhub.ui.v2.V2Dropdown masterBox =
+			new com.ironhub.ui.v2.V2Dropdown(theme, masterNames);
+		for (int i = 0; i < masterNames.length; i++)
 		{
-			masterBox.addItem(master.name);
-		}
-		masterBox.setSelectedItem(masterChoice);
-		StoneComboBoxUI.skin(masterBox, theme);
-		masterBox.setAlignmentX(LEFT_ALIGNMENT);
-		masterBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, masterBox.getPreferredSize().height));
-		masterBox.addActionListener(e ->
-		{
-			String picked = (String) masterBox.getSelectedItem();
-			if (picked != null && !picked.equals(masterChoice))
+			if (masterNames[i].equals(masterChoice))
 			{
-				masterChoice = picked;
+				masterBox.setSelected(i);
+			}
+		}
+		masterBox.onChange(i ->
+		{
+			if (!masterNames[i].equals(masterChoice))
+			{
+				masterChoice = masterNames[i];
 				javax.swing.SwingUtilities.invokeLater(this::rebuild);
 			}
 		});
@@ -824,9 +825,10 @@ class SlayerTab extends JPanel
 			}
 		}
 
-		// add selector: the master's assignable tasks by weight, heaviest first
-		JComboBox<String> add = new JComboBox<>();
-		add.addItem("Add a task…");
+		// add selector: the master's assignable tasks by weight, heaviest
+		// first — the shared V2 dropdown (S15)
+		List<String> addable = new ArrayList<>();
+		addable.add("Add a task…");
 		List<SlayerTasksPack.Assignment> rows = new ArrayList<>(master.tasks);
 		rows.sort(Comparator.comparingInt((SlayerTasksPack.Assignment a) -> -a.weight));
 		for (SlayerTasksPack.Assignment assignment : rows)
@@ -835,19 +837,17 @@ class SlayerTab extends JPanel
 			String name = entry == null ? assignment.task : entry.name;
 			if (current.stream().noneMatch(name::equalsIgnoreCase))
 			{
-				add.addItem(name + "  (w" + assignment.weight + ")");
+				addable.add(name + "  (w" + assignment.weight + ")");
 			}
 		}
-		StoneComboBoxUI.skin(add, theme);
-		add.setAlignmentX(LEFT_ALIGNMENT);
-		add.setMaximumSize(new Dimension(Integer.MAX_VALUE, add.getPreferredSize().height));
-		add.addActionListener(e ->
+		com.ironhub.ui.v2.V2Dropdown add = new com.ironhub.ui.v2.V2Dropdown(
+			theme, addable.toArray(new String[0]));
+		add.onChange(i ->
 		{
-			String picked = (String) add.getSelectedItem();
-			if (picked != null && add.getSelectedIndex() > 0)
+			if (i > 0)
 			{
 				List<String> next = new ArrayList<>(current);
-				next.add(picked.replaceAll("\\s+\\(w\\d+\\)$", ""));
+				next.add(addable.get(i).replaceAll("\\s+\\(w\\d+\\)$", ""));
 				save.accept(next);
 			}
 		});

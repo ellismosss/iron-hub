@@ -125,7 +125,7 @@ public class LoadoutLabModule implements IronHubModule
 	 */
 	private JPanel frame;
 	private final JPanel setupView = new JPanel();
-	private final JPanel namesPanel = new JPanel();
+	private javax.swing.JComponent viewSetupsButton;
 	private final JPanel searchPanel = new JPanel();
 	private final JPanel searchResults = new JPanel();
 	private final JPanel searchTitleHolder = new JPanel();
@@ -163,7 +163,6 @@ public class LoadoutLabModule implements IronHubModule
 		com.loadoutlab.optimizer.OptimizerService.StyleResult> dpsResults;
 	private com.loadoutlab.data.MonsterStats dpsMonster;
 	private com.loadoutlab.engine.CombatStyle dpsStyle = com.loadoutlab.engine.CombatStyle.MELEE;
-	private boolean namesOpen;
 	// ── Wiki gear (design/KB-RUNTIME.md): the wiki's own recommended-gear
 	// tables for the selected monster / current task, ownership-tinted,
 	// unowned picks routable into the Goal planner. Collapsed by default. ──
@@ -347,9 +346,10 @@ public class LoadoutLabModule implements IronHubModule
 			com.ironhub.ui.osrs.OsrsSkin.MUTED, this::saveNamedSetup);
 		save.setToolTipText("Save what the view shows under a name");
 		javax.swing.JComponent viewAll = tileButton("View setups",
-			com.ironhub.ui.osrs.OsrsSkin.MUTED, this::toggleAllSetups);
+			com.ironhub.ui.osrs.OsrsSkin.MUTED, this::openSetupsDropdown);
 		viewAll.setToolTipText("List every saved setup; click one to compare it"
 			+ " against what you are wearing and carrying");
+		viewSetupsButton = viewAll;
 		// centred as a pair (Luke, 2026-07-25): glue on BOTH sides, where they
 		// used to pack left and leave the row lopsided
 		buttonsRow.add(Box.createHorizontalGlue());
@@ -365,12 +365,6 @@ public class LoadoutLabModule implements IronHubModule
 			+ " currently wear and carry");
 		liveButton.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
 		liveButton.setVisible(false);
-
-		namesPanel.setLayout(new BoxLayout(namesPanel, BoxLayout.Y_AXIS));
-		namesPanel.setOpaque(false);
-		namesPanel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-		namesPanel.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
-		namesPanel.setVisible(false);
 
 		setupView.setLayout(new BoxLayout(setupView, BoxLayout.Y_AXIS));
 		setupView.setOpaque(false);
@@ -460,12 +454,47 @@ public class LoadoutLabModule implements IronHubModule
 		return task.isEmpty() ? null : state.savedSetup(task);
 	}
 
-	private void toggleAllSetups()
+	/** The saved-setups picker is the shared V2 dropdown, floated directly
+	 *  beneath the View setups button (GC3) — picking a setup closes it by
+	 *  the atom's own contract (GC4). "Live view" leads, so clicking the
+	 *  active setup's replacement gesture stays one click. */
+	private void openSetupsDropdown()
 	{
-		namesOpen = !namesOpen;
-		namesPanel.setVisible(namesOpen);
-		lastViewFp = 0;
-		renderView();
+		if (viewSetupsButton != null && viewSetupsButton.isShowing())
+		{
+			buildSetupsDropdown().openBelow(viewSetupsButton);
+		}
+	}
+
+	com.ironhub.ui.v2.V2Dropdown buildSetupsDropdown()
+	{
+		List<String> names = state.savedSetupNames();
+		if (names.isEmpty())
+		{
+			return new com.ironhub.ui.v2.V2Dropdown(theme, "No saved setups yet");
+		}
+		String[] options = new String[names.size() + 1];
+		options[0] = "Live view";
+		for (int i = 0; i < names.size(); i++)
+		{
+			options[i + 1] = names.get(i);
+		}
+		com.ironhub.ui.v2.V2Dropdown dropdown =
+			new com.ironhub.ui.v2.V2Dropdown(theme, options);
+		int viewing = viewedSetup == null ? 0 : names.indexOf(viewedSetup) + 1;
+		dropdown.setSelected(Math.max(0, viewing));
+		dropdown.onChange(i ->
+		{
+			if (i == 0)
+			{
+				backToLive();
+			}
+			else
+			{
+				viewSetup(names.get(i - 1));
+			}
+		});
+		return dropdown;
 	}
 
 	private void viewSetup(String name)
@@ -743,7 +772,6 @@ public class LoadoutLabModule implements IronHubModule
 			state.savedSetupNames(),
 			viewedSetup,
 			draft != null ? draft.equipment : null,
-			namesOpen,
 			computing,
 			inventoryCollapsed,
 			equipStatsCollapsed,
@@ -767,7 +795,6 @@ public class LoadoutLabModule implements IronHubModule
 		}
 		lastViewFp = fp;
 
-		renderNames();
 		// dpsMode = the player is USING the calc (its section shows); the
 		// suggestion renders once results exist. An explicitly viewed
 		// setup/draft still wins (that IS "doing something else").
@@ -1056,9 +1083,6 @@ public class LoadoutLabModule implements IronHubModule
 			setupView.add(folds);
 		}
 
-		// the setups list opens BELOW the Inventory section (Luke, round 6)
-		setupView.add(namesPanel);
-
 		setupView.revalidate();
 		setupView.repaint();
 		holder.revalidate();
@@ -1207,126 +1231,6 @@ public class LoadoutLabModule implements IronHubModule
 		{
 			return null;
 		}
-	}
-
-	/** The saved-setups list: the Design lab's checklist grammar without the
-	 *  checkboxes — rows in one notched frame, whole-row hover/hit — inside a
-	 *  stone-scrolled viewport so a long list stays short (Luke, 2026-07-21). */
-	private void renderNames()
-	{
-		namesPanel.removeAll();
-		if (!namesOpen)
-		{
-			return;
-		}
-		List<String> names = state.savedSetupNames();
-		if (names.isEmpty())
-		{
-			namesPanel.add(new com.ironhub.ui.osrs.OsrsLabel("No saved setups yet",
-				com.ironhub.ui.osrs.OsrsSkin.FAINT,
-				com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned());
-			return;
-		}
-		JPanel list = new JPanel()
-		{
-			@Override
-			public Dimension getPreferredSize()
-			{
-				Dimension d = super.getPreferredSize();
-				// track the viewport width so rows fill the frame
-				java.awt.Container parent = getParent();
-				return parent instanceof javax.swing.JViewport
-					? new Dimension(parent.getWidth(), d.height) : d;
-			}
-		};
-		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
-		list.setOpaque(false);
-		for (String name : names)
-		{
-			boolean active = draft == null && name.equals(viewedSetup);
-			list.add(setupRow(name, active));
-		}
-
-		// a list, so the Well — and at the Checklist's inset, not the generic
-		// well's: CAP clears the end caps and TIGHT is the only air on top
-		com.ironhub.ui.v2.V2Surface frame = com.ironhub.ui.v2.V2Surface.well(theme);
-		int inset = com.ironhub.ui.v2.V2Well.CAP + com.ironhub.ui.v2.V2Tokens.TIGHT;
-		frame.setBorder(new EmptyBorder(inset, inset, inset, inset));
-		frame.setLayout(new BorderLayout());
-		javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(list,
-			javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-			javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER)
-		{
-			@Override
-			public Dimension getPreferredSize()
-			{
-				Dimension d = super.getPreferredSize();
-				return new Dimension(d.width, Math.min(d.height, 264)); // ~12 rows (Luke)
-			}
-		};
-		scroll.setBorder(null);
-		scroll.setOpaque(false);
-		scroll.getViewport().setOpaque(false);
-		com.ironhub.ui.osrs.StoneScrollBarUI.skin(scroll.getVerticalScrollBar(), theme);
-		scroll.getVerticalScrollBar().setUnitIncrement(22);
-		frame.add(scroll, BorderLayout.CENTER);
-		frame.setMaximumSize(new Dimension(Integer.MAX_VALUE, frame.getPreferredSize().height));
-		namesPanel.add(frame);
-	}
-
-	/** One setup row: name in the checklist-row look (hover fill, whole-row
-	 *  hit target), TITLE-orange when it is the one being viewed. */
-	private JComponent setupRow(String name, boolean active)
-	{
-		JPanel row = new JPanel();
-		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-		row.setOpaque(true);
-		row.setBackground(theme.boxFill);
-		row.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-		row.setBorder(new EmptyBorder(3, 6, 3, 6));
-		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		com.ironhub.ui.osrs.OsrsLabel label = new com.ironhub.ui.osrs.OsrsLabel(name,
-			active ? com.ironhub.ui.osrs.OsrsSkin.TITLE : com.ironhub.ui.osrs.OsrsSkin.LABEL,
-			com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned().squeezable();
-		String tip = active ? "Viewing — click again for the live view"
-			: "Compare this setup against what you wear and carry";
-		row.setToolTipText(tip);
-		label.setToolTipText(tip);
-		row.add(label);
-		row.add(Box.createHorizontalGlue());
-		java.awt.event.MouseAdapter click = new java.awt.event.MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(java.awt.event.MouseEvent e)
-			{
-				row.setBackground(theme.hoverFill);
-				row.repaint();
-			}
-
-			@Override
-			public void mouseExited(java.awt.event.MouseEvent e)
-			{
-				row.setBackground(theme.boxFill);
-				row.repaint();
-			}
-
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
-			{
-				if (active)
-				{
-					backToLive();
-				}
-				else
-				{
-					viewSetup(name);
-				}
-			}
-		};
-		row.addMouseListener(click);
-		label.addMouseListener(click);
-		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
-		return row;
 	}
 
 	// ── per-slot item search (edits a draft) ──────────────────────────
@@ -1901,7 +1805,7 @@ public class LoadoutLabModule implements IronHubModule
 	{
 		if (lab.getPanel() != null)
 		{
-			lab.getPanel().setSetupHooks(this::saveNamedSetup, this::toggleAllSetups);
+			lab.getPanel().setSetupHooks(this::saveNamedSetup, this::openSetupsDropdown);
 			lab.getPanel().setWornLookup(this::wornItemFor);
 			lab.getPanel().setDpsCalcHook(this::openDpsCalc);
 			lab.getPanel().setMonsterIconLookup(this::fetchMonsterIcon);
@@ -2356,10 +2260,16 @@ public class LoadoutLabModule implements IronHubModule
 
 	// ── test seams ────────────────────────────────────────────────────
 
-	/** Test seam: view a saved setup diffed against current. */
-	void toggleAllSetupsForTest()
+	/** Test seam: the configured setups dropdown (options + wiring). */
+	com.ironhub.ui.v2.V2Dropdown setupsDropdownForTest()
 	{
-		toggleAllSetups();
+		return buildSetupsDropdown();
+	}
+
+	/** Test seam: the setup currently being viewed, or null for live. */
+	String viewedSetupForTest()
+	{
+		return viewedSetup;
 	}
 
 	/** Test seam: force the shared viewer's source by chip index

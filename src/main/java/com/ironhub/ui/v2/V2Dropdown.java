@@ -119,14 +119,68 @@ public class V2Dropdown extends JPanel
 		rebuild();
 	}
 
+	/**
+	 * Float the open list beneath an arbitrary anchor — for a picker whose
+	 * trigger is a BUTTON rather than a closed well row (the gear "View
+	 * setups" list, GC3/GC4 2026-08-03). Same well popup, same width
+	 * pinning, same close-on-select; the dropdown instance itself never
+	 * mounts. The popup opens flush under the anchor, never elsewhere on
+	 * the page.
+	 */
+	public void openBelow(javax.swing.JComponent anchor)
+	{
+		if (width == 0 && anchor.getWidth() > 0)
+		{
+			width = anchor.getWidth();
+		}
+		expanded = true;
+		hovered = -1;
+		buildPopup();
+		popup.show(anchor, 0, anchor.getHeight());
+	}
+
 	/** The floated list: the well continuing under the closed row. */
 	private void showPopup()
+	{
+		buildPopup();
+		popup.show(this, 0, V2Tokens.CONTROL_HEIGHT);
+	}
+
+	private void buildPopup()
 	{
 		popup = new javax.swing.JPopupMenu();
 		popup.setBorder(new javax.swing.border.EmptyBorder(0, 0, 0, 0));
 		popup.setOpaque(false);
 		ListPanel list = new ListPanel();
-		popup.add(list);
+		if (options.length > MAX_ROWS)
+		{
+			// every option stays reachable: the popup shows MAX_ROWS and
+			// SCROLLS for the rest (the 2026-07-25 cap ruling was about
+			// page height; a floating list keeps the height and gains a
+			// scrollbar instead of losing options — 2026-08-03, S15)
+			javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(list,
+				javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+				javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER)
+			{
+				@Override
+				public Dimension getPreferredSize()
+				{
+					Dimension d = super.getPreferredSize();
+					return new Dimension(d.width,
+						Math.min(d.height, MAX_ROWS * V2Tokens.CONTROL_HEIGHT));
+				}
+			};
+			scroll.setBorder(null);
+			scroll.setOpaque(false);
+			scroll.getViewport().setOpaque(false);
+			V2ScrollBarUI.install(scroll, theme);
+			scroll.getVerticalScrollBar().setUnitIncrement(V2Tokens.CONTROL_HEIGHT);
+			popup.add(scroll);
+		}
+		else
+		{
+			popup.add(list);
+		}
 		popup.addPopupMenuListener(new javax.swing.event.PopupMenuListener()
 		{
 			@Override
@@ -152,7 +206,6 @@ public class V2Dropdown extends JPanel
 			{
 			}
 		});
-		popup.show(this, 0, V2Tokens.CONTROL_HEIGHT);
 	}
 
 	/** The popup's body: every option in one well, the control's width. */
@@ -269,11 +322,12 @@ public class V2Dropdown extends JPanel
 		repaint();
 	}
 
-	/** How many options an open well lists. Capped (Luke, 2026-07-25): a
-	 *  hundred kill sources would push the whole page down the panel. */
+	/** Every option is listed — the popup viewport caps VISIBLE rows at
+	 *  {@link #MAX_ROWS} and scrolls for the rest (2026-08-03; the old
+	 *  hard cap silently hid options past twenty). */
 	private int shownRows()
 	{
-		return Math.min(options.length, MAX_ROWS);
+		return options.length;
 	}
 
 	@Override

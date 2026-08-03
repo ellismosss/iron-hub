@@ -258,10 +258,12 @@ public class LoadoutLabModuleTest
 		javax.imageio.ImageIO.write(image, "png", out);
 	}
 
-	/** The setups list: checkbox-less checklist rows inside a stone-scrolled
-	 *  frame, capped so a long list never dominates the tab (Luke). */
+	/** GC3/GC4 (2026-08-03): the setups picker is the shared V2 dropdown,
+	 *  floated beneath the View setups button. Picking a setup views it
+	 *  (and the atom closes on pick by contract); "Live view" leads and
+	 *  returns to the live diff. */
 	@Test
-	public void setupsListRendersFramedAndScrollCapped() throws Exception
+	public void setupsDropdownPicksViewAndLive() throws Exception
 	{
 		AccountState state = liveState();
 		for (int i = 1; i <= 12; i++)
@@ -271,14 +273,18 @@ public class LoadoutLabModuleTest
 			state.saveSetup("Setup " + i, setup);
 		}
 		LoadoutLabModule module = newModule(state);
-		javax.swing.JComponent tab = module.buildTab();
-		javax.swing.SwingUtilities.invokeAndWait(module::toggleAllSetupsForTest);
-		java.awt.image.BufferedImage image =
-			com.ironhub.ui.SwingRender.render((javax.swing.JPanel) tab);
-		assertTrue(image.getHeight() > 200);
-		java.io.File out = new java.io.File("build/reports/loadout-setups-list.png");
-		out.getParentFile().mkdirs();
-		javax.imageio.ImageIO.write(image, "png", out);
+		module.buildTab();
+		javax.swing.SwingUtilities.invokeAndWait(() ->
+		{
+			java.util.List<String> names = state.savedSetupNames();
+			com.ironhub.ui.v2.V2Dropdown dropdown = module.setupsDropdownForTest();
+			dropdown.pick(3); // "Live view" leads, so 3 = the third saved name
+			assertEquals(names.get(2), module.viewedSetupForTest());
+			// rebuilt fresh per open: the active setup is preselected
+			assertEquals(3, module.setupsDropdownForTest().selected());
+			module.setupsDropdownForTest().pick(0);
+			assertEquals(null, module.viewedSetupForTest());
+		});
 	}
 
 	@Test
