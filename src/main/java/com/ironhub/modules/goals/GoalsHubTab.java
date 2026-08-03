@@ -445,6 +445,20 @@ class GoalsHubTab extends JPanel
 				.labels("Lvl " + from, Math.round(frac * 100) + "%", "Lvl " + to));
 		}
 
+		// a collect-N-of-item step tracks live from owned stock (G5,
+		// 2026-08-03): bank + carried via canonicalStock — the plugin
+		// always knew the count. Green = possession, blue = plan progress.
+		if (step.action.kind == com.ironhub.engine.Action.Kind.OBTAIN
+			&& step.action.itemId > 0 && step.action.obtainQty > 1)
+		{
+			int owned = Math.min(step.action.obtainQty,
+				state.canonicalStock(step.action.itemId));
+			double frac = owned / (double) step.action.obtainQty;
+			card.add(Box.createVerticalStrut(3));
+			card.add(new StoneProgressBar(theme, V2Tokens.BAR_FILL, frac)
+				.labels("", owned + " / " + step.action.obtainQty, ""));
+		}
+
 		// number-left first, time last (the benefits-first rule)
 		JPanel stats = row();
 		String left = step.trainXpRemaining > 0 ? compactXp(step.trainXpRemaining) + " xp left"
@@ -948,6 +962,18 @@ class GoalsHubTab extends JPanel
 			return;
 		}
 		int itemId = step.action.itemId;
+		// honest N/T for a collect-N step (G5) — owned counts, never a guess
+		if (step.action.obtainQty > 1)
+		{
+			int owned = Math.min(step.action.obtainQty, state.canonicalStock(itemId));
+			JPanel counted = row();
+			counted.add(Box.createHorizontalStrut(UiTokens.STATUS_GLYPH_SIZE + UiTokens.PAD_TIGHT));
+			counted.add(new OsrsLabel(owned + " / " + step.action.obtainQty + " collected",
+				owned >= step.action.obtainQty ? V2Tokens.DONE : OsrsSkin.FAINT,
+				OsrsSkin.smallFont()).leftAligned());
+			counted.add(Box.createHorizontalGlue());
+			block.add(counted);
+		}
 		List<com.ironhub.data.ItemSourcesPack.Source> options = sourceOptions(itemId);
 		String pref = state.getItemSourcePref(itemId);
 		// a PATH pref ("path|skillb:Crafting:80") selects a gear any: branch,

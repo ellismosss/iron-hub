@@ -133,6 +133,15 @@ class PlannerOverlay extends OverlayPanel
 			case KILL:
 				renderKill(head);
 				break;
+			case OBTAIN:
+				if (head.action.itemId > 0 && head.action.obtainQty > 1)
+				{
+					renderCollect(head);
+					break;
+				}
+				// single-item obtains keep the compact render below
+				// (a 0/1 bar is noise)
+				// fall through
 			default:
 				line(head.action.name, Color.WHITE,
 					timeText(head.hours), UiTokens.OVERLAY_VALUE);
@@ -204,6 +213,26 @@ class PlannerOverlay extends OverlayPanel
 		}
 
 		methodLine(head, skill, xpLeft, measured);
+	}
+
+	/** A collect-N-of-item step tracks live from owned stock (G5,
+	 *  2026-08-03): bank + carried via canonicalStock. Only claimed
+	 *  progress is real progress — the count is the same one the bank
+	 *  grammar reports, never an estimate. */
+	private void renderCollect(Plan.Step head)
+	{
+		int target = head.action.obtainQty;
+		int owned = Math.min(target, state.canonicalStock(head.action.itemId));
+		line(head.action.name, Color.WHITE,
+			timeText(head.hours), UiTokens.OVERLAY_VALUE);
+		bar(head.action.id, owned / (double) target);
+		line("Collected", UiTokens.CANVAS_LOCKED,
+			owned + " / " + target, UiTokens.OVERLAY_VALUE);
+		String detail = obtainDetail(head);
+		if (detail != null)
+		{
+			line(detail, UiTokens.CANVAS_LOCKED, null, null);
+		}
 	}
 
 	private void renderKill(Plan.Step head)
@@ -363,7 +392,9 @@ class PlannerOverlay extends OverlayPanel
 			case KILL:
 				return state.getKillCount(action.kcSource) >= action.kcTarget;
 			case OBTAIN:
-				return action.itemId > 0 && state.canonicalStock(action.itemId) > 0;
+				// a collect-N step is satisfied at N, not at the first item
+				return action.itemId > 0
+					&& state.canonicalStock(action.itemId) >= Math.max(1, action.obtainQty);
 			case MANUAL:
 				return action.unlockKey != null && state.isUnlocked(action.unlockKey);
 			default:

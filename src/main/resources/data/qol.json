@@ -183,7 +183,7 @@
     12019
    ],
    "requirements": [
-    "100 golden nuggets (Motherlode Mine)"
+    "item:12012:100:Golden nuggets"
    ],
    "benefit": "The coal bag is a reward purchasable from Prospector Percy's Nugget Shop for 100 golden nuggets. The coal bag holds up to 27 pieces of coal (36 if a Smithing cape is equipped). When smelting or superheating, coal in the bag will be used after the coal in the inventory. It is refillable just like..."
   },
@@ -413,7 +413,7 @@
     12020
    ],
    "requirements": [
-    "100 golden nuggets (Motherlode Mine)"
+    "item:12012:100:Golden nuggets"
    ],
    "benefit": "The gem bag is a gem container purchasable from Prospector Percy's Nugget Shop for 100 golden nuggets. It can hold 60 of each (300 total) uncut gems of the following types:"
   },
@@ -519,7 +519,7 @@
     11850
    ],
    "requirements": [
-    "35 marks of grace"
+    "item:11849:35:Marks of grace"
    ]
   },
   {
@@ -545,7 +545,7 @@
     13226
    ],
    "requirements": [
-    "250 Tithe Farm points"
+    "varbit:4893:250:Tithe Farm points"
    ],
    "benefit": "A herb sack is an item that can be bought from Slayer masters for 750 Slayer reward points or from Farmer Gricoller's Rewards for 250 Tithe Farm points."
   },
@@ -817,7 +817,7 @@
     12791
    ],
    "requirements": [
-    "750 Slayer reward points"
+    "varbit:4068:750:Slayer reward points"
    ],
    "benefit": "The rune pouch is an item that can store 16,000 of three types of runes (except runes found in the Nightmare Zone). Players can cast spells using the runes stored in the pouch, so a rune pouch saves inventory space. Using a needle, the rune pouch can be upgraded to a divine rune pouch with a thre..."
   },
@@ -828,7 +828,7 @@
     13639
    ],
    "requirements": [
-    "250 Tithe Farm points"
+    "varbit:4893:250:Tithe Farm points"
    ],
    "benefit": "The seed box is an item that can store up to 2,147,483,647 seeds of six different types. It is purchased from Farmer Gricoller at the Tithe Farm for 250 points. This item can be used directly on a farming patch. Using the box on a patch will automatically plant the first applicable seed of that p..."
   },

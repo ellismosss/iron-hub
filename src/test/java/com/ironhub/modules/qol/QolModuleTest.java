@@ -63,6 +63,35 @@ public class QolModuleTest
 		assertEquals("250 Tithe Farm points", QolModule.blockingLine(state, byId("herb_sack")));
 	}
 
+	/** G5 (2026-08-03): a cost in a TRACKABLE currency is a live graph
+	 *  leaf, never a prose manual gate. Item currencies (golden nuggets)
+	 *  count from bank+carried; point currencies with a documented
+	 *  balance varbit (Tithe 4893, Slayer 4068) read the varbit. The gem
+	 *  bag used to render "can't detect progress" while the plugin knew
+	 *  the nugget count all along. */
+	@Test
+	public void currencyCostsTrackLiveNotManually()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+
+		// the requirement is a real graph leaf, not a never-met manual gate
+		for (String id : new String[]{"gem_bag", "coal_bag", "graceful_hood",
+			"herb_sack", "seed_box", "rune_pouch"})
+		{
+			for (String req : byId(id).getRequirements())
+			{
+				assertFalse(id + " requirement is manual: " + req,
+					com.ironhub.requirements.Requirements.isManual(
+						com.ironhub.requirements.Requirements.parse(req)));
+			}
+		}
+
+		// 100 banked nuggets flip the gem bag to AVAILABLE automatically
+		assertEquals(Status.LOCKED, QolModule.status(state, byId("gem_bag")));
+		StateFixture.bank(state, Map.of(12012, 100));
+		assertEquals(Status.AVAILABLE, QolModule.status(state, byId("gem_bag")));
+	}
+
 	/** Owning a HIGHER diary-reward tier proves the lower — an Ardougne
 	 *  cloak 3 covers everything cloak 2 does (Luke's report: cloak 2 read
 	 *  "not obtained" beside an owned cloak 3). The generator bakes the
