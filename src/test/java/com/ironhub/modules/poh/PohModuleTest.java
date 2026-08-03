@@ -672,6 +672,36 @@ public class PohModuleTest
 		return tile;
 	}
 
+	/** The tab fingerprints on what it renders (2026-08-03 audit ruling 9):
+	 *  a broadcast that moved nothing House-visible must not rebuild a
+	 *  visible tab, while a real input change still must. */
+	@Test
+	public void irrelevantBroadcastsSkipTheRebuild() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		StateFixture.stat(state, Skill.CONSTRUCTION, 84, 3_000_000);
+		PohModule module = module(state);
+		module.startUp();
+		PohTab tab = (PohTab) module.buildTab();
+		javax.swing.SwingUtilities.invokeAndWait(() -> { });
+		java.awt.Container header = (java.awt.Container) tab.getComponent(0);
+		java.awt.Component before = header.getComponent(0);
+
+		// loot totals are not a House input — the old bare listener rebuilt anyway
+		state.ingestLoot("Zulrah", java.util.Map.of(12934, 1));
+		javax.swing.SwingUtilities.invokeAndWait(() -> { });
+		org.junit.Assert.assertSame("irrelevant broadcast must not rebuild",
+			before, header.getComponent(0));
+
+		// a built tier IS a House input
+		state.setPohBuilt("parlour__chairs:crude_wooden_chair", true);
+		javax.swing.SwingUtilities.invokeAndWait(() -> { });
+		org.junit.Assert.assertNotSame("a real input change must rebuild",
+			before, header.getComponent(0));
+		module.shutDown();
+	}
+
 	/** A tier row expands from a press on its NAME — the tooltipped label
 	 *  Swing hands the event to (deepest interested component) — while the
 	 *  track/wiki glyphs keep their own clicks without also toggling the

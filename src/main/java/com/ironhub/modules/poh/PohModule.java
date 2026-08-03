@@ -782,6 +782,12 @@ public class PohModule implements IronHubModule
 
 	private volatile String lastDiagnostics = "";
 
+	/** The last published diagnostics line — a tab fingerprint term. */
+	String lastDiagnostics()
+	{
+		return lastDiagnostics;
+	}
+
 	/**
 	 * A one-line account of what detection can actually see, shown in the tab
 	 * while nothing is marked. Every value is written on the client thread.

@@ -89,7 +89,18 @@ class DailiesNewTab extends JPanel
 		add(frame);
 		add(Box.createVerticalGlue());
 
-		state.addListener(stateListener);
+		// scoped: the tab renders daily states (varbits + bank/carried
+		// stock + req gates) and manual ticks — the tagged LOOT/RECORDS/
+		// GOALS/STORAGE churn it used to rebuild on touches none of that
+		// (untagged broadcasts always deliver; 2026-08-03 audit ruling 9)
+		state.addListener(stateListener,
+			com.ironhub.state.AccountState.Topic.SKILLS,
+			com.ironhub.state.AccountState.Topic.QUESTS,
+			com.ironhub.state.AccountState.Topic.BANK,
+			com.ironhub.state.AccountState.Topic.INVENTORY,
+			com.ironhub.state.AccountState.Topic.EQUIPMENT,
+			com.ironhub.state.AccountState.Topic.VARBITS,
+			com.ironhub.state.AccountState.Topic.UNLOCKS);
 		module.addTabListener(runListener);
 		rebuild();
 	}

@@ -703,6 +703,13 @@ public class GoalPlannerModule implements IronHubModule
 		return planFacts.obtainItems.contains(itemId);
 	}
 
+	/** Identity stamp of the current facts — a replan publishes a fresh
+	 *  object, so consumers fingerprint plan-derived badges on this. */
+	public int planFactsStamp()
+	{
+		return System.identityHashCode(planFacts);
+	}
+
 	/** Known plan hours at session start; negative = no earlier session. */
 	double sessionStartPlanHours()
 	{

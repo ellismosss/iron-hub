@@ -131,19 +131,43 @@ class QolTab extends JPanel
 	private final QolPack pack;
 	private final OsrsTheme theme;
 	private final java.util.function.IntPredicate planWantsItem;
-	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
+	private final java.util.function.IntSupplier planFactsStamp;
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::onStateChanged);
+	// sprites bypass the fingerprint: an arriving icon changes no state
+	private final Runnable spriteListener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
+	private long lastFp;
 	private final SpriteCache sprites;
 	private final JPanel header = new JPanel();
 	private final TileTree tree;
 
+	/** Fingerprint-compare before rebuilding (the CA/clog pattern —
+	 *  2026-08-03 audit ruling 9). */
+	private void onStateChanged()
+	{
+		if (fingerprint() != lastFp)
+		{
+			rebuild();
+		}
+	}
+
+	private long fingerprint()
+	{
+		long fp = state.requirementInputsDigest();
+		fp = 31 * fp + state.goalSeedIds("qol").hashCode();
+		fp = 31 * fp + planFactsStamp.getAsInt();
+		return fp;
+	}
+
 	QolTab(AccountState state, QolPack pack, OsrsTheme theme,
-		java.util.function.IntPredicate planWantsItem, ItemManager itemManager)
+		java.util.function.IntPredicate planWantsItem,
+		java.util.function.IntSupplier planFactsStamp, ItemManager itemManager)
 	{
 		this.state = state;
 		this.pack = pack;
 		this.theme = theme;
 		this.planWantsItem = planWantsItem;
-		this.sprites = new SpriteCache(itemManager, listener);
+		this.planFactsStamp = planFactsStamp;
+		this.sprites = new SpriteCache(itemManager, spriteListener);
 		this.tree = new TileTree(theme, sprites);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
@@ -185,6 +209,7 @@ class QolTab extends JPanel
 
 	private void rebuild()
 	{
+		lastFp = fingerprint(); // every rebuild path re-baselines the compare
 		int owned = 0;
 		int available = 0;
 		for (QolPack.Unlock unlock : pack.getUnlocks())

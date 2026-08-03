@@ -661,6 +661,52 @@ public class AccountState implements StateView
 		return profileGeneration;
 	}
 
+	/**
+	 * Cheap digest of every input the requirement graph can read (the
+	 * StateView surface): skill LEVELS (not xp — no leaf reads raw xp, and
+	 * including it would re-render on every drop), quest states and
+	 * points, the owned-item containers (replaced wholesale on ingest, so
+	 * identity suffices), unlocks, kill counts and watched var values.
+	 * Requirement-driven tabs fingerprint on this: if it hasn't moved, no
+	 * met/unmet answer can have changed (2026-08-03 audit ruling 9).
+	 */
+	public long requirementInputsDigest()
+	{
+		long digest = profileGeneration;
+		for (Skill skill : Skill.values())
+		{
+			digest = 31 * digest + getRealLevel(skill);
+		}
+		digest = 31 * digest + questStates.hashCode();
+		digest = 31 * digest + questPoints;
+		digest = 31 * digest + System.identityHashCode(bank);
+		digest = 31 * digest + System.identityHashCode(inventory);
+		digest = 31 * digest + System.identityHashCode(equipment);
+		digest = 31 * digest + System.identityHashCode(runePouch);
+		digest = 31 * digest + unlocks.hashCode();
+		digest = 31 * digest + killCounts.hashCode();
+		digest = 31 * digest + varbitValues.hashCode();
+		digest = 31 * digest + varpValues.hashCode();
+		return digest;
+	}
+
+	/** Digest of the POH built-tier marks (not requirement-visible — the
+	 *  House tab fingerprints it alongside the inputs digest). */
+	public int pohBuiltDigest()
+	{
+		return pohBuilt.hashCode();
+	}
+
+	/** Digest of the supply watch prefs (adds, removes, thresholds) — the
+	 *  Runway tab fingerprints it alongside the inputs digest. */
+	public int supplyPrefsDigest()
+	{
+		int digest = supplyAdded.hashCode();
+		digest = 31 * digest + supplyRemoved.hashCode();
+		digest = 31 * digest + supplyThresholds.hashCode();
+		return digest;
+	}
+
 	private void notifyListeners()
 	{
 		notifyListeners(null); // untagged = broadcast to every listener

@@ -43,12 +43,35 @@ class PohTab extends JPanel
 	private final PohModule module;
 	private final OsrsTheme theme;
 	private final ItemManager itemManager; // null headless — icons skipped
-	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::onStateChanged);
+	// sprites bypass the fingerprint: an arriving icon changes no state
+	private final Runnable spriteListener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
+	private long lastFp;
 
 	/** Module-pushed refresh (diagnostics) through the same gate. */
 	void refresh()
 	{
 		listener.run();
+	}
+
+	/** Fingerprint-compare before rebuilding (the CA/clog pattern —
+	 *  2026-08-03 audit ruling 9): a broadcast that moved nothing this
+	 *  tab renders must not rebuild a visible tab. */
+	private void onStateChanged()
+	{
+		if (fingerprint() != lastFp)
+		{
+			rebuild();
+		}
+	}
+
+	private long fingerprint()
+	{
+		long fp = state.requirementInputsDigest();
+		fp = 31 * fp + state.pohBuiltDigest();
+		fp = 31 * fp + state.goalSeedIds("poh").hashCode();
+		fp = 31 * fp + module.lastDiagnostics().hashCode();
+		return fp;
 	}
 	private final SpriteCache sprites;
 	private final JPanel header = new JPanel();
@@ -76,7 +99,7 @@ class PohTab extends JPanel
 		this.module = module;
 		this.theme = theme;
 		this.itemManager = itemManager;
-		this.sprites = new SpriteCache(itemManager, listener);
+		this.sprites = new SpriteCache(itemManager, spriteListener);
 		this.tree = new TileTree(theme, sprites);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
@@ -127,6 +150,7 @@ class PohTab extends JPanel
 
 	void rebuild()
 	{
+		lastFp = fingerprint(); // every rebuild path re-baselines the compare
 		PohPack pack = module.pack();
 		header.removeAll();
 		if (pack == null)

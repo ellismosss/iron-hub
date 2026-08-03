@@ -59,6 +59,23 @@ public class QolModule implements IronHubModule
 	/** The current plan already obtains this item under some OTHER goal
 	 *  (gear chart, supplies …) — the affordance says so instead of
 	 *  offering a duplicate (Luke: Ava's assembler was offered twice). */
+	/** Identity stamp of the planner's facts, for the tab's fingerprint. */
+	int planFactsStamp()
+	{
+		if (planner == null)
+		{
+			return 0;
+		}
+		try
+		{
+			return planner.get().planFactsStamp();
+		}
+		catch (RuntimeException e)
+		{
+			return 0;
+		}
+	}
+
 	boolean planWantsItem(int itemId)
 	{
 		if (planner == null)
@@ -136,7 +153,7 @@ public class QolModule implements IronHubModule
 		if (tab == null)
 		{
 			tab = new QolTab(state, dataPack.load("qol", QolPack.class),
-				config.osrsTheme(), this::planWantsItem, itemManager);
+				config.osrsTheme(), this::planWantsItem, this::planFactsStamp, itemManager);
 		}
 		return tab;
 	}
