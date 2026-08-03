@@ -44,6 +44,11 @@ class PortTasksTab extends JPanel
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 
 	private final JPanel content = new JPanel();
+	/** The ports list re-fills alone on a search keystroke (PS1 2026-08-03)
+	 *  — a full rebuild would tear the field out from under the caret. */
+	private final JPanel portsHolder = new JPanel();
+	private final com.ironhub.ui.v2.V2TextField portSearch;
+	private String portFilter = "";
 
 	PortTasksTab(AccountState state, PortTasksModule module, OsrsTheme theme,
 		ItemManager itemManager)
@@ -56,6 +61,12 @@ class PortTasksTab extends JPanel
 		setOpaque(true);
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
+
+		portsHolder.setLayout(new BoxLayout(portsHolder, BoxLayout.Y_AXIS));
+		portsHolder.setOpaque(false);
+		portsHolder.setAlignmentX(LEFT_ALIGNMENT);
+		portSearch = new com.ironhub.ui.v2.V2TextField(theme, "Search ports...",
+			this::portSearchChanged);
 
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 		content.setOpaque(false);
@@ -96,16 +107,59 @@ class PortTasksTab extends JPanel
 
 	private void addSummary()
 	{
-		// the day's standing is the one live readout on the page — the Card
-		V2Surface head = V2Surface.card(theme);
-		head.setLayout(new BoxLayout(head, BoxLayout.X_AXIS));
-		head.add(new OsrsLabel("Completed today: " + module.completedToday(),
-			OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
-		head.add(Box.createHorizontalGlue());
-		head.add(new OsrsLabel(module.freeSlots() + " slots free",
+		// the day's standing is the one live readout on the page — the
+		// reference HERO shape (PS1 2026-08-03): flanking emblems, a centred
+		// headline, the standing beneath. No bar: the daily counter has no
+		// completion target (the board merely restocks every 8) and a bar
+		// with no target would invent one.
+		V2Surface hero = V2Surface.card(theme);
+		JPanel top = rows();
+		JPanel line = rowLine();
+		line.add(wheelEmblem());
+		line.add(Box.createHorizontalGlue());
+		JPanel middle = new JPanel();
+		middle.setLayout(new BoxLayout(middle, BoxLayout.Y_AXIS));
+		middle.setOpaque(false);
+		OsrsLabel title = new OsrsLabel("Completed today", OsrsSkin.TITLE, OsrsSkin.font());
+		title.setAlignmentX(CENTER_ALIGNMENT);
+		middle.add(title);
+		OsrsLabel count = new OsrsLabel(String.valueOf(module.completedToday()),
+			OsrsSkin.TITLE, OsrsSkin.boldFont());
+		count.setAlignmentX(CENTER_ALIGNMENT);
+		middle.add(count);
+		line.add(middle);
+		line.add(Box.createHorizontalGlue());
+		line.add(wheelEmblem());
+		cap(line);
+		top.add(line);
+		JPanel standing = rowLine();
+		standing.add(Box.createHorizontalGlue());
+		standing.add(new OsrsLabel(module.freeSlots() + " slots free",
 			OsrsSkin.FAINT, OsrsSkin.smallFont()));
-		cap(head);
-		content.add(head);
+		standing.add(Box.createHorizontalGlue());
+		cap(standing);
+		top.add(standing);
+		hero.add(top);
+		cap(hero);
+		content.add(hero);
+	}
+
+	/** The ship's-wheel emblem flanking the hero (the Boats hero's own). */
+	private JComponent wheelEmblem()
+	{
+		javax.swing.JLabel icon = new javax.swing.JLabel();
+		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+		String key = "icons/sailing/steering_large";
+		if (com.ironhub.ui.v2.V2Sprites.has(key))
+		{
+			icon.setIcon(new javax.swing.ImageIcon(
+				com.ironhub.ui.v2.V2Sprites.get(theme, key)));
+		}
+		else
+		{
+			icon.setPreferredSize(new Dimension(24, 24));
+		}
+		return icon;
 	}
 
 	// ── accepted tasks ────────────────────────────────────────────────
@@ -252,31 +306,59 @@ class PortTasksTab extends JPanel
 
 	// ── ports ─────────────────────────────────────────────────────────
 
+	private void portSearchChanged()
+	{
+		portFilter = portSearch.getText().trim().toLowerCase(java.util.Locale.ROOT);
+		fillPorts();
+	}
+
 	private void addPorts()
 	{
 		JPanel well = section("Noticeboard ports");
-		List<PortTasksModule.PortSuggestion> ports = module.portSuggestions();
 		if (!module.catalogLoaded())
 		{
 			well.add(line("Best-task scores appear once the task catalog "
 				+ "has synced from the game (log in).", OsrsSkin.FAINT));
 		}
+		// search where the list is long (PS1 2026-08-03, the clog grammar) —
+		// the "+ N more" tail was honest but unreachable without it
+		well.add(portSearch);
+		well.add(portsHolder);
+		fillPorts();
+		addSection(well);
+		content.add(line("Click a port to mark it preferred - preferred ports "
+			+ "stay on top.", OsrsSkin.FAINT));
+	}
+
+	private void fillPorts()
+	{
+		portsHolder.removeAll();
+		List<PortTasksModule.PortSuggestion> ports = module.portSuggestions();
+		if (!portFilter.isEmpty())
+		{
+			ports = new java.util.ArrayList<>(ports);
+			ports.removeIf(s -> !s.port.name.toLowerCase(java.util.Locale.ROOT)
+				.contains(portFilter));
+		}
 		// §7: a list caps at 20 rows with an honest "+ N more" — preferred
-		// ports sort to the top, so the tail is the part nobody reads
+		// ports sort to the top, and the search reaches the tail
 		int shown = 0;
 		for (PortTasksModule.PortSuggestion s : ports)
 		{
 			if (shown++ >= MAX_PORT_ROWS)
 			{
-				well.add(line("+ " + (ports.size() - MAX_PORT_ROWS)
-					+ " more ports", OsrsSkin.FAINT));
+				portsHolder.add(line("+ " + (ports.size() - MAX_PORT_ROWS)
+					+ " more ports - search to narrow", OsrsSkin.FAINT));
 				break;
 			}
-			well.add(portRow(s));
+			portsHolder.add(portRow(s));
 		}
-		addSection(well);
-		content.add(line("Click a port to mark it preferred - preferred ports "
-			+ "stay on top.", OsrsSkin.FAINT));
+		if (ports.isEmpty() && !portFilter.isEmpty())
+		{
+			portsHolder.add(line("No port matches.", OsrsSkin.FAINT));
+		}
+		portsHolder.revalidate();
+		portsHolder.repaint();
 	}
 
 	private JComponent portRow(PortTasksModule.PortSuggestion s)
