@@ -827,6 +827,7 @@ public class LoadoutLabPanel extends PluginPanel
 		// Luke, round 5), with the wiki-calc link beside it
 		initToggle(showInBank, "While the bank is open: outline this set's items"
 			+ " and filter the bank to them (needs Bank Tags enabled)");
+		showInBank.setSelected(true); // defaults ON, always (GC6, 2026-08-03)
 		showInBank.onToggle(this::applyShowInBank);
 		JPanel bankOpenRow = new JPanel(new GridLayout(1, 2, 4, 0));
 		bankOpenRow.setOpaque(false);
@@ -1368,15 +1369,20 @@ public class LoadoutLabPanel extends PluginPanel
 		usageLog.record(monster.label());
 		selectedLabel.setText(monster.label());
 		selectedRow.setVisible(true);
-		// Iron Hub: elemental weakness on its own line so it never truncates
+		// Iron Hub: the elemental ICON plus "[+/-][N]% weakness" (GC7,
+		// 2026-08-03) — the element is the sprite's job, not prose's
 		if (monster.getWeaknessElement().isEmpty())
 		{
 			weaknessLabel.setVisible(false);
 		}
 		else
 		{
-			weaknessLabel.setText("+" + monster.getWeaknessSeverity() + "% weak to "
-				+ monster.getWeaknessElement() + " spells");
+			int severity = monster.getWeaknessSeverity();
+			weaknessLabel.setText((severity >= 0 ? "+" : "") + severity + "% weakness");
+			weaknessLabel.setIcon(elementIcon(monster.getWeaknessElement()));
+			weaknessLabel.setIconTextGap(6);
+			weaknessLabel.setToolTipText("Weak to "
+				+ monster.getWeaknessElement().toLowerCase(java.util.Locale.ROOT) + " spells");
 			weaknessLabel.setVisible(true);
 		}
 		String note = MonsterNotes.noteFor(monster);
@@ -1390,6 +1396,36 @@ public class LoadoutLabPanel extends PluginPanel
 		revalidate();
 		repaint();
 		recompute();
+	}
+
+	/** The element's surge-spell sprite (16px) for the weakness line (GC7);
+	 *  null for an element the curated set doesn't carry — the text still
+	 *  says the percentage and the tooltip names the element. */
+	private javax.swing.Icon elementIcon(String element)
+	{
+		String key;
+		switch (element.toLowerCase(java.util.Locale.ROOT))
+		{
+			case "air":
+			case "wind":
+				key = "icons/magic/wind_surge_resized";
+				break;
+			case "water":
+				key = "icons/magic/water_surge_resized";
+				break;
+			case "earth":
+				key = "icons/magic/earth_surge_resized";
+				break;
+			case "fire":
+				key = "icons/magic/fire_surge_resized";
+				break;
+			default:
+				return null;
+		}
+		java.awt.image.BufferedImage img = com.ironhub.ui.v2.V2Sprites.get(theme, key);
+		return img == null ? null : new ImageIcon(
+			img.getHeight() <= 16 ? img
+				: img.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH));
 	}
 
 	/** The wilderness tradeable cap, or -1 when the mode is off/hidden. */
@@ -2432,7 +2468,7 @@ public class LoadoutLabPanel extends PluginPanel
 	/** Account or profile switched: nothing on screen may survive. */
 	public void resetForIdentityChange()
 	{
-		showInBank.setSelected(false);
+		showInBank.setSelected(true); // the GC6 default, not off
 		applyShowInBank();
 		lastResults = null;
 		clearSelection();

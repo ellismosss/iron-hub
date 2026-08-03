@@ -77,6 +77,13 @@ public class V2ChipRow extends JPanel
 		select(index, false);
 	}
 
+	/** Enable or grey a chip (§8 Disabled: FAINT label, no hover, presses
+	 *  ignored) — the Recommended chip with no monster selected (GC9). */
+	public void setChipEnabled(int index, boolean enabled)
+	{
+		chips.get(index).setChipEnabled(enabled);
+	}
+
 	/** Pick a chip exactly as a press does. Test seam. */
 	public void pick(int index)
 	{
@@ -168,7 +175,19 @@ public class V2ChipRow extends JPanel
 	public static JPanel action(OsrsTheme theme, String text, java.awt.Color labelColor,
 		javax.swing.Icon icon, java.awt.Font font, Runnable onPress)
 	{
-		JPanel holder = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0));
+		return action(theme, text, labelColor, icon, font, false, onPress);
+	}
+
+	/**
+	 * The same, optionally FILLING its cell — a grid of action chips (the
+	 * DPS style row) must split its row evenly like a {@code V2ChipRow}
+	 * does, not hug each label (GC5, 2026-08-03).
+	 */
+	public static JPanel action(OsrsTheme theme, String text, java.awt.Color labelColor,
+		javax.swing.Icon icon, java.awt.Font font, boolean stretch, Runnable onPress)
+	{
+		JPanel holder = stretch ? new JPanel(new java.awt.BorderLayout())
+			: new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0));
 		holder.setOpaque(false);
 		holder.setAlignmentX(LEFT_ALIGNMENT);
 		Chip chip = new Chip(theme, text, onPress);
@@ -246,6 +265,8 @@ public class V2ChipRow extends JPanel
 		private boolean hover;
 		/** A cue on an UNSELECTED chip — see {@link V2ChipRow#highlight}. */
 		private boolean highlighted;
+		/** Greyed and inert (§8 Disabled) — see {@link #setChipEnabled}. */
+		private boolean chipDisabled;
 		/** Set by {@link #decorate}: an action chip's own label colour. */
 		private java.awt.Color fixedColor;
 
@@ -267,9 +288,10 @@ public class V2ChipRow extends JPanel
 				{
 					// left only: rows relay presses to themselves for their
 					// right-click menus — a chip must not also fire on those
-					if (!javax.swing.SwingUtilities.isLeftMouseButton(e))
+					if (!javax.swing.SwingUtilities.isLeftMouseButton(e)
+						|| onPress == null || chipDisabled)
 					{
-						return;
+						return; // null onPress: a display-only chip ("—" style)
 					}
 					onPress.run();
 				}
@@ -277,7 +299,7 @@ public class V2ChipRow extends JPanel
 				@Override
 				public void mouseEntered(MouseEvent e)
 				{
-					hover = true;
+					hover = !chipDisabled;
 					repaint();
 				}
 
@@ -323,10 +345,35 @@ public class V2ChipRow extends JPanel
 		void setSelected(boolean selected)
 		{
 			this.selected = selected;
-			if (fixedColor == null)
+			resolveColor();
+		}
+
+		void setChipEnabled(boolean enabled)
+		{
+			chipDisabled = !enabled;
+			if (chipDisabled)
+			{
+				hover = false;
+			}
+			setCursor(Cursor.getPredefinedCursor(
+				chipDisabled ? Cursor.DEFAULT_CURSOR : Cursor.HAND_CURSOR));
+			resolveColor();
+		}
+
+		private void resolveColor()
+		{
+			if (chipDisabled)
+			{
+				label.setColor(V2Tokens.FAINT);
+			}
+			else if (fixedColor == null)
 			{
 				label.setColor(selected ? V2Tokens.HEADING
 					: highlighted ? V2Tokens.DONE : V2Tokens.TEXT);
+			}
+			else
+			{
+				label.setColor(fixedColor);
 			}
 			repaint();
 		}

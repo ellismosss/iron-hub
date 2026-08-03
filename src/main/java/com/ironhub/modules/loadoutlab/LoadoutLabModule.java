@@ -92,8 +92,11 @@ public class LoadoutLabModule implements IronHubModule
 	private final ItemManager itemManager;     // null in unit tests
 	private final com.google.gson.Gson gson;
 	private final okhttp3.OkHttpClient httpClient; // null in unit tests
-	/** Own hidden Bank Tag, never the bank module's — see BankCollectView. */
-	private final com.ironhub.ui.components.BankCollectView collectView;
+	/** Own hidden Bank Tag, never the bank module's. The SHARED bank-layout
+	 *  engine (GC2): the same Inventory-Setups-style arrangement Farm Runs,
+	 *  Hunter and Slayer already use — equipment in its worn shape on the
+	 *  left columns, inventory in its 4x7 grid on the right. */
+	private final com.ironhub.modules.farming.FarmBankLayout bankLayout;
 
 	/** Visibility-gated once the holder exists (RebuildGate): a hidden lab
 	 *  strip must not rebuild on every state change. Pre-build, a genuine
@@ -208,8 +211,8 @@ public class LoadoutLabModule implements IronHubModule
 		this.itemManager = itemManager;
 		this.gson = gson;
 		this.httpClient = httpClient;
-		this.collectView = new com.ironhub.ui.components.BankCollectView(
-			"_ironhubloadout_", bankTagsService, tagManager, layoutManager, itemManager);
+		this.bankLayout = new com.ironhub.modules.farming.FarmBankLayout(
+			"gear", bankTagsService, tagManager, layoutManager, itemManager);
 	}
 
 	@Override
@@ -258,7 +261,7 @@ public class LoadoutLabModule implements IronHubModule
 		}
 		if (clientThread != null)
 		{
-			clientThread.invoke(collectView::clear);
+			clientThread.invoke(bankLayout::clear);
 		}
 		holder = null;
 		gatedListener = null;
@@ -892,6 +895,15 @@ public class LoadoutLabModule implements IronHubModule
 		// Always offered — "DPS Calc" is also how the calc section opens.
 		if (isLive())
 		{
+			// no monster = no Recommended (GC9): the calc has nothing to
+			// recommend, so the chip greys out, and a player left standing
+			// in Recommended moves to Current
+			boolean hasMonster = dpsMonster != null;
+			if (!hasMonster && viewSource == ViewSource.DPS)
+			{
+				viewSource = ViewSource.LIVE;
+				dpsMode = false;
+			}
 			// natural widths: three chips split evenly clip "Recommended"
 			// inside 225px — the render caught it
 			com.ironhub.ui.v2.V2ChipRow sourceChips =
@@ -905,7 +917,12 @@ public class LoadoutLabModule implements IronHubModule
 				lastViewFp = 0;
 				renderView();
 			});
-			if (suggestionBeatsCurrent())
+			if (!hasMonster)
+			{
+				sourceChips.setChipEnabled(2, false);
+				sourceChips.setToolTipText("Pick a monster below to get a recommendation");
+			}
+			else if (suggestionBeatsCurrent())
 			{
 				sourceChips.highlight(2, true); // subtle: the calc found better
 				sourceChips.setToolTipText("The calc found a better setup than your current gear");
@@ -926,8 +943,10 @@ public class LoadoutLabModule implements IronHubModule
 			}
 		}
 
+		// slot search in the CURRENT and SLAYER views (GC1) — the DPS
+		// suggestion stays display-only (it is the calc's pick, not yours)
 		JComponent equipmentView = centered(view.equipment(display, equipTints,
-			dps || slayer ? null : this::openSlotSearch)); // chip views are display-only
+			dps ? null : this::openSlotSearch));
 		JPanel thinkingWrap = new JPanel(new java.awt.BorderLayout())
 		{
 			@Override
@@ -1287,6 +1306,20 @@ public class LoadoutLabModule implements IronHubModule
 		{
 			return; // unresolvable pick changes nothing
 		}
+		if (viewSource == ViewSource.SLAYER && draft == null && slayerSetup() != null)
+		{
+			// the Slayer view edits the TASK'S saved setup in place (GC1):
+			// the pick persists and every diff/stat downstream recomputes
+			// through the state listener
+			PersistedState.SavedSetup edited = copy(slayerSetup());
+			edited.equipment.put(searchSlot.name(), id);
+			state.saveSetup(state.getSlayerTask(), edited);
+			searchPanel.setVisible(false);
+			lastViewFp = 0;
+			renderView();
+			applyBankView();
+			return;
+		}
 		if (draft == null)
 		{
 			// viewing live or a saved setup: edits fork an unsaved draft
@@ -1302,42 +1335,6 @@ public class LoadoutLabModule implements IronHubModule
 
 	// ── bank collect for the viewed setup ─────────────────────────────
 
-	/** Setup items in display order (gear layout, inventory, pouch). */
-	private static List<Integer> setupOrder(PersistedState.SavedSetup setup)
-	{
-		List<Integer> order = new ArrayList<>(layoutOrder(setup).values());
-		for (int id : setup.inventory)
-		{
-			if (id > 0)
-			{
-				order.add(id);
-			}
-		}
-		for (int id : setup.pouchRunes)
-		{
-			if (id > 0)
-			{
-				order.add(id);
-			}
-		}
-		return order;
-	}
-
-	/** What the viewed setup still needs withdrawn, in setup order. */
-	private List<Integer> withdrawList(PersistedState.SavedSetup setup)
-	{
-		Set<Integer> need = state.setupItemsToWithdraw(setup);
-		List<Integer> out = new ArrayList<>();
-		for (int id : setupOrder(setup))
-		{
-			if (need.contains(id) && !out.contains(id))
-			{
-				out.add(id);
-			}
-		}
-		return out;
-	}
-
 	/** Apply/clear the collected bank view for the current viewing state
 	 *  (live = clear). Safe with the bank closed — the tag opens on the
 	 *  bank's next build via onScriptPreFired. */
@@ -1348,16 +1345,17 @@ public class LoadoutLabModule implements IronHubModule
 			return;
 		}
 		PersistedState.SavedSetup shown = viewedOrDraft();
-		List<Integer> list = shown == null ? List.of() : withdrawList(shown);
 		clientThread.invoke(() ->
 		{
-			if (list.isEmpty())
+			if (shown == null)
 			{
-				collectView.clear();
+				bankLayout.clear();
 			}
 			else
 			{
-				collectView.apply(list);
+				// the whole setup, laid out as it will sit when equipped and
+				// carried (GC2) — never a flat run-on list
+				bankLayout.apply("gear", shown);
 			}
 		});
 	}
@@ -1377,18 +1375,9 @@ public class LoadoutLabModule implements IronHubModule
 		clientThread.invokeLater(() ->
 		{
 			PersistedState.SavedSetup shown = viewedOrDraft();
-			if (shown == null)
+			if (shown != null)
 			{
-				return;
-			}
-			List<Integer> list = withdrawList(shown);
-			if (list.isEmpty())
-			{
-				collectView.clear();
-			}
-			else
-			{
-				collectView.apply(list);
+				bankLayout.apply("gear", shown);
 			}
 		});
 	}
@@ -1399,7 +1388,7 @@ public class LoadoutLabModule implements IronHubModule
 	public void onScriptPostFired(net.runelite.api.events.ScriptPostFired event)
 	{
 		if (event.getScriptId() != net.runelite.api.ScriptID.BANKMAIN_FINISHBUILDING
-			|| client == null || !collectView.isApplied())
+			|| client == null || !bankLayout.isApplied())
 		{
 			return;
 		}
@@ -1934,8 +1923,11 @@ public class LoadoutLabModule implements IronHubModule
 				: selected ? com.ironhub.ui.osrs.OsrsSkin.TITLE
 				// weaker styles read light, never orange (Luke)
 				: com.ironhub.ui.osrs.OsrsSkin.LABEL;
-			javax.swing.JComponent button = tileButton(label, labelColor,
-				styleButtonIcon(style), dps == null ? null : () ->
+			// stretched: the three cells split the row evenly, the same
+			// sizing rule as the DPS/Balanced/Tank V2ChipRow below (GC5)
+			javax.swing.JComponent button = com.ironhub.ui.v2.V2ChipRow.action(
+				theme, label, labelColor, styleButtonIcon(style), null, true,
+				dps == null ? null : () ->
 			{
 				dpsStyle = style;
 				if (lab.getPanel() != null)
