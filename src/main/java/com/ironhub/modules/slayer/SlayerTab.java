@@ -9,7 +9,6 @@ import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneButton;
 import com.ironhub.ui.v2.V2ChipRow;
 import com.ironhub.ui.osrs.StoneMeter;
 import java.awt.Color;

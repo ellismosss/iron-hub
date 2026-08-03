@@ -1083,35 +1083,10 @@ class BankTab extends JPanel
 
 	/** The +/× goal affordance in skin colours — its own action, faint
 	 *  until hovered (the diaries/GoalsTab glyph grammar). */
-	private static JLabel goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
+	private static JComponent goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
 	{
-		JLabel glyph = new JLabel(isGoal ? "×" : "+");
-		OsrsSkin.crisp(glyph);
-		glyph.setFont(OsrsSkin.font());
-		glyph.setForeground(OsrsSkin.FAINT);
-		glyph.setToolTipText(tooltip);
-		glyph.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		glyph.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.TITLE);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				onClick.run();
-			}
-		});
-		return glyph;
+		// the shared letter-glyph atom (unified 2026-08-03)
+		return new com.ironhub.ui.v2.V2GlyphButton(isGoal ? "×" : "+", tooltip, onClick);
 	}
 
 	/** Linear blend a → b by t (the meter's red-to-green progress fill). */

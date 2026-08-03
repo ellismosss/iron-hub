@@ -463,12 +463,12 @@ class PohTab extends JPanel
 			built ? OsrsSkin.FAINT : OsrsSkin.LABEL, OsrsSkin.smallFont()));
 		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		boolean isGoal = module.isGoal(tier);
-		JLabel track = goalGlyph(isGoal, isGoal ? tier.name + " — tracked; click to untrack"
+		JComponent track = goalGlyph(isGoal, isGoal ? tier.name + " — tracked; click to untrack"
 			: "Track building " + tier.name + " in Goals",
 			() -> module.toggleGoal(tier));
 		top.add(track);
 		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		OsrsLabel wiki = wikiGlyph(tier.page);
+		JComponent wiki = wikiGlyph(tier.page);
 		top.add(wiki);
 		cap(top);
 		// any tier expands on click to show its materials (Luke,
@@ -722,68 +722,23 @@ class PohTab extends JPanel
 
 	// ── shared bits ───────────────────────────────────────────────────────
 
-	private static OsrsLabel wikiGlyph(String page)
+	private JComponent wikiGlyph(String page)
 	{
-		OsrsLabel glyph = new OsrsLabel("W", OsrsSkin.FAINT, OsrsSkin.font());
-		glyph.setToolTipText("Open the wiki page");
-		glyph.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		glyph.addMouseListener(new java.awt.event.MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(java.awt.event.MouseEvent e)
-			{
-				glyph.setColor(OsrsSkin.LABEL);
-			}
-
-			@Override
-			public void mouseExited(java.awt.event.MouseEvent e)
-			{
-				glyph.setColor(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
-			{
-				LinkBrowser.browse("https://oldschool.runescape.wiki/w/"
-					+ page.replace(' ', '_'));
-				e.consume();
-			}
-		});
-		return glyph;
+		// the standard boxed W (the goals-card grammar) over the shared
+		// WikiLinks builder, replacing the bare-text W (unified 2026-08-03)
+		com.ironhub.ui.v2.V2SpriteButton w = new com.ironhub.ui.v2.V2SpriteButton(theme,
+			com.ironhub.ui.v2.V2SpriteButton.EMPTY_BOX, false,
+			() -> com.ironhub.ui.WikiLinks.open(page)).letter("W");
+		w.setToolTipText("Open wiki");
+		return w;
 	}
 
 	/** The +/× goal affordance — a dedicated control (JLabel so its own
 	 *  listener wins over the row's build-toggle click). */
-	private static JLabel goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
+	private static JComponent goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
 	{
-		JLabel glyph = new JLabel(isGoal ? "×" : "+");
-		OsrsSkin.crisp(glyph);
-		glyph.setFont(OsrsSkin.font());
-		glyph.setForeground(OsrsSkin.FAINT);
-		glyph.setToolTipText(tooltip);
-		glyph.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		glyph.addMouseListener(new java.awt.event.MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(java.awt.event.MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.TITLE);
-			}
-
-			@Override
-			public void mouseExited(java.awt.event.MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
-			{
-				onClick.run();
-				e.consume();
-			}
-		});
-		return glyph;
+		// the shared letter-glyph atom (unified 2026-08-03)
+		return new com.ironhub.ui.v2.V2GlyphButton(isGoal ? "×" : "+", tooltip, onClick);
 	}
 
 	private JComponent line(String text, Color color)

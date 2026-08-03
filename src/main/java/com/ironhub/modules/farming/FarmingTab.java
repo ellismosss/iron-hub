@@ -38,7 +38,6 @@ import java.util.Set;
 import java.util.StringJoiner;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -1148,7 +1147,7 @@ class FarmingTab extends JPanel
 		private final JLabel icon;
 		private final OsrsLabel name;
 		private final OsrsLabel ready; // null when the run has no work waiting
-		private final JLabel delete;   // null for template runs
+		private final JComponent delete;   // null for template runs
 		private boolean hover;
 
 		private boolean boxTicked()
@@ -1269,8 +1268,11 @@ class FarmingTab extends JPanel
 			int right = getWidth() - 4;
 			if (delete != null)
 			{
+				// centre the glyph's own height: the atom's pixel label
+				// top-anchors its text, unlike the old JLabel (2026-08-03)
 				Dimension dp = delete.getPreferredSize();
-				delete.setBounds(right - dp.width, 0, dp.width, h);
+				delete.setBounds(right - dp.width, Math.max(0, (h - dp.height) / 2),
+					dp.width, dp.height);
 				right -= dp.width + 6;
 			}
 			if (ready != null)
@@ -1346,35 +1348,10 @@ class FarmingTab extends JPanel
 	}
 
 	/** A small × affordance in skin colours — faint until hovered. */
-	private JLabel deleteGlyph(Runnable onDelete)
+	private JComponent deleteGlyph(Runnable onDelete)
 	{
-		JLabel glyph = new JLabel("×", javax.swing.SwingConstants.CENTER);
-		OsrsSkin.crisp(glyph);
-		glyph.setFont(OsrsSkin.font());
-		glyph.setForeground(OsrsSkin.FAINT);
-		glyph.setToolTipText("Delete this run");
-		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		glyph.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.TITLE);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				onDelete.run();
-			}
-		});
-		return glyph;
+		// the shared letter-glyph atom (unified 2026-08-03)
+		return new com.ironhub.ui.v2.V2GlyphButton("×", "Delete this run", onDelete);
 	}
 
 	/** Compact builder: name, one checkbox per pack location (route order

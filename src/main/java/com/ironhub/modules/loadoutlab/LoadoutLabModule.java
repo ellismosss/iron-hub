@@ -1839,28 +1839,11 @@ public class LoadoutLabModule implements IronHubModule
 			int itemId = shown.getItemId();
 			String goalId = "supply:" + itemId;
 			boolean isGoal = state.goalSeedIds("supply").contains(goalId);
-			JLabel glyph = new JLabel(isGoal ? "×" : "+");
-			com.ironhub.ui.osrs.OsrsSkin.crisp(glyph);
-			glyph.setFont(com.ironhub.ui.osrs.OsrsSkin.font());
-			glyph.setForeground(com.ironhub.ui.osrs.OsrsSkin.FAINT);
-			glyph.setToolTipText(isGoal ? "Remove from Goal planner" : "Add to Goal planner");
-			glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			glyph.addMouseListener(new java.awt.event.MouseAdapter()
-			{
-				@Override
-				public void mouseEntered(java.awt.event.MouseEvent e)
-				{
-					glyph.setForeground(com.ironhub.ui.osrs.OsrsSkin.TITLE);
-				}
-
-				@Override
-				public void mouseExited(java.awt.event.MouseEvent e)
-				{
-					glyph.setForeground(com.ironhub.ui.osrs.OsrsSkin.FAINT);
-				}
-
-				@Override
-				public void mousePressed(java.awt.event.MouseEvent e)
+			// the shared letter-glyph atom (unified 2026-08-03)
+			javax.swing.JComponent glyph = new com.ironhub.ui.v2.V2GlyphButton(
+				isGoal ? "×" : "+",
+				isGoal ? "Remove from Goal planner" : "Add to Goal planner",
+				() ->
 				{
 					if (state.goalSeedIds("supply").contains(goalId))
 					{
@@ -1873,8 +1856,7 @@ public class LoadoutLabModule implements IronHubModule
 					}
 					lastViewFp = 0;
 					renderView();
-				}
-			});
+				});
 			row.add(glyph);
 		}
 		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));

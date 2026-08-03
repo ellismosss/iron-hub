@@ -34,7 +34,6 @@ import java.util.Locale;
 import java.util.Set;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -1640,8 +1639,7 @@ class GearLibraryTab extends JPanel
 	{
 		JPopupMenu menu = new JPopupMenu();
 		JMenuItem wiki = new JMenuItem("Open wiki page (" + item.name + ")");
-		wiki.addActionListener(a -> LinkBrowser.browse("https://oldschool.runescape.wiki/w/"
-			+ item.name.replace(" ", "_").replace("'", "%27")));
+		wiki.addActionListener(a -> LinkBrowser.browse(com.ironhub.ui.WikiLinks.url(item.name)));
 		menu.add(wiki);
 		if (!owns(item))
 		{

@@ -388,7 +388,7 @@ class MoneyMakingTab extends JPanel
 		JPanel wikiTop = row();
 		wikiTop.add(Box.createHorizontalGlue());
 		JComponent wiki = V2ChipRow.action(theme, "Wiki", null, null, OsrsSkin.smallFont(),
-			() -> LinkBrowser.browse("https://oldschool.runescape.wiki/w/" + m.wiki));
+			() -> LinkBrowser.browse(com.ironhub.ui.WikiLinks.ofSlug(m.wiki)));
 		wikiTop.add(wiki);
 		cap(wikiTop);
 		block.add(wikiTop);

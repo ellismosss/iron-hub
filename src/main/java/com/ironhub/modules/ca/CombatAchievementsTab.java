@@ -1045,31 +1045,11 @@ class CombatAchievementsTab extends JPanel
 	 *  whole tier or the whole boss (Luke, 2026-07-27). */
 	private JComponent aggregateGlyph(String goalId, String what, Runnable addSeed)
 	{
+		// the shared letter-glyph atom (unified 2026-08-03)
 		boolean goal = state.getSelectedGoals().contains(goalId);
-		JLabel glyph = new JLabel(goal ? "×" : "+");
-		OsrsSkin.crisp(glyph);
-		glyph.setFont(OsrsSkin.font());
-		glyph.setForeground(OsrsSkin.FAINT);
-		glyph.setToolTipText(goal ? "Remove from Goal planner"
-			: "Track " + what + " in the Goal planner");
-		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		glyph.putClientProperty(OWN_ACTION, Boolean.TRUE);
-		glyph.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.TITLE);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e)
+		JComponent glyph = new com.ironhub.ui.v2.V2GlyphButton(goal ? "×" : "+",
+			goal ? "Remove from Goal planner" : "Track " + what + " in the Goal planner",
+			() ->
 			{
 				if (state.getSelectedGoals().contains(goalId))
 				{
@@ -1080,43 +1060,24 @@ class CombatAchievementsTab extends JPanel
 					addSeed.run();
 				}
 				rebuildContent();
-			}
-		});
+			});
+		glyph.putClientProperty(OWN_ACTION, Boolean.TRUE);
 		return glyph;
 	}
 
 	/** The row's +/x: add to or remove from the Goal planner. */
 	private JComponent goalGlyph(CaTask task)
 	{
+		// the shared letter-glyph atom (unified 2026-08-03)
 		boolean goal = isGoal(task);
-		JLabel glyph = new JLabel(goal ? "×" : "+");
-		OsrsSkin.crisp(glyph);
-		glyph.setFont(OsrsSkin.font());
-		glyph.setForeground(OsrsSkin.FAINT);
-		glyph.setToolTipText(goal ? "Remove from Goal planner" : "Add to Goal planner");
-		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		glyph.putClientProperty(OWN_ACTION, Boolean.TRUE);
-		glyph.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.TITLE);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e)
+		JComponent glyph = new com.ironhub.ui.v2.V2GlyphButton(goal ? "×" : "+",
+			goal ? "Remove from Goal planner" : "Add to Goal planner",
+			() ->
 			{
 				toggleGoal(task);
 				rebuildContent();
-			}
-		});
+			});
+		glyph.putClientProperty(OWN_ACTION, Boolean.TRUE);
 		return glyph;
 	}
 

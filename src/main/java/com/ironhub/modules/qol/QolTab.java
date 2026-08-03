@@ -531,70 +531,22 @@ class QolTab extends JPanel
 
 	/** The +/× goal affordance — a dedicated control (JLabel so its own
 	 *  listener wins over the detail card's surface). */
-	private static JLabel goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
+	private static JComponent goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
 	{
-		JLabel glyph = new JLabel(isGoal ? "×" : "+");
-		OsrsSkin.crisp(glyph);
-		glyph.setFont(OsrsSkin.font());
-		glyph.setForeground(OsrsSkin.FAINT);
-		glyph.setToolTipText(tooltip);
-		glyph.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		glyph.addMouseListener(new java.awt.event.MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(java.awt.event.MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.TITLE);
-			}
-
-			@Override
-			public void mouseExited(java.awt.event.MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
-			{
-				onClick.run();
-				e.consume();
-			}
-		});
-		return glyph;
+		// the shared letter-glyph atom (unified 2026-08-03)
+		return new com.ironhub.ui.v2.V2GlyphButton(isGoal ? "×" : "+", tooltip, onClick);
 	}
 
 	/** A small "W" wiki affordance — faint until hovered (GoalsTab grammar). */
-	private static JLabel wikiGlyph(String pageName)
+	private JComponent wikiGlyph(String pageName)
 	{
-		JLabel glyph = new JLabel("W");
-		OsrsSkin.crisp(glyph);
-		glyph.setFont(OsrsSkin.font());
-		glyph.setForeground(OsrsSkin.FAINT);
-		glyph.setToolTipText("Open the wiki page");
-		glyph.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		glyph.addMouseListener(new java.awt.event.MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(java.awt.event.MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.LABEL);
-			}
-
-			@Override
-			public void mouseExited(java.awt.event.MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
-			{
-				LinkBrowser.browse("https://oldschool.runescape.wiki/w/"
-					+ pageName.replace(' ', '_'));
-				e.consume();
-			}
-		});
-		return glyph;
+		// the standard boxed W (the goals-card grammar) over the shared
+		// WikiLinks builder, replacing the bare-text W (unified 2026-08-03)
+		com.ironhub.ui.v2.V2SpriteButton w = new com.ironhub.ui.v2.V2SpriteButton(theme,
+			com.ironhub.ui.v2.V2SpriteButton.EMPTY_BOX, false,
+			() -> com.ironhub.ui.WikiLinks.open(pageName)).letter("W");
+		w.setToolTipText("Open wiki");
+		return w;
 	}
 
 	// ── layout helpers ────────────────────────────────────────────────────

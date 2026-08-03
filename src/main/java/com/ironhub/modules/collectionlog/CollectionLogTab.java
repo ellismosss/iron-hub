@@ -967,8 +967,7 @@ class CollectionLogTab extends JPanel
 		}
 		JPopupMenu menu = new JPopupMenu();
 		JMenuItem wiki = new JMenuItem("Open wiki page (" + cell.name + ")");
-		wiki.addActionListener(a -> LinkBrowser.browse("https://oldschool.runescape.wiki/w/"
-			+ cell.name.replace(" ", "_").replace("'", "%27")));
+		wiki.addActionListener(a -> LinkBrowser.browse(com.ironhub.ui.WikiLinks.url(cell.name)));
 		menu.add(wiki);
 		JMenuItem goal = new JMenuItem(isGoal(cell.itemId)
 			? "Remove from Goals" : "Add to Goals");
@@ -1164,37 +1163,15 @@ class CollectionLogTab extends JPanel
 		return state.getSelectedGoals().contains("clog:" + itemId);
 	}
 
-	private JLabel goalGlyph(int itemId, String slotName)
+	private JComponent goalGlyph(int itemId, String slotName)
 	{
+		// the shared letter-glyph atom (unified 2026-08-03)
 		boolean goal = isGoal(itemId);
-		JLabel glyph = new JLabel(goal ? "×" : "+");
-		OsrsSkin.crisp(glyph);
-		glyph.setFont(OsrsSkin.font());
-		glyph.setForeground(OsrsSkin.FAINT);
-		glyph.setToolTipText(goal ? "Remove " + slotName + " from Goals"
-			: "Add " + slotName + " as a goal in Goals");
-		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		JComponent glyph = new com.ironhub.ui.v2.V2GlyphButton(goal ? "×" : "+",
+			goal ? "Remove " + slotName + " from Goals"
+				: "Add " + slotName + " as a goal in Goals",
+			() -> toggleGoal(itemId, slotName));
 		glyph.putClientProperty(OWN_ACTION, Boolean.TRUE);
-		glyph.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.TITLE);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				toggleGoal(itemId, slotName);
-			}
-		});
 		return glyph;
 	}
 

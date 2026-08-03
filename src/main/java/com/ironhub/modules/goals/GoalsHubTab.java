@@ -1598,7 +1598,7 @@ class GoalsHubTab extends JPanel
 			// is not a page.
 			page = route.getName();
 		}
-		return page == null ? null : "https://oldschool.runescape.wiki/w/" + page.trim().replace(' ', '_');
+		return page == null ? null : com.ironhub.ui.WikiLinks.url(page);
 	}
 
 	/** The item a supply Route stocks, from its {@code item:<id>:<qty>:<name>}
@@ -2132,7 +2132,7 @@ class GoalsHubTab extends JPanel
 			GearProgressionPack.Item gearItem = gearItemById(step.action.itemId);
 			if (gearItem != null && gearItem.getWiki() != null)
 			{
-				return "https://oldschool.runescape.wiki/w/" + gearItem.getWiki();
+				return com.ironhub.ui.WikiLinks.ofSlug(gearItem.getWiki());
 			}
 			com.ironhub.data.ItemSourcesPack.Entry kb = module.itemSources() == null
 				? null : module.itemSources().entry(step.action.itemId);
@@ -2178,7 +2178,7 @@ class GoalsHubTab extends JPanel
 
 	private static String wikiPage(String title)
 	{
-		return "https://oldschool.runescape.wiki/w/" + title.trim().replace(' ', '_');
+		return com.ironhub.ui.WikiLinks.url(title);
 	}
 
 	private Icon stepIcon(Plan.Step step)

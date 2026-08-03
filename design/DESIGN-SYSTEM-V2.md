@@ -33,10 +33,16 @@ two width-pinned `StoneButton`s and its raw `JPopupMenu` source picker,
 LoadoutLab's three label-menus and its never-mounted spellbook
 `JComboBox`, the CollectionLog page-row `setBackground` hover, BankTab's
 opaque `selectFill` selections, and ClogTabTile's hover-equals-selected
-wash. Still hand-rolled everywhere (needs its own pass): the ~20-copy
-faint-until-hovered glyph helper (`goalGlyph`/`wikiGlyph`/`actionLabel`)
-that §13 answered with `V2SpriteButton.letter`, and 1px `JPanel`
-dividers that should be `V2Divider`.
+wash. The follow-up pass (2026-08-03, Luke's word) then unified the
+glyph family — every "+"/"×" now rides `V2GlyphButton`, every wiki "W"
+the boxed `V2SpriteButton.letter("W")`, every wiki URL the shared
+`WikiLinks` builder — and deleted the dead flat-design atoms
+(`NavHeader`/`ListRow`/`IconButton`/`GridTile` + the AtomGallery that
+existed to render them, and LoadoutLab's never-mounted Options header).
+Still hand-rolled: the worded hover-labels (`actionLabel` in Quests and
+Clues), the Goals hub's painted pin and red remove-cross (deliberately
+distinct), LoadoutLab's icon `glyphButton`/`JList`/item-grid picker, and
+1px `JPanel` dividers that should be `V2Divider`.
 
 **The strategy changed part-way through.** The Goals hub was first rebuilt from
 V2 atoms in the lab (`GoalsV2View`). It did its job — it found five missing
@@ -463,6 +469,7 @@ All in `com.ironhub.ui.v2`, all shown in **Design lab V2**.
 | `V2Tile` | Tile | Card slice + `checkmark_small` | plain, selected, owned, `Status` + `progress`. Takes any `java.awt.Image` (the tabs draw through `SpriteCache`, whose sprites arrive from `getScaledInstance`); `emblem(img)` swaps a late arrival in; `width(px)` for a tile wider than it is tall; `captionLines(n)` wraps and **clamps** the caption (a label paints every line it holds, so an unclamped one bled over the row beneath); `badge(n)` a corner count; `placeholder(code)` when there is no art; `onRightClick` a context menu; `captionInside()` paints the caption ON the art — bottom-anchored, bold, the emblem centres in the band above it, tile = art height (the clog page grid; Luke, 2026-07-27); `corner(s)` a detail-font note top-right, taking the owned tick's spot when both are set (the two-segment overload colours each half — the clog count grammar: obtained red 0 / orange filling / green done, "/total" orange-until-done); `captionStatus(c)` the caption in DONE/ACTION/BLOCKED (V2Label.status's guard — the clog grid's orange-until-done); `card()` wears the Card art instead of the chamfered stone (washes go flat-inset, status rings don't draw — say progress with the meter); `meter(f)` a plain 5px METER strip along the bottom, no notches (the card tile's progress readout) |
 | `V2ItemSlot` | ItemSlot | `icons/equipment/slot_*` | empty, filled, selected |
 | `V2Glyph` | StatusGlyph, Lock, Star, Chevron, SortArrow | `ui/ticks/*`, `icons/padlock`, `icons/star/*`, `icons/chevron/*`, `list_sorting_arrow_*` | — (display only) |
+| `V2GlyphButton` | the row's pressable "+"/"×" letter affordance | — (pixel text on the OsrsLabel painter) | faint, heading-orange on hover; LEFT press only, event consumed (a relayed row never also fires). Thirteen files hand-rolled this before the 2026-08-03 unification (Luke's word). The wiki "W" is NOT this atom — it is `V2SpriteButton.EMPTY_BOX` + `.letter("W")`, the boxed goals-card grammar, now everywhere a W appears; the Goals hub's red remove-cross and painted pin keep their own approved looks |
 | `V2ProgressBar` | ProgressBar | `progress_bar_grey` + `progress_bar_green` | green only; NaN = empty trough. **`sections(fractions, fillKeys)` (FULL only, 2026-07-28)** splits ONE bar's fill into equal sections, each with its own fraction and fill sprite (the clues hero's six tier colours) — one trough, one frame, never N bars; a NaN section leaves its stretch empty |
 | `V2Hero` | Hero | Card + Label + ProgressBar (value ON the bar) | — |
 | `V2Inventory` | Inventory | panel edges + `inventory_background` | 4x7, the game's own 190x276 |

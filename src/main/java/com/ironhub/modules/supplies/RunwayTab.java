@@ -430,14 +430,14 @@ class RunwayTab extends JPanel
 		return holder;
 	}
 
-	private JLabel removeGlyph(SuppliesPack.Item item, boolean isDefault)
+	private JComponent removeGlyph(SuppliesPack.Item item, boolean isDefault)
 	{
 		return glyph("×", "Remove " + item.name + " from the list",
 			() -> state.untrackSupply(item.id, isDefault));
 	}
 
 	/** Track (or untrack) a restock goal to the item's target amount. */
-	private JLabel goalGlyph(SuppliesPack.Item item, int target)
+	private JComponent goalGlyph(SuppliesPack.Item item, int target)
 	{
 		String goalId = "supply:" + item.id;
 		boolean isGoal = state.getGoalSeeds().containsKey(goalId);
@@ -475,26 +475,10 @@ class RunwayTab extends JPanel
 	}
 
 	/** The +/× affordance in skin colours (faint, orange on hover). */
-	private static JLabel glyph(String text, String tooltip, Runnable onClick)
+	private static JComponent glyph(String text, String tooltip, Runnable onClick)
 	{
-		JLabel glyph = new JLabel(text);
-		OsrsSkin.crisp(glyph);
-		glyph.setFont(OsrsSkin.font());
-		glyph.setForeground(OsrsSkin.FAINT);
-		glyph.setToolTipText(tooltip);
-		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		glyph.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e) { glyph.setForeground(OsrsSkin.TITLE); }
-
-			@Override
-			public void mouseExited(MouseEvent e) { glyph.setForeground(OsrsSkin.FAINT); }
-
-			@Override
-			public void mousePressed(MouseEvent e) { onClick.run(); }
-		});
-		return glyph;
+		// the shared letter-glyph atom (unified 2026-08-03)
+		return new com.ironhub.ui.v2.V2GlyphButton(text, tooltip, onClick);
 	}
 
 	private JPanel row()

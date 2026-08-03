@@ -706,35 +706,12 @@ class DiariesTab extends JPanel
 
 	/** The per-task +/× affordance in skin colours — faint until hovered
 	 *  (the GoalsTab glyph grammar; a dedicated control, never a row click). */
-	private static JLabel goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
+	private static JComponent goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
 	{
-		JLabel glyph = new JLabel(isGoal ? "×" : "+");
-		OsrsSkin.crisp(glyph);
-		glyph.setFont(OsrsSkin.font());
-		glyph.setForeground(OsrsSkin.FAINT);
-		glyph.setToolTipText(tooltip);
-		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		// the shared letter-glyph atom (unified 2026-08-03)
+		JComponent glyph = new com.ironhub.ui.v2.V2GlyphButton(
+			isGoal ? "×" : "+", tooltip, onClick);
 		glyph.putClientProperty(OWN_ACTION, Boolean.TRUE);
-		glyph.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.TITLE);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				onClick.run();
-			}
-		});
 		return glyph;
 	}
 

@@ -5,13 +5,8 @@ import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneButton;
 import com.ironhub.ui.osrs.StoneCheckbox;
-import com.ironhub.ui.osrs.StoneComboBoxUI;
-import com.ironhub.ui.osrs.StonePanel;
-import com.ironhub.ui.osrs.StoneProgressBar;
 import com.ironhub.ui.osrs.StoneScrollBarUI;
-import com.ironhub.ui.osrs.StoneTextField;
 import com.loadoutlab.UsageLog;
 import com.loadoutlab.data.GearItem;
 import com.loadoutlab.data.GearSlot;
@@ -445,35 +440,11 @@ public class LoadoutLabPanel extends PluginPanel
 		top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
 		top.setOpaque(false);
 
-		JLabel title = new JLabel("Loadout Lab");
-		title.setForeground(Color.WHITE);
-		title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
-
-		// Header row: title left, an "Options" menu right (Discord, and
-		// future plugin-wide actions) - mirrors the Goal Planner header.
-		JPanel header = new JPanel(new BorderLayout());
-		header.setOpaque(false);
-		header.setAlignmentX(LEFT_ALIGNMENT);
-		header.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
-		header.add(title, BorderLayout.WEST);
-		JButton optionsButton = new JButton(new DotsIcon(13));
-		optionsButton.setToolTipText("Options");
-		optionsButton.setMargin(new Insets(2, 6, 2, 6));
-		optionsButton.addActionListener(e ->
-		{
-			JPopupMenu menu = new JPopupMenu();
-			// Entry point for the first stored-elsewhere item (before any
-			// exists there is no label or right-click row to reach it from).
-			JMenuItem addStored = new JMenuItem("Add a stored-elsewhere item...");
-			addStored.addActionListener(ev -> showAddStoredDialog());
-			menu.add(addStored);
-			// Mob-specific actions live on the style cards and the
-			// "This mob" line - the header menu stays plugin-wide.
-			// (Upstream's "Join our Discord" entry removed — Iron Hub ships
-			// no Discord features; Luke, 2026-08-03.)
-			menu.show(optionsButton, 0, optionsButton.getHeight());
-		});
-		header.add(optionsButton, BorderLayout.EAST);
+		// Iron Hub: the old title + Options header was BUILT here but never
+		// mounted ("dropped — module nav header covers it"); the dead-code
+		// sweep (2026-08-03, Luke's word) removed the corpse. Its one menu
+		// entry, "Add a stored-elsewhere item...", lives on in the
+		// stored-elsewhere manage list.
 		// Iron Hub: title + Options header dropped (module nav header covers it)
 		top.add(Box.createVerticalStrut(4));
 
@@ -507,7 +478,9 @@ public class LoadoutLabPanel extends PluginPanel
 		selectedButtons.setOpaque(false);
 		selectedButtons.add(glyphButton(new ReloadIcon(11), null,
 			"Re-run the search for this monster", this::recompute));
-		selectedButtons.add(glyphButton(null, "×",
+		// the shared letter-glyph atom (unified 2026-08-03); the reload
+		// button above keeps glyphButton for its painted icon
+		selectedButtons.add(new com.ironhub.ui.v2.V2GlyphButton("×",
 			"Choose a different monster", this::clearSelection));
 		selectedRow.add(selectedButtons, BorderLayout.EAST);
 		selectedRow.setVisible(false);
@@ -2280,46 +2253,6 @@ public class LoadoutLabPanel extends PluginPanel
 			double cx = x + size / 2.0;
 			double cy = y + size / 2.0;
 			g2.draw(new java.awt.geom.Line2D.Double(cx - off, cy + off, cx + off, cy - off));
-			g2.dispose();
-		}
-	}
-
-	/** Three-dots "more options" glyph, painted (Swing glyphs tofu on Tahoe). */
-	private static final class DotsIcon implements javax.swing.Icon
-	{
-		private final int size;
-
-		DotsIcon(int size)
-		{
-			this.size = size;
-		}
-
-		@Override
-		public int getIconWidth()
-		{
-			return size;
-		}
-
-		@Override
-		public int getIconHeight()
-		{
-			return size;
-		}
-
-		@Override
-		public void paintIcon(Component c, Graphics g, int x, int y)
-		{
-			Graphics2D g2 = (Graphics2D) g.create();
-			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				RenderingHints.VALUE_ANTIALIAS_ON);
-			g2.setColor(c.getForeground());
-			double r = Math.max(1.2, size / 9.0);
-			double cy = y + size / 2.0;
-			for (int i = 0; i < 3; i++)
-			{
-				double cx = x + size * (0.22 + 0.28 * i);
-				g2.fill(new java.awt.geom.Ellipse2D.Double(cx - r, cy - r, 2 * r, 2 * r));
-			}
 			g2.dispose();
 		}
 	}

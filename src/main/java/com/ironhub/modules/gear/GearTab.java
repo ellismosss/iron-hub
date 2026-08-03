@@ -394,7 +394,7 @@ class GearTab extends JPanel
 		JPopupMenu menu = new JPopupMenu();
 		JMenuItem wiki = new JMenuItem("Open wiki page");
 		wiki.addActionListener(e ->
-			LinkBrowser.browse("https://oldschool.runescape.wiki/w/" + item.wikiPage()));
+			LinkBrowser.browse(com.ironhub.ui.WikiLinks.ofSlug(item.wikiPage())));
 		menu.add(wiki);
 		boolean marked = state.isUnlocked(item.markKey());
 		if (marked)

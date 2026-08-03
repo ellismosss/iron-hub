@@ -527,67 +527,22 @@ class SailingUpgradesTab extends JPanel
 		return icon;
 	}
 
-	private static OsrsLabel wikiGlyph(String page)
+	private JComponent wikiGlyph(String page)
 	{
-		OsrsLabel glyph = new OsrsLabel("W", OsrsSkin.FAINT, OsrsSkin.font());
-		glyph.setToolTipText("Open the wiki page");
-		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		glyph.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				glyph.setColor(OsrsSkin.LABEL);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				glyph.setColor(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				LinkBrowser.browse("https://oldschool.runescape.wiki/w/"
-					+ page.replace(' ', '_'));
-				e.consume();
-			}
-		});
-		return glyph;
+		// the standard boxed W (the goals-card grammar) over the shared
+		// WikiLinks builder, replacing the bare-text W (unified 2026-08-03)
+		com.ironhub.ui.v2.V2SpriteButton w = new com.ironhub.ui.v2.V2SpriteButton(theme,
+			com.ironhub.ui.v2.V2SpriteButton.EMPTY_BOX, false,
+			() -> com.ironhub.ui.WikiLinks.open(page)).letter("W");
+		w.setToolTipText("Open wiki");
+		return w;
 	}
 
 	/** The +/× goal affordance — its own control (JLabel, diaries grammar). */
-	private static JLabel goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
+	private static JComponent goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
 	{
-		JLabel glyph = new JLabel(isGoal ? "×" : "+");
-		OsrsSkin.crisp(glyph);
-		glyph.setFont(OsrsSkin.font());
-		glyph.setForeground(OsrsSkin.FAINT);
-		glyph.setToolTipText(tooltip);
-		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		glyph.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.TITLE);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				onClick.run();
-				e.consume();
-			}
-		});
-		return glyph;
+		// the shared letter-glyph atom (unified 2026-08-03)
+		return new com.ironhub.ui.v2.V2GlyphButton(isGoal ? "×" : "+", tooltip, onClick);
 	}
 
 	private static void cap(JComponent c)

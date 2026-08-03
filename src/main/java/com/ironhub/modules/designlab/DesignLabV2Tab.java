@@ -313,6 +313,14 @@ public class DesignLabV2Tab extends JPanel
 		add(squares);
 		add(V2Label.faint("wiki_small — one state, opens a page"));
 		add(V2Label.faint("W on the empty box — a letter, not a sprite"));
+		add(V2Label.detail("Letter glyphs"));
+		JPanel letters = row();
+		letters.add(new com.ironhub.ui.v2.V2GlyphButton("+", "Track as a goal", null));
+		letters.add(V2Layout.hgap(V2Tokens.PAD));
+		letters.add(new com.ironhub.ui.v2.V2GlyphButton("×", "Remove", null));
+		letters.add(V2Layout.glue());
+		add(letters);
+		add(V2Label.faint("the row's +/× affordance — faint, orange on hover"));
 		add(V2Label.faint("selected: the two squares and the wiki toggle"));
 		JPanel selected = row();
 		for (String key : new String[]{V2SpriteButton.SQUARE_SMALL,

@@ -618,7 +618,7 @@ class QuestsTab extends JPanel
 
 	private static String wikiUrl(Quest quest)
 	{
-		return "https://oldschool.runescape.wiki/w/" + quest.getName().replace(' ', '_');
+		return com.ironhub.ui.WikiLinks.url(quest.getName());
 	}
 
 	private void questMenu(Quest quest, MouseEvent e)
@@ -672,31 +672,11 @@ class QuestsTab extends JPanel
 	 *  the engine expands the quest: requirement into its full chain. */
 	private JComponent goalGlyph(Quest quest)
 	{
+		// the shared letter-glyph atom (unified 2026-08-03)
 		boolean tracked = module.isGoal(quest.getName());
-		JLabel glyph = new JLabel(tracked ? "×" : "+");
-		OsrsSkin.crisp(glyph);
-		glyph.setFont(OsrsSkin.font());
-		glyph.setForeground(OsrsSkin.FAINT);
-		glyph.setToolTipText(tracked ? "Remove from Goals"
-			: "Track completing this quest in Goals");
-		glyph.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		glyph.putClientProperty(OWN_ACTION, Boolean.TRUE);
-		glyph.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.TITLE);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e)
+		JComponent glyph = new com.ironhub.ui.v2.V2GlyphButton(tracked ? "×" : "+",
+			tracked ? "Remove from Goals" : "Track completing this quest in Goals",
+			() ->
 			{
 				if (tracked)
 				{
@@ -707,8 +687,8 @@ class QuestsTab extends JPanel
 					module.addGoal(quest.getName());
 				}
 				javax.swing.SwingUtilities.invokeLater(QuestsTab.this::rebuild);
-			}
-		});
+			});
+		glyph.putClientProperty(OWN_ACTION, Boolean.TRUE);
 		return glyph;
 	}
 
