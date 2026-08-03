@@ -1,6 +1,6 @@
 {
  "source": "github.com/SFranciscoSouza/LogAdviser@c76521e (BSD-2-Clause), spreadsheet-derived",
- "generated": "2026-07-15",
+ "generated": "2026-08-03",
  "activities": [
   {
    "index": 1,
@@ -644,7 +644,7 @@
      "requiresPrevious": false,
      "exact": false,
      "independent": false,
-     "attempts": 1770.0
+     "attempts": 118.0
     },
     {
      "itemId": 6800,
@@ -3023,7 +3023,7 @@
      "requiresPrevious": false,
      "exact": false,
      "independent": false,
-     "attempts": 1770.0
+     "attempts": 118.0
     },
     {
      "itemId": 6800,
@@ -3361,7 +3361,7 @@
      "requiresPrevious": false,
      "exact": false,
      "independent": false,
-     "attempts": 384.0
+     "attempts": 50.0
     }
    ]
   },
@@ -3956,7 +3956,7 @@
      "requiresPrevious": false,
      "exact": false,
      "independent": false,
-     "attempts": 1701.0
+     "attempts": 358.0
     },
     {
      "itemId": 7158,
@@ -22396,7 +22396,7 @@
      "requiresPrevious": false,
      "exact": false,
      "independent": false,
-     "attempts": 14160.0
+     "attempts": 15104.0
     },
     {
      "itemId": 6800,

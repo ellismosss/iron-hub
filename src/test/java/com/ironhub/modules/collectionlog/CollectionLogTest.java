@@ -64,6 +64,27 @@ public class CollectionLogTest
 	}
 
 	@Test
+	public void wikiAdjudicatedDropRatesStayCorrected()
+	{
+		// The 2026-08-03 rate audit: the upstream spreadsheet shipped
+		// Pristine spider silk at Sarachnis cudgel's 1/384 where the wiki
+		// says 1/50. gen_clog.py now cross-validates every plain-activity
+		// rate against the wiki's collection_log_source bucket; these pins
+		// prove the curated corrections survive a regeneration.
+		ClogPack pack = new DataPack(new Gson()).load("clog", ClogPack.class);
+		ClogPack.Activity sarachnis = pack.activities.stream()
+			.filter(a -> a.name.equals("Killing sarachnis")).findFirst().orElseThrow(AssertionError::new);
+		double silk = sarachnis.items.stream()
+			.filter(i -> i.itemId == 33133).findFirst().orElseThrow(AssertionError::new).attempts;
+		assertEquals(50.0, silk, 0.001);
+		ClogPack.Activity calvarion = pack.activities.stream()
+			.filter(a -> a.name.equals("Killing calvar'ion")).findFirst().orElseThrow(AssertionError::new);
+		double pick = calvarion.items.stream()
+			.filter(i -> i.itemId == 11920).findFirst().orElseThrow(AssertionError::new).attempts;
+		assertEquals(358.0, pick, 0.001);
+	}
+
+	@Test
 	public void titleParsing()
 	{
 		assertArrayEquals(new int[]{246, 1568},
