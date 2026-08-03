@@ -28,42 +28,53 @@ public class LootTabTest
 		assertEquals("?", LootTab.initials(""));
 	}
 
-	/** L3 (2026-08-03): the pickup classifier — picked when standing on the
-	 *  tile or the inventory gained the id (telegrab), unknown through a
-	 *  scene reload (never guessed), left when it just timed out. */
+	/** L3 (2026-08-03, reworked after live test): the pickup classifier —
+	 *  ItemStack locations are a dead API, so drops register against the
+	 *  NPC's death tile and despawns match by id within MATCH_RADIUS.
+	 *  Picked when standing on the despawn tile or the inventory gained
+	 *  the id (telegrab), unknown through a scene reload (never guessed),
+	 *  left when it just timed out. */
 	@Test
 	public void pickupClassification()
 	{
-		net.runelite.api.coords.WorldPoint drop =
+		net.runelite.api.coords.WorldPoint died =
 			new net.runelite.api.coords.WorldPoint(3200, 3200, 0);
+		// a large NPC's loot can land tiles away from the death anchor
+		net.runelite.api.coords.WorldPoint drop =
+			new net.runelite.api.coords.WorldPoint(3202, 3201, 0);
 		net.runelite.api.coords.WorldPoint away =
 			new net.runelite.api.coords.WorldPoint(3210, 3210, 0);
+		net.runelite.api.coords.WorldPoint farAway =
+			new net.runelite.api.coords.WorldPoint(3300, 3300, 0);
 
 		LootPickupTracker tracker = new LootPickupTracker();
-		tracker.onLoot("Zulrah", 12934, 100, drop);
+		tracker.onLoot("Zulrah", 12934, 100, died);
 		LootPickupTracker.Classified onTile =
 			tracker.onDespawn(12934, drop, drop, false, false);
 		assertEquals(LootPickupTracker.Fate.PICKED, onTile.fate);
 		assertEquals("Zulrah", onTile.source);
 		assertEquals(100, onTile.quantity);
 
-		tracker.onLoot("Zulrah", 12934, 50, drop);
+		tracker.onLoot("Zulrah", 12934, 50, died);
 		LootPickupTracker.Classified telegrab =
 			tracker.onDespawn(12934, drop, away, false, true);
 		assertEquals(LootPickupTracker.Fate.PICKED, telegrab.fate);
 
-		tracker.onLoot("Zulrah", 2402, 1, drop);
+		tracker.onLoot("Zulrah", 2402, 1, died);
 		LootPickupTracker.Classified reload =
 			tracker.onDespawn(2402, drop, drop, true, false);
 		assertEquals(LootPickupTracker.Fate.UNKNOWN, reload.fate);
 
-		tracker.onLoot("Zulrah", 995, 5000, drop);
+		tracker.onLoot("Zulrah", 995, 5000, died);
 		LootPickupTracker.Classified timedOut =
 			tracker.onDespawn(995, drop, away, false, false);
 		assertEquals(LootPickupTracker.Fate.LEFT, timedOut.fate);
 
 		// an item the tracker never registered is not ours to classify
 		org.junit.Assert.assertNull(tracker.onDespawn(4151, drop, drop, false, false));
+		// same id, but nowhere near any registered kill: someone else's drop
+		tracker.onLoot("Zulrah", 995, 100, died);
+		org.junit.Assert.assertNull(tracker.onDespawn(995, farAway, farAway, false, false));
 	}
 
 	/** L5: session scope resets with the profile; all-time persists. */

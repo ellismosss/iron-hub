@@ -838,13 +838,31 @@ public class AccountState implements StateView
 					i -> itemManager.getItemComposition(i).getName());
 				// priced at DROP time on the client thread (L6) — the tab
 				// never asks ItemManager for prices on the EDT
-				value += (long) itemManager.getItemPrice(e.getKey()) * e.getValue();
+				value += unitValue(e.getKey()) * e.getValue();
 			}
 			lootValueBySource.merge(source, value, Long::sum);
 			sessionLootValue.merge(source, value, Long::sum);
 		}
 		persist();
 		notifyListeners(Topic.LOOT);
+	}
+
+	/**
+	 * What one of this item is worth to THIS account (client thread).
+	 * Ironmen can't trade, so GE prices are fiction for them — high alch
+	 * is the realisable value. Mains get the GE price; coins are coins.
+	 */
+	private long unitValue(int itemId)
+	{
+		if (itemId == net.runelite.api.gameval.ItemID.COINS)
+		{
+			return 1;
+		}
+		if (isIronman())
+		{
+			return itemManager.getItemComposition(itemId).getHaPrice();
+		}
+		return itemManager.getItemPrice(itemId);
 	}
 
 	/** Confirmed picked-up drops (L3) — merged by the pickup tracker;
@@ -868,7 +886,8 @@ public class AccountState implements StateView
 		return lootPickedBySource.getOrDefault(source, Map.of());
 	}
 
-	/** GE value of a source's recorded drops, priced at drop time (L6). */
+	/** Value of a source's recorded drops, priced at drop time (L6) —
+	 *  high alch on an ironman, GE otherwise ({@link #unitValue}). */
 	public long lootValueFor(String source)
 	{
 		return lootValueBySource.getOrDefault(source, 0L);
@@ -2434,7 +2453,7 @@ public class AccountState implements StateView
 				if (itemManager != null)
 				{
 					// consumed supplies priced at USE time (L6)
-					long cost = (long) itemManager.getItemPrice(id) * delta;
+					long cost = unitValue(id) * delta;
 					suppliesValueBySource.merge(source, cost, Long::sum);
 					sessionSuppliesValue.merge(source, cost, Long::sum);
 				}

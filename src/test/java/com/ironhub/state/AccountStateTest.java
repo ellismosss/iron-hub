@@ -370,6 +370,36 @@ public class AccountStateTest
 		assertTrue(state.suppliesFor("Zulrah").isEmpty());
 	}
 
+	/** 2026-08-03: ironmen can't trade, so loot economics price at high
+	 *  alch for them, GE for mains, and coins are always face value. */
+	@Test
+	public void ironmenValueLootAtHighAlch() throws Exception
+	{
+		net.runelite.client.game.ItemManager itemManager =
+			org.mockito.Mockito.mock(net.runelite.client.game.ItemManager.class);
+		net.runelite.api.ItemComposition scimitar =
+			org.mockito.Mockito.mock(net.runelite.api.ItemComposition.class);
+		org.mockito.Mockito.when(scimitar.getName()).thenReturn("Rune scimitar");
+		org.mockito.Mockito.when(scimitar.getHaPrice()).thenReturn(15_360);
+		org.mockito.Mockito.when(itemManager.getItemComposition(org.mockito.Mockito.anyInt()))
+			.thenReturn(scimitar);
+		org.mockito.Mockito.when(itemManager.getItemPrice(1333)).thenReturn(25_000);
+
+		AccountState iron = StateFixture.state(temp.newFolder(), itemManager);
+		StateFixture.profile(iron, 1L);
+		StateFixture.varbit(iron, net.runelite.api.Varbits.ACCOUNT_TYPE, 1); // ironman
+		iron.ingestLoot("Zulrah", Map.of(1333, 2));
+		assertEquals(2 * 15_360L, iron.lootValueFor("Zulrah"));
+		iron.ingestLoot("Zulrah", Map.of(net.runelite.api.gameval.ItemID.COINS, 5_000));
+		assertEquals(2 * 15_360L + 5_000L, iron.lootValueFor("Zulrah"));
+
+		AccountState main = StateFixture.state(temp.newFolder(), itemManager);
+		StateFixture.profile(main, 2L);
+		StateFixture.varbit(main, net.runelite.api.Varbits.ACCOUNT_TYPE, 0); // main
+		main.ingestLoot("Zulrah", Map.of(1333, 2));
+		assertEquals(2 * 25_000L, main.lootValueFor("Zulrah"));
+	}
+
 	@Test
 	public void legacyGoalMigrationPersistsTheFullyRestoredProfile()
 	{

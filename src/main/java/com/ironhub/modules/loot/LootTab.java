@@ -48,6 +48,7 @@ class LootTab extends JPanel
 	private final OsrsTheme theme;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 	private final com.ironhub.ui.components.SpriteCache sprites;
+	private final ItemManager itemManager; // null in headless tests
 	private final SlayerTasksPack slayerPack; // monster icons where known
 
 	private String selectedSource;
@@ -66,6 +67,7 @@ class LootTab extends JPanel
 	{
 		this.state = state;
 		this.theme = theme;
+		this.itemManager = itemManager;
 		this.sprites = new com.ironhub.ui.components.SpriteCache(itemManager, listener);
 		SlayerTasksPack pack = null;
 		try
@@ -163,9 +165,12 @@ class LootTab extends JPanel
 				break;
 			}
 			int icon = monsterIconId(source);
-			V2Tile tile = icon > 0
-				? new V2Tile(theme, sprites.get(icon, -1, V2Tokens.TILE_ICON),
-					null, MONSTER_TILE, () -> selectSource(source))
+			java.awt.Image sprite = icon > 0
+				? sprites.get(icon, -1, V2Tokens.TILE_ICON) : null;
+			// initials whenever no sprite is IN HAND — a still-loading icon
+			// swaps in on arrival via the rebuild listener
+			V2Tile tile = sprite != null
+				? new V2Tile(theme, sprite, null, MONSTER_TILE, () -> selectSource(source))
 				: new V2Tile(theme, (java.awt.Image) null, null, MONSTER_TILE,
 					() -> selectSource(source)).placeholder(initials(source));
 			tile.selected(source.equals(selectedSource));
@@ -224,9 +229,10 @@ class LootTab extends JPanel
 		card.add(valueLine("Supplies cost", cost, OsrsSkin.BAR_TEXT));
 		card.add(valueLine("Net", net,
 			net >= 0 ? V2Tokens.DONE : V2Tokens.BLOCKED));
-		card.setToolTipText("GE prices at drop/use time. Drops recorded before"
-			+ " value tracking began aren't priced — the figures cover what"
-			+ " the plugin watched.");
+		card.setToolTipText("Priced at drop/use time — high alch value on an"
+			+ " ironman, GE price otherwise. Drops recorded before value"
+			+ " tracking began aren't priced — the figures cover what the"
+			+ " plugin watched.");
 		cap(card);
 		economics.add(card);
 		economics.revalidate();
@@ -239,7 +245,7 @@ class LootTab extends JPanel
 		line.add(new OsrsLabel(label, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
 		line.add(Box.createHorizontalGlue());
 		line.add(new OsrsLabel(QuantityFormatter.quantityToStackSize(gp) + " gp",
-			colour, OsrsSkin.boldFont()));
+			colour, OsrsSkin.font()));
 		cap(line);
 		return line;
 	}
@@ -251,10 +257,10 @@ class LootTab extends JPanel
 		{
 			return;
 		}
-		JComponent picked = V2ChipRow.toggle(theme, "Picked up only", null,
-			OsrsSkin.smallFont(), pickedOnly, false, on ->
+		JComponent picked = new com.ironhub.ui.v2.V2Checkbox(theme,
+			"Picked up only", pickedOnly, () ->
 		{
-			pickedOnly = on;
+			pickedOnly = !pickedOnly;
 			javax.swing.SwingUtilities.invokeLater(this::rebuild);
 		});
 		picked.setToolTipText("Show only drops CONFIRMED picked up (tracking"
@@ -346,7 +352,7 @@ class LootTab extends JPanel
 			cell.setMaximumSize(size);
 			cell.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 			// the stack count bakes into the sprite — the Loot Tracker look
-			java.awt.Image sprite = sprites.get(id, qty, CELL - 6);
+			java.awt.Image sprite = sprites.getStacked(id, qty, CELL - 6);
 			if (sprite != null)
 			{
 				cell.setIcon(new ImageIcon(sprite));
@@ -365,23 +371,40 @@ class LootTab extends JPanel
 		return session() ? state.sessionKillCount(source) : state.getKillCount(source);
 	}
 
-	/** The slayer pack's task sprite for a monster name, or 0. */
+	/** The slayer pack's task sprite for a monster name, else the monster's
+	 *  most valuable known drop (every tracked source has drops), else 0. */
 	private int monsterIconId(String source)
 	{
-		if (slayerPack == null)
+		if (slayerPack != null)
 		{
-			return 0;
+			SlayerTasksPack.Task task = slayerPack.task(source);
+			if (task == null)
+			{
+				task = slayerPack.task(source + "s");
+			}
+			if (task == null && source.endsWith("s"))
+			{
+				task = slayerPack.task(source.substring(0, source.length() - 1));
+			}
+			if (task != null && task.icon > 0)
+			{
+				return task.icon;
+			}
 		}
-		SlayerTasksPack.Task task = slayerPack.task(source);
-		if (task == null)
+		int best = 0;
+		long bestValue = -1;
+		for (Map.Entry<Integer, Integer> drop : state.lootFor(source).entrySet())
 		{
-			task = slayerPack.task(source + "s");
+			long value = itemManager == null
+				? drop.getValue() // headless: most dropped
+				: itemManager.getItemPrice(drop.getKey());
+			if (value > bestValue)
+			{
+				bestValue = value;
+				best = drop.getKey();
+			}
 		}
-		if (task == null && source.endsWith("s"))
-		{
-			task = slayerPack.task(source.substring(0, source.length() - 1));
-		}
-		return task == null ? 0 : task.icon;
+		return best;
 	}
 
 	/** "Kalphite Queen" -> "KQ" for a tile with no known sprite. */

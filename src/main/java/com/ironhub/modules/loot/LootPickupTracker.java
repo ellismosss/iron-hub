@@ -1,15 +1,24 @@
 package com.ironhub.modules.loot;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import net.runelite.api.coords.WorldPoint;
 
 /**
- * Picked-up vs left-behind classification (L3, 2026-08-03). Pure and
- * tick-fed so it unit-tests without a client.
+ * Picked-up vs left-behind classification (L3, 2026-08-03; reworked after
+ * the first live test). Pure and tick-fed so it unit-tests without a
+ * client.
  *
- * <p>A kill's drops register as PENDING ground items by tile. When a
- * ground item despawns, it is classified:
+ * <p>A kill's drops register as PENDING ground items. The client no longer
+ * says which exact tile each stack landed on ({@code ItemStack.getLocation()}
+ * is a null stub in current RuneLite), so pending drops carry the NPC's
+ * death tile as an APPROXIMATE location and a despawn matches by item id
+ * within {@link #MATCH_RADIUS} tiles — wide enough for loot under any tile
+ * a large NPC covered, tight enough not to steal another room's drops.
+ *
+ * <p>When a ground item despawns, it is classified:
  *
  * <ul>
  * <li><b>PICKED</b> — the local player stands on the item's tile (a manual
@@ -29,6 +38,10 @@ import net.runelite.api.coords.WorldPoint;
  */
 final class LootPickupTracker
 {
+	/** How far a despawn tile may sit from the registered death tile and
+	 *  still be the same drop (large NPCs spread loot across their area). */
+	static final int MATCH_RADIUS = 6;
+
 	enum Fate
 	{
 		PICKED, LEFT, UNKNOWN
@@ -53,56 +66,57 @@ final class LootPickupTracker
 	private static final class Pending
 	{
 		final String source;
-		int quantity;
+		final WorldPoint near;
+		final int quantity;
 
-		Pending(String source, int quantity)
+		Pending(String source, WorldPoint near, int quantity)
 		{
 			this.source = source;
+			this.near = near;
 			this.quantity = quantity;
 		}
 	}
 
-	/** packed tile -> item id -> pending drop. */
-	private final Map<Long, Map<Integer, Pending>> pending = new HashMap<>();
+	/** item id -> pending drops of that id, oldest first. */
+	private final Map<Integer, Deque<Pending>> pending = new HashMap<>();
 
-	private static long pack(WorldPoint point)
+	/** A kill's drop landed near the source NPC's death tile. */
+	void onLoot(String source, int itemId, int quantity, WorldPoint near)
 	{
-		return ((long) point.getPlane() << 32)
-			| ((long) point.getX() << 16) | point.getY();
-	}
-
-	/** A kill's drop landed on a tile. */
-	void onLoot(String source, int itemId, int quantity, WorldPoint where)
-	{
-		pending.computeIfAbsent(pack(where), t -> new HashMap<>())
-			.merge(itemId, new Pending(source, quantity), (a, b) ->
-			{
-				a.quantity += b.quantity;
-				return a;
-			});
+		pending.computeIfAbsent(itemId, id -> new ArrayDeque<>())
+			.addLast(new Pending(source, near, quantity));
 	}
 
 	/**
 	 * A ground item despawned. Returns the classification for a tracked
 	 * drop, or null for an item this tracker never registered (someone
-	 * else's drop, world spawns).
+	 * else's drop, world spawns, or too far from any registered kill).
 	 */
 	Classified onDespawn(int itemId, WorldPoint where, WorldPoint player,
 		boolean sceneReloading, boolean inventoryGainedRecently)
 	{
-		Map<Integer, Pending> tile = pending.get(pack(where));
-		if (tile == null)
+		Deque<Pending> drops = pending.get(itemId);
+		if (drops == null)
 		{
 			return null;
 		}
-		Pending drop = tile.remove(itemId);
-		if (drop == null)
+		Pending match = null;
+		for (Pending drop : drops)
+		{
+			if (drop.near.distanceTo(where) <= MATCH_RADIUS)
+			{
+				match = drop; // oldest close-enough drop of this id
+				break;
+			}
+		}
+		if (match == null)
 		{
 			return null;
 		}
-		if (tile.isEmpty())
+		drops.remove(match);
+		if (drops.isEmpty())
 		{
-			pending.remove(pack(where));
+			pending.remove(itemId);
 		}
 		Fate fate;
 		if (sceneReloading)
@@ -118,7 +132,7 @@ final class LootPickupTracker
 		{
 			fate = Fate.LEFT;
 		}
-		return new Classified(drop.source, itemId, drop.quantity, fate);
+		return new Classified(match.source, itemId, match.quantity, fate);
 	}
 
 	/** Scene gone (logout/hop): every pending drop's fate is unknowable. */
@@ -129,6 +143,6 @@ final class LootPickupTracker
 
 	int pendingCount()
 	{
-		return pending.values().stream().mapToInt(Map::size).sum();
+		return pending.values().stream().mapToInt(Deque::size).sum();
 	}
 }

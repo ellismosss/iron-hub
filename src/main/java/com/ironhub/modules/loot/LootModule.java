@@ -121,15 +121,18 @@ public class LootModule implements IronHubModule
 	@Subscribe
 	public void onNpcLootReceived(NpcLootReceived event)
 	{
+		// ItemStack.getLocation() is a null stub in current RuneLite — the
+		// per-stack tile is gone from the API. The NPC's death tile is the
+		// anchor; the tracker matches despawns by id within a radius.
 		String source = event.getNpc().getName();
-		if (source == null || client == null)
+		WorldPoint died = event.getNpc().getWorldLocation();
+		if (source == null || died == null)
 		{
 			return;
 		}
 		for (net.runelite.client.game.ItemStack stack : event.getItems())
 		{
-			WorldPoint where = WorldPoint.fromLocal(client, stack.getLocation());
-			tracker.onLoot(source, stack.getId(), stack.getQuantity(), where);
+			tracker.onLoot(source, stack.getId(), stack.getQuantity(), died);
 		}
 	}
 
