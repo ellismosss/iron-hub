@@ -1246,19 +1246,27 @@ alternative whenever a wiki table lists a protective item without it.
 witchwood icon and the mirror shield** — a helm wearer still needs them.
 `carriedCount` is variation-aware, so recolours/imbues all count.
 
-## Mortimer (pack: slayer-tasks.json, S12 2026-08-03)
+## Mortimer (pack: slayer-tasks.json, S12 + R9 2026-08-03)
 
 The 10th master (Wyrmscraig Cavern, released 2026-07-29). Base points 0
-— his "Mortifier" modifiers award per-task amounts instead; skips cost
-100, blocks 120 with only 2 slots; his streak is separate (Krystilia-
-style). **His SLAYER_MASTER focus id and block varbits are undocumented
-in every source available at generation** (the pinned RuneLite API
-predates him), so the pack carries `focusId: -1` — a sentinel that never
-matches a varbit read; live master detection and blocked-slot reads stay
-honestly empty until the id is learned (live check: read SLAYER_MASTER
-while assigned by him). Venators (his exclusive task) skip generation
-until core's Task catalog knows them. His quest gate (partial Fallen
-From Grace) is unencodable until quests.json knows the quest.
+— VERIFIED against the wiki's Slayer reward point page: he awards points
+only when the "Slayer Points" Mortifier rolls (5–40 by monster), with NO
+streak-milestone multipliers; skips cost 100, blocks 120 with only 2
+slots; his streak is separate (Krystilia-style) and his tasks cannot be
+Turael-skipped. His full 29-row assignment table is harvested, including
+**Venators** — his exclusive task, carried by a curated
+`SUPPLEMENTAL_TASKS` entry in gen_slayer.py (icon = Venator fang,
+name-prefix targeting) until the pinned core Task.java knows them. His
+**two block slots read live via varbits 15783/15784**
+(SLAYER_BLOCKED_MORTIMER_1/2 — 1:1 gameval names on RuneLite master, raw
+ints in BLOCK_VARBITS because the pinned API predates them, keyed by the
+-1 focus sentinel). **His SLAYER_MASTER focus value is still
+undocumented** (wiki varbit 4067 stops at Spria=9), so `focusId: -1`
+stays — live master detection is honestly empty until the value is
+learned (live check: read SLAYER_MASTER while assigned by him). His
+usage gate — (Combat 100 AND Slayer 70) OR Slayer 99, PLUS partial
+Fallen From Grace in both branches — encodes the level logic only; the
+quest is unencodable until quests.json knows it.
 
 ## Clog drop-rate audit (tools/gen_clog.py, G3 2026-08-03)
 
@@ -1274,14 +1282,20 @@ HARD-FAILS on a >2.5x divergence without a curated correction or
 adjudicated waiver; 'N × 1/M' wiki notation is never auto-parsed (it
 reads as rolls on some pages and quantity on others).
 
-## Loot pickup detection (module: loot, L3 2026-08-03)
+## Loot pickup detection (module: loot, L3 2026-08-03; reworked after live test)
 
-Ground-item fates classify on ItemDespawned: PICKED when the player
-stands on the tile or the inventory gained the id within 2 ticks
-(telegrab/area-loot); UNKNOWN through a scene reload — the client
-unloads ground items that still exist server-side, so a teleport-away
-despawn proves nothing; LEFT otherwise. Pending drops whose despawn
-never arrives stay unclassified. Only confirmed pickups persist; the
-UI derives left-behind and never guesses unknowns into either bucket.
-Live checks owed: despawn-event timing vs scene unload, and area-loot's
-inventory-gain window.
+**`ItemStack.getLocation()` is a null stub in current RuneLite** — the
+per-stack drop tile is gone from the API (the first design NPE'd on
+every NpcLootReceived, which is why nothing ever classified live). Drops
+now register against the NPC's DEATH TILE as an approximate anchor, and
+a despawn matches by item id within 6 tiles (MATCH_RADIUS — wide enough
+for loot under any tile a large NPC covered, tight enough not to steal
+another room's drops; oldest close-enough drop wins). Fates classify on
+ItemDespawned: PICKED when the player stands on the despawn tile or the
+inventory gained the id within 2 ticks (telegrab/area-loot); UNKNOWN
+through a scene reload — the client unloads ground items that still
+exist server-side, so a teleport-away despawn proves nothing; LEFT
+otherwise. Pending drops whose despawn never arrives stay unclassified.
+Only confirmed pickups persist; the UI derives left-behind and never
+guesses unknowns into either bucket. Live checks owed: pickup lands in
+"Picked up only", and area-loot's inventory-gain window.
