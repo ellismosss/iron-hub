@@ -71,6 +71,39 @@ public class MethodsPackTest
 	}
 
 	@Test
+	public void constructionLadderIsTheMetaNotSailingNiche()
+	{
+		// Luke, 2026-08-03: the planner suggested HULL PARTS for a
+		// Construction grind — a Sailing shipwright niche the training
+		// guide documents but never recommends. gen_methods.py excludes
+		// those table sections; the curated seed carries the real meta,
+		// and Mahogany Homes must ALWAYS be present (plank-efficient,
+		// the ironman staple).
+		MethodsPack.SkillLadder construction = pack.skills.stream()
+			.filter(l -> "Construction".equals(l.skill)).findFirst().orElseThrow(AssertionError::new);
+		for (MethodsPack.Method m : construction.methods)
+		{
+			assertFalse("Sailing niche leaked into the ladder: " + m.name,
+				m.name.toLowerCase().contains("hull part")
+					|| m.name.toLowerCase().contains("repair kit"));
+		}
+		assertTrue("Mahogany Homes missing from the ladder",
+			construction.methods.stream().anyMatch(m -> m.name.startsWith("Mahogany Homes")));
+		assertTrue("mahogany furniture meta missing",
+			construction.methods.stream().anyMatch(m -> m.name.startsWith("Mahogany tables")));
+		// parse artifacts are not method names (the Magic prose sentence,
+		// the Firemaking template fragment — 2026-08-03 sweep)
+		for (MethodsPack.SkillLadder ladder : pack.skills)
+		{
+			for (MethodsPack.Method m : ladder.methods)
+			{
+				assertFalse(ladder.skill + " method name is a parse artifact: " + m.name,
+					m.name.contains("{") || m.name.contains("#") || m.name.split(" ").length > 7);
+			}
+		}
+	}
+
+	@Test
 	public void freshnessLabelAndStaleness()
 	{
 		// the pack ships a parseable date and a readable meta label

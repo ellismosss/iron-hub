@@ -55,6 +55,13 @@ CACHE = os.path.join(HERE, ".cache-methods")
 # a practical rate may sit at most this far above WOM's max-efficiency peak
 # before it reads as a data error rather than a modelling difference
 ENVELOPE_SLACK = 1.5
+# methods that declare consumable `inputs` are a modelling difference by
+# construction: WOM's ironman EHP folds supply ACQUISITION into its rate
+# (Construction peaks at 279k because planks are the bottleneck), while
+# this pack's rate is the build pace and the planner prices the inputs
+# separately. They still get a typo bound, just a wider one (mahogany
+# benches burst ~1.1m vs WOM's 279k = 3.9x).
+INPUT_METHOD_SLACK = 5.0
 # WOM enum name → our skill name where they differ
 WOM_SKILL = {"HITPOINTS": "Hitpoints", "RUNECRAFTING": "Runecraft",
              "WOODCUTTING": "Woodcutting", "FIREMAKING": "Firemaking"}
@@ -72,7 +79,19 @@ def xp_for_level(level):
 # needed" from these. Only high-confidence values — no guesses.
 CONSUMES = {
     "construction_oak_larders": (480.0, [(8778, 8, "Oak plank")]),
+    "construction_oak_larders_butler": (480.0, [(8778, 8, "Oak plank")]),
     "construction_teak_benches": (90.0, [(8780, 1, "Teak plank")]),
+    # Mahogany Homes xp per plank (wiki, with base contract xp folded in):
+    # plank 93.7, oak 200.0, teak 287.9, mahogany 346.1 — the 2.5-3.3x
+    # plank efficiency that makes it the plank-constrained meta
+    "construction_mahogany_homes": (93.7, [(960, 1, "Plank")]),
+    "construction_mahogany_homes_novice": (200.0, [(8778, 1, "Oak plank")]),
+    "construction_mahogany_homes_adept": (287.9, [(8780, 1, "Teak plank")]),
+    "construction_mahogany_homes_expert": (346.1, [(8782, 1, "Mahogany plank")]),
+    # mounted mythical cape: 370 xp per mount, 3 teak planks (cape reusable)
+    "construction_mythical_capes": (370.0, [(8780, 3, "Teak plank")]),
+    "construction_mahogany_tables": (840.0, [(8782, 6, "Mahogany plank")]),
+    "construction_mahogany_benches": (840.0, [(8782, 6, "Mahogany plank")]),
     "prayer_chaos_altar": (252.0, [(536, 1, "Dragon bones")]),
     "cooking_karambwans_cook": (190.0, [(3142, 1, "Raw karambwan")]),
     "cooking_jugs_of_wine": (200.0, [(1987, 1, "Grapes"), (1937, 1, "Jug of water")]),
@@ -129,10 +148,24 @@ SEED = {
         ("blood_runes", "Blood runes (Arceuus)", 77, 38000, None, "afk", "Blood_rune"),
         ("soul_runes", "Soul runes (Arceuus)", 90, 45000, None, "afk", "Soul_rune"),
     ],
+    # The meta ladder per Construction_training + Ironman_Guide/Construction
+    # (researched 2026-08-03): mains run oak larders -> mahogany tables ->
+    # mahogany benches; irons are plank-constrained, so Mahogany Homes
+    # (2.5-3.3x the xp per plank of conventional building) and mounted
+    # mythical capes are first-class options — the planner prices the
+    # plank inputs and picks per account. Mahogany Homes is ALWAYS present
+    # (Luke, 2026-08-03).
     "Construction": [
-        ("mahogany_homes", "Mahogany Homes", 1, 60000, None, "active", "Mahogany_Homes"),
+        ("mahogany_homes", "Mahogany Homes (Beginner)", 1, 33000, None, "active", "Mahogany_Homes"),
+        ("mahogany_homes_novice", "Mahogany Homes (Novice)", 20, 87000, None, "active", "Mahogany_Homes"),
         ("oak_larders", "Oak larders", 33, 150000, None, "active", "Ironman_Guide/Construction"),
+        ("oak_larders_butler", "Oak larders + demon butler", 50, 480000, None, "active", "Construction_training"),
+        ("mahogany_homes_adept", "Mahogany Homes (Adept)", 50, 140000, None, "active", "Mahogany_Homes"),
+        ("mythical_capes", "Mounted mythical capes", 50, 430000, "quest:Dragon Slayer II", "active", "Construction_training"),
         ("teak_benches", "Teak benches + demon butler", 52, 300000, "skillb:Magic:45", "active", "Ironman_Guide/Construction"),
+        ("mahogany_tables", "Mahogany tables + demon butler", 52, 900000, None, "active", "Construction_training"),
+        ("mahogany_homes_expert", "Mahogany Homes (Expert)", 70, 197000, None, "active", "Mahogany_Homes"),
+        ("mahogany_benches", "Mahogany benches + demon butler", 77, 1100000, None, "active", "Construction_training"),
     ],
     "Agility": [
         ("rooftops", "Rooftop courses", 1, 42000, None, "active", "Ironman_Guide/Agility"),
@@ -290,10 +323,11 @@ def validate_envelope(skills, peaks):
         if ceiling is None:
             continue  # WOM doesn't cover this skill (Sailing) — nothing to check
         for method in ladder["methods"]:
-            if method["rate"] > ceiling * ENVELOPE_SLACK:
+            slack = INPUT_METHOD_SLACK if method.get("inputs") else ENVELOPE_SLACK
+            if method["rate"] > ceiling * slack:
                 violations.append(
                     f"{ladder['skill']}/{method['id']}: {method['rate']} > "
-                    f"WOM peak {ceiling} × {ENVELOPE_SLACK}")
+                    f"WOM peak {ceiling} × {slack}")
     if violations:
         raise SystemExit("rates exceed the WOM envelope (likely a typo):\n  "
                          + "\n  ".join(violations))
@@ -306,6 +340,22 @@ DB = os.path.join(HERE, "..", "knowledge", "knowledge.db")
 # generic section headings that are not method names
 NAME_BLACKLIST = {"other methods", "notes", "summary", "training", "methods",
                   "experience", "quests", "money making", "recommended"}
+
+# Wiki-table SECTIONS that are real tables on a training page but not meta
+# training methods — a guide page documenting niche content is not the
+# guide recommending it (Luke, 2026-08-03: "the planner suggests making
+# HULL PARTS for a Construction grind — not a meta method for ANY account
+# type"). The Construction page keeps its META methods in prose (excluded
+# by the narrow-range rule) and its NICHE Sailing methods in tables, so
+# the tables-are-trustworthy heuristic inverted the page's own emphasis;
+# the meta ladder lives in the curated SEED instead.
+SECTION_EXCLUSIONS = {
+    ("Construction", "Hull parts"):
+        "Sailing shipwright niche — needs a boat, gated on Sailing, "
+        "material-starved; no guide recommends it as a training method",
+    ("Construction", "Repair kits"):
+        "same shipwright niche as hull parts",
+}
 
 
 def norm_name(name):
@@ -384,6 +434,14 @@ def kb_tiers(peaks):
     skipped_level = skipped_envelope = 0
     for skill, method, level, rate, src in rows:
         if norm_name(method) in NAME_BLACKLIST or len(method.strip()) < 3:
+            continue
+        if (skill, method.strip()) in SECTION_EXCLUSIONS:
+            continue
+        # parse artifacts are not method names: leaked wiki template markup
+        # ("{{#explode:...") and prose sentences ("Some players decide to
+        # keep doing high level alchemy all the") both shipped as methods
+        # before this guard (2026-08-03 ladder sweep)
+        if "{" in method or "#" in method or len(method.split()) > 7:
             continue
         if skill == "Slayer" and not level:
             level = slayer.get(norm_name(method))

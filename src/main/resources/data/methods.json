@@ -1,6 +1,6 @@
 {
  "source": "curated ironman seed (ENGINE-DESIGN.md Appendix A) merged with the knowledge base's wiki training-guide tables — WIKI rates preferred over curated where both speak (Luke, 2026-07-23); player-measured rates override at runtime. Cross-validated vs WOM ironman EHP envelope (commit 1afcf8c).",
- "generated": "2026-07-23",
+ "generated": "2026-08-03",
  "skills": [
   {
    "skill": "Attack",
@@ -484,15 +484,6 @@
      ]
     },
     {
-     "id": "magic_wiki_some_players_decide_to_keep_doing_high_l_55",
-     "name": "Some players decide to keep doing high level alchemy all the",
-     "startXp": 166614,
-     "rate": 78000,
-     "style": "active",
-     "source": "oldschool.runescape.wiki/w/Pay-to-play_Magic_training",
-     "origin": "wiki"
-    },
-    {
      "id": "magic_wiki_charge_water_orb_56",
      "name": "Charge Water Orb",
      "startXp": 184017,
@@ -884,67 +875,38 @@
    "skill": "Construction",
    "methods": [
     {
-     "id": "construction_wiki_hull_parts_1",
-     "name": "Hull parts",
-     "startXp": 0,
-     "rate": 72500,
-     "style": "active",
-     "source": "oldschool.runescape.wiki/w/Construction_training",
-     "origin": "wiki"
-    },
-    {
      "id": "construction_mahogany_homes",
-     "name": "Mahogany Homes",
+     "name": "Mahogany Homes (Beginner)",
      "startXp": 0,
-     "rate": 60000,
+     "rate": 33000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Mahogany_Homes",
-     "origin": "curated"
+     "origin": "curated",
+     "xpEach": 93.7,
+     "inputs": [
+      {
+       "itemId": 960,
+       "qty": 1,
+       "name": "Plank"
+      }
+     ]
     },
     {
-     "id": "construction_wiki_repair_kits_1",
-     "name": "Repair kits",
-     "startXp": 0,
-     "rate": 52200,
+     "id": "construction_mahogany_homes_novice",
+     "name": "Mahogany Homes (Novice)",
+     "startXp": 4463,
+     "rate": 87000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Construction_training",
-     "origin": "wiki"
-    },
-    {
-     "id": "construction_wiki_hull_parts_8",
-     "name": "Hull parts",
-     "startXp": 799,
-     "rate": 150000,
-     "style": "active",
-     "source": "oldschool.runescape.wiki/w/Construction_training",
-     "origin": "wiki"
-    },
-    {
-     "id": "construction_wiki_repair_kits_19",
-     "name": "Repair kits",
-     "startXp": 3967,
-     "rate": 108000,
-     "style": "active",
-     "source": "oldschool.runescape.wiki/w/Construction_training",
-     "origin": "wiki"
-    },
-    {
-     "id": "construction_wiki_hull_parts_23",
-     "name": "Hull parts",
-     "startXp": 6283,
-     "rate": 225000,
-     "style": "active",
-     "source": "oldschool.runescape.wiki/w/Construction_training",
-     "origin": "wiki"
-    },
-    {
-     "id": "construction_wiki_repair_kits_30",
-     "name": "Repair kits",
-     "startXp": 13352,
-     "rate": 162000,
-     "style": "active",
-     "source": "oldschool.runescape.wiki/w/Construction_training",
-     "origin": "wiki"
+     "source": "oldschool.runescape.wiki/w/Mahogany_Homes",
+     "origin": "curated",
+     "xpEach": 200.0,
+     "inputs": [
+      {
+       "itemId": 8778,
+       "qty": 1,
+       "name": "Oak plank"
+      }
+     ]
     },
     {
      "id": "construction_oak_larders",
@@ -964,22 +926,73 @@
      ]
     },
     {
-     "id": "construction_wiki_hull_parts_41",
-     "name": "Hull parts",
-     "startXp": 41156,
-     "rate": 350000,
+     "id": "construction_oak_larders_butler",
+     "name": "Oak larders + demon butler",
+     "startXp": 101314,
+     "rate": 480000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Construction_training",
-     "origin": "wiki"
+     "origin": "curated",
+     "xpEach": 480.0,
+     "inputs": [
+      {
+       "itemId": 8778,
+       "qty": 8,
+       "name": "Oak plank"
+      }
+     ]
     },
     {
-     "id": "construction_wiki_repair_kits_47",
-     "name": "Repair kits",
-     "startXp": 75110,
-     "rate": 252000,
+     "id": "construction_mythical_capes",
+     "name": "Mounted mythical capes",
+     "startXp": 101314,
+     "rate": 430000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Construction_training",
-     "origin": "wiki"
+     "origin": "curated",
+     "req": "quest:Dragon Slayer II",
+     "xpEach": 370.0,
+     "inputs": [
+      {
+       "itemId": 8780,
+       "qty": 3,
+       "name": "Teak plank"
+      }
+     ]
+    },
+    {
+     "id": "construction_mahogany_homes_adept",
+     "name": "Mahogany Homes (Adept)",
+     "startXp": 101314,
+     "rate": 140000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Mahogany_Homes",
+     "origin": "curated",
+     "xpEach": 287.9,
+     "inputs": [
+      {
+       "itemId": 8780,
+       "qty": 1,
+       "name": "Teak plank"
+      }
+     ]
+    },
+    {
+     "id": "construction_mahogany_tables",
+     "name": "Mahogany tables + demon butler",
+     "startXp": 123640,
+     "rate": 900000,
+     "style": "active",
+     "source": "oldschool.runescape.wiki/w/Construction_training",
+     "origin": "curated",
+     "xpEach": 840.0,
+     "inputs": [
+      {
+       "itemId": 8782,
+       "qty": 6,
+       "name": "Mahogany plank"
+      }
+     ]
     },
     {
      "id": "construction_teak_benches",
@@ -1000,40 +1013,38 @@
      ]
     },
     {
-     "id": "construction_wiki_hull_parts_53",
-     "name": "Hull parts",
-     "startXp": 136573,
-     "rate": 400000,
+     "id": "construction_mahogany_homes_expert",
+     "name": "Mahogany Homes (Expert)",
+     "startXp": 737600,
+     "rate": 197000,
      "style": "active",
-     "source": "oldschool.runescape.wiki/w/Construction_training",
-     "origin": "wiki"
+     "source": "oldschool.runescape.wiki/w/Mahogany_Homes",
+     "origin": "curated",
+     "xpEach": 346.1,
+     "inputs": [
+      {
+       "itemId": 8782,
+       "qty": 1,
+       "name": "Mahogany plank"
+      }
+     ]
     },
     {
-     "id": "construction_wiki_repair_kits_66",
-     "name": "Repair kits",
-     "startXp": 496229,
-     "rate": 306000,
+     "id": "construction_mahogany_benches",
+     "name": "Mahogany benches + demon butler",
+     "startXp": 1475551,
+     "rate": 1100000,
      "style": "active",
      "source": "oldschool.runescape.wiki/w/Construction_training",
-     "origin": "wiki"
-    },
-    {
-     "id": "construction_wiki_repair_kits_80",
-     "name": "Repair kits",
-     "startXp": 1986037,
-     "rate": 360000,
-     "style": "active",
-     "source": "oldschool.runescape.wiki/w/Construction_training",
-     "origin": "wiki"
-    },
-    {
-     "id": "construction_wiki_repair_kits_92",
-     "name": "Repair kits",
-     "startXp": 6517219,
-     "rate": 396000,
-     "style": "active",
-     "source": "oldschool.runescape.wiki/w/Construction_training",
-     "origin": "wiki"
+     "origin": "curated",
+     "xpEach": 840.0,
+     "inputs": [
+      {
+       "itemId": 8782,
+       "qty": 6,
+       "name": "Mahogany plank"
+      }
+     ]
     }
    ]
   },
@@ -3940,15 +3951,6 @@
   {
    "skill": "Firemaking",
    "methods": [
-    {
-     "id": "firemaking_wiki_explode_var_firelighter_item_1",
-     "name": "{{#explode:{{#var:firelighter_item",
-     "startXp": 0,
-     "rate": 74250,
-     "style": "active",
-     "source": "oldschool.runescape.wiki/w/Pay-to-play_Firemaking_training",
-     "origin": "wiki"
-    },
     {
      "id": "firemaking_burn_logs",
      "name": "Log burning ladder",
