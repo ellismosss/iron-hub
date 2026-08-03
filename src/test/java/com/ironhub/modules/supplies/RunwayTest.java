@@ -111,6 +111,12 @@ public class RunwayTest
 		assertTrue(image.getHeight() > 80);
 		write(image, "supplies-runway-tab.png");
 
+		// X3 2026-08-03: a targeted row reads live "owned/target" (the
+		// collect-N grammar) and wears a meter strip beneath it
+		assertTrue("targeted rows read owned/target", hasLabelText(tab, "10/50"));
+		assertTrue("a targeted row wears a meter",
+			countComponents(tab, com.ironhub.ui.v2.V2ProgressBar.class) >= 3);
+
 		// the search view
 		SwingUtilities.invokeAndWait(() -> ((RunwayTab) tab).searchForTest("potion"));
 		SwingUtilities.invokeAndWait(() -> { });   // drain the queued rebuild
@@ -124,5 +130,38 @@ public class RunwayTest
 		java.io.File out = new java.io.File("build/reports/" + name);
 		out.getParentFile().mkdirs();
 		javax.imageio.ImageIO.write(image, "png", out);
+	}
+
+	private static boolean hasLabelText(java.awt.Component c, String text)
+	{
+		if (c instanceof com.ironhub.ui.osrs.OsrsLabel
+			&& text.equals(((com.ironhub.ui.osrs.OsrsLabel) c).text()))
+		{
+			return true;
+		}
+		if (c instanceof java.awt.Container)
+		{
+			for (java.awt.Component child : ((java.awt.Container) c).getComponents())
+			{
+				if (hasLabelText(child, text))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static int countComponents(java.awt.Component c, Class<?> type)
+	{
+		int n = type.isInstance(c) ? 1 : 0;
+		if (c instanceof java.awt.Container)
+		{
+			for (java.awt.Component child : ((java.awt.Container) c).getComponents())
+			{
+				n += countComponents(child, type);
+			}
+		}
+		return n;
 	}
 }

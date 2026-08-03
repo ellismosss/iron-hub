@@ -304,8 +304,13 @@ class RunwayTab extends JPanel
 		row.add(name.leftAligned().squeezable());
 		row.add(Box.createHorizontalGlue());
 
-		OsrsLabel ownedLabel = new OsrsLabel(String.valueOf(owned), colour, OsrsSkin.smallFont());
-		ownedLabel.setToolTipText("You own " + owned);
+		// a set target reads as live progress — "owned/target" (the collect-N
+		// grammar, mechanism X3 2026-08-03), not a bare count beside a box
+		OsrsLabel ownedLabel = new OsrsLabel(
+			target > 0 ? owned + "/" + target : String.valueOf(owned),
+			colour, OsrsSkin.smallFont());
+		ownedLabel.setToolTipText("You own " + owned
+			+ (target > 0 ? " of the " + target + " you want stocked" : ""));
 		row.add(ownedLabel);
 		row.add(Box.createHorizontalStrut(5));
 
@@ -315,7 +320,22 @@ class RunwayTab extends JPanel
 		row.add(Box.createHorizontalStrut(3));
 		row.add(goalGlyph(item, target));
 		cap(row);
-		return row;
+		if (target <= 0)
+		{
+			return row;
+		}
+		// the meter strip beneath the row: possession toward the stock target
+		JPanel holder = new JPanel();
+		holder.setLayout(new BoxLayout(holder, BoxLayout.Y_AXIS));
+		holder.setOpaque(false);
+		holder.setAlignmentX(LEFT_ALIGNMENT);
+		holder.add(row);
+		com.ironhub.ui.v2.V2ProgressBar meter =
+			new com.ironhub.ui.v2.V2ProgressBar(theme, com.ironhub.ui.v2.V2ProgressBar.Size.METER);
+		meter.fraction(Math.min(1.0, owned / (double) target));
+		holder.add(meter);
+		cap(holder);
+		return holder;
 	}
 
 	/** sprite · name · its category · add/remove-from-list. */
