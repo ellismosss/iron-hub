@@ -283,6 +283,14 @@ Rules:
    bar means progress and nothing else. Blocked or short is said in the text beside it,
    in `BLOCKED`.
 5. **Unknown is never coloured.** It renders as silence or "?" in `FAINT`.
+6. **On a DAILIES-shaped tile grid, green is the go-signal** (Luke's D2
+   ruling, 2026-08-03, reversing the 2026-07-26 port reading): AVAILABLE
+   wears the DONE-green ring, CLAIMED wears the owned tick with NO ring
+   (the two greens can never be confused: ring = can do now, tick = done
+   today), short/locked recede. The Gear tab's ready-orange (which
+   conflates met-outright with boost-reachable) is flagged for its own
+   ruling — the gear chart's green-met/amber-boost grammar is separately
+   approved and was not touched.
 
 **`FAINT` was 12 levels too dark.** It documents itself as "MUTED dimmed by the
 same ratio UiTokens uses from body to faint" — that ratio is `0x6B/0x8C` = 0.764,
@@ -438,7 +446,7 @@ All in `com.ironhub.ui.v2`, all shown in **Design lab V2**.
 | `V2Button` | Button | `regular_large` | plain (the art has no other) |
 | `V2SpriteButton` | IconButton, UtilityButton, Stepper, ArrowButton, WikiButton | `ui/buttons_square/*`, `ui/plus_minus/*`, `ui/arrows/*`, `icons/wiki/*`, `ui/buttons/*` | whatever `_hovered` / `_selected` the art has. `fit(box)` scales an oversized emblem (§2); `letter(s)` draws a character over the art for a mark the set lacks |
 | `V2Checkbox` | Checkbox | `square_bordered_checkbox` | off, on, locked, disabled, disabled-on. `labelColor` for a status the caller owns (the dailies scale); `badge(icon)` for a trailing mark; **null text = the box alone**, for a row that lays itself out |
-| `V2ChipRow` | ChipRow, **action chip** (`action()`), **latching chip** (`toggle()`, optionally with an icon, a font, and stretched to its cell) | `ui/buttons/button` | unselected, selected (lit art + orange label), hovered (wash), highlighted (green label) |
+| `V2ChipRow` | ChipRow, **action chip** (`action()`, with a stretch variant so a GRID of action chips splits its row evenly like the row atom does — GC5), **latching chip** (`toggle()`, optionally with an icon, a font, and stretched to its cell) | `ui/buttons/button` | unselected, selected (lit art + orange label), hovered (wash), highlighted (green label), disabled (`setChipEnabled` — FAINT label, no hover, presses ignored, §8; the no-monster Recommended chip). **A Chip never shrinks below its label + end caps** (minimum = preferred, 2026-08-03): BoxLayout squeezes toward minimums when a row runs tight, and the old label-sized minimum let text hang outside the art (the Hunter Route/Replace clipping) — the squeezable NEIGHBOUR gives way instead. A null-action chip is display-only and inert |
 | `V2Tab` | Tab | `tag_tab`, `tag_tab_active` | plain, active |
 | `V2Tile` | Tile | Card slice + `checkmark_small` | plain, selected, owned, `Status` + `progress`. Takes any `java.awt.Image` (the tabs draw through `SpriteCache`, whose sprites arrive from `getScaledInstance`); `emblem(img)` swaps a late arrival in; `width(px)` for a tile wider than it is tall; `captionLines(n)` wraps and **clamps** the caption (a label paints every line it holds, so an unclamped one bled over the row beneath); `badge(n)` a corner count; `placeholder(code)` when there is no art; `onRightClick` a context menu; `captionInside()` paints the caption ON the art — bottom-anchored, bold, the emblem centres in the band above it, tile = art height (the clog page grid; Luke, 2026-07-27); `corner(s)` a detail-font note top-right, taking the owned tick's spot when both are set (the two-segment overload colours each half — the clog count grammar: obtained red 0 / orange filling / green done, "/total" orange-until-done); `captionStatus(c)` the caption in DONE/ACTION/BLOCKED (V2Label.status's guard — the clog grid's orange-until-done); `card()` wears the Card art instead of the chamfered stone (washes go flat-inset, status rings don't draw — say progress with the meter); `meter(f)` a plain 5px METER strip along the bottom, no notches (the card tile's progress readout) |
 | `V2ItemSlot` | ItemSlot | `icons/equipment/slot_*` | empty, filled, selected |
@@ -449,8 +457,9 @@ All in `com.ironhub.ui.v2`, all shown in **Design lab V2**.
 | `V2Checklist` | Checklist | Well + rows | hover band |
 | `V2Table` | Table | — (layout) | `right()` for numeric columns |
 | `V2EmptyState` | EmptyState | Well + Label | empty, unknown |
+| `V2TextArea` | multi-line entry | the field well | wraps at words, grows 3..8 rows with its text, the field's crisp/baseline/+1px rules kept (the slayer note, S5 2026-08-03) |
 | `V2TextField` | TextField | Well + `search_1` | idle, typed. **`plain(...)` drops the magnifier** — a note, a number or a name is not a search, and the icon's column squeezes a narrow box until its digits clip. **`width(px)` pins a small box** (a page number): the atom's size overrides IGNORE the `setXxxSize` setters, so setter calls on it are dead code — the gear pager's box stretched full-width until this landed (2026-07-28) |
-| `V2Dropdown` | Dropdown | Well + arrow | closed (one row), open = the well's LIST floated OVER the content (a JPopupMenu flush under the row, the control's width, max 20 rows — Luke, 2026-07-27, reversing the 2026-07-25 grow-in-place ruling: growing pushed the page's cards down). `width(px)` pins it for a shared row — `setPreferredSize` cannot, the size overrides ignore it |
+| `V2Dropdown` | Dropdown | Well + arrow | closed (one row), open = the well's LIST floated OVER the content (a JPopupMenu flush under the row, the control's width — Luke, 2026-07-27, reversing the 2026-07-25 grow-in-place ruling: growing pushed the page's cards down). Past `MAX_ROWS` the popup SCROLLS (V2ScrollBarUI) instead of hiding options (2026-08-03 — the height ruling holds as a viewport cap). `openBelow(anchor)` floats the same popup under a BUTTON trigger for a picker with no closed row (the gear View setups, GC3/GC4). `detailClosed()` renders the closed row in DETAIL for a stack of preference dropdowns that must not shout (farm teleports, F4). `width(px)` pins it for a shared row — `setPreferredSize` cannot, the size overrides ignore it |
 | `V2ScrollBarUI` | ScrollBar | Well trough + Card thumb + arrows | — |
 | `V2Tooltip` | Tooltip | Card + Label | — |
 
