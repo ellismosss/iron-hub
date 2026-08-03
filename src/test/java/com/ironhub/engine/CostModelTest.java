@@ -151,4 +151,36 @@ public class CostModelTest
 		assertEquals(1.0, CostModel.questHours(60, 1.0), 1e-9);
 		assertTrue(Double.isNaN(CostModel.questHours(0, 1.0)));
 	}
+
+	/** Bonus xp honours its band: Fishing's Agility byproduct starts at
+	 *  barbarian fishing xp — a span entirely below it earns nothing, a
+	 *  span across it credits only the overlap. */
+	@Test
+	public void bonusXpHonoursItsBand()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		MethodsPack methods = pack("Fishing", method("barb", 0, 50_000, null));
+		MethodsPack.Bonus bonus = new MethodsPack.Bonus();
+		bonus.originSkill = "Fishing";
+		bonus.bonusSkill = "Agility";
+		bonus.startXp = 224_443;
+		bonus.endXp = 200_000_000;
+		bonus.ratio = 0.1;
+		methods.skills.get(0).bonuses = List.of(bonus);
+
+		// span fully below the band: no byproduct
+		ProjectedState below = new ProjectedState(state);
+		CostModel.applyBonuses(Skill.FISHING, 0, 200_000, 200_000, below, methods);
+		assertEquals(0, below.getXp(Skill.AGILITY));
+
+		// span across the band start: only the overlap credits
+		ProjectedState across = new ProjectedState(state);
+		CostModel.applyBonuses(Skill.FISHING, 200_000, 300_000, 100_000, across, methods);
+		assertEquals((long) ((300_000 - 224_443) * 0.1), across.getXp(Skill.AGILITY));
+
+		// banked xp earns no byproduct: half the span active = half credit
+		ProjectedState banked = new ProjectedState(state);
+		CostModel.applyBonuses(Skill.FISHING, 300_000, 400_000, 50_000, banked, methods);
+		assertEquals((long) (100_000 * 0.5 * 0.1), banked.getXp(Skill.AGILITY));
+	}
 }
