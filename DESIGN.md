@@ -207,7 +207,7 @@ All opt-in, all documented (Hub requirement for external HTTP):
 
 - **WikiSync-compatible sync**: pushes quest/diary/level/unlock state so OSRS Wiki tools (DPS calc, quest planners) can read the account. This is the preferred DPS-calc integration path (§3.6).
 - **Wise Old Man / TempleOSRS**: pulls EHP/EHB and gain data for context in Skills (§3.3) and the Dashboard (§3.20); optional auto-update ping on logout.
-- **Discord webhooks**: configurable milestone notifications — new collection log slot, unique drop, pet, level milestone, CA tier, diary tier, goal completed — with optional screenshot attach.
+- ~~**Discord webhooks**~~ REMOVED (Luke, 2026-08-03): all Discord features were cut from the plugin — never reintroduce. External sync is WOM/Temple pings only.
 
 ### 3.20 Progress Dashboard & Account Score
 
@@ -248,7 +248,7 @@ The panel's home tab and the account's "front page":
 | RuneLite item stats API | loadout solver |
 | Data pack (JSON) | ladders, methods, orders, dailies, CA ratings, clue items, task rates |
 | OSRS Wiki (deep links) | guides, DPS calc |
-| WikiSync / WOM / Temple / Discord (opt-in HTTP) | external sync (§3.19) |
+| WikiSync / WOM / Temple (opt-in HTTP; Discord REMOVED 2026-08-03) | external sync (§3.19) |
 
 ## 6. Technical Considerations
 
@@ -267,4 +267,4 @@ The panel's home tab and the account's "front page":
 | **3 — Combat** | Gear ladders, loadout solver, DPS calc export, Loot/Supplies tracker, Slayer optimizer |
 | **4 — Daily loop** | Farming runs + timers, Shortest Path bridge, notifications, Boat upgrades, Death recovery |
 | **5 — Intelligence** | Goal Planner, What Now engine, Clue/STASH helper, Supplies Runway |
-| **6 — Hub & sync** | Collection log & pets, Progress Dashboard & account score, WikiSync/WOM/Temple sync, Discord webhooks |
+| **6 — Hub & sync** | Collection log & pets, Progress Dashboard & account score, WikiSync/WOM/Temple sync (Discord webhooks REMOVED 2026-08-03) |
