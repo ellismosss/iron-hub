@@ -307,6 +307,9 @@ class PortTasksTab extends JPanel
 		{
 			row.add(sub("Best: " + s.bestLabel, OsrsSkin.FAINT));
 		}
+		// the tooltipped name label eats the press (deepest-component
+		// dispatch) — relay so the toggle works over the text too
+		com.ironhub.ui.v2.MouseRelay.install(row);
 		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		row.addMouseListener(new MouseAdapter()
 		{

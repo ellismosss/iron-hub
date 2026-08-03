@@ -8,6 +8,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 
 /**
  * Every fixed-art button in the system: the utility squares (wrench, help,
@@ -131,6 +132,12 @@ public class V2SpriteButton extends JComponent
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
+				// left only: surfaces relay presses to themselves for their
+				// right-click menus — a button must not also fire on those
+				if (!SwingUtilities.isLeftMouseButton(e))
+				{
+					return;
+				}
 				down = true;
 				repaint();
 				if (onPress != null)

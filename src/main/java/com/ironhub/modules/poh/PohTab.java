@@ -51,6 +51,11 @@ class PohTab extends JPanel
 	 *  null = the default, the hotspot's NEXT tier. */
 	private String expandedTierId;
 
+	String expandedTier()
+	{
+		return expandedTierId; // test seam: the row-click expansion pin
+	}
+
 	/** Usable temporary-boost headroom per skill, refreshed each rebuild. */
 	private Map<net.runelite.api.Skill, Integer> boosts = Map.of();
 
@@ -423,21 +428,31 @@ class PohTab extends JPanel
 			built ? OsrsSkin.FAINT : OsrsSkin.LABEL, OsrsSkin.smallFont()));
 		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		boolean isGoal = module.isGoal(tier);
-		top.add(goalGlyph(isGoal, isGoal ? tier.name + " — tracked; click to untrack"
+		JLabel track = goalGlyph(isGoal, isGoal ? tier.name + " — tracked; click to untrack"
 			: "Track building " + tier.name + " in Goals",
-			() -> module.toggleGoal(tier)));
+			() -> module.toggleGoal(tier));
+		top.add(track);
 		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		top.add(wikiGlyph(tier.page));
+		OsrsLabel wiki = wikiGlyph(tier.page);
+		top.add(wiki);
 		cap(top);
 		// any tier expands on click to show its materials (Luke,
-		// 2026-07-29); the glyphs keep their own clicks — Swing hands the
-		// press to the deepest child WITH a listener, and only they have one
+		// 2026-07-29). The tooltipped name label eats the press (deepest-
+		// component dispatch), so the row relays — and skips presses that
+		// landed on the glyphs, which keep their own clicks
+		com.ironhub.ui.v2.MouseRelay.install(top);
 		top.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
 		top.addMouseListener(new java.awt.event.MouseAdapter()
 		{
 			@Override
 			public void mousePressed(java.awt.event.MouseEvent e)
 			{
+				java.awt.Component hit = javax.swing.SwingUtilities.getDeepestComponentAt(
+					top, e.getX(), e.getY());
+				if (hit == track || hit == wiki)
+				{
+					return;
+				}
 				expandedTierId = tier.id.equals(expandedTierId) ? null : tier.id;
 				javax.swing.SwingUtilities.invokeLater(PohTab.this::rebuild);
 			}

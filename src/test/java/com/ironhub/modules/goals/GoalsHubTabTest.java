@@ -139,6 +139,68 @@ public class GoalsHubTabTest
 		}
 	}
 
+	/** The archive's ONLY entry point is a press on the stat slab — and the
+	 *  press usually lands on the slab's label/count/icon, which Swing hands
+	 *  the event to (deepest interested component; a tooltip is enough).
+	 *  Without MouseRelay the archive was unreachable except via padding. */
+	@Test
+	public void archiveOpensFromAPressOnTheStatSlabContent() throws Exception
+	{
+		AccountState state = seeded(1L);
+		GoalPlannerModule module = module(state);
+		waitForPlan(module);
+		GoalsHubTab[] holder = new GoalsHubTab[1];
+		javax.swing.SwingUtilities.invokeAndWait(() ->
+			holder[0] = new GoalsHubTab(module, state, packOf(module), gearOf(module),
+				null, new SkillIconManager(), OsrsTheme.STONE));
+		javax.swing.SwingUtilities.invokeAndWait(() ->
+		{
+			javax.swing.JComponent slab =
+				findByTooltip(holder[0], "View completed goals");
+			assertTrue("stat slab present", slab != null);
+			Component child = deepestChild(slab);
+			assertTrue("slab has content to press", child != slab);
+			child.dispatchEvent(new java.awt.event.MouseEvent(child,
+				java.awt.event.MouseEvent.MOUSE_PRESSED, 0,
+				java.awt.event.InputEvent.BUTTON1_DOWN_MASK, 1, 1, 1, false,
+				java.awt.event.MouseEvent.BUTTON1));
+		});
+		javax.swing.SwingUtilities.invokeAndWait(() -> { });
+		assertTrue("a press on the slab's content must open the archive",
+			holder[0].archiveShowing());
+		module.shutDown();
+	}
+
+	private static javax.swing.JComponent findByTooltip(Container root, String tooltip)
+	{
+		for (Component c : root.getComponents())
+		{
+			if (c instanceof javax.swing.JComponent
+				&& tooltip.equals(((javax.swing.JComponent) c).getToolTipText()))
+			{
+				return (javax.swing.JComponent) c;
+			}
+			if (c instanceof Container)
+			{
+				javax.swing.JComponent hit = findByTooltip((Container) c, tooltip);
+				if (hit != null)
+				{
+					return hit;
+				}
+			}
+		}
+		return null;
+	}
+
+	private static Component deepestChild(Component c)
+	{
+		while (c instanceof Container && ((Container) c).getComponentCount() > 0)
+		{
+			c = ((Container) c).getComponent(0);
+		}
+		return c;
+	}
+
 	/** A supply Route's "Open wiki" links to the stocked ITEM, never the
 	 *  "Stock N × …" goal name (Luke's report). */
 	@Test

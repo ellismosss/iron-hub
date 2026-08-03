@@ -671,4 +671,96 @@ public class PohModuleTest
 		}
 		return tile;
 	}
+
+	/** A tier row expands from a press on its NAME — the tooltipped label
+	 *  Swing hands the event to (deepest interested component) — while the
+	 *  track/wiki glyphs keep their own clicks without also toggling the
+	 *  row (the relay carve-out). */
+	@Test
+	public void tierRowExpandsFromItsNameAndGlyphsKeepTheirClicks() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		StateFixture.stat(state, Skill.CONSTRUCTION, 84, 3_000_000);
+		PohModule module = module(state);
+		module.startUp();
+		PohTab tab = (PohTab) module.buildTab();
+		javax.swing.SwingUtilities.invokeAndWait(() -> tab.expand("parlour__chairs"));
+		javax.swing.SwingUtilities.invokeAndWait(() -> { });
+		SwingRender.render(tab); // lay bounds out — hit-testing needs them
+
+		javax.swing.SwingUtilities.invokeAndWait(() ->
+		{
+			java.awt.Component track = findGlyph(tab, "Track building ");
+			assertNotNull(track);
+			java.awt.Component name = nameBeside(track);
+			assertNotNull("the tier row keeps a tooltipped name label", name);
+			press(name);
+		});
+		javax.swing.SwingUtilities.invokeAndWait(() -> { });
+		String expanded = tab.expandedTier();
+		assertNotNull("a press on the tier name must expand the row", expanded);
+		SwingRender.render(tab); // fresh bounds after the expansion rebuild
+
+		javax.swing.SwingUtilities.invokeAndWait(() ->
+		{
+			java.awt.Component track = findGlyph(tab, "Track building ");
+			assertNotNull(track);
+			press(track); // the glyph's own action — must NOT toggle the row
+		});
+		javax.swing.SwingUtilities.invokeAndWait(() -> { });
+		assertEquals(expanded, tab.expandedTier());
+		module.shutDown();
+	}
+
+	private static void press(java.awt.Component c)
+	{
+		c.dispatchEvent(new java.awt.event.MouseEvent(c,
+			java.awt.event.MouseEvent.MOUSE_PRESSED, 0,
+			java.awt.event.InputEvent.BUTTON1_DOWN_MASK, 1, 1, 1, false,
+			java.awt.event.MouseEvent.BUTTON1));
+	}
+
+	private static java.awt.Component findGlyph(java.awt.Container root, String tooltipPrefix)
+	{
+		for (java.awt.Component c : root.getComponents())
+		{
+			if (c instanceof javax.swing.JComponent)
+			{
+				String tip = ((javax.swing.JComponent) c).getToolTipText();
+				if (tip != null && tip.startsWith(tooltipPrefix))
+				{
+					return c;
+				}
+			}
+			if (c instanceof java.awt.Container)
+			{
+				java.awt.Component hit = findGlyph((java.awt.Container) c, tooltipPrefix);
+				if (hit != null)
+				{
+					return hit;
+				}
+			}
+		}
+		return null;
+	}
+
+	/** The tooltipped name label sharing the glyph's row line. */
+	private static java.awt.Component nameBeside(java.awt.Component glyph)
+	{
+		for (java.awt.Component c : glyph.getParent().getComponents())
+		{
+			if (c == glyph || !(c instanceof javax.swing.JComponent))
+			{
+				continue;
+			}
+			String tip = ((javax.swing.JComponent) c).getToolTipText();
+			if (tip != null && !tip.startsWith("Track building ")
+				&& !tip.startsWith("Open the wiki"))
+			{
+				return c;
+			}
+		}
+		return null;
+	}
 }

@@ -259,14 +259,24 @@ class HunterRumoursTab extends JPanel
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
 		// the chip ATOM, so Route cannot look different to the chips beside it
-		row.add(V2ChipRow.action(theme, "Route", null, null, OsrsSkin.smallFont(),
-			() -> module.route(area.worldPoint())));
+		javax.swing.JComponent route = V2ChipRow.action(theme, "Route", null, null,
+			OsrsSkin.smallFont(), () -> module.route(area.worldPoint()));
+		row.add(route);
+		// the tooltipped name label eats the press (deepest-component
+		// dispatch) — relay, but leave the Route chip its own click
+		com.ironhub.ui.v2.MouseRelay.install(row);
 		row.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
 		row.addMouseListener(new java.awt.event.MouseAdapter()
 		{
 			@Override
 			public void mousePressed(java.awt.event.MouseEvent e)
 			{
+				java.awt.Component hit = javax.swing.SwingUtilities.getDeepestComponentAt(
+					row, e.getX(), e.getY());
+				if (hit != null && javax.swing.SwingUtilities.isDescendingFrom(hit, route))
+				{
+					return;
+				}
 				module.setPreferredLocation(rumour.creature, preferred ? null : area.name);
 			}
 		});

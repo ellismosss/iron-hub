@@ -181,6 +181,11 @@ class GoalsHubTab extends JPanel
 		rebuild();
 	}
 
+	boolean archiveShowing()
+	{
+		return showArchive;
+	}
+
 	private void rebuild()
 	{
 		content.removeAll();
@@ -354,6 +359,9 @@ class GoalsHubTab extends JPanel
 			// the clipped wash signals the click-through, where V1 swapped the
 			// whole fill for hoverFill — a Slab's fill is a texture now (§8)
 			slab.hoverable();
+			// deepest-component dispatch: without the relay the press dies on
+			// the label/count/icon — exactly where the pointer sits (Traps)
+			com.ironhub.ui.v2.MouseRelay.install(slab);
 			slab.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			slab.addMouseListener(new MouseAdapter()
 			{
@@ -477,7 +485,9 @@ class GoalsHubTab extends JPanel
 		}
 		card.add(foot);
 
-		// right-click: push this task down the plan, or open its wiki
+		// right-click: push this task down the plan, or open its wiki —
+		// relayed, or the menu is dead over the tooltipped children
+		com.ironhub.ui.v2.MouseRelay.install(card);
 		card.addMouseListener(new MouseAdapter()
 		{
 			@Override
@@ -858,6 +868,8 @@ class GoalsHubTab extends JPanel
 	{
 		String url = wikiUrl(step);
 		boolean taskPinned = state.isTaskPinned(step.action.id);
+		// relayed, or the menu is dead over the tooltipped resource rows
+		com.ironhub.ui.v2.MouseRelay.install(block);
 		block.addMouseListener(new MouseAdapter()
 		{
 			@Override

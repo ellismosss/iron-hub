@@ -265,6 +265,12 @@ public class V2ChipRow extends JPanel
 				@Override
 				public void mousePressed(MouseEvent e)
 				{
+					// left only: rows relay presses to themselves for their
+					// right-click menus — a chip must not also fire on those
+					if (!javax.swing.SwingUtilities.isLeftMouseButton(e))
+					{
+						return;
+					}
 					onPress.run();
 				}
 
