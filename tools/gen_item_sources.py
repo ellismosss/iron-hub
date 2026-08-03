@@ -366,11 +366,27 @@ def main():
     for item, source, rarity in conn.execute("SELECT item, source, rarity FROM drops"):
         drops.setdefault(item, []).append((source, rarity))
     shops = {}
-    for item, shop, price, currency in conn.execute(
-            "SELECT item, shop, price, currency FROM shop_stock"):
+    zero_stock = {}
+    for item, shop, price, currency, stock in conn.execute(
+            "SELECT item, shop, price, currency, stock FROM shop_stock"):
         if any(r in (shop or "") for r in RECLAIM_SHOPS):
             continue
+        # ZERO BASE STOCK is not a source (G4, 2026-08-03): the shop lists
+        # the item but never holds one — it only ever carries player-sold
+        # stock, which an ironman cannot buy. Game-wide rule, found via
+        # "buy the furs from Pellem's fur store" (stocks zero of them).
+        # Unknown/blank stock stays in (can't prove it's zero); a shop
+        # with BOTH a zero and a stocked row (bucket vs shop-page
+        # harvests disagreeing, e.g. White Knight Armoury's rank-scaled
+        # stock) keeps its stocked row.
+        if (stock or "").strip() == "0":
+            zero_stock.setdefault(item, set()).add(display_from(shop).rstrip("."))
+            continue
         shops.setdefault(item, []).append((shop, price, currency))
+    for item, rows in shops.items():
+        stocked = {display_from(s).rstrip(".") for s, _, _ in rows}
+        if item in zero_stock:
+            zero_stock[item] -= stocked
     recipes = {}
     for output, output_qty, materials, skills in conn.execute(
             "SELECT output, output_qty, materials, skills FROM recipes"):
@@ -503,6 +519,14 @@ def main():
     herb_sack = by_name["Herb sack"]
     assert sum(1 for s in herb_sack["sources"] if s["how"] == "shop") == 2, \
         f"herb sack should offer both point shops: {herb_sack['sources']}"
+    # ── zero-stock shops stay excluded (G4) ───────────────────────────
+    leaked = [(e["name"], s["from"]) for e in entries
+              for s in e.get("sources", [])
+              if s["how"] == "shop" and s["from"] in zero_stock.get(e["name"], ())]
+    assert not leaked, f"zero-stock shop sources leaked: {leaked[:10]}"
+    antelope = by_name.get("Sunlight antelope fur")
+    assert antelope and not any(s["how"] == "shop" for s in antelope["sources"]), \
+        f"antelope fur still sold by a zero-stock shop: {antelope}"
     cape = by_name.get("Imbued saradomin cape")
     assert cape and any("Mage Arena II" in (s.get("from") or "")
                         for s in cape["sources"]), f"imbued cape: {cape}"
