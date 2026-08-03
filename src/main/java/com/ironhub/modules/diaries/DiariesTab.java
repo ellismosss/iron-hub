@@ -627,6 +627,14 @@ class DiariesTab extends JPanel
 		head.add(text);
 		head.add(Box.createHorizontalGlue());
 		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		// live count where the game exposes one (Karamja's counting varbits,
+		// DI1 2026-08-03) — everywhere else, honest silence
+		String count = complete ? null : module.taskCount(task);
+		if (count != null)
+		{
+			head.add(new OsrsLabel(count, OsrsSkin.MUTED, OsrsSkin.smallFont()));
+			head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		}
 		boolean isGoal = state.getGoalSeeds().containsKey("diary:" + slug);
 		JPanel anchor = new JPanel(new java.awt.BorderLayout());
 		anchor.setOpaque(false);

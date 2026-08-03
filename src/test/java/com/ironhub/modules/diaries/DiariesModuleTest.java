@@ -25,6 +25,7 @@ import org.junit.rules.TemporaryFolder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class DiariesModuleTest
@@ -141,6 +142,32 @@ public class DiariesModuleTest
 		assertFalse(module.taskComplete(karamja, 0, bananas));
 		StateFixture.varbit(state, bananas.varbit, 5);
 		assertTrue(module.taskComplete(karamja, 0, bananas));
+	}
+
+	/**
+	 * DI1 2026-08-03: only the game's own counting varbits earn a live count
+	 * (Karamja's three collect-N tasks). A 1-bit varp task shows nothing —
+	 * never an invented number — and a finished counter goes silent.
+	 */
+	@Test
+	public void liveCountsOnlyWhereTheGameCounts()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		DiariesModule module = module(state);
+		DiariesPack pack = module.pack();
+
+		DiariesPack.Region karamja = pack.regions.stream()
+			.filter(r -> r.name.equals("Karamja")).findFirst().orElseThrow(AssertionError::new);
+		DiariesPack.Task bananas = karamja.tiers.get(0).tasks.get(0);
+		assertEquals("0/5", module.taskCount(bananas));
+		StateFixture.varbit(state, bananas.varbit, 3);
+		assertEquals("3/5", module.taskCount(bananas));
+		StateFixture.varbit(state, bananas.varbit, 5);
+		assertNull("a met counter says nothing", module.taskCount(bananas));
+
+		// a varp-bit task has no counter to read
+		DiariesPack.Task essMine = pack.regions.get(0).tiers.get(0).tasks.get(0);
+		assertNull(module.taskCount(essMine));
 	}
 
 	@Test
