@@ -130,6 +130,36 @@ public class LootTabTest
 		assertEquals(2, after.getKillCount("Zulrah"));
 	}
 
+	/** Round-2 regression: the monster-tile icon fallback priced drops on
+	 *  the EDT — ItemManager.getItemPrice walks into getItemComposition,
+	 *  which ASSERTS the client thread, so the tab crashed while being
+	 *  built ("loot & supplies tab won't open"). Building and rendering
+	 *  the tab must never touch the pricing APIs. */
+	@Test
+	public void tabBuildNeverPricesOnTheEdt() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 77L);
+		state.incrementKillCount("Zulrah"); // not a slayer task -> fallback path
+		state.ingestLoot("Zulrah", Map.of(12934, 100, 995, 5000));
+		StateFixture.itemNames(state, Map.of(12934, "Zulrah's scales"));
+
+		net.runelite.client.game.ItemManager itemManager =
+			org.mockito.Mockito.mock(net.runelite.client.game.ItemManager.class);
+		LootModule module = new LootModule(state, itemManager, new IronHubConfig()
+		{
+		}, null, new net.runelite.client.eventbus.EventBus(),
+			new com.ironhub.data.DataPack(new com.google.gson.Gson()));
+		module.startUp();
+		JComponent tab = module.buildTab();
+		SwingRender.render((JPanel) tab);
+		org.mockito.Mockito.verify(itemManager, org.mockito.Mockito.never())
+			.getItemPrice(org.mockito.Mockito.anyInt());
+		org.mockito.Mockito.verify(itemManager, org.mockito.Mockito.never())
+			.getItemComposition(org.mockito.Mockito.anyInt());
+		module.shutDown();
+	}
+
 	@Test
 	public void tabRendersHeadless() throws Exception
 	{

@@ -645,6 +645,14 @@ class SlayerTab extends JPanel
 	/** "132 kills · 45.2K xp · 210K gp · 1h 12m" — honest zeros dropped. */
 	static String taskStatsLine(PersistedState.SlayerTaskRecord record, long nowMs)
 	{
+		return taskStatsLine(record, nowMs, true);
+	}
+
+	/** As above; {@code activeWord} false drops the " active" suffix — the
+	 *  OVERLAY never says active/inactive (Luke, live-test round 2). */
+	static String taskStatsLine(PersistedState.SlayerTaskRecord record, long nowMs,
+		boolean activeWord)
+	{
 		List<String> parts = new ArrayList<>();
 		parts.add(record.killed + (record.killed == 1 ? " kill" : " kills"));
 		if (record.xpGained > 0)
@@ -661,7 +669,7 @@ class SlayerTab extends JPanel
 			record.activeMs, record.lastActivityMs, record.end, nowMs);
 		if (active >= 0)
 		{
-			parts.add(durationText(active) + " active");
+			parts.add(durationText(active) + (activeWord ? " active" : ""));
 		}
 		else if (record.start > 0 && nowMs > record.start)
 		{

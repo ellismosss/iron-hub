@@ -48,7 +48,6 @@ class LootTab extends JPanel
 	private final OsrsTheme theme;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 	private final com.ironhub.ui.components.SpriteCache sprites;
-	private final ItemManager itemManager; // null in headless tests
 	private final SlayerTasksPack slayerPack; // monster icons where known
 
 	private String selectedSource;
@@ -67,7 +66,6 @@ class LootTab extends JPanel
 	{
 		this.state = state;
 		this.theme = theme;
-		this.itemManager = itemManager;
 		this.sprites = new com.ironhub.ui.components.SpriteCache(itemManager, listener);
 		SlayerTasksPack pack = null;
 		try
@@ -372,7 +370,10 @@ class LootTab extends JPanel
 	}
 
 	/** The slayer pack's task sprite for a monster name, else the monster's
-	 *  most valuable known drop (every tracked source has drops), else 0. */
+	 *  most-dropped known item (every tracked source has drops), else 0.
+	 *  NO pricing here: this runs on the EDT, and ItemManager.getItemPrice
+	 *  walks into getItemComposition, which asserts the client thread —
+	 *  the "loot tab won't open" crash (2026-08-03 live test, round 2). */
 	private int monsterIconId(String source)
 	{
 		if (slayerPack != null)
@@ -392,19 +393,22 @@ class LootTab extends JPanel
 			}
 		}
 		int best = 0;
-		long bestValue = -1;
+		int bestQty = -1;
+		int coins = 0;
 		for (Map.Entry<Integer, Integer> drop : state.lootFor(source).entrySet())
 		{
-			long value = itemManager == null
-				? drop.getValue() // headless: most dropped
-				: itemManager.getItemPrice(drop.getKey());
-			if (value > bestValue)
+			if (drop.getKey() == net.runelite.api.gameval.ItemID.COINS)
 			{
-				bestValue = value;
+				coins = drop.getKey(); // a coin tile only when coins are ALL there is
+				continue;
+			}
+			if (drop.getValue() > bestQty)
+			{
+				bestQty = drop.getValue();
 				best = drop.getKey();
 			}
 		}
-		return best;
+		return best > 0 ? best : coins;
 	}
 
 	/** "Kalphite Queen" -> "KQ" for a tile with no known sprite. */

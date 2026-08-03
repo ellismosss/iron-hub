@@ -1222,6 +1222,13 @@ public class SlayerOptimizerModule implements IronHubModule
 			? null : entry.locations.get(0).name;
 	}
 
+	/** True while task-target NPCs are in the scene — the honest "you're
+	 *  already there" signal (the highlighter maintains the set). */
+	boolean taskNpcsNearby()
+	{
+		return !targets.isEmpty();
+	}
+
 	/** True while the player stands inside any of the task's Turael kill areas. */
 	boolean inTuraelArea()
 	{

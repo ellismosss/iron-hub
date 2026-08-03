@@ -46,6 +46,7 @@ class SlayerSuiteOverlay extends OverlayPanel
 	private List<String> missing = List.of();
 	private boolean onSkipList;
 	private boolean inTuraelArea;
+	private boolean taskNpcsNearby;
 	private String preferredLocation;
 
 	private void snapshot(SlayerTasksPack.Task entry)
@@ -59,6 +60,7 @@ class SlayerSuiteOverlay extends OverlayPanel
 		missing = module.missingBring();
 		onSkipList = module.onSkipList();
 		inTuraelArea = entry != null && entry.turael != null && module.inTuraelArea();
+		taskNpcsNearby = module.taskNpcsNearby();
 		preferredLocation = entry == null || entry.locations == null || entry.locations.isEmpty()
 			? null : module.preferredLocationName(entry);
 	}
@@ -76,10 +78,12 @@ class SlayerSuiteOverlay extends OverlayPanel
 		panelComponent.setPreferredSize(new Dimension(WIDTH, 0));
 
 		String task = module.taskName();
-		panelComponent.getChildren().add(LineComponent.builder()
-			.left(task.isEmpty() ? "Slayer task" : task).leftColor(Color.WHITE)
-			.right(remaining + " left").rightColor(UiTokens.OVERLAY_VALUE)
-			.build());
+		// "Bloodvelds x63" — the name white, the live remaining count grey
+		// RIGHT AFTER it (Luke, live-test round 2; replaces the old
+		// right-aligned "63 left", which would now be a duplicate)
+		panelComponent.getChildren().add(new TwoToneLine(
+			task.isEmpty() ? "Slayer task" : task, Color.WHITE,
+			" x" + remaining, UiTokens.CANVAS_LOCKED));
 
 		int assigned = module.initialAmount();
 		if (assigned >= remaining && assigned > 0)
@@ -104,8 +108,9 @@ class SlayerSuiteOverlay extends OverlayPanel
 		PersistedState.SlayerTaskRecord active = module.activeRecord();
 		if (active != null && (active.xpGained > 0 || active.lootValue > 0))
 		{
+			// no "active" wording in the overlay (Luke, live-test round 2)
 			panelComponent.getChildren().add(LineComponent.builder()
-				.left(SlayerTab.taskStatsLine(active, System.currentTimeMillis()))
+				.left(SlayerTab.taskStatsLine(active, System.currentTimeMillis(), false))
 				.leftColor(UiTokens.CANVAS_LOCKED)
 				.build());
 		}
@@ -141,10 +146,12 @@ class SlayerSuiteOverlay extends OverlayPanel
 	}
 
 	/** Turael spot + teleports (suppressed once in the kill area), else the
-	 *  preferred/first pack location by name. */
+	 *  preferred/first pack location by name. ALL location lines suppress
+	 *  while task NPCs are in the scene — you're already there (Luke,
+	 *  live-test round 2). */
 	private void locationLines(SlayerTasksPack.Task entry)
 	{
-		if (entry == null)
+		if (entry == null || taskNpcsNearby)
 		{
 			return;
 		}
@@ -184,6 +191,68 @@ class SlayerSuiteOverlay extends OverlayPanel
 			panelComponent.getChildren().add(LineComponent.builder()
 				.left(preferredLocation).leftColor(Color.YELLOW)
 				.build());
+		}
+	}
+
+	/** One line, two colours side by side: the task name white, its count
+	 *  grey immediately after ("Bloodvelds x63") — LineComponent can only
+	 *  colour a whole side. */
+	private static final class TwoToneLine
+		implements net.runelite.client.ui.overlay.components.LayoutableRenderableEntity
+	{
+		private final String left;
+		private final Color leftColor;
+		private final String right;
+		private final Color rightColor;
+		private final java.awt.Rectangle bounds = new java.awt.Rectangle();
+		private java.awt.Point location = new java.awt.Point();
+
+		TwoToneLine(String left, Color leftColor, String right, Color rightColor)
+		{
+			this.left = left;
+			this.leftColor = leftColor;
+			this.right = right;
+			this.rightColor = rightColor;
+		}
+
+		@Override
+		public Dimension render(Graphics2D graphics)
+		{
+			java.awt.FontMetrics metrics = graphics.getFontMetrics();
+			int baseline = location.y + metrics.getHeight();
+			// the standard overlay text shadow, like TextComponent draws
+			graphics.setColor(Color.BLACK);
+			graphics.drawString(left, location.x + 1, baseline + 1);
+			graphics.setColor(leftColor);
+			graphics.drawString(left, location.x, baseline);
+			int x = location.x + metrics.stringWidth(left);
+			graphics.setColor(Color.BLACK);
+			graphics.drawString(right, x + 1, baseline + 1);
+			graphics.setColor(rightColor);
+			graphics.drawString(right, x, baseline);
+			Dimension dimension = new Dimension(
+				metrics.stringWidth(left + right), metrics.getHeight() + 2);
+			bounds.setLocation(location);
+			bounds.setSize(dimension);
+			return dimension;
+		}
+
+		@Override
+		public java.awt.Rectangle getBounds()
+		{
+			return bounds;
+		}
+
+		@Override
+		public void setPreferredLocation(java.awt.Point position)
+		{
+			this.location = position;
+		}
+
+		@Override
+		public void setPreferredSize(Dimension dimension)
+		{
+			// fixed to its text
 		}
 	}
 }

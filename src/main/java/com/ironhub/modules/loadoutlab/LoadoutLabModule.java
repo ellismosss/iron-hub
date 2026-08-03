@@ -1025,38 +1025,6 @@ public class LoadoutLabModule implements IronHubModule
 					com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned());
 				setupView.add(Box.createVerticalStrut(2));
 			}
-			if (viewSource == ViewSource.SLAYER && !state.getSlayerTask().isEmpty())
-			{
-				// bracelet reminders live where task gear is planned (moved
-				// from the Slayer tab; Luke, live-test round). Mutually
-				// exclusive — the state toggle enforces it
-				String task = state.getSlayerTask();
-				java.util.List<String> bracelets = state.getSlayerBracelets(task);
-				JPanel braceletRow = new JPanel();
-				braceletRow.setLayout(new BoxLayout(braceletRow, BoxLayout.X_AXIS));
-				braceletRow.setOpaque(false);
-				braceletRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-				JComponent slaughter = com.ironhub.ui.v2.V2ChipRow.toggle(theme,
-					"Slaughter", null, com.ironhub.ui.osrs.OsrsSkin.smallFont(),
-					bracelets.contains("slaughter"), false,
-					on -> state.toggleSlayerBracelet(task, "slaughter"));
-				slaughter.setToolTipText("Bring a Bracelet of slaughter — EXTENDS"
-					+ " the task. A lit chip is a persisted reminder");
-				braceletRow.add(slaughter);
-				braceletRow.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-				JComponent expeditious = com.ironhub.ui.v2.V2ChipRow.toggle(theme,
-					"Expeditious", null, com.ironhub.ui.osrs.OsrsSkin.smallFont(),
-					bracelets.contains("expeditious"), false,
-					on -> state.toggleSlayerBracelet(task, "expeditious"));
-				expeditious.setToolTipText("Bring an Expeditious bracelet —"
-					+ " SHORTENS the task. A lit chip is a persisted reminder");
-				braceletRow.add(expeditious);
-				braceletRow.add(Box.createHorizontalGlue());
-				braceletRow.setMaximumSize(new Dimension(Integer.MAX_VALUE,
-					braceletRow.getPreferredSize().height));
-				setupView.add(braceletRow);
-				setupView.add(Box.createVerticalStrut(2));
-			}
 		}
 
 		// slot search in the CURRENT and SLAYER views (GC1) — the DPS
@@ -1236,6 +1204,39 @@ public class LoadoutLabModule implements IronHubModule
 		{
 			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 			setupView.add(folds);
+		}
+
+		if (isLive() && viewSource == ViewSource.SLAYER && !state.getSlayerTask().isEmpty())
+		{
+			// bracelet reminders live where task gear is planned, BELOW the
+			// Inventory fold (Luke, live-test round 2). Mutually exclusive —
+			// the state toggle enforces it
+			String task = state.getSlayerTask();
+			java.util.List<String> bracelets = state.getSlayerBracelets(task);
+			JPanel braceletRow = new JPanel();
+			braceletRow.setLayout(new BoxLayout(braceletRow, BoxLayout.X_AXIS));
+			braceletRow.setOpaque(false);
+			braceletRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+			JComponent slaughter = com.ironhub.ui.v2.V2ChipRow.toggle(theme,
+				"Slaughter", null, com.ironhub.ui.osrs.OsrsSkin.smallFont(),
+				bracelets.contains("slaughter"), false,
+				on -> state.toggleSlayerBracelet(task, "slaughter"));
+			slaughter.setToolTipText("Bring a Bracelet of slaughter — EXTENDS"
+				+ " the task. A lit chip is a persisted reminder");
+			braceletRow.add(slaughter);
+			braceletRow.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+			JComponent expeditious = com.ironhub.ui.v2.V2ChipRow.toggle(theme,
+				"Expeditious", null, com.ironhub.ui.osrs.OsrsSkin.smallFont(),
+				bracelets.contains("expeditious"), false,
+				on -> state.toggleSlayerBracelet(task, "expeditious"));
+			expeditious.setToolTipText("Bring an Expeditious bracelet —"
+				+ " SHORTENS the task. A lit chip is a persisted reminder");
+			braceletRow.add(expeditious);
+			braceletRow.add(Box.createHorizontalGlue());
+			braceletRow.setMaximumSize(new Dimension(Integer.MAX_VALUE,
+				braceletRow.getPreferredSize().height));
+			setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+			setupView.add(braceletRow);
 		}
 
 		setupView.revalidate();
