@@ -397,6 +397,36 @@ public class AccountStateTest
 		assertEquals(50_000.0, written.measuredRates.get("Attack"), 0.01);
 	}
 
+	/** Merge-accept pins its pair TOGETHER (Luke's 2026-08-03 ruling) —
+	 *  per-goal setGoalPinned enforces the single-pin rule and each call
+	 *  wiped the previous, leaving only the last goal pinned. */
+	@Test
+	public void mergeAcceptBulkPinKeepsBothWhileSinglePinsStayExclusive()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+
+		state.setGoalPinned("a", true);
+		state.setGoalsPinned(java.util.List.of("b", "c"));
+		assertEquals(java.util.List.of("b", "c"), state.getPinnedGoals());
+		assertFalse(state.isGoalPinned("a"));
+
+		// unpinning one of the pair leaves its partner
+		state.setGoalPinned("b", false);
+		assertEquals(java.util.List.of("c"), state.getPinnedGoals());
+
+		// an individual pin still clears the field — the one-pin rule holds
+		state.setGoalPinned("d", true);
+		assertEquals(java.util.List.of("d"), state.getPinnedGoals());
+
+		// and the pair survives a restart
+		state.setGoalsPinned(java.util.List.of("b", "c"));
+		state.persistNow();
+		AccountState reloaded = StateFixture.state(temp.getRoot());
+		StateFixture.profile(reloaded, 42L);
+		assertEquals(java.util.List.of("b", "c"), reloaded.getPinnedGoals());
+	}
+
 	@Test
 	public void publishedSnapshotsNeverTearUnderConcurrentReads() throws Exception
 	{

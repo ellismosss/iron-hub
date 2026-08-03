@@ -2007,6 +2007,24 @@ public class AccountState implements StateView
 		}
 	}
 
+	/** Pin several goals AT ONCE, in order — the merge-accept path only
+	 *  (Luke, 2026-08-03). Everywhere else the single-pin rule holds via
+	 *  {@link #setGoalPinned}; a merge IS one combined route, so its
+	 *  members pin together (pinnedGoals is ordered and
+	 *  PlanConstraints.pinnedGoals accepts several). */
+	public void setGoalsPinned(java.util.List<String> goalIds)
+	{
+		if (goalIds == null || goalIds.isEmpty())
+		{
+			return;
+		}
+		pinnedGoals.clear();
+		plannerPins.clear();
+		pinnedGoals.addAll(goalIds);
+		persist();
+		notifyListeners();
+	}
+
 	/** Whether this task (plan action) is the single active pin. */
 	public boolean isTaskPinned(String actionId)
 	{

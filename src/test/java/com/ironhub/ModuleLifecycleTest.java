@@ -68,7 +68,7 @@ public class ModuleLifecycleTest
 			new SuppliesRunwayModule(state, null, config, null),
 			new CollectionLogModule(state, null, null, new net.runelite.client.eventbus.EventBus(), config,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
-			new ExternalSyncModule(state, null, new net.runelite.client.eventbus.EventBus(), config, null, new com.google.gson.Gson()),
+			new ExternalSyncModule(null, new net.runelite.client.eventbus.EventBus(), config, null),
 			new DashboardModule(),
 			new DeathRecoveryModule(state, null, config, null),
 			new com.ironhub.modules.loadoutlab.LoadoutLabModule(

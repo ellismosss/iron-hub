@@ -34,7 +34,6 @@ Iron Hub makes **no external HTTP requests** unless you explicitly enable a togg
 | OSRS Wiki DPS calculator | `dpsCalcExport` | on (user-initiated only) | Only when you click **DPS calc** on the Loadout tab: your skill levels, the shown loadout's item ids and (when planning against an NPC) the target's id are POSTed to `tools.runescape.wiki/osrs-dps/shortlink` to create a share link, which opens in your browser. |
 | OSRS Wiki gear strategies | — | user-initiated only | Only when you click **Wiki gear** on the Loadout tab: the strategy/slayer-task page for your detected task or target is fetched (read-only) from `oldschool.runescape.wiki` and parsed for its recommended-equipment tables. Nothing about your account is sent — the request contains only the page name. |
 | Wise Old Man / TempleOSRS | `womSync` | **off** | On logout (rate-limited): your display name only, sent as an update ping to `api.wiseoldman.net` and `templeosrs.com` so your trackers refresh. |
-| Discord webhook | `discordWebhookUrl` | **off** (empty) | Level milestones (multiples of 10, and 99) and completed goals are posted as plain text to the webhook URL you provide. |
 
 The Shortest Path integration uses RuneLite's local `PluginMessage` event bus only — no network, no plugin dependency; Path buttons are inert if Shortest Path isn't installed.
 

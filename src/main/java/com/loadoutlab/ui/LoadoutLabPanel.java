@@ -88,7 +88,6 @@ import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.util.AsyncBufferedImage;
-import net.runelite.client.util.LinkBrowser;
 import net.runelite.client.util.ImageUtil;
 
 /**
@@ -255,8 +254,6 @@ public class LoadoutLabPanel extends PluginPanel
 	private static final int SEARCH_DEBOUNCE_MS = 150;
 	private static final int SEARCH_LIMIT = 25;
 	private static final int ICON_SIZE = 32;
-	/** Discord invite for the plugin's community; opened from the header. */
-	private static final String DISCORD_URL = "https://discord.gg/6GuS6J8em3";
 	/** Grid display order: weapon beside shield, body beside legs. */
 	private static final GearSlot[] GRID_ORDER = {
 		GearSlot.HEAD, GearSlot.CAPE, GearSlot.NECK, GearSlot.AMMO,
@@ -488,9 +485,8 @@ public class LoadoutLabPanel extends PluginPanel
 			menu.add(addStored);
 			// Mob-specific actions live on the style cards and the
 			// "This mob" line - the header menu stays plugin-wide.
-			JMenuItem joinDiscord = new JMenuItem("Join our Discord");
-			joinDiscord.addActionListener(ev -> LinkBrowser.browse(DISCORD_URL));
-			menu.add(joinDiscord);
+			// (Upstream's "Join our Discord" entry removed — Iron Hub ships
+			// no Discord features; Luke, 2026-08-03.)
 			menu.show(optionsButton, 0, optionsButton.getHeight());
 		});
 		header.add(optionsButton, BorderLayout.EAST);

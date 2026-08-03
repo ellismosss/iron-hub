@@ -1732,12 +1732,11 @@ class GoalsHubTab extends JPanel
 		if ("merge".equals(s.kind))
 		{
 			// a merge is presentation only — both goals already route as one;
-			// pin them together so they read as a combined route. Accepting
-			// retires the offer (it can't become "achieved" like an effect).
-			for (String id : s.mergeGoalIds)
-			{
-				state.setGoalPinned(id, true);
-			}
+			// pin them TOGETHER so they read as a combined route (bulk pin:
+			// per-goal setGoalPinned enforces the single-pin rule and each
+			// call wiped the previous, leaving only the last goal pinned).
+			// Accepting retires the offer (it can't become "achieved").
+			state.setGoalsPinned(s.mergeGoalIds);
 			state.dismissSuggestion(s.key());
 			return;
 		}
@@ -1834,12 +1833,14 @@ class GoalsHubTab extends JPanel
 			OsrsSkin.FAINT, OsrsSkin.smallFont()));
 		block.add(top);
 
-		if (r.completedAt != 0 && (r.estimatedHours > 0 || r.hoursAtCompletion > 0))
+		// no "took Xh": hoursAtCompletion snapshots the plan's REMAINING
+		// hours (the completed goal already excluded) — not what this goal
+		// took. Recorded but never rendered (Luke, 2026-08-03).
+		if (r.completedAt != 0 && r.estimatedHours > 0)
 		{
-			String est = r.estimatedHours > 0 ? "est " + compactHours(r.estimatedHours) : "est —";
 			JPanel line = row();
 			line.add(Box.createHorizontalStrut(UiTokens.STATUS_GLYPH_SIZE + UiTokens.PAD_TIGHT));
-			line.add(new OsrsLabel(est + " · took " + compactHours(r.hoursAtCompletion),
+			line.add(new OsrsLabel("est " + compactHours(r.estimatedHours),
 				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
 			line.add(Box.createHorizontalGlue());
 			block.add(line);

@@ -1143,47 +1143,6 @@ public class LoadoutLabModule implements IronHubModule
 		return stylesPack.option(weaponType, state.getVarp(VarPlayer.ATTACK_STYLE));
 	}
 
-	/** The attack-type icon beside the combat line (wiki's own set), or null. */
-	private javax.swing.Icon combatIcon()
-	{
-		String type = null;
-		if (state.getVarbit(AUTOCAST_SPELL) > 0)
-		{
-			type = "magic";
-		}
-		else
-		{
-			com.ironhub.data.WeaponStylesPack.Option option = styleOption();
-			if (option != null && option.type != null)
-			{
-				type = option.type.toLowerCase(Locale.ROOT);
-			}
-		}
-		if (type == null)
-		{
-			return null;
-		}
-		java.awt.image.BufferedImage img =
-			com.ironhub.ui.osrs.OsrsIcons.image(theme, "styles/" + type);
-		return img == null ? null
-			: new javax.swing.ImageIcon(img.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH));
-	}
-
-	private String combatTooltip()
-	{
-		int spell = state.getVarbit(AUTOCAST_SPELL);
-		if (spell > 0)
-		{
-			return spellName != null && !spellName.isEmpty()
-				? "The spell set to autocast"
-				: "The game's autocast spell number — its name is not in the cache yet";
-		}
-		return styleOption() != null
-			? "The selected combat style: attack type, style and the button's own name"
-			: "The selected combat style slot; this weapon type's style names"
-				+ " could not be verified against the game cache";
-	}
-
 	/**
 	 * Client-thread, change-guarded: verify the weapon type's pack row
 	 * against the cache's style-kind signature (the AttackStylesPlugin

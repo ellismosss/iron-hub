@@ -208,6 +208,4 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "freezeWatchdog", name = "Freeze detector", description = "Log a stack dump when the client UI stalls, so freezes can be diagnosed (development aid, negligible cost)", section = modulesSection, position = 28)
 	default boolean freezeWatchdog() { return true; }
 
-	@ConfigItem(keyName = "discordWebhookUrl", name = "Discord webhook URL", description = "Opt-in: level milestone notifications (every 10 levels, and 99)", section = integrationsSection, position = 5)
-	default String discordWebhookUrl() { return ""; }
 }
