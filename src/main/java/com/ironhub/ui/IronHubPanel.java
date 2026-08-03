@@ -92,7 +92,8 @@ public class IronHubPanel extends PluginPanel
 	private static final Map<String, List<String>> BLOCKS = Map.of(
 		"Goals", List.of("Goals"),
 		"Gear & Combat", List.of("Gear & Combat", "Slayer", "Loot & supplies"),
-		"Dailies", List.of("Dailies", "Farm runs", "Hunters' Rumours", "Port tasks"),
+		// Farm runs leads the block (D1, Luke 2026-08-03)
+		"Dailies", List.of("Farm runs", "Dailies", "Hunters' Rumours", "Port tasks"),
 		"Progression", List.of("Collection log", "Combat achievements", "Gear",
 			"House", "Boats", "Achievement diaries", "Quests", "Clues & STASH",
 			"QoL checklist"),

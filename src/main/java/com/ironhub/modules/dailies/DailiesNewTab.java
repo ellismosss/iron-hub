@@ -347,6 +347,8 @@ class DailiesNewTab extends JPanel
 				null, TILE, null);
 			tile.status(module.selected(daily) ? tileStatus(current)
 				: V2Tile.Status.UNAVAILABLE);
+			// claimed = the done tick, not a ring (see tileStatus)
+			tile.owned(module.selected(daily) && current == DailyTracker.State.DONE);
 			tile.setToolTipText(daily.name);
 			strip.add(tile);
 		}
@@ -357,26 +359,25 @@ class DailiesNewTab extends JPanel
 	private static final int TILE = 30;
 
 	/**
-	 * The dailies scale in the DLV2 status vocabulary. It is the ATOM's
-	 * reading, not V1's: V1 painted a claimable daily green and a short one
-	 * orange, where DLV2 means DONE by green and ACTIONABLE NOW by orange
-	 * (Luke, 2026-07-26). So a claimed daily now reads green and a claimable
-	 * one orange — the same three colours, saying what they say everywhere
-	 * else in the system.
+	 * Luke's D2 ruling (2026-08-03, reversing the 2026-07-26 port reading):
+	 * an AVAILABLE daily wears the sanctioned green ring — green is the
+	 * go-signal, "you can do this now". A CLAIMED daily carries the
+	 * system's done-mark instead (the owned tick, set in tileStrip) with
+	 * no ring, so the two greens can never be confused: ring = can do,
+	 * tick = done today.
 	 */
 	private static V2Tile.Status tileStatus(DailyTracker.State current)
 	{
 		switch (current)
 		{
-			case DONE:
-				return V2Tile.Status.DONE;
 			case AVAILABLE:
-				return V2Tile.Status.READY;
+				return V2Tile.Status.DONE; // the sanctioned green ring
 			case SHORT:
 			case LOCKED:
 				return V2Tile.Status.UNAVAILABLE;
+			case DONE:
 			default:
-				return V2Tile.Status.PLAIN;
+				return V2Tile.Status.PLAIN; // claimed: the tick says it
 		}
 	}
 

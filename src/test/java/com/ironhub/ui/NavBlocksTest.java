@@ -73,16 +73,21 @@ public class NavBlocksTest
 		assertEquals("Dailies", home.selectedBlock());
 
 		// exclusive sections (Luke, 2026-07-17): the first module opens by
-		// default; expanding another collapses it — never both at once
-		JComponent dailiesTab = dailiesNew.buildTab();
-		assertTrue("first module's tab must open by default",
-			javax.swing.SwingUtilities.isDescendingFrom(dailiesTab, panel));
-		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Dailies", "Farm runs"));
+		// default; expanding another collapses it — never both at once.
+		// Farm runs LEADS the block since D1 (Luke, 2026-08-03), so it is
+		// the default-open module now — this assertion is the ordering pin.
 		JComponent farmingTab = farming.buildTab();
-		assertTrue("expanded module's tab not in the panel",
+		assertTrue("Farm runs must lead the Dailies block and open by default (D1)",
 			javax.swing.SwingUtilities.isDescendingFrom(farmingTab, panel));
+		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Dailies", "Dailies"));
+		JComponent dailiesTab = dailiesNew.buildTab();
+		assertTrue("expanded module's tab not in the panel",
+			javax.swing.SwingUtilities.isDescendingFrom(dailiesTab, panel));
 		assertTrue("collapsing must unmount the other module's tab",
-			!javax.swing.SwingUtilities.isDescendingFrom(dailiesTab, panel));
+			!javax.swing.SwingUtilities.isDescendingFrom(farmingTab, panel));
+		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Dailies", "Farm runs"));
+		assertTrue("re-expanding Farm runs must remount its tab",
+			javax.swing.SwingUtilities.isDescendingFrom(farmingTab, panel));
 		Container hubHost = farmingTab.getParent();
 
 		// a theme swap rebuilds the home and drops every cached hub page: the
