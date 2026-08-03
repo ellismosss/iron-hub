@@ -400,6 +400,21 @@ public class AccountStateTest
 		assertEquals(2 * 25_000L, main.lootValueFor("Zulrah"));
 	}
 
+	/** R6 (2026-08-03): Slaughter extends, Expeditious shortens — the state
+	 *  toggle enforces one-at-a-time, so every UI stays honest. */
+	@Test
+	public void slayerBraceletsAreMutuallyExclusive()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 1L);
+		state.toggleSlayerBracelet("Bloodvelds", "slaughter");
+		assertEquals(java.util.List.of("slaughter"), state.getSlayerBracelets("Bloodvelds"));
+		state.toggleSlayerBracelet("Bloodvelds", "expeditious");
+		assertEquals(java.util.List.of("expeditious"), state.getSlayerBracelets("Bloodvelds"));
+		state.toggleSlayerBracelet("Bloodvelds", "expeditious");
+		assertTrue(state.getSlayerBracelets("Bloodvelds").isEmpty());
+	}
+
 	@Test
 	public void legacyGoalMigrationPersistsTheFullyRestoredProfile()
 	{

@@ -287,6 +287,61 @@ public class LoadoutLabModuleTest
 		});
 	}
 
+	/** R4 (2026-08-03): the bank mirror follows what the VIEWER shows — the
+	 *  task setup in Slayer view, the viewed setup when one is up, and a
+	 *  live capture in Current — never a stale calc result. */
+	@Test
+	public void bankMirrorFollowsTheViewedView() throws Exception
+	{
+		AccountState state = liveState();
+		state.setSlayerTask("Bloodvelds");
+		PersistedState.SavedSetup taskSetup = new PersistedState.SavedSetup();
+		taskSetup.equipment.put("WEAPON", 4151);
+		state.saveSetup("Bloodvelds", taskSetup);
+		PersistedState.SavedSetup other = new PersistedState.SavedSetup();
+		other.equipment.put("WEAPON", 12926);
+		state.saveSetup("Zulrah", other);
+
+		LoadoutLabModule module = newModule(state);
+		module.buildTab();
+		javax.swing.SwingUtilities.invokeAndWait(() ->
+		{
+			// Current view: a live capture of what is worn/carried
+			module.setViewSourceForTest(0);
+			assertEquals((Integer) 12926,
+				module.displayedSetupForTest().equipment.get("WEAPON"));
+			// Slayer view: the task's setup
+			module.setViewSourceForTest(1);
+			assertEquals((Integer) 4151,
+				module.displayedSetupForTest().equipment.get("WEAPON"));
+			// an explicitly viewed setup wins over the source chips
+			module.viewSetupForTest("Zulrah");
+			assertEquals((Integer) 12926,
+				module.displayedSetupForTest().equipment.get("WEAPON"));
+		});
+	}
+
+	/** R5 (2026-08-03): one setup name per monster whatever the view —
+	 *  the NPC's singular and the task's plural unify on the plural; a
+	 *  name with no sibling passes through untouched. */
+	@Test
+	public void setupNamesUnifyOnThePluralTaskForm() throws Exception
+	{
+		AccountState state = liveState();
+		state.setSlayerTask("Bloodvelds");
+		LoadoutLabModule module = newModule(state);
+		assertEquals("Bloodvelds", module.canonicalSetupName("Bloodveld"));
+		assertEquals("Bloodvelds", module.canonicalSetupName("blood veld"));
+		assertEquals("Bloodvelds", module.canonicalSetupName("Bloodvelds"));
+		// an existing setup's name is the family's canonical form too
+		PersistedState.SavedSetup setup = new PersistedState.SavedSetup();
+		setup.equipment.put("WEAPON", 4151);
+		state.saveSetup("Jellies", setup);
+		assertEquals("Jellies", module.canonicalSetupName("Jelly"));
+		// no sibling: never blindly pluralised
+		assertEquals("Kalphite Queen", module.canonicalSetupName("Kalphite Queen"));
+	}
+
 	@Test
 	public void equipmentRendersInOsrsLayoutOrder()
 	{

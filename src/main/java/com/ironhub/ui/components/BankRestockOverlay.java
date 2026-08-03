@@ -10,11 +10,9 @@ import net.runelite.client.ui.overlay.WidgetItemOverlay;
 
 /**
  * Green-glows the items a run's saved setup still needs, in the BANK only
- * (same colours as Loadout Lab's BankHighlightOverlay, which also glows the
- * inventory — right for its gear sets, wrong for a restock aid: once the
- * item is withdrawn the glow's job is done, and an inventory glow outlives
- * the bank interface). The id set is pre-expanded with variants; empty
- * means off.
+ * (an inventory glow would outlive the bank interface: once the item is
+ * withdrawn the glow's job is done). The id set is pre-expanded with
+ * variants; empty means off.
  */
 public class BankRestockOverlay extends WidgetItemOverlay
 {

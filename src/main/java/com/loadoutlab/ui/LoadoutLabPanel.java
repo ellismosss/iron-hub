@@ -239,18 +239,6 @@ public class LoadoutLabPanel extends PluginPanel
 		boolean owns(int itemId);
 	}
 
-	/** "Show in bank": set the highlighted item ids (null clears). */
-	public interface BankHighlighter
-	{
-		void highlight(Set<Integer> itemIds);
-	}
-
-	/** "Filter bank": show only these item ids in the bank (null clears). */
-	public interface BankFilter
-	{
-		void filter(Set<Integer> itemIds);
-	}
-
 	private static final int SEARCH_DEBOUNCE_MS = 150;
 	private static final int SEARCH_LIMIT = 25;
 	private static final int ICON_SIZE = 32;
@@ -343,12 +331,6 @@ public class LoadoutLabPanel extends PluginPanel
 	 * (collapsed when a standard deviation under the best set's dps). */
 	private final Map<CombatStyle, Boolean> cardCollapsed = new EnumMap<>(CombatStyle.class);
 	private final Map<CombatStyle, Boolean> autoCollapsed = new EnumMap<>(CombatStyle.class);
-	private final BankHighlighter bankHighlighter;
-	private final BankFilter bankFilter;
-	/** Which style's set is filtering the bank (null = none). */
-	/** Which style's set is currently glowing in the bank (null = none). */
-	/** Outline + filter the bank to the selected style's best set. */
-	private final ToggleRow showInBank = new ToggleRow("Show in bank");
 	/**
 	 * The monster-option check rows ride one DLV2 Checklist (Luke,
 	 * 2026-07-25). It is the atom for exactly this — checkable rows in a well,
@@ -432,11 +414,8 @@ public class LoadoutLabPanel extends PluginPanel
 		DreamToggle dreamToggle, DreamView dreamView,
 		StoredToggle storedToggle, StoredView storedView, DwmsView dwmsView,
 		LocationHint locationHint, MobProfile mobProfile, ItemSearch itemSearch,
-		OwnedCheck ownedCheck,
-		BankHighlighter bankHighlighter, BankFilter bankFilter)
+		OwnedCheck ownedCheck)
 	{
-		this.bankHighlighter = bankHighlighter;
-		this.bankFilter = bankFilter;
 		this.data = data;
 		this.itemManager = itemManager;
 		this.spriteManager = spriteManager;
@@ -822,18 +801,13 @@ public class LoadoutLabPanel extends PluginPanel
 		bottomControls.add(Box.createVerticalStrut(2));
 		bottomControls.add(centeredRow(spellRow, 3 * 36 + 4, 36));
 		bottomControls.add(Box.createVerticalStrut(6));
-		// Show-in-bank is a CHECKBOX that both outlines AND filters the bank
-		// (the separate Filter-bank button is gone — filtered is the default;
-		// Luke, round 5), with the wiki-calc link beside it
-		initToggle(showInBank, "While the bank is open: outline this set's items"
-			+ " and filter the bank to them (needs Bank Tags enabled)");
-		showInBank.setSelected(true); // defaults ON, always (GC6, 2026-08-03)
-		showInBank.onToggle(this::applyShowInBank);
-		JPanel bankOpenRow = new JPanel(new GridLayout(1, 2, 4, 0));
+		// Show-in-bank moved up to the module's view area (R4, 2026-08-03):
+		// the bank mirrors whatever view is showing, not just calc results.
+		// Only the wiki-calc link remains down here.
+		JPanel bankOpenRow = new JPanel(new GridLayout(1, 1, 4, 0));
 		bankOpenRow.setOpaque(false);
 		bankOpenRow.setAlignmentX(LEFT_ALIGNMENT);
 		bankOpenRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
-		bankOpenRow.add(showInBank);
 		bankOpenRow.add(openDpsCalcButton());
 		bottomControls.add(bankOpenRow);
 		bottomControls.add(Box.createVerticalStrut(4));
@@ -1341,7 +1315,6 @@ public class LoadoutLabPanel extends PluginPanel
 		wildyInfo.setVisible(wilderness);
 		updateWildernessControls();
 		superAntifireAssumed = false; // each monster starts on gear protection
-		applyShowInBank(); // no results yet for this monster: aids clear
 		// The slayer toggle has three states by monster: task-only bosses
 		// (Hydra, Araxxor, Sire...) force it ON - you cannot fight them
 		// off-task; unassignable monsters (raid bosses) force it OFF; and
@@ -2468,8 +2441,6 @@ public class LoadoutLabPanel extends PluginPanel
 	/** Account or profile switched: nothing on screen may survive. */
 	public void resetForIdentityChange()
 	{
-		showInBank.setSelected(true); // the GC6 default, not off
-		applyShowInBank();
 		lastResults = null;
 		clearSelection();
 		refreshExclusionsLabel();
@@ -2529,9 +2500,6 @@ public class LoadoutLabPanel extends PluginPanel
 		{
 			detailStyle = bestStyle(results);
 		}
-		// the bank aids follow fresh results and style switches while the
-		// Show-in-bank checkbox is on (Luke, round 5)
-		applyShowInBank();
 		if (resultsListener != null)
 		{
 			resultsListener.onResults(monster, results);
@@ -3324,48 +3292,6 @@ public class LoadoutLabPanel extends PluginPanel
 		});
 		open.setToolTipText("Open the wiki DPS calculator with this monster and setup mirrored");
 		return open;
-	}
-
-	/**
-	 * The Show-in-bank checkbox applies BOTH the outline and the filter for
-	 * the selected style's best set (filtered is the default — the separate
-	 * button is gone; Luke, round 5). Re-applied on new results and style
-	 * switches; unchecked or cleared = both off.
-	 */
-	private void applyShowInBank()
-	{
-		StyleResult detail = lastResults == null || selectedMonster == null
-			? null : lastResults.get(detailStyle);
-		if (!showInBank.isSelected() || detail == null
-			|| detail.owned == null || detail.owned.isEmpty())
-		{
-			bankHighlighter.highlight(null);
-			bankFilter.filter(null);
-			return;
-		}
-		DpsResult best = detail.owned.get(0);
-		Set<Integer> ids = new java.util.HashSet<>();
-		for (GearItem item : best.getLoadout().getGear().values())
-		{
-			if (item != null)
-			{
-				ids.add(item.getId());
-			}
-		}
-		GearItem dart = loadedDart(best);
-		if (dart != null)
-		{
-			ids.add(dart.getId());
-		}
-		if (detail.specWeapon != null)
-		{
-			ids.add(detail.specWeapon.getId());
-		}
-		// trip supplies (food, antidotes...) join the filtered view
-		Set<Integer> filterIds = new java.util.HashSet<>(ids);
-		filterIds.addAll(mobProfile.filterItems(currentMonsterId(), detailStyle));
-		bankHighlighter.highlight(filterIds);
-		bankFilter.filter(filterIds);
 	}
 
 	/** A left-aligned, height-capped flow row added to the card. */

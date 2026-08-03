@@ -270,27 +270,8 @@ class SlayerTab extends JPanel
 			}
 			addSlab(bring);
 		}
-		// bracelet reminders (S4): persisted per task through the normal
-		// PersistedState/AccountState seam; latching chips, and the overlay's
-		// Bring line picks the reminder up when the bracelet isn't carried
-		java.util.List<String> bracelets = state.getSlayerBracelets(entry.name);
-		JPanel braceletRow = row(2);
-		JComponent slaughter = V2ChipRow.toggle(theme, "Slaughter", null,
-			OsrsSkin.smallFont(), bracelets.contains("slaughter"), false,
-			on -> state.toggleSlayerBracelet(entry.name, "slaughter"));
-		slaughter.setToolTipText("Bring a Bracelet of slaughter for this task"
-			+ " — a lit chip is a persisted reminder");
-		braceletRow.add(slaughter);
-		braceletRow.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		JComponent expeditious = V2ChipRow.toggle(theme, "Expeditious", null,
-			OsrsSkin.smallFont(), bracelets.contains("expeditious"), false,
-			on -> state.toggleSlayerBracelet(entry.name, "expeditious"));
-		expeditious.setToolTipText("Bring an Expeditious bracelet for this task"
-			+ " — a lit chip is a persisted reminder");
-		braceletRow.add(expeditious);
-		braceletRow.add(Box.createHorizontalGlue());
-		cap(braceletRow);
-		content.add(braceletRow);
+		// the bracelet reminder chips moved to Gear & Combat's Slayer view
+		// (Luke, live-test round) — that is where task gear gets planned
 
 		if (entry.finisher != null)
 		{

@@ -1513,6 +1513,9 @@ public class AccountState implements StateView
 		java.util.List<String> next = new java.util.ArrayList<>(getSlayerBracelets(task));
 		if (!next.remove(bracelet))
 		{
+			// mutually exclusive (Luke, live-test round): Slaughter EXTENDS a
+			// task, Expeditious shortens it — both at once makes no sense
+			next.clear();
 			next.add(bracelet);
 		}
 		if (next.isEmpty())

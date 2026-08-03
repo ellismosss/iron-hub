@@ -147,6 +147,9 @@ public class LoadoutLabModule implements IronHubModule
 	/** Viewing state: a named setup diffed vs current, an unsaved edited
 	 *  draft (wins over the name), or — both null — the live view. */
 	private volatile String viewedSetup;
+	/** R4: the bank mirrors the viewed view. Defaults ON every session
+	 *  (the GC6 ruling), deliberately not persisted. */
+	private volatile boolean showInBank = true;
 	// volatile: the EDT edits the draft; onScriptPreFired's bank-collect
 	// reads it from the client thread
 	private volatile PersistedState.SavedSetup draft;
@@ -375,8 +378,9 @@ public class LoadoutLabModule implements IronHubModule
 		setupView.setBorder(new EmptyBorder(UiTokens.PAD_TIGHT, 0, 0, 0));
 		section.add(setupView);
 
+		// the slot-search panel mounts INSIDE setupView on each render — under
+		// the gear tiles, above the Save/View buttons (Luke, live-test round)
 		buildSearchPanel();
-		section.add(searchPanel);
 		return section;
 	}
 
@@ -446,6 +450,29 @@ public class LoadoutLabModule implements IronHubModule
 			return draft;
 		}
 		return viewedSetup != null ? state.savedSetup(viewedSetup) : null;
+	}
+
+	/**
+	 * What the viewer is showing RIGHT NOW — the same resolution renderView
+	 * makes: the calc's suggestion in Recommended, the task setup in Slayer,
+	 * your carried gear in Current, the viewed/draft setup otherwise. The
+	 * bank mirror (R4, 2026-08-03) follows this, never a stale calc result.
+	 */
+	private PersistedState.SavedSetup displayedSetup()
+	{
+		if (!isLive())
+		{
+			return viewedOrDraft();
+		}
+		if (viewSource == ViewSource.DPS && suggestionSetup(dpsStyle) != null)
+		{
+			return suggestionSetup(dpsStyle);
+		}
+		if (viewSource == ViewSource.SLAYER && slayerSetup() != null)
+		{
+			return slayerSetup();
+		}
+		return liveSetup();
 	}
 
 	/** The current slayer task's saved setup — the shared Loadout key space
@@ -605,6 +632,10 @@ public class LoadoutLabModule implements IronHubModule
 			: dpsMonster != null ? dpsMonster.getName()
 			: viewedSetup != null ? viewedSetup
 			: activity().isEmpty() ? "My setup" : activity();
+		// ONE name per monster whatever the view (Luke, live-test round):
+		// "Bloodveld" (the NPC) and "Bloodvelds" (the task) must not double
+		// up as two setups — the plural/task form is canonical
+		suggested = canonicalSetupName(suggested);
 		String name = (String) javax.swing.JOptionPane.showInputDialog(holder,
 			"Setup name:", "Save setup", javax.swing.JOptionPane.PLAIN_MESSAGE,
 			null, null, suggested);
@@ -612,7 +643,7 @@ public class LoadoutLabModule implements IronHubModule
 		{
 			return;
 		}
-		name = name.trim();
+		name = canonicalSetupName(name.trim());
 		PersistedState.SavedSetup source = dps ? suggestionSetup(dpsStyle) : viewedOrDraft();
 		if (source != null)
 		{
@@ -627,6 +658,57 @@ public class LoadoutLabModule implements IronHubModule
 		{
 			captureSetup(name);
 		}
+	}
+
+	/**
+	 * The canonical saved-setup name for a monster: if the slayer task or
+	 * an existing setup names the SAME monster give-or-take a plural "s"
+	 * (and spacing/case — "blood veld" vs "Bloodvelds"), use that name,
+	 * preferring the plural. Otherwise the name passes through untouched —
+	 * nothing is ever blindly pluralised.
+	 */
+	String canonicalSetupName(String raw)
+	{
+		String task = state.getSlayerTask();
+		if (samePluralFamily(raw, task))
+		{
+			return preferPlural(raw, task);
+		}
+		for (String existing : state.savedSetupNames())
+		{
+			if (samePluralFamily(raw, existing))
+			{
+				return preferPlural(raw, existing);
+			}
+		}
+		return raw;
+	}
+
+	private static boolean samePluralFamily(String a, String b)
+	{
+		return a != null && b != null && !a.isEmpty() && !b.isEmpty()
+			&& stem(a).equals(stem(b));
+	}
+
+	/** Lowercased letters only, plural endings folded ("-ies" -> "-y",
+	 *  trailing "s" dropped) — Bloodvelds/Bloodveld, Jellies/Jelly. */
+	private static String stem(String name)
+	{
+		String letters = name.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z]", "");
+		if (letters.endsWith("ies"))
+		{
+			return letters.substring(0, letters.length() - 3) + "y";
+		}
+		return letters.endsWith("s") ? letters.substring(0, letters.length() - 1) : letters;
+	}
+
+	private static String preferPlural(String a, String b)
+	{
+		if (a.toLowerCase(java.util.Locale.ROOT).endsWith("s"))
+		{
+			return a;
+		}
+		return b.toLowerCase(java.util.Locale.ROOT).endsWith("s") ? b : a;
 	}
 
 	private void captureSetup(String key)
@@ -782,6 +864,7 @@ public class LoadoutLabModule implements IronHubModule
 			dpsStyle,
 			System.identityHashCode(dpsResults),
 			state.getSlayerTask(),
+			state.getSlayerBracelets(state.getSlayerTask()), // mutual exclusion re-lights chips
 			System.identityHashCode(slayerSetup()),
 			wikiGearCollapsed,
 			wikiStyleIndex,
@@ -916,6 +999,7 @@ public class LoadoutLabModule implements IronHubModule
 					: i == 1 ? ViewSource.SLAYER : ViewSource.LIVE;
 				lastViewFp = 0;
 				renderView();
+				applyBankView(); // the bank mirror follows the view (R4)
 			});
 			if (!hasMonster)
 			{
@@ -939,6 +1023,38 @@ public class LoadoutLabModule implements IronHubModule
 						: "No setup saved for this task — save one from the Slayer module",
 					195, com.ironhub.ui.osrs.OsrsSkin.FAINT,
 					com.ironhub.ui.osrs.OsrsSkin.font()).leftAligned());
+				setupView.add(Box.createVerticalStrut(2));
+			}
+			if (viewSource == ViewSource.SLAYER && !state.getSlayerTask().isEmpty())
+			{
+				// bracelet reminders live where task gear is planned (moved
+				// from the Slayer tab; Luke, live-test round). Mutually
+				// exclusive — the state toggle enforces it
+				String task = state.getSlayerTask();
+				java.util.List<String> bracelets = state.getSlayerBracelets(task);
+				JPanel braceletRow = new JPanel();
+				braceletRow.setLayout(new BoxLayout(braceletRow, BoxLayout.X_AXIS));
+				braceletRow.setOpaque(false);
+				braceletRow.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+				JComponent slaughter = com.ironhub.ui.v2.V2ChipRow.toggle(theme,
+					"Slaughter", null, com.ironhub.ui.osrs.OsrsSkin.smallFont(),
+					bracelets.contains("slaughter"), false,
+					on -> state.toggleSlayerBracelet(task, "slaughter"));
+				slaughter.setToolTipText("Bring a Bracelet of slaughter — EXTENDS"
+					+ " the task. A lit chip is a persisted reminder");
+				braceletRow.add(slaughter);
+				braceletRow.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+				JComponent expeditious = com.ironhub.ui.v2.V2ChipRow.toggle(theme,
+					"Expeditious", null, com.ironhub.ui.osrs.OsrsSkin.smallFont(),
+					bracelets.contains("expeditious"), false,
+					on -> state.toggleSlayerBracelet(task, "expeditious"));
+				expeditious.setToolTipText("Bring an Expeditious bracelet —"
+					+ " SHORTENS the task. A lit chip is a persisted reminder");
+				braceletRow.add(expeditious);
+				braceletRow.add(Box.createHorizontalGlue());
+				braceletRow.setMaximumSize(new Dimension(Integer.MAX_VALUE,
+					braceletRow.getPreferredSize().height));
+				setupView.add(braceletRow);
 				setupView.add(Box.createVerticalStrut(2));
 			}
 		}
@@ -976,10 +1092,30 @@ public class LoadoutLabModule implements IronHubModule
 			thinkingWrap.getPreferredSize().height));
 		setupView.add(thinkingWrap);
 
+		// the slot search opens right under the tiles it edits, above the
+		// Save/View buttons (Luke, live-test round)
+		setupView.add(searchPanel);
+
 		// setup controls under the viewer; the style buttons moved into the
 		// calc's Options section (Luke, round 4)
 		setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		setupView.add(buttonsRow);
+
+		// Show-in-bank rides EVERY view (R4) — the bank rearranges to the
+		// exact gear+inventory shown above whenever it opens
+		com.ironhub.ui.v2.V2Checkbox bankBox = new com.ironhub.ui.v2.V2Checkbox(
+			theme, "Show in bank", showInBank, () ->
+		{
+			showInBank = !showInBank;
+			lastViewFp = 0;
+			renderView();
+			applyBankView();
+		});
+		bankBox.setToolTipText("While checked, opening the bank filters and"
+			+ " arranges it to the setup shown above");
+		bankBox.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+		setupView.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
+		setupView.add(bankBox);
 		if (lab.getPanel() != null)
 		{
 			javax.swing.JPanel slot = lab.getPanel().styleButtonsSlot();
@@ -1335,16 +1471,17 @@ public class LoadoutLabModule implements IronHubModule
 
 	// ── bank collect for the viewed setup ─────────────────────────────
 
-	/** Apply/clear the collected bank view for the current viewing state
-	 *  (live = clear). Safe with the bank closed — the tag opens on the
-	 *  bank's next build via onScriptPreFired. */
+	/** Apply/clear the collected bank view for whatever the viewer shows
+	 *  (R4: Current, Slayer, Recommended, or a viewed setup) — or clear
+	 *  when Show-in-bank is off. Safe with the bank closed — the tag opens
+	 *  on the bank's next build via onScriptPreFired. */
 	private void applyBankView()
 	{
 		if (clientThread == null)
 		{
 			return;
 		}
-		PersistedState.SavedSetup shown = viewedOrDraft();
+		PersistedState.SavedSetup shown = showInBank ? displayedSetup() : null;
 		clientThread.invoke(() ->
 		{
 			if (shown == null)
@@ -1360,13 +1497,13 @@ public class LoadoutLabModule implements IronHubModule
 		});
 	}
 
-	/** Bank building while a setup is viewed: collect what it still needs
-	 *  (recomputed — carried items change as the player withdraws). */
+	/** Bank building: mirror the viewed view, recomputed at open time (the
+	 *  Current view's live capture drifts as the player withdraws). */
 	@Subscribe
 	public void onScriptPreFired(net.runelite.api.events.ScriptPreFired event)
 	{
 		if (event.getScriptId() != net.runelite.api.ScriptID.BANKMAIN_INIT
-			|| viewedOrDraft() == null || clientThread == null)
+			|| !showInBank || clientThread == null)
 		{
 			return;
 		}
@@ -1374,7 +1511,7 @@ public class LoadoutLabModule implements IronHubModule
 		// extra relayout; the apply no-ops when our tag is already active
 		clientThread.invokeLater(() ->
 		{
-			PersistedState.SavedSetup shown = viewedOrDraft();
+			PersistedState.SavedSetup shown = displayedSetup();
 			if (shown != null)
 			{
 				bankLayout.apply("gear", shown);
@@ -1817,6 +1954,7 @@ public class LoadoutLabModule implements IronHubModule
 					// — the green Recommended-chip cue invites the switch
 					lastViewFp = 0;
 					renderView();
+					applyBankView(); // fresh results re-aim the bank mirror
 				}
 
 				@Override
@@ -2285,5 +2423,11 @@ public class LoadoutLabModule implements IronHubModule
 	void viewSetupForTest(String name)
 	{
 		viewSetup(name);
+	}
+
+	/** Test seam: what the bank mirror would show (R4). */
+	PersistedState.SavedSetup displayedSetupForTest()
+	{
+		return displayedSetup();
 	}
 }

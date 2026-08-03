@@ -129,9 +129,7 @@ public class LinkInTest
 				}
 			},
 			(prompt, onPicked) -> { },
-			itemId -> true,
-			ids -> { },
-			ids -> { });
+			itemId -> true);
 	}
 
 	@Test
