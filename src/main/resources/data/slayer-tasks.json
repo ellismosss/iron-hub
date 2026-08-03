@@ -7121,6 +7121,32 @@
    }
   },
   {
+   "name": "Venators",
+   "icon": 33661,
+   "targets": [
+    "venator"
+   ],
+   "stats": {
+    "level": 246,
+    "hp": 345,
+    "attackSpeed": 5,
+    "defStab": -5,
+    "defSlash": 20,
+    "defCrush": 90,
+    "defMagic": 100,
+    "slayerLevel": 74,
+    "slayerXp": 405,
+    "attackStyle": "Stab",
+    "maxHit": 21,
+    "attributes": [
+     "vampyre3"
+    ]
+   },
+   "reqs": [
+    "skill:Slayer:74"
+   ]
+  },
+  {
    "name": "Venenatis",
    "icon": 13177,
    "targets": [],
@@ -11380,6 +11406,16 @@
      "reqs": [
       "skill:Slayer:70",
       "combat:65"
+     ]
+    },
+    {
+     "task": "venators",
+     "weight": 10,
+     "amount": "120-180",
+     "reqs": [
+      "skill:Slayer:74",
+      "combat:60",
+      "quest:The Blood Moon Rises"
      ]
     },
     {

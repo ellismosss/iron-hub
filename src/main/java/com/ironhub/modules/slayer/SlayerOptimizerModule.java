@@ -103,7 +103,13 @@ public class SlayerOptimizerModule implements IronHubModule
 		8, new int[]{VarbitID.SLAYER_BLOCKED_KONAR_1, VarbitID.SLAYER_BLOCKED_KONAR_2,
 			VarbitID.SLAYER_BLOCKED_KONAR_3, VarbitID.SLAYER_BLOCKED_KONAR_4,
 			VarbitID.SLAYER_BLOCKED_KONAR_5, VarbitID.SLAYER_BLOCKED_KONAR_6,
-			VarbitID.SLAYER_BLOCKED_KONAR_DIARY});
+			VarbitID.SLAYER_BLOCKED_KONAR_DIARY},
+		// Mortimer's two 120-point slots. Raw ids because the pinned API
+		// predates him; the names are 1:1 gameval constants on RuneLite
+		// master (SLAYER_BLOCKED_MORTIMER_1/2, verified 2026-08-03). Keyed
+		// by his -1 focus sentinel — the pack's focusId, not a live
+		// SLAYER_MASTER value, routes the tab here.
+		-1, new int[]{15783, 15784});
 
 	private final AccountState state;
 	private final Client client;

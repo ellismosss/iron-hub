@@ -190,10 +190,15 @@ WIKI_ALIASES = {
     "warped creatures": "warped creatures",
     "spiritual creatures": "spiritual creatures",
     "sulphurous creatures": None,  # Konar-era row with no core task yet
-    # Mortimer assigns Venators directly (the only master who does); the
-    # pinned core Task catalog predates them, so live NPC matching would
-    # fail anyway — skipped until the client dependency knows them
-    "venators": None,
+}
+
+# Tasks the pinned core Task.java predates, curated here so their masters'
+# tables stay complete. Venators: Mortimer is the ONLY master assigning
+# them (wiki Slayer task/Venators, verified 2026-08-03); icon is the
+# Venator fang drop, target matching by name prefix like Task.java does.
+# Replace with the core entry once the pinned RuneLite tag knows them.
+SUPPLEMENTAL_TASKS = {
+    "venators": {"name": "Venators", "icon": 33661, "targets": ["venator"]},
 }
 
 
@@ -214,14 +219,16 @@ MASTERS = [
      False, ["Kuradel"]),
     ("Krystilia", "Krystilia", 7, (3109, 3514, 0), 25, None, True, []),
     # Mortimer (Wyrmscraig Cavern, released 2026-07-29): the highest-level
-    # master. Base points 0 — he awards points only via his "Mortifier"
-    # task modifiers; block slots cost 120 (he has 2), skips 100. His
-    # focus id and block varbits are NOT yet documented anywhere the
-    # generator can verify (the pinned RuneLite API predates him), so
-    # focusId is the -1 sentinel: never matches a SLAYER_MASTER read, and
-    # blockedTaskIds renders his live slots honestly empty. His quest
-    # gate (partial Fallen From Grace) is likewise unencodable until
-    # quests.json knows the quest — combat/slayer gates only.
+    # master. Base points 0 — VERIFIED (wiki Slayer reward point page,
+    # 2026-08-03): he awards points only when the "Slayer Points"
+    # Mortifier rolls (5-40 by monster), no streak-milestone multipliers;
+    # block slots cost 120 (he has 2, varbits 15783/15784 — wired in
+    # SlayerOptimizerModule), skips 100; tasks can't be Turael-skipped.
+    # His SLAYER_MASTER focus value is still undocumented (wiki varbit
+    # 4067 stops at Spria=9; RuneLite hardcodes only Krystilia), so
+    # focusId stays the -1 sentinel. His quest gate — partial Fallen
+    # From Grace in BOTH branches — is unencodable until quests.json
+    # knows the quest, so combat/slayer gates only.
     ("Mortimer", "Mortimer", -1, (2589, 8614, 0), 0,
      ["any:combat:100&skill:Slayer:70|skill:Slayer:99"], False, []),
 ]
@@ -916,6 +923,7 @@ def main():
 
     print("parsing core Task.java ...")
     core = core_tasks(item_ids)
+    core.update(SUPPLEMENTAL_TASKS)
     resolve = build_join(core)
 
     print("fetching Bucket monster stats ...")

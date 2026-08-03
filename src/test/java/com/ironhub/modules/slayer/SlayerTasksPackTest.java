@@ -102,7 +102,15 @@ public class SlayerTasksPackTest
 		SlayerTasksPack.Master mortimer = pack.masterByName("Mortimer");
 		assertEquals(-1, mortimer.focusId);
 		assertEquals(0, mortimer.points);
-		assertTrue("Mortimer needs an assignment pool", mortimer.tasks.size() >= 20);
+		// the full wiki table (R9, verified 2026-08-03): 29 rows including
+		// Venators — Mortimer is the only master who assigns them, and the
+		// task rides a curated supplemental entry until the pinned core
+		// Task.java knows it
+		assertEquals(29, mortimer.tasks.size());
+		assertTrue(mortimer.tasks.stream().anyMatch(t -> "venators".equals(t.task)));
+		SlayerTasksPack.Task venators = pack.task("venators");
+		assertEquals("Venators", venators.name);
+		assertTrue("venator icon", venators.icon > 0);
 	}
 
 	@Test
