@@ -38,17 +38,20 @@ class DeathTab extends JPanel
 	private final AccountState state;
 	private final ItemManager itemManager; // null in unit tests
 	private final ShortestPathBridge pathBridge;
+	private final com.ironhub.IronHubConfig config;
 	private final OsrsTheme theme;
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 
 	private final JPanel list = new JPanel();
 
-	DeathTab(AccountState state, ItemManager itemManager, ShortestPathBridge pathBridge, OsrsTheme theme)
+	DeathTab(AccountState state, ItemManager itemManager, ShortestPathBridge pathBridge,
+		com.ironhub.IronHubConfig config)
 	{
 		this.state = state;
 		this.itemManager = itemManager;
 		this.pathBridge = pathBridge;
-		this.theme = theme;
+		this.config = config;
+		this.theme = config.osrsTheme();
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
@@ -109,13 +112,37 @@ class DeathTab extends JPanel
 			OsrsSkin.MUTED, OsrsSkin.font());
 		header.add(where.leftAligned().squeezable());
 		header.add(Box.createHorizontalGlue());
-		// the chip ATOM — this row sits among detail lines, so DETAIL font
-		JComponent path = V2ChipRow.action(theme, "Path", null, null, OsrsSkin.smallFont(),
-			() -> pathBridge.pathTo(death.where));
-		path.setToolTipText("Shortest Path to this spot");
-		header.add(path);
+		// the chip ATOM — this row sits among detail lines, so DETAIL font.
+		// Gated like every other bridge consumer (DR2 2026-08-03): with the
+		// integration off there is no dead button, and with Shortest Path
+		// not installed the PluginMessage is simply unheard (hub rule).
+		if (config.shortestPathBridge())
+		{
+			JComponent route = V2ChipRow.action(theme, "Route", null, null,
+				OsrsSkin.smallFont(), () -> pathBridge.pathTo(death.where));
+			route.setToolTipText("Shortest Path to this grave");
+			header.add(route);
+		}
 		cap(header);
 		card.add(header);
+		// the estimated grave fee, honestly sourced (DR1 2026-08-03):
+		// unknown — legacy record, or a stack the bands don't specify — is "?"
+		JPanel fee = new JPanel();
+		fee.setLayout(new BoxLayout(fee, BoxLayout.X_AXIS));
+		fee.setOpaque(false);
+		fee.setAlignmentX(LEFT_ALIGNMENT);
+		OsrsLabel feeLabel = new OsrsLabel("Reclaim fee: "
+			+ (death.reclaimFeeGp < 0 ? "?"
+				: "~" + QuantityFormatter.quantityToStackSize(death.reclaimFeeGp) + " gp"),
+			OsrsSkin.MUTED, OsrsSkin.smallFont());
+		feeLabel.setToolTipText(death.reclaimFeeGp < 0
+			? "Unknown — recorded before fee tracking, or carrying a valuable stack the fee bands don't specify"
+			: "Estimated from the grave fee bands (free under 100k GE; 1k, 10k, 100k per item; "
+				+ "capped 500k; irons pay half), assuming the usual 3 items kept");
+		fee.add(feeLabel.leftAligned());
+		fee.add(Box.createHorizontalGlue());
+		cap(fee);
+		card.add(fee);
 		card.add(Box.createVerticalStrut(3));
 
 		List<Integer> ids = new ArrayList<>(death.carried.keySet());

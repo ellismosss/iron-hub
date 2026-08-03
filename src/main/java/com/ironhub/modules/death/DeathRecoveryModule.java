@@ -12,8 +12,9 @@ import net.runelite.client.game.ItemManager;
 
 /**
  * Death recovery (DESIGN.md §3.21): calm, factual history of recent
- * deaths — when, where (with a Path button to the spot), and what was
- * carried. Reclaim costs and grave timers arrive later.
+ * deaths — when, where (with a Route button to the spot via the Shortest
+ * Path bridge), the estimated grave reclaim fee (honest "?" when unknown),
+ * and what was carried. Grave timers arrive later.
  */
 @Slf4j
 @Singleton
@@ -67,7 +68,7 @@ public class DeathRecoveryModule implements IronHubModule
 	{
 		if (tab == null)
 		{
-			tab = new DeathTab(state, itemManager, pathBridge, config.osrsTheme());
+			tab = new DeathTab(state, itemManager, pathBridge, config);
 		}
 		return tab;
 	}

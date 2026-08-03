@@ -436,6 +436,11 @@ public class PersistedState
 		int y;
 		int plane;
 		Map<Integer, Integer> carried = new HashMap<>();
+		/** Estimated GRAVE reclaim fee in gp, computed at death time on the
+		 *  client thread (DR1 2026-08-03) — the wiki's per-item bands, iron
+		 *  discount and 500k cap. -1 = unknown: legacy records, headless, or
+		 *  a valuable stackable whose band basis the wiki doesn't specify. */
+		long reclaimFeeGp = -1;
 	}
 
 	/** A remembered activity setup: worn gear, inventory and rune pouch. */

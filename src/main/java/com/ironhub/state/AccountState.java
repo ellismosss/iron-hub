@@ -2395,6 +2395,7 @@ public class AccountState implements StateView
 		death.plane = where.getPlane();
 		inventory.forEach((id, qty) -> death.carried.merge(id, qty, Integer::sum));
 		equipment.forEach((id, qty) -> death.carried.merge(id, qty, Integer::sum));
+		death.reclaimFeeGp = reclaimFeeEstimate(death.carried);
 		deaths.add(death);
 		while (deaths.size() > MAX_DEATHS)
 		{
@@ -2404,13 +2405,79 @@ public class AccountState implements StateView
 		notifyListeners();
 	}
 
+	/** Price each carried item for the fee estimate — GE guide price (the
+	 *  game's own fee basis, NOT the ironman HA valuation) plus
+	 *  stackability, on the client thread. -1 when unpriceable. */
+	private long reclaimFeeEstimate(Map<Integer, Integer> carried)
+	{
+		if (itemManager == null)
+		{
+			return -1; // headless: unpriced, never a guess
+		}
+		java.util.List<long[]> items = new java.util.ArrayList<>();
+		for (Map.Entry<Integer, Integer> e : carried.entrySet())
+		{
+			net.runelite.api.ItemComposition comp = itemManager.getItemComposition(e.getKey());
+			items.add(new long[]{itemManager.getItemPrice(e.getKey()), e.getValue(),
+				comp != null && comp.isStackable() ? 1 : 0});
+		}
+		return graveFeeEstimate(items, isIronman());
+	}
+
+	/**
+	 * The GRAVE reclaim fee estimate (DR1 2026-08-03), from the wiki's
+	 * verified structure: per item, free under 100k GE, 1k to 1m, 10k to
+	 * 10m, 100k at 10m+; total capped at 500,000; ironmen pay half. The
+	 * estimate assumes the usual three kept items (highest unit value) and
+	 * no skull — the tooltip says so. Returns -1 — unknown, never a guess —
+	 * when a stackable stack could plausibly cross a band: the wiki does not
+	 * say whether bands read the unit or the stack value.
+	 */
+	public static long graveFeeEstimate(java.util.List<long[]> items, boolean ironman)
+	{
+		// items: {unitGePrice, qty, stackable(0/1)}
+		java.util.List<long[]> sorted = new java.util.ArrayList<>(items);
+		sorted.sort((a, b) -> Long.compare(b[0], a[0]));
+		int kept = 3;
+		long total = 0;
+		for (long[] item : sorted)
+		{
+			long unit = item[0];
+			long qty = item[1];
+			boolean stackable = item[2] != 0;
+			if (kept > 0 && !stackable)
+			{
+				long taken = Math.min(kept, qty);
+				kept -= taken;
+				qty -= taken;
+			}
+			if (qty <= 0)
+			{
+				continue;
+			}
+			if (stackable && qty > 1 && unit * qty >= 100_000)
+			{
+				return -1; // band basis for stacks is undocumented
+			}
+			long fee = unit < 100_000 ? 0
+				: unit < 1_000_000 ? 1_000
+				: unit < 10_000_000 ? 10_000 : 100_000;
+			total += fee * qty;
+		}
+		if (ironman)
+		{
+			total /= 2;
+		}
+		return Math.min(total, 500_000);
+	}
+
 	/** Recent deaths, oldest first (read-only views of persisted records). */
 	public java.util.List<Death> getDeaths()
 	{
 		return deaths.stream()
 			.map(d -> new Death(d.timeMs,
 				new net.runelite.api.coords.WorldPoint(d.x, d.y, d.plane),
-				java.util.Collections.unmodifiableMap(d.carried)))
+				java.util.Collections.unmodifiableMap(d.carried), d.reclaimFeeGp))
 			.collect(java.util.stream.Collectors.toList());
 	}
 
@@ -2420,12 +2487,16 @@ public class AccountState implements StateView
 		public final long timeMs;
 		public final net.runelite.api.coords.WorldPoint where;
 		public final Map<Integer, Integer> carried;
+		/** Estimated grave reclaim fee in gp; -1 = unknown ("?"). */
+		public final long reclaimFeeGp;
 
-		Death(long timeMs, net.runelite.api.coords.WorldPoint where, Map<Integer, Integer> carried)
+		Death(long timeMs, net.runelite.api.coords.WorldPoint where,
+			Map<Integer, Integer> carried, long reclaimFeeGp)
 		{
 			this.timeMs = timeMs;
 			this.where = where;
 			this.carried = carried;
+			this.reclaimFeeGp = reclaimFeeGp;
 		}
 	}
 
