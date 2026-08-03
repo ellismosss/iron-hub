@@ -119,6 +119,52 @@ public class WheresMyStuffModuleTest
 		module.shutDown();
 	}
 
+	/** A cast/shot moves a slot-storage amount varbit; committing per event
+	 *  persisted + broadcast per cast — a sustained replan/rebuild storm in
+	 *  combat. Quantity-only movement must coalesce onto the tick flush
+	 *  cadence instead. */
+	@Test
+	public void slotStorageQuantityChurnCoalescesOntoTheTickFlush()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 7L);
+		net.runelite.api.Client client =
+			org.mockito.Mockito.mock(net.runelite.api.Client.class);
+		// bolt pouch slot 0: type varbit 2473 -> array index 1 (Bronze
+		// bolts, 877); count varbit 2469
+		org.mockito.Mockito.when(client.getVarbitValue(2473)).thenReturn(1);
+		org.mockito.Mockito.when(client.getVarbitValue(2469)).thenReturn(100);
+		WheresMyStuffModule module = new WheresMyStuffModule(
+			state, config, new DataPack(new Gson()), new EventBus(), client, null);
+		module.startUp();
+		int[] notifies = {0};
+		state.addListener(() -> notifies[0]++);
+
+		net.runelite.api.events.VarbitChanged shot = new net.runelite.api.events.VarbitChanged();
+		shot.setVarbitId(2469);
+		shot.setValue(100);
+		module.onVarbitChanged(shot);
+		assertEquals("no commit before the tick drain", 0, notifies[0]);
+
+		module.onGameTick(null); // first sight of the item set -> flush
+		assertEquals(1, notifies[0]);
+		assertEquals(100, (int) state.getStorageContents()
+			.get("carryable:boltpouch").items.get(877));
+
+		// nine more shots across nine ticks: same item set, quantity only —
+		// they must ride to the ten-tick flush, not commit per shot
+		for (int i = 1; i <= 9; i++)
+		{
+			org.mockito.Mockito.when(client.getVarbitValue(2469)).thenReturn(100 - i);
+			module.onVarbitChanged(shot);
+			module.onGameTick(null);
+		}
+		assertEquals("quantity churn must coalesce, not commit per shot", 2, notifies[0]);
+		assertEquals(91, (int) state.getStorageContents()
+			.get("carryable:boltpouch").items.get(877));
+		module.shutDown();
+	}
+
 	@Test
 	public void rendersTrackedStorages() throws Exception
 	{

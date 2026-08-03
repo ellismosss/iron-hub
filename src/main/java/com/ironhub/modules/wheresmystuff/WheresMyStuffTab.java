@@ -93,7 +93,10 @@ class WheresMyStuffTab extends JPanel
 		add(content);
 		add(Box.createVerticalGlue());
 
-		state.addListener(listener);
+		// STORAGE-scoped: the tab renders storage snapshots only, and an
+		// unscoped listener rebuilt the visible tab on every LOOT/SKILLS/
+		// BANK ingestion change (untagged broadcasts still deliver)
+		state.addListener(listener, com.ironhub.state.AccountState.Topic.STORAGE);
 		rebuild();
 	}
 

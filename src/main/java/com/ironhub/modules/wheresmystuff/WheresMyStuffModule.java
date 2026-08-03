@@ -63,7 +63,28 @@ public class WheresMyStuffModule implements IronHubModule
 	// STASH: an AccountState-driven sync (Iron Hub already detects fills), so
 	// this mirrors the filled set into per-unit snapshots. Cached to avoid
 	// redundant work on unrelated state changes.
-	private final Runnable stashListener = this::syncStash;
+	private final Runnable stashListener = this::onStateChanged;
+	/** Re-derive seam: detection baselines are per-account. */
+	private int seenGeneration = -1;
+
+	private void onStateChanged()
+	{
+		int generation = state.profileGeneration();
+		if (generation != seenGeneration)
+		{
+			// profile switch: drop the old account's detection baselines or
+			// they leak into the new one's snapshots
+			seenGeneration = generation;
+			lastStashFilled = java.util.Collections.emptySet();
+			pendingSlots.clear();
+			lastSlotItems.clear();
+			if (scrapers != null)
+			{
+				scrapers.profileChanged();
+			}
+		}
+		syncStash();
+	}
 	private java.util.Set<Integer> lastStashFilled = java.util.Collections.emptySet();
 
 	private String familyLabel(String family)
@@ -126,6 +147,7 @@ public class WheresMyStuffModule implements IronHubModule
 				eventBus.register(scrapers);
 			}
 		}
+		seenGeneration = state.profileGeneration(); // fresh baselines already
 		state.addListener(stashListener);
 		syncStash();
 	}
@@ -363,9 +385,15 @@ public class WheresMyStuffModule implements IronHubModule
 		{
 			return;
 		}
+		// swap the baseline BEFORE committing: each commit notifies state
+		// listeners synchronously, re-entering this method — with the old
+		// baseline still in place that re-walked and re-committed every
+		// unit per unit (O(N^2) commits per stash change)
+		java.util.Set<Integer> previous = lastStashFilled;
+		lastStashFilled = filled;
 		long now = System.currentTimeMillis();
 		// units that turned OFF since last sync -> record an honest empty
-		for (int objectId : lastStashFilled)
+		for (int objectId : previous)
 		{
 			if (!filled.contains(objectId) && state.getStorageContents().containsKey(stashId(objectId)))
 			{
@@ -376,7 +404,6 @@ public class WheresMyStuffModule implements IronHubModule
 		{
 			commitStash(objectId, true, now);
 		}
-		lastStashFilled = filled;
 	}
 
 	private static String stashId(int objectId)
@@ -473,6 +500,81 @@ public class WheresMyStuffModule implements IronHubModule
 
 	// ── varbit-driven detection (varbit-static + varbit-index) ────────
 
+	/** varbit/varp id -> the storages watching it. Built once from the
+	 *  immutable pack — the old handler walked all ~90 storages' watch
+	 *  lists on EVERY VarbitChanged. */
+	private volatile Map<Integer, List<StorageLocationsPack.Storage>> varbitWatchers;
+	private volatile Map<Integer, List<StorageLocationsPack.Storage>> varpWatchers;
+
+	/** Slot-mode storages (rune pouch, quiver) move an amount varbit per
+	 *  cast/shot; committing each change persisted + broadcast per cast — a
+	 *  sustained replan/rebuild storm in combat (AccountState rides its
+	 *  inventory throttle for the very same pouch varbits). Quantity-only
+	 *  movement coalesces to that ~6s cadence; an item-set change (a rune
+	 *  swapped in) flushes on the next tick. Client thread only. */
+	private final java.util.Set<StorageLocationsPack.Storage> pendingSlots = new java.util.HashSet<>();
+	private final Map<String, java.util.Set<Integer>> lastSlotItems = new HashMap<>();
+	private int tick;
+	private static final int SLOT_FLUSH_TICKS = 10;
+
+	private void buildWatcherIndex()
+	{
+		Map<Integer, List<StorageLocationsPack.Storage>> byVarbit = new HashMap<>();
+		Map<Integer, List<StorageLocationsPack.Storage>> byVarp = new HashMap<>();
+		for (StorageLocationsPack.Storage s : pack.storages)
+		{
+			Map<Integer, List<StorageLocationsPack.Storage>> into = s.varp ? byVarp : byVarbit;
+			for (int id : watchedIds(s))
+			{
+				into.computeIfAbsent(id, k -> new ArrayList<>()).add(s);
+			}
+		}
+		varpWatchers = byVarp;
+		varbitWatchers = byVarbit;
+	}
+
+	private static java.util.Set<Integer> watchedIds(StorageLocationsPack.Storage s)
+	{
+		java.util.Set<Integer> ids = new java.util.LinkedHashSet<>();
+		if ("varbits".equals(s.mode) && s.varbitItems != null)
+		{
+			for (StorageLocationsPack.VarbitItem vi : s.varbitItems)
+			{
+				ids.add(vi.varbit);
+			}
+		}
+		else if ("varbitindex".equals(s.mode))
+		{
+			ids.add(s.indexVarbit);
+		}
+		else if ("slots".equals(s.mode) && s.slots != null)
+		{
+			for (StorageLocationsPack.Slot slot : s.slots)
+			{
+				ids.add(slot.typeVarbit);
+				ids.add(slot.countVarbit);
+			}
+		}
+		else if ("compute".equals(s.mode) && s.computeItems != null)
+		{
+			for (StorageLocationsPack.Compute c : s.computeItems)
+			{
+				ids.add(c.variantVarbit);
+				ids.add(c.indexVarbit);
+				ids.add(c.typeVarbit);
+				if (c.terms != null)
+				{
+					for (StorageLocationsPack.Term t : c.terms)
+					{
+						ids.add(t.varbit);
+					}
+				}
+			}
+		}
+		ids.remove(0); // unset optional fields
+		return ids;
+	}
+
 	@Subscribe
 	public void onVarbitChanged(net.runelite.api.events.VarbitChanged event)
 	{
@@ -480,8 +582,23 @@ public class WheresMyStuffModule implements IronHubModule
 		{
 			return;
 		}
+		if (varbitWatchers == null)
+		{
+			buildWatcherIndex();
+		}
+		List<StorageLocationsPack.Storage> candidates = new ArrayList<>();
+		List<StorageLocationsPack.Storage> hits = varbitWatchers.get(event.getVarbitId());
+		if (hits != null)
+		{
+			candidates.addAll(hits);
+		}
+		hits = varpWatchers.get(event.getVarpId());
+		if (hits != null)
+		{
+			candidates.addAll(hits);
+		}
 		long now = System.currentTimeMillis();
-		for (StorageLocationsPack.Storage s : pack.storages)
+		for (StorageLocationsPack.Storage s : candidates)
 		{
 			int changed = s.varp ? event.getVarpId() : event.getVarbitId();
 			if ("varbits".equals(s.mode) && touchesVarbits(s, changed))
@@ -502,9 +619,7 @@ public class WheresMyStuffModule implements IronHubModule
 						}
 					}
 				}
-				Map<Integer, String> names = resolveNames(items.keySet());
-				names.putAll(overrides);
-				commit(s, items, names, now);
+				commit(s, items, overrides, now); // commit resolves the rest
 			}
 			else if ("varbitindex".equals(s.mode) && s.indexVarbit == changed)
 			{
@@ -522,11 +637,41 @@ public class WheresMyStuffModule implements IronHubModule
 			}
 			else if ("slots".equals(s.mode) && touchesSlots(s, event))
 			{
-				commit(s, readSlots(s), now);
+				pendingSlots.add(s); // coalesced — drained on the tick
 			}
 			else if ("compute".equals(s.mode) && touchesCompute(s, changed))
 			{
 				commit(s, readCompute(s), now);
+			}
+		}
+	}
+
+	@Subscribe
+	public void onGameTick(net.runelite.api.events.GameTick event)
+	{
+		tick++;
+		if (pendingSlots.isEmpty() || pack == null || client == null)
+		{
+			return;
+		}
+		boolean flushAll = tick % SLOT_FLUSH_TICKS == 0;
+		long now = System.currentTimeMillis();
+		// drain a snapshot: commit's notify re-enters this module (state
+		// listener), and a profile-generation reset clears pendingSlots
+		List<StorageLocationsPack.Storage> drain = new ArrayList<>(pendingSlots);
+		pendingSlots.clear();
+		for (StorageLocationsPack.Storage s : drain)
+		{
+			Map<Integer, Integer> items = readSlots(s);
+			java.util.Set<Integer> known = lastSlotItems.get(s.id);
+			if (flushAll || known == null || !known.equals(items.keySet()))
+			{
+				lastSlotItems.put(s.id, new java.util.HashSet<>(items.keySet()));
+				commit(s, items, now);
+			}
+			else
+			{
+				pendingSlots.add(s); // still riding to the flush tick
 			}
 		}
 	}
@@ -670,7 +815,9 @@ public class WheresMyStuffModule implements IronHubModule
 	}
 
 	/** As above, but with explicit item names (a caller with display-name
-	 *  overrides, e.g. minigame points); null names = resolve them all. */
+	 *  overrides, e.g. minigame points); ids the overrides miss still
+	 *  resolve — a partial map used to leave the storage's other items
+	 *  nameless. */
 	private void commit(StorageLocationsPack.Storage def, Map<Integer, Integer> items,
 		Map<Integer, String> names, long now)
 	{
@@ -678,8 +825,13 @@ public class WheresMyStuffModule implements IronHubModule
 		{
 			return;
 		}
+		Map<Integer, String> resolved = resolveNames(items.keySet());
+		if (names != null)
+		{
+			resolved.putAll(names);
+		}
 		state.putStorageContents(def.id, def.name, def.family, label(def),
-			items, names != null ? names : resolveNames(items.keySet()), now);
+			items, resolved, now);
 	}
 
 	/** For an object-mount storage: the items a spawned object id means are

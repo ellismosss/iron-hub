@@ -82,6 +82,17 @@ public class WheresMyStuffScrapers
 	private final Watcher invWatcher = new Watcher(InventoryID.INV, true);
 	private final Watcher bankWatcher = new Watcher(InventoryID.BANK, false);
 
+	/** Profile switch: the old account's change-detection baselines must
+	 *  not gate (or leak into) the new account's snapshots. */
+	void profileChanged()
+	{
+		lastItems.clear();
+		invWatcher.reset();
+		bankWatcher.reset();
+		compostLastRegion = -1;
+		nestItemId = -1;
+	}
+
 	public WheresMyStuffScrapers(Client client, ItemManager itemManager, AccountState state,
 		StorageLocationsPack pack, WheresMyStuffModule.Sink sink)
 	{
@@ -174,6 +185,15 @@ public class WheresMyStuffScrapers
 		{
 			this.containerId = containerId;
 			this.requiresInitial = requiresInitial;
+		}
+
+		/** Back to the never-seen state (profile switch). */
+		void reset()
+		{
+			prev = new HashMap<>();
+			added.clear();
+			removed.clear();
+			initialized = false;
 		}
 
 		void tick()

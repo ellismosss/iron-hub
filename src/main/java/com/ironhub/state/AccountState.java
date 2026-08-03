@@ -630,7 +630,7 @@ public class AccountState implements StateView
 	 */
 	public enum Topic
 	{
-		BANK, INVENTORY, EQUIPMENT, SKILLS, QUESTS, VARBITS, UNLOCKS, GOALS, LOOT, RECORDS
+		BANK, INVENTORY, EQUIPMENT, SKILLS, QUESTS, VARBITS, UNLOCKS, GOALS, LOOT, RECORDS, STORAGE
 	}
 
 	/** Listeners fire on the client thread after meaningful state changes.
@@ -947,7 +947,7 @@ public class AccountState implements StateView
 		if (changed)
 		{
 			persist();
-			notifyListeners();
+			notifyListeners(Topic.STORAGE); // slot storages move per cast — scoped listeners can skip
 		}
 	}
 
@@ -965,7 +965,7 @@ public class AccountState implements StateView
 		if (storageContents.remove(key) != null)
 		{
 			persist();
-			notifyListeners();
+			notifyListeners(Topic.STORAGE);
 		}
 	}
 
