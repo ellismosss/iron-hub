@@ -34,6 +34,10 @@ public class PersistedState
 	Map<String, Integer> bankSkillTargets = new HashMap<>(); // skill name -> bank-tab target level
 	Map<String, Boolean> dailiesChoice = new HashMap<>(); // daily id -> included in the run (absent = the pack's default)
 	Map<String, Map<Integer, Integer>> lootBySource = new HashMap<>(); // npc -> item id -> total qty
+	Map<String, Map<Integer, Integer>> lootPickedBySource = new HashMap<>(); // npc -> item id -> CONFIRMED picked-up qty (L3)
+	Map<String, Long> lootValueBySource = new HashMap<>();     // npc -> GE value of drops, priced at drop time (L6)
+	Map<String, Long> suppliesValueBySource = new HashMap<>(); // npc -> GE value of consumed supplies (L6)
+	Map<String, Long> lootLastKillMs = new HashMap<>();        // npc -> last kill epoch ms (L4 recency)
 	Map<String, Map<Integer, Integer>> suppliesBySource = new HashMap<>(); // npc -> canonical item id -> consumed qty
 	Map<String, Map<String, Integer>> savedLoadouts = new HashMap<>(); // activity -> equipment slot name -> item id
 	Map<String, SavedSetup> savedSetups = new HashMap<>(); // activity -> full setup (gear + inventory + rune pouch)

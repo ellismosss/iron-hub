@@ -89,6 +89,16 @@ public class AccountState implements StateView
 
 	// aggregated loot: npc name -> item id -> total quantity (persisted)
 	private final Map<String, Map<Integer, Integer>> lootBySource = new ConcurrentHashMap<>();
+	private final Map<String, Map<Integer, Integer>> lootPickedBySource = new ConcurrentHashMap<>();
+	private final Map<String, Long> lootValueBySource = new ConcurrentHashMap<>();
+	private final Map<String, Long> suppliesValueBySource = new ConcurrentHashMap<>();
+	private final Map<String, Long> lootLastKillMs = new ConcurrentHashMap<>();
+	// SESSION scope (L5): since profile activation, never persisted
+	private final Map<String, Map<Integer, Integer>> sessionLootBySource = new ConcurrentHashMap<>();
+	private final Map<String, Map<Integer, Integer>> sessionSuppliesBySource = new ConcurrentHashMap<>();
+	private final Map<String, Integer> sessionKills = new ConcurrentHashMap<>();
+	private final Map<String, Long> sessionLootValue = new ConcurrentHashMap<>();
+	private final Map<String, Long> sessionSuppliesValue = new ConcurrentHashMap<>();
 
 	// supplies consumed per source (canonical item ids, persisted); the
 	// checkpoint is carried gear at the last bank interaction or kill
@@ -803,6 +813,7 @@ public class AccountState implements StateView
 	public void incrementKillCount(String source)
 	{
 		killCounts.merge(source, 1, Integer::sum);
+		sessionKills.merge(source, 1, Integer::sum);
 		persist();
 		notifyListeners(Topic.LOOT); // kill counts render on the loot surfaces
 	}
@@ -814,15 +825,92 @@ public class AccountState implements StateView
 		Map<Integer, Integer> totals =
 			lootBySource.computeIfAbsent(source, s -> new ConcurrentHashMap<>());
 		items.forEach((id, qty) -> totals.merge(id, qty, Integer::sum));
+		Map<Integer, Integer> session =
+			sessionLootBySource.computeIfAbsent(source, s -> new ConcurrentHashMap<>());
+		items.forEach((id, qty) -> session.merge(id, qty, Integer::sum));
+		lootLastKillMs.put(source, System.currentTimeMillis());
 		if (itemManager != null) // resolve names so the loot tab reads offline
 		{
-			for (int id : items.keySet())
+			long value = 0;
+			for (Map.Entry<Integer, Integer> e : items.entrySet())
 			{
-				itemNames.computeIfAbsent(id, i -> itemManager.getItemComposition(i).getName());
+				itemNames.computeIfAbsent(e.getKey(),
+					i -> itemManager.getItemComposition(i).getName());
+				// priced at DROP time on the client thread (L6) — the tab
+				// never asks ItemManager for prices on the EDT
+				value += (long) itemManager.getItemPrice(e.getKey()) * e.getValue();
 			}
+			lootValueBySource.merge(source, value, Long::sum);
+			sessionLootValue.merge(source, value, Long::sum);
 		}
 		persist();
 		notifyListeners(Topic.LOOT);
+	}
+
+	/** Confirmed picked-up drops (L3) — merged by the pickup tracker;
+	 *  client thread. Only claimed pickups, never guesses. */
+	public void recordPickedLoot(String source, Map<Integer, Integer> items)
+	{
+		if (items.isEmpty())
+		{
+			return;
+		}
+		Map<Integer, Integer> picked =
+			lootPickedBySource.computeIfAbsent(source, s -> new ConcurrentHashMap<>());
+		items.forEach((id, qty) -> picked.merge(id, qty, Integer::sum));
+		persist();
+		notifyListeners(Topic.LOOT);
+	}
+
+	/** Confirmed picked-up totals for a source (L3); empty for legacy data. */
+	public Map<Integer, Integer> lootPickedFor(String source)
+	{
+		return lootPickedBySource.getOrDefault(source, Map.of());
+	}
+
+	/** GE value of a source's recorded drops, priced at drop time (L6). */
+	public long lootValueFor(String source)
+	{
+		return lootValueBySource.getOrDefault(source, 0L);
+	}
+
+	/** GE value of supplies consumed at a source, priced at use time (L6). */
+	public long suppliesValueFor(String source)
+	{
+		return suppliesValueBySource.getOrDefault(source, 0L);
+	}
+
+	/** Last kill epoch ms for a loot source (L4 recency), 0 = pre-tracking. */
+	public long lootLastKill(String source)
+	{
+		return lootLastKillMs.getOrDefault(source, 0L);
+	}
+
+	// ── session scope (L5): since profile activation ──────────────────
+
+	public Map<Integer, Integer> sessionLootFor(String source)
+	{
+		return sessionLootBySource.getOrDefault(source, Map.of());
+	}
+
+	public Map<Integer, Integer> sessionSuppliesFor(String source)
+	{
+		return sessionSuppliesBySource.getOrDefault(source, Map.of());
+	}
+
+	public int sessionKillCount(String source)
+	{
+		return sessionKills.getOrDefault(source, 0);
+	}
+
+	public long sessionLootValueFor(String source)
+	{
+		return sessionLootValue.getOrDefault(source, 0L);
+	}
+
+	public long sessionSuppliesValueFor(String source)
+	{
+		return sessionSuppliesValue.getOrDefault(source, 0L);
 	}
 
 	/** Sources with recorded loot, for the loot tab's selector. */
@@ -2333,6 +2421,8 @@ public class AccountState implements StateView
 			return; // no baseline yet (fresh login mid-trip)
 		}
 		Map<Integer, Integer> used = suppliesBySource.computeIfAbsent(source, s -> new ConcurrentHashMap<>());
+		Map<Integer, Integer> sessionUsed =
+			sessionSuppliesBySource.computeIfAbsent(source, s -> new ConcurrentHashMap<>());
 		long now = System.currentTimeMillis();
 		checkpoint.forEach((id, before) ->
 		{
@@ -2340,6 +2430,14 @@ public class AccountState implements StateView
 			if (delta > 0)
 			{
 				used.merge(id, delta, Integer::sum);
+				sessionUsed.merge(id, delta, Integer::sum);
+				if (itemManager != null)
+				{
+					// consumed supplies priced at USE time (L6)
+					long cost = (long) itemManager.getItemPrice(id) * delta;
+					suppliesValueBySource.merge(source, cost, Long::sum);
+					sessionSuppliesValue.merge(source, cost, Long::sum);
+				}
 				PersistedState.ConsumptionEvent event = new PersistedState.ConsumptionEvent();
 				event.timeMs = now;
 				event.itemId = id;
@@ -2967,6 +3065,21 @@ public class AccountState implements StateView
 		lootBySource.clear();
 		persisted.lootBySource.forEach((src, items) ->
 			lootBySource.put(src, new ConcurrentHashMap<>(items)));
+		lootPickedBySource.clear();
+		persisted.lootPickedBySource.forEach((src, items) ->
+			lootPickedBySource.put(src, new ConcurrentHashMap<>(items)));
+		lootValueBySource.clear();
+		lootValueBySource.putAll(persisted.lootValueBySource);
+		suppliesValueBySource.clear();
+		suppliesValueBySource.putAll(persisted.suppliesValueBySource);
+		lootLastKillMs.clear();
+		lootLastKillMs.putAll(persisted.lootLastKillMs);
+		// a fresh profile is a fresh session (L5)
+		sessionLootBySource.clear();
+		sessionSuppliesBySource.clear();
+		sessionKills.clear();
+		sessionLootValue.clear();
+		sessionSuppliesValue.clear();
 		suppliesBySource.clear();
 		persisted.suppliesBySource.forEach((src, items) ->
 			suppliesBySource.put(src, new ConcurrentHashMap<>(items)));
@@ -3157,6 +3270,10 @@ public class AccountState implements StateView
 		state.supplyThresholds = new HashMap<>(supplyThresholds);
 		state.dailiesChoice = new HashMap<>(dailiesChoice);
 		lootBySource.forEach((src, items) -> state.lootBySource.put(src, new HashMap<>(items)));
+		lootPickedBySource.forEach((src, items) -> state.lootPickedBySource.put(src, new HashMap<>(items)));
+		state.lootValueBySource = new HashMap<>(lootValueBySource);
+		state.suppliesValueBySource = new HashMap<>(suppliesValueBySource);
+		state.lootLastKillMs = new HashMap<>(lootLastKillMs);
 		suppliesBySource.forEach((src, items) -> state.suppliesBySource.put(src, new HashMap<>(items)));
 		savedLoadouts.forEach((activity, slots) -> state.savedLoadouts.put(activity, new HashMap<>(slots)));
 		// setups deep-copy (ProfileStore's contract: toJson runs on the

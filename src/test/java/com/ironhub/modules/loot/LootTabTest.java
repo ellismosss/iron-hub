@@ -21,12 +21,83 @@ public class LootTabTest
 	public TemporaryFolder temp = new TemporaryFolder();
 
 	@Test
-	public void perKillFormatting()
+	public void monsterTileInitials()
 	{
-		assertEquals("—", LootTab.perKillText(10, 0));
-		assertEquals("1.2/kill", LootTab.perKillText(120, 100));
-		assertEquals("0.0/kill", LootTab.perKillText(1, 250));
-		assertEquals("150/kill", LootTab.perKillText(15_000, 100));
+		assertEquals("KQ", LootTab.initials("Kalphite Queen"));
+		assertEquals("D", LootTab.initials("Dagannoth"));
+		assertEquals("?", LootTab.initials(""));
+	}
+
+	/** L3 (2026-08-03): the pickup classifier — picked when standing on the
+	 *  tile or the inventory gained the id (telegrab), unknown through a
+	 *  scene reload (never guessed), left when it just timed out. */
+	@Test
+	public void pickupClassification()
+	{
+		net.runelite.api.coords.WorldPoint drop =
+			new net.runelite.api.coords.WorldPoint(3200, 3200, 0);
+		net.runelite.api.coords.WorldPoint away =
+			new net.runelite.api.coords.WorldPoint(3210, 3210, 0);
+
+		LootPickupTracker tracker = new LootPickupTracker();
+		tracker.onLoot("Zulrah", 12934, 100, drop);
+		LootPickupTracker.Classified onTile =
+			tracker.onDespawn(12934, drop, drop, false, false);
+		assertEquals(LootPickupTracker.Fate.PICKED, onTile.fate);
+		assertEquals("Zulrah", onTile.source);
+		assertEquals(100, onTile.quantity);
+
+		tracker.onLoot("Zulrah", 12934, 50, drop);
+		LootPickupTracker.Classified telegrab =
+			tracker.onDespawn(12934, drop, away, false, true);
+		assertEquals(LootPickupTracker.Fate.PICKED, telegrab.fate);
+
+		tracker.onLoot("Zulrah", 2402, 1, drop);
+		LootPickupTracker.Classified reload =
+			tracker.onDespawn(2402, drop, drop, true, false);
+		assertEquals(LootPickupTracker.Fate.UNKNOWN, reload.fate);
+
+		tracker.onLoot("Zulrah", 995, 5000, drop);
+		LootPickupTracker.Classified timedOut =
+			tracker.onDespawn(995, drop, away, false, false);
+		assertEquals(LootPickupTracker.Fate.LEFT, timedOut.fate);
+
+		// an item the tracker never registered is not ours to classify
+		org.junit.Assert.assertNull(tracker.onDespawn(4151, drop, drop, false, false));
+	}
+
+	/** L5: session scope resets with the profile; all-time persists. */
+	@Test
+	public void sessionScopeIsPerActivation()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 77L);
+		state.incrementKillCount("Zulrah");
+		state.ingestLoot("Zulrah", Map.of(12934, 100));
+		assertEquals(100, (int) state.sessionLootFor("Zulrah").get(12934));
+		assertEquals(1, state.sessionKillCount("Zulrah"));
+
+		AccountState fresh = StateFixture.state(temp.getRoot());
+		StateFixture.profile(fresh, 77L);
+		assertEquals(100, (int) fresh.lootFor("Zulrah").get(12934));
+		assertTrue(fresh.sessionLootFor("Zulrah").isEmpty());
+		assertEquals(0, fresh.sessionKillCount("Zulrah"));
+	}
+
+	/** L3: confirmed pickups persist and never leak into the drop totals. */
+	@Test
+	public void pickedLootPersistsSeparately()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 77L);
+		state.ingestLoot("Zulrah", Map.of(12934, 100));
+		state.recordPickedLoot("Zulrah", Map.of(12934, 60));
+		assertEquals(100, (int) state.lootFor("Zulrah").get(12934));
+		assertEquals(60, (int) state.lootPickedFor("Zulrah").get(12934));
+
+		AccountState after = StateFixture.state(temp.getRoot());
+		StateFixture.profile(after, 77L);
+		assertEquals(60, (int) after.lootPickedFor("Zulrah").get(12934));
 	}
 
 	@Test
@@ -61,7 +132,8 @@ public class LootTabTest
 
 		LootModule module = new LootModule(state, null, new IronHubConfig()
 		{
-		});
+		}, null, new net.runelite.client.eventbus.EventBus(),
+			new com.ironhub.data.DataPack(new com.google.gson.Gson()));
 		module.startUp();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
