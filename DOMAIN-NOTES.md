@@ -905,6 +905,15 @@ location/path). Two deviations: Mastering Mixology resins (sprite currencies,
 no item id the id-keyed sink can hold) and CompostBins (summed across regions,
 the single-map sink can't carry a per-region breakdown).
 
+
+**Compost bins broadcast nothing when filled (Luke, 2026-08-03).** The
+FARMING_TRANSMIT varbits that carry a bin's contents update on region
+ENTRY, not when the bin's state changes in place — the game sends no
+event for filling or collecting while you stand at the bin. The
+region-transition decode in `tickCompostBins` is therefore the detection
+ceiling, not a shortcut: a bin filled in place reads stale until the
+player leaves the region and returns. Do not "fix" this by decoding per
+tick or per varbit change; there is nothing fresher to read.
 ## Combat style & autocast naming (module: loadoutlab, pack: weapon-styles.json)
 
 The combat tab's BUTTON labels ("Chop", "Hack", "Lunge") and per-button

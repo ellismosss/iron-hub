@@ -190,6 +190,48 @@ final class LogSyncButton
 		text = null;
 	}
 
+	/** Remove the button from the game interface (module shutdown): hide
+	 *  every child we created and strip the click action, so a dead module
+	 *  leaves no live "Log Sync" that flips to "Syncing..." forever
+	 *  (Luke, 2026-08-03). Client thread; best effort — a full interface
+	 *  rebuild wipes the children anyway. */
+	void detach(Client client)
+	{
+		Widget parent = client == null ? null
+			: client.getWidget(InterfaceID.Collection.UNIVERSE);
+		if (parent != null && text == null)
+		{
+			// re-adopt after an interface redraw so the overlay still tears down
+			text = findTextByAction(parent, SYNC_ACTION);
+		}
+		for (Widget s : slices)
+		{
+			if (s != null)
+			{
+				s.setHidden(true);
+			}
+		}
+		if (icon != null)
+		{
+			icon.setHidden(true);
+		}
+		if (text != null)
+		{
+			text.setHidden(true);
+			text.setHasListener(false);
+			text.setAction(0, null);
+			text.setOnOpListener((Object[]) null);
+			text.setOnMouseOverListener((Object[]) null);
+			text.setOnMouseLeaveListener((Object[]) null);
+		}
+		if (parent != null)
+		{
+			parent.revalidate();
+		}
+		busy = false;
+		reset();
+	}
+
 	/** While syncing, hide the icon and centre the longer "Syncing..."
 	 *  label; otherwise the icon plus the idle label. */
 	private void applyBusyState()

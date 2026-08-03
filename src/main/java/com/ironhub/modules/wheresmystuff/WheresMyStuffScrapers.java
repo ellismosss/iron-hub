@@ -81,6 +81,8 @@ public class WheresMyStuffScrapers
 
 	private final Watcher invWatcher = new Watcher(InventoryID.INV, true);
 	private final Watcher bankWatcher = new Watcher(InventoryID.BANK, false);
+	/** The BANK container moved this tick — gates bankWatcher's diff. */
+	private boolean bankChangedThisTick;
 
 	/** Profile switch: the old account's change-detection baselines must
 	 *  not gate (or leak into) the new account's snapshots. */
@@ -196,6 +198,14 @@ public class WheresMyStuffScrapers
 			initialized = false;
 		}
 
+		/** An unchanged tick: consumers must see empty diffs, exactly as a
+		 *  full tick() over an unchanged container produced. */
+		void clearDiffs()
+		{
+			added.clear();
+			removed.clear();
+		}
+
 		void tick()
 		{
 			added.clear();
@@ -253,7 +263,20 @@ public class WheresMyStuffScrapers
 		}
 		// The reference updates its container watchers first, then runs every storage's onGameTick.
 		invWatcher.tick();
-		bankWatcher.tick();
+		// the bank container stays non-null after the bank closes, so an
+		// ungated tick diffed an ~800-slot map every 0.6s forever — only
+		// re-diff on ticks where the container actually changed; its sole
+		// consumer (the herb sack's empty-to-bank branch) sees identical
+		// diffs, since unchanged ticks always produced empty ones
+		if (bankChangedThisTick)
+		{
+			bankChangedThisTick = false;
+			bankWatcher.tick();
+		}
+		else
+		{
+			bankWatcher.clearDiffs();
+		}
 
 		tickForestryShop();
 		tickSandstorm();
@@ -340,6 +363,10 @@ public class WheresMyStuffScrapers
 		if (client == null)
 		{
 			return;
+		}
+		if (event.getContainerId() == InventoryID.BANK)
+		{
+			bankChangedThisTick = true;
 		}
 		menagerieOnContainerChanged(event);
 	}
@@ -654,7 +681,11 @@ public class WheresMyStuffScrapers
 			String text = w.getText();
 			if (text.startsWith("Vials:"))
 			{
-				int newVials = Integer.parseInt(text.replace("Vials: ", "").replaceAll("\\D+", ""));
+				// toInt, never parseInt on widget text: one unexpected format
+				// throws out of onGameTick and silently kills every scraper
+				// dispatched after this one for the session
+				int newVials = NumberUtils.toInt(
+					text.replace("Vials: ", "").replaceAll("\\D+", ""), potionVials);
 				if (newVials != potionVials)
 				{
 					updated = true;
@@ -667,7 +698,7 @@ public class WheresMyStuffScrapers
 				if (current != null)
 				{
 					String qtyText = text.replace("Doses: ", "").replace("Quantity: ", "").replaceAll("\\D+", "");
-					parsed.put(current, Integer.parseInt(qtyText));
+					parsed.put(current, NumberUtils.toInt(qtyText, 0));
 					current = null;
 				}
 				continue;
@@ -804,6 +835,10 @@ public class WheresMyStuffScrapers
 			return;
 		}
 		int region = wp.getRegionID();
+		// region-ENTRY decode is the detection ceiling, not a shortcut: the
+		// game broadcasts nothing when a bin is filled in place (Luke,
+		// 2026-08-03 — DOMAIN-NOTES, compost bins), so a fill only shows
+		// after leaving and re-entering the region
 		if (region == compostLastRegion)
 		{
 			return;
@@ -1898,7 +1933,10 @@ public class WheresMyStuffScrapers
 		Widget shop = widget(753, 13);
 		if (shop != null)
 		{
-			gfPoints = Integer.parseInt(shop.getText());
+			// defensive: tags/commas/empty must never throw out of the tick;
+			// a miss keeps the previous reading rather than inventing zero
+			gfPoints = NumberUtils.toInt(
+				Text.removeTags(shop.getText()).replace(",", ""), gfPoints);
 			commitGiantsFoundry();
 			return;
 		}
@@ -1964,9 +2002,14 @@ public class WheresMyStuffScrapers
 		{
 			return;
 		}
-		mixologyPaste[0] = Integer.parseInt(children[8].getText());
-		mixologyPaste[1] = Integer.parseInt(children[11].getText());
-		mixologyPaste[2] = Integer.parseInt(children[14].getText());
+		// defensive: overlay text with tags/commas must never throw out of
+		// the tick; a miss keeps the previous reading
+		mixologyPaste[0] = NumberUtils.toInt(
+			Text.removeTags(children[8].getText()).replace(",", ""), mixologyPaste[0]);
+		mixologyPaste[1] = NumberUtils.toInt(
+			Text.removeTags(children[11].getText()).replace(",", ""), mixologyPaste[1]);
+		mixologyPaste[2] = NumberUtils.toInt(
+			Text.removeTags(children[14].getText()).replace(",", ""), mixologyPaste[2]);
 		Map<Integer, Integer> items = new LinkedHashMap<>();
 		items.put(ItemID.MM_MOX_PASTE, mixologyPaste[0]);
 		items.put(ItemID.MM_AGA_PASTE, mixologyPaste[1]);

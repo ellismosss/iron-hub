@@ -131,7 +131,16 @@ public class CollectionLogModule implements IronHubModule
 	public void shutDown()
 	{
 		eventBus.unregister(this);
-		syncButton.reset();
+		if (clientThread != null && client != null)
+		{
+			// widget teardown is client-thread work; without it the button
+			// stayed rendered and clickable on a dead module
+			clientThread.invoke(() -> syncButton.detach(client));
+		}
+		else
+		{
+			syncButton.reset();
+		}
 		if (tab != null)
 		{
 			tab.dispose();
