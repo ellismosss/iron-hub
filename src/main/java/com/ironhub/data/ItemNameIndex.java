@@ -39,6 +39,28 @@ public class ItemNameIndex
 		}
 	}
 
+	/** Lazy reverse join for display: id -> first name, capitalized. */
+	private volatile Map<Integer, String> byId;
+
+	/** A display name for an item id ("Abyssal whip"), or null. The index
+	 *  stores normalized names, so the first letter is re-capitalized —
+	 *  exactly how the wiki writes item names. */
+	public String nameOf(int itemId)
+	{
+		Map<Integer, String> reverse = byId;
+		if (reverse == null)
+		{
+			reverse = new java.util.HashMap<>();
+			for (Map.Entry<String, Integer> e : byNormalizedName.entrySet())
+			{
+				reverse.putIfAbsent(e.getValue(), e.getKey().isEmpty() ? e.getKey()
+					: Character.toUpperCase(e.getKey().charAt(0)) + e.getKey().substring(1));
+			}
+			byId = reverse;
+		}
+		return reverse.get(itemId);
+	}
+
 	/** Item id for a display name ("Slayer helmet (i)"), or null. */
 	public Integer idOf(String name)
 	{

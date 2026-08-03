@@ -130,6 +130,25 @@ public final class GoalSeeds
 		return seed;
 	}
 
+	/** A slayer point unlock (S11, 2026-08-03): earning the points is a
+	 *  live varbit step (4068 = the game's own balance), buying it is
+	 *  proven by the {@code slayerreward_<slug>} flag the slayer module
+	 *  mirrors from the unlock's own varbit — achieved detection for free,
+	 *  immediate when already purchased. */
+	public static PersistedState.GoalSeed slayerUnlock(String key, String name, int points)
+	{
+		PersistedState.GoalSeed seed = base("slayerunlock", "slayerunlock:" + key, name);
+		if (points > 0)
+		{
+			String req = "varbit:4068:" + points + ":Slayer reward points";
+			seed.steps.add(step(Requirements.parse(req).describe(), req));
+		}
+		seed.steps.add(step("Buy " + name + " at any Slayer Rewards board",
+			"unlock:" + key));
+		seed.achieved.add("unlock:" + key);
+		return seed;
+	}
+
 	/** A user-typed goal ("Agility 70") or a module's requirement-backed
 	 *  goal (quests): one detectable step, achieved when it holds. */
 	public static PersistedState.GoalSeed custom(String goalId, String name, String req)

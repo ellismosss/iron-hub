@@ -41,7 +41,7 @@ import net.runelite.client.util.QuantityFormatter;
  */
 class SlayerTab extends JPanel
 {
-	private static final int MAX_HISTORY_ROWS = 20;
+	private static final int HISTORY_PAGE_SIZE = 10; // S8: last 10, paginated
 	private static final int BLOCK_COST = 100; // points, all masters
 	private static final int SKIP_COST = 30;
 	private static final Color ADVISE = ColorScheme.PROGRESS_INPROGRESS_COLOR;
@@ -60,9 +60,15 @@ class SlayerTab extends JPanel
 
 	/** Blocks-view master selection, kept across rebuilds (name). */
 	private String masterChoice;
-	/** Notes field kept across rebuilds so typing survives state chatter. */
-	private com.ironhub.ui.v2.V2TextField noteField;
+	/** Notes editor kept across rebuilds so typing survives state chatter.
+	 *  Multi-line since S5 (2026-08-03). */
+	private com.ironhub.ui.v2.V2TextArea noteField;
 	private String noteTask = "";
+	/** History view state: page (0-based), search query, expanded record. */
+	private int historyPage;
+	private String historyQuery = "";
+	private com.ironhub.ui.v2.V2TextField historySearch;
+	private long expandedRecordStart = -1;
 
 	SlayerTab(AccountState state, SlayerOptimizerModule module, OsrsTheme theme)
 	{
@@ -264,6 +270,28 @@ class SlayerTab extends JPanel
 			}
 			addSlab(bring);
 		}
+		// bracelet reminders (S4): persisted per task through the normal
+		// PersistedState/AccountState seam; latching chips, and the overlay's
+		// Bring line picks the reminder up when the bracelet isn't carried
+		java.util.List<String> bracelets = state.getSlayerBracelets(entry.name);
+		JPanel braceletRow = row(2);
+		JComponent slaughter = V2ChipRow.toggle(theme, "Slaughter", null,
+			OsrsSkin.smallFont(), bracelets.contains("slaughter"), false,
+			on -> state.toggleSlayerBracelet(entry.name, "slaughter"));
+		slaughter.setToolTipText("Bring a Bracelet of slaughter for this task"
+			+ " — a lit chip is a persisted reminder");
+		braceletRow.add(slaughter);
+		braceletRow.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+		JComponent expeditious = V2ChipRow.toggle(theme, "Expeditious", null,
+			OsrsSkin.smallFont(), bracelets.contains("expeditious"), false,
+			on -> state.toggleSlayerBracelet(entry.name, "expeditious"));
+		expeditious.setToolTipText("Bring an Expeditious bracelet for this task"
+			+ " — a lit chip is a persisted reminder");
+		braceletRow.add(expeditious);
+		braceletRow.add(Box.createHorizontalGlue());
+		cap(braceletRow);
+		content.add(braceletRow);
+
 		if (entry.finisher != null)
 		{
 			content.add(textLine("Finish with the item at " + entry.finisher.threshold
@@ -291,11 +319,10 @@ class SlayerTab extends JPanel
 		content.add(section("Notes"));
 		if (noteField == null || !noteTask.equals(entry.name))
 		{
-			// the DLV2 field, as every other search and entry box now is
-			noteField = com.ironhub.ui.v2.V2TextField.plain(theme, "Add a note for this task…", null);
+			// a proper multi-line editor (S5): wraps, grows with the text
+			noteField = new com.ironhub.ui.v2.V2TextArea(theme, "Add a note for this task…", null);
 			noteField.setText(state.getSlayerNote(entry.name));
 			noteTask = entry.name;
-			noteField.editor().addActionListener(e -> saveNote());
 			noteField.editor().addFocusListener(new java.awt.event.FocusAdapter()
 			{
 				@Override
@@ -306,7 +333,6 @@ class SlayerTab extends JPanel
 			});
 		}
 		noteField.setAlignmentX(LEFT_ALIGNMENT);
-		noteField.setMaximumSize(new Dimension(Integer.MAX_VALUE, noteField.getPreferredSize().height));
 		content.add(noteField);
 	}
 
@@ -425,16 +451,72 @@ class SlayerTab extends JPanel
 			return;
 		}
 		java.util.Collections.reverse(records); // newest first
-		int shown = 0;
-		for (PersistedState.SlayerTaskRecord record : records)
+
+		// monster search between the header and the list (S9) — the field
+		// survives rebuilds so typing is never lost to state chatter
+		if (historySearch == null)
 		{
-			if (shown++ >= MAX_HISTORY_ROWS)
+			historySearch = new com.ironhub.ui.v2.V2TextField(theme, "Filter by monster…", () ->
 			{
-				content.add(faintLine("+ " + (records.size() - MAX_HISTORY_ROWS) + " older tasks"));
-				break;
+				historyQuery = historySearch.getText().trim().toLowerCase(Locale.ROOT);
+				historyPage = 0;
+				javax.swing.SwingUtilities.invokeLater(this::rebuild);
+			});
+		}
+		historySearch.setAlignmentX(LEFT_ALIGNMENT);
+		content.add(historySearch);
+		content.add(Box.createVerticalStrut(4));
+
+		if (!historyQuery.isEmpty())
+		{
+			records.removeIf(r -> !r.name.toLowerCase(Locale.ROOT).contains(historyQuery));
+			if (records.isEmpty())
+			{
+				content.add(faintLine("No tasks match \"" + historySearch.getText().trim() + "\"."));
+				return;
 			}
+		}
+
+		// pages of 10, newest first (S8 — the Bank honest-cap grammar, paged)
+		int pages = (records.size() + HISTORY_PAGE_SIZE - 1) / HISTORY_PAGE_SIZE;
+		historyPage = Math.max(0, Math.min(historyPage, pages - 1));
+		int from = historyPage * HISTORY_PAGE_SIZE;
+		for (PersistedState.SlayerTaskRecord record
+			: records.subList(from, Math.min(from + HISTORY_PAGE_SIZE, records.size())))
+		{
 			content.add(historyRow(record));
 			content.add(Box.createVerticalStrut(2));
+		}
+		if (pages > 1)
+		{
+			// the Quests tab's pager idiom, verbatim
+			JPanel pager = row(2);
+			pager.add(Box.createHorizontalGlue());
+			pager.add(new com.ironhub.ui.v2.V2SpriteButton(theme,
+				com.ironhub.ui.v2.V2SpriteButton.ARROW_LEFT, () ->
+				{
+					if (historyPage > 0)
+					{
+						historyPage--;
+						javax.swing.SwingUtilities.invokeLater(this::rebuild);
+					}
+				}));
+			pager.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+			pager.add(new OsrsLabel("Page " + (historyPage + 1) + "/" + pages,
+				OsrsSkin.MUTED, OsrsSkin.smallFont()));
+			pager.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+			pager.add(new com.ironhub.ui.v2.V2SpriteButton(theme,
+				com.ironhub.ui.v2.V2SpriteButton.ARROW_RIGHT, () ->
+				{
+					if (historyPage < pages - 1)
+					{
+						historyPage++;
+						javax.swing.SwingUtilities.invokeLater(this::rebuild);
+					}
+				}));
+			pager.add(Box.createHorizontalGlue());
+			cap(pager);
+			content.add(pager);
 		}
 	}
 
@@ -467,8 +549,103 @@ class SlayerTab extends JPanel
 		bottom.add(Box.createHorizontalGlue());
 		cap(bottom);
 		card.add(bottom);
+
+		// click any logged task for its stats overview (S6): kills, xp, gp
+		// and ACTIVE time in bold white, the drops beneath
+		if (record.start == expandedRecordStart)
+		{
+			card.add(Box.createVerticalStrut(2));
+			long now = record.end == 0 ? System.currentTimeMillis() : record.end;
+			long active = com.ironhub.state.ActivityClock.activeElapsed(
+				record.activeMs, record.lastActivityMs, record.end, now);
+			statLine(card, "Kills", String.valueOf(record.killed));
+			statLine(card, "XP gained", QuantityFormatter.quantityToStackSize(record.xpGained));
+			statLine(card, "Drops value", QuantityFormatter.quantityToStackSize(record.lootValue) + " gp");
+			statLine(card, "Time taken", active >= 0 ? durationText(active) + " active"
+				: record.start > 0 && now > record.start ? durationText(now - record.start) : "?");
+			if (record.drops.isEmpty())
+			{
+				card.add(textLine("No drops recorded for this task",
+					OsrsSkin.FAINT, OsrsSkin.smallFont()));
+			}
+			else
+			{
+				java.util.List<java.util.Map.Entry<Integer, Integer>> drops =
+					new ArrayList<>(record.drops.entrySet());
+				drops.sort(java.util.Map.Entry.<Integer, Integer>comparingByValue().reversed());
+				int shown = 0;
+				for (java.util.Map.Entry<Integer, Integer> drop : drops)
+				{
+					if (shown++ >= HISTORY_PAGE_SIZE)
+					{
+						card.add(textLine("+ " + (drops.size() - HISTORY_PAGE_SIZE) + " more",
+							OsrsSkin.FAINT, OsrsSkin.smallFont()));
+						break;
+					}
+					JPanel line = row(0);
+					JLabel holder = new JLabel();
+					Dimension d = new Dimension(16, 16);
+					holder.setPreferredSize(d);
+					holder.setMinimumSize(d);
+					holder.setMaximumSize(d);
+					java.awt.Image sprite = sprites.get(drop.getKey(), -1, 16);
+					if (sprite != null)
+					{
+						holder.setIcon(new ImageIcon(sprite));
+					}
+					line.add(holder);
+					line.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+					line.add(new OsrsLabel(dropName(drop.getKey()),
+						OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned().squeezable());
+					line.add(Box.createHorizontalGlue());
+					line.add(new OsrsLabel("×" + QuantityFormatter.formatNumber(drop.getValue()),
+						OsrsSkin.MUTED, OsrsSkin.smallFont()));
+					cap(line);
+					card.add(line);
+				}
+			}
+		}
+
+		card.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		card.setToolTipText(record.start == expandedRecordStart
+			? "Hide the stats overview" : "Show kills, xp, drop value and time");
+		com.ironhub.ui.v2.MouseRelay.install(card);
+		card.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				expandedRecordStart = record.start == expandedRecordStart ? -1 : record.start;
+				javax.swing.SwingUtilities.invokeLater(SlayerTab.this::rebuild);
+			}
+		});
 		cap(card);
 		return card;
+	}
+
+	/** One bold/white stat line of the S6 overview. */
+	private void statLine(JPanel card, String label, String value)
+	{
+		JPanel line = row(0);
+		line.add(new OsrsLabel(label, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+		line.add(Box.createHorizontalGlue());
+		line.add(new OsrsLabel(value, OsrsSkin.BAR_TEXT, OsrsSkin.boldFont()));
+		cap(line);
+		card.add(line);
+	}
+
+	/** Lazy name index for drop rows — headless-safe, never a client read. */
+	private com.ironhub.data.ItemNameIndex nameIndex;
+
+	/** The item's display name from the bundled name index, or the id. */
+	private String dropName(int itemId)
+	{
+		if (nameIndex == null)
+		{
+			nameIndex = new com.ironhub.data.ItemNameIndex(new com.google.gson.Gson());
+		}
+		String name = nameIndex.nameOf(itemId);
+		return name != null ? name : "Item " + itemId;
 	}
 
 	/** "132 kills · 45.2K xp · 210K gp · 1h 12m" — honest zeros dropped. */
@@ -603,9 +780,42 @@ class SlayerTab extends JPanel
 			+ "</div></html>");
 		row.add(name);
 		row.add(Box.createHorizontalGlue());
+		// the cost reads WHITE until purchased (S10, Luke's call — white is
+		// the value colour, not a status), FAINT once owned
 		row.add(new OsrsLabel(unlock.points + " pts",
-			has ? OsrsSkin.FAINT : affordable ? OsrsSkin.TITLE : OsrsSkin.LABEL,
-			OsrsSkin.smallFont()));
+			has ? OsrsSkin.FAINT : OsrsSkin.BAR_TEXT, OsrsSkin.smallFont()));
+		if (!has)
+		{
+			// "+ Goal" through the unified seed system (S11): earning the
+			// points is a live varbit step, the purchase proves itself via
+			// the mirrored unlock flag
+			boolean tracked = state.getGoalSeeds().containsKey("slayerunlock:" + unlock.key);
+			JLabel glyph = new JLabel(tracked ? "×" : "+");
+			OsrsSkin.crisp(glyph);
+			glyph.setFont(OsrsSkin.font());
+			glyph.setForeground(OsrsSkin.FAINT);
+			glyph.setToolTipText(tracked ? unlock.name + " — tracked; click to untrack"
+				: "Track buying " + unlock.name + " in Goals");
+			glyph.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+			glyph.addMouseListener(new java.awt.event.MouseAdapter()
+			{
+				@Override
+				public void mousePressed(java.awt.event.MouseEvent e)
+				{
+					if (tracked)
+					{
+						state.removeGoalSeed("slayerunlock:" + unlock.key);
+					}
+					else
+					{
+						state.addGoalSeed(com.ironhub.state.GoalSeeds.slayerUnlock(
+							unlock.key, unlock.name, unlock.points));
+					}
+				}
+			});
+			row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
+			row.add(glyph);
+		}
 		cap(row);
 		return row;
 	}
@@ -753,15 +963,13 @@ class SlayerTab extends JPanel
 		JPanel blocks = slab("Preferred blocks");
 		List<String> prefs = state.getSlayerBlockPref(master.name);
 		prefList(blocks, master, prefs, blockedNames,
-			list -> state.setSlayerBlockPref(master.name, list),
-			"Block", BLOCK_COST);
+			list -> state.setSlayerBlockPref(master.name, list));
 		addSlab(blocks);
 
 		JPanel skipSlab = slab("Always skip");
 		List<String> skips = state.getSlayerSkipPref(master.name);
 		prefList(skipSlab, master, skips, List.of(),
-			list -> state.setSlayerSkipPref(master.name, list),
-			null, SKIP_COST);
+			list -> state.setSlayerSkipPref(master.name, list));
 		if (!skips.isEmpty())
 		{
 			skipSlab.add(textLine("Skipping costs " + SKIP_COST + " pts per task",
@@ -808,29 +1016,28 @@ class SlayerTab extends JPanel
 		return row;
 	}
 
-	/** A preferred-task list inside its slab: icon rows with remove, an add
-	 *  selector, and (for blocks) advice lines vs the live blocked slots. */
+	/** A preferred-task list inside its slab: icon rows with remove and an
+	 *  add selector (the per-task point-cost advice lines are gone — S13). */
 	private void prefList(JPanel slab, SlayerTasksPack.Master master, List<String> current,
-		List<String> liveBlockedLower, java.util.function.Consumer<List<String>> save,
-		String adviseVerb, int cost)
+		List<String> liveBlockedLower, java.util.function.Consumer<List<String>> save)
 	{
 		for (String task : current)
 		{
 			boolean live = liveBlockedLower.contains(task.toLowerCase(Locale.ROOT));
-			StoneButton remove = new StoneButton(theme, "×", () ->
+			// the V2 tile-family button (S14): its highlight clips to its own
+			// art, where the V1 StoneButton's wash spilled past the slab
+			com.ironhub.ui.v2.V2SpriteButton remove = new com.ironhub.ui.v2.V2SpriteButton(
+				theme, com.ironhub.ui.v2.V2SpriteButton.EMPTY_BOX, false, () ->
 			{
 				List<String> next = new ArrayList<>(current);
 				next.remove(task);
 				save.accept(next);
-			});
-			remove.setMaximumSize(remove.getPreferredSize());
+			}).letter("x");
+			remove.setToolTipText("Remove " + task);
 			slab.add(taskRow(task, taskIconId(task),
 				live ? OsrsSkin.VALUE : OsrsSkin.MUTED, remove));
-			if (adviseVerb != null && !live)
-			{
-				slab.add(textLine(adviseVerb + " " + task + " at " + master.name
-					+ " — " + cost + " pts", ADVISE, OsrsSkin.smallFont()));
-			}
+			// the per-task "Block X at Y — 100 pts" advice line is gone
+			// (S13, Luke: distracting)
 		}
 
 		// add selector: the master's assignable tasks by weight, heaviest

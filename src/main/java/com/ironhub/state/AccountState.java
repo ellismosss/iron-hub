@@ -139,6 +139,7 @@ public class AccountState implements StateView
 	private final Map<String, String> slayerLocationPrefs = new ConcurrentHashMap<>();
 	private final Map<String, java.util.List<String>> slayerBlockPrefs = new ConcurrentHashMap<>();
 	private final Map<String, java.util.List<String>> slayerSkipPrefs = new ConcurrentHashMap<>();
+	private final Map<String, java.util.List<String>> slayerBracelets = new ConcurrentHashMap<>();
 
 	/** Rolling consumption events for runway rates, capped. */
 	public static final int MAX_CONSUMPTION_EVENTS = 500;
@@ -1392,6 +1393,31 @@ public class AccountState implements StateView
 	public java.util.List<String> getSlayerSkipPref(String master)
 	{
 		return java.util.List.copyOf(slayerSkipPrefs.getOrDefault(master, java.util.List.of()));
+	}
+
+	/** Bracelet reminders for a task (S4): "slaughter" / "expeditious". */
+	public java.util.List<String> getSlayerBracelets(String task)
+	{
+		return java.util.List.copyOf(slayerBracelets.getOrDefault(task, java.util.List.of()));
+	}
+
+	public void toggleSlayerBracelet(String task, String bracelet)
+	{
+		java.util.List<String> next = new java.util.ArrayList<>(getSlayerBracelets(task));
+		if (!next.remove(bracelet))
+		{
+			next.add(bracelet);
+		}
+		if (next.isEmpty())
+		{
+			slayerBracelets.remove(task);
+		}
+		else
+		{
+			slayerBracelets.put(task, next);
+		}
+		persist();
+		notifyListeners();
 	}
 
 	public void setSlayerSkipPref(String master, java.util.List<String> tasks)
@@ -2998,6 +3024,8 @@ public class AccountState implements StateView
 		slayerBlockPrefs.putAll(persisted.slayerBlockPrefs);
 		slayerSkipPrefs.clear();
 		slayerSkipPrefs.putAll(persisted.slayerSkipPrefs);
+		slayerBracelets.clear();
+		slayerBracelets.putAll(persisted.slayerBracelets);
 		selectedGoals.clear();
 		selectedGoals.addAll(persisted.selectedGoals);
 		goalSeeds.clear();
@@ -3172,6 +3200,7 @@ public class AccountState implements StateView
 		state.slayerLocationPrefs = new HashMap<>(slayerLocationPrefs);
 		slayerBlockPrefs.forEach((m, list) -> state.slayerBlockPrefs.put(m, new java.util.ArrayList<>(list)));
 		slayerSkipPrefs.forEach((m, list) -> state.slayerSkipPrefs.put(m, new java.util.ArrayList<>(list)));
+		slayerBracelets.forEach((t, list) -> state.slayerBracelets.put(t, new java.util.ArrayList<>(list)));
 		state.selectedGoals = new HashSet<>(selectedGoals);
 		state.activeGoal = activeGoal;
 		state.clogObtained = new HashSet<>(clogObtained);

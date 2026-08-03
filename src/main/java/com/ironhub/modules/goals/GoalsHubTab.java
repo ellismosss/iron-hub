@@ -327,6 +327,7 @@ class GoalsHubTab extends JPanel
 			case "poh":
 			case "boat":
 			case "clue":
+			case "slayerunlock":
 				return "Unlocks";
 			default:
 				return "Other";

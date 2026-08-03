@@ -86,6 +86,9 @@ public class PersistedState
 		public boolean completed;
 		public long activeMs;       // idle-gated active time (ActivityClock)
 		public long lastActivityMs; // last kill signal; 0 = legacy record
+		/** Drops from task targets, itemId -> qty (S6; empty = none seen
+		 *  or a legacy record — the history view says which honestly). */
+		public Map<Integer, Integer> drops = new HashMap<>();
 
 		public SlayerTaskRecord copy()
 		{
@@ -102,6 +105,7 @@ public class PersistedState
 			c.completed = completed;
 			c.activeMs = activeMs;
 			c.lastActivityMs = lastActivityMs;
+			c.drops = new HashMap<>(drops);
 			return c;
 		}
 	}
@@ -308,6 +312,7 @@ public class PersistedState
 	Map<String, String> slayerLocationPrefs = new HashMap<>();  // task -> preferred location name
 	Map<String, java.util.List<String>> slayerBlockPrefs = new HashMap<>(); // master -> preferred block list
 	Map<String, java.util.List<String>> slayerSkipPrefs = new HashMap<>();  // master -> always-skip list
+	Map<String, java.util.List<String>> slayerBracelets = new HashMap<>();  // task -> bracelet reminders (S4)
 
 	java.util.List<DeathRecord> deaths = new ArrayList<>(); // most recent last, capped
 

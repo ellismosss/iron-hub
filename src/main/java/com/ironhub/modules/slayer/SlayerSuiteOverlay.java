@@ -82,17 +82,29 @@ class SlayerSuiteOverlay extends OverlayPanel
 			.build());
 
 		int assigned = module.initialAmount();
+		if (assigned >= remaining && assigned > 0)
+		{
+			// the kill-count bar (S3): progress toward the assignment
+			net.runelite.client.ui.overlay.components.ProgressBarComponent bar =
+				new net.runelite.client.ui.overlay.components.ProgressBarComponent();
+			bar.setBackgroundColor(UiTokens.OVERLAY_BAR_TROUGH);
+			bar.setForegroundColor(com.ironhub.ui.v2.V2Tokens.BAR_FILL);
+			bar.setMaximum(assigned);
+			bar.setValue(assigned - remaining);
+			bar.setLabelDisplayMode(
+				net.runelite.client.ui.overlay.components.ProgressBarComponent.LabelDisplayMode.TEXT_ONLY);
+			bar.setCenterLabel((assigned - remaining) + " / " + assigned);
+			panelComponent.getChildren().add(bar);
+		}
 		String master = module.masterName();
 		String area = module.areaName();
 		String meta = (master.isEmpty() ? "" : master)
 			+ (area.isEmpty() ? "" : (master.isEmpty() ? "" : " · ") + area);
-		if (!meta.isEmpty() || assigned >= remaining)
+		if (!meta.isEmpty())
 		{
+			// the S3 bar above carries the kill count — no duplicate figure
 			panelComponent.getChildren().add(LineComponent.builder()
 				.left(meta).leftColor(UiTokens.CANVAS_LOCKED)
-				.right(assigned >= remaining && assigned > 0
-					? (assigned - remaining) + "/" + assigned : "")
-				.rightColor(UiTokens.CANVAS_LOCKED)
 				.build());
 		}
 

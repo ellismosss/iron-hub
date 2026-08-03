@@ -190,6 +190,10 @@ WIKI_ALIASES = {
     "warped creatures": "warped creatures",
     "spiritual creatures": "spiritual creatures",
     "sulphurous creatures": None,  # Konar-era row with no core task yet
+    # Mortimer assigns Venators directly (the only master who does); the
+    # pinned core Task catalog predates them, so live NPC matching would
+    # fail anyway — skipped until the client dependency knows them
+    "venators": None,
 }
 
 
@@ -209,6 +213,17 @@ MASTERS = [
      ["quest:Shilo Village", "any:combat:100&skill:Slayer:50|skill:Slayer:99"],
      False, ["Kuradel"]),
     ("Krystilia", "Krystilia", 7, (3109, 3514, 0), 25, None, True, []),
+    # Mortimer (Wyrmscraig Cavern, released 2026-07-29): the highest-level
+    # master. Base points 0 — he awards points only via his "Mortifier"
+    # task modifiers; block slots cost 120 (he has 2), skips 100. His
+    # focus id and block varbits are NOT yet documented anywhere the
+    # generator can verify (the pinned RuneLite API predates him), so
+    # focusId is the -1 sentinel: never matches a SLAYER_MASTER read, and
+    # blockedTaskIds renders his live slots honestly empty. His quest
+    # gate (partial Fallen From Grace) is likewise unencodable until
+    # quests.json knows the quest — combat/slayer gates only.
+    ("Mortimer", "Mortimer", -1, (2589, 8614, 0), 0,
+     ["any:combat:100&skill:Slayer:70|skill:Slayer:99"], False, []),
 ]
 
 SCP = re.compile(r"\{\{SCP\|([A-Za-z ]+)\|(\d+)[^}]*\}\}")
@@ -359,13 +374,16 @@ def parse_master_rows(master, page, resolve, quest_names):
             continue
         key = resolve(raw_name)
         if key is None and raw_name.lower() in WIKI_ALIASES:
+            if WIKI_ALIASES[raw_name.lower()] is None:
+                # documented skip: a wiki row whose task the pinned core
+                # catalog does not know yet (the raise below used to fire
+                # before this could take effect)
+                continue
             key = WIKI_ALIASES[raw_name.lower()]
         if key is None and "boss" in raw_name.lower():
             key = "bosses"
         if key is None:
             raise SystemExit(f"unjoined wiki task name on {page}: {raw_name!r}")
-        if key is None:
-            continue
         wm = WEIGHT_TMPL.search(cells[ci_weight])
         weight = int(wm.group(1)) if wm else None
         if weight is None:
@@ -989,7 +1007,7 @@ def main():
     print(f"  tasks {len(tasks_out)} (stats {n_stats}, locations {n_locs}), "
           f"masters {len(masters_out)}, unlocks {len(unlocks)}, turael {len(turael)}")
     assert len(tasks_out) >= 120, "task floor"
-    assert len(masters_out) == 9, "master count"
+    assert len(masters_out) == 10, "master count"  # + Mortimer (2026-08-03)
     assert len(unlocks) >= 30, "unlock floor"
     # every location must route: a coordless one silently loses its Route
     # button (Luke's Wilderness Slayer Dungeon report) — curate, never drop
