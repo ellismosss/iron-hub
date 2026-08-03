@@ -44,6 +44,12 @@ class PohTab extends JPanel
 	private final OsrsTheme theme;
 	private final ItemManager itemManager; // null headless — icons skipped
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
+
+	/** Module-pushed refresh (diagnostics) through the same gate. */
+	void refresh()
+	{
+		listener.run();
+	}
 	private final SpriteCache sprites;
 	private final JPanel header = new JPanel();
 	private final TileTree tree;

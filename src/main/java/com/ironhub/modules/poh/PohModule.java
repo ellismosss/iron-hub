@@ -84,17 +84,21 @@ public class PohModule implements IronHubModule
 	private final EventBus eventBus; // null in unit tests
 	private final net.runelite.api.Client client; // null in unit tests — the scene sweep is skipped
 	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
-	private PohTab tab;
+	private volatile PohTab tab; // written on the EDT, read by publishDiagnostics on the client thread
 
-	/** Furniture found by the last sweep, grouped by the house room it sits in. */
-	private final Map<Long, Set<Integer>> pendingByRoom = new HashMap<>();
-	/** A sweep is due; drained on the next tick so a scene load costs one. */
-	private boolean sweepQueued;
+	/** Furniture found by the last sweep, grouped by the house room it sits
+	 *  in. Client thread, except the tab's Reset (EDT) — synchronizedMap
+	 *  keeps the clear atomic against a concurrent sweep. */
+	private final Map<Long, Set<Integer>> pendingByRoom =
+		java.util.Collections.synchronizedMap(new HashMap<>());
+	/** A sweep is due; drained on the next tick so a scene load costs one.
+	 *  Volatile with its siblings: the tab's Reset writes them off-thread. */
+	private volatile boolean sweepQueued;
 	/** Whether this scene has been swept to a useful result (reset on load). */
-	private boolean sweptThisScene;
+	private volatile boolean sweptThisScene;
 	/** Consecutive sweeps that saw nothing, so an empty house stops re-reading
 	 *  ~43k tiles every tick while a still-loading scene still gets retried. */
-	private int emptySweeps;
+	private volatile int emptySweeps;
 	private static final int MAX_EMPTY_SWEEPS = 5;
 	/** Whether the last sweep saw the game's unbuilt-hotspot markers — the
 	 *  scene's own corroboration that the house is being EDITED. */
@@ -479,7 +483,12 @@ public class PohModule implements IronHubModule
 			return;
 		}
 		Set<String> built = new HashSet<>();
-		for (Set<Integer> objectIds : pendingByRoom.values())
+		List<Set<Integer>> rooms; // snapshot: iteration vs the tab Reset's clear
+		synchronized (pendingByRoom)
+		{
+			rooms = new ArrayList<>(pendingByRoom.values());
+		}
+		for (Set<Integer> objectIds : rooms)
 		{
 			// 1. the room this chunk is, voted for by unambiguous furniture
 			Map<String, Integer> votes = new HashMap<>();
@@ -765,7 +774,9 @@ public class PohModule implements IronHubModule
 		PohTab open = tab;
 		if (open != null)
 		{
-			javax.swing.SwingUtilities.invokeLater(open::rebuild);
+			// the same coalesced, visibility-gated path state changes take —
+			// a bare invokeLater(rebuild) rebuilt hidden tabs per diagnostic
+			open.refresh();
 		}
 	}
 
@@ -806,9 +817,12 @@ public class PohModule implements IronHubModule
 	List<Integer> pendingObjects()
 	{
 		List<Integer> out = new ArrayList<>();
-		for (Set<Integer> ids : pendingByRoom.values())
+		synchronized (pendingByRoom)
 		{
-			out.addAll(ids);
+			for (Set<Integer> ids : pendingByRoom.values())
+			{
+				out.addAll(ids);
+			}
 		}
 		return out;
 	}

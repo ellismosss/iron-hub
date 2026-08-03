@@ -109,6 +109,9 @@ public class ClueStashModule implements IronHubModule
 			eventBus.unregister(this);
 		}
 		pendingStash = null;
+		// varbits may move while the module is off — a re-enable must sweep
+		// the STASH built states fresh, exactly like a new session
+		varbitsSwept = false;
 		if (tab != null)
 		{
 			tab.dispose();
@@ -280,26 +283,32 @@ public class ClueStashModule implements IronHubModule
 		return clues.stream().filter(c -> doable(c, state)).count();
 	}
 
-	private java.util.Map<String, ClueStepsPack.Stash> unitByClue;
+	// volatile: lazily built on whichever of the EDT / client thread asks
+	// first — unsafe publication could expose a half-built map
+	private volatile java.util.Map<String, ClueStepsPack.Stash> unitByClue;
 
 	/** The step's own STASH unit, or null. */
 	ClueStepsPack.Stash unitFor(ClueStepsPack.Clue clue)
 	{
-		if (unitByClue == null)
+		java.util.Map<String, ClueStepsPack.Stash> byClue = unitByClue;
+		if (byClue == null)
 		{
-			unitByClue = new java.util.HashMap<>();
+			// build fully, then publish — assigning the field first exposed
+			// a half-built map to the other thread
+			byClue = new java.util.HashMap<>();
 			if (pack != null)
 			{
 				for (ClueStepsPack.Stash unit : pack.stash)
 				{
 					if (unit.clueId != null)
 					{
-						unitByClue.putIfAbsent(unit.clueId, unit);
+						byClue.putIfAbsent(unit.clueId, unit);
 					}
 				}
 			}
+			unitByClue = byClue;
 		}
-		return unitByClue.get(clue.id);
+		return byClue.get(clue.id);
 	}
 
 	/**

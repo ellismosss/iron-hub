@@ -59,7 +59,9 @@ public class CombatAchievementsModule implements IronHubModule
 	private boolean reloadRequested;
 	/** A combat task completed this tick: reload, then chat the goal progress. */
 	private boolean announceAfterReload;
-	private Runnable tasksListener;
+	// volatile: written on the EDT (buildTab / theme flip), read by the
+	// client thread's catalog reload
+	private volatile Runnable tasksListener;
 
 	@Inject
 	public CombatAchievementsModule(AccountState state, IronHubConfig config, Client client,

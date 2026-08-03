@@ -169,10 +169,19 @@ public class HunterRumoursModule implements IronHubModule
 			overlayManager.remove(overlay);
 			overlay = null;
 		}
-		clearMapPoints();
 		if (clientThread != null)
 		{
-			clientThread.invoke(bankLayout::clear);
+			// mapPoints is client-thread-owned (refreshMapPoints marshals its
+			// writes there) — the shutdown clear must not race it from the EDT
+			clientThread.invoke(() ->
+			{
+				clearMapPoints();
+				bankLayout.clear();
+			});
+		}
+		else
+		{
+			clearMapPoints();
 		}
 		bankShow = false;
 		if (tab != null)
@@ -222,9 +231,11 @@ public class HunterRumoursModule implements IronHubModule
 
 	// ── record state ──────────────────────────────────────────────────
 
-	private void ensureLoaded()
+	private synchronized void ensureLoaded()
 	{
-		// reload on profile switch too — pushing profile A's cached records
+		// synchronized: the EDT (tab) and client thread (catch detection)
+		// both lazy-load; an unsynchronized check-then-act double-reloaded.
+		// Reload on profile switch too — pushing profile A's cached records
 		// into profile B overwrote B's rumour history, and a stale xp
 		// baseline could register a phantom catch (2026-07-20 audit)
 		int generation = state.profileGeneration();

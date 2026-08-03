@@ -238,6 +238,26 @@ class CombatAchievementsTab extends JPanel
 		print.add(typeFilter.selected());
 		print.add(new ArrayList<>(tierEnabled.values()));
 		print.add(new ArrayList<>(expandedTasks));
+		// the Combat Profile's own inputs — the module watches these varps/
+		// varbits, but without them here a kill count moving hashed identical
+		// and the profile view went stale until a task completed
+		com.ironhub.data.CaProfilePack profile = module.profilePack();
+		if (profile != null)
+		{
+			int vars = 1;
+			for (int varbit : profile.tasksCompletedVarbits)
+			{
+				vars = 31 * vars + state.getVarbit(varbit);
+			}
+			for (List<Integer> varps : profile.killVarps.values())
+			{
+				for (int varp : varps)
+				{
+					vars = 31 * vars + state.getVarp(varp);
+				}
+			}
+			print.add(vars);
+		}
 		print.add(profileExpanded);
 		return print;
 	}

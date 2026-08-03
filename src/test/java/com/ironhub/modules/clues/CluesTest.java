@@ -172,6 +172,32 @@ public class CluesTest
 			org.mockito.Mockito.never()).getVarbitValue(org.mockito.Mockito.anyInt());
 	}
 
+	/** Varbits move while the module is off — a disable/enable cycle must
+	 *  sweep the STASH built states fresh, exactly like a new session. */
+	@Test
+	public void reEnabledModuleSweepsBuiltVarbitsAgain()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		net.runelite.api.Client client = org.mockito.Mockito.mock(net.runelite.api.Client.class);
+		org.mockito.Mockito.when(client.getGameState())
+			.thenReturn(net.runelite.api.GameState.LOGGED_IN);
+		ClueStepsPack.Stash built = pack.stash.get(0);
+		org.mockito.Mockito.when(client.getVarbitValue(built.varbitId)).thenReturn(1);
+		ClueStashModule module = new ClueStashModule(state, config, new DataPack(new Gson()),
+			new EventBus(), client, null, null);
+		module.startUp();
+		module.onGameTick(null);
+		assertTrue(state.isStashBuilt(built.objectId));
+
+		module.shutDown();
+		module.startUp();
+		org.mockito.Mockito.clearInvocations(client);
+		module.onGameTick(null);
+		org.mockito.Mockito.verify(client,
+			org.mockito.Mockito.atLeastOnce()).getVarbitValue(built.varbitId);
+		module.shutDown();
+	}
+
 	@Test
 	public void readyToFillNeedsOwnershipAndAnUnfilledUnit()
 	{

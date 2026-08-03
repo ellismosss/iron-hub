@@ -248,6 +248,9 @@ public class SlayerOptimizerModule implements IronHubModule
 		if (npcOverlayService != null)
 		{
 			npcOverlayService.registerHighlighter(highlighter);
+			// re-evaluate NPCs already spawned — a mid-task module re-enable
+			// otherwise leaves the current task unhighlighted until respawn
+			npcOverlayService.rebuild();
 		}
 		if (infoBoxManager != null)
 		{
@@ -476,10 +479,12 @@ public class SlayerOptimizerModule implements IronHubModule
 
 	// ── detection ─────────────────────────────────────────────────────
 
-	private void ensureRecordsLoaded()
+	private synchronized void ensureRecordsLoaded()
 	{
-		// reload on profile switch too — pushing profile A's cached records
-		// into profile B overwrote B's whole slayer history (2026-07-20 audit)
+		// synchronized: the EDT (tab) and client thread both lazy-load; an
+		// unsynchronized check-then-act double-reloaded. Reload on profile
+		// switch too — pushing profile A's cached records into profile B
+		// overwrote B's whole slayer history (2026-07-20 audit)
 		int generation = state.profileGeneration();
 		if (!recordsLoaded || generation != recordsGeneration)
 		{
@@ -581,10 +586,9 @@ public class SlayerOptimizerModule implements IronHubModule
 					? "You usually skip " + name + " — but your goal plan wants drops here"
 					: "You always skip " + name + " — 30 pts at the rewards board");
 			}
-			if (tab != null)
-			{
-				SwingUtilities.invokeLater(tab::rebuild);
-			}
+			// no direct tab push: setSlayerTask above already notified the
+			// tab's RebuildGate listener — the bare invokeLater duplicated
+			// the rebuild and ignored the visibility gate
 		}
 	}
 

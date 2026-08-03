@@ -64,7 +64,9 @@ class DailiesNewTab extends JPanel
 	private final OsrsTheme theme;
 	private final SpriteCache sprites;
 	private final Runnable stateListener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
-	private final Runnable runListener = this::rebuild; // already on the EDT
+	// the run flow's ticks ride the same gate — a bare this::rebuild
+	// rebuilt a hidden tab on every run event
+	private final Runnable runListener = stateListener;
 
 	private final JPanel frame = new JPanel();
 
