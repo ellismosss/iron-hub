@@ -484,7 +484,15 @@ class SlayerTab extends JPanel
 		{
 			parts.add(QuantityFormatter.quantityToStackSize(record.lootValue) + " gp");
 		}
-		if (record.start > 0 && nowMs > record.start)
+		// ACTIVE time, not wall-clock (H5): kills are the clock's signal.
+		// Legacy records with no activity data keep the wall figure.
+		long active = com.ironhub.state.ActivityClock.activeElapsed(
+			record.activeMs, record.lastActivityMs, record.end, nowMs);
+		if (active >= 0)
+		{
+			parts.add(durationText(active) + " active");
+		}
+		else if (record.start > 0 && nowMs > record.start)
 		{
 			parts.add(durationText(nowMs - record.start));
 		}

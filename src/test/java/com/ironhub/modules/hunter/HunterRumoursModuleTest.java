@@ -215,6 +215,9 @@ public class HunterRumoursModuleTest
 				pack.hunterByNpcName("Guild Hunter Gilman"));
 			module.feedHunterXp(1000);
 			module.feedHunterXp(1152); // one catch
+			// a saved setup: the render shows Replace + Show in bank on one
+			// row (H1/H3 chip sizing) and the transient saved line (H2)
+			module.saveRumourSetup();
 		});
 		javax.swing.SwingUtilities.invokeAndWait(() -> { });
 		BufferedImage rumour = SwingRender.render((JPanel) tab);

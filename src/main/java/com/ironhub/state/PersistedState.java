@@ -84,6 +84,8 @@ public class PersistedState
 		public long start;         // epoch ms
 		public long end;           // 0 while active
 		public boolean completed;
+		public long activeMs;       // idle-gated active time (ActivityClock)
+		public long lastActivityMs; // last kill signal; 0 = legacy record
 
 		public SlayerTaskRecord copy()
 		{
@@ -98,6 +100,8 @@ public class PersistedState
 			c.start = start;
 			c.end = end;
 			c.completed = completed;
+			c.activeMs = activeMs;
+			c.lastActivityMs = lastActivityMs;
 			return c;
 		}
 	}
@@ -118,6 +122,8 @@ public class PersistedState
 		public boolean pieceFound;
 		public long start;
 		public long end;      // 0 while active
+		public long activeMs;       // idle-gated active time (ActivityClock)
+		public long lastActivityMs; // last Hunter xp signal; 0 = legacy record
 
 		public RumourRecord copy()
 		{
@@ -128,6 +134,8 @@ public class PersistedState
 			c.pieceFound = pieceFound;
 			c.start = start;
 			c.end = end;
+			c.activeMs = activeMs;
+			c.lastActivityMs = lastActivityMs;
 			return c;
 		}
 	}

@@ -351,5 +351,17 @@ public class V2ChipRow extends JPanel
 			return new Dimension(label.getPreferredSize().width + 2 * V2Tokens.SECTION,
 				V2Tokens.CONTROL_HEIGHT);
 		}
+
+		/** A chip never shrinks below its label + end caps: BoxLayout
+		 *  squeezes children toward their MINIMUM when a row runs tight,
+		 *  and the label's squeezable minimum let the chip collapse until
+		 *  its text hung outside the art (the Hunter Route/Show-bank
+		 *  clipping, H1/H4 2026-08-03). The squeezable NEIGHBOUR (a name
+		 *  label) is what gives way instead. */
+		@Override
+		public Dimension getMinimumSize()
+		{
+			return getPreferredSize();
+		}
 	}
 }

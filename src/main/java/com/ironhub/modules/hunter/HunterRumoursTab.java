@@ -35,6 +35,9 @@ import net.runelite.client.game.ItemManager;
  */
 class HunterRumoursTab extends JPanel
 {
+	/** How long the "Setup saved" confirmation shows (H2). */
+	static final long SAVED_FLASH_MS = 4_000L;
+
 	private static final int MAX_HISTORY = 20;
 
 	private final AccountState state;
@@ -191,20 +194,31 @@ class HunterRumoursTab extends JPanel
 
 		content.add(section("Gear"));
 		PersistedState.SavedSetup setup = module.rumourSetup();
+		long savedAgo = System.currentTimeMillis() - module.setupSavedAtMs();
 		if (setup == null)
 		{
 			content.add(textLine("No setup saved for " + rumour.trap.toLowerCase() + " rumours",
 				OsrsSkin.FAINT, OsrsSkin.smallFont()));
 		}
-		else
+		else if (savedAgo < SAVED_FLASH_MS)
 		{
+			// a transient confirmation, not permanent copy (H2): visible a
+			// few seconds after saving/replacing, then gone on its own
 			content.add(textLine("Setup saved for " + rumour.trap.toLowerCase()
-				+ " rumours — the Loadout tab shows it", OsrsSkin.VALUE, OsrsSkin.smallFont()));
+				+ " rumours", OsrsSkin.VALUE, OsrsSkin.smallFont()));
+			javax.swing.Timer fade = new javax.swing.Timer(
+				(int) (SAVED_FLASH_MS - savedAgo) + 50, e -> rebuild());
+			fade.setRepeats(false);
+			fade.start();
 		}
 		JPanel gearButtons = row(2);
 		JComponent save = V2ChipRow.action(theme,
-			setup == null ? "Save current gear" : "Replace with current gear", null, null,
-			OsrsSkin.smallFont(), module::saveRumourSetup);
+			setup == null ? "Save current gear" : "Replace", null, null,
+			OsrsSkin.smallFont(), () ->
+			{
+				module.saveRumourSetup();
+				rebuild();
+			});
 		gearButtons.add(save);
 		if (setup != null)
 		{
@@ -329,9 +343,16 @@ class HunterRumoursTab extends JPanel
 		card.add(top);
 
 		JPanel bottom = row(0);
+		// ACTIVE time, not wall-clock (H5): the clock only runs while
+		// Hunter xp flows. Legacy records (no activity data) keep the old
+		// wall figure rather than inventing one.
+		long active = com.ironhub.state.ActivityClock.activeElapsed(
+			record.activeMs, record.lastActivityMs, record.end, System.currentTimeMillis());
+		long shown = active >= 0 ? active
+			: (record.end == 0 ? System.currentTimeMillis() : record.end) - record.start;
 		bottom.add(new OsrsLabel(record.caught + (record.caught == 1 ? " catch" : " catches")
-			+ (record.start > 0 ? " · " + durationText(
-				(record.end == 0 ? System.currentTimeMillis() : record.end) - record.start) : ""),
+			+ (record.start > 0 ? " · " + durationText(shown)
+				+ (active >= 0 ? " active" : "") : ""),
 			OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
 		bottom.add(Box.createHorizontalGlue());
 		cap(bottom);

@@ -632,6 +632,13 @@ public class SlayerOptimizerModule implements IronHubModule
 				{
 					active.xpGained = Math.max(0, state.getXp(Skill.SLAYER) - active.xpStart);
 				}
+				// idle-gated task duration (H5): kills are the activity
+				// signal; a break longer than the grace window doesn't
+				// count toward "time taken"
+				long now = System.currentTimeMillis();
+				active.activeMs = com.ironhub.state.ActivityClock.accrue(
+					active.activeMs, active.lastActivityMs, now);
+				active.lastActivityMs = now;
 				dirty = true;
 			}
 			// a genuine completion is an EXACT +1 with kills observed this

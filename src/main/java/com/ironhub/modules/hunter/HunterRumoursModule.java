@@ -446,6 +446,16 @@ public class HunterRumoursModule implements IronHubModule
 		lastHunterXp = xp;
 		HunterRumoursPack.Rumour rumour = currentRumour();
 		PersistedState.RumourRecord active = active();
+		if (active != null && gained > 0)
+		{
+			// the timer runs on ACTIVITY, not the wall clock (H5): any
+			// Hunter xp is hunting; a gap beyond the grace window means
+			// the player moved on, and the clock resumes with them
+			long now = System.currentTimeMillis();
+			active.activeMs = com.ironhub.state.ActivityClock.accrue(
+				active.activeMs, active.lastActivityMs, now);
+			active.lastActivityMs = now;
+		}
 		if (rumour != null && active != null && !active.pieceFound && rumour.matchesCatchXp(gained))
 		{
 			active.caught++;
@@ -672,13 +682,23 @@ public class HunterRumoursModule implements IronHubModule
 		return rumour == null ? null : state.savedSetup(setupKey(rumour));
 	}
 
+	/** When the setup was last saved/replaced — drives the tab's transient
+	 *  "Setup saved" confirmation (H2); 0 = not this session. */
+	private long setupSavedAtMs;
+
 	void saveRumourSetup()
 	{
 		HunterRumoursPack.Rumour rumour = currentRumour();
 		if (rumour != null)
 		{
 			state.saveSetup(setupKey(rumour), state.captureSetup());
+			setupSavedAtMs = System.currentTimeMillis();
 		}
+	}
+
+	long setupSavedAtMs()
+	{
+		return setupSavedAtMs;
 	}
 
 	boolean bankShowArmed()
