@@ -33,25 +33,32 @@ WIKI_API = "https://oldschool.runescape.wiki/api.php"
 # the original pack's 9 hand-audited entries, kept VERBATIM — ids are
 # load-bearing (QolModuleTest, persisted qol:<id> goal seeds) and their
 # graph-parseable requirements (skill:/quest:) gate better than prose
+    # Currency costs are GRAPH LEAVES, never prose (G5, 2026-08-03: the
+    # gem bag rendered "can't detect progress" while the plugin knew the
+    # nugget count all along). Item currencies (golden nuggets 12012,
+    # marks of grace 11849) count live from bank+carried via item:;
+    # point currencies with a documented balance varbit (Tithe 4893,
+    # Slayer 4068 — DOMAIN-NOTES) track via varbit:. A prose requirement
+    # is a never-met manual gate and means "go tick this yourself".
 LEGACY = [
     {"id": "herb_sack", "name": "Herb sack", "itemIds": [13226],
-     "requirements": ["250 Tithe Farm points"]},
+     "requirements": ["varbit:4893:250:Tithe Farm points"]},
     {"id": "seed_box", "name": "Seed box", "itemIds": [13639],
-     "requirements": ["250 Tithe Farm points"]},
+     "requirements": ["varbit:4893:250:Tithe Farm points"]},
     {"id": "coal_bag", "name": "Coal bag", "itemIds": [12019],
-     "requirements": ["100 golden nuggets (Motherlode Mine)"]},
+     "requirements": ["item:12012:100:Golden nuggets"]},
     {"id": "gem_bag", "name": "Gem bag", "itemIds": [12020],
-     "requirements": ["100 golden nuggets (Motherlode Mine)"]},
+     "requirements": ["item:12012:100:Golden nuggets"]},
     {"id": "rune_pouch", "name": "Rune pouch", "itemIds": [12791],
-     "requirements": ["750 Slayer reward points"]},
+     "requirements": ["varbit:4068:750:Slayer reward points"]},
     {"id": "graceful_hood", "name": "Graceful hood", "itemIds": [11850],
-     "requirements": ["35 marks of grace"]},
+     "requirements": ["item:11849:35:Marks of grace"]},
     {"id": "ava_accumulator", "name": "Ava's accumulator", "itemIds": [10499],
      "requirements": ["skill:Ranged:50", "quest:Animal Magnetism"]},
     {"id": "ava_assembler", "name": "Ava's assembler", "itemIds": [22109],
      "requirements": ["quest:Dragon Slayer II"]},
-    {"id": "dragon_defender", "name": "Dragon defender", "itemIds": [12954],
-     "requirements": ["skill:Attack:60", "skill:Defence:60"]},
+    # Dragon defender removed (Luke, 2026-07-28) — a combat drop, not a
+    # QoL unlock; Gear progression already covers it
 ]
 
 # utility unlocks beyond storage items (same list the KB catalog uses);
@@ -178,11 +185,22 @@ def benefits():
     for name, effect in conn.execute("SELECT name, effect FROM qol_items"):
         if not effect:
             continue
-        text = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", r"\1", effect)
-        text = re.sub(r"'{2,}", "", re.sub(r"\{\{[^}]*\}\}", "", text)).strip()
+        # file links go first — the display-text regex would keep their
+        # "left|150px" tail (the Bruma torch bug, 2026-07-28)
+        text = re.sub(r"\[\[[Ff]ile:[^\]]*\]\]", "", effect)
+        text = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]*)\]\]", r"\1", text)
+        # templates innermost-first, so nested ones vanish completely
+        while True:
+            stripped = re.sub(r"\{\{[^{}]*\}\}", "", text)
+            if stripped == text:
+                break
+            text = stripped
+        text = re.sub(r"'{2,}", "", text).strip()
         if len(text) > 300:
             text = text[:297].rstrip() + "..."
-        if text:
+        # an effect that was ALL markup leaves residue, not prose — no
+        # benefit beats a garbled one
+        if text and not re.search(r"[{}\[\]|]", text):
             out[name.lower()] = text
     conn.close()
     return out
@@ -208,6 +226,32 @@ def add_tier_implications(unlocks):
     print(f"  tier implications: {added} higher-tier ids added")
 
 
+# the trackable currencies: item ids count from bank+carried, varbits are
+# the game's own documented balance counters (DOMAIN-NOTES). Anything else
+# stays prose — an honest manual step, never a pretend figure.
+TRACKED_CURRENCIES = [
+    (re.compile(r"^(\d[\d,]*)\s+golden nuggets?\b", re.I),
+     "item:12012:{qty}:Golden nuggets"),
+    (re.compile(r"^(\d[\d,]*)\s+marks? of grace\b", re.I),
+     "item:11849:{qty}:Marks of grace"),
+    (re.compile(r"^(\d[\d,]*)\s+Tithe Farm points?\b", re.I),
+     "varbit:4893:{qty}:Tithe Farm points"),
+    (re.compile(r"^(\d[\d,]*)\s+Slayer reward points?\b", re.I),
+     "varbit:4068:{qty}:Slayer reward points"),
+]
+
+
+def currency_leaf(prose):
+    """'100 golden nuggets (Motherlode Mine)' -> 'item:12012:100:Golden
+    nuggets' — a quantity of a trackable currency becomes a live graph
+    leaf instead of a never-met manual gate (G5)."""
+    for pattern, template in TRACKED_CURRENCIES:
+        m = pattern.match(prose.strip())
+        if m:
+            return template.format(qty=m.group(1).replace(",", ""))
+    return prose
+
+
 def main():
     index = item_index()
     benefit_by_name = benefits()
@@ -226,7 +270,7 @@ def main():
             skipped.append(name)
             continue
         prose = recipe_prose(name)
-        reqs = [prose] if prose else []
+        reqs = [currency_leaf(prose)] if prose else []
         # Luke 2026-07-22: the imbued whistle counts as owning the perfected
         extra = {"Perfected quetzal whistle": [33120]}.get(name, [])
         unlocks.append({

@@ -69,7 +69,7 @@ public class EdtCostProbeTest
 		IronHubPanel[] panel = new IronHubPanel[1];
 		long t0 = System.nanoTime();
 		SwingUtilities.invokeAndWait(() ->
-			panel[0] = new IronHubPanel(modules, state, config));
+			panel[0] = new IronHubPanel(modules, state, config, null));
 		System.out.printf("panel + home build: %d ms%n", ms(t0));
 
 		// open every block once — the tab-construction cost a first click pays
@@ -168,9 +168,11 @@ public class EdtCostProbeTest
 			new QuestsModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null),
 			new DiariesModule(state, config, new DataPack(new Gson())),
 			new CombatAchievementsModule(state, config, null,
-				new net.runelite.client.eventbus.EventBus(), new DataPack(new Gson()), null),
-			new QolModule(state, config, new DataPack(new Gson()), null),
-			new LootModule(state, null, config),
+				new net.runelite.client.eventbus.EventBus(), new DataPack(new Gson()), null, null),
+			new QolModule(state, config, new DataPack(new Gson()), null, null),
+			new LootModule(state, null, config, null,
+				new net.runelite.client.eventbus.EventBus(),
+				new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new BankTrackerModule(state, null, null, null, null, null, null, null, null, null, config, new DataPack(new Gson()), null, null),
 			new FarmingRunModule(state, null, new net.runelite.client.eventbus.EventBus(),
 				null, null, null, config, null, new DataPack(new Gson()),
@@ -179,28 +181,28 @@ public class EdtCostProbeTest
 				null, null, null, null, null, null, null, null, null, null, null),
 			new GoalPlannerModule(state, config, new DataPack(new Gson()), null),
 			new ClueStashModule(state, config, new DataPack(new Gson()),
-				new net.runelite.client.eventbus.EventBus(), null),
+				new net.runelite.client.eventbus.EventBus(), null, null, null),
 			new SlayerOptimizerModule(state, null, null, config, null, null,
 				new net.runelite.client.eventbus.EventBus(), null, null, null,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null, null, null, null, null),
 			new SuppliesRunwayModule(state, null, config, null),
 			new CollectionLogModule(state, null, null,
 				new net.runelite.client.eventbus.EventBus(), config, new DataPack(new Gson()), null),
-			new ExternalSyncModule(state, null, new net.runelite.client.eventbus.EventBus(),
-				config, null, new Gson()),
+			new ExternalSyncModule(null, new net.runelite.client.eventbus.EventBus(),
+				config, null),
 			new DashboardModule(),
 			new DeathRecoveryModule(state, null, config, null),
 			new com.ironhub.modules.loadoutlab.LoadoutLabModule(
 				new com.loadoutlab.LoadoutLabPlugin(), new net.runelite.client.eventbus.EventBus(),
 				config, state, null, null, null, new Gson(), null, null, null, null),
 			new com.ironhub.modules.designlab.DesignLabModule(config,
-				new net.runelite.client.eventbus.EventBus()),
+				new net.runelite.client.eventbus.EventBus(), null),
 			new com.ironhub.modules.dailies.DailiesNewModule(
 				new DailiesModule(state, null, config, new DataPack(new Gson()),
 					null, null, null, null, null, null, null, null, null, null, null),
 				config),
 			new com.ironhub.modules.poh.PohModule(state, config, new DataPack(new Gson()),
-				new net.runelite.client.eventbus.EventBus(), null),
+				new net.runelite.client.eventbus.EventBus(), null, null),
 			new com.ironhub.modules.hunter.HunterRumoursModule(state, config, new DataPack(new Gson()),
 				null, null, new net.runelite.client.eventbus.EventBus(), null, null,
 				null, null, null, null, null, null));

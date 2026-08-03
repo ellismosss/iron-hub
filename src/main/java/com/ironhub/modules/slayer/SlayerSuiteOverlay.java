@@ -46,6 +46,7 @@ class SlayerSuiteOverlay extends OverlayPanel
 	private List<String> missing = List.of();
 	private boolean onSkipList;
 	private boolean inTuraelArea;
+	private boolean taskNpcsNearby;
 	private String preferredLocation;
 
 	private void snapshot(SlayerTasksPack.Task entry)
@@ -59,6 +60,7 @@ class SlayerSuiteOverlay extends OverlayPanel
 		missing = module.missingBring();
 		onSkipList = module.onSkipList();
 		inTuraelArea = entry != null && entry.turael != null && module.inTuraelArea();
+		taskNpcsNearby = module.taskNpcsNearby();
 		preferredLocation = entry == null || entry.locations == null || entry.locations.isEmpty()
 			? null : module.preferredLocationName(entry);
 	}
@@ -72,35 +74,45 @@ class SlayerSuiteOverlay extends OverlayPanel
 			return null;
 		}
 		panelComponent.getChildren().clear();
-		panelComponent.setBackgroundColor(UiTokens.OVERLAY_BG);
+		// the STANDARD RuneLite overlay background, exactly like the goals
+		// planner — PanelComponent defaults to it, so never override
+		// (Luke, 2026-08-03 round 3)
 		panelComponent.setPreferredSize(new Dimension(WIDTH, 0));
 
 		String task = module.taskName();
-		panelComponent.getChildren().add(LineComponent.builder()
-			.left(task.isEmpty() ? "Slayer task" : task).leftColor(Color.WHITE)
-			.right(remaining + " left").rightColor(UiTokens.OVERLAY_VALUE)
-			.build());
-
 		int assigned = module.initialAmount();
+		// "Bloodvelds x150 ... 63 left" — the name white, the TOTAL assigned
+		// amount grey right after it (Luke, round 4: the total, not the
+		// remaining count — "N left" already carries that)
+		panelComponent.getChildren().add(new TwoToneLine(
+			task.isEmpty() ? "Slayer task" : task, Color.WHITE,
+			assigned > 0 ? " x" + assigned : "", UiTokens.CANVAS_LOCKED,
+			remaining + " left", UiTokens.OVERLAY_VALUE));
+		if (assigned >= remaining && assigned > 0)
+		{
+			// the kill-count bar (S3): the SAME small bar as the goals
+			// overlay (R10) — the "N left" on the title line carries the count
+			panelComponent.getChildren().add(new com.ironhub.ui.components.OverlayStoneBar(
+				(assigned - remaining) / (double) assigned, config.osrsTheme(), WIDTH - 8));
+		}
 		String master = module.masterName();
 		String area = module.areaName();
 		String meta = (master.isEmpty() ? "" : master)
 			+ (area.isEmpty() ? "" : (master.isEmpty() ? "" : " · ") + area);
-		if (!meta.isEmpty() || assigned >= remaining)
+		if (!meta.isEmpty())
 		{
+			// the S3 bar above carries the kill count — no duplicate figure
 			panelComponent.getChildren().add(LineComponent.builder()
 				.left(meta).leftColor(UiTokens.CANVAS_LOCKED)
-				.right(assigned >= remaining && assigned > 0
-					? (assigned - remaining) + "/" + assigned : "")
-				.rightColor(UiTokens.CANVAS_LOCKED)
 				.build());
 		}
 
 		PersistedState.SlayerTaskRecord active = module.activeRecord();
 		if (active != null && (active.xpGained > 0 || active.lootValue > 0))
 		{
+			// no "active" wording in the overlay (Luke, live-test round 2)
 			panelComponent.getChildren().add(LineComponent.builder()
-				.left(SlayerTab.taskStatsLine(active, System.currentTimeMillis()))
+				.left(SlayerTab.taskStatsLine(active, System.currentTimeMillis(), false))
 				.leftColor(UiTokens.CANVAS_LOCKED)
 				.build());
 		}
@@ -136,10 +148,12 @@ class SlayerSuiteOverlay extends OverlayPanel
 	}
 
 	/** Turael spot + teleports (suppressed once in the kill area), else the
-	 *  preferred/first pack location by name. */
+	 *  preferred/first pack location by name. ALL location lines suppress
+	 *  while task NPCs are in the scene — you're already there (Luke,
+	 *  live-test round 2). */
 	private void locationLines(SlayerTasksPack.Task entry)
 	{
-		if (entry == null)
+		if (entry == null || taskNpcsNearby)
 		{
 			return;
 		}
@@ -179,6 +193,84 @@ class SlayerSuiteOverlay extends OverlayPanel
 			panelComponent.getChildren().add(LineComponent.builder()
 				.left(preferredLocation).leftColor(Color.YELLOW)
 				.build());
+		}
+	}
+
+	/** One line, two colours side by side on the left (the task name white,
+	 *  its count grey immediately after — LineComponent can only colour a
+	 *  whole side), plus an optional right-aligned segment ("63 left"). */
+	private static final class TwoToneLine
+		implements net.runelite.client.ui.overlay.components.LayoutableRenderableEntity
+	{
+		private final String left;
+		private final Color leftColor;
+		private final String leftTail;
+		private final Color leftTailColor;
+		private final String right;
+		private final Color rightColor;
+		private final java.awt.Rectangle bounds = new java.awt.Rectangle();
+		private java.awt.Point location = new java.awt.Point();
+		private int width;
+
+		TwoToneLine(String left, Color leftColor, String leftTail, Color leftTailColor,
+			String right, Color rightColor)
+		{
+			this.left = left;
+			this.leftColor = leftColor;
+			this.leftTail = leftTail;
+			this.leftTailColor = leftTailColor;
+			this.right = right;
+			this.rightColor = rightColor;
+		}
+
+		private void shadowed(Graphics2D graphics, String text, Color color, int x, int baseline)
+		{
+			// the standard overlay text shadow, like TextComponent draws
+			graphics.setColor(Color.BLACK);
+			graphics.drawString(text, x + 1, baseline + 1);
+			graphics.setColor(color);
+			graphics.drawString(text, x, baseline);
+		}
+
+		@Override
+		public Dimension render(Graphics2D graphics)
+		{
+			java.awt.FontMetrics metrics = graphics.getFontMetrics();
+			int baseline = location.y + metrics.getHeight();
+			shadowed(graphics, left, leftColor, location.x, baseline);
+			shadowed(graphics, leftTail, leftTailColor,
+				location.x + metrics.stringWidth(left), baseline);
+			int lineWidth = Math.max(width, metrics.stringWidth(left + leftTail));
+			if (right != null && !right.isEmpty())
+			{
+				shadowed(graphics, right, rightColor,
+					location.x + lineWidth - metrics.stringWidth(right), baseline);
+			}
+			Dimension dimension = new Dimension(lineWidth, metrics.getHeight() + 2);
+			bounds.setLocation(location);
+			bounds.setSize(dimension);
+			return dimension;
+		}
+
+		@Override
+		public java.awt.Rectangle getBounds()
+		{
+			return bounds;
+		}
+
+		@Override
+		public void setPreferredLocation(java.awt.Point position)
+		{
+			this.location = position;
+		}
+
+		@Override
+		public void setPreferredSize(Dimension dimension)
+		{
+			if (dimension != null && dimension.width > 0)
+			{
+				width = dimension.width;
+			}
 		}
 	}
 }

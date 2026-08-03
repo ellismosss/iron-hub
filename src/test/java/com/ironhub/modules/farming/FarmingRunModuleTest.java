@@ -40,8 +40,16 @@ public class FarmingRunModuleTest
 	@Rule
 	public TemporaryFolder temp = new TemporaryFolder();
 
+	/** Vanilla, not the config default. {@code osrsTheme()} defaults to MYSTIC,
+	 *  so every render this test wrote came out grey — and the renders exist to
+	 *  be judged against the Vanilla design system (Luke, 2026-07-25). */
 	private final IronHubConfig config = new IronHubConfig()
 	{
+		@Override
+		public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+		{
+			return com.ironhub.ui.osrs.OsrsTheme.STONE;
+		}
 	};
 
 	private FarmingRunModule module(AccountState state, ConfigManager configManager, Notifier notifier)
@@ -879,23 +887,46 @@ public class FarmingRunModuleTest
 	}
 
 	@Test
-	public void overviewTilesMergeCalquatCelastrusIntoTreeAndSpecials()
+	public void overviewTilesFollowTheF1Taxonomy()
 	{
-		assertEquals(com.ironhub.modules.farming.rl.Tab.TREE,
-			FarmingRunModule.displayGroup(com.ironhub.modules.farming.rl.Tab.CALQUAT));
-		assertEquals(com.ironhub.modules.farming.rl.Tab.TREE,
-			FarmingRunModule.displayGroup(com.ironhub.modules.farming.rl.Tab.CELASTRUS));
+		// the F1 tile taxonomy (Luke, 2026-08-03), keyed on the patch
+		// IMPLEMENTATION: Tree absorbs hardwood + spirit; Fruit tree absorbs
+		// calquat/celastrus/crystal; compost bins merge; Hespori, Anima and
+		// Redwood stand alone; the leftover specials stay Special
+		com.ironhub.modules.farming.rl.Tab tree = com.ironhub.modules.farming.rl.Tab.TREE;
+		assertEquals(tree, FarmingRunModule.displayGroup(
+			com.ironhub.modules.farming.rl.PatchImplementation.HARDWOOD_TREE));
+		assertEquals(tree, FarmingRunModule.displayGroup(
+			com.ironhub.modules.farming.rl.PatchImplementation.SPIRIT_TREE));
+		com.ironhub.modules.farming.rl.Tab fruit = com.ironhub.modules.farming.rl.Tab.FRUIT_TREE;
+		assertEquals(fruit, FarmingRunModule.displayGroup(
+			com.ironhub.modules.farming.rl.PatchImplementation.CALQUAT));
+		assertEquals(fruit, FarmingRunModule.displayGroup(
+			com.ironhub.modules.farming.rl.PatchImplementation.CELASTRUS));
+		assertEquals(fruit, FarmingRunModule.displayGroup(
+			com.ironhub.modules.farming.rl.PatchImplementation.CRYSTAL_TREE));
+		assertEquals(com.ironhub.modules.farming.rl.Tab.BIG_COMPOST,
+			FarmingRunModule.displayGroup(
+				com.ironhub.modules.farming.rl.PatchImplementation.COMPOST));
+		assertEquals(com.ironhub.modules.farming.rl.Tab.HESPORI,
+			FarmingRunModule.displayGroup(
+				com.ironhub.modules.farming.rl.PatchImplementation.HESPORI));
+		assertEquals(com.ironhub.modules.farming.rl.Tab.ANIMA,
+			FarmingRunModule.displayGroup(
+				com.ironhub.modules.farming.rl.PatchImplementation.ANIMA));
+		assertEquals(com.ironhub.modules.farming.rl.Tab.REDWOOD,
+			FarmingRunModule.displayGroup(
+				com.ironhub.modules.farming.rl.PatchImplementation.REDWOOD));
 		assertEquals(com.ironhub.modules.farming.rl.Tab.SPECIAL,
-			FarmingRunModule.displayGroup(com.ironhub.modules.farming.rl.Tab.HESPORI));
+			FarmingRunModule.displayGroup(
+				com.ironhub.modules.farming.rl.PatchImplementation.SEAWEED));
 		assertEquals(com.ironhub.modules.farming.rl.Tab.SPECIAL,
-			FarmingRunModule.displayGroup(com.ironhub.modules.farming.rl.Tab.MUSHROOM));
-		assertEquals(com.ironhub.modules.farming.rl.Tab.SPECIAL,
-			FarmingRunModule.displayGroup(com.ironhub.modules.farming.rl.Tab.BELLADONNA));
-		assertEquals(com.ironhub.modules.farming.rl.Tab.SPECIAL,
-			FarmingRunModule.displayGroup(com.ironhub.modules.farming.rl.Tab.CACTUS));
+			FarmingRunModule.displayGroup(
+				com.ironhub.modules.farming.rl.PatchImplementation.CORAL));
 		// unmerged categories keep their own tile
 		assertEquals(com.ironhub.modules.farming.rl.Tab.HERB,
-			FarmingRunModule.displayGroup(com.ironhub.modules.farming.rl.Tab.HERB));
+			FarmingRunModule.displayGroup(
+				com.ironhub.modules.farming.rl.PatchImplementation.HERB));
 	}
 
 	@Test
@@ -1073,7 +1104,7 @@ public class FarmingRunModuleTest
 			module.stopLabel(stop(module, "celastrus/farming-guild")));
 
 		// a long run's overlay must still fit the 250x200 budget (capped list)
-		FarmingRunOverlay overlay = new FarmingRunOverlay(module);
+		FarmingRunOverlay overlay = new FarmingRunOverlay(module, new com.ironhub.IronHubConfig() {});
 		java.awt.image.BufferedImage canvas = new java.awt.image.BufferedImage(
 			300, 300, java.awt.image.BufferedImage.TYPE_INT_RGB);
 		java.awt.Graphics2D g = canvas.createGraphics();
@@ -1138,15 +1169,19 @@ public class FarmingRunModuleTest
 		worn[net.runelite.api.EquipmentInventorySlot.CAPE.getSlotIdx()] = 1052;
 		worn[net.runelite.api.EquipmentInventorySlot.RING.getSlotIdx()] = 13126;
 		StateFixture.equipmentSlots(before, worn);
-		StateFixture.inventorySlots(before, new int[]{8013, 5291, 5291, 0});
-		StateFixture.inventory(before, Map.of(8013, 3, 5291, 5));
+		// tabs and seeds stack (one slot holds the whole quantity); the two
+		// herb slots are unstackable — one each, never the per-id total
+		StateFixture.inventorySlots(before, new int[]{8013, 5291, 257, 257});
+		StateFixture.inventory(before, Map.of(8013, 3, 5291, 5, 257, 2));
 
 		com.ironhub.state.PersistedState.SavedSetup setup = before.captureSetup();
 		assertEquals((Integer) 1052, setup.equipment.get("CAPE"));
 		assertEquals((Integer) 13126, setup.equipment.get("RING"));
 		assertEquals(8013, setup.inventory[0]);
 		assertEquals(3, setup.inventoryQty[0]);
-		assertEquals(5, setup.inventoryQty[1]); // 5 grimy... seeds stacked
+		assertEquals(5, setup.inventoryQty[1]); // 5 seeds in their one stack
+		assertEquals(1, setup.inventoryQty[2]); // unstackable herbs split
+		assertEquals(1, setup.inventoryQty[3]);
 		before.saveFarmRunSetup("My herbs", setup);
 
 		AccountState after = StateFixture.state(temp.getRoot());
@@ -1378,6 +1413,13 @@ public class FarmingRunModuleTest
 		assertEquals((Integer) 12_000, record.xpByBucket.get("Trees"));
 		assertEquals((Integer) 1_500, record.xpByBucket.get("Herbs"));
 		assertEquals((Integer) 3, record.herbsByType.get(207));
+		// X4 2026-08-03: the record carries the idle-gated activity fields —
+		// lastActivityMs set marks it non-legacy, so display goes through
+		// ActivityClock.activeElapsed instead of the wall clock
+		assertTrue("a new record is never 'legacy'", record.lastActivityMs > 0);
+		assertTrue(record.activeMs >= 0);
+		assertTrue("active can never exceed wall-clock",
+			record.activeMs <= record.durationMs);
 
 		// with history, the sidebar rates exist: 12,000 tree xp per run and
 		// 3 ranarr x 95 potential Herblore xp
@@ -1470,7 +1512,7 @@ public class FarmingRunModuleTest
 		}
 		List<String> warnings = module.supplyWarnings();
 		assertTrue(warnings.toString(),
-			warnings.contains("Ultracompost 0/4 — a Supercompost run makes more"));
+			warnings.contains("Ultracompost 0/4"));
 		assertTrue(warnings.toString(), warnings.contains("Herb seeds 0/4"));
 
 		// two ranarr seeds and two ultracompost: still short, counted honestly
@@ -1480,13 +1522,13 @@ public class FarmingRunModuleTest
 		warnings = module.supplyWarnings();
 		assertTrue(warnings.toString(), warnings.contains("Herb seeds 2/4"));
 		assertTrue(warnings.toString(),
-			warnings.contains("Ultracompost 2/4 — a Supercompost run makes more"));
+			warnings.contains("Ultracompost 2/4"));
 
 		// where-from hovers ride the same pass (the KB projection): the
 		// ultracompost line names its source, seed shortages an example seed
 		java.util.LinkedHashMap<String, String> details = module.supplyWarningDetails();
 		assertEquals(warnings, new java.util.ArrayList<>(details.keySet()));
-		assertNotNull(details.get("Ultracompost 2/4 — a Supercompost run makes more"));
+		assertNotNull(details.get("Ultracompost 2/4"));
 		String seedSource = details.get("Herb seeds 2/4");
 		assertTrue(String.valueOf(seedSource),
 			seedSource == null || seedSource.startsWith("e.g. "));
@@ -1637,7 +1679,7 @@ public class FarmingRunModuleTest
 		assertTrue(module.farmingXpGained() > 0);
 		assertEquals(6, module.herbsHarvested());
 
-		FarmingRunOverlay overlay = new FarmingRunOverlay(module);
+		FarmingRunOverlay overlay = new FarmingRunOverlay(module, new com.ironhub.IronHubConfig() {});
 		java.awt.image.BufferedImage canvas = new java.awt.image.BufferedImage(
 			300, 260, java.awt.image.BufferedImage.TYPE_INT_RGB);
 		java.awt.Graphics2D g = canvas.createGraphics();

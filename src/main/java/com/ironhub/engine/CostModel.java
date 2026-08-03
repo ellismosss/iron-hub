@@ -182,22 +182,34 @@ public final class CostModel
 		return Math.max(effects.minTravelFactor, factor);
 	}
 
-	/** Credit cross-skill byproduct xp for training origin over an xp span. */
-	public static void applyBonuses(Skill origin, long trainedXp, ProjectedState projection,
-		MethodsPack methods)
+	/** Credit cross-skill byproduct xp for training origin across an xp
+	 *  span, honouring each bonus's xp band — Fishing's Agility/Strength
+	 *  byproduct starts at barbarian fishing (~224k xp), not level 1, and
+	 *  crediting the whole span made pending Agility steps read as free.
+	 *  Banked (materials) xp earns no byproduct: credit scales by the
+	 *  active share of the span. */
+	public static void applyBonuses(Skill origin, long xpBefore, long xpAfter, long activeXp,
+		ProjectedState projection, MethodsPack methods)
 	{
+		long gained = xpAfter - xpBefore;
 		MethodsPack.SkillLadder ladder = methods == null ? null : methods.ladder(origin);
-		if (ladder == null || ladder.bonuses == null)
+		if (ladder == null || ladder.bonuses == null || gained <= 0 || activeXp <= 0)
 		{
 			return;
 		}
+		double activeShare = Math.min(1.0, activeXp / (double) gained);
 		for (MethodsPack.Bonus bonus : ladder.bonuses)
 		{
+			long overlap = Math.min(xpAfter, bonus.endXp) - Math.max(xpBefore, bonus.startXp);
+			if (overlap <= 0)
+			{
+				continue;
+			}
 			for (Skill skill : Skill.values())
 			{
 				if (skill.getName().equalsIgnoreCase(bonus.bonusSkill))
 				{
-					projection.addXp(skill, (long) (trainedXp * bonus.ratio));
+					projection.addXp(skill, (long) (overlap * activeShare * bonus.ratio));
 				}
 			}
 		}

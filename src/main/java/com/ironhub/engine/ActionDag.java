@@ -24,6 +24,9 @@ public class ActionDag
 	public final Map<String, String> goalNames = new LinkedHashMap<>();
 	/** Goal id → icon item id (nullable), for row icons. */
 	public final Map<String, Integer> goalIcons = new LinkedHashMap<>();
+	/** varbit ids the expanded requirements read — the planner must watch
+	 *  them or their leaves read 0 forever (nobody else registers them). */
+	public final java.util.Set<Integer> watchVarbits = new java.util.LinkedHashSet<>();
 
 	public Action get(String id)
 	{

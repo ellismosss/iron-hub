@@ -1,0 +1,133 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Storage location registry + allow-lists (ported from Thource/dude-wheres-my-stuff at the pin, BSD-2)",
+	"type": "object",
+	"required": ["_generated", "_source", "familyLabels", "storages"],
+	"additionalProperties": false,
+	"properties": {
+		"_generated": {"type": "string"},
+		"_source": {"type": "string"},
+		"familyLabels": {
+			"type": "object",
+			"minProperties": 1,
+			"additionalProperties": {"type": "string", "minLength": 1}
+		},
+		"storages": {
+			"type": "array",
+			"minItems": 1,
+			"items": {
+				"type": "object",
+				"required": ["id", "family", "key", "name"],
+				"additionalProperties": false,
+				"properties": {
+					"id": {"type": "string", "pattern": "^[a-z]+:[a-zA-Z0-9_]+$"},
+					"family": {"type": "string", "pattern": "^[a-z]+$"},
+					"key": {"type": "string", "pattern": "^[a-zA-Z0-9_]+$"},
+					"name": {"type": "string", "minLength": 1},
+					"members": {"type": "boolean"},
+					"automatic": {"type": "boolean"},
+					"container": {"type": "string", "minLength": 1},
+					"containerId": {"type": "integer", "minimum": 1},
+					"mode": {"type": "string", "enum": ["poh", "container", "objectmount", "varbits", "varbitindex", "slots", "compute"]},
+					"computeItems": {
+						"type": "array",
+						"minItems": 1,
+						"items": {
+							"type": "object",
+							"required": ["kind"],
+							"additionalProperties": false,
+							"properties": {
+								"kind": {"type": "string", "enum": ["sum", "variant", "index", "type"]},
+								"itemId": {"type": "integer", "minimum": 1},
+								"terms": {
+									"type": "array",
+									"items": {
+										"type": "object",
+										"required": ["varbit"],
+										"additionalProperties": false,
+										"properties": {
+											"varbit": {"type": "integer", "minimum": 1},
+											"mult": {"type": "integer", "minimum": 1}
+										}
+									}
+								},
+								"variantVarbit": {"type": "integer", "minimum": 1},
+								"variantItemId": {"type": "integer", "minimum": 1},
+								"indexVarbit": {"type": "integer", "minimum": 1},
+								"indexArray": {"type": "array", "items": {"type": "integer", "minimum": -1}},
+								"typeVarbit": {"type": "integer", "minimum": 1},
+								"emptyId": {"type": "integer", "minimum": 1},
+								"filledId": {"type": "integer", "minimum": 1}
+							}
+						}
+					},
+					"slots": {
+						"type": "array",
+						"minItems": 1,
+						"items": {
+							"type": "object",
+							"required": ["typeVarbit", "countVarbit"],
+							"additionalProperties": false,
+							"properties": {
+								"typeVarbit": {"type": "integer", "minimum": 1},
+								"countVarbit": {"type": "integer", "minimum": 1}
+							}
+						}
+					},
+					"typeKind": {"type": "string", "enum": ["array", "enum", "direct"]},
+					"typeArray": {"type": "array", "minItems": 1, "items": {"type": "integer", "minimum": -1}},
+					"typeEnum": {"type": "integer", "minimum": 1},
+					"varp": {"type": "boolean"},
+					"varbitItems": {
+						"type": "array",
+						"minItems": 1,
+						"items": {
+							"type": "object",
+							"required": ["varbit", "itemId"],
+							"additionalProperties": false,
+							"properties": {
+								"varbit": {"type": "integer", "minimum": 1},
+								"itemId": {"type": "integer", "minimum": 1},
+								"multiplier": {"type": "integer", "minimum": 1},
+								"name": {"type": "string", "minLength": 1}
+							}
+						}
+					},
+					"indexVarbit": {"type": "integer", "minimum": 1},
+					"indexItems": {
+						"type": "array",
+						"minItems": 1,
+						"items": {"type": "integer", "minimum": -1}
+					},
+					"items": {
+						"type": "array",
+						"minItems": 1,
+						"items": {"type": "integer", "minimum": 1}
+					},
+					"mounts": {
+						"type": "array",
+						"minItems": 1,
+						"items": {
+							"type": "object",
+							"required": ["object", "items"],
+							"additionalProperties": false,
+							"properties": {
+								"object": {"type": "integer", "minimum": 1},
+								"items": {
+									"type": "array",
+									"minItems": 1,
+									"items": {"type": "integer", "minimum": 1}
+								}
+							}
+						}
+					},
+					"clearObjects": {
+						"type": "array",
+						"minItems": 1,
+						"items": {"type": "integer", "minimum": 1}
+					}
+				}
+			}
+		}
+	}
+}

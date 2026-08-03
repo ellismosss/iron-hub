@@ -5,6 +5,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Paint;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.Icon;
@@ -32,6 +33,8 @@ public class StoneNavButton extends JComponent
 	private final int height;
 	private boolean selected;
 	private boolean hover;
+	/** Optional texture for the resting fill — see {@link #textured}. */
+	private Paint texture;
 
 	public StoneNavButton(OsrsTheme theme, Icon icon, boolean selected, Runnable onClick)
 	{
@@ -85,6 +88,18 @@ public class StoneNavButton extends JComponent
 		repaint();
 	}
 
+	/**
+	 * Fill the resting stone with a texture instead of a flat colour — V2's
+	 * row hands it the Card's grain, so nav tiles, Tiles and Cards are one
+	 * surface (Luke, 2026-07-25). Opt-in: the live nav bar does not ask for it
+	 * and is unchanged.
+	 */
+	public StoneNavButton textured(Paint texture)
+	{
+		this.texture = texture;
+		return this;
+	}
+
 	@Override
 	public Dimension getPreferredSize()
 	{
@@ -120,7 +135,10 @@ public class StoneNavButton extends JComponent
 			g2.setColor(inset == 0 ? theme.edgeDark : bevel);
 			paintRing(g2, inset, w, h);
 		}
-		g2.setColor(fill);
+		// a texture when one was handed over (Design lab V2's row), the state's
+		// flat colour otherwise (the live nav bar). Selection still reads: it
+		// owns the bevel as well as the fill.
+		g2.setPaint(texture != null && !selected && !hover ? texture : fill);
 		fillBody(g2, 2, w, h);
 
 		if (icon != null)
@@ -135,15 +153,20 @@ public class StoneNavButton extends JComponent
 	 * their own status bevel colour): dark outer ring, coloured bevel ring,
 	 * chamfered fill. No background clear — callers own what shows through
 	 * the notched corners.
+	 *
+	 * <p>{@code fill} is a {@link Paint}, not a Colour, so a caller can hand
+	 * the body a texture instead of a flat tone — V2's Tile passes the Card's
+	 * grain as a TexturePaint. Every existing caller passes a Colour, which is
+	 * a Paint, so nothing else changes.
 	 */
 	public static void paintSlab(Graphics2D g2, OsrsTheme theme, int w, int h,
-		Color fill, Color bevel)
+		Paint fill, Color bevel)
 	{
 		g2.setColor(theme.edgeDark);
 		paintRing(g2, 0, w, h);
 		g2.setColor(bevel);
 		paintRing(g2, 1, w, h);
-		g2.setColor(fill);
+		g2.setPaint(fill);
 		fillBody(g2, 2, w, h);
 	}
 

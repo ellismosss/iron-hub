@@ -38,7 +38,7 @@ public class OsrsLabel extends JComponent
 	private static final int BASELINE = 15;
 	private static final int DESCENT = 5;
 
-	private final String[] lines;
+	private String[] lines;
 	private Color color;
 	private boolean leftAligned;
 
@@ -93,6 +93,32 @@ public class OsrsLabel extends JComponent
 	public String text()
 	{
 		return String.join("\n", lines);
+	}
+
+	/**
+	 * Retext in place — a value that ticks over must not rebuild its row.
+	 * Drops the size cache, since the new text measures differently.
+	 */
+	public void setText(String text)
+	{
+		this.lines = text.split("\n");
+		this.preferredSize = null;
+		revalidate();
+		repaint();
+	}
+
+	/**
+	 * Restyle in place. Its own method because {@code setFont} alone leaves the
+	 * cached preferred size behind, so the label keeps measuring in the old
+	 * font and the row lays out to a width the text no longer needs.
+	 */
+	public OsrsLabel font(Font font)
+	{
+		setFont(font);
+		this.preferredSize = null;
+		revalidate();
+		repaint();
+		return this;
 	}
 
 	/** Recolour in place — status changes must not rebuild the row. */

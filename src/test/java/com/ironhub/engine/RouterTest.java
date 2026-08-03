@@ -78,6 +78,25 @@ public class RouterTest
 			List.of(goals), constraints);
 	}
 
+	/** varbit: currency requirements surface their varbit id so the module
+	 *  can watch it — unwatched, minigame points read 0 forever and "Earn
+	 *  N points" never clears (Luke's 2026-08-03 ruling). */
+	@Test
+	public void currencyVarbitsSurfaceForWatchingAndClearWhenMet()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		Plan unmet = plan(state, PlanConstraints.none(),
+			goal("can", "varbit:4893:200:Tithe Farm points"));
+		assertTrue("the plan must surface its currency varbit",
+			unmet.watchVarbits.contains(4893));
+		assertEquals(1, unmet.steps.size());
+
+		StateFixture.varbit(state, 4893, 200); // points earned
+		Plan met = plan(state, PlanConstraints.none(),
+			goal("can", "varbit:4893:200:Tithe Farm points"));
+		assertTrue("a met currency goal plans no steps", met.steps.isEmpty());
+	}
+
 	@Test
 	public void plansAreFeasibleInOrder()
 	{

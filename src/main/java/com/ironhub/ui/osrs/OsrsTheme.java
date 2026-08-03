@@ -73,9 +73,67 @@ public enum OsrsTheme
 			"BDDLLF",
 			"DLLLFF",
 			"DLFFFF",
+		}),
+
+	/**
+	 * Dark Vanilla — vanilla's own shapes in dark grey (Luke curated the pack
+	 * into the sprite folder on 2026-07-25: "I wanted a dark-mode that looked
+	 * exactly like Vanilla"). It keeps vanilla's 7x7 corner geometry, which is
+	 * why the stamp below is STONE's: the pack re-colours the art, it does not
+	 * redraw it.
+	 *
+	 * <p>Colours are SAMPLED from the pack's own sprites where it ships one.
+	 * Where it doesn't, they are derived by the pack's OWN measured transform
+	 * rather than picked: across the 88 sprites that exist in both vanilla and
+	 * dark, the pack keeps a median 0.645 of vanilla's luminance and strips
+	 * chroma almost entirely (mean 20.7 -> 3.9). Each derived line below is
+	 * vanilla's token greyscaled and scaled by that factor, and says so.
+	 *
+	 * <p>Two of the pack's choices are worth not "fixing": hover is DARKER
+	 * than rest (#2E2E2E under #424242), the opposite of vanilla's lift, and
+	 * the checkbox tick stays vanilla's #00FF00 green — measured pixel for
+	 * pixel against the vanilla sprite.
+	 */
+	DARK("Dark vanilla (resource pack)",
+		new Color(0x232323),  // background: DERIVED from vanilla #3E3529
+		new Color(0x424242),  // boxFill: buttons/button_dark.png interior
+		new Color(0x000000),  // edgeDark: button_dark.png outer line
+		new Color(0x595959),  // edgeLight: button_dark.png inner line
+		new Color(0x181818),  // recess: DERIVED from vanilla #28251E
+		new Color(0x2E2E2E),  // hoverFill: button_hovered_dark.png (the pack darkens)
+		new Color(0x262626),  // pressFill: DERIVED past hover, in the pack's own direction
+		new Color(0x575757),  // selectFill: DERIVED (boxFill +21, vanilla's relationship)
+		new Color(0x525252),  // selectEdge: DERIVED from vanilla #877F6C
+		new Color(0x00FE00),  // checkMark: square_bordered_checkbox_checked_dark.png
+		new Color(0x3C3C3C),  // scrollThumb: DERIVED from vanilla #6A5C43
+		new Color(0x151515),  // scrollTrough: DERIVED from vanilla #252019
+		new Color(0x1F1F1F),  // fieldFill: DERIVED from vanilla #372E22
+		new Color(0x1B1B1B),  // fieldEdge: DERIVED from vanilla #31281C
+		new String[]{
+			"BBBBBDD",
+			"BBBBBDL",
+			"BBBBBDL",
+			"BBBBDDL",
+			"BBBDDLL",
+			"DDDDLLF",
+			"DLLLLFF",
 		});
 
 	private final String displayName;
+
+	/**
+	 * The filename variant this theme's V2 art carries — {@code "vanilla"}
+	 * for the base sprite, otherwise the {@code _<name>} suffix beside it.
+	 * Derived from the enum name so a new theme needs no extra field, and
+	 * consumed by {@code V2Sprites}, which falls back to vanilla for any
+	 * sprite the pack doesn't re-skin — exactly how a resource pack behaves
+	 * in game.
+	 */
+	public String spriteVariant()
+	{
+		return this == STONE ? "vanilla" : name().toLowerCase(java.util.Locale.ROOT);
+	}
+
 	/** Interface backing between boxes. */
 	public final Color background;
 	/** Stone box interior. */

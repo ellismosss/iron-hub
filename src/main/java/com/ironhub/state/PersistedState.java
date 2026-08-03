@@ -34,6 +34,10 @@ public class PersistedState
 	Map<String, Integer> bankSkillTargets = new HashMap<>(); // skill name -> bank-tab target level
 	Map<String, Boolean> dailiesChoice = new HashMap<>(); // daily id -> included in the run (absent = the pack's default)
 	Map<String, Map<Integer, Integer>> lootBySource = new HashMap<>(); // npc -> item id -> total qty
+	Map<String, Map<Integer, Integer>> lootPickedBySource = new HashMap<>(); // npc -> item id -> CONFIRMED picked-up qty (L3)
+	Map<String, Long> lootValueBySource = new HashMap<>();     // npc -> GE value of drops, priced at drop time (L6)
+	Map<String, Long> suppliesValueBySource = new HashMap<>(); // npc -> GE value of consumed supplies (L6)
+	Map<String, Long> lootLastKillMs = new HashMap<>();        // npc -> last kill epoch ms (L4 recency)
 	Map<String, Map<Integer, Integer>> suppliesBySource = new HashMap<>(); // npc -> canonical item id -> consumed qty
 	Map<String, Map<String, Integer>> savedLoadouts = new HashMap<>(); // activity -> equipment slot name -> item id
 	Map<String, SavedSetup> savedSetups = new HashMap<>(); // activity -> full setup (gear + inventory + rune pouch)
@@ -63,6 +67,12 @@ public class PersistedState
 		public long endMs;
 		public String name;
 		public long durationMs;
+		/** ACTIVE time via ActivityClock (accrued between farming signals,
+		 *  idle-gated) — a run parked at the bank for 20 minutes is not a
+		 *  25-minute run (X4 2026-08-03). 0 = legacy record: callers fall
+		 *  back to the wall-clock {@link #durationMs}. */
+		public long activeMs;
+		public long lastActivityMs;
 		public Map<String, Integer> xpByBucket = new HashMap<>();
 		public Map<Integer, Integer> herbsByType = new HashMap<>();
 	}
@@ -84,6 +94,11 @@ public class PersistedState
 		public long start;         // epoch ms
 		public long end;           // 0 while active
 		public boolean completed;
+		public long activeMs;       // idle-gated active time (ActivityClock)
+		public long lastActivityMs; // last kill signal; 0 = legacy record
+		/** Drops from task targets, itemId -> qty (S6; empty = none seen
+		 *  or a legacy record — the history view says which honestly). */
+		public Map<Integer, Integer> drops = new HashMap<>();
 
 		public SlayerTaskRecord copy()
 		{
@@ -98,6 +113,9 @@ public class PersistedState
 			c.start = start;
 			c.end = end;
 			c.completed = completed;
+			c.activeMs = activeMs;
+			c.lastActivityMs = lastActivityMs;
+			c.drops = new HashMap<>(drops);
 			return c;
 		}
 	}
@@ -118,6 +136,8 @@ public class PersistedState
 		public boolean pieceFound;
 		public long start;
 		public long end;      // 0 while active
+		public long activeMs;       // idle-gated active time (ActivityClock)
+		public long lastActivityMs; // last Hunter xp signal; 0 = legacy record
 
 		public RumourRecord copy()
 		{
@@ -128,6 +148,8 @@ public class PersistedState
 			c.pieceFound = pieceFound;
 			c.start = start;
 			c.end = end;
+			c.activeMs = activeMs;
+			c.lastActivityMs = lastActivityMs;
 			return c;
 		}
 	}
@@ -143,12 +165,51 @@ public class PersistedState
 	/** Preferred courier-task ports (port-tasks pack dbrows). */
 	java.util.Set<Integer> preferredPorts = new java.util.HashSet<>();
 
+	/** Supplies runway: the player's watchlist as diffs against the pack's
+	 *  curated defaults — items ADDED beyond the defaults and default items
+	 *  REMOVED — so a pack update surfaces new defaults unless removed. Plus
+	 *  the per-item red-highlight threshold (absent = no threshold). */
+	java.util.Set<Integer> supplyAdded = new java.util.HashSet<>();
+	java.util.Set<Integer> supplyRemoved = new java.util.HashSet<>();
+	Map<Integer, Integer> supplyThresholds = new HashMap<>();
+
 	/** Bank space saver: storage locations switched OFF (default all on),
 	 *  item ids the player ignores, and whether best-in-slot gear is
 	 *  flagged too (default no — you keep bis gear banked on purpose). */
 	java.util.Set<String> bankStorageOff = new java.util.HashSet<>();
 	java.util.Set<Integer> bankStorageIgnored = new java.util.HashSet<>();
 	boolean bankStorageFlagBis;
+
+	/** Where's my stuff: last-seen contents per storage (storage-locations
+	 *  pack key -> a snapshot of item id -> quantity + a lastSeen stamp).
+	 *  Only storages the player has actually opened appear — an unseen
+	 *  storage is silent, never "empty" (the sailing-boat honesty rule). */
+	Map<String, StorageSnapshot> storageContents = new HashMap<>();
+
+	public static class StorageSnapshot
+	{
+		public Map<Integer, Integer> items = new HashMap<>();     // item id -> qty
+		public Map<Integer, String> itemNames = new HashMap<>();  // item id -> name (baked)
+		public long lastSeen;   // epoch ms of the last visit
+		// self-describing so whereOwned renders offline without the pack
+		// (the GoalSeed baked-at-write-time rule): raw name, family key, and
+		// the full parenthesised label, e.g. "Fancy dress box (PoH)".
+		public String name = "";
+		public String family = "";
+		public String label = "";
+
+		public StorageSnapshot copy()
+		{
+			StorageSnapshot c = new StorageSnapshot();
+			c.items = new HashMap<>(items);
+			c.itemNames = new HashMap<>(itemNames);
+			c.lastSeen = lastSeen;
+			c.name = name;
+			c.family = family;
+			c.label = label;
+			return c;
+		}
+	}
 
 	public static class BoatSnapshot
 	{
@@ -261,6 +322,7 @@ public class PersistedState
 	Map<String, String> slayerLocationPrefs = new HashMap<>();  // task -> preferred location name
 	Map<String, java.util.List<String>> slayerBlockPrefs = new HashMap<>(); // master -> preferred block list
 	Map<String, java.util.List<String>> slayerSkipPrefs = new HashMap<>();  // master -> always-skip list
+	Map<String, java.util.List<String>> slayerBracelets = new HashMap<>();  // task -> bracelet reminders (S4)
 
 	java.util.List<DeathRecord> deaths = new ArrayList<>(); // most recent last, capped
 
@@ -374,6 +436,11 @@ public class PersistedState
 		int y;
 		int plane;
 		Map<Integer, Integer> carried = new HashMap<>();
+		/** Estimated GRAVE reclaim fee in gp, computed at death time on the
+		 *  client thread (DR1 2026-08-03) — the wiki's per-item bands, iron
+		 *  discount and 500k cap. -1 = unknown: legacy records, headless, or
+		 *  a valuable stackable whose band basis the wiki doesn't specify. */
+		long reclaimFeeGp = -1;
 	}
 
 	/** A remembered activity setup: worn gear, inventory and rune pouch. */

@@ -399,6 +399,31 @@ public class GoalExpanderTest
 		assertEquals("75 arrowtips, not 15", 75, tips.obtainQty);
 	}
 
+	/**
+	 * A second goal merging INTO an existing obtain with a bigger quantity
+	 * must re-scale the recipe materials — the merge used to bump only the
+	 * item's own quantity, keeping the first expansion's batch-1 material
+	 * counts (Luke's 2026-08-03 ruling on the audit finding).
+	 */
+	@Test
+	public void mergingALargerQuantityRescalesTheRecipeMaterials()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.stat(state, Skill.FLETCHING, 45, Experience.getXpForLevel(45));
+		// goal order matters: the 15-arrow goal expands FIRST, then the
+		// 75-arrow goal merges into the existing obtain node
+		ActionDag dag = GoalExpander.expand(List.of(
+			goal("small", "item:888:15:Mithril arrow"),
+			goal("big", "item:888:75:Mithril arrow")), state, packs(),
+			java.util.Map.of(888, "make|15 x Headless arrow + 15 x Mithril arrowtips"));
+		Action arrows = dag.get("obtain:item888");
+		assertNotNull(arrows);
+		assertEquals(75, arrows.obtainQty);
+		assertEquals("materials re-scaled by the merge, not batch-1",
+			75, dag.get("obtain:item53").obtainQty);
+		assertEquals(75, dag.get("obtain:item42").obtainQty);
+	}
+
 	/** Picking one branch of an item's any: gate via a PATH pref steers the
 	 *  plan — choosing Crafting for an Amulet of glory drops Hunter (Luke,
 	 *  2026-07-24: it stayed because the KB-source menu didn't map to the

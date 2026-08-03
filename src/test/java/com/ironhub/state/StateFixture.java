@@ -23,6 +23,14 @@ public final class StateFixture
 		return new AccountState(null, null, new ProfileStore(new Gson(), Runnable::run, storageDir), null);
 	}
 
+	/** As above with a (mock) ItemManager, for valuation tests. */
+	public static AccountState state(File storageDir,
+		net.runelite.client.game.ItemManager itemManager)
+	{
+		return new AccountState(null, itemManager,
+			new ProfileStore(new Gson(), Runnable::run, storageDir), null);
+	}
+
 	/** Fold one observed pace sample (the live fold core's test seam). */
 	public static void measuredRate(AccountState state, net.runelite.api.Skill skill,
 		double xpGained, double activeHours)

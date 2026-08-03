@@ -1,0 +1,206 @@
+package com.ironhub.modules.wheresmystuff;
+
+import com.google.gson.Gson;
+import com.ironhub.IronHubConfig;
+import com.ironhub.data.DataPack;
+import com.ironhub.data.StorageLocationsPack;
+import com.ironhub.state.AccountState;
+import com.ironhub.state.StateFixture;
+import com.ironhub.ui.SwingRender;
+import java.awt.image.BufferedImage;
+import java.util.Map;
+import net.runelite.client.eventbus.EventBus;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+public class WheresMyStuffModuleTest
+{
+	@Rule
+	public TemporaryFolder temp = new TemporaryFolder();
+
+	/** Vanilla, not the config default. {@code osrsTheme()} defaults to MYSTIC,
+	 *  so every render this test wrote came out grey — and the renders exist to
+	 *  be judged against the Vanilla design system (Luke, 2026-07-25). */
+	private final IronHubConfig config = new IronHubConfig()
+	{
+		@Override
+		public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+		{
+			return com.ironhub.ui.osrs.OsrsTheme.STONE;
+		}
+	};
+
+	private final StorageLocationsPack pack =
+		new DataPack(new Gson()).load("storage-locations", StorageLocationsPack.class);
+
+	private StorageLocationsPack.Storage byKey(String key)
+	{
+		return pack.storages.stream().filter(s -> s.key.equals(key)).findFirst().orElseThrow();
+	}
+
+	/** The heart of POH detection: a POH_COSTUMES read is split across the
+	 *  costume storages by allow-list, and Uncategorised catches the rest. */
+	@Test
+	public void attributesCostumeContainerByAllowList()
+	{
+		int fancyId = byKey("fancyDressBox").items.get(0);
+		int armourId = byKey("armourCase").items.get(0);
+		int stray = 995; // coins — in no costume allow-list
+
+		Map<Integer, Integer> container = Map.of(fancyId, 1, armourId, 1, stray, 1);
+		Map<String, Map<Integer, Integer>> byStorage =
+			WheresMyStuffModule.attributePoh(pack, container);
+
+		String fancy = "playerownedhouse:fancyDressBox";
+		String armour = "playerownedhouse:armourCase";
+		String uncat = "playerownedhouse:uncategorised";
+		assertEquals(Integer.valueOf(1), byStorage.get(fancy).get(fancyId));
+		assertFalse(byStorage.get(fancy).containsKey(armourId));
+		assertFalse(byStorage.get(fancy).containsKey(stray));
+
+		assertEquals(Integer.valueOf(1), byStorage.get(armour).get(armourId));
+
+		// the null-list catch-all keeps what nothing else claimed
+		assertEquals(Integer.valueOf(1), byStorage.get(uncat).get(stray));
+		assertFalse(byStorage.get(uncat).containsKey(fancyId));
+	}
+
+	/** Cape hanger: a mounted-cape object spawn means that cape [+ hood] is
+	 *  stored; the empty-hanger object clears it; anything else is ignored. */
+	@Test
+	public void capeHangerResolvesMountedCape()
+	{
+		StorageLocationsPack.Storage cape = byKey("capeHanger");
+		assertEquals("objectmount", cape.mode);
+		assertFalse(cape.mounts.isEmpty());
+
+		StorageLocationsPack.Mount infernal = cape.mounts.get(0);
+		assertEquals(infernal.items, WheresMyStuffModule.mountItems(cape, infernal.object));
+		assertTrue(WheresMyStuffModule.mountItems(cape, cape.clearObjects.get(0)).isEmpty());
+		org.junit.Assert.assertNull(WheresMyStuffModule.mountItems(cape, 1));
+	}
+
+	@Test
+	public void moduleLabelUsesFamilySuffix()
+	{
+		WheresMyStuffModule module = new WheresMyStuffModule(
+			null, config, new DataPack(new Gson()), new EventBus(), null, null);
+		assertEquals("Fancy dress box (PoH)", module.label(byKey("fancyDressBox")));
+	}
+
+	/** STASH: Iron Hub's own fill detection drives per-unit snapshots, so a
+	 *  filled unit's clue items become findable ("where is my Gold ring?"). */
+	@Test
+	public void stashUnitTracksItsClueItems()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 3L);
+		WheresMyStuffModule module = new WheresMyStuffModule(
+			state, config, new DataPack(new Gson()), new EventBus(), null, null);
+		module.startUp();
+
+		state.setStashFilled(34736, true); // Gypsy tent entrance: Gold ring + necklace
+		var snap = state.getStorageContents().get("stash:34736");
+		assertNotNull(snap);
+		assertEquals("stash", snap.family);
+		assertTrue(snap.items.containsKey(1635)); // Gold ring
+		assertTrue(snap.items.containsKey(1654)); // Gold necklace
+		assertEquals("Gold ring", snap.itemNames.get(1635));
+		assertTrue(state.whereOwned(1635).contains("STASH"));
+
+		state.setStashFilled(34736, false); // emptied -> honest empty, not stale
+		assertTrue(state.getStorageContents().get("stash:34736").items.isEmpty());
+		module.shutDown();
+	}
+
+	/** A cast/shot moves a slot-storage amount varbit; committing per event
+	 *  persisted + broadcast per cast — a sustained replan/rebuild storm in
+	 *  combat. Quantity-only movement must coalesce onto the tick flush
+	 *  cadence instead. */
+	@Test
+	public void slotStorageQuantityChurnCoalescesOntoTheTickFlush()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 7L);
+		net.runelite.api.Client client =
+			org.mockito.Mockito.mock(net.runelite.api.Client.class);
+		// bolt pouch slot 0: type varbit 2473 -> array index 1 (Bronze
+		// bolts, 877); count varbit 2469
+		org.mockito.Mockito.when(client.getVarbitValue(2473)).thenReturn(1);
+		org.mockito.Mockito.when(client.getVarbitValue(2469)).thenReturn(100);
+		WheresMyStuffModule module = new WheresMyStuffModule(
+			state, config, new DataPack(new Gson()), new EventBus(), client, null);
+		module.startUp();
+		int[] notifies = {0};
+		state.addListener(() -> notifies[0]++);
+
+		net.runelite.api.events.VarbitChanged shot = new net.runelite.api.events.VarbitChanged();
+		shot.setVarbitId(2469);
+		shot.setValue(100);
+		module.onVarbitChanged(shot);
+		assertEquals("no commit before the tick drain", 0, notifies[0]);
+
+		module.onGameTick(null); // first sight of the item set -> flush
+		assertEquals(1, notifies[0]);
+		assertEquals(100, (int) state.getStorageContents()
+			.get("carryable:boltpouch").items.get(877));
+
+		// nine more shots across nine ticks: same item set, quantity only —
+		// they must ride to the ten-tick flush, not commit per shot
+		for (int i = 1; i <= 9; i++)
+		{
+			org.mockito.Mockito.when(client.getVarbitValue(2469)).thenReturn(100 - i);
+			module.onVarbitChanged(shot);
+			module.onGameTick(null);
+		}
+		assertEquals("quantity churn must coalesce, not commit per shot", 2, notifies[0]);
+		assertEquals(91, (int) state.getStorageContents()
+			.get("carryable:boltpouch").items.get(877));
+		module.shutDown();
+	}
+
+	@Test
+	public void rendersTrackedStorages() throws Exception
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 5L);
+		long twoHoursAgo = System.currentTimeMillis() - 2 * 3_600_000L;
+		state.putStorageContents("fancyDressBox", "Fancy dress box", "playerownedhouse",
+			"Fancy dress box (PoH)",
+			Map.of(19_991, 1, 19_992, 1, 19_993, 1),
+			Map.of(19_991, "Frog mask", 19_992, "Camo top", 19_993, "Camo bottoms"),
+			twoHoursAgo);
+		state.putStorageContents("armourCase", "Armour case", "playerownedhouse",
+			"Armour case (PoH)",
+			Map.of(20_001, 1, 20_002, 1),
+			Map.of(20_001, "Rune platebody", 20_002, "Rune platelegs"),
+			twoHoursAgo);
+
+		WheresMyStuffModule module = new WheresMyStuffModule(
+			state, config, new DataPack(new Gson()), new EventBus(), null, null);
+		module.startUp();
+		WheresMyStuffTab tab = (WheresMyStuffTab) module.buildTab();
+		assertNotNull(tab);
+		javax.swing.SwingUtilities.invokeAndWait(() -> tab.expand("playerownedhouse:fancyDressBox"));
+		javax.swing.SwingUtilities.invokeAndWait(() -> { }); // drain queued rebuilds
+		BufferedImage image = SwingRender.render(tab);
+		assertTrue("height " + image.getHeight(), image.getHeight() > 120);
+		java.io.File out = new java.io.File("build/reports/wheres-my-stuff-tab.png");
+		out.getParentFile().mkdirs();
+		javax.imageio.ImageIO.write(image, "png", out);
+
+		// the whole-account search — "where is this item?"
+		javax.swing.SwingUtilities.invokeAndWait(() -> tab.searchFor("plate"));
+		javax.swing.SwingUtilities.invokeAndWait(() -> { });
+		BufferedImage search = SwingRender.render(tab);
+		java.io.File out2 = new java.io.File("build/reports/wheres-my-stuff-search.png");
+		javax.imageio.ImageIO.write(search, "png", out2);
+		module.shutDown();
+	}
+}

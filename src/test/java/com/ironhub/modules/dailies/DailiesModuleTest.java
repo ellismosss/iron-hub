@@ -166,6 +166,38 @@ public class DailiesModuleTest
 	}
 
 	/**
+	 * The overlay's bring list is missing-only where the pack names item ids
+	 * (X2 2026-08-03): carried bones shrink Robin's shortfall to the honest
+	 * remainder and clear it entirely at the full count — while an id-less
+	 * entry (Zaff's coins: you can always buy fewer staves) never pretends to
+	 * be verified and stays on the reminder line instead.
+	 */
+	@Test
+	public void missingBringIsVerifiedShortfallOnly()
+	{
+		AccountState state = state();
+		DailiesModule module = module(state);
+		DailiesPack.Daily robin = module.pack().daily("robin_bonemeal");
+		DailiesPack.Daily zaff = module.pack().daily("zaff_battlestaves");
+		int need = Math.max(1, DailyTracker.quantity(state, robin));
+
+		assertEquals(java.util.List.of(need + " bones"), module.missingBring(robin));
+
+		StateFixture.inventory(state, Map.of(526, need - 1)); // regular bones
+		assertEquals(java.util.List.of("1 bones"), module.missingBring(robin));
+
+		StateFixture.inventory(state, Map.of(526, need));
+		assertEquals("carried in full = nothing missing",
+			java.util.List.of(), module.missingBring(robin));
+
+		assertEquals("an id-less entry is never 'verified missing'",
+			java.util.List.of(), module.missingBring(zaff));
+		assertEquals("35,000 coins", module.unverifiedBringLine(zaff));
+		assertEquals("an id-backed entry never rides the reminder line",
+			"", module.unverifiedBringLine(robin));
+	}
+
+	/**
 	 * No varbit tracks the Tears of Guthix cooldown, so before we have watched
 	 * a visit the honest answer is "unknown" — never a guess in either
 	 * direction, and never counted as outstanding.
@@ -558,6 +590,33 @@ public class DailiesModuleTest
 		org.mockito.Mockito.verifyNoMoreInteractions(notifier);
 	}
 
+	/** Idle past midnight: claim varbits refresh only on login, so a daily
+	 *  claimed yesterday still reads "claimed". The member count must use
+	 *  the crossedReset bookkeeping — the tab already colours these rows
+	 *  AVAILABLE, yet the reset notification counted 0 and never fired
+	 *  (recovering only on relog). */
+	@Test
+	public void staleClaimVarbitsStillCountTowardTheResetNotification()
+	{
+		AccountState state = state();
+		DailiesPack.Daily zaff = pack().daily("zaff_battlestaves");
+		StateFixture.varbit(state, zaff.detection.varbit, 1); // claimed yesterday
+		net.runelite.client.Notifier notifier = org.mockito.Mockito.mock(
+			net.runelite.client.Notifier.class);
+		DailiesModule module = module(state, notifier);
+
+		long now = System.currentTimeMillis();
+		module.varbitsFreshDay = DailyTracker.startOfUtcDay(now) - DAY;
+		assertTrue(module.crossedReset());
+		assertTrue("a stale-claimed daily must count outstanding",
+			module.outstanding() >= 1);
+		// tomorrow noon: startUp anchored "already told" to today (see
+		// resetNotifiesOnceAndNeverReplaysOnLogin)
+		module.notifyReset(DailyTracker.startOfUtcDay(now) + DAY + DAY / 2);
+		org.mockito.Mockito.verify(notifier).notify(
+			org.mockito.ArgumentMatchers.contains("available again"));
+	}
+
 	/** Logging in re-baselines the varbits: they are only refreshed from the
 	 *  server then, which is what makes crossedReset() meaningful. */
 	@Test
@@ -603,7 +662,7 @@ public class DailiesModuleTest
 		assertEquals("every event open — the overlay's worst case",
 			module.pack().dailies.size(), module.stops().size());
 
-		DailiesRunOverlay overlay = new DailiesRunOverlay(module);
+		DailiesRunOverlay overlay = new DailiesRunOverlay(module, new IronHubConfig() {});
 		java.awt.image.BufferedImage canvas = new java.awt.image.BufferedImage(
 			300, 260, java.awt.image.BufferedImage.TYPE_INT_RGB);
 		java.awt.Graphics2D g = canvas.createGraphics();

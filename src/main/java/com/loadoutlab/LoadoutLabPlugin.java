@@ -98,15 +98,6 @@ public class LoadoutLabPlugin extends Plugin
 	private ItemManager itemManager;
 
 	@Inject
-	private net.runelite.client.ui.overlay.OverlayManager overlayManager;
-
-	@Inject
-	private net.runelite.client.plugins.banktags.BankTagsService bankTagsService;
-
-	@Inject
-	private net.runelite.client.plugins.banktags.TagManager tagManager;
-
-	@Inject
 	private SpriteManager spriteManager;
 
 	@Inject
@@ -120,13 +111,6 @@ public class LoadoutLabPlugin extends Plugin
 
 	private CollectionLedger ledger;
 	private ExclusionStore exclusions;
-	/** "Show in bank": the expanded id set the overlay outlines; null = off. */
-	private volatile java.util.Set<Integer> bankHighlight;
-	/** "Filter bank": a VIRTUAL bank tag (never persisted to the player's
-	 * tag config) containing the active set's expanded ids; null = off. */
-	private volatile java.util.Set<Integer> bankFilter;
-	private static final String BANK_TAG = "loadout-lab";
-	private com.loadoutlab.ui.BankHighlightOverlay bankOverlay;
 	private DreamStore dreams;
 	private ManualOwnedStore manualOwned;
 	private com.loadoutlab.collection.MonsterProfileStore mobProfiles;
@@ -308,8 +292,6 @@ public class LoadoutLabPlugin extends Plugin
 		mobProfiles = new com.loadoutlab.collection.MonsterProfileStore(configManager, gson);
 		dwmsImport = new DwmsImport(configManager);
 		dwmsLink = new DwmsLink();
-		bankOverlay = new com.loadoutlab.ui.BankHighlightOverlay(() -> bankHighlight);
-		overlayManager.add(bankOverlay);
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
 			ledger.loadScope(worldScope());
@@ -342,9 +324,7 @@ public class LoadoutLabPlugin extends Plugin
 					dwmsView(),
 					locationHintView(),
 					mobProfileView(), itemSearchView(),
-					this::ownsCanonical,
-					this::setBankHighlight,
-					this::setBankFilter);
+					this::ownsCanonical);
 				panel.setF2pWorld(onF2pWorld());
 				if (panelReadyCallback != null)
 				{
@@ -361,14 +341,6 @@ public class LoadoutLabPlugin extends Plugin
 	@Override
 	public void shutDown()
 	{
-		if (bankOverlay != null)
-		{
-			overlayManager.remove(bankOverlay);
-			bankOverlay = null;
-		}
-		bankHighlight = null;
-		bankFilter = null;
-		tagManager.unregisterTag(BANK_TAG);
 		navButton = null;
 		if (optimizerService != null)
 		{
@@ -451,8 +423,6 @@ public class LoadoutLabPlugin extends Plugin
 		boostedLevels = null;
 		prayerUnlocks = null;
 		canonicalOwnedCache = null;
-		bankHighlight = null;
-		bankFilter = null;
 		if (optimizerService != null)
 		{
 			optimizerService.clearCache();
@@ -1090,56 +1060,6 @@ public class LoadoutLabPlugin extends Plugin
 				return link != null && link.isLive();
 			}
 		};
-	}
-
-	/** Panel hook: set (or clear, with null) the bank-highlighted item ids. */
-	private void setBankHighlight(java.util.Set<Integer> itemIds)
-	{
-		if (itemIds == null || itemIds.isEmpty() || data == null)
-		{
-			bankHighlight = null;
-			return;
-		}
-		java.util.Set<Integer> expanded = new java.util.HashSet<>();
-		for (int id : itemIds)
-		{
-			expanded.addAll(data.equivalentIds(id));
-		}
-		bankHighlight = expanded;
-	}
-
-	/** Panel hook: filter the open bank to these ids via a virtual tag. */
-	private void setBankFilter(java.util.Set<Integer> itemIds)
-	{
-		if (itemIds == null || itemIds.isEmpty() || data == null)
-		{
-			bankFilter = null;
-			clientThread.invokeLater(() ->
-			{
-				if (BANK_TAG.equals(bankTagsService.getActiveTag()))
-				{
-					bankTagsService.closeBankTag();
-				}
-				tagManager.unregisterTag(BANK_TAG);
-			});
-			return;
-		}
-		java.util.Set<Integer> expanded = new java.util.HashSet<>();
-		for (int id : itemIds)
-		{
-			expanded.addAll(data.equivalentIds(id));
-		}
-		bankFilter = expanded;
-		clientThread.invokeLater(() ->
-		{
-			tagManager.registerTag(BANK_TAG, itemId ->
-			{
-				java.util.Set<Integer> ids = bankFilter;
-				return ids != null && ids.contains(itemId);
-			});
-			bankTagsService.openBankTag(BANK_TAG,
-				net.runelite.client.plugins.banktags.BankTagsService.OPTION_NO_LAYOUT);
-		});
 	}
 
 	private void computeForMonster(MonsterStats monster, boolean f2pOnly, boolean onSlayerTask, String spellbookLock, int maxTradeables, int riskBudgetGp, boolean antifirePotion, int upgradeBudgetGp, OptimizerService.OptimizeMode mode, Runnable onDone)

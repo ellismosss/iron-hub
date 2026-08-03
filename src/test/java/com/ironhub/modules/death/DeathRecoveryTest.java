@@ -52,6 +52,34 @@ public class DeathRecoveryTest
 		assertEquals(3205, state.getDeaths().get(0).where.getX());
 	}
 
+	/**
+	 * DR1 2026-08-03: the grave-fee estimate follows the wiki's verified
+	 * bands (free under 100k, then 1k / 10k / 100k per item, 500k cap, irons
+	 * half), assumes the three highest-value unstackables are kept, and
+	 * answers -1 — unknown, never a guess — for a valuable stackable whose
+	 * band basis the wiki does not document.
+	 */
+	@Test
+	public void graveFeeBandsKeptItemsAndHonestUnknowns()
+	{
+		java.util.List<long[]> items = new java.util.ArrayList<>(java.util.List.of(
+			new long[]{5_000_000, 1, 0},  // kept (1st)
+			new long[]{2_000_000, 1, 0},  // kept (2nd)
+			new long[]{500_000, 1, 0},    // kept (3rd)
+			new long[]{200_000, 1, 0},    // 100k..1m band: 1,000
+			new long[]{50_000, 5, 0}));   // under 100k: free
+		assertEquals(1_000, AccountState.graveFeeEstimate(items, false));
+		assertEquals(500, AccountState.graveFeeEstimate(items, true));
+
+		// a cheap stack is provably free either way the bands are read
+		items.add(new long[]{10, 500, 1});
+		assertEquals(1_000, AccountState.graveFeeEstimate(items, false));
+
+		// a valuable stack has no documented band basis: unknown, never a guess
+		items.add(new long[]{60, 2_000, 1});
+		assertEquals(-1, AccountState.graveFeeEstimate(items, false));
+	}
+
 	@Test
 	public void tabRendersHeadless() throws Exception
 	{
@@ -63,6 +91,13 @@ public class DeathRecoveryTest
 
 		DeathRecoveryModule module = new DeathRecoveryModule(state, null, new IronHubConfig()
 		{
+			@Override
+			public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+			{
+				// Vanilla: osrsTheme() defaults to MYSTIC, and the renders
+				// exist to be judged against the Vanilla design system
+				return com.ironhub.ui.osrs.OsrsTheme.STONE;
+			}
 		}, null);
 		module.startUp();
 		JComponent tab = module.buildTab();

@@ -39,7 +39,11 @@ public class StoneProgressBar extends JComponent
 	private static final int INK_CENTER_TO_BASELINE = 7;
 
 	private final OsrsTheme theme;
-	private final Color fill;
+	private Color fill;
+	/** The empty part of the bar. Its own field so a caller can match it to a
+	 *  neighbour — V2 hands it {@code theme.recess}, the same trough the thin
+	 *  meter uses, so the two weights read as one family (Luke, 2026-07-25). */
+	private final Color trough;
 	private double fraction;
 	private String left = "";
 	private String center = "";
@@ -47,8 +51,14 @@ public class StoneProgressBar extends JComponent
 
 	public StoneProgressBar(OsrsTheme theme, Color fill, double fraction)
 	{
+		this(theme, fill, fraction, OsrsSkin.BAR_TROUGH);
+	}
+
+	public StoneProgressBar(OsrsTheme theme, Color fill, double fraction, Color trough)
+	{
 		this.theme = theme;
 		this.fill = fill;
+		this.trough = trough;
 		this.fraction = Math.max(0, Math.min(1, fraction));
 	}
 
@@ -91,7 +101,7 @@ public class StoneProgressBar extends JComponent
 		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 		int w = getWidth(), h = getHeight();
 
-		g2.setColor(OsrsSkin.BAR_TROUGH);
+		g2.setColor(trough);
 		g2.fillRect(0, 0, w, h);
 		g2.setColor(fill);
 		g2.fillRect(1, 1, (int) Math.round((w - 2) * fraction), h - 2);
@@ -103,6 +113,13 @@ public class StoneProgressBar extends JComponent
 		draw(g2, left, SIDE_PAD, baseline);
 		draw(g2, center, (w - fm.stringWidth(center)) / 2, baseline);
 		draw(g2, right, w - SIDE_PAD - fm.stringWidth(right), baseline);
+	}
+
+	/** Recolour in place — V2 hands routes a different fill from possessions. */
+	public void setFill(Color fill)
+	{
+		this.fill = fill;
+		repaint();
 	}
 
 	private void draw(Graphics2D g2, String text, int x, int y)

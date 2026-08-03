@@ -291,18 +291,24 @@ from the game. Decoded from the log's cs2
   Assault" → "High-level Gambles: N") come from per-draw scratch varps
   (2048/2941/2942) the game fills only while that page is on screen.
   There is no way to read them for a page you have not opened, so Iron Hub
-  keeps the lines it watched the game draw in the header container
-  (`InterfaceID.Collection.HEADER`, dynamic child 0 = the page name) and
-  says so on pages it has never seen.
+  keeps the lines it watched the game draw in the page header — read from
+  **`InterfaceID.Collection.HEADER_TEXT`'s children (child 0 = the page
+  name, the rest = the counter lines), NOT `Collection.HEADER`**: HEADER
+  (0x026d_0013) is the container and its child list is EMPTY, so reading it
+  captures nothing, ever — the bug shipped that way and no count was ever
+  stored until root-caused 2026-07-27 against core's ChatCommandsPlugin
+  (`COL_LOG_ENTRY_HEADER_TITLE_INDEX = 0` on HEADER_TEXT). Widget child
+  arrays can carry nulls; guard every entry.
 
 A read that comes back short of five tabs or 1,000 slots is treated as
 cache-layout drift: it returns empty and the persisted snapshot stands.
 The snapshot is what makes the browser work logged out.
 
 **Ranks** (data/clog-ranks.json, wiki-sourced): Bronze 100 → Dragon 1,200,
-then Gilded at 90% of the log's total rounded down to 25. The overview's
-"Collections Logged: 1,190/1,200" denominator is the NEXT RANK, not the
-log's size — the two staves flanking it are the ranks either side.
+then Gilded at 90% of the log's total rounded down to 25. The tab's hero
+shows the WHOLE log's total under "Collections Logged" (orange), with the
+NEXT-RANK band count ("1,190/1,200") riding the sprite bar in white — the
+two staves flanking it are the ranks either side (2026-07-27 shape).
 
 ## Farming time-tracking (module: farming, vendored engine: rl/)
 
@@ -523,13 +529,24 @@ the same claim varbit and the stop culls itself.
 
 ## STASH units & emote clue steps (module: clues, pack: clue-steps.json)
 
-**A built STASH's game object only renders for the player who built it** —
-the `ObjectID.HH_*` object spawning in the scene is proof the LOCAL player
-built that unit (the STASH Tracker plugin's core trick, ported). The
-gameval `ObjectID` class is **split across `ObjectID` and `ObjectID1`**
-for class-file size — resolve constants against both.
+**Built state is a varbit — authoritative (2026-07-29, the S.T.A.S.H
+chart arc)**: every unit has a 1-bit gameval `HH_CONSTRUCTED_<X>` varbit
+named after its object (`ObjectID.HH_<X>` — a strict 1:1 name rule
+across all 119 once BOTH `ObjectID` and `ObjectID1` are read; the
+gameval `ObjectID` class is **split across the two** for class-file
+size). One 32-bit varp per tier backs them (`VarPlayerID.HH_CONSTRUCTED_
+<TIER>`), which is also the proof they are 1-bit built flags — Easy's
+25+ALL varbits share varp 1365. This is the same state the in-game
+S.T.A.S.H chart (PoH study wall chart) and Watson's noticeboard render.
+The module syncs from `VarbitChanged` plus one full sweep per session,
+SETTING AND CLEARING — false marks heal themselves. The old
+built-object-spawn premise (a built STASH's object only renders for its
+builder — the STASH Tracker trick) is retired; the pack bakes
+`varbitId` per unit (gen_clue_steps.py resolves and uniqueness-checks
+at generation).
 
-**Filled state has no varbit**: it comes from deposit/withdraw chat
+**Filled state has no varbit** (the tier varps have no spare bits): it
+comes from deposit/withdraw chat
 messages (GAMEMESSAGE/SPAM/MESBOX containing "stash", keyword-loose),
 attributed to the STASH the player clicked within 5s, else the nearest
 unit within 5 tiles. A STASH **filled before the plugin existed is
@@ -786,6 +803,117 @@ from) when a port references legacy constants verbatim. One reference
 row uses a raw id with no constant at all (22818, its comment names it
 Fish chunks) — curated, fail-fast on any new one.
 
+## Where's my stuff — storage tracking (module: wheresmystuff, pack: storage-locations.json)
+
+Ported from "Dude, Where's My Stuff?" (Thource/dude-wheres-my-stuff @
+d032272, BSD-2, (c) 2022 Thource). The value it adds over Iron Hub's
+existing reads is knowing what you keep in every place BEYOND bank /
+inventory / worn, so the Gear library can say "You own this · Fancy dress
+box (PoH)" for an item stored only in a POH costume case.
+
+**Model.** Each place is a `Storage` whose detection lives in per-storage
+event hooks (`onItemContainerChanged` / `onVarbitChanged` / `onWidgetLoaded`
+/ `onGameObjectSpawned` / `onChatMessage`), each returning "data changed".
+The port keeps those hooks byte-faithful (widget/varbit/object ids, chat
+substrings) and replaces only the reference's save/load (its own config
+group) and Swing panel with `AccountState.putStorageContents` (a
+self-describing `PersistedState.StorageSnapshot`: item id→qty + baked
+name/family/label so it renders offline — the GoalSeed baked-at-write rule)
+and an OSRS-skinned tab. Nothing polls; **an unseen storage is silent,
+never "empty"** (the sailing-boat honesty rule). `whereOwned(id)` falls
+through bank→inv→worn→`storedLabel(id)`; `ownedAnywhere(id)` counts tracked
+storages so Gear reads a stored-only item as owned.
+
+**The static tables become a pack, not the container ids.** The detection
+Java references the gameval `InventoryID`/`VarbitID` constants directly (on
+our classpath), so `storage-locations.json` carries only the registry
+metadata + the item allow-lists. gameval `ItemID` names DON'T resolve in
+tools/itemids.txt (that's LEGACY names) — resolve them via javap against
+`net.runelite.api.gameval.ItemID` from the Gradle cache, fail-fast (the
+gen_poh.py idiom).
+
+**POH costume room — the one non-obvious detection.** The whole costume
+room (six treasure-chest tiers, armour case, magic wardrobe, fancy dress
+box, cape rack, toy box, boss lair display, uncategorised) hangs off ONE
+backing container, `InventoryID.POH_COSTUMES` (637), and its sub-storages
+are told apart PURELY by hardcoded item-id allow-lists — that's why the
+reference's enum is 2000 lines and why the allow-lists must be a pack.
+On a POH_COSTUMES `ItemContainerChanged` (mask `-0x8000` first) while the
+player is in their OWN house (region ∈ {7534,7535,7790,7791,8046,8047,8302,
+8303} — the reference's REGION_POH, NOT the generic 7513), the container is
+re-attributed across every costume storage by allow-list; Uncategorised
+(the null-list catch-all) keeps whatever no other allow-list claims
+(`WheresMyStuffModule.attributePoh`, pure + tested). The container holds the
+UNION of the whole room, so re-deriving all storages from it on each change
+is correct — a sibling never gets wiped. **Caveat preserved from the
+reference:** you can't verify a house is your own beyond the region, so
+visiting a friend's costume room isn't a real risk (its container doesn't
+populate for you), but bespoke object-spawn storages (cape hanger) DO reset
+on a friend's house — a known limitation, not a bug to "fix".
+
+**Seven pack-driven generic modes, no per-storage Java** (every storage
+carries a globally-unique `id` = "family:key", the snapshot map key — config
+keys collide across families, "bank" is both coins and world):
+- `container` — a plain `ItemContainerChanged` read (the whole container IS the
+  storage: carryable sub-containers, the five boat holds, Death's office,
+  GRAVESTONE[525], group storage, seed vault; bank/inv/worn are never listed,
+  AccountState owns them).
+- `objectmount` — the cape hanger: a mounted-cape `GameObjectSpawned` (76
+  `ObjectID.POH_MOUNTED_*` → [cape, hood]) means that cape is stored; object
+  29166 (the empty hanger) clears it.
+- `varbits` — qty = varbit value × multiplier per item, with an optional
+  display-name override and a `varp` flag, so ONE mode covers item bags (plank
+  sack, blast furnace, fossil), coin balances (NMZ/LMS × 1000), minigame
+  points (Slayer/Tithe/…, "Points" over an icon item) and Vyre Well (blood
+  runes = the vial varbit × 200).
+- `varbitindex` — one varbit's value indexes an item-id array (pickaxe statue).
+- `slots` — N (type, count) slots; the type resolves to an item id via a game
+  enum (rune pouch, `EnumID.RUNEPOUCH_RUNE` 982), an array (bolt pouch) or the
+  value directly (Dizana's quiver, a VarPlayer).
+- `compute` — per-item derived formulas (Tool Leprechaun's 12 tools, Elnock):
+  sum (Σ varbit×mult), variant (a sum whose id swaps on a flag varbit), index,
+  type. Curated from the reference's overrides in `tools/dwms-storage-tables.json`.
+
+The `gameval` constants above are all resolved via javap against the client
+jar (fail-fast) — **the OLD ItemID/VarbitID name tables (itemids.txt) are
+LEGACY names and won't resolve gameval; use the gameval classes.**
+
+**STASH** is the whole 119-unit family, but detected by REUSE, not a DWMS
+port: Iron Hub already tracks fills (ClueStashModule), so an AccountState
+listener mirrors `getStashFilled()` into per-unit snapshots whose contents are
+the unit's emote-clue item reqs (from the clue-steps pack) — the map itself
+advised replacing DWMS's cluescrolls-coupled detection with your own data.
+
+**The widget / chat / inventory-diff scrapers** (24 storages — world
+log/forestry/sandstorm/potion/compost/nest, carryable bottomless-bucket/
+firelighter/herb-sack, coins GE/servant/shilo/bounty/scar, 9 minigames, POH
+menagerie[`getEnum(985)`]/spice-rack) live in an ISOLATED companion
+`WheresMyStuffScrapers`, registered on the eventBus and driven by a `Sink`
+back to the module's commit path. Ported byte-faithful (widget ids + chat
+regexes copied verbatim; the reference's `Var` helpers → direct
+`getVarbitValue`/`getVarpValue`, its `ItemContainerWatcher` → an inner
+GameTick-polled `Watcher`). **Because they read raw interface widgets, they
+want an in-client pass to confirm the ids** — the port-then-live-verify
+workflow. Nulodion (cannon parts) + Eyatlalli (cold-storage weapon) are
+chat-driven in the module itself.
+
+**PARKED (honest silence, an unseen storage never renders):** death
+deathpile/deathbank (the UIM ground-item scanner + DyingState machine — too
+coupled, and your gravestone contents are already captured via the container
+read; distinct from the existing Death recovery module, which owns reclaim
+location/path). Two deviations: Mastering Mixology resins (sprite currencies,
+no item id the id-keyed sink can hold) and CompostBins (summed across regions,
+the single-map sink can't carry a per-region breakdown).
+
+
+**Compost bins broadcast nothing when filled (Luke, 2026-08-03).** The
+FARMING_TRANSMIT varbits that carry a bin's contents update on region
+ENTRY, not when the bin's state changes in place — the game sends no
+event for filling or collecting while you stand at the bin. The
+region-transition decode in `tickCompostBins` is therefore the detection
+ceiling, not a shortcut: a bin filled in place reads stale until the
+player leaves the region and returns. Do not "fix" this by decoding per
+tick or per varbit change; there is nothing fresher to read.
 ## Combat style & autocast naming (module: loadoutlab, pack: weapon-styles.json)
 
 The combat tab's BUTTON labels ("Chop", "Hack", "Lunge") and per-button
@@ -818,6 +946,31 @@ autocast, is WRONG (it is a 5-entry item map, unrelated).
 Attack-type icons: the wiki's own equipment-infobox set (White dagger /
 White scimitar / White warhammer / Ranged icon / Magic icon), fetched by
 the generator into data/icons/osrs/styles/.
+
+## DPS math parity with the official calculator (module: loadoutlab, engine: com.loadoutlab.engine)
+
+The engine's hit model is EXACTLY the official calculator's
+(tools.runescape.wiki/osrs-dps), verified against a live share 2026-07-27
+(Dual macuahuitl set vs Dust devil, share id ChildsControlsWarlock —
+site 5.389 = engine to four decimals; pinned in
+`RollMathTest.dpsPipelineMatchesLiveOfficialCalculator`). Two traps:
+
+- **The min-1-damage term is CORRECT, not a bug.** Expected hit is
+  `accuracy × (max/2 + 1/(max+1))` — a successful accuracy roll that
+  rolls 0 damage is bumped to 1, exactly like the official calc. Deriving
+  "uniform 0..max → acc × max/2" from the wiki's mechanics pages and
+  "fixing" the term makes every number ~0.3% LOWER than the site. The
+  site's magic +2 stance bonus applies only on Accurate; the engine
+  models magic at accurate-equivalent always, so exports map magic to
+  stance "Accurate" (site Autocast adds 0).
+- **Panel-vs-site disagreement is an INPUTS problem, not math.** The
+  panel auto-picks the best stance, assumes prayers/potions per the
+  Options toggles, and computes at `max(real+assumed boost, live boosted
+  levels)` — a user comparing against a hand-configured site tab sees a
+  few-percent gap from stance choice or a live boost alone. That is why
+  DpsExport carries the full scenario (style/boosts/prayers/spell,
+  prayer ids pinned to the site's Prayer enum, serializationVersion 10):
+  the "Open DPS calc" button must land on the panel's own number.
 
 ## The wiki as a data source (tools/knowledge/, all gen_* wiki generators)
 
@@ -927,3 +1080,222 @@ Hard-won source knowledge for ANY feature that harvests the OSRS wiki:
   requirement leaf is the ONLY leaf that reads a raw game value, and only
   ever for a currency with a documented constant.
 
+
+## Supplies catalog — consumables & resources (module: supplies, pack: supplies.json)
+
+The Supplies runway watchlist is a generated catalog (`tools/gen_supplies.py`
+reads `knowledge/knowledge.db`): 6 categories (Potions, Food, Runes,
+Ammunition, Prayer, Materials), each a curated top-20 default plus a broader
+searchable membership. Two data facts bit during the build and are worth
+recording:
+
+- **The knowledge.db `items` table has TEXT affinity on `item_id`.** Most
+  rows are integers, but beta-mode duplicates store a STRING id like
+  `"beta30922"`. A generator resolving a display name to an id must filter to
+  integer ids (`str(id).isdigit()`) and take the minimum, or Gson blows up
+  parsing `"id": "beta30922"` as an int. canonicalStock() sums variants at
+  runtime, so the lowest real id is the right one (it is also the canonical
+  icon).
+- **Ammunition IS equipment.** Arrows, bolts, darts, javelins, knives and
+  the like are worn in the ammo slot, so they appear in the wiki's equipment
+  categories / the `equipment` KB table. A "supplies are not equipment"
+  exclusion filter therefore wrongly drops the entire Ammunition category.
+  The catalog is POSITIVELY sourced instead (the consumables table + curated
+  resource families + clean name patterns), so a weapon never leaks in
+  without needing an exclusion filter at all — which is the permanent fix for
+  the old module's "Rune longsword shows up as a supply" bug (that list came
+  from the trip-diff consumption log, not a catalog).
+
+Name patterns (`Grimy %`, `Uncut %`, `% bones`, `Ensouled % head`, `%ashes`,
+`% plank`, `% logs`) give broad membership cheaply for families that pattern
+cleanly; a small blocklist drops the Sailing crates (`Crate of …`) and quest
+tokens (`Alan's …`, `Iban's ashes`, `Grimy note`) they catch. Seeds are
+curated rather than patterned — `% seed`/`% sapling` caught too much quest
+and crystal-token junk.
+
+## POH build detection (module: poh/House, pack: poh.json)
+
+The house catalog is harvested from the wiki's 24 room pages plus each
+furniture's own page (`tools/gen_poh.py`). Four things about that data are
+load-bearing and each one cost a bug:
+
+- **The same furniture in different rooms is the SAME object id.** A brown
+  rug (6759) is the parlour's rug, the bedroom's rug, the chapel's rug and
+  the portal nexus's rug. 154 object ids are shared this way, covering 480
+  placements. So an `objectId -> tier` map is wrong twice over: it can only
+  hold one tier per id (326 placements silently unreachable) and the one it
+  keeps is arbitrary, so a rug spawn marked some other room's rug built.
+  `PohPack.placementsByObjectId` returns them ALL, and the caller must
+  disambiguate.
+- **A POH room is one 8x8 tile chunk**, so objects sharing a chunk share a
+  room. That is the only available discriminator: buffer spawns per chunk,
+  identify the room from the furniture in it whose object id has exactly one
+  placement (every room has at least five such tiers), then attribute the
+  shared furniture to that room. A chunk holding nothing but shared furniture
+  is left unmarked — guessing would invent a room the player may not own.
+- **Furniture vs materials in a room table** is the `{{plinkt}}` / `{{ilinkt}}`
+  (thumbnail link) versus plain `{{plink}}` / `{{ilink}}` distinction, NOT the
+  p-vs-i one. Matching `plinkt?` swept the materials in as furniture; matching
+  only `plinkt` lost every hotspot whose table uses `ilinkt` (the whole
+  Superior garden pool ladder).
+- **The wiki lists the UNCONFIGURED object; the game swaps it once the
+  furniture is set up.** A Teak portal is `POH_PORTAL_TEAK_EMPTY` only while it
+  has no destination. Choose one and the game builds
+  `POH_PORTAL_TEAK_VARROCK` — one object per destination, 47 of them, none of
+  which the wiki's infobox mentions. Detection matches on object id, so every
+  portal anyone actually uses was invisible to it. `gen_poh.py` absorbs those
+  variants from the client's own symbol table: an id whose gameval name ends
+  `_EMPTY` is the placeholder, and every id sharing its stem is the same
+  furniture configured (4 families, +276 ids). The rule is deliberately narrow
+  — a looser "strip the last token" stem would be WRONG, because
+  `POH_CURTAINS_1/2/3` are three different tiers of one hotspot and the stem
+  `POH_DISPLAY_` would drag `POH_DISPLAY_CASE_RUNE1_6` (different furniture)
+  into the boss-lair display. Families that don't mark their placeholder stay
+  unexpanded rather than guessed at.
+- **A Leagues reskin must not be claimed by its base furniture.** The wiki
+  gives "Marble portal" and "Raging echoes portal" the same ids, so either one
+  marked BOTH built — and since the tab reports the HIGHEST built tier, an
+  ordinary player with a marble portal was told they had a Raging echoes
+  portal. The client's symbols separate them (`POH_PORTAL_LEAGUE_5_*` vs
+  `POH_PORTAL_MARBLE_*`), and the pack's other league tiers already pair the
+  two (`POH_CURTAINS_LEAGUE5` ↔ "Raging echoes curtains"), so the LEAGUE ids
+  go to the league tier alone — applied only inside a hotspot that has one.
+- **Infobox fields must be read from inside the Infobox Construction block,
+  and tolerate the versioned form.** A furniture page often carries other
+  infoboxes whose `id` fields are unrelated (a pet's NPC id, the cape
+  hanger's scenery list) — scraping page-wide injected false detection ids on
+  19 pages. And a page covering two variants ("Marble fireplace" /
+  "Decorated marble fireplace") writes `level1`/`level2` and `id1`/`id2` with
+  no plain `level`, so a strict `level` match silently drops it.
+
+**The gate is BUILDING MODE, not a chat message.** The previous gate compared
+the chat log against `"Welcome to your house."` — a string that **does not
+exist in OSRS**. It was invented, never verified, and because an equality check
+that misses is invisible, detection silently marked nothing at all, forever.
+Nothing in the client jar, the wiki, or RuneLite's own `PohPlugin` exposes who
+owns the house you are standing in — core's POH plugin does not even try.
+
+What IS verifiable is `VarbitID.POH_BUILDING_MODE` (2176): you can only enter
+building mode in your OWN house, so it proves ownership and a house you are
+merely visiting never marks anything (Luke's call, 2026-07-24). Read it as
+NON-ZERO rather than `== 1` — the constant's name comes from the game's own
+symbols and is authoritative, but nothing available confirms which truthy value
+it uses, and guessing a specific one is exactly how the last gate failed.
+
+**The varbit alone is NOT enough, and the scene is what settles it.** Luke:
+"it registered all of my items BEFORE I switched to build mode." Only the
+varbit's name and id were ever verified — RuneLite core never reads 2176, so
+no reference documents its values, and a non-zero read is not by itself proof
+the house is being edited. The scene answers directly: the game places its
+**unbuilt-hotspot marker objects** (gameval `POH_*HOTSPOT*`, 90 of them,
+`poh.json` `buildModeMarkers`, zero overlap with buildable furniture) in front
+of you only while you are building. Detection now commits nothing unless a
+sweep has seen one, however the varbit reads. Those markers must ALSO queue a
+sweep — they are what appears when the player switches into build mode, and
+since a scene is swept once, nothing else would prompt the re-sweep that turns
+"standing in the house" into "editing it". The diagnostics line prints the raw
+varbit value alongside, so its real semantics get settled from live data
+instead of assumed.
+
+Marks PERSIST, so a later visit shows what an earlier session detected — which
+reads exactly like "it detected before I was in build mode". The tab's **Reset
+detected builds** button (shown only once something is marked, confirmed
+first) forgets every mark, detected and manual, so detection can be watched
+from a blank slate.
+
+A POH **region** check was tried alongside it and **removed** (2026-07-24):
+building mode already implies standing in your own house, so the region list
+added no proof — it was a second unverified assumption that could only ever
+block detection, never enable it, which is the same shape as the invented chat
+message. The three furniture whose object id the game reuses in the world (a
+throne-room trapdoor shares 6521 with `DESERTTREASURE_PITFALL`) cannot mark
+anything anyway, because nothing is read outside building mode.
+
+Because detection only runs in building mode, the tab SAYS so while nothing is
+marked ("Enter building mode in your house to sync..."). An empty grid with no
+explanation is what read as broken twice.
+
+**A hotspot holds ONE piece of furniture — the ladder is alternatives, not a
+stack.** A Gilded altar REPLACES the Oak altar; only the highest built tier
+exists in the house. "The first unbuilt tier from the bottom" is therefore not
+the next upgrade, and asking for it answered "Oak altar" for a player with a
+Gilded altar — so every hotspot read as incomplete forever, the tab showed
+**0/137 with no green ticks even when detection had marked everything
+correctly**, and that display bug is indistinguishable from detection failing.
+`nextTier` is the tier ABOVE the highest built (null once the top is up),
+`builtTier` is the highest built, and the header counts hotspots with anything
+standing at them — counting fully-upgraded ladders instead reads ~0 for any
+real house, forever.
+
+**SWEEP the scene; do not listen to spawns.** Two blind spots that closes:
+furniture that loaded before the module was listening (you were already
+inside), and furniture the game does not place as a `GameObject` at all —
+**rugs are ground objects, mounted heads and wall charts are wall/decorative
+objects**, so a GameObjectSpawned-only reader can never see them. Spawn events
+of all four kinds are only a trigger, coalesced to one sweep per tick (a scene
+load fires hundreds and each sweep reads ~43k tiles).
+
+## Slayer helmet substitution (module: slayer, S1 2026-08-03)
+
+The helmet substitutes for exactly its own components' protections:
+facemask (4164), earmuffs (4166), nose peg (4168), spiny helmet (4551),
+reinforced goggles (24942), enchanted gem functions — encoded ONCE in
+`SlayerOptimizerModule.bringGroups`, which synthesizes the helm
+alternative whenever a wiki table lists a protective item without it.
+**NOT substituted (wiki-verified twice, incl. the Cave horror page): the
+witchwood icon and the mirror shield** — a helm wearer still needs them.
+`carriedCount` is variation-aware, so recolours/imbues all count.
+
+## Mortimer (pack: slayer-tasks.json, S12 + R9 2026-08-03)
+
+The 10th master (Wyrmscraig Cavern, released 2026-07-29). Base points 0
+— VERIFIED against the wiki's Slayer reward point page: he awards points
+only when the "Slayer Points" Mortifier rolls (5–40 by monster), with NO
+streak-milestone multipliers; skips cost 100, blocks 120 with only 2
+slots; his streak is separate (Krystilia-style) and his tasks cannot be
+Turael-skipped. His full 29-row assignment table is harvested, including
+**Venators** — his exclusive task, carried by a curated
+`SUPPLEMENTAL_TASKS` entry in gen_slayer.py (icon = Venator fang,
+name-prefix targeting) until the pinned core Task.java knows them. His
+**two block slots read live via varbits 15783/15784**
+(SLAYER_BLOCKED_MORTIMER_1/2 — 1:1 gameval names on RuneLite master, raw
+ints in BLOCK_VARBITS because the pinned API predates them, keyed by the
+-1 focus sentinel). **His SLAYER_MASTER focus value is still
+undocumented** (wiki varbit 4067 stops at Spria=9), so `focusId: -1`
+stays — live master detection is honestly empty until the value is
+learned (live check: read SLAYER_MASTER while assigned by him). His
+usage gate — (Combat 100 AND Slayer 70) OR Slayer 99, PLUS partial
+Fallen From Grace in both branches — encodes the level logic only; the
+quest is unencodable until quests.json knows it.
+
+## Clog drop-rate audit (tools/gen_clog.py, G3 2026-08-03)
+
+The Log Adviser spreadsheet's `attempts` are strategy-adjusted figures,
+NOT raw wiki denominators: on-task rates, key-farming chains (hill
+giants = giant key 1/128 x chest 1/118; Sarachnis egg sacs = grubby key
+1/15 x chest 1/25), unit conversions (Soul Wars zeal, Volcanic Mine
+points, molch pearls), per-casket multi-rolls, ring-of-wealth salvage
+rates, the chewed-bones pyre route (mith dragons: 1/32,768 direct +
+3/128 x 1/256 = exactly 1/8,192). The generator's audit compares every
+plain-activity row against the wiki's collection_log_source bucket and
+HARD-FAILS on a >2.5x divergence without a curated correction or
+adjudicated waiver; 'N × 1/M' wiki notation is never auto-parsed (it
+reads as rolls on some pages and quantity on others).
+
+## Loot pickup detection (module: loot, L3 2026-08-03; reworked after live test)
+
+**`ItemStack.getLocation()` is a null stub in current RuneLite** — the
+per-stack drop tile is gone from the API (the first design NPE'd on
+every NpcLootReceived, which is why nothing ever classified live). Drops
+now register against the NPC's DEATH TILE as an approximate anchor, and
+a despawn matches by item id within 6 tiles (MATCH_RADIUS — wide enough
+for loot under any tile a large NPC covered, tight enough not to steal
+another room's drops; oldest close-enough drop wins). Fates classify on
+ItemDespawned: PICKED when the player stands on the despawn tile or the
+inventory gained the id within 2 ticks (telegrab/area-loot); UNKNOWN
+through a scene reload — the client unloads ground items that still
+exist server-side, so a teleport-away despawn proves nothing; LEFT
+otherwise. Pending drops whose despawn never arrives stay unclassified.
+Only confirmed pickups persist; the UI derives left-behind and never
+guesses unknowns into either bucket. Live checks owed: pickup lands in
+"Picked up only", and area-loot's inventory-gain window.

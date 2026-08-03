@@ -30,8 +30,16 @@ public class HunterRumoursModuleTest
 	@Rule
 	public TemporaryFolder temp = new TemporaryFolder();
 
+	/** Vanilla, not the config default. {@code osrsTheme()} defaults to MYSTIC,
+	 *  so every render this test wrote came out grey — and the renders exist to
+	 *  be judged against the Vanilla design system (Luke, 2026-07-25). */
 	private final IronHubConfig config = new IronHubConfig()
 	{
+		@Override
+		public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+		{
+			return com.ironhub.ui.osrs.OsrsTheme.STONE;
+		}
 	};
 
 	private final HunterRumoursPack pack = new DataPack(new Gson()).load("hunter-rumours", HunterRumoursPack.class);
@@ -207,6 +215,9 @@ public class HunterRumoursModuleTest
 				pack.hunterByNpcName("Guild Hunter Gilman"));
 			module.feedHunterXp(1000);
 			module.feedHunterXp(1152); // one catch
+			// a saved setup: the render shows Replace + Show in bank on one
+			// row (H1/H3 chip sizing) and the transient saved line (H2)
+			module.saveRumourSetup();
 		});
 		javax.swing.SwingUtilities.invokeAndWait(() -> { });
 		BufferedImage rumour = SwingRender.render((JPanel) tab);

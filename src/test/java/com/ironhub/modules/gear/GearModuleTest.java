@@ -7,7 +7,6 @@ import com.ironhub.data.GearLaddersPack;
 import com.ironhub.state.AccountState;
 import com.ironhub.state.StateFixture;
 import com.ironhub.ui.SwingRender;
-import com.ironhub.ui.components.GridTile;
 import java.util.List;
 import java.util.Map;
 import javax.swing.JPanel;
@@ -36,11 +35,11 @@ public class GearModuleTest
 		StateFixture.stat(state, Skill.ATTACK, 60, 0);
 
 		List<GearLaddersPack.Rung> weapon = pack.getStyles().get(0).getSlots().get(0).getLadder();
-		List<GridTile.State> states = GearProgressionModule.ladderStates(state, weapon);
-		assertEquals(GridTile.State.OWNED, states.get(0));  // iron scim
-		assertEquals(GridTile.State.NEXT, states.get(1));   // rune scim (40 atk met)
-		assertEquals(GridTile.State.LOCKED, states.get(2)); // d scim (quest unmet)
-		assertEquals(GridTile.State.LOCKED, states.get(3)); // whip (70 + kc unmet)
+		List<GearProgressionModule.State> states = GearProgressionModule.ladderStates(state, weapon);
+		assertEquals(GearProgressionModule.State.OWNED, states.get(0));  // iron scim
+		assertEquals(GearProgressionModule.State.NEXT, states.get(1));   // rune scim (40 atk met)
+		assertEquals(GearProgressionModule.State.LOCKED, states.get(2)); // d scim (quest unmet)
+		assertEquals(GearProgressionModule.State.LOCKED, states.get(3)); // whip (70 + kc unmet)
 	}
 
 	@Test
@@ -230,6 +229,13 @@ public class GearModuleTest
 		StateFixture.bank(state, Map.of(whipId, 1));
 		GearProgressionModule module = new GearProgressionModule(state, new IronHubConfig()
 		{
+			@Override
+			public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+			{
+				// Vanilla: osrsTheme() defaults to MYSTIC, and the renders
+				// exist to be judged against the Vanilla design system
+				return com.ironhub.ui.osrs.OsrsTheme.STONE;
+			}
 		}, new DataPack(new Gson()), null, null, null, null);
 		module.startUp();
 		GearLibraryTab tab = (GearLibraryTab) module.buildTab();
@@ -263,9 +269,13 @@ public class GearModuleTest
 		List<com.ironhub.data.EquipmentPack.Item> setItems = tab.visibleForTest();
 		if (!setItems.isEmpty())
 		{
-			tab.expandGroupForTest(GearLibraryTab.setKey(
+			String set = GearLibraryTab.curatedSet(
 				setItems.stream().filter(i -> i.name.startsWith("Rune plate")).findFirst()
-					.orElse(setItems.get(0)).name));
+					.orElse(setItems.get(0)).name);
+			if (set != null)
+			{
+				tab.expandGroupForTest(set);
+			}
 		}
 		javax.imageio.ImageIO.write(SwingRender.render(tab), "png",
 			new java.io.File("build/reports/gear-sets.png"));

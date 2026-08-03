@@ -60,6 +60,32 @@ public final class Boosts
 		return names;
 	}
 
+	/**
+	 * The usable sources for a skill named compactly for an INLINE label —
+	 * "Crystal saw / POH tea" (P2 2026-08-03): the "(+N)" suffixes drop, at
+	 * most two names show, more fold into "…". "/" because visible boosts
+	 * don't stack (the tooltip carries the precise stacking detail). Null
+	 * when nothing usable boosts the skill.
+	 */
+	public static String shortNames(BoostsPack pack, StateView state, Skill skill)
+	{
+		List<String> names = describe(pack, state, skill);
+		if (names.isEmpty())
+		{
+			return null;
+		}
+		List<String> shorts = new ArrayList<>();
+		for (String name : names)
+		{
+			shorts.add(name.replaceAll("\\s*\\(\\+\\d+\\)$", ""));
+		}
+		if (shorts.size() <= 2)
+		{
+			return String.join(" / ", shorts);
+		}
+		return shorts.get(0) + " / " + shorts.get(1) + " …";
+	}
+
 	private static List<Skill> skills(BoostsPack.Boost boost)
 	{
 		List<Skill> skills = new ArrayList<>();

@@ -103,7 +103,13 @@ public class SlayerOptimizerModule implements IronHubModule
 		8, new int[]{VarbitID.SLAYER_BLOCKED_KONAR_1, VarbitID.SLAYER_BLOCKED_KONAR_2,
 			VarbitID.SLAYER_BLOCKED_KONAR_3, VarbitID.SLAYER_BLOCKED_KONAR_4,
 			VarbitID.SLAYER_BLOCKED_KONAR_5, VarbitID.SLAYER_BLOCKED_KONAR_6,
-			VarbitID.SLAYER_BLOCKED_KONAR_DIARY});
+			VarbitID.SLAYER_BLOCKED_KONAR_DIARY},
+		// Mortimer's two 120-point slots. Raw ids because the pinned API
+		// predates him; the names are 1:1 gameval constants on RuneLite
+		// master (SLAYER_BLOCKED_MORTIMER_1/2, verified 2026-08-03). Keyed
+		// by his -1 focus sentinel — the pack's focusId, not a live
+		// SLAYER_MASTER value, routes the tab here.
+		-1, new int[]{15783, 15784});
 
 	private final AccountState state;
 	private final Client client;
@@ -248,6 +254,9 @@ public class SlayerOptimizerModule implements IronHubModule
 		if (npcOverlayService != null)
 		{
 			npcOverlayService.registerHighlighter(highlighter);
+			// re-evaluate NPCs already spawned — a mid-task module re-enable
+			// otherwise leaves the current task unhighlighted until respawn
+			npcOverlayService.rebuild();
 		}
 		if (infoBoxManager != null)
 		{
@@ -476,10 +485,12 @@ public class SlayerOptimizerModule implements IronHubModule
 
 	// ── detection ─────────────────────────────────────────────────────
 
-	private void ensureRecordsLoaded()
+	private synchronized void ensureRecordsLoaded()
 	{
-		// reload on profile switch too — pushing profile A's cached records
-		// into profile B overwrote B's whole slayer history (2026-07-20 audit)
+		// synchronized: the EDT (tab) and client thread both lazy-load; an
+		// unsynchronized check-then-act double-reloaded. Reload on profile
+		// switch too — pushing profile A's cached records into profile B
+		// overwrote B's whole slayer history (2026-07-20 audit)
 		int generation = state.profileGeneration();
 		if (!recordsLoaded || generation != recordsGeneration)
 		{
@@ -493,6 +504,18 @@ public class SlayerOptimizerModule implements IronHubModule
 			// a real task (genuine completions always observed kills)
 			boolean pruned = loaded.removeIf(
 				r -> r.completed && r.killed == 0 && r.xpGained == 0);
+			// one-time heal of the S7 mislabels (2026-08-03): a closed
+			// record whose observed kills covered the whole assignment was
+			// a genuine completion the streak-only classifier missed —
+			// nobody points-skips a task they already finished
+			for (PersistedState.SlayerTaskRecord r : loaded)
+			{
+				if (!r.completed && r.end > 0 && r.assigned > 0 && r.killed >= r.assigned)
+				{
+					r.completed = true;
+					pruned = true; // re-persist the healed records
+				}
+			}
 			records.addAll(loaded);
 			lastRemaining = -1;
 			lastStreakSum = -1;
@@ -581,10 +604,9 @@ public class SlayerOptimizerModule implements IronHubModule
 					? "You usually skip " + name + " — but your goal plan wants drops here"
 					: "You always skip " + name + " — 30 pts at the rewards board");
 			}
-			if (tab != null)
-			{
-				SwingUtilities.invokeLater(tab::rebuild);
-			}
+			// no direct tab push: setSlayerTask above already notified the
+			// tab's RebuildGate listener — the bare invokeLater duplicated
+			// the rebuild and ignored the visibility gate
 		}
 	}
 
@@ -628,7 +650,25 @@ public class SlayerOptimizerModule implements IronHubModule
 				{
 					active.xpGained = Math.max(0, state.getXp(Skill.SLAYER) - active.xpStart);
 				}
+				// idle-gated task duration (H5): kills are the activity
+				// signal; a break longer than the grace window doesn't
+				// count toward "time taken"
+				long now = System.currentTimeMillis();
+				active.activeMs = com.ironhub.state.ActivityClock.accrue(
+					active.activeMs, active.lastActivityMs, now);
+				active.lastActivityMs = now;
 				dirty = true;
+				// killing the LAST one IS completion (S7): the count hit 0
+				// through observed kills, not a skip (skips zero it in one
+				// >2 jump, excluded above). The streak/chat signals stay as
+				// corroboration for AoE finishes and ordering races.
+				if (remaining == 0 && !active.completed)
+				{
+					active.completed = true;
+					active.end = now;
+					finishRecord(active);
+					dirty = false; // finishRecord already pushed
+				}
 			}
 			// a genuine completion is an EXACT +1 with kills observed this
 			// record — login replay ingests the streak varbit after a 0
@@ -810,13 +850,15 @@ public class SlayerOptimizerModule implements IronHubModule
 		long value = 0;
 		for (net.runelite.client.game.ItemStack stack : event.getItems())
 		{
-			value += (long) itemManager.getItemPrice(stack.getId()) * stack.getQuantity();
+			// canonical ids: noted drops otherwise miss the name index and
+			// show as "Item N". Priced like the loot tab — HA on an ironman
+			int id = itemManager.canonicalize(stack.getId());
+			value += state.unitValue(id) * stack.getQuantity();
+			// per-task drop breakdown (S6): the history stats view lists them
+			active.drops.merge(id, stack.getQuantity(), Integer::sum);
 		}
-		if (value > 0)
-		{
-			active.lootValue += value;
-			pushRecords();
-		}
+		active.lootValue += value;
+		pushRecords();
 	}
 
 	/** The helm/gem/bracelet check line — Slayer Simplified's pattern
@@ -834,6 +876,23 @@ public class SlayerOptimizerModule implements IronHubModule
 			return;
 		}
 		String message = Text.removeTags(event.getMessage());
+		if (message.contains("You have completed") && message.contains("task"))
+		{
+			// the game SAYS it ("You have completed your task! You killed
+			// 135 Dust devils…") — the strongest completion signal there
+			// is, and the one the streak-varbit path kept missing live
+			// (S7: every history entry read "skipped"). Substring match,
+			// never equality (DOMAIN-NOTES: strings we cannot read out of
+			// the cache).
+			ensureRecordsLoaded();
+			PersistedState.SlayerTaskRecord active = activeRecord();
+			if (active != null && active.killed > 0)
+			{
+				active.completed = true;
+				active.end = System.currentTimeMillis();
+				finishRecord(active);
+			}
+		}
 		if (SUPERIOR_MESSAGE.equals(message))
 		{
 			superiorSeenMs = System.currentTimeMillis();
@@ -1067,6 +1126,22 @@ public class SlayerOptimizerModule implements IronHubModule
 				protection.add(item);
 			}
 		}
+		// The slayer helmet substitutes for the WHOLE protective family
+		// (facemask, earmuffs, nose peg, spiny helmet, goggles — its own
+		// components), encoded ONCE here (S1, 2026-08-03): if a wiki table
+		// listed the protective item without the helmet row, synthesize
+		// the alternative rather than trusting each table to repeat it.
+		// NOT in the family (wiki-verified): witchwood icon and mirror
+		// shield — the helmet does not carry their protection.
+		if (!protection.isEmpty() && protection.stream().noneMatch(
+			i -> i.name.toLowerCase(java.util.Locale.ROOT).contains("slayer helmet")))
+		{
+			SlayerTasksPack.BringItem helm = new SlayerTasksPack.BringItem();
+			helm.name = "Slayer helmet";
+			helm.id = 11864; // variant-aware: carriedCount counts recolours/imbues
+			helm.required = protection.stream().anyMatch(i -> i.required);
+			protection.add(helm);
+		}
 		List<List<SlayerTasksPack.BringItem>> groups = new ArrayList<>();
 		boolean grouped = protection.size() >= 2;
 		boolean placed = false;
@@ -1088,14 +1163,33 @@ public class SlayerOptimizerModule implements IronHubModule
 		return groups;
 	}
 
+	/** Bracelet reminder item ids (S4). */
+	private static final int BRACELET_OF_SLAUGHTER = 21183;
+	private static final int EXPEDITIOUS_BRACELET = 21177;
+
 	List<String> missingBring()
 	{
 		SlayerTasksPack.Task entry = pack == null ? null : pack.task(taskName);
-		if (entry == null || entry.bring == null)
+		if (entry == null)
 		{
 			return List.of();
 		}
 		List<String> missing = new ArrayList<>();
+		// the player's own per-task bracelet reminders (S4) join the list
+		// when the bracelet isn't carried
+		for (String bracelet : state.getSlayerBracelets(entry.name))
+		{
+			boolean slaughter = "slaughter".equals(bracelet);
+			int id = slaughter ? BRACELET_OF_SLAUGHTER : EXPEDITIOUS_BRACELET;
+			if (state.carriedCount(id) == 0)
+			{
+				missing.add(slaughter ? "Bracelet of slaughter" : "Expeditious bracelet");
+			}
+		}
+		if (entry.bring == null)
+		{
+			return missing;
+		}
 		for (List<SlayerTasksPack.BringItem> group : bringGroups(entry.bring))
 		{
 			boolean required = false;
@@ -1126,6 +1220,13 @@ public class SlayerOptimizerModule implements IronHubModule
 		}
 		return entry.locations == null || entry.locations.isEmpty()
 			? null : entry.locations.get(0).name;
+	}
+
+	/** True while task-target NPCs are in the scene — the honest "you're
+	 *  already there" signal (the highlighter maintains the set). */
+	boolean taskNpcsNearby()
+	{
+		return !targets.isEmpty();
 	}
 
 	/** True while the player stands inside any of the task's Turael kill areas. */

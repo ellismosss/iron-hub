@@ -47,7 +47,7 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "dailies", name = "Dailies", description = "Daily and weekly activity reminders", section = modulesSection, position = 10)
 	default boolean dailies() { return true; }
 
-	@ConfigItem(keyName = "boatUpgrades", name = "Sailing upgrades", description = "Per-boat available upgrades, materials owned and next locked tiers", section = modulesSection, position = 11)
+	@ConfigItem(keyName = "boatUpgrades", name = "Boats", description = "Per-boat available upgrades, materials owned and next locked tiers", section = modulesSection, position = 11)
 	default boolean boatUpgrades() { return true; }
 
 	@ConfigItem(keyName = "goalPlanner", name = "Goals", description = "Dependency-tree plans for any target (item, quest, capstone)", section = modulesSection, position = 12)
@@ -56,7 +56,7 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "clueStash", name = "Clues & STASH", description = "STASH tracking and emote-clue readiness", section = modulesSection, position = 14)
 	default boolean clueStash() { return true; }
 
-	@ConfigItem(keyName = "pohProgression", name = "PoH progression", description = "Useful house builds: built, buildable and locked tiers per space", section = modulesSection, position = 13)
+	@ConfigItem(keyName = "pohProgression", name = "House", description = "Useful house builds: built, buildable and locked tiers per space", section = modulesSection, position = 13)
 	default boolean pohProgression() { return true; }
 
 	@ConfigItem(keyName = "hunterRumours", name = "Hunters' Rumours", description = "Current rumour target, catch progress, hunting locations and history", section = modulesSection, position = 13)
@@ -99,8 +99,11 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "notifyDailyReset", name = "Daily reset", description = "Notify at the daily reset when dailies are outstanding", section = notificationsSection, position = 4)
 	default boolean notifyDailyReset() { return true; }
 
-	@ConfigItem(keyName = "runwayWarningHours", name = "Runway warning (hours)", description = "Warn when a consumable's runway drops below this many hours", section = notificationsSection, position = 5)
-	default int runwayWarningHours() { return 6; }
+	@ConfigItem(keyName = "farmingOverlay", name = "Farm run overlay", description = "Floating overlay during a farm run: current stop, teleport, missing items, patch state and progress", section = notificationsSection, position = 5)
+	default boolean farmingOverlay() { return true; }
+
+	@ConfigItem(keyName = "dailiesOverlay", name = "Daily run overlay", description = "Floating overlay during a daily run: current stop, travel, what to bring and progress", section = notificationsSection, position = 5)
+	default boolean dailiesOverlay() { return true; }
 
 	@ConfigItem(keyName = "caTierGoal", name = "CA tier goal", description = "Combat Achievements tier to work toward; Auto advances to the next incomplete tier", section = notificationsSection, position = 6)
 	default CaTierGoal caTierGoal() { return CaTierGoal.AUTO; }
@@ -199,6 +202,9 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "bankSpaceSaver", name = "Bank space saver", description = "Bank items that could live in dedicated storage (tackle box, seed vault, POH cases and more)", section = modulesSection, position = 31)
 	default boolean bankSpaceSaver() { return true; }
 
+	@ConfigItem(keyName = "wheresMyStuff", name = "Where's my stuff", description = "Track what you keep in every storage beyond the bank - POH costume cases, STASH units, boat holds - so Iron Hub knows where your items are (ported from Dude, Where's My Stuff?)", section = modulesSection, position = 32)
+	default boolean wheresMyStuff() { return true; }
+
 	@ConfigItem(keyName = "portBoardAdvice", name = "Port task board advisor", description = "While a port task board is open, overlay the best courier picks (Sailing XP per tile added to your route)", section = notificationsSection, position = 13)
 	default boolean portBoardAdvice() { return true; }
 
@@ -208,6 +214,4 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "freezeWatchdog", name = "Freeze detector", description = "Log a stack dump when the client UI stalls, so freezes can be diagnosed (development aid, negligible cost)", section = modulesSection, position = 28)
 	default boolean freezeWatchdog() { return true; }
 
-	@ConfigItem(keyName = "discordWebhookUrl", name = "Discord webhook URL", description = "Opt-in: milestone notifications (log slots, uniques, pets, levels, goals)", section = integrationsSection, position = 5)
-	default String discordWebhookUrl() { return ""; }
 }

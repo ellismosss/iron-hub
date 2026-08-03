@@ -56,8 +56,10 @@ public class BankSpaceModule implements IronHubModule
 	private BankSpaceTab tab;
 	private BankSpaceOverlay overlay;
 
-	private Map<Integer, BankStoragePack.Entry> entryById;
-	private Map<Integer, String> locationNameByItem;
+	// volatile: lazily built on whichever of the EDT / client thread asks
+	// first, then shared — unsafe publication could expose a half-built map
+	private volatile Map<Integer, BankStoragePack.Entry> entryById;
+	private volatile Map<Integer, String> locationNameByItem;
 
 	@Inject
 	public BankSpaceModule(AccountState state, IronHubConfig config, DataPack dataPack,

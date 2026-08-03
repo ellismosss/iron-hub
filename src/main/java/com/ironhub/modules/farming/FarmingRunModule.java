@@ -161,6 +161,12 @@ public class FarmingRunModule implements IronHubModule
 
 	// run state — written on the client thread, read from EDT/overlay
 	private volatile long runStartMs;
+	// idle-gated ACTIVE time (ActivityClock, X4 2026-08-03): accrued on
+	// farming signals — xp movement and stop advances — so a run parked at
+	// the bank does not log its parking
+	private volatile long runActiveMs;
+	private volatile long runLastActivityMs;
+	private volatile int runLastSeenXp;
 	private volatile String runName = "";
 	private volatile List<Stop> stops = List.of();
 	private final Set<String> visited = ConcurrentHashMap.newKeySet();
@@ -208,6 +214,8 @@ public class FarmingRunModule implements IronHubModule
 	private boolean firstRefresh = true;
 	// runs currently ready — a not-ready -> ready transition re-ticks the run
 	private final Set<String> runReadySeen = ConcurrentHashMap.newKeySet();
+	/** Profile re-derive seam: transition state is per-account. */
+	private int seenGeneration = -1;
 
 	@Inject
 	public FarmingRunModule(AccountState state, Client client, EventBus eventBus,
@@ -253,6 +261,7 @@ public class FarmingRunModule implements IronHubModule
 	@Override
 	public void startUp()
 	{
+		seenGeneration = state.profileGeneration(); // fresh baselines already
 		pack = dataPack.load("farm-runs", FarmRunsPack.class);
 		skillUnlocks = dataPack.load("skill-unlocks", com.ironhub.data.SkillUnlocksPack.class);
 		if (tracking == null && configManager != null)
@@ -264,7 +273,7 @@ public class FarmingRunModule implements IronHubModule
 		eventBus.register(this);
 		if (overlayManager != null)
 		{
-			overlay = new FarmingRunOverlay(this);
+			overlay = new FarmingRunOverlay(this, config);
 			overlayManager.add(overlay);
 			// green-glow the setup items still to withdraw (bank only)
 			bankHighlight = new com.ironhub.ui.components.BankRestockOverlay(this::farmBankHighlight);
@@ -456,6 +465,17 @@ public class FarmingRunModule implements IronHubModule
 		// dirty (a timetracking config write) refreshes soon but never every
 		// tick — while the core plugin writes near patches, per-tick refresh
 		// meant hundreds of ConfigManager lookups per tick (freeze audit)
+		// xp movement during a run is the live activity signal (X4) — a
+		// cached AccountState read, not a client call, so per-tick is cheap
+		if (running())
+		{
+			int xp = state.getXp(net.runelite.api.Skill.FARMING);
+			if (xp != runLastSeenXp)
+			{
+				runLastSeenXp = xp;
+				runActivitySignal();
+			}
+		}
 		refreshTick++;
 		if (refreshTick - lastRefreshTick >= REFRESH_TICKS
 			|| (trackingDirty && refreshTick - lastRefreshTick >= DIRTY_REFRESH_TICKS))
@@ -521,8 +541,28 @@ public class FarmingRunModule implements IronHubModule
 		{
 			return;
 		}
+		int generation = state.profileGeneration();
+		if (generation != seenGeneration)
+		{
+			// account switch: the tracker now reads the new profile's
+			// RSProfile data, but the transition bookkeeping still holds the
+			// old account's picture — B's long-ready herbs would replay a
+			// "ready" notification and re-tick runs; a mid-run hop would
+			// advance A's run from B's patches
+			seenGeneration = generation;
+			notifiedReady.clear();
+			runReadySeen.clear();
+			runReadyCache.clear();
+			lastFingerprint = "";
+			firstRefresh = true; // silent re-seed, exactly like startup
+			if (running())
+			{
+				endRun(false);
+			}
+		}
 		tracking.refresh();
 		runReadyCache.clear(); // fresh tracker data — recompute readiness lazily
+		patchesByRegion = null; // customized tab data may have moved patches
 		sharedReadyPatches = tracking.readyPatchCount();
 		reTickReadyRuns();
 		notifyTransitions();
@@ -692,11 +732,25 @@ public class FarmingRunModule implements IronHubModule
 		return false;
 	}
 
+	/** A farming activity signal: accrue idle-gated active time (X4). */
+	private void runActivitySignal()
+	{
+		if (!running())
+		{
+			return;
+		}
+		long now = System.currentTimeMillis();
+		runActiveMs = com.ironhub.state.ActivityClock.accrue(
+			runActiveMs, runLastActivityMs, now);
+		runLastActivityMs = now;
+	}
+
 	/** Bank the Farming xp gained since the last advance against this stop's
 	 *  bucket — called as each stop completes, so a combined run's record
 	 *  knows its tree xp from its herb xp. */
 	private void attributeXpTo(Stop stop)
 	{
+		runActivitySignal(); // advancing a stop is farming activity
 		int xp = state.getXp(net.runelite.api.Skill.FARMING);
 		int delta = xp - lastAdvanceXp;
 		lastAdvanceXp = xp;
@@ -818,6 +872,9 @@ public class FarmingRunModule implements IronHubModule
 		runXpByBucket.clear();
 		runStartHerbsById = herbCountsById();
 		runStartMs = System.currentTimeMillis();
+		runActiveMs = 0;
+		runLastActivityMs = runStartMs; // starting the run is itself a signal
+		runLastSeenXp = runStartFarmingXp;
 		// Switch the sidebar to the active run NOW — queued before routeToNext so
 		// a Shortest Path bridge hiccup can't leave the picker showing (the run
 		// had started but the sidebar only updated on the next bank open).
@@ -1255,8 +1312,7 @@ public class FarmingRunModule implements IronHubModule
 			int ultra = state.ownedCount(net.runelite.api.gameval.ItemID.BUCKET_ULTRACOMPOST);
 			if (ultra < compostable)
 			{
-				warnings.put("Ultracompost " + ultra + "/" + compostable
-						+ " — a Supercompost run makes more",
+				warnings.put("Ultracompost " + ultra + "/" + compostable,
 					itemSources == null ? null : itemSources.sourceLine(
 						net.runelite.api.gameval.ItemID.BUCKET_ULTRACOMPOST));
 			}
@@ -1342,6 +1398,11 @@ public class FarmingRunModule implements IronHubModule
 			record.endMs = System.currentTimeMillis();
 			record.name = runName;
 			record.durationMs = record.endMs - runStartMs;
+			// the honest figure: idle-gated active time (X4 2026-08-03) —
+			// display goes through ActivityClock.activeElapsed, whose capped
+			// tail closes at endMs
+			record.activeMs = runActiveMs;
+			record.lastActivityMs = runLastActivityMs;
 			record.xpByBucket = new java.util.HashMap<>(runXpByBucket);
 			java.util.Map<Integer, Integer> herbsNow = herbCountsById();
 			for (java.util.Map.Entry<Integer, Integer> herb : herbsNow.entrySet())
@@ -1912,6 +1973,13 @@ public class FarmingRunModule implements IronHubModule
 		UNKNOWN
 	}
 
+	/** region id -> the vendored patches there, with their tab. Rebuilt
+	 *  lazily after each tracker refresh — patchesAt used to walk the
+	 *  ENTIRE farming world per stop, and the picker rebuild pays a
+	 *  patchesAt per row. */
+	private volatile java.util.Map<Integer,
+		List<java.util.Map.Entry<Tab, com.ironhub.modules.farming.rl.FarmingPatch>>> patchesByRegion;
+
 	/** The farming patches at a stop with their live views: every vendored
 	 *  world patch in the stop's region. */
 	List<StopPatch> patchesAt(FarmRunsPack.Location location)
@@ -1921,19 +1989,31 @@ public class FarmingRunModule implements IronHubModule
 		{
 			return out;
 		}
-		int region = location.worldPoint().getRegionID();
-		long now = Instant.now().getEpochSecond();
-		for (java.util.Map.Entry<Tab, java.util.Set<com.ironhub.modules.farming.rl.FarmingPatch>> entry
-			: tracking.tracker().getTabData())
+		java.util.Map<Integer,
+			List<java.util.Map.Entry<Tab, com.ironhub.modules.farming.rl.FarmingPatch>>> byRegion =
+			patchesByRegion;
+		if (byRegion == null)
 		{
-			for (com.ironhub.modules.farming.rl.FarmingPatch patch : entry.getValue())
+			byRegion = new java.util.HashMap<>();
+			for (java.util.Map.Entry<Tab, java.util.Set<com.ironhub.modules.farming.rl.FarmingPatch>> entry
+				: tracking.tracker().getTabData())
 			{
-				if (patch.getRegion().getRegionID() == region)
+				for (com.ironhub.modules.farming.rl.FarmingPatch patch : entry.getValue())
 				{
-					PatchPrediction prediction = tracking.tracker().predictPatch(patch);
-					out.add(new StopPatch(entry.getKey(), viewOf(prediction, now)));
+					byRegion.computeIfAbsent(patch.getRegion().getRegionID(),
+							k -> new java.util.ArrayList<>())
+						.add(new java.util.AbstractMap.SimpleEntry<>(entry.getKey(), patch));
 				}
 			}
+			patchesByRegion = byRegion;
+		}
+		int region = location.worldPoint().getRegionID();
+		long now = Instant.now().getEpochSecond();
+		for (java.util.Map.Entry<Tab, com.ironhub.modules.farming.rl.FarmingPatch> entry
+			: byRegion.getOrDefault(region, List.of()))
+		{
+			PatchPrediction prediction = tracking.tracker().predictPatch(entry.getValue());
+			out.add(new StopPatch(entry.getKey(), viewOf(prediction, now)));
 		}
 		out.sort(java.util.Comparator.comparing(sp -> sp.category.ordinal()));
 		return out;
@@ -1985,20 +2065,44 @@ public class FarmingRunModule implements IronHubModule
 	/** The overview tile a patch tab belongs to — Calquat/Celastrus fold into
 	 *  the Tree tile; Hespori/Cactus/Belladonna/Mushroom into the Special tile
 	 *  (which also carries anima/spirit trees/compost via their own tab). */
-	static Tab displayGroup(Tab tab)
+	/** The F1 tile taxonomy (Luke, 2026-08-03), keyed on the PATCH
+	 *  IMPLEMENTATION rather than the tracker's tab — the tab cannot say
+	 *  "spirit trees belong to Tree" (they ride Tab.SPECIAL) or split
+	 *  compost bins out of Special. Tree = tree + hardwood + spirit;
+	 *  Fruit tree = fruit + calquat + celastrus + crystal; Compost bins =
+	 *  both bins; Hespori/Anima/Redwood stand alone; the rest of the
+	 *  specials (cactus, belladonna, mushroom, coral, seaweed) are
+	 *  Special. */
+	static Tab displayGroup(com.ironhub.modules.farming.rl.PatchImplementation impl)
 	{
-		switch (tab)
+		switch (impl)
 		{
+			case TREE:
+			case HARDWOOD_TREE:
+			case SPIRIT_TREE:
+				return Tab.TREE;
+			case FRUIT_TREE:
 			case CALQUAT:
 			case CELASTRUS:
-				return Tab.TREE;
+			case CRYSTAL_TREE:
+				return Tab.FRUIT_TREE;
+			case COMPOST:
+			case BIG_COMPOST:
+				return Tab.BIG_COMPOST;
 			case HESPORI:
+				return Tab.HESPORI;
+			case ANIMA:
+				return Tab.ANIMA;
+			case REDWOOD:
+				return Tab.REDWOOD;
 			case CACTUS:
 			case BELLADONNA:
 			case MUSHROOM:
+			case CORAL:
+			case SEAWEED:
 				return Tab.SPECIAL;
 			default:
-				return tab;
+				return impl.getTab();
 		}
 	}
 
@@ -2020,10 +2124,10 @@ public class FarmingRunModule implements IronHubModule
 		for (java.util.Map.Entry<Tab, java.util.Set<com.ironhub.modules.farming.rl.FarmingPatch>> entry
 			: tracking.tracker().getTabData())
 		{
-			Tab group = displayGroup(entry.getKey());
-			List<OverviewPatch> patches = grouped.computeIfAbsent(group, g -> new java.util.ArrayList<>());
 			for (com.ironhub.modules.farming.rl.FarmingPatch patch : entry.getValue())
 			{
+				Tab group = displayGroup(patch.getImplementation());
+				List<OverviewPatch> patches = grouped.computeIfAbsent(group, g -> new java.util.ArrayList<>());
 				PatchPrediction prediction = tracking.tracker().predictPatch(patch);
 				String name = patch.getRegion().getName();
 				if (patch.getName() != null && !patch.getName().isEmpty())

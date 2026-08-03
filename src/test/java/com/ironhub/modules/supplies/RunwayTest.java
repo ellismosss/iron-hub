@@ -1,128 +1,167 @@
 package com.ironhub.modules.supplies;
 
+import com.google.gson.Gson;
 import com.ironhub.IronHubConfig;
+import com.ironhub.data.DataPack;
+import com.ironhub.data.SuppliesPack;
 import com.ironhub.state.AccountState;
+import com.ironhub.state.GoalSeeds;
 import com.ironhub.state.StateFixture;
 import com.ironhub.ui.SwingRender;
+import java.util.List;
 import java.util.Map;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * The rebuilt Supplies runway: a categorised threshold watchlist, not a
+ * consumption-rate estimate. The load-bearing behaviours are the watchlist
+ * diffing (defaults minus removals, plus additions) and the no-weapon
+ * guarantee that fixes the reported bug.
+ */
 public class RunwayTest
 {
 	private static final int SHARK = 385;
-	private static final int LOBSTER = 379;
+	private static final int STEEL_CANNONBALL = 2;
 
 	@Rule
 	public TemporaryFolder temp = new TemporaryFolder();
 
-	/** Two consumption checkpoints an hour apart -> a usable rate. */
-	private AccountState stateWithSharkRate() throws Exception
+	/** Vanilla, not the config default. {@code osrsTheme()} defaults to MYSTIC,
+	 *  so every render this test wrote came out grey — and the renders exist to
+	 *  be judged against the Vanilla design system (Luke, 2026-07-25). */
+	private final IronHubConfig config = new IronHubConfig()
 	{
-		AccountState state = StateFixture.state(temp.getRoot());
-		StateFixture.inventory(state, Map.of(SHARK, 28, LOBSTER, 26));
-		StateFixture.checkpointSupplies(state);
-		StateFixture.inventory(state, Map.of(SHARK, 18, LOBSTER, 25)); // ate 10 sharks, 1 lobster
-		state.ingestLoot("Zulrah", Map.of(1, 1));
-		// backdate the first events by an hour so the span is meaningful
-		java.lang.reflect.Field f = AccountState.class.getDeclaredField("consumptionLog");
-		f.setAccessible(true);
-		java.util.List<?> log = (java.util.List<?>) f.get(state);
-		for (Object event : log)
+		@Override
+		public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
 		{
-			java.lang.reflect.Field t = event.getClass().getDeclaredField("timeMs");
-			t.setAccessible(true);
-			t.setLong(event, t.getLong(event) - 3_600_000);
+			return com.ironhub.ui.osrs.OsrsTheme.STONE;
 		}
+	};
 
-		StateFixture.inventory(state, Map.of(SHARK, 8, LOBSTER, 24)); // ate 10 more, 1 more
-		state.ingestLoot("Zulrah", Map.of(1, 1));
-		StateFixture.bank(state, Map.of(SHARK, 100, LOBSTER, 5000)); // stock; lobsters plentiful
-		return state;
-	}
-
-	@Test
-	public void ratesAndRunwayFromTheLog() throws Exception
+	private SuppliesRunwayModule module(AccountState state)
 	{
-		AccountState state = stateWithSharkRate();
-		Map<Integer, SuppliesRunwayModule.Runway> runways = SuppliesRunwayModule.compute(state);
-		SuppliesRunwayModule.Runway shark = runways.get(SHARK);
-		assertNotNull(shark);
-		assertEquals(20.0, shark.perHour, 0.5);      // 20 sharks over ~1 h
-		assertEquals(108, shark.stock);              // 100 banked + 8 carried
-		assertEquals(5.4, shark.hoursLeft(), 0.2);   // inside the 6 h warning
+		return new SuppliesRunwayModule(state, null, config, new DataPack(new Gson()));
 	}
 
 	@Test
-	public void singleEventsAreNotRated()
+	public void watchlistIsTheDefaultsUntilThePlayerEditsIt()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
-		StateFixture.inventory(state, Map.of(SHARK, 5));
-		StateFixture.checkpointSupplies(state);
-		StateFixture.inventory(state, Map.of(SHARK, 3));
-		state.ingestLoot("Zulrah", Map.of(1, 1));
-		assertTrue(SuppliesRunwayModule.compute(state).isEmpty());
+		SuppliesRunwayModule module = module(state);
+
+		List<SuppliesPack.Item> food = module.watchlist("food");
+		assertTrue("food starts with its curated defaults", food.size() >= 10);
+		assertTrue("shark is a default food",
+			food.stream().anyMatch(i -> i.id == SHARK));
+
+		// remove a default -> it leaves the list
+		state.untrackSupply(SHARK, true);
+		assertFalse(module.watchlist("food").stream().anyMatch(i -> i.id == SHARK));
+
+		// add a non-default (a steel cannonball is not a default) -> it joins its category
+		state.trackSupply(STEEL_CANNONBALL, false);
+		assertTrue(module.watchlist("ammo").stream().anyMatch(i -> i.id == STEEL_CANNONBALL)
+			|| module.watchlist("materials").stream().anyMatch(i -> i.id == STEEL_CANNONBALL));
 	}
 
 	@Test
-	public void formatting()
-	{
-		assertEquals("14 h", SuppliesRunwayModule.formatHours(14.3));
-		assertEquals("45 min", SuppliesRunwayModule.formatHours(0.75));
-		assertEquals("-", SuppliesRunwayModule.formatHours(Double.POSITIVE_INFINITY));
-	}
-
-	/** A one-shot "stock N × item" supply goal: achieved when owned ≥ N
-	 *  (bank + carried, variation-aware), re-addable after completion. */
-	@Test
-	public void supplyGoalStocksN()
+	public void noWeaponAppearsInAnyWatchlistOrSearch()
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
-		StateFixture.itemNames(state, Map.of(SHARK, "Shark"));
-		StateFixture.bank(state, Map.of(SHARK, 50));
-		com.ironhub.data.GoalsPack.Goal goal = com.ironhub.modules.goals.GoalPlannerModule.toGoal(
-			com.ironhub.state.GoalSeeds.supply(SHARK, "Shark", 100));
-
-		assertEquals("supply:" + SHARK, goal.getId());
-		assertEquals("item:" + SHARK + ":100:Shark", goal.getAchieved().get(0));
-		assertTrue("50 < 100 — not stocked yet",
-			!com.ironhub.modules.goals.GoalPlannerModule.isAchieved(goal, state));
-
-		StateFixture.bank(state, Map.of(SHARK, 120));
-		assertTrue("120 ≥ 100 — stocked",
-			com.ironhub.modules.goals.GoalPlannerModule.isAchieved(goal, state));
-
-		// re-addable: the same id overwrites with a higher target
-		state.addGoalSeed(com.ironhub.state.GoalSeeds.supply(SHARK, "Shark", 200));
-		assertTrue(state.getGoalSeeds().containsKey("supply:" + SHARK));
-		assertEquals("item:" + SHARK + ":200:Shark",
-			state.getGoalSeeds().get("supply:" + SHARK).achieved.get(0));
+		SuppliesRunwayModule module = module(state);
+		assertTrue("Rune longsword must not be searchable",
+			module.pack().search("longsword").isEmpty());
+		for (SuppliesPack.Category c : module.pack().categories)
+		{
+			for (SuppliesPack.Item item : module.watchlist(c.key))
+			{
+				assertFalse(item.name, item.name.toLowerCase().endsWith("longsword"));
+			}
+		}
 	}
 
 	@Test
 	public void tabRendersHeadless() throws Exception
 	{
-		AccountState state = stateWithSharkRate();
-		StateFixture.itemNames(state, Map.of(SHARK, "Shark", LOBSTER, "Lobster"));
-		state.addGoalSeed(com.ironhub.state.GoalSeeds.supply(SHARK, "Shark", 200)); // × glyph
-		SuppliesRunwayModule module = new SuppliesRunwayModule(state, null, new IronHubConfig()
-		{
-		}, null);
+		AccountState state = StateFixture.state(temp.getRoot());
+		// the initial view is the first category (Potions); seed below-target
+		// (red) and above-target (light) rows there
+		int superCombat = 12695, prayerPot = 2434, superRestore = 3024;
+		StateFixture.bank(state, Map.of(superCombat, 500, prayerPot, 10, superRestore, 3));
+		state.setSupplyThreshold(superCombat, 100);    // 500 >= 100 -> light
+		state.setSupplyThreshold(prayerPot, 50);       // 10 < 50 -> red
+		state.setSupplyThreshold(superRestore, 20);    // 3 < 20 -> red
+		state.addGoalSeed(GoalSeeds.supply(prayerPot, "Prayer potion(4)", 50)); // × glyph
+
+		SuppliesRunwayModule module = module(state);
 		module.startUp();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
+
 		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
-		assertTrue(image.getHeight() > 50);
-		java.io.File out = new java.io.File("build/reports/runway-tab.png");
+		assertTrue(image.getHeight() > 80);
+		write(image, "supplies-runway-tab.png");
+
+		// X3 2026-08-03: a targeted row reads live "owned/target" (the
+		// collect-N grammar) and wears a meter strip beneath it
+		assertTrue("targeted rows read owned/target", hasLabelText(tab, "10/50"));
+		assertTrue("a targeted row wears a meter",
+			countComponents(tab, com.ironhub.ui.v2.V2ProgressBar.class) >= 3);
+
+		// the search view
+		SwingUtilities.invokeAndWait(() -> ((RunwayTab) tab).searchForTest("potion"));
+		SwingUtilities.invokeAndWait(() -> { });   // drain the queued rebuild
+		write(SwingRender.render((JPanel) tab), "supplies-runway-search.png");
+
+		module.shutDown();
+	}
+
+	private static void write(java.awt.image.BufferedImage image, String name) throws Exception
+	{
+		java.io.File out = new java.io.File("build/reports/" + name);
 		out.getParentFile().mkdirs();
 		javax.imageio.ImageIO.write(image, "png", out);
-		module.shutDown();
+	}
+
+	private static boolean hasLabelText(java.awt.Component c, String text)
+	{
+		if (c instanceof com.ironhub.ui.osrs.OsrsLabel
+			&& text.equals(((com.ironhub.ui.osrs.OsrsLabel) c).text()))
+		{
+			return true;
+		}
+		if (c instanceof java.awt.Container)
+		{
+			for (java.awt.Component child : ((java.awt.Container) c).getComponents())
+			{
+				if (hasLabelText(child, text))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static int countComponents(java.awt.Component c, Class<?> type)
+	{
+		int n = type.isInstance(c) ? 1 : 0;
+		if (c instanceof java.awt.Container)
+		{
+			for (java.awt.Component child : ((java.awt.Container) c).getComponents())
+			{
+				n += countComponents(child, type);
+			}
+		}
+		return n;
 	}
 }

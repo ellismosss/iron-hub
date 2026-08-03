@@ -199,6 +199,23 @@ public class DiariesModule implements IronHubModule
 		return taskFlagSet(task) || tierAllDone(region, tierIndex);
 	}
 
+	/**
+	 * Live progress for a COUNTING task — Karamja's counting varbits are the
+	 * only per-task counters the client exposes (`min` > 1: bananas, seaweed,
+	 * palm leaves); every other region's task state is a 1-bit varp flag, so
+	 * kill-N / lap-N tasks elsewhere honestly show nothing (DI1 2026-08-03).
+	 * Null when the task has no counter or the count has reached its target.
+	 */
+	String taskCount(DiariesPack.Task task)
+	{
+		if (task.varbit == null || task.min == null || task.min <= 1)
+		{
+			return null;
+		}
+		int have = state.getVarbit(task.varbit);
+		return have >= task.min ? null : have + "/" + task.min;
+	}
+
 	/** The task's own completion flag (varp bit, or varbit >= min). */
 	private boolean taskFlagSet(DiariesPack.Task task)
 	{

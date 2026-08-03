@@ -83,7 +83,7 @@ public class IronHubPanel extends PluginPanel
 			new Section("Log", "collection_log", "Collection log"),
 			new Section("Combat", "combat_tasks", "Combat achievements"),
 			new Section("Gear", "gear", "Gear"),
-			new Section("Build", "build", "PoH", "Sailing upgrades"),
+			new Section("Build", "build", "House", "Boats"),
 			new Section("Diaries", "diaries", "Achievement diaries"),
 			new Section("Quests", "quests", "Quests"),
 			new Section("Clues", "clues", "Clues & STASH"),
@@ -92,12 +92,13 @@ public class IronHubPanel extends PluginPanel
 	private static final Map<String, List<String>> BLOCKS = Map.of(
 		"Goals", List.of("Goals"),
 		"Gear & Combat", List.of("Gear & Combat", "Slayer", "Loot & supplies"),
-		"Dailies", List.of("Dailies", "Farm runs", "Hunters' Rumours", "Port tasks"),
+		// Farm runs leads the block (D1, Luke 2026-08-03)
+		"Dailies", List.of("Farm runs", "Dailies", "Hunters' Rumours", "Port tasks"),
 		"Progression", List.of("Collection log", "Combat achievements", "Gear",
-			"PoH", "Sailing upgrades", "Achievement diaries", "Quests", "Clues & STASH",
+			"House", "Boats", "Achievement diaries", "Quests", "Clues & STASH",
 			"QoL checklist"),
-		"Bank", List.of("Bank & banked XP", "Bank space saver", "Money making", "Supplies runway",
-			"Death recovery"),
+		"Bank", List.of("Bank & banked XP", "Bank space saver", "Where's my stuff",
+			"Money making", "Supplies runway", "Death recovery"),
 		"Settings", List.of("Design lab"));
 
 	private final JPanel homeCard = new JPanel(new BorderLayout());
@@ -107,11 +108,14 @@ public class IronHubPanel extends PluginPanel
 	private final Map<String, JComponent> hubPages = new HashMap<>();
 	/** Tiled hubs: the section grid's tiles, and the head that names the
 	 *  open section (a plate, or a chip row for a two-module section). */
-	private final Map<String, List<com.ironhub.ui.osrs.StoneHubTile>> hubTiles = new HashMap<>();
+	private final Map<String, List<com.ironhub.ui.v2.V2Tile>> hubTiles = new HashMap<>();
 	private final Map<String, JPanel> hubHeads = new HashMap<>();
-	/** Grid geometry: four 52px tiles plus three 3px gaps fill the 225px
-	 *  panel's 217px of content. */
+	/** Grid geometry: four 50px tiles plus three 3px gaps fill the 225px
+	 *  panel's 217px of content. TILE_ART is the stone; the caption sits
+	 *  under it (§12 — a V2 tile never puts text on its own art). */
 	private static final int TILE_COLUMNS = 4;
+	private static final int TILE_WIDTH = 50;
+	private static final int TILE_ART = 38;
 	private static final int TILE_GAP = 3;
 	private static final int TILE_PAD = 4;
 	/**
@@ -129,15 +133,19 @@ public class IronHubPanel extends PluginPanel
 	private static final Set<String> MULTI_EXPAND = Set.of("Gear & Combat");
 	private final AccountState state;
 	private final com.ironhub.IronHubConfig config;
+	/** Null headless — the theme switcher renders and simply doesn't write. */
+	private final net.runelite.client.config.ConfigManager configManager;
 	private HomePanel home;
 
 	@Inject
 	public IronHubPanel(Set<IronHubModule> modules, AccountState state,
-		com.ironhub.IronHubConfig config)
+		com.ironhub.IronHubConfig config,
+		net.runelite.client.config.ConfigManager configManager)
 	{
 		super(false);
 		this.state = state;
 		this.config = config;
+		this.configManager = configManager;
 		modulesByName = modules.stream()
 			.collect(Collectors.toMap(IronHubModule::name, Function.identity()));
 
@@ -181,6 +189,7 @@ public class IronHubPanel extends PluginPanel
 	{
 		javax.swing.SwingUtilities.invokeLater(() ->
 		{
+			String open = home == null ? null : home.selectedBlock();
 			hubPages.clear();
 			hubSlots.clear();
 			hubTriangles.clear();
@@ -189,6 +198,12 @@ public class IronHubPanel extends PluginPanel
 			// expandedModules survives: the rebuilt page reopens where the
 			// player was
 			mountHome();
+			if (open != null)
+			{
+				// the switcher lives in a hub page, so a flip that dumped the
+				// player back at home would make comparing the two a chore
+				home.pressBlock(open);
+			}
 		});
 	}
 
@@ -278,6 +293,10 @@ public class IronHubPanel extends PluginPanel
 		JPanel stack = new JPanel();
 		stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
 		stack.setOpaque(false);
+		if ("Settings".equals(name))
+		{
+			stack.add(themeSwitcher());
+		}
 		Map<String, JPanel> slots = new HashMap<>();
 		Map<String, JLabel> triangles = new HashMap<>();
 		for (String moduleName : BLOCKS.get(name))
@@ -292,7 +311,67 @@ public class IronHubPanel extends PluginPanel
 		hubTriangles.put(name, triangles);
 		expandedModules.putIfAbsent(name,
 			new java.util.LinkedHashSet<>(List.of(BLOCKS.get(name).get(0))));
-		return stack;
+		// ONE Frame per hub PAGE, not per module (Luke, 2026-07-25: the Gear &
+		// Combat frame has to contain Slayer and Loot & supplies too). A frame
+		// per module drew three of them down a page that is one thing; the
+		// modules that carried their own have given them up.
+		com.ironhub.ui.v2.V2Surface frame = com.ironhub.ui.v2.V2Surface.frame(config.osrsTheme());
+		frame.add(stack);
+		return frame;
+	}
+
+	/**
+	 * The skin switcher, at the head of the Settings hub (Luke, 2026-07-24:
+	 * the osrsTheme setting was only reachable from the RuneLite config
+	 * panel). Writes the setting rather than holding its own state, so the
+	 * plugin's ConfigChanged path re-clothes everything exactly as a change
+	 * made in the settings does.
+	 */
+	private JComponent themeSwitcher()
+	{
+		com.ironhub.ui.osrs.OsrsTheme[] themes = com.ironhub.ui.osrs.OsrsTheme.values();
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.Y_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(Component.LEFT_ALIGNMENT);
+		row.setBorder(new javax.swing.border.EmptyBorder(0, 4, UiTokens.PAD_SECTION, 4));
+		row.add(new com.ironhub.ui.osrs.OsrsLabel("Skin theme",
+			com.ironhub.ui.osrs.OsrsSkin.TITLE,
+			com.ironhub.ui.osrs.OsrsSkin.boldFont()).leftAligned());
+		row.add(Box.createVerticalStrut(3));
+		// chip-sized names (the setting's own read "OSRS stone" / "Mystic
+		// (resource pack)"); an unknown future theme keeps its full name
+		// rather than being silently mislabelled
+		String[] labels = new String[themes.length];
+		for (int i = 0; i < themes.length; i++)
+		{
+			labels[i] = themes[i] == com.ironhub.ui.osrs.OsrsTheme.STONE ? "Vanilla"
+				: themes[i] == com.ironhub.ui.osrs.OsrsTheme.MYSTIC ? "Mystic"
+				: themes[i] == com.ironhub.ui.osrs.OsrsTheme.DARK ? "Dark"
+				: themes[i].toString();
+		}
+		com.ironhub.ui.v2.V2ChipRow chips = new com.ironhub.ui.v2.V2ChipRow(
+			config.osrsTheme(), true, labels);
+		for (int i = 0; i < themes.length; i++)
+		{
+			if (themes[i] == config.osrsTheme())
+			{
+				chips.setSelected(i);
+			}
+		}
+		chips.setToolTipText(config.osrsTheme().toString());
+		chips.onChange(i ->
+		{
+			if (configManager != null)
+			{
+				configManager.setConfiguration(
+					com.ironhub.IronHubConfig.GROUP, "osrsTheme", themes[i]);
+			}
+		});
+		row.add(chips);
+		row.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE,
+			row.getPreferredSize().height));
+		return row;
 	}
 
 	/**
@@ -311,7 +390,7 @@ public class IronHubPanel extends PluginPanel
 		stack.setLayout(new BoxLayout(stack, BoxLayout.Y_AXIS));
 		stack.setOpaque(false);
 
-		List<com.ironhub.ui.osrs.StoneHubTile> tiles = new java.util.ArrayList<>();
+		List<com.ironhub.ui.v2.V2Tile> tiles = new java.util.ArrayList<>();
 		JPanel grid = new JPanel();
 		grid.setLayout(new BoxLayout(grid, BoxLayout.Y_AXIS));
 		grid.setOpaque(false);
@@ -323,6 +402,9 @@ public class IronHubPanel extends PluginPanel
 			line.setLayout(new BoxLayout(line, BoxLayout.X_AXIS));
 			line.setOpaque(false);
 			line.setAlignmentX(Component.LEFT_ALIGNMENT);
+			// glue BOTH sides — the tile rows centre in the panel (Luke,
+			// 2026-07-27)
+			line.add(Box.createHorizontalGlue());
 			for (int col = 0; col < TILE_COLUMNS && i + col < sections.size(); col++)
 			{
 				Section section = sections.get(i + col);
@@ -330,17 +412,18 @@ public class IronHubPanel extends PluginPanel
 				{
 					line.add(Box.createHorizontalStrut(TILE_GAP));
 				}
-				com.ironhub.ui.osrs.StoneHubTile tile = new com.ironhub.ui.osrs.StoneHubTile(
+				com.ironhub.ui.v2.V2Tile tile = new com.ironhub.ui.v2.V2Tile(
 					config.osrsTheme(),
 					com.ironhub.ui.osrs.OsrsIcons.hubTile(config.osrsTheme(), section.icon),
-					section.caption, section.tooltip(), false,
-					() -> selectSection(hub, section));
+					section.caption, TILE_ART, () -> selectSection(hub, section))
+					.width(TILE_WIDTH);
+				tile.setToolTipText(section.tooltip());
 				tiles.add(tile);
 				line.add(tile);
 			}
 			line.add(Box.createHorizontalGlue());
 			line.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE,
-				com.ironhub.ui.osrs.StoneHubTile.HEIGHT));
+				line.getPreferredSize().height));
 			grid.add(line);
 			grid.add(Box.createVerticalStrut(TILE_GAP));
 		}
@@ -402,12 +485,12 @@ public class IronHubPanel extends PluginPanel
 	{
 		List<Section> sections = TILED.get(hub);
 		Section open = openSection(hub);
-		List<com.ironhub.ui.osrs.StoneHubTile> tiles = hubTiles.get(hub);
+		List<com.ironhub.ui.v2.V2Tile> tiles = hubTiles.get(hub);
 		if (tiles != null)
 		{
 			for (int i = 0; i < tiles.size() && i < sections.size(); i++)
 			{
-				tiles.get(i).setSelected(sections.get(i) == open);
+				tiles.get(i).selected(sections.get(i) == open);
 			}
 		}
 		JPanel head = hubHeads.get(hub);
@@ -428,7 +511,7 @@ public class IronHubPanel extends PluginPanel
 					selected = i;
 				}
 			}
-			com.ironhub.ui.osrs.StoneChipRow chips = new com.ironhub.ui.osrs.StoneChipRow(
+			com.ironhub.ui.v2.V2ChipRow chips = new com.ironhub.ui.v2.V2ChipRow(
 				config.osrsTheme(), true, open.modules.toArray(new String[0]));
 			chips.setSelected(selected);
 			chips.onChange(index ->
@@ -459,13 +542,19 @@ public class IronHubPanel extends PluginPanel
 	 *  the collapse affordance (the grid is the navigation now). */
 	private JComponent sectionPlate(String name)
 	{
-		com.ironhub.ui.osrs.StonePanel plate =
-			new com.ironhub.ui.osrs.StonePanel(config.osrsTheme());
-		plate.setLayout(new BoxLayout(plate, BoxLayout.X_AXIS));
-		plate.add(Box.createHorizontalGlue());
-		plate.add(new com.ironhub.ui.osrs.OsrsLabel(name,
+		// the module's header on the DLV2 Slab (Luke, 2026-07-25): the same
+		// engraved box it always was, now carrying the Card grain its
+		// neighbours below it wear
+		com.ironhub.ui.v2.V2Surface plate =
+			com.ironhub.ui.v2.V2Surface.slab(config.osrsTheme());
+		JPanel line = com.ironhub.ui.v2.V2Layout.row();
+		// a Slab stacks its children on the left edge, so the title needs glue
+		// on BOTH sides to keep the centring the plate always had
+		line.add(com.ironhub.ui.v2.V2Layout.glue());
+		line.add(new com.ironhub.ui.osrs.OsrsLabel(name,
 			com.ironhub.ui.osrs.OsrsSkin.TITLE, com.ironhub.ui.osrs.OsrsSkin.boldFont()));
-		plate.add(Box.createHorizontalGlue());
+		line.add(com.ironhub.ui.v2.V2Layout.glue());
+		plate.add(line);
 		JPanel pad = new JPanel(new BorderLayout());
 		pad.setOpaque(false);
 		pad.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -489,24 +578,28 @@ public class IronHubPanel extends PluginPanel
 		// (Luke: Goals is the hub's only module). Gear & Combat is ordinary
 		// again (round 6): collapsible, open by default as the hub's first.
 		boolean collapsible = BLOCKS.get(hubName).size() > 1;
-		com.ironhub.ui.osrs.StonePanel plate = new com.ironhub.ui.osrs.StonePanel(theme);
-		plate.setLayout(new BoxLayout(plate, BoxLayout.X_AXIS));
+		// the DLV2 Slab, exactly as sectionPlate wears it — this is the header
+		// that actually renders in a hub page, and it was still a StonePanel:
+		// a flat boxFill measured at (85,76,65) beside the Slab's (73,64,52)
+		// grain, which is the "too much highlight" (Luke, 2026-07-25)
+		com.ironhub.ui.v2.V2Surface plate = com.ironhub.ui.v2.V2Surface.slab(theme);
+		JPanel line = com.ironhub.ui.v2.V2Layout.row();
 		if (collapsible)
 		{
 			JLabel triangle = new JLabel(new com.ironhub.ui.components.PaintedIcon(
 				com.ironhub.ui.components.PaintedIcon.Shape.TRIANGLE_RIGHT, 10));
 			triangle.setForeground(com.ironhub.ui.osrs.OsrsSkin.MUTED);
 			triangles.put(name, triangle);
-			plate.add(triangle);
+			line.add(triangle);
 		}
-		plate.add(Box.createHorizontalGlue());
-		plate.add(new com.ironhub.ui.osrs.OsrsLabel(name,
+		line.add(com.ironhub.ui.v2.V2Layout.glue());
+		line.add(new com.ironhub.ui.osrs.OsrsLabel(name,
 			com.ironhub.ui.osrs.OsrsSkin.TITLE, com.ironhub.ui.osrs.OsrsSkin.boldFont()));
-		plate.add(Box.createHorizontalGlue());
+		line.add(com.ironhub.ui.v2.V2Layout.glue());
 		if (collapsible)
 		{
 			// mirror the triangle's width so the title stays optically centred
-			plate.add(Box.createHorizontalStrut(10));
+			line.add(Box.createHorizontalStrut(10));
 			plate.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
 			plate.addMouseListener(new java.awt.event.MouseAdapter()
 			{
@@ -517,6 +610,7 @@ public class IronHubPanel extends PluginPanel
 				}
 			});
 		}
+		plate.add(line);
 
 		JPanel pad = new JPanel(new BorderLayout());
 		pad.setOpaque(false);

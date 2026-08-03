@@ -43,14 +43,74 @@ public class DesignLabTab extends JPanel
 
 	private final OsrsTheme theme;
 
+	/** Which gallery is showing — V2 leads, since it is the one awaiting
+	 *  Luke's sign-off before any module migrates. */
+	private final JPanel slot = new JPanel(new java.awt.BorderLayout());
+
+	private final net.runelite.client.game.ItemManager itemManager;
+
 	public DesignLabTab(OsrsTheme theme)
 	{
-		this.theme = theme;
-		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		setOpaque(true);
-		setBackground(UiTokens.PANEL_BG);
-		setBorder(new EmptyBorder(4, 4, 4, 4));
+		this(theme, null);
+	}
 
+	public DesignLabTab(OsrsTheme theme, net.runelite.client.game.ItemManager itemManager)
+	{
+		this.theme = theme;
+		this.itemManager = itemManager;
+		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+		// THEME-backed, not the classic grey. UiTokens.PANEL_BG is #262626,
+		// and painting it behind a skinned tab put a grey band around every
+		// edge of the gallery — the "grey border wrapping the Design lab"
+		// (Luke, 2026-07-25; measured at x=8 as (38,38,38) inside a panel
+		// backed (62,53,41)). CLAUDE.md has warned about exactly this since
+		// the nav rework: no classic grey behind the skin.
+		setOpaque(true);
+		setBackground(theme.background);
+		// no horizontal inset — the gallery below carries its own frame and
+		// wants every one of the panel's 225px (Luke, 2026-07-25: "it could
+		// still be wider"). The chip row keeps the 4px for itself.
+		setBorder(new EmptyBorder(4, 0, 4, 0));
+
+		com.ironhub.ui.v2.V2ChipRow views =
+			new com.ironhub.ui.v2.V2ChipRow(theme, true, "Atoms", "Goals", "V1");
+		views.onChange(this::showView);
+		views.setBorder(new EmptyBorder(0, 4, 0, 4));
+		add(views);
+		add(Box.createVerticalStrut(com.ironhub.ui.v2.V2Tokens.ROW));
+		slot.setOpaque(false);
+		slot.setAlignmentX(LEFT_ALIGNMENT);
+		add(slot);
+		showView(0);
+	}
+
+	/** Test seam: pick a gallery as a chip press would. */
+	public void showGallery(boolean v2)
+	{
+		showView(v2 ? 0 : 2);
+	}
+
+	/**
+	 * 0 = the atom gallery, 1 = the Goals hub rebuilt from those atoms, 2 = the
+	 * V1 atoms. Goals is the system's first real screen (Luke, 2026-07-25) and
+	 * sits beside the atoms it is made of, so a change to an atom can be judged
+	 * against a page that uses it rather than against a swatch.
+	 */
+	public void showView(int index)
+	{
+		slot.removeAll();
+		slot.add(index == 1 ? new GoalsV2View(theme)
+			: index == 2 ? v1Gallery()
+			: new DesignLabV2Tab(theme, itemManager), java.awt.BorderLayout.CENTER);
+		slot.revalidate();
+		slot.repaint();
+	}
+
+	/** The V1 skin's atom gallery, unchanged. It stays until Luke signs off
+	 *  on V2 and the modules migrate — the two systems are judged side by
+	 *  side, not one from memory. */
+	private JComponent v1Gallery()
+	{
 		// the whole skinned surface lives inside the game's thin frame
 		JPanel frame = new JPanel();
 		frame.setLayout(new BoxLayout(frame, BoxLayout.Y_AXIS));
@@ -111,7 +171,7 @@ public class DesignLabTab extends JPanel
 		frame.add(strut(6));
 		frame.add(pad(centered(new OsrsLabel("Static preview · sample data", OsrsSkin.MUTED, OsrsSkin.font()))));
 		frame.add(strut(4));
-		add(frame);
+		return frame;
 	}
 
 	/** One font of the system, labelled by where it's used. */

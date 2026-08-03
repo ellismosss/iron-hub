@@ -68,7 +68,9 @@ public class FarmingTracker
 	 */
 	private final Map<Tab, Long> completionTimes = new EnumMap<>(Tab.class);
 
-	private Map<Tab, Set<FarmingPatch>> customizedTabData;
+	// volatile: lazily built on whichever of the EDT / client thread asks
+	// first — unsafe publication could expose a half-built map
+	private volatile Map<Tab, Set<FarmingPatch>> customizedTabData;
 
 	/** "Prefer soonest completion" semantics from the core plugin's config:
 	 *  true = a category is harvestable when ANY patch is; false = ALL. */

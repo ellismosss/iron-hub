@@ -1,0 +1,61 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Supplies catalog (consumables + resources by category)",
+	"type": "object",
+	"required": ["source", "categories", "items"],
+	"additionalProperties": false,
+	"properties": {
+		"source": {
+			"type": "string"
+		},
+		"categories": {
+			"type": "array",
+			"minItems": 4,
+			"items": {
+				"type": "object",
+				"required": ["key", "name", "icon"],
+				"additionalProperties": false,
+				"properties": {
+					"key": {
+						"type": "string",
+						"pattern": "^[a-z]+$"
+					},
+					"name": {
+						"type": "string",
+						"minLength": 2
+					},
+					"icon": {
+						"type": "integer",
+						"minimum": 1
+					}
+				}
+			}
+		},
+		"items": {
+			"type": "array",
+			"minItems": 400,
+			"items": {
+				"type": "object",
+				"required": ["id", "name", "category"],
+				"additionalProperties": false,
+				"properties": {
+					"id": {
+						"type": "integer",
+						"minimum": 1
+					},
+					"name": {
+						"type": "string",
+						"minLength": 1
+					},
+					"category": {
+						"type": "string",
+						"pattern": "^[a-z]+$"
+					},
+					"default": {
+						"type": "boolean"
+					}
+				}
+			}
+		}
+	}
+}

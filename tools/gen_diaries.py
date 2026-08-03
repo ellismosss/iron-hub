@@ -168,6 +168,16 @@ def clean(s):
     s = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]+)\]\]", r"\1", s)
     s = s.replace("'''", "").replace("''", "")
     s = htmllib.unescape(s)
+    # external links: [url label] -> label, bare [url] -> ""
+    s = re.sub(r"\[https?://\S+ ([^\]]*)\]", r"\1", s)
+    s = re.sub(r"\[https?://[^\]]*\]", "", s)
+    # any template still standing is citation/image markup, never prose
+    # (multi-param {{CiteDiscord|...}} blobs shipped in reward strings,
+    # Luke's 2026-07-28 report) — drop it, innermost first for nesting
+    prev = None
+    while prev != s:
+        prev = s
+        s = re.sub(r"\{\{[^{}]*\}\}", "", s)
     return re.sub(r"\s+", " ", s).strip()
 
 

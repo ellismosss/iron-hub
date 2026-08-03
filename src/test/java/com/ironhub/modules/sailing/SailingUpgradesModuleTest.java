@@ -32,8 +32,16 @@ public class SailingUpgradesModuleTest
 	@Rule
 	public TemporaryFolder temp = new TemporaryFolder();
 
+	/** Vanilla, not the config default. {@code osrsTheme()} defaults to MYSTIC,
+	 *  so every render this test wrote came out grey — and the renders exist to
+	 *  be judged against the Vanilla design system (Luke, 2026-07-25). */
 	private final IronHubConfig config = new IronHubConfig()
 	{
+		@Override
+		public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+		{
+			return com.ironhub.ui.osrs.OsrsTheme.STONE;
+		}
 	};
 
 	private final BoatUpgradesPack pack =
@@ -312,7 +320,7 @@ public class SailingUpgradesModuleTest
 		javax.swing.SwingUtilities.invokeAndWait(() -> { }); // drain queued rebuilds
 		BufferedImage image = SwingRender.render(tab);
 		assertTrue("height " + image.getHeight(), image.getHeight() > 200);
-		java.io.File out = new java.io.File("build/reports/sailing-upgrades-tab.png");
+		java.io.File out = new java.io.File("build/reports/boats-tab.png");
 		out.getParentFile().mkdirs();
 		javax.imageio.ImageIO.write(image, "png", out);
 		module.shutDown();

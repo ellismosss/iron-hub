@@ -13,6 +13,7 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -151,6 +152,14 @@ public class RequirementsTest
 
 		// with Evil Dave done the stew now covers Slayer as well
 		assertEquals(5, (int) sawStew.get(Skill.SLAYER));
+
+		// P2 2026-08-03: the inline namer — "(+N)" dropped, two names shown,
+		// a third folds into "…"; null when nothing usable boosts the skill
+		String named = Boosts.shortNames(boostsPack, state, Skill.CONSTRUCTION);
+		assertNotNull(named);
+		assertFalse("no (+N) suffix inline", named.contains("(+"));
+		assertTrue("at most two names then an ellipsis",
+			named.split(" / ").length <= 2 || named.endsWith("…"));
 	}
 
 	@Test

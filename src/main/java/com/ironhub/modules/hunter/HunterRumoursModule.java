@@ -169,10 +169,19 @@ public class HunterRumoursModule implements IronHubModule
 			overlayManager.remove(overlay);
 			overlay = null;
 		}
-		clearMapPoints();
 		if (clientThread != null)
 		{
-			clientThread.invoke(bankLayout::clear);
+			// mapPoints is client-thread-owned (refreshMapPoints marshals its
+			// writes there) — the shutdown clear must not race it from the EDT
+			clientThread.invoke(() ->
+			{
+				clearMapPoints();
+				bankLayout.clear();
+			});
+		}
+		else
+		{
+			clearMapPoints();
 		}
 		bankShow = false;
 		if (tab != null)
@@ -222,9 +231,11 @@ public class HunterRumoursModule implements IronHubModule
 
 	// ── record state ──────────────────────────────────────────────────
 
-	private void ensureLoaded()
+	private synchronized void ensureLoaded()
 	{
-		// reload on profile switch too — pushing profile A's cached records
+		// synchronized: the EDT (tab) and client thread (catch detection)
+		// both lazy-load; an unsynchronized check-then-act double-reloaded.
+		// Reload on profile switch too — pushing profile A's cached records
 		// into profile B overwrote B's rumour history, and a stale xp
 		// baseline could register a phantom catch (2026-07-20 audit)
 		int generation = state.profileGeneration();
@@ -435,6 +446,16 @@ public class HunterRumoursModule implements IronHubModule
 		lastHunterXp = xp;
 		HunterRumoursPack.Rumour rumour = currentRumour();
 		PersistedState.RumourRecord active = active();
+		if (active != null && gained > 0)
+		{
+			// the timer runs on ACTIVITY, not the wall clock (H5): any
+			// Hunter xp is hunting; a gap beyond the grace window means
+			// the player moved on, and the clock resumes with them
+			long now = System.currentTimeMillis();
+			active.activeMs = com.ironhub.state.ActivityClock.accrue(
+				active.activeMs, active.lastActivityMs, now);
+			active.lastActivityMs = now;
+		}
 		if (rumour != null && active != null && !active.pieceFound && rumour.matchesCatchXp(gained))
 		{
 			active.caught++;
@@ -661,13 +682,23 @@ public class HunterRumoursModule implements IronHubModule
 		return rumour == null ? null : state.savedSetup(setupKey(rumour));
 	}
 
+	/** When the setup was last saved/replaced — drives the tab's transient
+	 *  "Setup saved" confirmation (H2); 0 = not this session. */
+	private long setupSavedAtMs;
+
 	void saveRumourSetup()
 	{
 		HunterRumoursPack.Rumour rumour = currentRumour();
 		if (rumour != null)
 		{
 			state.saveSetup(setupKey(rumour), state.captureSetup());
+			setupSavedAtMs = System.currentTimeMillis();
 		}
+	}
+
+	long setupSavedAtMs()
+	{
+		return setupSavedAtMs;
 	}
 
 	boolean bankShowArmed()

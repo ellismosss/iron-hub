@@ -639,6 +639,24 @@ public class PortTasksModule implements IronHubModule
 	 * ranking only when this changes (2026-07-20 audit: it ran the full
 	 * exact-tour ranking per rendered frame while the board was open).
 	 */
+	/** rankOffers memoized on {@link #adviceKey}: an exact Held-Karp tour
+	 *  per courier offer must never recompute for unchanged inputs —
+	 *  the board overlay renders per frame and the tab rebuilds per state
+	 *  change, and each ran the full ranking themselves. */
+	private volatile List<Advice> rankedMemo = List.of();
+	private volatile Object rankedMemoKey;
+
+	List<Advice> rankOffersCached()
+	{
+		Object key = adviceKey();
+		if (!key.equals(rankedMemoKey))
+		{
+			rankedMemo = rankOffers();
+			rankedMemoKey = key;
+		}
+		return rankedMemo;
+	}
+
 	Object adviceKey()
 	{
 		List<Object> key = new ArrayList<>();

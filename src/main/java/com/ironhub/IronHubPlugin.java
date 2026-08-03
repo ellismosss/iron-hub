@@ -109,7 +109,8 @@ public class IronHubPlugin extends Plugin
 		com.ironhub.modules.moneymaking.MoneyMakingModule moneyMaking,
 		com.ironhub.modules.sailing.SailingUpgradesModule sailingUpgrades,
 		com.ironhub.modules.porttasks.PortTasksModule portTasks,
-		com.ironhub.modules.bankspace.BankSpaceModule bankSpace)
+		com.ironhub.modules.bankspace.BankSpaceModule bankSpace,
+		com.ironhub.modules.wheresmystuff.WheresMyStuffModule wheresMyStuff)
 	{
 		// TODO: skills — see DESIGN.md §3
 		return ImmutableSet.of(
@@ -117,7 +118,7 @@ public class IronHubPlugin extends Plugin
 			farmingRun, dailies, goalPlanner, clueStash,
 			slayerOptimizer, suppliesRunway, collectionLog, externalSync,
 			dashboard, deathRecovery, loadoutLab, designLab, dailiesNew, poh, hunterRumours,
-			moneyMaking, sailingUpgrades, portTasks, bankSpace);
+			moneyMaking, sailingUpgrades, portTasks, bankSpace, wheresMyStuff);
 	}
 
 	@Provides
@@ -154,10 +155,27 @@ public class IronHubPlugin extends Plugin
 	protected void shutDown()
 	{
 		watchdog.stop();
-		started.forEach(IronHubModule::shutDown);
+		shutDownAll(started);
 		started.clear();
 		clientToolbar.removeNavigation(navButton);
 		accountState.persistNow(); // flush anything the tick cadence coalesced
+	}
+
+	/** Shut every module down; one failure must not skip the rest (or the
+	 *  state flush that follows). */
+	static void shutDownAll(Iterable<IronHubModule> modules)
+	{
+		for (IronHubModule module : modules)
+		{
+			try
+			{
+				module.shutDown();
+			}
+			catch (RuntimeException e)
+			{
+				log.warn("module shutdown failed", e);
+			}
+		}
 	}
 
 	/** Start newly enabled modules; stop newly disabled ones. */
@@ -261,6 +279,14 @@ public class IronHubPlugin extends Plugin
 	{
 		if (IronHubConfig.GROUP.equals(event.getGroup()))
 		{
+			// ConfigChanged is posted on the setter's thread; module
+			// start/stop builds Swing (tabs, panel slots) and the plugin
+			// lifecycle itself runs on the EDT — marshal to match it
+			if (!javax.swing.SwingUtilities.isEventDispatchThread())
+			{
+				javax.swing.SwingUtilities.invokeLater(() -> onConfigChanged(event));
+				return;
+			}
 			syncModuleLifecycles();
 			if ("osrsTheme".equals(event.getKey()))
 			{

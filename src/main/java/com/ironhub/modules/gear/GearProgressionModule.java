@@ -7,7 +7,6 @@ import com.ironhub.modules.IronHubModule;
 import com.ironhub.requirements.Requirement;
 import com.ironhub.requirements.Requirements;
 import com.ironhub.state.AccountState;
-import com.ironhub.ui.components.GridTile;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
@@ -24,6 +23,29 @@ import lombok.extern.slf4j.Slf4j;
 @Singleton
 public class GearProgressionModule implements IronHubModule
 {
+	/** A ladder rung's standing — lived on the long-dead GridTile painter
+	 *  until the 2026-08-03 dead-code sweep; the labels are its tooltips. */
+	public enum State
+	{
+		OWNED("owned"),
+		NEXT("obtainable now"),
+		READY("ready"),
+		LOCKED("locked"),
+		WARNING("warning");
+
+		private final String label;
+
+		State(String label)
+		{
+			this.label = label;
+		}
+
+		public String label()
+		{
+			return label;
+		}
+	}
+
 	private final AccountState state;
 	private final IronHubConfig config;
 	private final DataPack dataPack;
@@ -194,24 +216,24 @@ public class GearProgressionModule implements IronHubModule
 	 * Tile state per rung: owned; else the FIRST unowned rung with met
 	 * requirements is the next upgrade (accent); the rest are locked.
 	 */
-	public static List<GridTile.State> ladderStates(AccountState state, List<GearLaddersPack.Rung> ladder)
+	public static List<State> ladderStates(AccountState state, List<GearLaddersPack.Rung> ladder)
 	{
-		List<GridTile.State> states = new ArrayList<>();
+		List<State> states = new ArrayList<>();
 		boolean nextAssigned = false;
 		for (GearLaddersPack.Rung rung : ladder)
 		{
 			if (state.ownedCount(rung.getItemId()) > 0)
 			{
-				states.add(GridTile.State.OWNED);
+				states.add(State.OWNED);
 			}
 			else if (!nextAssigned && requirement(rung).isMet(state))
 			{
-				states.add(GridTile.State.NEXT);
+				states.add(State.NEXT);
 				nextAssigned = true;
 			}
 			else
 			{
-				states.add(GridTile.State.LOCKED);
+				states.add(State.LOCKED);
 			}
 		}
 		return states;

@@ -7121,6 +7121,32 @@
    }
   },
   {
+   "name": "Venators",
+   "icon": 33661,
+   "targets": [
+    "venator"
+   ],
+   "stats": {
+    "level": 246,
+    "hp": 345,
+    "attackSpeed": 5,
+    "defStab": -5,
+    "defSlash": 20,
+    "defCrush": 90,
+    "defMagic": 100,
+    "slayerLevel": 74,
+    "slayerXp": 405,
+    "attackStyle": "Stab",
+    "maxHit": 21,
+    "attributes": [
+     "vampyre3"
+    ]
+   },
+   "reqs": [
+    "skill:Slayer:74"
+   ]
+  },
+  {
    "name": "Venenatis",
    "icon": 13177,
    "targets": [],
@@ -11179,6 +11205,306 @@
      ],
      "locations": [
       "Callisto: South of the Demonic Ruins"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Mortimer",
+   "focusId": -1,
+   "x": 2589,
+   "y": 8614,
+   "plane": 0,
+   "points": 0,
+   "wilderness": false,
+   "reqs": [
+    "any:combat:100&skill:Slayer:70|skill:Slayer:99"
+   ],
+   "tasks": [
+    {
+     "task": "crawling hands",
+     "weight": 10,
+     "amount": "35-50",
+     "reqs": [
+      "skill:Slayer:5",
+      "quest:Priest in Peril"
+     ]
+    },
+    {
+     "task": "cave crawlers",
+     "weight": 10,
+     "amount": "35-50",
+     "reqs": [
+      "skill:Slayer:10",
+      "combat:10"
+     ]
+    },
+    {
+     "task": "banshees",
+     "weight": 10,
+     "amount": "35-50",
+     "reqs": [
+      "skill:Slayer:15",
+      "combat:20",
+      "quest:Priest in Peril"
+     ]
+    },
+    {
+     "task": "rockslugs",
+     "weight": 10,
+     "amount": "35-50",
+     "reqs": [
+      "skill:Slayer:20",
+      "combat:20"
+     ]
+    },
+    {
+     "task": "cockatrice",
+     "weight": 10,
+     "amount": "35-50",
+     "reqs": [
+      "skill:Slayer:25",
+      "combat:25",
+      "skill:Defence:20"
+     ]
+    },
+    {
+     "task": "pyrefiends",
+     "weight": 10,
+     "amount": "35-50",
+     "reqs": [
+      "skill:Slayer:30",
+      "combat:25"
+     ]
+    },
+    {
+     "task": "basilisks",
+     "weight": 10,
+     "amount": "40-60",
+     "extended": "200-250",
+     "reqs": [
+      "skill:Slayer:40",
+      "combat:40",
+      "skill:Defence:20"
+     ]
+    },
+    {
+     "task": "infernal mages",
+     "weight": 10,
+     "amount": "35-50",
+     "reqs": [
+      "skill:Slayer:45",
+      "combat:40",
+      "quest:Priest in Peril"
+     ]
+    },
+    {
+     "task": "bloodveld",
+     "weight": 8,
+     "amount": "120-180",
+     "extended": "200-250",
+     "reqs": [
+      "skill:Slayer:50",
+      "combat:50",
+      "quest:Priest in Peril"
+     ]
+    },
+    {
+     "task": "gryphons",
+     "weight": 10,
+     "amount": "80-120",
+     "extended": "160-200",
+     "reqs": [
+      "skill:Slayer:51",
+      "skill:Sailing:45",
+      "quest:Troubled Tortugans"
+     ]
+    },
+    {
+     "task": "jellies",
+     "weight": 10,
+     "amount": "80-120",
+     "reqs": [
+      "skill:Slayer:52",
+      "combat:57"
+     ]
+    },
+    {
+     "task": "custodian stalkers",
+     "weight": 8,
+     "amount": "80-120",
+     "extended": "200-250",
+     "reqs": [
+      "skill:Slayer:54",
+      "quest:Shadows of Custodia"
+     ]
+    },
+    {
+     "task": "turoth",
+     "weight": 10,
+     "amount": "80-120",
+     "reqs": [
+      "skill:Slayer:55",
+      "combat:60"
+     ]
+    },
+    {
+     "task": "warped creatures",
+     "weight": 10,
+     "amount": "80-120",
+     "reqs": [
+      "skill:Slayer:56",
+      "quest:The Path of Glouphrie"
+     ]
+    },
+    {
+     "task": "cave horrors",
+     "weight": 10,
+     "amount": "80-120",
+     "extended": "200-250",
+     "reqs": [
+      "skill:Slayer:58",
+      "combat:85",
+      "quest:Cabin Fever"
+     ]
+    },
+    {
+     "task": "aberrant spectres",
+     "weight": 10,
+     "amount": "80-120",
+     "extended": "200-250",
+     "reqs": [
+      "skill:Slayer:60",
+      "combat:65",
+      "quest:Priest in Peril"
+     ]
+    },
+    {
+     "task": "wyrms",
+     "weight": 10,
+     "amount": "80-120",
+     "extended": "200-250",
+     "reqs": [
+      "skill:Slayer:62"
+     ]
+    },
+    {
+     "task": "dust devils",
+     "weight": 8,
+     "amount": "120-180",
+     "extended": "200-250",
+     "reqs": [
+      "skill:Slayer:65",
+      "combat:70",
+      "queststarted:Desert Treasure I"
+     ]
+    },
+    {
+     "task": "kurask",
+     "weight": 10,
+     "amount": "40-60",
+     "reqs": [
+      "skill:Slayer:70",
+      "combat:65"
+     ]
+    },
+    {
+     "task": "venators",
+     "weight": 10,
+     "amount": "120-180",
+     "reqs": [
+      "skill:Slayer:74",
+      "combat:60",
+      "quest:The Blood Moon Rises"
+     ]
+    },
+    {
+     "task": "gargoyles",
+     "weight": 10,
+     "amount": "120-180",
+     "extended": "200-250",
+     "reqs": [
+      "skill:Slayer:75",
+      "combat:80",
+      "quest:Priest in Peril"
+     ]
+    },
+    {
+     "task": "aquanites",
+     "weight": 10,
+     "amount": "40-60",
+     "extended": "150-200",
+     "reqs": [
+      "skill:Slayer:78",
+      "skill:Sailing:73"
+     ]
+    },
+    {
+     "task": "nechryael",
+     "weight": 8,
+     "amount": "150-200",
+     "extended": "200-250",
+     "reqs": [
+      "skill:Slayer:80",
+      "combat:85",
+      "quest:Priest in Peril"
+     ]
+    },
+    {
+     "task": "drakes",
+     "weight": 10,
+     "amount": "40-60",
+     "reqs": [
+      "skill:Slayer:84"
+     ]
+    },
+    {
+     "task": "abyssal demons",
+     "weight": 8,
+     "amount": "120-180",
+     "extended": "200-250",
+     "reqs": [
+      "skill:Slayer:85",
+      "combat:85",
+      "any:quest:Priest in Peril|quest:Fairytale II - Cure a Queen"
+     ]
+    },
+    {
+     "task": "dark beasts",
+     "weight": 10,
+     "amount": "40-60",
+     "extended": "110-135",
+     "reqs": [
+      "skill:Slayer:90",
+      "combat:90",
+      "quest:Mourning's End Part II"
+     ]
+    },
+    {
+     "task": "araxytes",
+     "weight": 8,
+     "amount": "120-180",
+     "extended": "200-250",
+     "reqs": [
+      "skill:Slayer:92",
+      "quest:Priest in Peril"
+     ]
+    },
+    {
+     "task": "smoke devils",
+     "weight": 8,
+     "amount": "80-120",
+     "reqs": [
+      "skill:Slayer:93",
+      "combat:85"
+     ]
+    },
+    {
+     "task": "hydras",
+     "weight": 10,
+     "amount": "150-200",
+     "reqs": [
+      "skill:Slayer:95"
      ]
     }
    ]

@@ -9,6 +9,9 @@ import json, os, re
 OVERRIDES = {
     'ULTOR_RING': 28307, 'MAGUS_RING': 28313, 'VENATOR_RING': 28310,
     'BELLATOR_RING': 28316, 'SOULREAPER_AXE': 28338,
+    # the money item is COINS_995 (skipped by the variant filter), and the
+    # bare COINS constant is a dead 617 id: "Item 995" in the UI otherwise
+    'COINS': 995,
 }
 here = os.path.dirname(__file__)
 names = {}

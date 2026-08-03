@@ -30,7 +30,7 @@ public class CombatAchievementsModuleTest
 	private CombatAchievementsModule module(AccountState state, IronHubConfig config)
 	{
 		return new CombatAchievementsModule(state, config, null,
-			new EventBus(), new DataPack(new Gson()), null);
+			new EventBus(), new DataPack(new Gson()), null, null);
 	}
 
 	@Test
@@ -249,6 +249,13 @@ public class CombatAchievementsModuleTest
 
 		CombatAchievementsModule module = module(state, new IronHubConfig()
 		{
+			@Override
+			public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+			{
+				// Vanilla: osrsTheme() defaults to MYSTIC, and the renders
+				// exist to be judged against the Vanilla design system
+				return com.ironhub.ui.osrs.OsrsTheme.STONE;
+			}
 		});
 		module.startUp();
 		JComponent tab = module.buildTab();
@@ -290,14 +297,14 @@ public class CombatAchievementsModuleTest
 		write(SwingRender.render((JPanel) tab), "ca-tab-boss-page.png");
 
 		caTab.openTierForTest(CaTier.ELITE);
+		caTab.expandTaskForTest(2); // Perfect Zulrah's tile, open
 		write(SwingRender.render((JPanel) tab), "ca-tab-tier-page.png");
 
-		// the old module, folded away at the foot
-		caTab.showBossesForTest();
-		caTab.expandBrowserForTest();
-		caTab.browserForTest().expandForTest(2);
-		caTab.browserForTest().expandFiltersForTest();
-		write(SwingRender.render((JPanel) tab), "ca-tab-browser.png");
+		// CA1 2026-08-03: every task row offers the standard W-glyph wiki
+		// affordance (a V2SpriteButton lettered "W", tooltip "Open wiki")
+		assertTrue("task rows carry the W-glyph wiki button",
+			countWikiButtons(tab) > 0);
+
 		module.shutDown();
 	}
 
@@ -307,6 +314,20 @@ public class CombatAchievementsModuleTest
 		java.lang.reflect.Field handle = CombatAchievementsModule.class.getDeclaredField(field);
 		handle.setAccessible(true);
 		handle.set(module, value);
+	}
+
+	private static int countWikiButtons(java.awt.Component c)
+	{
+		int n = c instanceof com.ironhub.ui.v2.V2SpriteButton
+			&& "Open wiki".equals(((javax.swing.JComponent) c).getToolTipText()) ? 1 : 0;
+		if (c instanceof java.awt.Container)
+		{
+			for (java.awt.Component child : ((java.awt.Container) c).getComponents())
+			{
+				n += countWikiButtons(child);
+			}
+		}
+		return n;
 	}
 
 	private static void write(java.awt.image.BufferedImage image, String name)

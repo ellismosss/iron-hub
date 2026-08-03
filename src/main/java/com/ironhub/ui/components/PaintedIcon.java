@@ -36,11 +36,21 @@ public class PaintedIcon implements Icon
 
 	private final Shape shape;
 	private final int size;
+	/** An explicit colour, or null to take the host component's foreground.
+	 *  Needed once the icon lives inside an atom that owns its own label
+	 *  colouring — the money-making heart (Luke's Bank pass, 2026-07-26). */
+	private final java.awt.Color color;
 
 	public PaintedIcon(Shape shape, int size)
 	{
+		this(shape, size, null);
+	}
+
+	public PaintedIcon(Shape shape, int size, java.awt.Color color)
+	{
 		this.shape = shape;
 		this.size = size;
+		this.color = color;
 	}
 
 	@Override
@@ -49,7 +59,7 @@ public class PaintedIcon implements Icon
 		Graphics2D g2 = (Graphics2D) g.create();
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2.translate(x, y);
-		g2.setColor(c.getForeground());
+		g2.setColor(color != null ? color : c.getForeground());
 
 		switch (shape)
 		{

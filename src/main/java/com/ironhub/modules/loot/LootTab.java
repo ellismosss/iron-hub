@@ -1,12 +1,14 @@
 package com.ironhub.modules.loot;
 
+import com.ironhub.data.SlayerTasksPack;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneChipRow;
-import com.ironhub.ui.osrs.StoneComboBoxUI;
+import com.ironhub.ui.v2.V2ChipRow;
+import com.ironhub.ui.v2.V2Tile;
+import com.ironhub.ui.v2.V2Tokens;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -16,88 +18,101 @@ import java.util.Map;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.util.QuantityFormatter;
 
 /**
- * Loot tab content (frame 2g) in the OSRS stonework skin: source selector
- * with kill count, Total / Per kill toggle, and sprite rows sorted by
- * quantity. GP value deliberately de-emphasized — irons care about items.
- * Frameless — the host's header plate names the module.
+ * Loot & supplies (reworked 2026-08-03, L1-L6): a monster tile grid by
+ * recency (click a tile for its drops), the ECONOMICS card as the
+ * centrepiece — drops value vs supplies cost vs net, priced at drop/use
+ * time on the client thread — an all-time vs session scope, a picked-up
+ * filter fed by {@link LootPickupTracker}'s confirmed classifications,
+ * and the drops themselves as a Loot-Tracker-style grid of item tiles
+ * (sprite with its stack count baked in). Frameless — the host's header
+ * plate names the module.
  */
 class LootTab extends JPanel
 {
-	private static final int MAX_ROWS = 50;
+	/** The row-list law: honest cap + "+ N more". */
+	private static final int MAX_ITEMS = 20;
+	private static final int MAX_MONSTERS = 12;
+	private static final int GRID_COLS = 5;
+	private static final int CELL = 34;
+	private static final int MONSTER_TILE = 30;
 
 	private final AccountState state;
-	private final ItemManager itemManager; // null in unit tests — icons skipped
 	private final OsrsTheme theme;
-	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::sourcesChanged);
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 	private final com.ironhub.ui.components.SpriteCache sprites;
+	private final SlayerTasksPack slayerPack; // monster icons where known
 
-	private final JComboBox<String> source = new JComboBox<>();
-	private final StoneChipRow view;
-	private final JPanel killsLine = new JPanel();
+	private String selectedSource;
+	/** 0 = all-time, 1 = session (L5). */
+	private final V2ChipRow scope;
+	/** Latching picked-up filter (L3). */
+	private boolean pickedOnly;
+
+	private final JPanel monsters = new JPanel();
+	private final JPanel economics = new JPanel();
+	private final JPanel controls = new JPanel();
 	private final JPanel list = new JPanel();
-	private final JPanel supplies = new JPanel();
-	private List<String> sources = new ArrayList<>();
 
-	LootTab(AccountState state, ItemManager itemManager, OsrsTheme theme)
+	LootTab(AccountState state, ItemManager itemManager,
+		com.ironhub.data.DataPack dataPack, OsrsTheme theme)
 	{
 		this.state = state;
-		this.itemManager = itemManager;
 		this.theme = theme;
 		this.sprites = new com.ironhub.ui.components.SpriteCache(itemManager, listener);
+		SlayerTasksPack pack = null;
+		try
+		{
+			pack = dataPack == null ? null : dataPack.load("slayer-tasks", SlayerTasksPack.class);
+		}
+		catch (RuntimeException ignored)
+		{
+			// icons degrade to placeholders; the tab still works
+		}
+		this.slayerPack = pack;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
+		monsters.setLayout(new BoxLayout(monsters, BoxLayout.Y_AXIS));
+		monsters.setOpaque(false);
+		monsters.setAlignmentX(LEFT_ALIGNMENT);
+		add(monsters);
 		add(Box.createVerticalStrut(4));
 
-		StoneComboBoxUI.skin(source, theme);
-		source.setAlignmentX(LEFT_ALIGNMENT);
-		source.setMaximumSize(new Dimension(Integer.MAX_VALUE, source.getPreferredSize().height));
-		source.addActionListener(e ->
-		{
-			if (!repopulating)
-			{
-				rebuild();
-			}
-		});
-		add(source);
-		add(Box.createVerticalStrut(3));
-
-		killsLine.setLayout(new BoxLayout(killsLine, BoxLayout.X_AXIS));
-		killsLine.setOpaque(false);
-		killsLine.setAlignmentX(LEFT_ALIGNMENT);
-		add(killsLine);
+		economics.setLayout(new BoxLayout(economics, BoxLayout.Y_AXIS));
+		economics.setOpaque(false);
+		economics.setAlignmentX(LEFT_ALIGNMENT);
+		add(economics);
 		add(Box.createVerticalStrut(4));
 
-		view = new StoneChipRow(theme, true, "Total", "Per kill");
-		view.onChange(i -> rebuild());
-		add(view);
+		scope = new V2ChipRow(theme, true, "All-time", "Session");
+		scope.onChange(i -> rebuild());
+		add(scope);
+		add(Box.createVerticalStrut(4));
+
+		controls.setLayout(new BoxLayout(controls, BoxLayout.X_AXIS));
+		controls.setOpaque(false);
+		controls.setAlignmentX(LEFT_ALIGNMENT);
+		add(controls);
 		add(Box.createVerticalStrut(4));
 
 		list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
 		list.setOpaque(false);
 		list.setAlignmentX(LEFT_ALIGNMENT);
 		add(list);
-
-		supplies.setLayout(new BoxLayout(supplies, BoxLayout.Y_AXIS));
-		supplies.setOpaque(false);
-		supplies.setAlignmentX(LEFT_ALIGNMENT);
-		add(supplies);
 		add(Box.createVerticalGlue());
 
 		state.addListener(listener, AccountState.Topic.LOOT);
-		sourcesChanged();
+		rebuild();
 	}
 
 	void dispose()
@@ -105,156 +120,327 @@ class LootTab extends JPanel
 		state.removeListener(listener);
 	}
 
-	/** Refresh the selector when new sources appear, keeping the selection. */
-	private void sourcesChanged()
+	private boolean session()
 	{
-		List<String> fresh = new ArrayList<>(state.lootSources());
-		fresh.sort(Comparator.comparingInt((String s) -> -state.getKillCount(s))
-			.thenComparing(s -> s));
-		if (!fresh.equals(sources))
-		{
-			String selected = (String) source.getSelectedItem();
-			// removeAllItems/addItem fire the combo's action listener per
-			// mutation — up to four full list rebuilds in one pass
-			// (2026-07-20 audit); the trailing rebuild() covers the result
-			repopulating = true;
-			try
-			{
-				sources = fresh;
-				source.removeAllItems();
-				sources.forEach(source::addItem);
-				if (selected != null && sources.contains(selected))
-				{
-					source.setSelectedItem(selected);
-				}
-			}
-			finally
-			{
-				repopulating = false;
-			}
-		}
-		rebuild();
+		return scope.selected() == 1;
 	}
 
-	private boolean repopulating;
+	void rebuild()
+	{
+		List<String> sources = new ArrayList<>(state.lootSources());
+		// most recently killed first (L4) — recency reorders as kills happen
+		sources.sort(Comparator.comparingLong((String s) -> -state.lootLastKill(s))
+			.thenComparing(s -> s));
+		if (selectedSource == null || !sources.contains(selectedSource))
+		{
+			selectedSource = sources.isEmpty() ? null : sources.get(0);
+		}
+		rebuildMonsters(sources);
+		rebuildEconomics();
+		rebuildControls();
+		rebuildList();
+		revalidate();
+		repaint();
+	}
 
-	private void rebuild()
+	/** The monster tile grid (L4): icon tiles, recency-first, click to view. */
+	private void rebuildMonsters(List<String> sources)
+	{
+		monsters.removeAll();
+		if (sources.isEmpty())
+		{
+			monsters.add(faintLine("Kill something — drops are tracked automatically."));
+			return;
+		}
+		JPanel grid = new JPanel(new java.awt.GridLayout(0, GRID_COLS, V2Tokens.ROW, V2Tokens.ROW));
+		grid.setOpaque(false);
+		grid.setAlignmentX(LEFT_ALIGNMENT);
+		int shown = 0;
+		for (String source : sources)
+		{
+			if (shown++ >= MAX_MONSTERS)
+			{
+				break;
+			}
+			int icon = monsterIconId(source);
+			java.awt.Image sprite = icon > 0
+				? sprites.get(icon, -1, V2Tokens.TILE_ICON) : null;
+			// initials whenever no sprite is IN HAND — a still-loading icon
+			// swaps in on arrival via the rebuild listener
+			V2Tile tile = sprite != null
+				? new V2Tile(theme, sprite, null, MONSTER_TILE, () -> selectSource(source))
+				: new V2Tile(theme, (java.awt.Image) null, null, MONSTER_TILE,
+					() -> selectSource(source)).placeholder(initials(source));
+			tile.selected(source.equals(selectedSource));
+			tile.setToolTipText(source + " · " + kills(source)
+				+ (kills(source) == 1 ? " kill" : " kills"));
+			grid.add(tile);
+		}
+		int rows = (Math.min(sources.size(), MAX_MONSTERS) + GRID_COLS - 1) / GRID_COLS;
+		grid.setMaximumSize(new Dimension(Integer.MAX_VALUE,
+			rows * (MONSTER_TILE + V2Tokens.ROW)));
+		monsters.add(grid);
+		if (sources.size() > MAX_MONSTERS)
+		{
+			monsters.add(Box.createVerticalStrut(2));
+			monsters.add(faintLine("+ " + (sources.size() - MAX_MONSTERS)
+				+ " more — killing one brings it to the front"));
+		}
+		monsters.revalidate();
+		monsters.repaint();
+	}
+
+	private void selectSource(String source)
+	{
+		selectedSource = source;
+		javax.swing.SwingUtilities.invokeLater(this::rebuild);
+	}
+
+	/** The economics card (L6) — the centrepiece: drops value, supplies
+	 *  cost, net. Values are accumulated at drop/use time on the client
+	 *  thread; drops recorded before value tracking began aren't priced,
+	 *  and the tooltip says so. */
+	private void rebuildEconomics()
+	{
+		economics.removeAll();
+		if (selectedSource == null)
+		{
+			return;
+		}
+		long drops = session() ? state.sessionLootValueFor(selectedSource)
+			: state.lootValueFor(selectedSource);
+		long cost = session() ? state.sessionSuppliesValueFor(selectedSource)
+			: state.suppliesValueFor(selectedSource);
+		long net = drops - cost;
+		com.ironhub.ui.v2.V2Surface card = com.ironhub.ui.v2.V2Surface.card(theme);
+		JPanel head = row();
+		head.add(new OsrsLabel(selectedSource, OsrsSkin.TITLE, OsrsSkin.boldFont())
+			.leftAligned().squeezable());
+		head.add(Box.createHorizontalGlue());
+		head.add(new OsrsLabel(kills(selectedSource)
+			+ (kills(selectedSource) == 1 ? " kill" : " kills"),
+			OsrsSkin.FAINT, OsrsSkin.smallFont()));
+		cap(head);
+		card.add(head);
+		card.add(Box.createVerticalStrut(2));
+		card.add(valueLine("Drops value", drops, OsrsSkin.BAR_TEXT));
+		card.add(valueLine("Supplies cost", cost, OsrsSkin.BAR_TEXT));
+		card.add(valueLine("Net", net,
+			net >= 0 ? V2Tokens.DONE : V2Tokens.BLOCKED));
+		card.setToolTipText("Priced at drop/use time — high alch value on an"
+			+ " ironman, GE price otherwise. Drops recorded before value"
+			+ " tracking began aren't priced — the figures cover what the"
+			+ " plugin watched.");
+		cap(card);
+		economics.add(card);
+		economics.revalidate();
+		economics.repaint();
+	}
+
+	private JComponent valueLine(String label, long gp, java.awt.Color colour)
+	{
+		JPanel line = row();
+		line.add(new OsrsLabel(label, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+		line.add(Box.createHorizontalGlue());
+		line.add(new OsrsLabel(QuantityFormatter.quantityToStackSize(gp) + " gp",
+			colour, OsrsSkin.font()));
+		cap(line);
+		return line;
+	}
+
+	private void rebuildControls()
+	{
+		controls.removeAll();
+		if (selectedSource == null)
+		{
+			return;
+		}
+		JComponent picked = new com.ironhub.ui.v2.V2Checkbox(theme,
+			"Picked up only", pickedOnly, () ->
+		{
+			pickedOnly = !pickedOnly;
+			javax.swing.SwingUtilities.invokeLater(this::rebuild);
+		});
+		picked.setToolTipText("Show only drops CONFIRMED picked up (tracking"
+			+ " starts with this update; a drop whose fate the client could"
+			+ " not see — teleporting away, hopping — stays unknown and is"
+			+ " never guessed into either bucket)");
+		controls.add(picked);
+		controls.add(Box.createHorizontalGlue());
+		cap(controls);
+		controls.revalidate();
+		controls.repaint();
+	}
+
+	/** The drop grid (L1): Loot-Tracker-style item tiles, sprite with the
+	 *  stack count baked in, capped with an honest more-line. */
+	private void rebuildList()
 	{
 		list.removeAll();
-		killsLine.removeAll();
-		String selected = (String) source.getSelectedItem();
-
-		if (selected == null)
+		if (selectedSource == null)
 		{
-			killsLine.add(new OsrsLabel("no loot recorded yet", OsrsSkin.FAINT, OsrsSkin.font()).leftAligned());
-			list.add(faintLine("Kill something — drops are tracked automatically."));
+			list.revalidate();
+			list.repaint();
+			return;
+		}
+		Map<Integer, Integer> loot = session()
+			? state.sessionLootFor(selectedSource) : state.lootFor(selectedSource);
+		if (pickedOnly)
+		{
+			// confirmed pickups only — all-time scope (classification has
+			// no session split; honesty over symmetry)
+			loot = state.lootPickedFor(selectedSource);
+		}
+		list.add(section(pickedOnly ? "Picked-up drops" : "All drops"));
+		if (loot.isEmpty())
+		{
+			list.add(faintLine(pickedOnly
+				? "No confirmed pickups yet — tracking began with this update."
+				: session() ? "No drops this session." : "No drops recorded."));
 		}
 		else
 		{
-			int kills = state.getKillCount(selected);
-			killsLine.add(new OsrsLabel(kills + (kills == 1 ? " kill" : " kills") + " recorded",
-				OsrsSkin.FAINT, OsrsSkin.font()).leftAligned());
-			boolean perKill = view.getSelected() == 1;
-
-			Map<Integer, Integer> loot = state.lootFor(selected);
-			List<Integer> ids = new ArrayList<>(loot.keySet());
-			ids.sort(Comparator.comparingInt((Integer id) -> -loot.get(id))
-				.thenComparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)));
-
-			// flat rows in the Route-list grammar (Luke, 2026-07-17) — no
-			// frame around the list, light text, small icons
-			for (Integer id : ids.subList(0, Math.min(ids.size(), MAX_ROWS)))
+			list.add(itemGrid(loot));
+			int more = loot.size() - MAX_ITEMS;
+			if (more > 0)
 			{
-				list.add(itemRow(id, loot.get(id), kills, perKill));
-			}
-			if (ids.size() > MAX_ROWS)
-			{
-				list.add(Box.createVerticalStrut(3));
-				list.add(faintLine("+ " + (ids.size() - MAX_ROWS) + " more items"));
+				list.add(Box.createVerticalStrut(2));
+				list.add(faintLine("+ " + more + " more items"));
 			}
 		}
-		rebuildSupplies(selected);
-		cap(killsLine);
-		killsLine.revalidate();
-		killsLine.repaint();
+
+		Map<Integer, Integer> used = session()
+			? state.sessionSuppliesFor(selectedSource) : state.suppliesFor(selectedSource);
+		if (!used.isEmpty() && !pickedOnly)
+		{
+			list.add(section("Supplies used"));
+			list.add(itemGrid(used));
+			int more = used.size() - MAX_ITEMS;
+			if (more > 0)
+			{
+				list.add(Box.createVerticalStrut(2));
+				list.add(faintLine("+ " + more + " more items"));
+			}
+		}
 		list.revalidate();
 		list.repaint();
 	}
 
-	/** SUPPLIES USED (frame 2g): consumption per source, avg per kill. */
-	private void rebuildSupplies(String selected)
+	private JComponent itemGrid(Map<Integer, Integer> items)
 	{
-		supplies.removeAll();
-		Map<Integer, Integer> used = selected == null ? Map.of() : state.suppliesFor(selected);
-		if (!used.isEmpty())
+		List<Integer> ids = new ArrayList<>(items.keySet());
+		Map<Integer, Integer> counts = items;
+		ids.sort(Comparator.comparingInt((Integer id) -> -counts.get(id))
+			.thenComparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)));
+		JPanel grid = new JPanel(new java.awt.GridLayout(0, GRID_COLS, V2Tokens.ROW, V2Tokens.ROW));
+		grid.setOpaque(false);
+		grid.setAlignmentX(LEFT_ALIGNMENT);
+		int shown = 0;
+		for (Integer id : ids)
 		{
-			supplies.add(section("Supplies used"));
-
-			int kills = state.getKillCount(selected);
-			boolean perKill = view.getSelected() == 1;
-			List<Integer> ids = new ArrayList<>(used.keySet());
-			// same flat Route-list grammar as the loot rows above
-			ids.sort(Comparator.comparingInt((Integer id) -> -used.get(id))
-				.thenComparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)));
-			for (Integer id : ids.subList(0, Math.min(ids.size(), MAX_ROWS)))
+			if (shown++ >= MAX_ITEMS)
 			{
-				supplies.add(itemRow(id, used.get(id), kills, perKill));
+				break;
 			}
+			int qty = counts.get(id);
+			JLabel cell = new JLabel();
+			Dimension size = new Dimension(CELL, CELL);
+			cell.setPreferredSize(size);
+			cell.setMinimumSize(size);
+			cell.setMaximumSize(size);
+			cell.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+			// the stack count bakes into the sprite — the Loot Tracker look
+			java.awt.Image sprite = sprites.getStacked(id, qty, CELL - 6);
+			if (sprite != null)
+			{
+				cell.setIcon(new ImageIcon(sprite));
+			}
+			cell.setToolTipText(state.itemName(id) + " ×"
+				+ QuantityFormatter.formatNumber(qty));
+			grid.add(cell);
 		}
-		supplies.revalidate();
-		supplies.repaint();
+		int rows = (Math.min(ids.size(), MAX_ITEMS) + GRID_COLS - 1) / GRID_COLS;
+		grid.setMaximumSize(new Dimension(Integer.MAX_VALUE, rows * (CELL + V2Tokens.ROW)));
+		return grid;
 	}
 
-	/**
-	 * One item as a flat Route-style row (Luke, 2026-07-17): 16px sprite in
-	 * its own holder, name and count in the light body colour — no green,
-	 * no frame, no stack number baked into the sprite (unreadable at 16px;
-	 * the count is the row's own text).
-	 */
-	private JComponent itemRow(int itemId, int quantity, int kills, boolean perKill)
+	private int kills(String source)
+	{
+		return session() ? state.sessionKillCount(source) : state.getKillCount(source);
+	}
+
+	/** The slayer pack's task sprite for a monster name, else the monster's
+	 *  most-dropped known item (every tracked source has drops), else 0.
+	 *  NO pricing here: this runs on the EDT, and ItemManager.getItemPrice
+	 *  walks into getItemComposition, which asserts the client thread —
+	 *  the "loot tab won't open" crash (2026-08-03 live test, round 2). */
+	private int monsterIconId(String source)
+	{
+		if (slayerPack != null)
+		{
+			SlayerTasksPack.Task task = slayerPack.task(source);
+			if (task == null)
+			{
+				task = slayerPack.task(source + "s");
+			}
+			if (task == null && source.endsWith("s"))
+			{
+				task = slayerPack.task(source.substring(0, source.length() - 1));
+			}
+			if (task != null && task.icon > 0)
+			{
+				return task.icon;
+			}
+		}
+		int best = 0;
+		int bestQty = -1;
+		int coins = 0;
+		for (Map.Entry<Integer, Integer> drop : state.lootFor(source).entrySet())
+		{
+			if (drop.getKey() == net.runelite.api.gameval.ItemID.COINS)
+			{
+				coins = drop.getKey(); // a coin tile only when coins are ALL there is
+				continue;
+			}
+			if (drop.getValue() > bestQty)
+			{
+				bestQty = drop.getValue();
+				best = drop.getKey();
+			}
+		}
+		return best > 0 ? best : coins;
+	}
+
+	/** "Kalphite Queen" -> "KQ" for a tile with no known sprite. */
+	static String initials(String source)
+	{
+		StringBuilder out = new StringBuilder();
+		for (String word : source.split("\\s+"))
+		{
+			if (!word.isEmpty() && Character.isLetter(word.charAt(0)))
+			{
+				out.append(Character.toUpperCase(word.charAt(0)));
+			}
+			if (out.length() == 2)
+			{
+				break;
+			}
+		}
+		return out.length() == 0 ? "?" : out.toString();
+	}
+
+	private JPanel row()
 	{
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP));
-
-		JLabel icon = new JLabel();
-		Dimension iconSize = new Dimension(16, 16);
-		icon.setPreferredSize(iconSize);
-		icon.setMinimumSize(iconSize);
-		icon.setMaximumSize(iconSize);
-		java.awt.Image sprite = sprites.get(itemId, -1, 16);
-		if (sprite != null)
-		{
-			icon.setIcon(new ImageIcon(sprite));
-		}
-		row.add(icon);
-		row.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-
-		String name = state.itemName(itemId);
-		OsrsLabel nameLabel = new OsrsLabel(name, OsrsSkin.MUTED, OsrsSkin.font())
-			.leftAligned().squeezable();
-		nameLabel.setToolTipText(name);
-		row.add(nameLabel);
-		row.add(Box.createHorizontalGlue());
-
-		OsrsLabel count = new OsrsLabel(perKill
-			? perKillText(quantity, kills)
-			: "×" + QuantityFormatter.quantityToStackSize(quantity),
-			OsrsSkin.MUTED, OsrsSkin.font());
-		count.setToolTipText(quantity + " over " + kills + (kills == 1 ? " kill" : " kills"));
-		row.add(count);
-		cap(row);
 		return row;
 	}
 
 	private JComponent faintLine(String text)
 	{
-		JPanel holder = new JPanel();
-		holder.setLayout(new BoxLayout(holder, BoxLayout.X_AXIS));
-		holder.setOpaque(false);
-		holder.setAlignmentX(LEFT_ALIGNMENT);
+		JPanel holder = row();
 		holder.add(OsrsLabel.wrapped(text, 195, OsrsSkin.FAINT, OsrsSkin.font()).leftAligned());
 		holder.add(Box.createHorizontalGlue());
 		cap(holder);
@@ -264,10 +450,7 @@ class LootTab extends JPanel
 	/** Section header in the skin grammar (the FarmingTab pattern). */
 	private JComponent section(String text)
 	{
-		JPanel row = new JPanel();
-		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-		row.setOpaque(false);
-		row.setAlignmentX(LEFT_ALIGNMENT);
+		JPanel row = row();
 		row.setBorder(new EmptyBorder(8, 4, 3, 4));
 		row.add(new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font()));
 		row.add(Box.createHorizontalGlue());
@@ -278,18 +461,6 @@ class LootTab extends JPanel
 	private void cap(JComponent c)
 	{
 		c.setMaximumSize(new Dimension(Integer.MAX_VALUE, c.getPreferredSize().height));
-	}
-
-	/** "0.8/kill" — static for unit testing. */
-	static String perKillText(int quantity, int kills)
-	{
-		if (kills <= 0)
-		{
-			return "—";
-		}
-		double avg = (double) quantity / kills;
-		return (avg >= 100 ? String.valueOf(Math.round(avg))
-			: String.format(Locale.ROOT, "%.1f", avg)) + "/kill";
 	}
 
 	@Override

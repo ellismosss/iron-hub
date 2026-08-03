@@ -1,0 +1,3295 @@
+{
+ "source": "knowledge.db consumables (food/potion) + curated resource tables + clean name patterns; tools/gen_supplies.py",
+ "categories": [
+  {
+   "key": "potions",
+   "name": "Potions",
+   "icon": 12695
+  },
+  {
+   "key": "food",
+   "name": "Food",
+   "icon": 385
+  },
+  {
+   "key": "runes",
+   "name": "Runes",
+   "icon": 561
+  },
+  {
+   "key": "ammo",
+   "name": "Ammunition",
+   "icon": 892
+  },
+  {
+   "key": "prayer",
+   "name": "Prayer",
+   "icon": 536
+  },
+  {
+   "key": "materials",
+   "name": "Materials",
+   "icon": 1513
+  }
+ ],
+ "items": [
+  {
+   "id": 12695,
+   "name": "Super combat potion(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 2444,
+   "name": "Ranging potion(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 22461,
+   "name": "Bastion potion(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 3024,
+   "name": "Super restore(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 2434,
+   "name": "Prayer potion(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 10925,
+   "name": "Sanfew serum(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 12625,
+   "name": "Stamina potion(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 21978,
+   "name": "Super antifire potion(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 22209,
+   "name": "Extended super antifire(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 12913,
+   "name": "Anti-venom+(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 5952,
+   "name": "Antidote++(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 23685,
+   "name": "Divine super combat potion(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 23733,
+   "name": "Divine ranging potion(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 24635,
+   "name": "Divine bastion potion(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 2436,
+   "name": "Super attack(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 2440,
+   "name": "Super strength(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 2442,
+   "name": "Super defence(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 3016,
+   "name": "Super energy(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 3040,
+   "name": "Magic potion(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 2452,
+   "name": "Antifire potion(4)",
+   "category": "potions",
+   "default": true
+  },
+  {
+   "id": 5942,
+   "name": "Antidote+ (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 5951,
+   "name": "Antidote++ (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 738,
+   "name": "Ardrigal mixture",
+   "category": "potions"
+  },
+  {
+   "id": 103,
+   "name": "Avantoe potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 1582,
+   "name": "Blamish oil",
+   "category": "potions"
+  },
+  {
+   "id": 22407,
+   "name": "Blood potion",
+   "category": "potions"
+  },
+  {
+   "id": 23002,
+   "name": "Bottled dragonbreath",
+   "category": "potions"
+  },
+  {
+   "id": 739,
+   "name": "Bravery potion",
+   "category": "potions"
+  },
+  {
+   "id": 22443,
+   "name": "Cadantine blood potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 107,
+   "name": "Cadantine potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 756,
+   "name": "Cadava potion",
+   "category": "potions"
+  },
+  {
+   "id": 6766,
+   "name": "Cat antipoison",
+   "category": "potions"
+  },
+  {
+   "id": 5935,
+   "name": "Coconut milk",
+   "category": "potions"
+  },
+  {
+   "id": 31865,
+   "name": "Daddy's special water's special water",
+   "category": "potions"
+  },
+  {
+   "id": 109,
+   "name": "Dwarf weed potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 23800,
+   "name": "Elder cadantine potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 31662,
+   "name": "Elkhorn potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 4045,
+   "name": "Explosive potion",
+   "category": "potions"
+  },
+  {
+   "id": 23881,
+   "name": "Grym potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 91,
+   "name": "Guam potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 7652,
+   "name": "Guthix balance (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 31587,
+   "name": "Haemostatic poultice",
+   "category": "potions"
+  },
+  {
+   "id": 97,
+   "name": "Harralander potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 732,
+   "name": "Holy water",
+   "category": "potions"
+  },
+  {
+   "id": 30100,
+   "name": "Huasca potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 23806,
+   "name": "Inversion potion",
+   "category": "potions"
+  },
+  {
+   "id": 101,
+   "name": "Irit potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 105,
+   "name": "Kwuarm potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 2483,
+   "name": "Lantadyme potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 9019,
+   "name": "Magic essence (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 2395,
+   "name": "Magic ogre potion",
+   "category": "potions"
+  },
+  {
+   "id": 93,
+   "name": "Marrentill potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 31665,
+   "name": "Pillar potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 21531,
+   "name": "Potion of sealegs",
+   "category": "potions"
+  },
+  {
+   "id": 99,
+   "name": "Ranarr potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 20697,
+   "name": "Rejuvenation potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 22096,
+   "name": "Revitalisation potion",
+   "category": "potions"
+  },
+  {
+   "id": 25813,
+   "name": "Shielding potion",
+   "category": "potions"
+  },
+  {
+   "id": 11204,
+   "name": "Shrink-me-quick",
+   "category": "potions"
+  },
+  {
+   "id": 737,
+   "name": "Snakeweed mixture",
+   "category": "potions"
+  },
+  {
+   "id": 3004,
+   "name": "Snapdragon potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 4836,
+   "name": "Strange potion",
+   "category": "potions"
+  },
+  {
+   "id": 28388,
+   "name": "Strangler serum",
+   "category": "potions"
+  },
+  {
+   "id": 25812,
+   "name": "Sulphur potion",
+   "category": "potions"
+  },
+  {
+   "id": 95,
+   "name": "Tarromin potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 3002,
+   "name": "Toadflax potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 111,
+   "name": "Torstol potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 3265,
+   "name": "Troll potion",
+   "category": "potions"
+  },
+  {
+   "id": 31668,
+   "name": "Umbral potion (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 22406,
+   "name": "Unfinished blood potion",
+   "category": "potions"
+  },
+  {
+   "id": 3406,
+   "name": "Unfinished potion",
+   "category": "potions"
+  },
+  {
+   "id": 187,
+   "name": "Weapon poison",
+   "category": "potions"
+  },
+  {
+   "id": 5937,
+   "name": "Weapon poison(+)",
+   "category": "potions"
+  },
+  {
+   "id": 5940,
+   "name": "Weapon poison(++)",
+   "category": "potions"
+  },
+  {
+   "id": 5936,
+   "name": "Weapon poison+ (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 5939,
+   "name": "Weapon poison++ (unf)",
+   "category": "potions"
+  },
+  {
+   "id": 13441,
+   "name": "Anglerfish",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 391,
+   "name": "Manta ray",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 11936,
+   "name": "Dark crab",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 7060,
+   "name": "Tuna potato",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 397,
+   "name": "Sea turtle",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 385,
+   "name": "Shark",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 3144,
+   "name": "Cooked karambwan",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 7946,
+   "name": "Monkfish",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 7218,
+   "name": "Summer pie",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 373,
+   "name": "Swordfish",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 7208,
+   "name": "Wild pie",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 379,
+   "name": "Lobster",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 2301,
+   "name": "Pineapple pizza",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 7198,
+   "name": "Admiral pie",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 365,
+   "name": "Bass",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 1891,
+   "name": "Cake",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 1993,
+   "name": "Jug of wine",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 4561,
+   "name": "Purple sweets",
+   "category": "food",
+   "default": true
+  },
+  {
+   "id": 319,
+   "name": "Anchovies",
+   "category": "food"
+  },
+  {
+   "id": 2297,
+   "name": "Anchovy pizza",
+   "category": "food"
+  },
+  {
+   "id": 2323,
+   "name": "Apple pie",
+   "category": "food"
+  },
+  {
+   "id": 6961,
+   "name": "Baguette",
+   "category": "food"
+  },
+  {
+   "id": 6701,
+   "name": "Baked potato",
+   "category": "food"
+  },
+  {
+   "id": 1963,
+   "name": "Banana",
+   "category": "food"
+  },
+  {
+   "id": 10964,
+   "name": "Bat shish",
+   "category": "food"
+  },
+  {
+   "id": 24592,
+   "name": "Blighted anglerfish",
+   "category": "food"
+  },
+  {
+   "id": 24595,
+   "name": "Blighted karambwan",
+   "category": "food"
+  },
+  {
+   "id": 24589,
+   "name": "Blighted manta ray",
+   "category": "food"
+  },
+  {
+   "id": 32344,
+   "name": "Bluefin",
+   "category": "food"
+  },
+  {
+   "id": 19662,
+   "name": "Botanical pie",
+   "category": "food"
+  },
+  {
+   "id": 20862,
+   "name": "Brawk fish (3)",
+   "category": "food"
+  },
+  {
+   "id": 2309,
+   "name": "Bread",
+   "category": "food"
+  },
+  {
+   "id": 1965,
+   "name": "Cabbage",
+   "category": "food"
+  },
+  {
+   "id": 5003,
+   "name": "Cave eel",
+   "category": "food"
+  },
+  {
+   "id": 2259,
+   "name": "Cheese+tom batta",
+   "category": "food"
+  },
+  {
+   "id": 7054,
+   "name": "Chilli potato",
+   "category": "food"
+  },
+  {
+   "id": 6794,
+   "name": "Choc-ice",
+   "category": "food"
+  },
+  {
+   "id": 1973,
+   "name": "Chocolate bar",
+   "category": "food"
+  },
+  {
+   "id": 2185,
+   "name": "Chocolate bomb",
+   "category": "food"
+  },
+  {
+   "id": 1897,
+   "name": "Chocolate cake",
+   "category": "food"
+  },
+  {
+   "id": 1977,
+   "name": "Chocolatey milk",
+   "category": "food"
+  },
+  {
+   "id": 339,
+   "name": "Cod",
+   "category": "food"
+  },
+  {
+   "id": 6032,
+   "name": "Compost",
+   "category": "food"
+  },
+  {
+   "id": 29131,
+   "name": "Cooked barb-tailed kebbit",
+   "category": "food"
+  },
+  {
+   "id": 2140,
+   "name": "Cooked chicken",
+   "category": "food"
+  },
+  {
+   "id": 2878,
+   "name": "Cooked chompy",
+   "category": "food"
+  },
+  {
+   "id": 29134,
+   "name": "Cooked dashing kebbit",
+   "category": "food"
+  },
+  {
+   "id": 7521,
+   "name": "Cooked giant crab meat",
+   "category": "food"
+  },
+  {
+   "id": 29149,
+   "name": "Cooked graahk",
+   "category": "food"
+  },
+  {
+   "id": 7568,
+   "name": "Cooked jubbly",
+   "category": "food"
+  },
+  {
+   "id": 29152,
+   "name": "Cooked kyatt",
+   "category": "food"
+  },
+  {
+   "id": 29146,
+   "name": "Cooked larupia",
+   "category": "food"
+  },
+  {
+   "id": 2142,
+   "name": "Cooked meat",
+   "category": "food"
+  },
+  {
+   "id": 29143,
+   "name": "Cooked moonlight antelope",
+   "category": "food"
+  },
+  {
+   "id": 29077,
+   "name": "Cooked moss lizard",
+   "category": "food"
+  },
+  {
+   "id": 24785,
+   "name": "Cooked mystery meat",
+   "category": "food"
+  },
+  {
+   "id": 2343,
+   "name": "Cooked oomlie wrap",
+   "category": "food"
+  },
+  {
+   "id": 29137,
+   "name": "Cooked pyre fox",
+   "category": "food"
+  },
+  {
+   "id": 3228,
+   "name": "Cooked rabbit",
+   "category": "food"
+  },
+  {
+   "id": 29140,
+   "name": "Cooked sunlight antelope",
+   "category": "food"
+  },
+  {
+   "id": 5988,
+   "name": "Cooked sweetcorn",
+   "category": "food"
+  },
+  {
+   "id": 33109,
+   "name": "Cooked t-bone steak",
+   "category": "food"
+  },
+  {
+   "id": 29128,
+   "name": "Cooked wild kebbit",
+   "category": "food"
+  },
+  {
+   "id": 1955,
+   "name": "Cooking apple",
+   "category": "food"
+  },
+  {
+   "id": 2011,
+   "name": "Curry",
+   "category": "food"
+  },
+  {
+   "id": 22929,
+   "name": "Dragonfruit",
+   "category": "food"
+  },
+  {
+   "id": 22795,
+   "name": "Dragonfruit pie",
+   "category": "food"
+  },
+  {
+   "id": 7056,
+   "name": "Egg potato",
+   "category": "food"
+  },
+  {
+   "id": 3367,
+   "name": "Fat snail",
+   "category": "food"
+  },
+  {
+   "id": 3373,
+   "name": "Fat snail meat",
+   "category": "food"
+  },
+  {
+   "id": 7188,
+   "name": "Fish pie",
+   "category": "food"
+  },
+  {
+   "id": 7178,
+   "name": "Garden pie",
+   "category": "food"
+  },
+  {
+   "id": 1550,
+   "name": "Garlic",
+   "category": "food"
+  },
+  {
+   "id": 7518,
+   "name": "Giant crab meat",
+   "category": "food"
+  },
+  {
+   "id": 4517,
+   "name": "Giant frog legs",
+   "category": "food"
+  },
+  {
+   "id": 32312,
+   "name": "Giant krill",
+   "category": "food"
+  },
+  {
+   "id": 19653,
+   "name": "Golovanova fruit top",
+   "category": "food"
+  },
+  {
+   "id": 32320,
+   "name": "Haddock",
+   "category": "food"
+  },
+  {
+   "id": 32336,
+   "name": "Halibut",
+   "category": "food"
+  },
+  {
+   "id": 247,
+   "name": "Jangerberries",
+   "category": "food"
+  },
+  {
+   "id": 1971,
+   "name": "Kebab",
+   "category": "food"
+  },
+  {
+   "id": 2162,
+   "name": "King worm",
+   "category": "food"
+  },
+  {
+   "id": 3365,
+   "name": "Lean snail",
+   "category": "food"
+  },
+  {
+   "id": 3371,
+   "name": "Lean snail meat",
+   "category": "food"
+  },
+  {
+   "id": 2102,
+   "name": "Lemon",
+   "category": "food"
+  },
+  {
+   "id": 2120,
+   "name": "Lime",
+   "category": "food"
+  },
+  {
+   "id": 9052,
+   "name": "Locust meat",
+   "category": "food"
+  },
+  {
+   "id": 355,
+   "name": "Mackerel",
+   "category": "food"
+  },
+  {
+   "id": 32352,
+   "name": "Marlin",
+   "category": "food"
+  },
+  {
+   "id": 2327,
+   "name": "Meat pie",
+   "category": "food"
+  },
+  {
+   "id": 2293,
+   "name": "Meat pizza",
+   "category": "food"
+  },
+  {
+   "id": 7170,
+   "name": "Mud pie",
+   "category": "food"
+  },
+  {
+   "id": 7066,
+   "name": "Mushroom & onion",
+   "category": "food"
+  },
+  {
+   "id": 21690,
+   "name": "Mushroom pie",
+   "category": "food"
+  },
+  {
+   "id": 7058,
+   "name": "Mushroom potato",
+   "category": "food"
+  },
+  {
+   "id": 31903,
+   "name": "Mystery fruit",
+   "category": "food"
+  },
+  {
+   "id": 1957,
+   "name": "Onion",
+   "category": "food"
+  },
+  {
+   "id": 2108,
+   "name": "Orange",
+   "category": "food"
+  },
+  {
+   "id": 1953,
+   "name": "Pastry dough",
+   "category": "food"
+  },
+  {
+   "id": 6883,
+   "name": "Peach",
+   "category": "food"
+  },
+  {
+   "id": 2313,
+   "name": "Pie dish",
+   "category": "food"
+  },
+  {
+   "id": 7162,
+   "name": "Pie recipe book",
+   "category": "food"
+  },
+  {
+   "id": 2315,
+   "name": "Pie shell",
+   "category": "food"
+  },
+  {
+   "id": 351,
+   "name": "Pike",
+   "category": "food"
+  },
+  {
+   "id": 2114,
+   "name": "Pineapple",
+   "category": "food"
+  },
+  {
+   "id": 2289,
+   "name": "Plain pizza",
+   "category": "food"
+  },
+  {
+   "id": 1942,
+   "name": "Potato",
+   "category": "food"
+  },
+  {
+   "id": 6703,
+   "name": "Potato with butter",
+   "category": "food"
+  },
+  {
+   "id": 6705,
+   "name": "Potato with cheese",
+   "category": "food"
+  },
+  {
+   "id": 26247,
+   "name": "Pumpkin pie",
+   "category": "food"
+  },
+  {
+   "id": 10136,
+   "name": "Rainbow fish",
+   "category": "food"
+  },
+  {
+   "id": 7196,
+   "name": "Raw admiral pie",
+   "category": "food"
+  },
+  {
+   "id": 29101,
+   "name": "Raw barb-tailed kebbit",
+   "category": "food"
+  },
+  {
+   "id": 2136,
+   "name": "Raw bear meat",
+   "category": "food"
+  },
+  {
+   "id": 9986,
+   "name": "Raw beast meat",
+   "category": "food"
+  },
+  {
+   "id": 2132,
+   "name": "Raw beef",
+   "category": "food"
+  },
+  {
+   "id": 9978,
+   "name": "Raw bird meat",
+   "category": "food"
+  },
+  {
+   "id": 32341,
+   "name": "Raw bluefin",
+   "category": "food"
+  },
+  {
+   "id": 25833,
+   "name": "Raw boar meat",
+   "category": "food"
+  },
+  {
+   "id": 2138,
+   "name": "Raw chicken",
+   "category": "food"
+  },
+  {
+   "id": 2876,
+   "name": "Raw chompy",
+   "category": "food"
+  },
+  {
+   "id": 29107,
+   "name": "Raw dashing kebbit",
+   "category": "food"
+  },
+  {
+   "id": 7186,
+   "name": "Raw fish pie",
+   "category": "food"
+  },
+  {
+   "id": 7176,
+   "name": "Raw garden pie",
+   "category": "food"
+  },
+  {
+   "id": 32309,
+   "name": "Raw giant krill",
+   "category": "food"
+  },
+  {
+   "id": 29119,
+   "name": "Raw graahk",
+   "category": "food"
+  },
+  {
+   "id": 32317,
+   "name": "Raw haddock",
+   "category": "food"
+  },
+  {
+   "id": 32333,
+   "name": "Raw halibut",
+   "category": "food"
+  },
+  {
+   "id": 33821,
+   "name": "Raw impaler meat",
+   "category": "food"
+  },
+  {
+   "id": 7566,
+   "name": "Raw jubbly",
+   "category": "food"
+  },
+  {
+   "id": 29125,
+   "name": "Raw kyatt",
+   "category": "food"
+  },
+  {
+   "id": 29122,
+   "name": "Raw larupia",
+   "category": "food"
+  },
+  {
+   "id": 377,
+   "name": "Raw lobster",
+   "category": "food"
+  },
+  {
+   "id": 32349,
+   "name": "Raw marlin",
+   "category": "food"
+  },
+  {
+   "id": 29113,
+   "name": "Raw moonlight antelope",
+   "category": "food"
+  },
+  {
+   "id": 29076,
+   "name": "Raw moss lizard",
+   "category": "food"
+  },
+  {
+   "id": 7168,
+   "name": "Raw mud pie",
+   "category": "food"
+  },
+  {
+   "id": 24782,
+   "name": "Raw mystery meat",
+   "category": "food"
+  },
+  {
+   "id": 2337,
+   "name": "Raw oomlie",
+   "category": "food"
+  },
+  {
+   "id": 29110,
+   "name": "Raw pyre fox",
+   "category": "food"
+  },
+  {
+   "id": 3226,
+   "name": "Raw rabbit",
+   "category": "food"
+  },
+  {
+   "id": 2134,
+   "name": "Raw rat meat",
+   "category": "food"
+  },
+  {
+   "id": 383,
+   "name": "Raw shark",
+   "category": "food"
+  },
+  {
+   "id": 7216,
+   "name": "Raw summer pie",
+   "category": "food"
+  },
+  {
+   "id": 29116,
+   "name": "Raw sunlight antelope",
+   "category": "food"
+  },
+  {
+   "id": 371,
+   "name": "Raw swordfish",
+   "category": "food"
+  },
+  {
+   "id": 33106,
+   "name": "Raw t-bone steak",
+   "category": "food"
+  },
+  {
+   "id": 1859,
+   "name": "Raw ugthanki meat",
+   "category": "food"
+  },
+  {
+   "id": 29104,
+   "name": "Raw wild kebbit",
+   "category": "food"
+  },
+  {
+   "id": 7206,
+   "name": "Raw wild pie",
+   "category": "food"
+  },
+  {
+   "id": 10816,
+   "name": "Raw yak meat",
+   "category": "food"
+  },
+  {
+   "id": 32325,
+   "name": "Raw yellowfin",
+   "category": "food"
+  },
+  {
+   "id": 1951,
+   "name": "Redberries",
+   "category": "food"
+  },
+  {
+   "id": 2325,
+   "name": "Redberry pie",
+   "category": "food"
+  },
+  {
+   "id": 9988,
+   "name": "Roast beast meat",
+   "category": "food"
+  },
+  {
+   "id": 9980,
+   "name": "Roast bird meat",
+   "category": "food"
+  },
+  {
+   "id": 7223,
+   "name": "Roast rabbit",
+   "category": "food"
+  },
+  {
+   "id": 6963,
+   "name": "Roll",
+   "category": "food"
+  },
+  {
+   "id": 329,
+   "name": "Salmon",
+   "category": "food"
+  },
+  {
+   "id": 325,
+   "name": "Sardine",
+   "category": "food"
+  },
+  {
+   "id": 13413,
+   "name": "Servery cooked meat",
+   "category": "food"
+  },
+  {
+   "id": 13399,
+   "name": "Servery raw meat",
+   "category": "food"
+  },
+  {
+   "id": 315,
+   "name": "Shrimps",
+   "category": "food"
+  },
+  {
+   "id": 9992,
+   "name": "Skewered beast",
+   "category": "food"
+  },
+  {
+   "id": 7479,
+   "name": "Spicy stew",
+   "category": "food"
+  },
+  {
+   "id": 6295,
+   "name": "Spider on shaft",
+   "category": "food"
+  },
+  {
+   "id": 6293,
+   "name": "Spider on stick",
+   "category": "food"
+  },
+  {
+   "id": 1969,
+   "name": "Spinach roll",
+   "category": "food"
+  },
+  {
+   "id": 6965,
+   "name": "Square sandwich",
+   "category": "food"
+  },
+  {
+   "id": 2003,
+   "name": "Stew",
+   "category": "food"
+  },
+  {
+   "id": 464,
+   "name": "Strange fruit",
+   "category": "food"
+  },
+  {
+   "id": 5504,
+   "name": "Strawberry",
+   "category": "food"
+  },
+  {
+   "id": 21626,
+   "name": "Sulliuscep cap",
+   "category": "food"
+  },
+  {
+   "id": 4608,
+   "name": "Super kebab",
+   "category": "food"
+  },
+  {
+   "id": 2187,
+   "name": "Tangled toad's legs",
+   "category": "food"
+  },
+  {
+   "id": 3363,
+   "name": "Thin snail",
+   "category": "food"
+  },
+  {
+   "id": 3369,
+   "name": "Thin snail meat",
+   "category": "food"
+  },
+  {
+   "id": 1982,
+   "name": "Tomato",
+   "category": "food"
+  },
+  {
+   "id": 6962,
+   "name": "Triangle sandwich",
+   "category": "food"
+  },
+  {
+   "id": 333,
+   "name": "Trout",
+   "category": "food"
+  },
+  {
+   "id": 361,
+   "name": "Tuna",
+   "category": "food"
+  },
+  {
+   "id": 7068,
+   "name": "Tuna and corn",
+   "category": "food"
+  },
+  {
+   "id": 1883,
+   "name": "Ugthanki kebab",
+   "category": "food"
+  },
+  {
+   "id": 1861,
+   "name": "Ugthanki meat",
+   "category": "food"
+  },
+  {
+   "id": 2317,
+   "name": "Uncooked apple pie",
+   "category": "food"
+  },
+  {
+   "id": 2321,
+   "name": "Uncooked berry pie",
+   "category": "food"
+  },
+  {
+   "id": 19656,
+   "name": "Uncooked botanical pie",
+   "category": "food"
+  },
+  {
+   "id": 22789,
+   "name": "Uncooked dragonfruit pie",
+   "category": "food"
+  },
+  {
+   "id": 2319,
+   "name": "Uncooked meat pie",
+   "category": "food"
+  },
+  {
+   "id": 21684,
+   "name": "Uncooked mushroom pie",
+   "category": "food"
+  },
+  {
+   "id": 2195,
+   "name": "Veg ball",
+   "category": "food"
+  },
+  {
+   "id": 5982,
+   "name": "Watermelon",
+   "category": "food"
+  },
+  {
+   "id": 6469,
+   "name": "White tree fruit",
+   "category": "food"
+  },
+  {
+   "id": 2191,
+   "name": "Worm hole",
+   "category": "food"
+  },
+  {
+   "id": 2341,
+   "name": "Wrapped oomlie",
+   "category": "food"
+  },
+  {
+   "id": 32328,
+   "name": "Yellowfin",
+   "category": "food"
+  },
+  {
+   "id": 561,
+   "name": "Nature rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 563,
+   "name": "Law rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 560,
+   "name": "Death rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 565,
+   "name": "Blood rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 566,
+   "name": "Soul rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 564,
+   "name": "Cosmic rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 9075,
+   "name": "Astral rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 562,
+   "name": "Chaos rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 21880,
+   "name": "Wrath rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 554,
+   "name": "Fire rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 555,
+   "name": "Water rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 556,
+   "name": "Air rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 557,
+   "name": "Earth rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 559,
+   "name": "Body rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 558,
+   "name": "Mind rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 4699,
+   "name": "Lava rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 4698,
+   "name": "Mud rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 4694,
+   "name": "Steam rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 4697,
+   "name": "Smoke rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 4696,
+   "name": "Dust rune",
+   "category": "runes",
+   "default": true
+  },
+  {
+   "id": 28929,
+   "name": "Sunfire rune",
+   "category": "runes"
+  },
+  {
+   "id": 4695,
+   "name": "Mist rune",
+   "category": "runes"
+  },
+  {
+   "id": 892,
+   "name": "Rune arrow",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 21326,
+   "name": "Amethyst arrow",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 11212,
+   "name": "Dragon arrow",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 890,
+   "name": "Adamant arrow",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 11875,
+   "name": "Broad bolts",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 21316,
+   "name": "Amethyst broad bolts",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 9144,
+   "name": "Runite bolts",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 21905,
+   "name": "Dragon bolts",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 9243,
+   "name": "Diamond bolts (e)",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 21944,
+   "name": "Ruby dragon bolts (e)",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 21946,
+   "name": "Diamond dragon bolts (e)",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 810,
+   "name": "Adamant dart",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 811,
+   "name": "Rune dart",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 11230,
+   "name": "Dragon dart",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 2,
+   "name": "Steel cannonball",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 21728,
+   "name": "Granite cannonball",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 888,
+   "name": "Mithril arrow",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 9143,
+   "name": "Adamant bolts",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 830,
+   "name": "Rune javelin",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 19484,
+   "name": "Dragon javelin",
+   "category": "ammo",
+   "default": true
+  },
+  {
+   "id": 882,
+   "name": "Bronze arrow",
+   "category": "ammo"
+  },
+  {
+   "id": 884,
+   "name": "Iron arrow",
+   "category": "ammo"
+  },
+  {
+   "id": 886,
+   "name": "Steel arrow",
+   "category": "ammo"
+  },
+  {
+   "id": 877,
+   "name": "Bronze bolts",
+   "category": "ammo"
+  },
+  {
+   "id": 9140,
+   "name": "Iron bolts",
+   "category": "ammo"
+  },
+  {
+   "id": 9141,
+   "name": "Steel bolts",
+   "category": "ammo"
+  },
+  {
+   "id": 9142,
+   "name": "Mithril bolts",
+   "category": "ammo"
+  },
+  {
+   "id": 9236,
+   "name": "Opal bolts (e)",
+   "category": "ammo"
+  },
+  {
+   "id": 9238,
+   "name": "Pearl bolts (e)",
+   "category": "ammo"
+  },
+  {
+   "id": 9239,
+   "name": "Topaz bolts (e)",
+   "category": "ammo"
+  },
+  {
+   "id": 9240,
+   "name": "Sapphire bolts (e)",
+   "category": "ammo"
+  },
+  {
+   "id": 9241,
+   "name": "Emerald bolts (e)",
+   "category": "ammo"
+  },
+  {
+   "id": 9242,
+   "name": "Ruby bolts (e)",
+   "category": "ammo"
+  },
+  {
+   "id": 9244,
+   "name": "Dragonstone bolts (e)",
+   "category": "ammo"
+  },
+  {
+   "id": 9245,
+   "name": "Onyx bolts (e)",
+   "category": "ammo"
+  },
+  {
+   "id": 21948,
+   "name": "Dragonstone dragon bolts (e)",
+   "category": "ammo"
+  },
+  {
+   "id": 21950,
+   "name": "Onyx dragon bolts (e)",
+   "category": "ammo"
+  },
+  {
+   "id": 806,
+   "name": "Bronze dart",
+   "category": "ammo"
+  },
+  {
+   "id": 807,
+   "name": "Iron dart",
+   "category": "ammo"
+  },
+  {
+   "id": 808,
+   "name": "Steel dart",
+   "category": "ammo"
+  },
+  {
+   "id": 809,
+   "name": "Mithril dart",
+   "category": "ammo"
+  },
+  {
+   "id": 825,
+   "name": "Bronze javelin",
+   "category": "ammo"
+  },
+  {
+   "id": 826,
+   "name": "Iron javelin",
+   "category": "ammo"
+  },
+  {
+   "id": 827,
+   "name": "Steel javelin",
+   "category": "ammo"
+  },
+  {
+   "id": 828,
+   "name": "Mithril javelin",
+   "category": "ammo"
+  },
+  {
+   "id": 829,
+   "name": "Adamant javelin",
+   "category": "ammo"
+  },
+  {
+   "id": 864,
+   "name": "Bronze knife",
+   "category": "ammo"
+  },
+  {
+   "id": 863,
+   "name": "Iron knife",
+   "category": "ammo"
+  },
+  {
+   "id": 865,
+   "name": "Steel knife",
+   "category": "ammo"
+  },
+  {
+   "id": 866,
+   "name": "Mithril knife",
+   "category": "ammo"
+  },
+  {
+   "id": 867,
+   "name": "Adamant knife",
+   "category": "ammo"
+  },
+  {
+   "id": 868,
+   "name": "Rune knife",
+   "category": "ammo"
+  },
+  {
+   "id": 22804,
+   "name": "Dragon knife",
+   "category": "ammo"
+  },
+  {
+   "id": 31906,
+   "name": "Bronze cannonball",
+   "category": "ammo"
+  },
+  {
+   "id": 31908,
+   "name": "Iron cannonball",
+   "category": "ammo"
+  },
+  {
+   "id": 31910,
+   "name": "Mithril cannonball",
+   "category": "ammo"
+  },
+  {
+   "id": 31912,
+   "name": "Adamant cannonball",
+   "category": "ammo"
+  },
+  {
+   "id": 4740,
+   "name": "Bolt rack",
+   "category": "ammo"
+  },
+  {
+   "id": 536,
+   "name": "Dragon bones",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 22124,
+   "name": "Superior dragon bones",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 22780,
+   "name": "Wyrm bones",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 6729,
+   "name": "Dagannoth bones",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 11943,
+   "name": "Lava dragon bones",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 4834,
+   "name": "Ourg bones",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 534,
+   "name": "Babydragon bones",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 532,
+   "name": "Big bones",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 526,
+   "name": "Bones",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 6812,
+   "name": "Wyvern bones",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 13510,
+   "name": "Ensouled dragon head",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 26996,
+   "name": "Ensouled hellhound head",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 13501,
+   "name": "Ensouled demon head",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 13507,
+   "name": "Ensouled abyssal head",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 13495,
+   "name": "Ensouled bloodveld head",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 25766,
+   "name": "Fiendish ashes",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 25769,
+   "name": "Vile ashes",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 25772,
+   "name": "Malicious ashes",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 25775,
+   "name": "Abyssal ashes",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 25778,
+   "name": "Infernal ashes",
+   "category": "prayer",
+   "default": true
+  },
+  {
+   "id": 530,
+   "name": "Bat bones",
+   "category": "prayer"
+  },
+  {
+   "id": 3182,
+   "name": "Bearded gorilla bones",
+   "category": "prayer"
+  },
+  {
+   "id": 25422,
+   "name": "Bleached bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29352,
+   "name": "Blessed babydragon bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29354,
+   "name": "Blessed babywyrm bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29346,
+   "name": "Blessed bat bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29348,
+   "name": "Blessed big bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29344,
+   "name": "Blessed bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29356,
+   "name": "Blessed dragon bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29366,
+   "name": "Blessed drake bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29370,
+   "name": "Blessed fayrg bones",
+   "category": "prayer"
+  },
+  {
+   "id": 31266,
+   "name": "Blessed frost dragon bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29368,
+   "name": "Blessed hydra bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29358,
+   "name": "Blessed lava dragon bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29374,
+   "name": "Blessed ourg bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29372,
+   "name": "Blessed raurg bones",
+   "category": "prayer"
+  },
+  {
+   "id": 31264,
+   "name": "Blessed strykewyrm bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29362,
+   "name": "Blessed superior dragon bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29364,
+   "name": "Blessed wyrm bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29360,
+   "name": "Blessed wyvern bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29350,
+   "name": "Blessed zogre bones",
+   "category": "prayer"
+  },
+  {
+   "id": 33115,
+   "name": "Bull bones",
+   "category": "prayer"
+  },
+  {
+   "id": 528,
+   "name": "Burnt bones",
+   "category": "prayer"
+  },
+  {
+   "id": 3127,
+   "name": "Burnt jogre bones",
+   "category": "prayer"
+  },
+  {
+   "id": 11338,
+   "name": "Chewed bones",
+   "category": "prayer"
+  },
+  {
+   "id": 22783,
+   "name": "Drake bones",
+   "category": "prayer"
+  },
+  {
+   "id": 4830,
+   "name": "Fayrg bones",
+   "category": "prayer"
+  },
+  {
+   "id": 31729,
+   "name": "Frost dragon bones",
+   "category": "prayer"
+  },
+  {
+   "id": 30898,
+   "name": "Giant bones",
+   "category": "prayer"
+  },
+  {
+   "id": 3181,
+   "name": "Gorilla bones",
+   "category": "prayer"
+  },
+  {
+   "id": 2391,
+   "name": "Ground bat bones",
+   "category": "prayer"
+  },
+  {
+   "id": 22786,
+   "name": "Hydra bones",
+   "category": "prayer"
+  },
+  {
+   "id": 3125,
+   "name": "Jogre bones",
+   "category": "prayer"
+  },
+  {
+   "id": 3186,
+   "name": "Large zombie monkey bones",
+   "category": "prayer"
+  },
+  {
+   "id": 11337,
+   "name": "Mangled bones",
+   "category": "prayer"
+  },
+  {
+   "id": 3180,
+   "name": "Medium ninja monkey bones",
+   "category": "prayer"
+  },
+  {
+   "id": 3183,
+   "name": "Monkey bones",
+   "category": "prayer"
+  },
+  {
+   "id": 3128,
+   "name": "Pasty jogre bones",
+   "category": "prayer"
+  },
+  {
+   "id": 4832,
+   "name": "Raurg bones",
+   "category": "prayer"
+  },
+  {
+   "id": 3123,
+   "name": "Shaikahan bones",
+   "category": "prayer"
+  },
+  {
+   "id": 3179,
+   "name": "Small ninja monkey bones",
+   "category": "prayer"
+  },
+  {
+   "id": 3185,
+   "name": "Small zombie monkey bones",
+   "category": "prayer"
+  },
+  {
+   "id": 31726,
+   "name": "Strykewyrm bones",
+   "category": "prayer"
+  },
+  {
+   "id": 29378,
+   "name": "Sun-kissed bones",
+   "category": "prayer"
+  },
+  {
+   "id": 2859,
+   "name": "Wolf bones",
+   "category": "prayer"
+  },
+  {
+   "id": 28899,
+   "name": "Wyrmling bones",
+   "category": "prayer"
+  },
+  {
+   "id": 4812,
+   "name": "Zogre bones",
+   "category": "prayer"
+  },
+  {
+   "id": 13504,
+   "name": "Ensouled aviansie head",
+   "category": "prayer"
+  },
+  {
+   "id": 13462,
+   "name": "Ensouled bear head",
+   "category": "prayer"
+  },
+  {
+   "id": 13471,
+   "name": "Ensouled chaos druid head",
+   "category": "prayer"
+  },
+  {
+   "id": 13492,
+   "name": "Ensouled dagannoth head",
+   "category": "prayer"
+  },
+  {
+   "id": 13468,
+   "name": "Ensouled dog head",
+   "category": "prayer"
+  },
+  {
+   "id": 13480,
+   "name": "Ensouled elf head",
+   "category": "prayer"
+  },
+  {
+   "id": 13474,
+   "name": "Ensouled giant head",
+   "category": "prayer"
+  },
+  {
+   "id": 13447,
+   "name": "Ensouled goblin head",
+   "category": "prayer"
+  },
+  {
+   "id": 13486,
+   "name": "Ensouled horror head",
+   "category": "prayer"
+  },
+  {
+   "id": 13453,
+   "name": "Ensouled imp head",
+   "category": "prayer"
+  },
+  {
+   "id": 13489,
+   "name": "Ensouled kalphite head",
+   "category": "prayer"
+  },
+  {
+   "id": 13456,
+   "name": "Ensouled minotaur head",
+   "category": "prayer"
+  },
+  {
+   "id": 13450,
+   "name": "Ensouled monkey head",
+   "category": "prayer"
+  },
+  {
+   "id": 13477,
+   "name": "Ensouled ogre head",
+   "category": "prayer"
+  },
+  {
+   "id": 13459,
+   "name": "Ensouled scorpion head",
+   "category": "prayer"
+  },
+  {
+   "id": 13483,
+   "name": "Ensouled troll head",
+   "category": "prayer"
+  },
+  {
+   "id": 13498,
+   "name": "Ensouled tzhaar head",
+   "category": "prayer"
+  },
+  {
+   "id": 13465,
+   "name": "Ensouled unicorn head",
+   "category": "prayer"
+  },
+  {
+   "id": 27223,
+   "name": "Eldritch ashes",
+   "category": "prayer"
+  },
+  {
+   "id": 7936,
+   "name": "Pure essence",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 314,
+   "name": "Feather",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 1777,
+   "name": "Bow string",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 207,
+   "name": "Grimy ranarr weed",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 3051,
+   "name": "Grimy snapdragon",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 219,
+   "name": "Grimy torstol",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 231,
+   "name": "Snape grass",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 223,
+   "name": "Red spiders' eggs",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 245,
+   "name": "Wine of zamorak",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 453,
+   "name": "Coal",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 2363,
+   "name": "Runite bar",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 1513,
+   "name": "Magic logs",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 1515,
+   "name": "Yew logs",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 8782,
+   "name": "Mahogany plank",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 8778,
+   "name": "Oak plank",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 1617,
+   "name": "Uncut diamond",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 1775,
+   "name": "Molten glass",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 1761,
+   "name": "Soft clay",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 12640,
+   "name": "Amylase crystal",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 5295,
+   "name": "Ranarr seed",
+   "category": "materials",
+   "default": true
+  },
+  {
+   "id": 24704,
+   "name": "Daeyalt essence",
+   "category": "materials"
+  },
+  {
+   "id": 26390,
+   "name": "Blood essence",
+   "category": "materials"
+  },
+  {
+   "id": 10087,
+   "name": "Stripy feather",
+   "category": "materials"
+  },
+  {
+   "id": 2349,
+   "name": "Bronze bar",
+   "category": "materials"
+  },
+  {
+   "id": 2351,
+   "name": "Iron bar",
+   "category": "materials"
+  },
+  {
+   "id": 2353,
+   "name": "Steel bar",
+   "category": "materials"
+  },
+  {
+   "id": 2355,
+   "name": "Silver bar",
+   "category": "materials"
+  },
+  {
+   "id": 2357,
+   "name": "Gold bar",
+   "category": "materials"
+  },
+  {
+   "id": 2359,
+   "name": "Mithril bar",
+   "category": "materials"
+  },
+  {
+   "id": 2361,
+   "name": "Adamantite bar",
+   "category": "materials"
+  },
+  {
+   "id": 1753,
+   "name": "Green dragonhide",
+   "category": "materials"
+  },
+  {
+   "id": 1751,
+   "name": "Blue dragonhide",
+   "category": "materials"
+  },
+  {
+   "id": 1749,
+   "name": "Red dragonhide",
+   "category": "materials"
+  },
+  {
+   "id": 1747,
+   "name": "Black dragonhide",
+   "category": "materials"
+  },
+  {
+   "id": 1745,
+   "name": "Green dragon leather",
+   "category": "materials"
+  },
+  {
+   "id": 2505,
+   "name": "Blue dragon leather",
+   "category": "materials"
+  },
+  {
+   "id": 2507,
+   "name": "Red dragon leather",
+   "category": "materials"
+  },
+  {
+   "id": 2509,
+   "name": "Black dragon leather",
+   "category": "materials"
+  },
+  {
+   "id": 10820,
+   "name": "Cured yak-hide",
+   "category": "materials"
+  },
+  {
+   "id": 3138,
+   "name": "Potato cactus",
+   "category": "materials"
+  },
+  {
+   "id": 225,
+   "name": "Limpwurt root",
+   "category": "materials"
+  },
+  {
+   "id": 221,
+   "name": "Eye of newt",
+   "category": "materials"
+  },
+  {
+   "id": 235,
+   "name": "Unicorn horn dust",
+   "category": "materials"
+  },
+  {
+   "id": 239,
+   "name": "White berries",
+   "category": "materials"
+  },
+  {
+   "id": 6693,
+   "name": "Crushed nest",
+   "category": "materials"
+  },
+  {
+   "id": 6016,
+   "name": "Cactus spine",
+   "category": "materials"
+  },
+  {
+   "id": 241,
+   "name": "Dragon scale dust",
+   "category": "materials"
+  },
+  {
+   "id": 1975,
+   "name": "Chocolate dust",
+   "category": "materials"
+  },
+  {
+   "id": 1526,
+   "name": "Snake weed",
+   "category": "materials"
+  },
+  {
+   "id": 592,
+   "name": "Ashes",
+   "category": "materials"
+  },
+  {
+   "id": 10937,
+   "name": "Nail beast nails",
+   "category": "materials"
+  },
+  {
+   "id": 2970,
+   "name": "Mort myre fungus",
+   "category": "materials"
+  },
+  {
+   "id": 2152,
+   "name": "Toad's legs",
+   "category": "materials"
+  },
+  {
+   "id": 10111,
+   "name": "Kebbit teeth dust",
+   "category": "materials"
+  },
+  {
+   "id": 21975,
+   "name": "Crushed superior dragon bones",
+   "category": "materials"
+  },
+  {
+   "id": 21622,
+   "name": "Volcanic ash",
+   "category": "materials"
+  },
+  {
+   "id": 1783,
+   "name": "Bucket of sand",
+   "category": "materials"
+  },
+  {
+   "id": 6034,
+   "name": "Supercompost",
+   "category": "materials"
+  },
+  {
+   "id": 21483,
+   "name": "Ultracompost",
+   "category": "materials"
+  },
+  {
+   "id": 1737,
+   "name": "Wool",
+   "category": "materials"
+  },
+  {
+   "id": 1779,
+   "name": "Flax",
+   "category": "materials"
+  },
+  {
+   "id": 1759,
+   "name": "Ball of wool",
+   "category": "materials"
+  },
+  {
+   "id": 227,
+   "name": "Vial of water",
+   "category": "materials"
+  },
+  {
+   "id": 22405,
+   "name": "Vial of blood",
+   "category": "materials"
+  },
+  {
+   "id": 5291,
+   "name": "Guam seed",
+   "category": "materials"
+  },
+  {
+   "id": 5292,
+   "name": "Marrentill seed",
+   "category": "materials"
+  },
+  {
+   "id": 5293,
+   "name": "Tarromin seed",
+   "category": "materials"
+  },
+  {
+   "id": 5294,
+   "name": "Harralander seed",
+   "category": "materials"
+  },
+  {
+   "id": 5296,
+   "name": "Toadflax seed",
+   "category": "materials"
+  },
+  {
+   "id": 5297,
+   "name": "Irit seed",
+   "category": "materials"
+  },
+  {
+   "id": 5298,
+   "name": "Avantoe seed",
+   "category": "materials"
+  },
+  {
+   "id": 5299,
+   "name": "Kwuarm seed",
+   "category": "materials"
+  },
+  {
+   "id": 5300,
+   "name": "Snapdragon seed",
+   "category": "materials"
+  },
+  {
+   "id": 5301,
+   "name": "Cadantine seed",
+   "category": "materials"
+  },
+  {
+   "id": 5302,
+   "name": "Lantadyme seed",
+   "category": "materials"
+  },
+  {
+   "id": 5303,
+   "name": "Dwarf weed seed",
+   "category": "materials"
+  },
+  {
+   "id": 5304,
+   "name": "Torstol seed",
+   "category": "materials"
+  },
+  {
+   "id": 5312,
+   "name": "Acorn",
+   "category": "materials"
+  },
+  {
+   "id": 5313,
+   "name": "Willow seed",
+   "category": "materials"
+  },
+  {
+   "id": 5314,
+   "name": "Maple seed",
+   "category": "materials"
+  },
+  {
+   "id": 5315,
+   "name": "Yew seed",
+   "category": "materials"
+  },
+  {
+   "id": 5316,
+   "name": "Magic seed",
+   "category": "materials"
+  },
+  {
+   "id": 22871,
+   "name": "Redwood tree seed",
+   "category": "materials"
+  },
+  {
+   "id": 5283,
+   "name": "Apple tree seed",
+   "category": "materials"
+  },
+  {
+   "id": 5284,
+   "name": "Banana tree seed",
+   "category": "materials"
+  },
+  {
+   "id": 5285,
+   "name": "Orange tree seed",
+   "category": "materials"
+  },
+  {
+   "id": 5286,
+   "name": "Curry tree seed",
+   "category": "materials"
+  },
+  {
+   "id": 5287,
+   "name": "Pineapple seed",
+   "category": "materials"
+  },
+  {
+   "id": 5288,
+   "name": "Papaya tree seed",
+   "category": "materials"
+  },
+  {
+   "id": 5289,
+   "name": "Palm tree seed",
+   "category": "materials"
+  },
+  {
+   "id": 22877,
+   "name": "Dragonfruit tree seed",
+   "category": "materials"
+  },
+  {
+   "id": 5290,
+   "name": "Calquat tree seed",
+   "category": "materials"
+  },
+  {
+   "id": 22869,
+   "name": "Celastrus seed",
+   "category": "materials"
+  },
+  {
+   "id": 21486,
+   "name": "Teak seed",
+   "category": "materials"
+  },
+  {
+   "id": 21488,
+   "name": "Mahogany seed",
+   "category": "materials"
+  },
+  {
+   "id": 5318,
+   "name": "Potato seed",
+   "category": "materials"
+  },
+  {
+   "id": 5319,
+   "name": "Onion seed",
+   "category": "materials"
+  },
+  {
+   "id": 5324,
+   "name": "Cabbage seed",
+   "category": "materials"
+  },
+  {
+   "id": 5320,
+   "name": "Sweetcorn seed",
+   "category": "materials"
+  },
+  {
+   "id": 5321,
+   "name": "Watermelon seed",
+   "category": "materials"
+  },
+  {
+   "id": 22879,
+   "name": "Snape grass seed",
+   "category": "materials"
+  },
+  {
+   "id": 5323,
+   "name": "Strawberry seed",
+   "category": "materials"
+  },
+  {
+   "id": 5096,
+   "name": "Marigold seed",
+   "category": "materials"
+  },
+  {
+   "id": 5100,
+   "name": "Limpwurt seed",
+   "category": "materials"
+  },
+  {
+   "id": 5306,
+   "name": "Jute seed",
+   "category": "materials"
+  },
+  {
+   "id": 5307,
+   "name": "Hammerstone seed",
+   "category": "materials"
+  },
+  {
+   "id": 5305,
+   "name": "Barley seed",
+   "category": "materials"
+  },
+  {
+   "id": 13657,
+   "name": "Grape seed",
+   "category": "materials"
+  },
+  {
+   "id": 21490,
+   "name": "Seaweed spore",
+   "category": "materials"
+  },
+  {
+   "id": 5282,
+   "name": "Mushroom spore",
+   "category": "materials"
+  },
+  {
+   "id": 5281,
+   "name": "Belladonna seed",
+   "category": "materials"
+  },
+  {
+   "id": 22875,
+   "name": "Hespori seed",
+   "category": "materials"
+  },
+  {
+   "id": 1527,
+   "name": "Grimy ardrigal",
+   "category": "materials"
+  },
+  {
+   "id": 211,
+   "name": "Grimy avantoe",
+   "category": "materials"
+  },
+  {
+   "id": 20907,
+   "name": "Grimy buchu leaf",
+   "category": "materials"
+  },
+  {
+   "id": 215,
+   "name": "Grimy cadantine",
+   "category": "materials"
+  },
+  {
+   "id": 217,
+   "name": "Grimy dwarf weed",
+   "category": "materials"
+  },
+  {
+   "id": 20904,
+   "name": "Grimy golpar",
+   "category": "materials"
+  },
+  {
+   "id": 199,
+   "name": "Grimy guam leaf",
+   "category": "materials"
+  },
+  {
+   "id": 205,
+   "name": "Grimy harralander",
+   "category": "materials"
+  },
+  {
+   "id": 30094,
+   "name": "Grimy huasca",
+   "category": "materials"
+  },
+  {
+   "id": 209,
+   "name": "Grimy irit leaf",
+   "category": "materials"
+  },
+  {
+   "id": 213,
+   "name": "Grimy kwuarm",
+   "category": "materials"
+  },
+  {
+   "id": 2485,
+   "name": "Grimy lantadyme",
+   "category": "materials"
+  },
+  {
+   "id": 201,
+   "name": "Grimy marrentill",
+   "category": "materials"
+  },
+  {
+   "id": 20901,
+   "name": "Grimy noxifer",
+   "category": "materials"
+  },
+  {
+   "id": 1533,
+   "name": "Grimy rogue's purse",
+   "category": "materials"
+  },
+  {
+   "id": 1529,
+   "name": "Grimy sito foil",
+   "category": "materials"
+  },
+  {
+   "id": 1525,
+   "name": "Grimy snake weed",
+   "category": "materials"
+  },
+  {
+   "id": 203,
+   "name": "Grimy tarromin",
+   "category": "materials"
+  },
+  {
+   "id": 3049,
+   "name": "Grimy toadflax",
+   "category": "materials"
+  },
+  {
+   "id": 1531,
+   "name": "Grimy volencia moss",
+   "category": "materials"
+  },
+  {
+   "id": 1631,
+   "name": "Uncut dragonstone",
+   "category": "materials"
+  },
+  {
+   "id": 1621,
+   "name": "Uncut emerald",
+   "category": "materials"
+  },
+  {
+   "id": 1627,
+   "name": "Uncut jade",
+   "category": "materials"
+  },
+  {
+   "id": 6571,
+   "name": "Uncut onyx",
+   "category": "materials"
+  },
+  {
+   "id": 1625,
+   "name": "Uncut opal",
+   "category": "materials"
+  },
+  {
+   "id": 1629,
+   "name": "Uncut red topaz",
+   "category": "materials"
+  },
+  {
+   "id": 1619,
+   "name": "Uncut ruby",
+   "category": "materials"
+  },
+  {
+   "id": 1623,
+   "name": "Uncut sapphire",
+   "category": "materials"
+  },
+  {
+   "id": 19496,
+   "name": "Uncut zenyte",
+   "category": "materials"
+  },
+  {
+   "id": 31432,
+   "name": "Camphor plank",
+   "category": "materials"
+  },
+  {
+   "id": 31435,
+   "name": "Ironwood plank",
+   "category": "materials"
+  },
+  {
+   "id": 21036,
+   "name": "Mallignum root plank",
+   "category": "materials"
+  },
+  {
+   "id": 960,
+   "name": "Plank",
+   "category": "materials"
+  },
+  {
+   "id": 31438,
+   "name": "Rosewood plank",
+   "category": "materials"
+  },
+  {
+   "id": 8780,
+   "name": "Teak plank",
+   "category": "materials"
+  },
+  {
+   "id": 24939,
+   "name": "Waxwood plank",
+   "category": "materials"
+  },
+  {
+   "id": 2862,
+   "name": "Achey tree logs",
+   "category": "materials"
+  },
+  {
+   "id": 10810,
+   "name": "Arctic pine logs",
+   "category": "materials"
+  },
+  {
+   "id": 10808,
+   "name": "Arctic pyre logs",
+   "category": "materials"
+  },
+  {
+   "id": 24691,
+   "name": "Blisterwood logs",
+   "category": "materials"
+  },
+  {
+   "id": 7406,
+   "name": "Blue logs",
+   "category": "materials"
+  },
+  {
+   "id": 32904,
+   "name": "Camphor logs",
+   "category": "materials"
+  },
+  {
+   "id": 31383,
+   "name": "Camphor pyre logs",
+   "category": "materials"
+  },
+  {
+   "id": 7405,
+   "name": "Green logs",
+   "category": "materials"
+  },
+  {
+   "id": 32907,
+   "name": "Ironwood logs",
+   "category": "materials"
+  },
+  {
+   "id": 31386,
+   "name": "Ironwood pyre logs",
+   "category": "materials"
+  },
+  {
+   "id": 32902,
+   "name": "Jatoba logs",
+   "category": "materials"
+  },
+  {
+   "id": 13355,
+   "name": "Juniper logs",
+   "category": "materials"
+  },
+  {
+   "id": 1511,
+   "name": "Logs",
+   "category": "materials"
+  },
+  {
+   "id": 3448,
+   "name": "Magic pyre logs",
+   "category": "materials"
+  },
+  {
+   "id": 6332,
+   "name": "Mahogany logs",
+   "category": "materials"
+  },
+  {
+   "id": 6213,
+   "name": "Mahogany pyre logs",
+   "category": "materials"
+  },
+  {
+   "id": 1517,
+   "name": "Maple logs",
+   "category": "materials"
+  },
+  {
+   "id": 3444,
+   "name": "Maple pyre logs",
+   "category": "materials"
+  },
+  {
+   "id": 1521,
+   "name": "Oak logs",
+   "category": "materials"
+  },
+  {
+   "id": 3440,
+   "name": "Oak pyre logs",
+   "category": "materials"
+  },
+  {
+   "id": 10329,
+   "name": "Purple logs",
+   "category": "materials"
+  },
+  {
+   "id": 3438,
+   "name": "Pyre logs",
+   "category": "materials"
+  },
+  {
+   "id": 7404,
+   "name": "Red logs",
+   "category": "materials"
+  },
+  {
+   "id": 19669,
+   "name": "Redwood logs",
+   "category": "materials"
+  },
+  {
+   "id": 19672,
+   "name": "Redwood pyre logs",
+   "category": "materials"
+  },
+  {
+   "id": 32910,
+   "name": "Rosewood logs",
+   "category": "materials"
+  },
+  {
+   "id": 31389,
+   "name": "Rosewood pyre logs",
+   "category": "materials"
+  },
+  {
+   "id": 33607,
+   "name": "Sap-treated logs",
+   "category": "materials"
+  },
+  {
+   "id": 33609,
+   "name": "Sap-treated magic logs",
+   "category": "materials"
+  },
+  {
+   "id": 33613,
+   "name": "Sap-treated maple logs",
+   "category": "materials"
+  },
+  {
+   "id": 33617,
+   "name": "Sap-treated oak logs",
+   "category": "materials"
+  },
+  {
+   "id": 33619,
+   "name": "Sap-treated redwood logs",
+   "category": "materials"
+  },
+  {
+   "id": 33615,
+   "name": "Sap-treated willow logs",
+   "category": "materials"
+  },
+  {
+   "id": 33611,
+   "name": "Sap-treated yew logs",
+   "category": "materials"
+  },
+  {
+   "id": 8934,
+   "name": "Scrapey tree logs",
+   "category": "materials"
+  },
+  {
+   "id": 6333,
+   "name": "Teak logs",
+   "category": "materials"
+  },
+  {
+   "id": 6211,
+   "name": "Teak pyre logs",
+   "category": "materials"
+  },
+  {
+   "id": 10328,
+   "name": "White logs",
+   "category": "materials"
+  },
+  {
+   "id": 1519,
+   "name": "Willow logs",
+   "category": "materials"
+  },
+  {
+   "id": 3442,
+   "name": "Willow pyre logs",
+   "category": "materials"
+  },
+  {
+   "id": 11035,
+   "name": "Windswept logs",
+   "category": "materials"
+  },
+  {
+   "id": 3446,
+   "name": "Yew pyre logs",
+   "category": "materials"
+  }
+ ]
+}

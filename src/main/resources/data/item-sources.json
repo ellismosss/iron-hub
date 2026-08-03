@@ -2115,26 +2115,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Dargaud's Bow and Arrows",
-"price": "47 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 47
-}
-},
-{
-"how": "shop",
-"from": "Hickton's Archery Emporium",
-"price": "47 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 47
-}
-},
-{
 "how": "make",
 "skill": "Fletching 62",
 "detail": "6 x Flighted ogre arrow + 6 x Adamantite nails",
@@ -2181,16 +2161,6 @@
 31912
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Port Roberts Cannonball Stall",
-"price": "90 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 90
-}
-},
 {
 "how": "make",
 "skill": "Smithing 75",
@@ -2242,12 +2212,12 @@
 },
 {
 "how": "shop",
-"from": "Armour store",
-"price": "2,880 gp",
+"from": "Wayne's Chains! - Chainmail specialist",
+"price": "3,120 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
-"qty": 2880
+"qty": 3120
 }
 },
 {
@@ -2330,26 +2300,6 @@
 9183
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Crossbow Shop (Dwarven Mine)",
-"price": "883 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 883
-}
-},
-{
-"how": "shop",
-"from": "Crossbow Shop (White Wolf Mountain)",
-"price": "883 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 883
-}
-},
 {
 "how": "make",
 "skill": "Fletching 61",
@@ -3333,7 +3283,7 @@
 "sources": [
 {
 "how": "shop",
-"from": "Armour store",
+"from": "Elder Blunn's Spear and Shield Stall",
 "price": "3,264 gp",
 "currency": {
 "itemId": 995,
@@ -3343,7 +3293,7 @@
 },
 {
 "how": "shop",
-"from": "Elder Blunn's Spear and Shield Stall",
+"from": "Shields of Mistrock",
 "price": "3,264 gp",
 "currency": {
 "itemId": 995,
@@ -3911,7 +3861,7 @@
 },
 {
 "how": "shop",
-"from": "Armour store",
+"from": "Fortis Blacksmith",
 "price": "3,840 gp",
 "currency": {
 "itemId": 995,
@@ -3995,7 +3945,7 @@
 },
 {
 "how": "shop",
-"from": "Armour store",
+"from": "Fortis Blacksmith",
 "price": "3,840 gp",
 "currency": {
 "itemId": 995,
@@ -4284,10 +4234,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Tamayu's Spear Stall"
-},
-{
 "how": "make",
 "detail": "Adamant spear + Karambwan paste (poison)",
 "materials": [
@@ -4389,7 +4335,7 @@
 "sources": [
 {
 "how": "shop",
-"from": "Armour store",
+"from": "Cam Torum Blacksmith",
 "price": "2,304 gp",
 "currency": {
 "itemId": 995,
@@ -4399,7 +4345,7 @@
 },
 {
 "how": "shop",
-"from": "Cam Torum Blacksmith",
+"from": "Shields of Mistrock",
 "price": "2,304 gp",
 "currency": {
 "itemId": 995,
@@ -4642,22 +4588,12 @@
 "sources": [
 {
 "how": "shop",
-"from": "Crossbow Shop (Dwarven Mine)",
-"price": "800 gp",
+"from": "Crossbow Shop (Keldagrim)",
+"price": "960 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
-"qty": 800
-}
-},
-{
-"how": "shop",
-"from": "Crossbow Shop (White Wolf Mountain)",
-"price": "800 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 800
+"qty": 960
 }
 },
 {
@@ -4708,23 +4644,12 @@
 "sources": [
 {
 "how": "shop",
-"from": "Deepfin Point Ore Exchange",
-"price": "280 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 280
-}
+"from": "TzHaar-Hur-Rin's Ore and Gem Store",
+"price": "60 Tokkuls"
 },
 {
 "how": "shop",
-"from": "Hendor's Awesome Ores",
-"price": "280 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 280
-}
+"from": "Petrified Pete's Ore Shop"
 },
 {
 "how": "drop",
@@ -4770,16 +4695,6 @@
 7198
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Pie Shop",
-"price": "170 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 170
-}
-},
 {
 "how": "make",
 "skill": "Cooking 70",
@@ -6505,16 +6420,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Davon's Amulet Store",
-"price": "1,147 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 1147
-}
-},
-{
 "how": "make",
 "skill": "Magic 27",
 "detail": "Emerald amulet + Cosmic rune + 3 x Air rune",
@@ -6724,16 +6629,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Davon's Amulet Store",
-"price": "810 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 810
-}
-},
-{
 "how": "make",
 "skill": "Magic 7",
 "detail": "Sapphire amulet + Cosmic rune + Water rune",
@@ -6830,16 +6725,6 @@
 20585
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Davon's Amulet Store",
-"price": "3,172 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 3172
-}
-},
 {
 "how": "make",
 "skill": "Magic 57",
@@ -6948,16 +6833,6 @@
 1725
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Davon's Amulet Store",
-"price": "1,822 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 1822
-}
-},
 {
 "how": "make",
 "skill": "Magic 49",
@@ -11541,26 +11416,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Alice's Farming shop",
-"price": "3 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 3
-}
-},
-{
-"how": "shop",
-"from": "Richard's Farming shop",
-"price": "3 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 3
-}
-},
-{
 "how": "drop",
 "from": "Asgarnian Hops (plant)",
 "rate": "Always"
@@ -14665,26 +14520,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Agelus' Farm Shop",
-"price": "2 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2
-}
-},
-{
-"how": "shop",
-"from": "Alice's Farming shop",
-"price": "2 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2
-}
-},
-{
 "how": "drop",
 "from": "Barley (plant)",
 "rate": "Always"
@@ -15203,7 +15038,7 @@
 },
 {
 "how": "shop",
-"from": "Fishing Guild Shop",
+"from": "Prifddinas Foodstuffs",
 "price": "28 gp",
 "currency": {
 "itemId": 995,
@@ -15840,16 +15675,6 @@
 7742
 ],
 "sources": [
-{
-"how": "shop",
-"from": "The Deeper Lode",
-"price": "1 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 1
-}
-},
 {
 "how": "make",
 "skill": "Crafting 1",
@@ -16883,26 +16708,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Dargaud's Bow and Arrows",
-"price": "17 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 17
-}
-},
-{
-"how": "shop",
-"from": "Hickton's Archery Emporium",
-"price": "17 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 17
-}
-},
-{
 "how": "make",
 "skill": "Fletching 38",
 "detail": "6 x Flighted ogre arrow + 6 x Black nails",
@@ -17415,17 +17220,17 @@
 "sources": [
 {
 "how": "shop",
-"from": "Blades by Urbi",
-"price": "60 gp",
+"from": "Briget's Weapons",
+"price": "144 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
-"qty": 60
+"qty": 144
 }
 },
 {
 "how": "shop",
-"from": "Briget's Weapons",
+"from": "Varrock Swordshop",
 "price": "144 gp",
 "currency": {
 "itemId": 995,
@@ -18189,16 +17994,6 @@
 1195
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Quality Armour Shop",
-"price": "897 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 897
-}
-},
 {
 "how": "drop",
 "from": "Ice giant",
@@ -22478,16 +22273,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Fancy Clothes Store",
-"price": "6 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 6
-}
-},
-{
 "how": "drop",
 "from": "Cerulean twitch",
 "rate": "Always"
@@ -23154,11 +22939,6 @@
 2064
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Gabooty's Tai Bwo Wannai Drinky Store",
-"price": "18 Trading sticks"
-},
 {
 "how": "make",
 "skill": "Cooking 37",
@@ -26843,26 +26623,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Dargaud's Bow and Arrows",
-"price": "2 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2
-}
-},
-{
-"how": "shop",
-"from": "Hickton's Archery Emporium",
-"price": "2 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2
-}
-},
-{
 "how": "make",
 "skill": "Fletching 7",
 "detail": "6 x Flighted ogre arrow + 6 x Bronze nails",
@@ -27071,26 +26831,6 @@
 9174
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Crossbow Shop (Dwarven Mine)",
-"price": "36 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 36
-}
-},
-{
-"how": "shop",
-"from": "Crossbow Shop (White Wolf Mountain)",
-"price": "36 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 36
-}
-},
 {
 "how": "make",
 "skill": "Fletching 9",
@@ -29587,16 +29327,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "The Spice Is Right",
-"price": "7 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 7
-}
-},
-{
 "how": "make",
 "detail": "Bucket",
 "materials": [
@@ -29737,16 +29467,6 @@
 4550
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Miltog's Lamps",
-"price": "168 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 168
-}
-},
 {
 "how": "make",
 "detail": "Bullseye lantern (empty) + Swamp tar",
@@ -31584,12 +31304,12 @@
 "sources": [
 {
 "how": "shop",
-"from": "Agelus' Farm Shop",
+"from": "Cobado's Groceries",
 "price": "free"
 },
 {
 "how": "shop",
-"from": "Alice's Farming shop",
+"from": "Faustus' Fruit and Veg",
 "price": "free"
 },
 {
@@ -34281,11 +34001,6 @@
 "sources": [
 {
 "how": "shop",
-"from": "Fancy Clothes Store",
-"price": "free"
-},
-{
-"how": "shop",
 "from": "Shayzien Styles",
 "price": "1 gp",
 "currency": {
@@ -34619,11 +34334,6 @@
 2074
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Gabooty's Tai Bwo Wannai Drinky Store",
-"price": "18 Trading sticks"
-},
 {
 "how": "make",
 "skill": "Cooking 33",
@@ -36962,26 +36672,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Cobado's Groceries",
-"price": "60 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 60
-}
-},
-{
-"how": "shop",
-"from": "Faustus' Fruit and Veg",
-"price": "60 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 60
-}
-},
-{
 "how": "drop",
 "from": "Palm tree",
 "rate": "Always"
@@ -37054,7 +36744,7 @@
 "sources": [
 {
 "how": "shop",
-"from": "Fishing Guild Shop",
+"from": "Keepa Kettilon's store",
 "price": "7 gp",
 "currency": {
 "itemId": 995,
@@ -37064,7 +36754,7 @@
 },
 {
 "how": "shop",
-"from": "Keepa Kettilon's store",
+"from": "Prifddinas Foodstuffs",
 "price": "7 gp",
 "currency": {
 "itemId": 995,
@@ -37350,26 +37040,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Pellem's Fur Store",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
-}
-},
-{
-"how": "shop",
-"from": "Prifddinas' Seamstress",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
-}
-},
-{
 "how": "drop",
 "from": "Common kebbit",
 "rate": "Always"
@@ -37412,26 +37082,6 @@
 4827
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Dargaud's Bow and Arrows",
-"price": "90 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 90
-}
-},
-{
-"how": "shop",
-"from": "Hickton's Archery Emporium",
-"price": "90 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 90
-}
-},
 {
 "how": "make",
 "skill": "Fletching 30",
@@ -42541,16 +42191,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "The Spice Is Right",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
-}
-},
-{
 "how": "drop",
 "from": "Curry tree",
 "rate": "Always"
@@ -44301,26 +43941,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Pellem's Fur Store",
-"price": "6 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 6
-}
-},
-{
-"how": "shop",
-"from": "Prifddinas' Seamstress",
-"price": "6 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 6
-}
-},
-{
 "how": "drop",
 "from": "Desert devil",
 "rate": "Always"
@@ -44705,26 +44325,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Elder Coco's Crafting Stall",
-"price": "1,300 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 1300
-}
-},
-{
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "1,400 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 1400
-}
-},
-{
 "how": "make",
 "skill": "Crafting 43",
 "detail": "Uncut diamond",
@@ -44753,26 +44353,6 @@
 1700
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "2,467 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2467
-}
-},
-{
-"how": "shop",
-"from": "Grum's Gold Exchange",
-"price": "2,467 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2467
-}
-},
 {
 "how": "make",
 "skill": "Crafting 1",
@@ -44821,6 +44401,16 @@
 "how": "drop",
 "from": "Great white shark",
 "rate": "12/100"
+},
+{
+"how": "open",
+"from": "Magpie impling jar",
+"rate": "1/21"
+},
+{
+"how": "other",
+"from": "Magpie impling",
+"rate": "1/21"
 }
 ]
 },
@@ -44959,16 +44549,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "2,677 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2677
-}
-},
-{
 "how": "make",
 "skill": "Crafting 58",
 "detail": "Diamond + Gold bar",
@@ -45075,26 +44655,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "2,572 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2572
-}
-},
-{
-"how": "shop",
-"from": "Grum's Gold Exchange",
-"price": "2,572 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2572
-}
-},
-{
 "how": "make",
 "skill": "Crafting 56",
 "detail": "Gold bar + Diamond",
@@ -45120,6 +44680,11 @@
 "how": "open",
 "from": "Tarnished necklace",
 "rate": "4/10"
+},
+{
+"how": "other",
+"from": "Wardrobe (stealing valuables)",
+"rate": "1/6,250"
 }
 ],
 "reqs": [
@@ -45134,26 +44699,6 @@
 1643
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "2,467 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2467
-}
-},
-{
-"how": "shop",
-"from": "Grum's Gold Exchange",
-"price": "2,467 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2467
-}
-},
 {
 "how": "make",
 "skill": "Crafting 43",
@@ -45180,6 +44725,11 @@
 "how": "drop",
 "from": "Albatross",
 "rate": "5/50"
+},
+{
+"how": "other",
+"from": "Wardrobe (stealing valuables)",
+"rate": "1/6,250"
 }
 ]
 },
@@ -47501,7 +47051,7 @@
 },
 {
 "how": "shop",
-"from": "Blades by Urbi",
+"from": "Iorwerth's Arms",
 "price": "7,500 gp",
 "currency": {
 "itemId": 995,
@@ -50858,11 +50408,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Gabooty's Tai Bwo Wannai Drinky Store",
-"price": "18 Trading sticks"
-},
-{
 "how": "make",
 "skill": "Cooking 32",
 "detail": "Mixed dragon (garnished)",
@@ -54018,26 +53563,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "892 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 892
-}
-},
-{
-"how": "shop",
-"from": "Grum's Gold Exchange",
-"price": "892 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 892
-}
-},
-{
 "how": "make",
 "skill": "Crafting 1",
 "detail": "Emerald amulet (u) + Ball of wool",
@@ -54085,6 +53610,11 @@
 "how": "reward",
 "from": "Small chest",
 "rate": "4/150"
+},
+{
+"how": "other",
+"from": "Wardrobe (stealing valuables)",
+"rate": "10/6,250"
 }
 ],
 "reqs": [
@@ -54220,16 +53750,6 @@
 11076
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "1,067 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 1067
-}
-},
 {
 "how": "make",
 "skill": "Crafting 30",
@@ -54374,26 +53894,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "997 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 997
-}
-},
-{
-"how": "shop",
-"from": "Grum's Gold Exchange",
-"price": "997 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 997
-}
-},
-{
 "how": "make",
 "skill": "Crafting 29",
 "detail": "Emerald + Gold bar",
@@ -54429,26 +53929,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "892 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 892
-}
-},
-{
-"how": "shop",
-"from": "Grum's Gold Exchange",
-"price": "892 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 892
-}
-},
-{
 "how": "make",
 "skill": "Crafting 27",
 "detail": "Emerald + Gold bar",
@@ -54474,6 +53954,11 @@
 "how": "drop",
 "from": "Tiger shark",
 "rate": "24/100"
+},
+{
+"how": "other",
+"from": "Wardrobe (stealing valuables)",
+"rate": "2/6,250"
 }
 ]
 },
@@ -57863,26 +57348,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Pellem's Fur Store",
-"price": "5 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 5
-}
-},
-{
-"how": "shop",
-"from": "Prifddinas' Seamstress",
-"price": "5 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 5
-}
-},
-{
 "how": "drop",
 "from": "Feldip weasel",
 "rate": "Always"
@@ -60318,26 +59783,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Pellem's Fur Store",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
-}
-},
-{
-"how": "shop",
-"from": "Fortis Fur Stall",
-"price": "9 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 9
-}
-},
-{
 "how": "drop",
 "from": "Pyre fox",
 "rate": "Always"
@@ -61489,11 +60934,6 @@
 2084
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Gabooty's Tai Bwo Wannai Drinky Store",
-"price": "18 Trading sticks"
-},
 {
 "how": "make",
 "skill": "Cooking 6",
@@ -64283,16 +63723,6 @@
 }
 },
 {
-"how": "shop",
-"from": "Grum's Gold Exchange",
-"price": "245 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 245
-}
-},
-{
 "how": "make",
 "skill": "Crafting 1",
 "detail": "Gold amulet (u) + Ball of wool",
@@ -64340,6 +63770,11 @@
 "how": "reward",
 "from": "Small chest",
 "rate": "5/150"
+},
+{
+"how": "other",
+"from": "Wardrobe (stealing valuables)",
+"rate": "10/6,250"
 }
 ],
 "reqs": [
@@ -64389,16 +63824,6 @@
 }
 },
 {
-"how": "shop",
-"from": "Drogo's Mining Emporium",
-"price": "210 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 210
-}
-},
-{
 "how": "make",
 "skill": "Smithing 40",
 "detail": "Gold ore",
@@ -64435,6 +63860,11 @@
 {
 "how": "reward",
 "from": "Goblin Diplomacy (quest)"
+},
+{
+"how": "drop",
+"from": "Greater demon",
+"rate": "3/41"
 }
 ]
 },
@@ -64730,16 +64160,6 @@
 }
 },
 {
-"how": "shop",
-"from": "Grum's Gold Exchange",
-"price": "315 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 315
-}
-},
-{
 "how": "make",
 "skill": "Crafting 6",
 "detail": "Gold bar",
@@ -64760,6 +64180,11 @@
 "how": "drop",
 "from": "Mummy (Ancient Pyramid)",
 "rate": "20/513"
+},
+{
+"how": "other",
+"from": "Wardrobe (stealing valuables)",
+"rate": "10/6,250"
 }
 ],
 "reqs": [
@@ -64830,16 +64255,6 @@
 }
 },
 {
-"how": "shop",
-"from": "Grum's Gold Exchange",
-"price": "245 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 245
-}
-},
-{
 "how": "make",
 "skill": "Crafting 5",
 "detail": "Gold bar",
@@ -64860,6 +64275,11 @@
 "how": "drop",
 "from": "Mummy (Ancient Pyramid)",
 "rate": "40/513"
+},
+{
+"how": "other",
+"from": "Wardrobe (stealing valuables)",
+"rate": "10/6,250"
 }
 ]
 },
@@ -65447,19 +64867,6 @@
 ]
 },
 {
-"name": "Gout tuber",
-"ids": [
-6311
-],
-"sources": [
-{
-"how": "shop",
-"from": "Gabooty's Tai Bwo Wannai Cooperative",
-"price": "120 Trading sticks"
-}
-]
-},
-{
 "name": "Goutweed",
 "ids": [
 3261,
@@ -65479,26 +64886,6 @@
 10099
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Pellem's Fur Store",
-"price": "48 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 48
-}
-},
-{
-"how": "shop",
-"from": "Prifddinas' Seamstress",
-"price": "48 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 48
-}
-},
 {
 "how": "drop",
 "from": "Horned graahk",
@@ -65901,16 +65288,6 @@
 27225
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Agelus' Farm Shop",
-"price": "1 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 1
-}
-},
 {
 "how": "drop",
 "from": "Wheat",
@@ -70835,26 +70212,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Alice's Farming shop",
-"price": "2 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2
-}
-},
-{
-"how": "shop",
-"from": "Richard's Farming shop",
-"price": "2 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2
-}
-},
-{
 "how": "drop",
 "from": "Hammerstone Hops (plant)",
 "rate": "Always"
@@ -72393,16 +71750,6 @@
 4682
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Davon's Amulet Store",
-"price": "270 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 270
-}
-},
 {
 "how": "make",
 "skill": "Prayer 31",
@@ -75559,16 +74906,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Drogo's Mining Emporium",
-"price": "19 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 19
-}
-},
-{
 "how": "make",
 "skill": "Smithing 15",
 "detail": "Iron ore",
@@ -75816,26 +75153,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Dargaud's Bow and Arrows",
-"price": "5 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 5
-}
-},
-{
-"how": "shop",
-"from": "Hickton's Archery Emporium",
-"price": "5 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 5
-}
-},
-{
 "how": "make",
 "skill": "Fletching 18",
 "detail": "6 x Flighted ogre arrow + 6 x Iron nails",
@@ -76025,26 +75342,6 @@
 9177
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Crossbow Shop (Dwarven Mine)",
-"price": "78 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 78
-}
-},
-{
-"how": "shop",
-"from": "Crossbow Shop (White Wolf Mountain)",
-"price": "78 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 78
-}
-},
 {
 "how": "make",
 "skill": "Fletching 39",
@@ -76885,7 +76182,7 @@
 "sources": [
 {
 "how": "shop",
-"from": "Cassie's Shield Shop",
+"from": "Elder Blunn's Spear and Shield Stall",
 "price": "142 gp",
 "currency": {
 "itemId": 995,
@@ -76895,7 +76192,7 @@
 },
 {
 "how": "shop",
-"from": "Elder Blunn's Spear and Shield Stall",
+"from": "Shields of Mistrock",
 "price": "142 gp",
 "currency": {
 "itemId": 995,
@@ -78507,11 +77804,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Gabooty's Tai Bwo Wannai Cooperative",
-"price": "90 Trading sticks"
-},
-{
 "how": "make",
 "skill": "Crafting 13",
 "detail": "Uncut jade",
@@ -79829,26 +79121,6 @@
 5931
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Alice's Farming shop",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
-}
-},
-{
-"how": "shop",
-"from": "Richard's Farming shop",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
-}
-},
 {
 "how": "drop",
 "from": "Jute (plant)",
@@ -81423,26 +80695,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Alice's Farming shop",
-"price": "7 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 7
-}
-},
-{
-"how": "shop",
-"from": "Richard's Farming shop",
-"price": "7 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 7
-}
-},
-{
 "how": "drop",
 "from": "Krandorian Hops (plant)",
 "rate": "Always"
@@ -81455,26 +80707,6 @@
 5310
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Amelia's Seed Shop",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
-}
-},
-{
-"how": "shop",
-"from": "Draynor Seed Market",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
-}
-},
 {
 "how": "open",
 "from": "Seed pack",
@@ -81643,26 +80875,6 @@
 10103
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Pellem's Fur Store",
-"price": "64 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 64
-}
-},
-{
-"how": "shop",
-"from": "Prifddinas' Seamstress",
-"price": "64 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 64
-}
-},
 {
 "how": "drop",
 "from": "Sabre-toothed kyatt",
@@ -82617,26 +81829,6 @@
 10095
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Pellem's Fur Store",
-"price": "32 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 32
-}
-},
-{
-"how": "shop",
-"from": "Prifddinas' Seamstress",
-"price": "32 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 32
-}
-},
 {
 "how": "drop",
 "from": "Spined larupia",
@@ -84350,16 +83542,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Miltog's Lamps",
-"price": "140 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 140
-}
-},
-{
 "how": "make",
 "skill": "Crafting 87",
 "detail": "Empty light orb + Cave goblin wire",
@@ -84917,7 +84099,7 @@
 },
 {
 "how": "shop",
-"from": "Fishing Guild Shop",
+"from": "Keepa Kettilon's store",
 "price": "49 gp",
 "currency": {
 "itemId": 995,
@@ -86515,16 +85697,6 @@
 355
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Fishing Guild Shop",
-"price": "10 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 10
-}
-},
 {
 "how": "make",
 "skill": "Cooking 10",
@@ -88153,22 +87325,12 @@
 "sources": [
 {
 "how": "shop",
-"from": "Crossbow Shop (Dwarven Mine)",
-"price": "66 gp",
+"from": "Crossbow Shop (Keldagrim)",
+"price": "79 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
-"qty": 66
-}
-},
-{
-"how": "shop",
-"from": "Crossbow Shop (White Wolf Mountain)",
-"price": "66 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 66
+"qty": 79
 }
 },
 {
@@ -92135,26 +91297,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Dargaud's Bow and Arrows",
-"price": "25 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 25
-}
-},
-{
-"how": "shop",
-"from": "Hickton's Archery Emporium",
-"price": "25 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 25
-}
-},
-{
 "how": "make",
 "skill": "Fletching 49",
 "detail": "6 x Flighted ogre arrow + 6 x Mithril nails",
@@ -92245,7 +91387,7 @@
 },
 {
 "how": "shop",
-"from": "Armour store",
+"from": "Horvik's Armour Shop",
 "price": "1,170 gp",
 "currency": {
 "itemId": 995,
@@ -92347,26 +91489,6 @@
 9181
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Crossbow Shop (Dwarven Mine)",
-"price": "391 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 391
-}
-},
-{
-"how": "shop",
-"from": "Crossbow Shop (White Wolf Mountain)",
-"price": "391 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 391
-}
-},
 {
 "how": "make",
 "skill": "Fletching 54",
@@ -93212,7 +92334,7 @@
 "sources": [
 {
 "how": "shop",
-"from": "Armour store",
+"from": "Elder Blunn's Spear and Shield Stall",
 "price": "1,326 gp",
 "currency": {
 "itemId": 995,
@@ -93222,7 +92344,7 @@
 },
 {
 "how": "shop",
-"from": "Elder Blunn's Spear and Shield Stall",
+"from": "Shields of Mistrock",
 "price": "1,326 gp",
 "currency": {
 "itemId": 995,
@@ -93733,7 +92855,7 @@
 },
 {
 "how": "shop",
-"from": "Armour store",
+"from": "Fortis Blacksmith",
 "price": "3,120 gp",
 "currency": {
 "itemId": 995,
@@ -93821,7 +92943,7 @@
 },
 {
 "how": "shop",
-"from": "Armour store",
+"from": "Fortis Blacksmith",
 "price": "1,560 gp",
 "currency": {
 "itemId": 995,
@@ -93909,7 +93031,7 @@
 },
 {
 "how": "shop",
-"from": "Armour store",
+"from": "Fortis Blacksmith",
 "price": "1,560 gp",
 "currency": {
 "itemId": 995,
@@ -94227,7 +93349,7 @@
 "sources": [
 {
 "how": "shop",
-"from": "Armour store",
+"from": "Cam Torum Blacksmith",
 "price": "936 gp",
 "currency": {
 "itemId": 995,
@@ -94237,7 +93359,7 @@
 },
 {
 "how": "shop",
-"from": "Cam Torum Blacksmith",
+"from": "Shields of Mistrock",
 "price": "936 gp",
 "currency": {
 "itemId": 995,
@@ -95607,16 +94729,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Arnold's Eclectic Supplies",
-"price": "126 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 126
-}
-},
-{
 "how": "make",
 "skill": "Cooking 62",
 "detail": "Raw monkfish",
@@ -95828,16 +94940,6 @@
 "itemId": 995,
 "name": "Coins",
 "qty": 1
-}
-},
-{
-"how": "shop",
-"from": "Pellem's Fur Store",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
 }
 },
 {
@@ -96786,16 +95888,6 @@
 7170
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Pie Shop",
-"price": "29 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 29
-}
-},
 {
 "how": "make",
 "skill": "Cooking 29",
@@ -99642,26 +98734,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Deepfin Point Ore Exchange",
-"price": "280 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 280
-}
-},
-{
-"how": "shop",
-"from": "Port Roberts Ore Stall",
-"price": "280 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 280
-}
-},
-{
 "how": "drop",
 "from": "Nickel rocks",
 "rate": "Always"
@@ -101596,16 +100668,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "~ Uglug's stuffsies ~",
-"price": "60 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 60
-}
-},
-{
 "how": "drop",
 "from": "Zogre",
 "rate": "Always"
@@ -101669,41 +100731,12 @@
 ]
 },
 {
-"name": "Oil lamp",
-"ids": [
-4522,
-4524
-],
-"sources": [
-{
-"how": "shop",
-"from": "Miltog's Lamps",
-"price": "11 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 11
-}
-}
-]
-},
-{
 "name": "Oil lantern",
 "ids": [
 4537,
 4539
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Miltog's Lamps",
-"price": "50 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 50
-}
-},
 {
 "how": "make",
 "skill": "Crafting 26",
@@ -102574,11 +101607,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Gabooty's Tai Bwo Wannai Cooperative",
-"price": "60 Trading sticks"
-},
-{
 "how": "make",
 "skill": "Crafting 1",
 "detail": "Uncut opal",
@@ -103224,16 +102252,6 @@
 10091
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Fancy Clothes Store",
-"price": "6 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 6
-}
-},
 {
 "how": "drop",
 "from": "Copper longtail",
@@ -104003,26 +103021,6 @@
 5972
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Cobado's Groceries",
-"price": "44 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 44
-}
-},
-{
-"how": "shop",
-"from": "Faustus' Fruit and Veg",
-"price": "44 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 44
-}
-},
 {
 "how": "drop",
 "from": "Papaya tree",
@@ -105576,16 +104574,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "The Spice Is Right",
-"price": "5 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 5
-}
-},
-{
 "how": "make",
 "detail": "Bucket of saltwater",
 "materials": [
@@ -105760,11 +104748,6 @@
 2048
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Gabooty's Tai Bwo Wannai Drinky Store",
-"price": "18 Trading sticks"
-},
 {
 "how": "make",
 "skill": "Cooking 8",
@@ -107098,26 +106081,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Pellem's Fur Store",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
-}
-},
-{
-"how": "shop",
-"from": "Prifddinas' Seamstress",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
-}
-},
-{
 "how": "drop",
 "from": "Polar kebbit",
 "rate": "Always"
@@ -107422,12 +106385,12 @@
 "sources": [
 {
 "how": "shop",
-"from": "Agelus' Farm Shop",
+"from": "Cobado's Groceries",
 "price": "free"
 },
 {
 "how": "shop",
-"from": "Alice's Farming shop",
+"from": "Faustus' Fruit and Veg",
 "price": "free"
 },
 {
@@ -108906,16 +107869,6 @@
 33776
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Jiminua's Jungle Store",
-"price": "2 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2
-}
-},
 {
 "how": "shop",
 "from": "Dom Onion's Reward Shop"
@@ -111001,22 +109954,22 @@
 "sources": [
 {
 "how": "shop",
-"from": "Lovecraft's Tackle",
-"price": "7 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 7
-}
-},
-{
-"how": "shop",
 "from": "Two Feet Charley's Fish Shop",
 "price": "9 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
 "qty": 9
+}
+},
+{
+"how": "shop",
+"from": "Henderson's Catch of the Day",
+"price": "10 gp",
+"currency": {
+"itemId": 995,
+"name": "Coins",
+"qty": 10
 }
 },
 {
@@ -111393,16 +110346,6 @@
 2876
 ],
 "sources": [
-{
-"how": "shop",
-"from": "~ Uglug's stuffsies ~",
-"price": "51 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 51
-}
-},
 {
 "how": "drop",
 "from": "Chompy bird",
@@ -111850,22 +110793,22 @@
 "sources": [
 {
 "how": "shop",
-"from": "Lovecraft's Tackle",
-"price": "5 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 5
-}
-},
-{
-"how": "shop",
 "from": "Two Feet Charley's Fish Shop",
 "price": "6 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
 "qty": 6
+}
+},
+{
+"how": "shop",
+"from": "Cobado's Groceries",
+"price": "7 gp",
+"currency": {
+"itemId": 995,
+"name": "Coins",
+"qty": 7
 }
 },
 {
@@ -112088,22 +111031,22 @@
 "sources": [
 {
 "how": "shop",
-"from": "Lovecraft's Tackle",
-"price": "35 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 35
-}
-},
-{
-"how": "shop",
 "from": "Two Feet Charley's Fish Shop",
 "price": "42 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
 "qty": 42
+}
+},
+{
+"how": "shop",
+"from": "Elder Krill's Fishing Stall",
+"price": "49 gp",
+"currency": {
+"itemId": 995,
+"name": "Coins",
+"qty": 49
 }
 },
 {
@@ -112368,17 +111311,17 @@
 "sources": [
 {
 "how": "shop",
-"from": "Lovecraft's Tackle",
-"price": "10 gp",
+"from": "Elder Krill's Fishing Stall",
+"price": "14 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
-"qty": 10
+"qty": 14
 }
 },
 {
 "how": "shop",
-"from": "Elder Krill's Fishing Stall",
+"from": "Port Roberts Fish Stall",
 "price": "14 gp",
 "currency": {
 "itemId": 995,
@@ -112623,17 +111566,17 @@
 "sources": [
 {
 "how": "shop",
-"from": "Lovecraft's Tackle",
-"price": "15 gp",
+"from": "Elder Krill's Fishing Stall",
+"price": "21 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
-"qty": 15
+"qty": 21
 }
 },
 {
 "how": "shop",
-"from": "Elder Krill's Fishing Stall",
+"from": "Flosi's Fishmongers",
 "price": "21 gp",
 "currency": {
 "itemId": 995,
@@ -112726,7 +111669,7 @@
 "sources": [
 {
 "how": "shop",
-"from": "Etceteria Fish",
+"from": "Rufus' Meat Emporium",
 "price": "119 gp",
 "currency": {
 "itemId": 995,
@@ -112736,12 +111679,12 @@
 },
 {
 "how": "shop",
-"from": "Flosi's Fishmongers",
-"price": "119 gp",
+"from": "Frankie's Fishing Emporium",
+"price": "161 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
-"qty": 119
+"qty": 161
 }
 },
 {
@@ -112761,17 +111704,17 @@
 "sources": [
 {
 "how": "shop",
-"from": "Lovecraft's Tackle",
-"price": "2 gp",
+"from": "Henderson's Catch of the Day",
+"price": "3 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
-"qty": 2
+"qty": 3
 }
 },
 {
 "how": "shop",
-"from": "Etceteria Fish",
+"from": "Port Roberts Fish Stall",
 "price": "3 gp",
 "currency": {
 "itemId": 995,
@@ -112934,22 +111877,22 @@
 "sources": [
 {
 "how": "shop",
-"from": "Lovecraft's Tackle",
-"price": "40 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 40
-}
-},
-{
-"how": "shop",
 "from": "Two Feet Charley's Fish Shop",
 "price": "48 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
 "qty": 48
+}
+},
+{
+"how": "shop",
+"from": "Cobado's Groceries",
+"price": "56 gp",
+"currency": {
+"itemId": 995,
+"name": "Coins",
+"qty": 56
 }
 },
 {
@@ -113006,17 +111949,17 @@
 "sources": [
 {
 "how": "shop",
-"from": "Lovecraft's Tackle",
-"price": "5 gp",
+"from": "Elder Krill's Fishing Stall",
+"price": "7 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
-"qty": 5
+"qty": 7
 }
 },
 {
 "how": "shop",
-"from": "Elder Krill's Fishing Stall",
+"from": "Port Roberts Fish Stall",
 "price": "7 gp",
 "currency": {
 "itemId": 995,
@@ -113051,22 +111994,22 @@
 "sources": [
 {
 "how": "shop",
-"from": "Lovecraft's Tackle",
-"price": "20 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 20
-}
-},
-{
-"how": "shop",
 "from": "Two Feet Charley's Fish Shop",
 "price": "24 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
 "qty": 24
+}
+},
+{
+"how": "shop",
+"from": "Cobado's Groceries",
+"price": "28 gp",
+"currency": {
+"itemId": 995,
+"name": "Coins",
+"qty": 28
 }
 },
 {
@@ -113970,16 +112913,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Fancy Clothes Store",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
-}
-},
-{
 "how": "drop",
 "from": "Crimson swift",
 "rate": "Always"
@@ -114496,11 +113429,6 @@
 1613
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Gabooty's Tai Bwo Wannai Cooperative",
-"price": "120 Trading sticks"
-},
 {
 "how": "make",
 "skill": "Crafting 16",
@@ -117875,26 +116803,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "1,417 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 1417
-}
-},
-{
-"how": "shop",
-"from": "Grum's Gold Exchange",
-"price": "1,417 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 1417
-}
-},
-{
 "how": "make",
 "skill": "Crafting 1",
 "detail": "Ruby amulet (u) + Ball of wool",
@@ -117942,6 +116850,16 @@
 "how": "reward",
 "from": "Small chest",
 "rate": "3/150"
+},
+{
+"how": "drop",
+"from": "Mutated Bloodveld",
+"rate": "2/128"
+},
+{
+"how": "other",
+"from": "Wardrobe (stealing valuables)",
+"rate": "5/6,250"
 }
 ]
 },
@@ -118078,16 +116996,6 @@
 11085
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "1,627 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 1627
-}
-},
 {
 "how": "make",
 "skill": "Crafting 42",
@@ -118263,26 +117171,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "1,522 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 1522
-}
-},
-{
-"how": "shop",
-"from": "Grum's Gold Exchange",
-"price": "1,522 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 1522
-}
-},
-{
 "how": "make",
 "skill": "Crafting 40",
 "detail": "Ruby + Gold bar",
@@ -118308,6 +117196,11 @@
 "how": "drop",
 "from": "Hammerhead shark",
 "rate": "12/100"
+},
+{
+"how": "other",
+"from": "Tarnished chest",
+"rate": "2/60"
 }
 ],
 "reqs": [
@@ -118329,16 +117222,6 @@
 "itemId": 995,
 "name": "Coins",
 "qty": 607
-}
-},
-{
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "1,417 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 1417
 }
 },
 {
@@ -118367,6 +117250,11 @@
 "how": "drop",
 "from": "Frigatebird",
 "rate": "5/50"
+},
+{
+"how": "other",
+"from": "Wardrobe (stealing valuables)",
+"rate": "2/6,250"
 }
 ],
 "reqs": [
@@ -118869,26 +117757,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Dargaud's Bow and Arrows",
-"price": "225 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 225
-}
-},
-{
-"how": "shop",
-"from": "Hickton's Archery Emporium",
-"price": "225 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 225
-}
-},
-{
 "how": "make",
 "skill": "Fletching 77",
 "detail": "6 x Flighted ogre arrow + 6 x Rune nails",
@@ -118935,16 +117803,6 @@
 31914
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Port Roberts Cannonball Stall",
-"price": "700 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 700
-}
-},
 {
 "how": "make",
 "skill": "Smithing 90",
@@ -118996,7 +117854,7 @@
 },
 {
 "how": "shop",
-"from": "Armour store",
+"from": "Scavvo's Rune Store",
 "price": "30,000 gp",
 "currency": {
 "itemId": 995,
@@ -119105,26 +117963,6 @@
 23601
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Crossbow Shop (Dwarven Mine)",
-"price": "8,100 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 8100
-}
-},
-{
-"how": "shop",
-"from": "Crossbow Shop (White Wolf Mountain)",
-"price": "8,100 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 8100
-}
-},
 {
 "how": "make",
 "skill": "Fletching 69",
@@ -119628,16 +118466,6 @@
 {
 "how": "shop",
 "from": "Aneirin's Armour",
-"price": "21,120 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 21120
-}
-},
-{
-"how": "shop",
-"from": "Armour store",
 "price": "21,120 gp",
 "currency": {
 "itemId": 995,
@@ -120208,16 +119036,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Armour store",
-"price": "32,640 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 32640
-}
-},
-{
 "how": "make",
 "skill": "Smithing 97",
 "detail": "3 x Runite bar",
@@ -120507,16 +119325,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Armour store",
-"price": "11,520 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 11520
-}
-},
-{
 "how": "make",
 "skill": "Smithing 88",
 "detail": "Runite bar",
@@ -120631,16 +119439,6 @@
 }
 },
 {
-"how": "shop",
-"from": "Armour store",
-"price": "39,000 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 39000
-}
-},
-{
 "how": "make",
 "skill": "Smithing 99",
 "detail": "5 x Runite bar",
@@ -120660,6 +119458,11 @@
 {
 "how": "open",
 "from": "Hallowed sack",
+"rate": "1/10"
+},
+{
+"how": "other",
+"from": "Coffin (Hallowed Sepulchre)",
 "rate": "1/10"
 }
 ],
@@ -120814,7 +119617,7 @@
 },
 {
 "how": "shop",
-"from": "Armour store",
+"from": "Scavvo's Rune Store",
 "price": "38,400 gp",
 "currency": {
 "itemId": 995,
@@ -120902,7 +119705,7 @@
 },
 {
 "how": "shop",
-"from": "Armour store",
+"from": "Scavvo's Rune Store",
 "price": "38,400 gp",
 "currency": {
 "itemId": 995,
@@ -121280,10 +120083,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Tamayu's Spear Stall"
-},
-{
 "how": "make",
 "detail": "Rune spear + Karambwan paste (poison)",
 "materials": [
@@ -121378,16 +120177,6 @@
 1185
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Armour store",
-"price": "23,040 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 23040
-}
-},
 {
 "how": "make",
 "skill": "Smithing 93",
@@ -121505,16 +120294,6 @@
 }
 },
 {
-"how": "shop",
-"from": "Skulgrimen's Battle Gear",
-"price": "29,050 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 29050
-}
-},
-{
 "how": "make",
 "skill": "Smithing 94",
 "detail": "3 x Runite bar",
@@ -121534,6 +120313,11 @@
 {
 "how": "open",
 "from": "Magpie impling jar",
+"rate": "1/21"
+},
+{
+"how": "other",
+"from": "Magpie impling",
 "rate": "1/21"
 }
 ],
@@ -121877,26 +120661,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Crossbow Shop (Dwarven Mine)",
-"price": "8,000 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 8000
-}
-},
-{
-"how": "shop",
-"from": "Crossbow Shop (White Wolf Mountain)",
-"price": "8,000 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 8000
-}
-},
-{
 "how": "make",
 "skill": "Smithing 91",
 "detail": "Runite bar",
@@ -121923,23 +120687,12 @@
 "sources": [
 {
 "how": "shop",
-"from": "Deepfin Point Ore Exchange",
-"price": "2,240 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2240
-}
+"from": "TzHaar-Hur-Rin's Ore and Gem Store",
+"price": "480 Tokkuls"
 },
 {
 "how": "shop",
-"from": "Hendor's Awesome Ores",
-"price": "2,240 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2240
-}
+"from": "Petrified Pete's Ore Shop"
 },
 {
 "how": "drop",
@@ -123002,16 +121755,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "~ Uglug's stuffsies ~",
-"price": "144 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 144
-}
-},
-{
 "how": "make",
 "skill": "Herblore 65",
 "detail": "Mixture - step 2(3) + Nail beast nails",
@@ -123578,26 +122321,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "630 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 630
-}
-},
-{
-"how": "shop",
-"from": "Grum's Gold Exchange",
-"price": "630 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 630
-}
-},
-{
 "how": "make",
 "skill": "Crafting 1",
 "detail": "Sapphire amulet (u) + Ball of wool",
@@ -123645,6 +122368,11 @@
 "how": "reward",
 "from": "Small chest",
 "rate": "2/150"
+},
+{
+"how": "other",
+"from": "Wardrobe (stealing valuables)",
+"rate": "10/6,250"
 }
 ]
 },
@@ -123777,16 +122505,6 @@
 11072
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "805 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 805
-}
-},
 {
 "how": "make",
 "skill": "Crafting 23",
@@ -123999,26 +122717,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "735 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 735
-}
-},
-{
-"how": "shop",
-"from": "Grum's Gold Exchange",
-"price": "735 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 735
-}
-},
-{
 "how": "make",
 "skill": "Crafting 22",
 "detail": "Sapphire + Gold bar",
@@ -124044,6 +122742,11 @@
 "how": "drop",
 "from": "Elite Black Knight",
 "rate": "7/122"
+},
+{
+"how": "other",
+"from": "Rusty chest",
+"rate": "2/60"
 }
 ],
 "reqs": [
@@ -124057,26 +122760,6 @@
 1637
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Conara's Jewels",
-"price": "630 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 630
-}
-},
-{
-"how": "shop",
-"from": "Grum's Gold Exchange",
-"price": "630 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 630
-}
-},
 {
 "how": "make",
 "skill": "Crafting 20",
@@ -124103,6 +122786,11 @@
 "how": "drop",
 "from": "Mummy (Ancient Pyramid)",
 "rate": "10/513"
+},
+{
+"how": "open",
+"from": "Tarnished ring",
+"rate": "1/10"
 }
 ]
 },
@@ -127199,16 +125887,6 @@
 "sources": [
 {
 "how": "shop",
-"from": "Keepa Kettilon's store",
-"price": "119 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 119
-}
-},
-{
-"how": "shop",
 "from": "Chest (Theatre of Blood)"
 },
 {
@@ -128268,11 +126946,6 @@
 2080
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Gabooty's Tai Bwo Wannai Drinky Store",
-"price": "18 Trading sticks"
-},
 {
 "how": "make",
 "skill": "Cooking 20",
@@ -132872,16 +131545,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Grand Tree Groceries",
-"price": "22 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 22
-}
-},
-{
 "how": "make",
 "skill": "Cooking 16",
 "detail": "Spider on shaft (raw)",
@@ -132901,16 +131564,6 @@
 6297
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Grand Tree Groceries",
-"price": "27 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 27
-}
-},
 {
 "how": "make",
 "skill": "Cooking 16",
@@ -135735,26 +134388,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Dargaud's Bow and Arrows",
-"price": "10 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 10
-}
-},
-{
-"how": "shop",
-"from": "Hickton's Archery Emporium",
-"price": "10 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 10
-}
-},
-{
 "how": "make",
 "skill": "Fletching 33",
 "detail": "6 x Flighted ogre arrow + 6 x Steel nails",
@@ -135784,16 +134417,6 @@
 2
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Port Roberts Cannonball Stall",
-"price": "2 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2
-}
-},
 {
 "how": "make",
 "skill": "Smithing 35",
@@ -135976,26 +134599,6 @@
 9179
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Crossbow Shop (Dwarven Mine)",
-"price": "180 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 180
-}
-},
-{
-"how": "shop",
-"from": "Crossbow Shop (White Wolf Mountain)",
-"price": "180 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 180
-}
-},
 {
 "how": "make",
 "skill": "Fletching 46",
@@ -136953,7 +135556,7 @@
 "sources": [
 {
 "how": "shop",
-"from": "Cassie's Shield Shop",
+"from": "Elder Blunn's Spear and Shield Stall",
 "price": "510 gp",
 "currency": {
 "itemId": 995,
@@ -136963,7 +135566,7 @@
 },
 {
 "how": "shop",
-"from": "Elder Blunn's Spear and Shield Stall",
+"from": "Shields of Mistrock",
 "price": "510 gp",
 "currency": {
 "itemId": 995,
@@ -137966,17 +136569,17 @@
 "sources": [
 {
 "how": "shop",
-"from": "Quality Armour Shop",
-"price": "330 gp",
+"from": "Cam Torum Blacksmith",
+"price": "360 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
-"qty": 330
+"qty": 360
 }
 },
 {
 "how": "shop",
-"from": "Cam Torum Blacksmith",
+"from": "Shields of Mistrock",
 "price": "360 gp",
 "currency": {
 "itemId": 995,
@@ -138665,26 +137268,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Alice's Farming shop",
-"price": "11 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 11
-}
-},
-{
-"how": "shop",
-"from": "Cobado's Groceries",
-"price": "11 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 11
-}
-},
-{
 "how": "drop",
 "from": "Strawberry plant",
 "rate": "Always"
@@ -138697,26 +137280,6 @@
 5323
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Amelia's Seed Shop",
-"price": "10 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 10
-}
-},
-{
-"how": "shop",
-"from": "Draynor Seed Market",
-"price": "10 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 10
-}
-},
 {
 "how": "drop",
 "from": "Void Knights' Reward Options",
@@ -138962,16 +137525,6 @@
 10087
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Fancy Clothes Store",
-"price": "8 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 8
-}
-},
 {
 "how": "drop",
 "from": "Tropical wagtail",
@@ -139943,16 +138496,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Pie Shop",
-"price": "77 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 77
-}
-},
-{
 "how": "make",
 "skill": "Cooking 95",
 "detail": "Raw summer pie",
@@ -140232,26 +138775,6 @@
 29177
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Pellem's Fur Store",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
-}
-},
-{
-"how": "shop",
-"from": "Fortis Fur Stall",
-"price": "9 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 9
-}
-},
 {
 "how": "drop",
 "from": "Sunlight antelope",
@@ -141823,26 +140346,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Agelus' Farm Shop",
-"price": "6 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 6
-}
-},
-{
-"how": "shop",
-"from": "Alice's Farming shop",
-"price": "6 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 6
-}
-},
-{
 "how": "drop",
 "from": "Sweetcorn plant",
 "rate": "Always"
@@ -141855,26 +140358,6 @@
 5320
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Amelia's Seed Shop",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
-}
-},
-{
-"how": "shop",
-"from": "Draynor Seed Market",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
-}
-},
 {
 "how": "drop",
 "from": "Void Knights' Reward Options",
@@ -141976,12 +140459,12 @@
 },
 {
 "how": "shop",
-"from": "Fishing Guild Shop",
-"price": "56 gp",
+"from": "The Shrimp and Parrot",
+"price": "60 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
-"qty": 56
+"qty": 60
 }
 },
 {
@@ -142606,26 +141089,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Pellem's Fur Store",
-"price": "36 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 36
-}
-},
-{
-"how": "shop",
-"from": "Prifddinas' Seamstress",
-"price": "36 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 36
-}
-},
-{
 "how": "drop",
 "from": "Horned graahk",
 "rate": "Common"
@@ -142639,26 +141102,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Pellem's Fur Store",
-"price": "48 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 48
-}
-},
-{
-"how": "shop",
-"from": "Prifddinas' Seamstress",
-"price": "48 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 48
-}
-},
-{
 "how": "drop",
 "from": "Sabre-toothed kyatt",
 "rate": "Common"
@@ -142671,26 +141114,6 @@
 10093
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Pellem's Fur Store",
-"price": "24 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 24
-}
-},
-{
-"how": "shop",
-"from": "Prifddinas' Seamstress",
-"price": "24 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 24
-}
-},
 {
 "how": "drop",
 "from": "Spined larupia",
@@ -144971,7 +143394,7 @@
 },
 {
 "how": "shop",
-"from": "Agelus' Farm Shop",
+"from": "Cobado's Groceries",
 "price": "2 gp",
 "currency": {
 "itemId": 995,
@@ -144992,26 +143415,6 @@
 5322
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Amelia's Seed Shop",
-"price": "2 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2
-}
-},
-{
-"how": "shop",
-"from": "Draynor Seed Market",
-"price": "2 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 2
-}
-},
 {
 "how": "drop",
 "from": "Void Knights' Reward Options",
@@ -147176,7 +145579,7 @@
 "sources": [
 {
 "how": "shop",
-"from": "Fishing Guild Shop",
+"from": "Keepa Kettilon's store",
 "price": "28 gp",
 "currency": {
 "itemId": 995,
@@ -147186,12 +145589,12 @@
 },
 {
 "how": "shop",
-"from": "Keepa Kettilon's store",
-"price": "28 gp",
+"from": "The Shrimp and Parrot",
+"price": "30 gp",
 "currency": {
 "itemId": 995,
 "name": "Coins",
-"qty": 28
+"qty": 30
 }
 },
 {
@@ -149011,23 +147414,8 @@
 "sources": [
 {
 "how": "shop",
-"from": "Gem Trader",
-"price": "140 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 140
-}
-},
-{
-"how": "shop",
-"from": "Herquin's Gems",
-"price": "140 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 140
-}
+"from": "TzHaar-Hur-Rin's Ore and Gem Store",
+"price": "30 Tokkuls"
 },
 {
 "how": "reward",
@@ -149046,16 +147434,6 @@
 1631
 ],
 "sources": [
-{
-"how": "shop",
-"from": "TzHaar-Hur-Lek's Ore and Gem Store",
-"price": "150 Tokkuls"
-},
-{
-"how": "shop",
-"from": "TzHaar-Hur-Rin's Ore and Gem Store",
-"price": "150 Tokkuls"
-},
 {
 "how": "drop",
 "from": "Crystal chest",
@@ -149081,7 +147459,7 @@
 },
 {
 "how": "shop",
-"from": "Herquin's Gems",
+"from": "Toci's Gem Store",
 "price": "35 gp",
 "currency": {
 "itemId": 995,
@@ -149106,11 +147484,6 @@
 1627
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Gabooty's Tai Bwo Wannai Cooperative",
-"price": "18 Trading sticks"
-},
 {
 "how": "drop",
 "from": "Gemstone Crab",
@@ -149148,11 +147521,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Gabooty's Tai Bwo Wannai Cooperative",
-"price": "12 Trading sticks"
-},
-{
 "how": "drop",
 "from": "Gem rocks",
 "rate": "60/128"
@@ -149165,11 +147533,6 @@
 1629
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Gabooty's Tai Bwo Wannai Cooperative",
-"price": "24 Trading sticks"
-},
 {
 "how": "drop",
 "from": "Chest (Civitas illa Fortis)",
@@ -149185,7 +147548,7 @@
 "sources": [
 {
 "how": "shop",
-"from": "Gem Trader",
+"from": "Toci's Gem Store",
 "price": "70 gp",
 "currency": {
 "itemId": 995,
@@ -149195,13 +147558,8 @@
 },
 {
 "how": "shop",
-"from": "Herquin's Gems",
-"price": "70 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 70
-}
+"from": "TzHaar-Hur-Rin's Ore and Gem Store",
+"price": "15 Tokkuls"
 },
 {
 "how": "reward",
@@ -152623,26 +150981,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Alice's Farming shop",
-"price": "33 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 33
-}
-},
-{
-"how": "shop",
-"from": "Cobado's Groceries",
-"price": "33 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 33
-}
-},
-{
 "how": "drop",
 "from": "Watermelons",
 "rate": "Always"
@@ -152655,26 +150993,6 @@
 5321
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Amelia's Seed Shop",
-"price": "33 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 33
-}
-},
-{
-"how": "shop",
-"from": "Draynor Seed Market",
-"price": "33 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 33
-}
-},
 {
 "how": "open",
 "from": "Reward token",
@@ -154191,16 +152509,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Pie Shop",
-"price": "100 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 100
-}
-},
-{
 "how": "make",
 "skill": "Cooking 85",
 "detail": "Raw wild pie",
@@ -154226,26 +152534,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Alice's Farming shop",
-"price": "10 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 10
-}
-},
-{
-"how": "shop",
-"from": "Richard's Farming shop",
-"price": "10 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 10
-}
-},
-{
 "how": "drop",
 "from": "Wildblood Hops (plant)",
 "rate": "Always"
@@ -154258,26 +152546,6 @@
 5311
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Amelia's Seed Shop",
-"price": "8 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 8
-}
-},
-{
-"how": "shop",
-"from": "Draynor Seed Market",
-"price": "8 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 8
-}
-},
 {
 "how": "open",
 "from": "Seed pack",
@@ -155099,11 +153367,6 @@
 2054
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Gabooty's Tai Bwo Wannai Drinky Store",
-"price": "18 Trading sticks"
-},
 {
 "how": "make",
 "skill": "Cooking 18",
@@ -156503,26 +154766,6 @@
 ],
 "sources": [
 {
-"how": "shop",
-"from": "Alice's Farming shop",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
-}
-},
-{
-"how": "shop",
-"from": "Richard's Farming shop",
-"price": "4 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 4
-}
-},
-{
 "how": "drop",
 "from": "Yanillian Hops (plant)",
 "rate": "Always"
@@ -156809,16 +155052,6 @@
 10090
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Fancy Clothes Store",
-"price": "5 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 5
-}
-},
 {
 "how": "drop",
 "from": "Golden warbler",
@@ -157419,26 +155652,6 @@
 9452
 ],
 "sources": [
-{
-"how": "shop",
-"from": "Crossbow Shop (Dwarven Mine)",
-"price": "83 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 83
-}
-},
-{
-"how": "shop",
-"from": "Crossbow Shop (White Wolf Mountain)",
-"price": "83 gp",
-"currency": {
-"itemId": 995,
-"name": "Coins",
-"qty": 83
-}
-},
 {
 "how": "make",
 "skill": "Fletching 69",

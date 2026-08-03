@@ -47,6 +47,7 @@ public class CombatAchievementsModule implements IronHubModule
 	private final EventBus eventBus;
 	private final DataPack dataPack;
 	private final ChatMessageManager chatMessageManager; // null in unit tests
+	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
 
 	private CombatAchievementsTab tab;
 	private volatile List<CaTask> tasks = List.of();
@@ -58,11 +59,14 @@ public class CombatAchievementsModule implements IronHubModule
 	private boolean reloadRequested;
 	/** A combat task completed this tick: reload, then chat the goal progress. */
 	private boolean announceAfterReload;
-	private Runnable tasksListener;
+	// volatile: written on the EDT (buildTab / theme flip), read by the
+	// client thread's catalog reload
+	private volatile Runnable tasksListener;
 
 	@Inject
 	public CombatAchievementsModule(AccountState state, IronHubConfig config, Client client,
-		EventBus eventBus, DataPack dataPack, ChatMessageManager chatMessageManager)
+		EventBus eventBus, DataPack dataPack, ChatMessageManager chatMessageManager,
+		net.runelite.client.game.ItemManager itemManager)
 	{
 		this.state = state;
 		this.config = config;
@@ -70,6 +74,13 @@ public class CombatAchievementsModule implements IronHubModule
 		this.eventBus = eventBus;
 		this.dataPack = dataPack;
 		this.chatMessageManager = chatMessageManager;
+		this.itemManager = itemManager;
+	}
+
+	/** For the tab's boss-card emblems (clog page sprites). Null headless. */
+	net.runelite.client.game.ItemManager itemManager()
+	{
+		return itemManager;
 	}
 
 	@Override
@@ -263,6 +274,28 @@ public class CombatAchievementsModule implements IronHubModule
 				&& !state.isUnlocked("catask_" + task.id))
 			{
 				newlyDone.add("catask_" + task.id);
+			}
+		}
+		// aggregate goals (Luke, 2026-07-27): a whole tier proves off the
+		// game's own status varbit, a whole boss off its task count
+		for (CaTier tier : TIERS)
+		{
+			String key = tier.display.toLowerCase(java.util.Locale.ROOT);
+			if (goalIds.contains("tier_" + key)
+				&& state.getVarbit(tier.statusVarbit) >= 1
+				&& !state.isUnlocked("catier_" + key))
+			{
+				newlyDone.add("catier_" + key);
+			}
+		}
+		for (var entry : CombatAchievementsTab.bossStats(loaded).entrySet())
+		{
+			String proof = com.ironhub.state.GoalSeeds.caBossProofKey(entry.getKey());
+			if (entry.getValue()[1] > 0 && entry.getValue()[0] >= entry.getValue()[1]
+				&& goalIds.contains("boss_" + proof.substring("caboss_".length()))
+				&& !state.isUnlocked(proof))
+			{
+				newlyDone.add(proof);
 			}
 		}
 		if (!newlyDone.isEmpty())

@@ -30,8 +30,16 @@ public class SlayerModuleTest
 	@Rule
 	public TemporaryFolder temp = new TemporaryFolder();
 
+	/** Vanilla, not the config default. {@code osrsTheme()} defaults to MYSTIC,
+	 *  so every render this test wrote came out grey — and the renders exist to
+	 *  be judged against the Vanilla design system (Luke, 2026-07-25). */
 	private final IronHubConfig config = new IronHubConfig()
 	{
+		@Override
+		public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+		{
+			return com.ironhub.ui.osrs.OsrsTheme.STONE;
+		}
 	};
 
 	private SlayerOptimizerModule module(AccountState state)
@@ -172,6 +180,88 @@ public class SlayerModuleTest
 		assertEquals(1, module.records().size());
 		assertEquals("Nechryael", module.records().get(0).name);
 		assertEquals(1, state.getSlayerRecords().size()); // healed in persistence too
+		module.shutDown();
+	}
+
+	/** S7 (2026-08-03): killing the LAST assigned monster IS completion —
+	 *  the count hit 0 through observed kills, which a points skip cannot
+	 *  do (skips zero it in one >2 jump). No streak varbit needed. */
+	@Test
+	public void killingTheLastOneCompletesWithoutTheStreak()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		SlayerOptimizerModule module = module(state);
+		module.startUp();
+		StateFixture.stat(state, Skill.SLAYER, 60, 300_000);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_TARGET, 41);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT_ORIGINAL, 3);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT, 3);
+		module.applyResolvedTask("Dust devils", "");
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT, 1);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT, 0);
+		assertNull("last kill closes the record", module.activeRecord());
+		assertTrue(module.records().get(0).completed);
+		assertEquals(3, module.records().get(0).killed);
+		module.shutDown();
+	}
+
+	/** S7: the game's own "You have completed your task" chat line is the
+	 *  strongest completion signal — it closes the record done even when
+	 *  the varbit path misses (AoE finish, ordering). */
+	@Test
+	public void completionChatClosesTheRecordDone()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		SlayerOptimizerModule module = module(state);
+		module.startUp();
+		StateFixture.stat(state, Skill.SLAYER, 60, 300_000);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_TARGET, 41);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT_ORIGINAL, 150);
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT, 150);
+		module.applyResolvedTask("Dust devils", "");
+		StateFixture.varpChanged(state, VarPlayerID.SLAYER_COUNT, 145); // kills seen
+		module.onChatMessage(new net.runelite.api.events.ChatMessage(null,
+			net.runelite.api.ChatMessageType.GAMEMESSAGE, "",
+			"You have completed your task! You killed 150 Dust devils. You gained "
+				+ "16,250 xp.", "", 0));
+		assertNull(module.activeRecord());
+		assertTrue(module.records().get(0).completed);
+		module.shutDown();
+	}
+
+	/** S7 one-time heal: a closed record whose observed kills covered the
+	 *  whole assignment was a genuine completion the streak-only
+	 *  classifier mislabelled "skipped" — healed on load, like the
+	 *  replay-artifact prune above. */
+	@Test
+	public void mislabelledFullKillRecordsHealOnLoad()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		PersistedState.SlayerTaskRecord mislabelled = new PersistedState.SlayerTaskRecord();
+		mislabelled.name = "Nechryael";
+		mislabelled.master = "Duradel";
+		mislabelled.assigned = 120;
+		mislabelled.killed = 120;
+		mislabelled.xpGained = 12_000;
+		mislabelled.start = 1;
+		mislabelled.end = 60_001;
+		PersistedState.SlayerTaskRecord skipped = new PersistedState.SlayerTaskRecord();
+		skipped.name = "Dust devils";
+		skipped.master = "Duradel";
+		skipped.assigned = 150;
+		skipped.killed = 12; // genuinely abandoned: stays not-completed
+		skipped.start = 1;
+		skipped.end = 60_001;
+		state.setSlayerRecords(List.of(mislabelled, skipped));
+
+		SlayerOptimizerModule module = module(state);
+		module.startUp();
+		module.records(); // triggers the lazy load + heal
+		assertTrue(state.getSlayerRecords().get(0).completed);
+		assertFalse(state.getSlayerRecords().get(1).completed);
 		module.shutDown();
 	}
 

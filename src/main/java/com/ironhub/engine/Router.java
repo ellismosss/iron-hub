@@ -50,6 +50,7 @@ public class Router
 		plan.degraded.addAll(dag.degraded);
 		plan.goalNames.putAll(dag.goalNames);
 		plan.goalIcons.putAll(dag.goalIcons);
+		plan.watchVarbits.addAll(dag.watchVarbits);
 		this.goalNames = dag.goalNames;
 		ProjectedState projection = new ProjectedState(base);
 		Map<Skill, Long> bankRemaining = new HashMap<>(bankedXp);
@@ -498,7 +499,8 @@ public class Router
 				long gained = projection.getXp(node.trainSkill) - before;
 				long activeXp = Math.max(0, gained - banked);
 				bankRemaining.put(node.trainSkill, Math.max(0, banked - gained));
-				CostModel.applyBonuses(node.trainSkill, activeXp, projection, packs.methods);
+				CostModel.applyBonuses(node.trainSkill, before, before + gained, activeXp,
+					projection, packs.methods);
 				break;
 			}
 			case QUEST:
@@ -535,7 +537,9 @@ public class Router
 			case OBTAIN:
 				if (node.itemId > 0)
 				{
-					projection.addItems(node.itemId, 1);
+					// a supply-style obtain stocks N, not 1 — crediting one
+					// left the projection short and re-planned the rest
+					projection.addItems(node.itemId, Math.max(1, node.obtainQty));
 				}
 				break;
 			case MANUAL:

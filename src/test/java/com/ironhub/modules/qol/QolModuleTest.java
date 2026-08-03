@@ -40,18 +40,18 @@ public class QolModuleTest
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
 
-		// locked: 60/60 attack/defence not met — blocking line names the leaf
-		assertEquals(Status.LOCKED, QolModule.status(state, byId("dragon_defender")));
-		assertEquals("60 Attack", QolModule.blockingLine(state, byId("dragon_defender")));
+		// locked: Ranged 50 not met — blocking line names the leaf
+		assertEquals(Status.LOCKED, QolModule.status(state, byId("ava_accumulator")));
+		assertEquals("50 Ranged", QolModule.blockingLine(state, byId("ava_accumulator")));
 
 		// available: requirements met, item not owned
-		StateFixture.stat(state, Skill.ATTACK, 60, 0);
-		StateFixture.stat(state, Skill.DEFENCE, 60, 0);
-		assertEquals(Status.AVAILABLE, QolModule.status(state, byId("dragon_defender")));
+		StateFixture.stat(state, Skill.RANGED, 50, 0);
+		StateFixture.quest(state, Quest.ANIMAL_MAGNETISM, QuestState.FINISHED);
+		assertEquals(Status.AVAILABLE, QolModule.status(state, byId("ava_accumulator")));
 
 		// owned: item in bank wins regardless of requirements
-		StateFixture.bank(state, Map.of(12954, 1));
-		assertEquals(Status.OWNED, QolModule.status(state, byId("dragon_defender")));
+		StateFixture.bank(state, Map.of(10499, 1));
+		assertEquals(Status.OWNED, QolModule.status(state, byId("ava_accumulator")));
 
 		// quest requirement drives availability
 		assertEquals(Status.LOCKED, QolModule.status(state, byId("ava_assembler")));
@@ -61,6 +61,35 @@ public class QolModuleTest
 		// manual text requirements never auto-complete
 		assertEquals(Status.LOCKED, QolModule.status(state, byId("herb_sack")));
 		assertEquals("250 Tithe Farm points", QolModule.blockingLine(state, byId("herb_sack")));
+	}
+
+	/** G5 (2026-08-03): a cost in a TRACKABLE currency is a live graph
+	 *  leaf, never a prose manual gate. Item currencies (golden nuggets)
+	 *  count from bank+carried; point currencies with a documented
+	 *  balance varbit (Tithe 4893, Slayer 4068) read the varbit. The gem
+	 *  bag used to render "can't detect progress" while the plugin knew
+	 *  the nugget count all along. */
+	@Test
+	public void currencyCostsTrackLiveNotManually()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+
+		// the requirement is a real graph leaf, not a never-met manual gate
+		for (String id : new String[]{"gem_bag", "coal_bag", "graceful_hood",
+			"herb_sack", "seed_box", "rune_pouch"})
+		{
+			for (String req : byId(id).getRequirements())
+			{
+				assertFalse(id + " requirement is manual: " + req,
+					com.ironhub.requirements.Requirements.isManual(
+						com.ironhub.requirements.Requirements.parse(req)));
+			}
+		}
+
+		// 100 banked nuggets flip the gem bag to AVAILABLE automatically
+		assertEquals(Status.LOCKED, QolModule.status(state, byId("gem_bag")));
+		StateFixture.bank(state, Map.of(12012, 100));
+		assertEquals(Status.AVAILABLE, QolModule.status(state, byId("gem_bag")));
 	}
 
 	/** Owning a HIGHER diary-reward tier proves the lower — an Ardougne
@@ -114,11 +143,32 @@ public class QolModuleTest
 		assertTrue(state.getGoalSeeds().isEmpty());
 	}
 
+	/** The curated category map covers today's pack exactly — a new pack
+	 *  entry must be filed (or it lands on the "Other" card, which this
+	 *  test flags), and a renamed id must not linger in the map. */
+	@Test
+	public void categoriesCoverThePack()
+	{
+		java.util.Set<String> packIds = new java.util.HashSet<>();
+		pack.getUnlocks().forEach(u -> packIds.add(u.getId()));
+		java.util.List<String> mapped = new java.util.ArrayList<>();
+		QolTab.CATEGORIES.values().forEach(mapped::addAll);
+		assertEquals("an id is in two categories", mapped.size(),
+			new java.util.HashSet<>(mapped).size());
+		assertEquals("map and pack must agree", packIds, new java.util.HashSet<>(mapped));
+		// families fold only ids the pack (and one category) actually has
+		QolTab.FAMILIES.forEach((label, members) ->
+			members.forEach(id -> assertTrue(label + " member " + id + " not in pack",
+				packIds.contains(id))));
+	}
+
 	@Test
 	public void tabRendersHeadless() throws Exception
 	{
 		AccountState state = StateFixture.state(temp.getRoot());
-		StateFixture.bank(state, Map.of(12791, 1)); // rune pouch owned
+		// rune pouch owned + an Ardougne cloak 3 (family shows 3/4 via the
+		// baked higher-tier implications)
+		StateFixture.bank(state, Map.of(12791, 1, 13123, 1));
 		StateFixture.stat(state, Skill.ATTACK, 70, 0);
 		StateFixture.stat(state, Skill.DEFENCE, 70, 0);
 
@@ -128,15 +178,32 @@ public class QolModuleTest
 
 		QolModule module = new QolModule(state, new IronHubConfig()
 		{
-		}, new DataPack(new Gson()), null);
+			@Override
+			public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+			{
+				// Vanilla: osrsTheme() defaults to MYSTIC, and the renders
+				// exist to be judged against the Vanilla design system
+				return com.ironhub.ui.osrs.OsrsTheme.STONE;
+			}
+		}, new DataPack(new Gson()), null, null);
 		module.startUp();
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
+		// open the tracked unlock's detail so the goal glyph + requirement
+		// lines render (the tree keeps the selection across rebuilds)
+		javax.swing.SwingUtilities.invokeAndWait(() -> ((QolTab) tab).expand("herb_sack"));
+		javax.swing.SwingUtilities.invokeAndWait(() -> { });
 		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
 		assertTrue(image.getHeight() > 200);
 		java.io.File out = new java.io.File("build/reports/qol-tab.png");
 		out.getParentFile().mkdirs();
 		javax.imageio.ImageIO.write(image, "png", out);
+		// the family fold: the Ardougne cloak ladder, cloaks 1-3 proven by
+		// the owned cloak 3, tier 4's prose expanded
+		javax.swing.SwingUtilities.invokeAndWait(() -> ((QolTab) tab).expand("ardougne_cloak_2"));
+		javax.swing.SwingUtilities.invokeAndWait(() -> { });
+		javax.imageio.ImageIO.write(SwingRender.render((JPanel) tab), "png",
+			new java.io.File("build/reports/qol-tab-family.png"));
 		module.shutDown();
 	}
 }

@@ -37,7 +37,7 @@ class CaTask
 
 	String wikiUrl()
 	{
-		return "https://oldschool.runescape.wiki/w/" + name.replace(" ", "_").replace("'", "%27");
+		return com.ironhub.ui.WikiLinks.url(name);
 	}
 
 	boolean matches(String search)

@@ -25,6 +25,7 @@ import org.junit.rules.TemporaryFolder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class DiariesModuleTest
@@ -36,6 +37,13 @@ public class DiariesModuleTest
 	{
 		DiariesModule module = new DiariesModule(state, new IronHubConfig()
 		{
+			@Override
+			public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+			{
+				// Vanilla: osrsTheme() defaults to MYSTIC, and the renders
+				// exist to be judged against the Vanilla design system
+				return com.ironhub.ui.osrs.OsrsTheme.STONE;
+			}
 		}, new DataPack(new Gson()));
 		module.startUp();
 		return module;
@@ -134,6 +142,32 @@ public class DiariesModuleTest
 		assertFalse(module.taskComplete(karamja, 0, bananas));
 		StateFixture.varbit(state, bananas.varbit, 5);
 		assertTrue(module.taskComplete(karamja, 0, bananas));
+	}
+
+	/**
+	 * DI1 2026-08-03: only the game's own counting varbits earn a live count
+	 * (Karamja's three collect-N tasks). A 1-bit varp task shows nothing —
+	 * never an invented number — and a finished counter goes silent.
+	 */
+	@Test
+	public void liveCountsOnlyWhereTheGameCounts()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		DiariesModule module = module(state);
+		DiariesPack pack = module.pack();
+
+		DiariesPack.Region karamja = pack.regions.stream()
+			.filter(r -> r.name.equals("Karamja")).findFirst().orElseThrow(AssertionError::new);
+		DiariesPack.Task bananas = karamja.tiers.get(0).tasks.get(0);
+		assertEquals("0/5", module.taskCount(bananas));
+		StateFixture.varbit(state, bananas.varbit, 3);
+		assertEquals("3/5", module.taskCount(bananas));
+		StateFixture.varbit(state, bananas.varbit, 5);
+		assertNull("a met counter says nothing", module.taskCount(bananas));
+
+		// a varp-bit task has no counter to read
+		DiariesPack.Task essMine = pack.regions.get(0).tiers.get(0).tasks.get(0);
+		assertNull(module.taskCount(essMine));
 	}
 
 	@Test
@@ -304,6 +338,9 @@ public class DiariesModuleTest
 		JComponent tab = module.buildTab();
 		assertNotNull(tab);
 		((DiariesTab) tab).expandForTest("Ardougne");
+		// one task Well open too, so the render shows the Goals grammar
+		DiariesPack.Task first = module.pack().regions.get(0).tiers.get(0).tasks.get(3);
+		((DiariesTab) tab).expandTaskForTest(DiariesModule.slug(first));
 		java.awt.image.BufferedImage image = SwingRender.render((JPanel) tab);
 		assertTrue(image.getHeight() > 200);
 		try

@@ -25,13 +25,15 @@ public final class RebuildGate
 
 	private final JComponent tab;
 	private final Runnable rebuild;
+	private final boolean headless;
 	private final AtomicBoolean queued = new AtomicBoolean();
 	private volatile boolean dirtyWhileHidden;
 
-	private RebuildGate(JComponent tab, Runnable rebuild)
+	private RebuildGate(JComponent tab, Runnable rebuild, boolean headless)
 	{
 		this.tab = tab;
 		this.rebuild = rebuild;
+		this.headless = headless;
 	}
 
 	/**
@@ -41,7 +43,13 @@ public final class RebuildGate
 	 */
 	public static Runnable install(JComponent tab, Runnable rebuild)
 	{
-		RebuildGate gate = new RebuildGate(tab, rebuild);
+		return install(tab, rebuild, HEADLESS);
+	}
+
+	/** Test seam: the live (visibility-gated) behaviour under a headless JVM. */
+	static Runnable install(JComponent tab, Runnable rebuild, boolean headless)
+	{
+		RebuildGate gate = new RebuildGate(tab, rebuild, headless);
 		tab.addHierarchyListener(e ->
 		{
 			if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0
@@ -57,10 +65,18 @@ public final class RebuildGate
 
 	private void fire()
 	{
-		if (!HEADLESS && !tab.isShowing())
+		if (!headless && !tab.isShowing())
 		{
 			dirtyWhileHidden = true;
-			return;
+			// re-check: a show completing between the read above and the
+			// flag write races the hierarchy listener (which saw the flag
+			// still clear) — without this the now-visible tab sits stale
+			// until the next state change
+			if (!tab.isShowing())
+			{
+				return;
+			}
+			dirtyWhileHidden = false;
 		}
 		if (queued.compareAndSet(false, true))
 		{
@@ -74,7 +90,7 @@ public final class RebuildGate
 
 	private void runIfShowing()
 	{
-		if (HEADLESS || tab.isShowing())
+		if (headless || tab.isShowing())
 		{
 			rebuild.run();
 		}

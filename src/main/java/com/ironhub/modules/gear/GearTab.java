@@ -8,8 +8,8 @@ import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneChipRow;
-import com.ironhub.ui.osrs.StonePanel;
+import com.ironhub.ui.v2.V2Tile;
+import com.ironhub.ui.v2.V2ChipRow;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -26,7 +26,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import net.runelite.client.game.ItemManager;
-import net.runelite.client.util.AsyncBufferedImage;
 import net.runelite.client.util.LinkBrowser;
 
 /**
@@ -54,9 +53,13 @@ class GearTab extends JPanel
 	private final com.ironhub.data.BoostsPack boostsPack;
 	private final ItemManager itemManager; // null in headless tests
 	private final OsrsTheme theme;
-	private final StoneChipRow filterTop;
+	private final V2ChipRow filterTop;
 	private final JPanel body = new JPanel();
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
+	// ask once per sprite and rebuild through the gate when it lands — raw
+	// getImage+onLoaded per tile stacked a listener per tile per rebuild
+	// (~180 on the login screen, all firing at once mid-login)
+	private final com.ironhub.ui.components.SpriteCache sprites;
 	private final java.util.function.Consumer<Boolean> onHideCompleteChange;
 	private String filter; // lower-case category, null = all
 	private boolean hideComplete;
@@ -79,6 +82,7 @@ class GearTab extends JPanel
 		this.pack = pack;
 		this.boostsPack = boostsPack;
 		this.itemManager = itemManager;
+		this.sprites = new com.ironhub.ui.components.SpriteCache(itemManager, listener);
 		this.theme = theme;
 		this.hideComplete = hideComplete;
 		this.onHideCompleteChange = onHideCompleteChange;
@@ -89,7 +93,7 @@ class GearTab extends JPanel
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		filterTop = new StoneChipRow(theme, true, FILTERS_TOP);
+		filterTop = new V2ChipRow(theme, true, FILTERS_TOP);
 		filterTop.onChange(this::selectFilter);
 		add(filterTop);
 		add(Box.createVerticalStrut(UiTokens.CHIP_GAP));
@@ -111,14 +115,14 @@ class GearTab extends JPanel
 		state.removeListener(listener);
 	}
 
-	/** Toggle chip in the StoneChipRow grammar: select fill + title text when on. */
+	/** The latching chip atom — this was a hand-rolled StonePanel chip. */
 	private JComponent hideCompleteToggle()
 	{
 		JPanel row = new JPanel();
 		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
-		row.add(new ToggleChip(theme, "Hide complete", hideComplete, on ->
+		row.add(V2ChipRow.toggle(theme, "Hide complete", hideComplete, on ->
 		{
 			hideComplete = on;
 			onHideCompleteChange.accept(on);
@@ -183,7 +187,7 @@ class GearTab extends JPanel
 
 				// deterministic chunked rows: WrapLayout's height inside the
 				// scroll view goes stale and clips everything past one row
-				int perRow = (ROW_WIDTH + UiTokens.CHIP_GAP) / (ItemTile.W + UiTokens.CHIP_GAP);
+				int perRow = (ROW_WIDTH + UiTokens.CHIP_GAP) / (TILE_WIDTH + UiTokens.CHIP_GAP);
 				for (int start = 0; start < items.size(); start += perRow)
 				{
 					JPanel row = new JPanel();
@@ -234,34 +238,64 @@ class GearTab extends JPanel
 		return filter == null || item.getCategories().contains(filter);
 	}
 
-	private ItemTile tile(GearProgressionPack.Item item)
+	/**
+	 * One chart node. This was {@code ItemTile}, a third hand-painted tile
+	 * class; it is gone (Luke's Progression pass, 2026-07-26) and the node is
+	 * the {@code V2Tile} atom in the system's own vocabulary: DONE when you
+	 * own it, READY when its requirements are met, PLAIN while it is still
+	 * ahead of you, and SELECTED when the goal planner is targeting it.
+	 *
+	 * <p>One reading did not survive: V1 drew a DARK orange corner triangle
+	 * for "reachable only with a boost you have access to" against the bright
+	 * one for "reachable now". The status vocabulary has three colours, not
+	 * three-and-a-half, so both are READY and the difference lives in the
+	 * tooltip.
+	 */
+	private V2Tile tile(GearProgressionPack.Item item)
 	{
 		boolean obtained = isObtained(item);
 		boolean targeted = state.getSelectedGoals().contains(item.goalId());
 		Requirement requirement = requirement(item);
 		boolean ready = !obtained && requirement.isMet(state);
 		boolean boostReady = !obtained && !ready && requirement.isMetWithBoosts(state, boosts);
-		ItemTile tile = new ItemTile(theme, item.getName(), obtained, targeted, ready, boostReady,
-			tooltip(item, obtained, targeted, ready),
-			() ->
+		V2Tile tile = new V2Tile(theme, null, null, TILE_ART, () ->
+		{
+			if (!obtained || targeted) // nothing to target once obtained
 			{
-				if (!obtained || targeted) // nothing to target once obtained
-				{
-					state.selectGoal(item.goalId(), !targeted);
-				}
-			},
-			e -> contextMenu(item).show(e.getComponent(), e.getX(), e.getY()));
+				state.selectGoal(item.goalId(), !targeted);
+			}
+		}).width(TILE_WIDTH).placeholder(code(item.getName())).selected(targeted);
+		tile.status(obtained ? V2Tile.Status.DONE
+			: ready || boostReady ? V2Tile.Status.READY : V2Tile.Status.PLAIN);
+		tile.owned(obtained);
+		tile.onRightClick(e -> contextMenu(item).show(e.getComponent(), e.getX(), e.getY()));
+		tile.setToolTipText(tooltip(item, obtained, targeted, ready));
 		if (item.getIconFile() != null)
 		{
-			tile.setIcon(bundledIcon(item.getIconFile()));
+			tile.emblem(bundledIcon(item.getIconFile()));
 		}
 		else if (itemManager != null)
 		{
-			AsyncBufferedImage icon = itemManager.getImage(item.icon());
-			tile.setIcon(icon);
-			icon.onLoaded(tile::repaint);
+			java.awt.Image emblem = sprites.get(item.icon(), -1, 32);
+			if (emblem != null)
+			{
+				tile.emblem(emblem); // null keeps the tile's honest code placeholder
+			}
 		}
 		return tile;
+	}
+
+	/** The chart node's geometry, and its no-art fallback code. */
+	private static final int TILE_ART = 34;
+	private static final int TILE_WIDTH = 38;
+
+	private static String code(String name)
+	{
+		String[] words = name.split("\\s+");
+		return (words.length > 1
+			? "" + words[0].charAt(0) + words[1].charAt(0)
+			: name.substring(0, Math.min(2, name.length())))
+			.toUpperCase(java.util.Locale.ROOT);
 	}
 
 	private static final java.util.Map<String, java.awt.image.BufferedImage> ICON_CACHE = new java.util.HashMap<>();
@@ -360,7 +394,7 @@ class GearTab extends JPanel
 		JPopupMenu menu = new JPopupMenu();
 		JMenuItem wiki = new JMenuItem("Open wiki page");
 		wiki.addActionListener(e ->
-			LinkBrowser.browse("https://oldschool.runescape.wiki/w/" + item.wikiPage()));
+			LinkBrowser.browse(com.ironhub.ui.WikiLinks.ofSlug(item.wikiPage())));
 		menu.add(wiki);
 		boolean marked = state.isUnlocked(item.markKey());
 		if (marked)
@@ -382,66 +416,6 @@ class GearTab extends JPanel
 		return menu;
 	}
 
-	/** A single on/off chip in StoneChipRow's exact visual grammar. */
-	private static class ToggleChip extends StonePanel
-	{
-		private final OsrsLabel label;
-		private final java.util.function.Consumer<Boolean> onToggle;
-		private boolean on;
-		private boolean hover;
-
-		ToggleChip(OsrsTheme theme, String text, boolean on, java.util.function.Consumer<Boolean> onToggle)
-		{
-			super(theme);
-			this.on = on;
-			this.onToggle = onToggle;
-			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-			label = new OsrsLabel(text, OsrsSkin.MUTED, OsrsSkin.font());
-			add(label);
-			add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-			refresh();
-			addMouseListener(new MouseAdapter()
-			{
-				@Override
-				public void mouseEntered(MouseEvent e)
-				{
-					hover = true;
-					refresh();
-				}
-
-				@Override
-				public void mouseExited(MouseEvent e)
-				{
-					hover = false;
-					refresh();
-				}
-
-				@Override
-				public void mousePressed(MouseEvent e)
-				{
-					ToggleChip.this.on = !ToggleChip.this.on;
-					refresh();
-					ToggleChip.this.onToggle.accept(ToggleChip.this.on);
-				}
-			});
-		}
-
-		private void refresh()
-		{
-			setBackground(on ? theme.selectFill : hover ? theme.hoverFill : theme.boxFill);
-			label.setColor(on ? OsrsSkin.TITLE : OsrsSkin.MUTED);
-			repaint();
-		}
-
-		@Override
-		public Dimension getMaximumSize()
-		{
-			return getPreferredSize();
-		}
-	}
-
 	/** Subtle down-arrow between consecutive groups (the progression flow). */
 	private static class Arrow extends JComponent
 	{
@@ -451,8 +425,8 @@ class GearTab extends JPanel
 		Arrow(OsrsTheme theme)
 		{
 			this.theme = theme;
-			setPreferredSize(new Dimension(ItemTile.W, HEIGHT));
-			setMinimumSize(new Dimension(ItemTile.W, HEIGHT));
+			setPreferredSize(new Dimension(TILE_WIDTH, HEIGHT));
+			setMinimumSize(new Dimension(TILE_WIDTH, HEIGHT));
 			setMaximumSize(new Dimension(Integer.MAX_VALUE, HEIGHT));
 			setAlignmentX(LEFT_ALIGNMENT);
 		}
@@ -460,7 +434,7 @@ class GearTab extends JPanel
 		@Override
 		protected void paintComponent(Graphics g)
 		{
-			int x = ItemTile.W / 2; // aligned under the first tile column
+			int x = TILE_WIDTH / 2; // aligned under the first tile column
 			g.setColor(theme.edgeLight);
 			g.drawLine(x, 1, x, HEIGHT - 4);
 			g.drawLine(x - 3, HEIGHT - 6, x, HEIGHT - 3);

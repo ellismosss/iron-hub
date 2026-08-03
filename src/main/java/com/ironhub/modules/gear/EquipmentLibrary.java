@@ -130,9 +130,12 @@ final class EquipmentLibrary
 		return query(search, slot, owned, access, sort, ascending, false);
 	}
 
+	int queries; // test seam: the one-query-per-rebuild pin counts these
+
 	List<EquipmentPack.Item> query(String search, String slot, Owned owned, Access access,
 		Sort sort, boolean ascending, boolean hideLeagues)
 	{
+		queries++;
 		String term = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
 		List<EquipmentPack.Item> out = new ArrayList<>();
 		for (EquipmentPack.Item item : pack.items)

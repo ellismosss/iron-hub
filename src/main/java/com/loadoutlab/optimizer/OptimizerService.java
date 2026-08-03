@@ -104,6 +104,12 @@ public class OptimizerService
 		public final String boostLabel;
 		/** The ceiling assumption for game best ("Rigour + Ranging potion"). */
 		public final String gameBoostLabel;
+		/** The levels the owned numbers used (real + assumed boost, never
+		 * below live boosted) - the DPS-calc export mirrors them as boosts. */
+		public final PlayerLevels assumedLevels;
+		/** Just the prayer part of the assumption ("Piety", ""), for the
+		 * export - boostLabel also carries the potion name. */
+		public final String assumedPrayerName;
 		/** What the boss does back to you in the shown owned set (nullable). */
 		public final IncomingDpsCalculator.Result incoming;
 		/** The frontier trade the chosen mode made: dps given up vs damage
@@ -112,11 +118,14 @@ public class OptimizerService
 
 		StyleResult(List<DpsResult> owned, DpsResult overallBest,
 			SpecPick spec, SpecPick gameSpec, String boostLabel, String gameBoostLabel,
+			PlayerLevels assumedLevels, String assumedPrayerName,
 			IncomingDpsCalculator.Result incoming,
 			ModeTrade modeTrade)
 		{
 			this.boostLabel = boostLabel;
 			this.gameBoostLabel = gameBoostLabel;
+			this.assumedLevels = assumedLevels;
+			this.assumedPrayerName = assumedPrayerName;
 			this.incoming = incoming;
 			this.modeTrade = modeTrade;
 			this.owned = owned;
@@ -358,7 +367,7 @@ public class OptimizerService
 						monster, ownedBest.get(0).getLoadout(), real.getDefence(), real.getMagic());
 				results.put(style, new StyleResult(
 					ownedBest, gameBest.isEmpty() ? null : gameBest.get(0), spec, gameSpec,
-					boostLabel, gameBoostLabel, incoming, modeTrade));
+					boostLabel, gameBoostLabel, styleLevels, prayerName, incoming, modeTrade));
 			}
 			if (requestSeq.get() != ticket)
 			{

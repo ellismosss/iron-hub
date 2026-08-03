@@ -91,7 +91,7 @@ public class SailingUpgradesModule implements IronHubModule
 	@Override
 	public String name()
 	{
-		return "Sailing upgrades";
+		return "Boats";
 	}
 
 	@Override

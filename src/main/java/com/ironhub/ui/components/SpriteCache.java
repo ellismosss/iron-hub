@@ -68,17 +68,35 @@ public class SpriteCache
 	 *  36x32 aspect (the row-icon convention across the module tabs). */
 	public Image get(int itemId, int width, int height)
 	{
+		return get(itemId, 1, width, height);
+	}
+
+	/**
+	 * The stack-count variant: the quantity is baked onto the sprite exactly
+	 * as the game draws it (the loot-grid convention). Fits a box x box
+	 * square preserving aspect.
+	 */
+	public Image getStacked(int itemId, int quantity, int box)
+	{
+		return get(itemId, Math.max(1, quantity), BOX_FIT, box);
+	}
+
+	private Image get(int itemId, int quantity, int width, int height)
+	{
 		if (itemManager == null || itemId <= 0)
 		{
 			return null;
 		}
-		long key = (long) itemId << 32 | (width & 0xFFFFL) << 16 | (height & 0xFFFFL);
+		long key = (long) itemId << 44 | (long) (quantity & 0xFFFFFFF) << 16
+			| (width & 0xFFL) << 8 | (height & 0xFFL);
 		Image ready = scaled.get(key);
 		if (ready != null || !pending.add(key))
 		{
 			return ready; // cached, or already waiting — never stack a second listener
 		}
-		AsyncBufferedImage image = itemManager.getImage(itemId);
+		AsyncBufferedImage image = quantity > 1
+			? itemManager.getImage(itemId, quantity, true)
+			: itemManager.getImage(itemId);
 		if (image == null)
 		{
 			pending.remove(key);
@@ -86,21 +104,23 @@ public class SpriteCache
 		}
 		image.onLoaded(() ->
 		{
-			// runs on the client thread — scale once, here, and never again
-			Image result;
-			if (width == BOX_FIT)
-			{
-				int w = Math.max(1, image.getWidth());
-				int h = Math.max(1, image.getHeight());
-				double s = height / (double) Math.max(w, h);
-				result = image.getScaledInstance(
-					Math.max(1, (int) Math.round(w * s)), Math.max(1, (int) Math.round(h * s)),
-					Image.SCALE_SMOOTH);
-			}
-			else
-			{
-				result = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-			}
+			// runs on the client thread — scale once, here, and never again.
+			// Rendered into a real BufferedImage, NOT getScaledInstance: that
+			// returns a lazily-produced image, and the panels draw with a null
+			// observer, so its first paint started production, drew nothing,
+			// and nobody repainted when the pixels landed — blank icons until
+			// an unrelated repaint. Drawing a loaded BufferedImage source is
+			// synchronous and complete.
+			int[] dims = scaledDims(image.getWidth(), image.getHeight(), width, height);
+			int w = dims[0];
+			int h = dims[1];
+			java.awt.image.BufferedImage result = new java.awt.image.BufferedImage(
+				w, h, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+			java.awt.Graphics2D g = result.createGraphics();
+			g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
+				java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			g.drawImage(image, 0, 0, w, h, null);
+			g.dispose();
 			SwingUtilities.invokeLater(() ->
 			{
 				scaled.put(key, result);
@@ -109,5 +129,37 @@ public class SpriteCache
 			});
 		});
 		return null;
+	}
+
+	/**
+	 * Target dimensions for a source sprite: BOX_FIT fits the square box,
+	 * a negative width preserves the source aspect at the given height
+	 * (getScaledInstance's -1 convention, which the pre-BufferedImage code
+	 * inherited for free — regressed 2026-08-03 to 1px-wide strips), and
+	 * explicit dimensions pass through.
+	 */
+	static int[] scaledDims(int srcW, int srcH, int width, int height)
+	{
+		int sw = Math.max(1, srcW);
+		int sh = Math.max(1, srcH);
+		int w;
+		int h;
+		if (width == BOX_FIT)
+		{
+			double s = height / (double) Math.max(sw, sh);
+			w = Math.max(1, (int) Math.round(sw * s));
+			h = Math.max(1, (int) Math.round(sh * s));
+		}
+		else if (width < 0)
+		{
+			h = Math.max(1, height);
+			w = Math.max(1, (int) Math.round(sw * (h / (double) sh)));
+		}
+		else
+		{
+			w = Math.max(1, width);
+			h = Math.max(1, height);
+		}
+		return new int[]{w, h};
 	}
 }

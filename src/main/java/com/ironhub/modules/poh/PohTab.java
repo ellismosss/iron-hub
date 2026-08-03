@@ -5,35 +5,37 @@ import com.ironhub.requirements.Requirement;
 import com.ironhub.requirements.Requirements;
 import com.ironhub.state.AccountState;
 import com.ironhub.ui.UiTokens;
-import com.ironhub.ui.components.WrapLayout;
+import com.ironhub.ui.components.SpriteCache;
+import com.ironhub.ui.components.TileTree;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneTile;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.util.LinkBrowser;
 
 /**
- * POH tab: one tile per useful house space (green bevel = ladder complete,
- * orange = the next tier is buildable right now, plain = progressing,
- * dim = nothing built and the next tier is locked). A single expanded
- * space (farm-overview grammar) lists its tier ladder — built green, the
- * next tier with its requirements and what's missing, later tiers faint.
- * Clicking a tier row toggles the manual built mark (the escape hatch for
- * houses built before Iron Hub). Frameless — the host names the module.
+ * House tab (the uniform Build design system, {@link TileTree}): a grid of
+ * ROOM tiles; click one to expand its HOTSPOT sub-tiles; click a hotspot to
+ * open its tier ladder — built green, the next tier with its requirements
+ * and materials, later tiers faint. A room/hotspot tile carries a green
+ * corner tick when its ladder is complete and an orange bevel when the next
+ * tier is buildable right now. Built state comes from DETECTION only —
+ * the manual mark-as-built click was removed (Luke, 2026-07-28). Frameless
+ * — the host names the module.
  */
 class PohTab extends JPanel
 {
@@ -41,13 +43,55 @@ class PohTab extends JPanel
 	private final PohModule module;
 	private final OsrsTheme theme;
 	private final ItemManager itemManager; // null headless — icons skipped
-	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
-	private final com.ironhub.ui.components.SpriteCache sprites;
+	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::onStateChanged);
+	// sprites bypass the fingerprint: an arriving icon changes no state
+	private final Runnable spriteListener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
+	private long lastFp;
 
-	private final JPanel content = new JPanel();
-	private String expanded;
+	/** Module-pushed refresh (diagnostics) through the same gate. */
+	void refresh()
+	{
+		listener.run();
+	}
+
+	/** Fingerprint-compare before rebuilding (the CA/clog pattern —
+	 *  2026-08-03 audit ruling 9): a broadcast that moved nothing this
+	 *  tab renders must not rebuild a visible tab. */
+	private void onStateChanged()
+	{
+		if (fingerprint() != lastFp)
+		{
+			rebuild();
+		}
+	}
+
+	private long fingerprint()
+	{
+		long fp = state.requirementInputsDigest();
+		fp = 31 * fp + state.pohBuiltDigest();
+		fp = 31 * fp + state.goalSeedIds("poh").hashCode();
+		fp = 31 * fp + module.lastDiagnostics().hashCode();
+		return fp;
+	}
+	private final SpriteCache sprites;
+	private final JPanel header = new JPanel();
+	private final TileTree tree;
+	/** The tier row clicked open to show its materials (Luke, 2026-07-29);
+	 *  null = the default, the hotspot's NEXT tier. */
+	private String expandedTierId;
+	/** The material whose where-from well is open (P1 2026-08-03); one at
+	 *  a time, cleared by clicking it again. */
+	private Integer expandedMaterialId;
+	/** Wrap for where-from lines inside the tier row's well. */
+	private static final int WELL_WRAP = 180;
+
+	String expandedTier()
+	{
+		return expandedTierId; // test seam: the row-click expansion pin
+	}
+
 	/** Usable temporary-boost headroom per skill, refreshed each rebuild. */
-	private java.util.Map<net.runelite.api.Skill, Integer> boosts = java.util.Map.of();
+	private Map<net.runelite.api.Skill, Integer> boosts = Map.of();
 
 	PohTab(AccountState state, PohModule module, OsrsTheme theme)
 	{
@@ -60,16 +104,19 @@ class PohTab extends JPanel
 		this.module = module;
 		this.theme = theme;
 		this.itemManager = itemManager;
-		this.sprites = new com.ironhub.ui.components.SpriteCache(itemManager, listener);
+		this.sprites = new SpriteCache(itemManager, spriteListener);
+		this.tree = new TileTree(theme, sprites);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(true);
 		setBackground(theme.background);
 		setBorder(new EmptyBorder(4, 4, 4, 4));
 
-		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-		content.setOpaque(false);
-		content.setAlignmentX(LEFT_ALIGNMENT);
-		add(content);
+		header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
+		header.setOpaque(false);
+		header.setAlignmentX(LEFT_ALIGNMENT);
+		header.setBorder(new EmptyBorder(2, 4, 4, 4));
+		add(header);
+		add(tree);
 		add(Box.createVerticalGlue());
 
 		state.addListener(listener);
@@ -81,160 +128,317 @@ class PohTab extends JPanel
 		state.removeListener(listener);
 	}
 
-	/** Test seam: expand one space (null collapses). */
+	/** Test seam: open a tier row's materials fold. */
+	void expandTier(String tierId)
+	{
+		expandedTierId = tierId;
+		rebuild();
+	}
+
+	/** Test seam: open a hotspot's detail (expands its room, selects it). */
 	void expand(String spaceId)
 	{
-		expanded = spaceId;
-		rebuild();
+		PohPack pack = module.pack();
+		if (pack == null)
+		{
+			return;
+		}
+		for (PohPack.Space space : pack.spaces)
+		{
+			if (space.id.equals(spaceId))
+			{
+				tree.selectForTest(roomId(space), spaceId);
+				return;
+			}
+		}
 	}
 
 	void rebuild()
 	{
-		content.removeAll();
+		lastFp = fingerprint(); // every rebuild path re-baselines the compare
 		PohPack pack = module.pack();
+		header.removeAll();
 		if (pack == null)
 		{
-			content.add(line("POH pack unavailable.", OsrsSkin.FAINT));
-			content.revalidate();
-			content.repaint();
+			header.add(new OsrsLabel("House pack unavailable.", OsrsSkin.FAINT, OsrsSkin.font()).leftAligned());
+			tree.setModel(List.of());
+			revalidate();
+			repaint();
 			return;
 		}
-
-		boosts = module.boostsPack() == null ? java.util.Map.of()
+		boosts = module.boostsPack() == null ? Map.of()
 			: com.ironhub.requirements.Boosts.available(module.boostsPack(), state);
 
-		int maxed = 0;
+		// Hotspots with anything standing at them — the number that moves when
+		// detection works. Counting fully-upgraded ladders instead read 0 for
+		// almost any real house (a Gilded altar leaves six cheaper altars
+		// unbuilt, and always will).
+		int complete = 0;
 		for (PohPack.Space space : pack.spaces)
 		{
-			if (module.nextTier(space) == null)
+			if (module.isBuilt(space))
 			{
-				maxed++;
+				complete++;
 			}
 		}
-		JPanel head = new JPanel();
-		head.setLayout(new BoxLayout(head, BoxLayout.X_AXIS));
-		head.setOpaque(false);
-		head.setAlignmentX(LEFT_ALIGNMENT);
-		head.setBorder(new EmptyBorder(2, 4, 2, 4));
-		head.add(new OsrsLabel("Useful builds", OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
-		head.add(Box.createHorizontalGlue());
-		head.add(new OsrsLabel(maxed + "/" + pack.spaces.size() + " complete",
-			OsrsSkin.VALUE, OsrsSkin.font()));
-		cap(head);
-		content.add(head);
+		// the house standing is the one live readout on the page — the Card,
+		// with the SPRITE bar between two house emblems (the reference hero
+		// shape, 2026-07-28)
+		com.ironhub.ui.v2.V2Surface hero = com.ironhub.ui.v2.V2Surface.card(theme);
+		JPanel top = new JPanel();
+		top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
+		top.setOpaque(false);
+		top.setAlignmentX(LEFT_ALIGNMENT);
+		top.add(houseEmblem());
+		top.add(Box.createHorizontalGlue());
+		JPanel middle = new JPanel();
+		middle.setLayout(new BoxLayout(middle, BoxLayout.Y_AXIS));
+		middle.setOpaque(false);
+		middle.add(new OsrsLabel("Hotspots built", OsrsSkin.TITLE, OsrsSkin.font()));
+		middle.add(new OsrsLabel(complete + " / " + pack.spaces.size(),
+			OsrsSkin.TITLE, OsrsSkin.boldFont()));
+		top.add(middle);
+		top.add(Box.createHorizontalGlue());
+		top.add(houseEmblem());
+		cap(top);
+		hero.add(top);
+		hero.add(Box.createVerticalStrut(3));
+		// the fill answers the SAME numbers as the label riding it
+		com.ironhub.ui.v2.V2ProgressBar bar = new com.ironhub.ui.v2.V2ProgressBar(theme);
+		bar.fraction(pack.spaces.isEmpty() ? 0 : (double) complete / pack.spaces.size());
+		bar.labels("", complete + " / " + pack.spaces.size(), "");
+		hero.add(bar);
 
-		// the tile grid (farm-overview grammar: click toggles the expansion)
-		JPanel grid = new JPanel(new WrapLayout(FlowLayout.LEFT, UiTokens.CHIP_GAP, UiTokens.CHIP_GAP));
-		grid.setOpaque(false);
-		grid.setAlignmentX(LEFT_ALIGNMENT);
+		// the sync row exists only while it would ADD something (the clog
+		// grammar): the building-mode hint until anything is marked, the
+		// reset once something is
+		if (!anyBuilt(pack))
+		{
+			hero.add(Box.createVerticalStrut(2));
+			hero.add(OsrsLabel.wrapped("Enter building mode in your house to sync what "
+					+ "you have built.",
+				180, OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+			// what detection can actually see, so a failure reports itself
+			// instead of looking like an empty grid
+			hero.add(Box.createVerticalStrut(2));
+			hero.add(OsrsLabel.wrapped(module.diagnostics(), 180,
+				OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
+		}
+		cap(hero);
+		header.add(hero);
+		if (anyBuilt(pack))
+		{
+			// Only offered once something IS marked — a reset with nothing to
+			// forget is a button that does nothing.
+			header.add(Box.createVerticalStrut(4));
+			header.add(resetButton());
+		}
+		header.add(Box.createVerticalStrut(4));
+
+		tree.setModel(buildModel(pack));
+		revalidate();
+		repaint();
+	}
+
+	// ── model: rooms -> hotspots -> tier-ladder detail ────────────────────
+
+	/** Forget every built mark and re-sweep. Detection persists, so a
+	 *  second visit shows what an earlier session already found — this is
+	 *  how you watch it work from a blank slate. */
+	private JComponent resetButton()
+	{
+		com.ironhub.ui.v2.V2Button button = new com.ironhub.ui.v2.V2Button(
+			theme, "Reset detected builds", () ->
+			{
+				int answer = javax.swing.JOptionPane.showConfirmDialog(this,
+					"Forget all " + builtCount() + " built marks for this account?",
+					"Reset House detection", javax.swing.JOptionPane.YES_NO_OPTION);
+				if (answer == javax.swing.JOptionPane.YES_OPTION)
+				{
+					module.resetDetection();
+				}
+			});
+		button.setAlignmentX(LEFT_ALIGNMENT);
+		button.setToolTipText("<html><div style='width:200px'>Forget every built mark "
+			+ "so detection can run from scratch.</div></html>");
+		return button;
+	}
+
+	private int builtCount()
+	{
+		PohPack pack = module.pack();
+		int n = 0;
 		for (PohPack.Space space : pack.spaces)
 		{
-			grid.add(tile(space));
-		}
-		grid.setMaximumSize(new Dimension(UiTokens.PANEL_WIDTH, Integer.MAX_VALUE));
-		content.add(grid);
-
-		if (expanded != null)
-		{
-			for (PohPack.Space space : pack.spaces)
+			for (PohPack.Tier tier : space.tiers)
 			{
-				if (space.id.equals(expanded))
+				if (state.isPohBuilt(tier.id))
 				{
-					addLadder(space);
+					n++;
 				}
 			}
 		}
-		else
-		{
-			content.add(line("Click a build to see its tiers", OsrsSkin.FAINT));
-		}
-		content.revalidate();
-		content.repaint();
+		return n;
 	}
 
-	private StoneTile tile(PohPack.Space space)
+	/** Whether anything at all is marked built — drives the sync hint. */
+	private boolean anyBuilt(PohPack pack)
+	{
+		for (PohPack.Space space : pack.spaces)
+		{
+			for (PohPack.Tier tier : space.tiers)
+			{
+				if (state.isPohBuilt(tier.id))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private List<TileTree.Top> buildModel(PohPack pack)
+	{
+		// group the spaces (hotspots) by their room, in first-appearance order
+		Map<String, TileTree.Top> byRoom = new LinkedHashMap<>();
+		for (PohPack.Space space : pack.spaces)
+		{
+			String key = roomId(space);
+			TileTree.Top room = byRoom.computeIfAbsent(key, k ->
+			{
+				TileTree.Top t = new TileTree.Top();
+				t.id = k;
+				t.label = canonicalRoom(space.room);
+				t.icon = space.icon;   // the room's first hotspot is its emblem
+				return t;
+			});
+			room.leaves.add(hotspotLeaf(space));
+		}
+		// roll room-level state up from its hotspots
+		List<TileTree.Top> rooms = new ArrayList<>(byRoom.values());
+		for (TileTree.Top room : rooms)
+		{
+			room.badge = room.leaves.size();
+			room.owned = room.leaves.stream().allMatch(l -> l.owned);
+			room.tracked = room.leaves.stream().anyMatch(l -> l.tracked);
+			int done = (int) room.leaves.stream().filter(l -> l.owned).count();
+			room.tooltip = room.label + " — " + done + "/" + room.leaves.size()
+				+ " hotspots fully upgraded";
+		}
+		return rooms;
+	}
+
+	private TileTree.Leaf hotspotLeaf(PohPack.Space space)
 	{
 		PohPack.Tier next = module.nextTier(space);
 		PohPack.Tier built = module.builtTier(space);
-		Color bevel;
-		boolean dim = false;
-		String status;
+		TileTree.Leaf leaf = new TileTree.Leaf();
+		leaf.id = space.id;
+		leaf.label = space.name;
+		leaf.icon = space.icon;
+		// green only at the TOP of the ladder (Luke, 2026-07-29) — a
+		// standing lower tier is progress, not done
+		leaf.owned = module.fullyBuilt(space);
+		leaf.tracked = next != null && (met(next.reqs) || boostMet(next.reqs)); // upgradable now
+		leaf.badge = space.tiers.size();
+		leaf.tooltip = "<html><div style='width:200px'>" + space.name + " — "
+			+ hotspotStatus(space, next, built) + "</div></html>";
+		leaf.detail = () -> hotspotDetail(space);
+		return leaf;
+	}
+
+	private String hotspotStatus(PohPack.Space space, PohPack.Tier next, PohPack.Tier built)
+	{
 		if (next == null)
 		{
-			bevel = ColorScheme.PROGRESS_COMPLETE_COLOR.darker();
-			status = "Complete — " + built.name + " built";
+			return "fully upgraded — " + built.name + " built";
 		}
-		else if (met(next.reqs))
+		String upgrade;
+		if (met(next.reqs))
 		{
-			bevel = ColorScheme.PROGRESS_INPROGRESS_COLOR;
-			status = "Buildable now: " + next.name + " (Construction " + next.level + ")";
+			upgrade = "next: " + next.name + " (Construction " + next.level + ")";
 		}
 		else if (boostMet(next.reqs))
 		{
-			bevel = ColorScheme.PROGRESS_INPROGRESS_COLOR;
-			status = "Buildable with a boost: " + next.name + " — " + boostDetail(next.reqs);
-		}
-		else if (built != null)
-		{
-			bevel = null;
-			status = built.name + " built · next " + nextLine(next);
+			upgrade = "next with a boost: " + next.name;
 		}
 		else
 		{
-			bevel = null;
-			dim = true;
-			status = "Not built · needs " + nextLine(next);
+			upgrade = "next " + nextLine(next);
 		}
-		StoneTile tile = new StoneTile(theme, bevel, dim,
-			"<html><div style='width:200px'>" + space.name + " — " + status + "</div></html>");
-		Integer icon = space.icon;
-		if (icon != null)
-		{
-			java.awt.Image sprite = sprites.get(icon, -1, StoneTile.ICON);
-			if (sprite != null)
-			{
-				tile.setIconImage(sprite);
-			}
-		}
-		tile.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		tile.addMouseListener(new java.awt.event.MouseAdapter()
-		{
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
-			{
-				expanded = space.id.equals(expanded) ? null : space.id;
-				SwingUtilities.invokeLater(PohTab.this::rebuild);
-			}
-		});
-		return tile;
+		return built == null ? "not built · " + upgrade : built.name + " built · " + upgrade;
 	}
 
-	private void addLadder(PohPack.Space space)
+	/** The level-3 detail: the hotspot's tier ladder + a mark/wiki hint. */
+	private JComponent hotspotDetail(PohPack.Space space)
 	{
-		JPanel title = new JPanel();
-		title.setLayout(new BoxLayout(title, BoxLayout.X_AXIS));
-		title.setOpaque(false);
-		title.setAlignmentX(LEFT_ALIGNMENT);
-		title.setBorder(new EmptyBorder(8, 4, 3, 4));
-		title.add(new OsrsLabel(space.name, OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
-		title.add(Box.createHorizontalGlue());
-		if (space.room != null)
+		// the opened hotspot is the one live readout on the page — the Card
+		com.ironhub.ui.v2.V2Surface card = com.ironhub.ui.v2.V2Surface.card(theme);
+		if (space.benefit != null && !space.benefit.isEmpty())
 		{
-			title.add(new OsrsLabel(space.room, OsrsSkin.FAINT, OsrsSkin.smallFont()));
+			card.add(line(space.benefit, OsrsSkin.MUTED));
 		}
-		cap(title);
-		content.add(title);
-
 		PohPack.Tier next = module.nextTier(space);
+		// a clicked tier's materials replace the default next-tier fold
+		// (Luke, 2026-07-29: any tier in the list expands on click)
+		String openId = expandedTierId != null
+			&& space.tiers.stream().anyMatch(t -> t.id.equals(expandedTierId))
+			? expandedTierId : next != null ? next.id : null;
 		for (PohPack.Tier tier : space.tiers)
 		{
-			content.add(tierRow(space, tier, tier == next));
+			card.add(tierRow(space, tier, tier == next, tier.id.equals(openId)));
 		}
-		content.add(line("Click a tier to mark it built (for houses built before Iron Hub) · W = wiki",
-			OsrsSkin.FAINT));
+		cap(card);
+		return card;
 	}
 
-	private JComponent tierRow(PohPack.Space space, PohPack.Tier tier, boolean isNext)
+	/** The house emblem at native size, flanking the hero. */
+	private JComponent houseEmblem()
+	{
+		JLabel icon = new JLabel();
+		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+		java.awt.Image art = com.ironhub.ui.v2.V2Sprites.get(theme, "icons/house");
+		if (art != null)
+		{
+			icon.setIcon(new javax.swing.ImageIcon(art));
+		}
+		else
+		{
+			icon.setPreferredSize(new Dimension(32, 32));
+		}
+		return icon;
+	}
+
+	private String roomId(PohPack.Space space)
+	{
+		return "room:" + (space.room == null ? "?" : space.room.toLowerCase(Locale.ROOT));
+	}
+
+	/** Title-case a wiki room name so mixed casing groups and displays cleanly
+	 *  ("Superior garden"/"Achievement gallery" -> "Superior Garden"). */
+	private static String canonicalRoom(String room)
+	{
+		if (room == null || room.isEmpty())
+		{
+			return "Other";
+		}
+		StringBuilder out = new StringBuilder();
+		for (String word : room.trim().split("\\s+"))
+		{
+			if (out.length() > 0)
+			{
+				out.append(' ');
+			}
+			out.append(Character.toUpperCase(word.charAt(0)))
+				.append(word.substring(1).toLowerCase(Locale.ROOT));
+		}
+		return out.toString();
+	}
+
+	// ── tier ladder (the build/upgrade tracking, unchanged grammar) ───────
+
+	private JComponent tierRow(PohPack.Space space, PohPack.Tier tier, boolean isNext,
+		boolean expanded)
 	{
 		boolean built = state.isPohBuilt(tier.id);
 		JPanel row = new JPanel();
@@ -252,58 +456,81 @@ class PohTab extends JPanel
 				? ColorScheme.PROGRESS_INPROGRESS_COLOR : OsrsSkin.MUTED)
 			: OsrsSkin.FAINT;
 		OsrsLabel name = new OsrsLabel(tier.name, color, OsrsSkin.font()).leftAligned().squeezable();
-		name.setToolTipText(built ? tier.name + " — built (click to unmark)"
-			: tier.name + " — click to mark as built");
+		name.setToolTipText(tier.name);
 		top.add(name);
 		top.add(Box.createHorizontalGlue());
 		top.add(new OsrsLabel("Lv " + tier.level,
 			built ? OsrsSkin.FAINT : OsrsSkin.LABEL, OsrsSkin.smallFont()));
 		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		boolean isGoal = module.isGoal(tier);
-		top.add(goalGlyph(isGoal, isGoal ? tier.name + " — tracked; click to untrack"
+		JComponent track = goalGlyph(isGoal, isGoal ? tier.name + " — tracked; click to untrack"
 			: "Track building " + tier.name + " in Goals",
-			() -> module.toggleGoal(tier)));
+			() -> module.toggleGoal(tier));
+		top.add(track);
 		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
-		top.add(wikiGlyph(tier.page));
+		JComponent wiki = wikiGlyph(tier.page);
+		top.add(wiki);
 		cap(top);
-		row.add(top);
-
-		if (!built && isNext)
-		{
-			String missing = missingText(tier.reqs);
-			boolean boostable = missing != null && boostMet(tier.reqs);
-			OsrsLabel needs = new OsrsLabel(missing == null ? "Buildable now"
-					: boostable ? "Buildable with a boost"
-					: "Needs: " + missing,
-				missing == null || boostable ? OsrsSkin.VALUE : OsrsSkin.FAINT,
-				OsrsSkin.smallFont()).leftAligned().squeezable();
-			if (boostable)
-			{
-				needs.setToolTipText("<html><div style='width:200px'>"
-					+ boostDetail(tier.reqs) + "</div></html>");
-			}
-			row.add(needs);
-			for (PohPack.Material m : tier.materials)
-			{
-				row.add(materialRow(m));
-			}
-		}
-		row.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		row.addMouseListener(new java.awt.event.MouseAdapter()
+		// any tier expands on click to show its materials (Luke,
+		// 2026-07-29). The tooltipped name label eats the press (deepest-
+		// component dispatch), so the row relays — and skips presses that
+		// landed on the glyphs, which keep their own clicks
+		com.ironhub.ui.v2.MouseRelay.install(top);
+		top.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		top.addMouseListener(new java.awt.event.MouseAdapter()
 		{
 			@Override
 			public void mousePressed(java.awt.event.MouseEvent e)
 			{
-				module.toggleBuilt(tier); // listener rebuilds
+				java.awt.Component hit = javax.swing.SwingUtilities.getDeepestComponentAt(
+					top, e.getX(), e.getY());
+				if (hit == track || hit == wiki)
+				{
+					return;
+				}
+				expandedTierId = tier.id.equals(expandedTierId) ? null : tier.id;
+				javax.swing.SwingUtilities.invokeLater(PohTab.this::rebuild);
 			}
 		});
+		row.add(top);
+
+		if (expanded)
+		{
+			if (!built)
+			{
+				String missing = missingText(tier.reqs);
+				boolean boostable = missing != null && boostMet(tier.reqs);
+				// the label NAMES the usable boost (P2 2026-08-03) — the
+				// pack already knows; the tooltip keeps the full detail
+				String boostBy = boostable ? boostNames(tier.reqs) : null;
+				OsrsLabel needs = new OsrsLabel(missing == null ? "Buildable now"
+						: boostable ? "Buildable with a boost"
+							+ (boostBy == null ? "" : " — " + boostBy)
+						: "Needs: " + missing,
+					missing == null || boostable ? OsrsSkin.VALUE : OsrsSkin.FAINT,
+					OsrsSkin.smallFont()).leftAligned().squeezable();
+				if (boostable)
+				{
+					needs.setToolTipText("<html><div style='width:200px'>"
+						+ boostDetail(tier.reqs) + "</div></html>");
+				}
+				row.add(needs);
+			}
+			for (PohPack.Material m : tier.materials)
+			{
+				row.add(materialRow(m));
+				if (expandedMaterialId != null && expandedMaterialId == m.itemId)
+				{
+					row.add(whereFromWell(m.itemId));
+				}
+			}
+		}
 		cap(row);
 		return row;
 	}
 
-	/** One build-material line (the sailing-tab grammar): sprite, "qty x
-	 *  name", owned count green when covered, red shortfall — with a
-	 *  where-from hover when short. */
+	/** One build-material line: sprite, "qty x name", owned count green when
+	 *  covered, red shortfall — with a where-from hover when short. */
 	private JComponent materialRow(PohPack.Material m)
 	{
 		JPanel r = new JPanel();
@@ -337,10 +564,53 @@ class PohTab extends JPanel
 		r.add(new OsrsLabel(enough ? "have " + m.qty : owned + "/" + m.qty,
 			enough ? OsrsSkin.VALUE : UiTokens.STATUS_WARNING, OsrsSkin.smallFont()));
 		cap(r);
+		// clicking opens the where-from well beneath the row (P1 2026-08-03)
+		// — the SAME item-sources projection Goals consumes, another consumer
+		if (module.itemSources() != null && module.itemSources().entry(m.itemId) != null)
+		{
+			r.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+			r.addMouseListener(new java.awt.event.MouseAdapter()
+			{
+				@Override
+				public void mousePressed(java.awt.event.MouseEvent e)
+				{
+					expandedMaterialId = expandedMaterialId != null
+						&& expandedMaterialId == m.itemId ? null : m.itemId;
+					rebuild();
+				}
+			});
+			com.ironhub.ui.v2.MouseRelay.install(r); // the tooltip eats presses
+		}
 		return r;
 	}
 
-	// ── requirement helpers ───────────────────────────────────────────
+	/** The clicked material's obtainment routes: every KB source, one line
+	 *  each, straight off the shared {@code ItemSourcesPack} projection —
+	 *  the same lines the Goals cards print (P1 2026-08-03). */
+	private JComponent whereFromWell(int itemId)
+	{
+		com.ironhub.ui.v2.V2Surface well = com.ironhub.ui.v2.V2Surface.well(theme);
+		int inset = com.ironhub.ui.v2.V2Well.CAP + com.ironhub.ui.v2.V2Tokens.TIGHT;
+		well.setBorder(new EmptyBorder(inset, inset, inset, inset));
+		com.ironhub.data.ItemSourcesPack.Entry entry = module.itemSources().entry(itemId);
+		java.util.List<com.ironhub.data.ItemSourcesPack.Source> sources =
+			entry == null || entry.getSources() == null ? List.of() : entry.getSources();
+		if (sources.isEmpty())
+		{
+			well.add(new OsrsLabel("No known source.", OsrsSkin.FAINT,
+				OsrsSkin.smallFont()).leftAligned());
+		}
+		for (com.ironhub.data.ItemSourcesPack.Source s : sources)
+		{
+			well.add(OsrsLabel.wrapped("· "
+					+ com.ironhub.data.ItemSourcesPack.label(s, state), WELL_WRAP,
+				OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
+		}
+		cap(well);
+		return well;
+	}
+
+	// ── requirement helpers ───────────────────────────────────────────────
 
 	private boolean met(List<String> reqs)
 	{
@@ -354,7 +624,6 @@ class PohTab extends JPanel
 		return true;
 	}
 
-	/** Unmet leaves as a comma line, or null when all met. */
 	private String missingText(List<String> reqs)
 	{
 		List<String> missing = new ArrayList<>();
@@ -382,7 +651,6 @@ class PohTab extends JPanel
 		return next.name + (missing == null ? " (buildable now)" : " — needs " + missing);
 	}
 
-	/** Every requirement met once usable temporary boosts are counted. */
 	private boolean boostMet(List<String> reqs)
 	{
 		for (String req : reqs)
@@ -395,7 +663,37 @@ class PohTab extends JPanel
 		return true;
 	}
 
-	/** "Construction 78 — boostable with Spicy stew, Crystal saw" per closed gap. */
+	/** Compact names of the usable boosts across every boost-reachable
+	 *  missing leaf, distinct, for the inline label (P2 2026-08-03). */
+	private String boostNames(List<String> reqs)
+	{
+		java.util.LinkedHashSet<String> names = new java.util.LinkedHashSet<>();
+		for (String req : reqs)
+		{
+			Requirement parsed = Requirements.parse(req);
+			if (parsed.isMet(state))
+			{
+				continue;
+			}
+			for (Requirement leaf : parsed.missing(state))
+			{
+				net.runelite.api.Skill skill = leaf.boostableSkill();
+				if (skill == null || !leaf.isMetWithBoosts(state, boosts)
+					|| module.boostsPack() == null)
+				{
+					continue;
+				}
+				String s = com.ironhub.requirements.Boosts.shortNames(
+					module.boostsPack(), state, skill);
+				if (s != null)
+				{
+					names.add(s);
+				}
+			}
+		}
+		return names.isEmpty() ? null : String.join(" / ", names);
+	}
+
 	private String boostDetail(List<String> reqs)
 	{
 		List<String> parts = new ArrayList<>();
@@ -422,71 +720,25 @@ class PohTab extends JPanel
 		return parts.isEmpty() ? null : String.join("; ", parts);
 	}
 
-	// ── shared bits ───────────────────────────────────────────────────
+	// ── shared bits ───────────────────────────────────────────────────────
 
-	private static OsrsLabel wikiGlyph(String page)
+	private JComponent wikiGlyph(String page)
 	{
-		OsrsLabel glyph = new OsrsLabel("W", OsrsSkin.FAINT, OsrsSkin.font());
-		glyph.setToolTipText("Open the wiki page");
-		glyph.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		glyph.addMouseListener(new java.awt.event.MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(java.awt.event.MouseEvent e)
-			{
-				glyph.setColor(OsrsSkin.LABEL);
-			}
-
-			@Override
-			public void mouseExited(java.awt.event.MouseEvent e)
-			{
-				glyph.setColor(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
-			{
-				LinkBrowser.browse("https://oldschool.runescape.wiki/w/"
-					+ page.replace(' ', '_'));
-				e.consume();
-			}
-		});
-		return glyph;
+		// the standard boxed W (the goals-card grammar) over the shared
+		// WikiLinks builder, replacing the bare-text W (unified 2026-08-03)
+		com.ironhub.ui.v2.V2SpriteButton w = new com.ironhub.ui.v2.V2SpriteButton(theme,
+			com.ironhub.ui.v2.V2SpriteButton.EMPTY_BOX, false,
+			() -> com.ironhub.ui.WikiLinks.open(page)).letter("W");
+		w.setToolTipText("Open wiki");
+		return w;
 	}
 
-	/** The +/× goal affordance in skin colours — a dedicated control with
-	 *  its own action, never the row's build-toggle click (the diaries
-	 *  glyph grammar; JLabel so its own listener wins over the row's). */
-	private static JLabel goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
+	/** The +/× goal affordance — a dedicated control (JLabel so its own
+	 *  listener wins over the row's build-toggle click). */
+	private static JComponent goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
 	{
-		JLabel glyph = new JLabel(isGoal ? "×" : "+");
-		OsrsSkin.crisp(glyph);
-		glyph.setFont(OsrsSkin.font());
-		glyph.setForeground(OsrsSkin.FAINT);
-		glyph.setToolTipText(tooltip);
-		glyph.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		glyph.addMouseListener(new java.awt.event.MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(java.awt.event.MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.TITLE);
-			}
-
-			@Override
-			public void mouseExited(java.awt.event.MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(java.awt.event.MouseEvent e)
-			{
-				onClick.run();
-				e.consume();
-			}
-		});
-		return glyph;
+		// the shared letter-glyph atom (unified 2026-08-03)
+		return new com.ironhub.ui.v2.V2GlyphButton(isGoal ? "×" : "+", tooltip, onClick);
 	}
 
 	private JComponent line(String text, Color color)

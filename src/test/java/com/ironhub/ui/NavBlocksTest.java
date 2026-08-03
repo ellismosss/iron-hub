@@ -41,6 +41,7 @@ public class NavBlocksTest
 	private DailiesNewModule dailiesNew;
 	private FarmingRunModule farming;
 	private HomePanel home;
+	private net.runelite.client.config.ConfigManager configManager;
 
 	private void build() throws Exception
 	{
@@ -57,7 +58,9 @@ public class NavBlocksTest
 			null, null, null, config, null, new DataPack(new Gson()),
 			null, null, null, null, null, null, null);
 		farming.startUp();
-		panel = new IronHubPanel(Set.of((IronHubModule) dailiesNew, farming), state, config);
+		configManager = org.mockito.Mockito.mock(net.runelite.client.config.ConfigManager.class);
+		panel = new IronHubPanel(Set.of((IronHubModule) dailiesNew, farming), state, config,
+			configManager);
 		home = find(panel, HomePanel.class);
 		assertNotNull("the home must be persistent in the panel", home);
 	}
@@ -70,16 +73,21 @@ public class NavBlocksTest
 		assertEquals("Dailies", home.selectedBlock());
 
 		// exclusive sections (Luke, 2026-07-17): the first module opens by
-		// default; expanding another collapses it — never both at once
-		JComponent dailiesTab = dailiesNew.buildTab();
-		assertTrue("first module's tab must open by default",
-			javax.swing.SwingUtilities.isDescendingFrom(dailiesTab, panel));
-		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Dailies", "Farm runs"));
+		// default; expanding another collapses it — never both at once.
+		// Farm runs LEADS the block since D1 (Luke, 2026-08-03), so it is
+		// the default-open module now — this assertion is the ordering pin.
 		JComponent farmingTab = farming.buildTab();
-		assertTrue("expanded module's tab not in the panel",
+		assertTrue("Farm runs must lead the Dailies block and open by default (D1)",
 			javax.swing.SwingUtilities.isDescendingFrom(farmingTab, panel));
+		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Dailies", "Dailies"));
+		JComponent dailiesTab = dailiesNew.buildTab();
+		assertTrue("expanded module's tab not in the panel",
+			javax.swing.SwingUtilities.isDescendingFrom(dailiesTab, panel));
 		assertTrue("collapsing must unmount the other module's tab",
-			!javax.swing.SwingUtilities.isDescendingFrom(dailiesTab, panel));
+			!javax.swing.SwingUtilities.isDescendingFrom(farmingTab, panel));
+		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Dailies", "Farm runs"));
+		assertTrue("re-expanding Farm runs must remount its tab",
+			javax.swing.SwingUtilities.isDescendingFrom(farmingTab, panel));
 		Container hubHost = farmingTab.getParent();
 
 		// a theme swap rebuilds the home and drops every cached hub page: the
@@ -89,7 +97,9 @@ public class NavBlocksTest
 		javax.swing.SwingUtilities.invokeAndWait(() -> {}); // flush the queued rebuild
 		home = find(panel, HomePanel.class);
 		assertNotNull("theme swap must rebuild the home", home);
-		javax.swing.SwingUtilities.invokeAndWait(() -> home.pressBlock("Dailies"));
+		// the swap REOPENS the block the player was in (the skin switcher
+		// lives in a hub page, so dumping them at home each flip is no good)
+		assertEquals("Dailies", home.selectedBlock());
 		assertNotSame("fresh hub slots must adopt the tab", hubHost, farmingTab.getParent());
 		assertTrue("farming tab lost in the theme swap",
 			javax.swing.SwingUtilities.isDescendingFrom(farmingTab, panel));
@@ -110,6 +120,35 @@ public class NavBlocksTest
 			java.util.List.of("Gear & Combat", "Slayer"), enableNotes());
 		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Gear & Combat", "Gear & Combat"));
 		assertEquals(java.util.List.of("Slayer"), enableNotes());
+	}
+
+	/**
+	 * The Settings hub carries the skin switcher (Luke, 2026-07-24: the
+	 * osrsTheme setting was only reachable from the RuneLite config panel).
+	 * It must show the live theme and WRITE the setting — holding its own
+	 * state would leave the two switches disagreeing.
+	 */
+	@Test
+	public void theSettingsHubSwitchesTheSkin() throws Exception
+	{
+		build();
+		javax.swing.SwingUtilities.invokeAndWait(() -> home.pressBlock("Settings"));
+		com.ironhub.ui.v2.V2ChipRow chips =
+			find(panel, com.ironhub.ui.v2.V2ChipRow.class);
+		assertNotNull("no skin switcher in the Settings hub", chips);
+		assertEquals("the switcher must show the live theme",
+			com.ironhub.ui.osrs.OsrsTheme.MYSTIC.ordinal(), chips.selected());
+
+		javax.swing.SwingUtilities.invokeAndWait(
+			() -> chips.pick(com.ironhub.ui.osrs.OsrsTheme.STONE.ordinal()));
+		org.mockito.Mockito.verify(configManager).setConfiguration(
+			com.ironhub.IronHubConfig.GROUP, "osrsTheme",
+			com.ironhub.ui.osrs.OsrsTheme.STONE);
+
+		java.awt.image.BufferedImage image = SwingRender.render(panel);
+		java.io.File out = new java.io.File("build/reports/home-settings-hub.png");
+		out.getParentFile().mkdirs();
+		javax.imageio.ImageIO.write(image, "png", out);
 	}
 
 	private java.util.List<String> enableNotes()
@@ -177,19 +216,19 @@ public class NavBlocksTest
 		assertEquals("the first tile opens by default",
 			java.util.List.of("Collection log"), enableNotes());
 
-		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Progression", "PoH"));
-		assertEquals(java.util.List.of("PoH"), enableNotes());
+		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Progression", "House"));
+		assertEquals(java.util.List.of("House"), enableNotes());
 		// the chip row inside the Build tile switches to its second module
-		com.ironhub.ui.osrs.StoneChipRow chips =
-			find(panel, com.ironhub.ui.osrs.StoneChipRow.class);
+		com.ironhub.ui.v2.V2ChipRow chips =
+			find(panel, com.ironhub.ui.v2.V2ChipRow.class);
 		assertNotNull("a two-module tile must offer chips", chips);
 		javax.swing.SwingUtilities.invokeAndWait(() -> chips.pick(1));
-		assertEquals(java.util.List.of("Sailing upgrades"), enableNotes());
+		assertEquals(java.util.List.of("Boats"), enableNotes());
 
 		// pressing the open tile again keeps it open (no empty page)
 		javax.swing.SwingUtilities.invokeAndWait(() ->
-			panel.toggleModule("Progression", "Sailing upgrades"));
-		assertEquals(java.util.List.of("Sailing upgrades"), enableNotes());
+			panel.toggleModule("Progression", "Boats"));
+		assertEquals(java.util.List.of("Boats"), enableNotes());
 	}
 
 	@Test

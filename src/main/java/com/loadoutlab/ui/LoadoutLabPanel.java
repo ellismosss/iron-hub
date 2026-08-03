@@ -5,13 +5,8 @@ import com.ironhub.ui.components.PaintedIcon;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneButton;
 import com.ironhub.ui.osrs.StoneCheckbox;
-import com.ironhub.ui.osrs.StoneComboBoxUI;
-import com.ironhub.ui.osrs.StonePanel;
-import com.ironhub.ui.osrs.StoneProgressBar;
 import com.ironhub.ui.osrs.StoneScrollBarUI;
-import com.ironhub.ui.osrs.StoneTextField;
 import com.loadoutlab.UsageLog;
 import com.loadoutlab.data.GearItem;
 import com.loadoutlab.data.GearSlot;
@@ -66,7 +61,6 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
@@ -88,7 +82,6 @@ import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.util.AsyncBufferedImage;
-import net.runelite.client.util.LinkBrowser;
 import net.runelite.client.util.ImageUtil;
 
 /**
@@ -240,23 +233,12 @@ public class LoadoutLabPanel extends PluginPanel
 		boolean owns(int itemId);
 	}
 
-	/** "Show in bank": set the highlighted item ids (null clears). */
-	public interface BankHighlighter
-	{
-		void highlight(Set<Integer> itemIds);
-	}
-
-	/** "Filter bank": show only these item ids in the bank (null clears). */
-	public interface BankFilter
-	{
-		void filter(Set<Integer> itemIds);
-	}
-
 	private static final int SEARCH_DEBOUNCE_MS = 150;
+	/** The manage-lists dropdowns float under one-line labels — a readable
+	 *  fixed width, not the label's own. */
+	private static final int ACTION_LIST_WIDTH = 200;
 	private static final int SEARCH_LIMIT = 25;
 	private static final int ICON_SIZE = 32;
-	/** Discord invite for the plugin's community; opened from the header. */
-	private static final String DISCORD_URL = "https://discord.gg/6GuS6J8em3";
 	/** Grid display order: weapon beside shield, body beside legs. */
 	private static final GearSlot[] GRID_ORDER = {
 		GearSlot.HEAD, GearSlot.CAPE, GearSlot.NECK, GearSlot.AMMO,
@@ -320,11 +302,15 @@ public class LoadoutLabPanel extends PluginPanel
 	private java.util.function.Function<com.loadoutlab.data.GearSlot, Integer> wornLookup;
 	private DpsCalcExport dpsCalcHook;
 
-	/** Iron Hub: open the wiki DPS calc mirroring the shown setup. */
+	/** Iron Hub: open the wiki DPS calc mirroring the shown setup - gear
+	 * AND the computed scenario (picked style, assumed prayers/boost
+	 * levels, spell), so the calculator shows the panel's own number. */
 	public interface DpsCalcExport
 	{
 		void open(int monsterId, String monsterName,
-			Map<com.loadoutlab.data.GearSlot, Integer> loadout, boolean onSlayerTask);
+			Map<com.loadoutlab.data.GearSlot, Integer> loadout, boolean onSlayerTask,
+			String attackType, String spellName,
+			com.loadoutlab.engine.PlayerLevels assumedLevels, String prayerName);
 	}
 
 	public void setWornLookup(java.util.function.Function<com.loadoutlab.data.GearSlot, Integer> lookup)
@@ -342,21 +328,22 @@ public class LoadoutLabPanel extends PluginPanel
 	 * (collapsed when a standard deviation under the best set's dps). */
 	private final Map<CombatStyle, Boolean> cardCollapsed = new EnumMap<>(CombatStyle.class);
 	private final Map<CombatStyle, Boolean> autoCollapsed = new EnumMap<>(CombatStyle.class);
-	private final BankHighlighter bankHighlighter;
-	private final BankFilter bankFilter;
-	/** Which style's set is filtering the bank (null = none). */
-	/** Which style's set is currently glowing in the bank (null = none). */
-	/** Outline + filter the bank to the selected style's best set. */
-	private final ToggleRow showInBank = new ToggleRow("Show in bank");
-	/** The monster-option toggles ride one stone slab (Luke, round 6). */
-	private final StonePanel togglesSlab = new StonePanel(ironHubTheme());
+	/**
+	 * The monster-option check rows ride one DLV2 Checklist (Luke,
+	 * 2026-07-25). It is the atom for exactly this — checkable rows in a well,
+	 * with the hover band — where the Slab was only ever a box to stack them
+	 * in.
+	 */
+	private final com.ironhub.ui.v2.V2Checklist togglesSlab =
+		new com.ironhub.ui.v2.V2Checklist(ironHubTheme());
 	/** D-4: which frontier point to recommend per style — three segment
 	 *  buttons, not a dropdown (Luke, 2026-07-21). Built in the ctor
 	 *  (needs the resolved theme). */
-	private com.ironhub.ui.osrs.StoneChipRow optimizeMode;
+	private com.ironhub.ui.v2.V2ChipRow optimizeMode;
 	/** Free-form upgrade budget: "750k", "1m", "1.5b", plain gp, or "-"
 	 * for max. Empty or unparseable = off. */
-	private final JTextField upgradeBudget = new StoneTextField(ironHubTheme(), null);
+	private final com.ironhub.ui.v2.V2TextField upgradeBudget =
+		com.ironhub.ui.v2.V2TextField.plain(ironHubTheme(), null, null);
 	private int lastBudgetGp;
 	private final JLabel exclusionsLabel = new JLabel();
 	private final JLabel storedLabel = new JLabel();
@@ -373,7 +360,8 @@ public class LoadoutLabPanel extends PluginPanel
 	private static final Color POSTIT_FG = new Color(55, 50, 25);
 
 	// Iron Hub: stone search field (sunken well, faint placeholder)
-	private final JTextField searchField = new StoneTextField(ironHubTheme(), "Search a monster…");
+	private final com.ironhub.ui.v2.V2TextField searchField =
+		new com.ironhub.ui.v2.V2TextField(ironHubTheme(), "Search a monster…", null);
 	private final DefaultListModel<MonsterStats> monsterModel = new DefaultListModel<>();
 	private final JList<MonsterStats> monsterList = new JList<>(monsterModel);
 	private final JScrollPane monsterScroll;
@@ -382,8 +370,11 @@ public class LoadoutLabPanel extends PluginPanel
 	private final JLabel monsterNote = new JLabel();
 	private final ToggleRow f2pOnly = new ToggleRow("Non-members gear only");
 	private final ToggleRow slayerTask = new ToggleRow("On slayer task");
-	private final JComboBox<String> spellbook =
-		new JComboBox<>(new String[]{"Any spellbook", "Standard", "Ancient", "Arceuus"});
+	// Iron Hub X1 2026-08-03: the old spellbook JComboBox was never mounted —
+	// the icon toggles drove it purely as a selection holder. An index does
+	// that without a dead V1 control.
+	private static final String[] SPELLBOOKS = {"Any spellbook", "Standard", "Ancient", "Arceuus"};
+	private int spellbookIndex;
 	private final JPanel resultsPanel = new JPanel();
 	private final JLabel statusLabel = new JLabel(" ");
 	private final Timer searchDebounce;
@@ -398,10 +389,12 @@ public class LoadoutLabPanel extends PluginPanel
 	private final ToggleRow wildyInfo = new ToggleRow("In wilderness");
 	private final ToggleRow lowRisk = new ToggleRow("Low-risk (wilderness)");
 	private final ToggleRow protectItem = new ToggleRow("Protect Item (keep 4)");
-	/** Wilderness risk-cap dropdown values in gp; 75k is the default. */
-	private static final int[] RISK_STEPS = {0, 25_000, 75_000, 200_000, 1_000_000};
-	private final JComboBox<String> riskBudget = new JComboBox<>(
-		new String[]{"Risk cap: 0", "Risk cap: 25k", "Risk cap: 75k", "Risk cap: 200k", "Risk cap: 1M"});
+	/**
+	 * The wilderness risk budget in gp. The dropdown that chose it is GONE
+	 * (Luke, 2026-07-25); this is the value it defaulted to, so the optimizer
+	 * behaves exactly as it did with the field untouched.
+	 */
+	private static final int RISK_BUDGET_GP = 75_000;
 	/** Dragonfire: gear protection by default; right-clicking the shield
 	 * cell flips to an assumed super antifire (and back). */
 	private boolean superAntifireAssumed;
@@ -421,11 +414,8 @@ public class LoadoutLabPanel extends PluginPanel
 		DreamToggle dreamToggle, DreamView dreamView,
 		StoredToggle storedToggle, StoredView storedView, DwmsView dwmsView,
 		LocationHint locationHint, MobProfile mobProfile, ItemSearch itemSearch,
-		OwnedCheck ownedCheck,
-		BankHighlighter bankHighlighter, BankFilter bankFilter)
+		OwnedCheck ownedCheck)
 	{
-		this.bankHighlighter = bankHighlighter;
-		this.bankFilter = bankFilter;
 		this.data = data;
 		this.itemManager = itemManager;
 		this.spriteManager = spriteManager;
@@ -450,36 +440,11 @@ public class LoadoutLabPanel extends PluginPanel
 		top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
 		top.setOpaque(false);
 
-		JLabel title = new JLabel("Loadout Lab");
-		title.setForeground(Color.WHITE);
-		title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
-
-		// Header row: title left, an "Options" menu right (Discord, and
-		// future plugin-wide actions) - mirrors the Goal Planner header.
-		JPanel header = new JPanel(new BorderLayout());
-		header.setOpaque(false);
-		header.setAlignmentX(LEFT_ALIGNMENT);
-		header.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
-		header.add(title, BorderLayout.WEST);
-		JButton optionsButton = new JButton(new DotsIcon(13));
-		optionsButton.setToolTipText("Options");
-		optionsButton.setMargin(new Insets(2, 6, 2, 6));
-		optionsButton.addActionListener(e ->
-		{
-			JPopupMenu menu = new JPopupMenu();
-			// Entry point for the first stored-elsewhere item (before any
-			// exists there is no label or right-click row to reach it from).
-			JMenuItem addStored = new JMenuItem("Add a stored-elsewhere item...");
-			addStored.addActionListener(ev -> showAddStoredDialog());
-			menu.add(addStored);
-			// Mob-specific actions live on the style cards and the
-			// "This mob" line - the header menu stays plugin-wide.
-			JMenuItem joinDiscord = new JMenuItem("Join our Discord");
-			joinDiscord.addActionListener(ev -> LinkBrowser.browse(DISCORD_URL));
-			menu.add(joinDiscord);
-			menu.show(optionsButton, 0, optionsButton.getHeight());
-		});
-		header.add(optionsButton, BorderLayout.EAST);
+		// Iron Hub: the old title + Options header was BUILT here but never
+		// mounted ("dropped — module nav header covers it"); the dead-code
+		// sweep (2026-08-03, Luke's word) removed the corpse. Its one menu
+		// entry, "Add a stored-elsewhere item...", lives on in the
+		// stored-elsewhere manage list.
 		// Iron Hub: title + Options header dropped (module nav header covers it)
 		top.add(Box.createVerticalStrut(4));
 
@@ -513,7 +478,9 @@ public class LoadoutLabPanel extends PluginPanel
 		selectedButtons.setOpaque(false);
 		selectedButtons.add(glyphButton(new ReloadIcon(11), null,
 			"Re-run the search for this monster", this::recompute));
-		selectedButtons.add(glyphButton(null, "×",
+		// the shared letter-glyph atom (unified 2026-08-03); the reload
+		// button above keeps glyphButton for its painted icon
+		selectedButtons.add(new com.ironhub.ui.v2.V2GlyphButton("×",
 			"Choose a different monster", this::clearSelection));
 		selectedRow.add(selectedButtons, BorderLayout.EAST);
 		selectedRow.setVisible(false);
@@ -576,49 +543,35 @@ public class LoadoutLabPanel extends PluginPanel
 
 		initToggle(slayerTask, "On task: slayer helmet bonuses apply");
 		slayerTask.setSelected(true); // Iron Hub: assume on-task by default
-		togglesSlab.setLayout(new BoxLayout(togglesSlab, BoxLayout.Y_AXIS));
-		togglesSlab.setAlignmentX(LEFT_ALIGNMENT);
-		togglesSlab.setBorder(BorderFactory.createCompoundBorder(togglesSlab.getBorder(),
-			new EmptyBorder(2, 4, 2, 4)));
+		// no compound border: the Slab brings its own content inset, and
+		// stacking StonePanel's old padding on top double-inset it
 		togglesSlab.setVisible(false);
 		monsterHolder.add(togglesSlab);
-		togglesSlab.add(slayerTask);
+		togglesSlab.row(slayerTask);
 
 		// Wilderness only: everything below is OPT-IN behind this switch —
 		// fighting the same monster outside the wilderness is the norm
 		initToggle(wildyInfo, "Fighting this monster IN the wilderness: show"
 			+ " death risk, kept items and risk caps");
 		wildyInfo.setVisible(false);
-		togglesSlab.add(wildyInfo);
+		togglesSlab.row(wildyInfo);
 
 		// Wilderness only: cap the set to the items death mechanics keep.
 		initToggle(lowRisk, "Keep your 3 most valuable items (4 with Protect Item);"
 			+ " everything else must total under the risk cap");
 		lowRisk.setVisible(false);
-		togglesSlab.add(lowRisk);
+		togglesSlab.row(lowRisk);
 
 		initToggle(protectItem, "Protect Item keeps a 4th item (not while skulled)");
 		protectItem.setVisible(false);
-		togglesSlab.add(protectItem);
+		togglesSlab.row(protectItem);
 
 		// How much gp the set may drop on a wilderness death; 0 = nothing
 		// droppable and no fees at all.
-		StoneComboBoxUI.skin(riskBudget, theme);
-		riskBudget.setAlignmentX(LEFT_ALIGNMENT);
-		riskBudget.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
-		riskBudget.setToolTipText("Total gp the set may drop on a wilderness death");
-		riskBudget.setSelectedIndex(2);
-		riskBudget.addActionListener(e -> recompute());
-		riskBudget.setVisible(false);
-		togglesSlab.add(riskBudget);
 
 
-		// Lock the magic card's auto-spell to one spellbook.
-		spellbook.setAlignmentX(LEFT_ALIGNMENT);
-		spellbook.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
-		spellbook.setToolTipText("Limit spells to one spellbook (powered staves always considered)");
-		spellbook.addActionListener(e -> recompute());
-		// Iron Hub: spellbook selector moves below the results (see bottomControls)
+		// Lock the magic card's auto-spell to one spellbook — held in
+		// spellbookIndex, driven by the icon toggles below the results.
 
 		// Buyable upgrades within a total gp budget join the consideration
 		// pool (dream items are the manual version, via right-click).
@@ -631,7 +584,7 @@ public class LoadoutLabPanel extends PluginPanel
 		budgetLabel.setFont(budgetLabel.getFont().deriveFont(UiTokens.FONT_SIZE_BODY));
 		budgetRow.add(budgetLabel, BorderLayout.WEST);
 		upgradeBudget.setToolTipText("Buyable-gear budget: 750k, 1m, 1.5b; - sets unlimited; empty = 0 (owned gear only, default)");
-		upgradeBudget.addActionListener(e -> budgetEdited());
+		upgradeBudget.editor().addActionListener(e -> budgetEdited());
 		upgradeBudget.addFocusListener(new java.awt.event.FocusAdapter()
 		{
 			@Override
@@ -644,7 +597,7 @@ public class LoadoutLabPanel extends PluginPanel
 		// Iron Hub: upgrade-budget row dropped per user direction
 
 		// D-4: pick the offense/defense frontier point (sweep is slower).
-		optimizeMode = new com.ironhub.ui.osrs.StoneChipRow(theme, true, "DPS", "Balanced", "Tank");
+		optimizeMode = new com.ironhub.ui.v2.V2ChipRow(theme, true, "DPS", "Balanced", "Tank");
 		optimizeMode.setAlignmentX(LEFT_ALIGNMENT);
 		optimizeMode.setToolTipText("Balanced/Tank trade dps for less damage taken");
 		optimizeMode.onChange(i -> recompute());
@@ -822,17 +775,13 @@ public class LoadoutLabPanel extends PluginPanel
 		bottomControls.add(Box.createVerticalStrut(2));
 		bottomControls.add(centeredRow(spellRow, 3 * 36 + 4, 36));
 		bottomControls.add(Box.createVerticalStrut(6));
-		// Show-in-bank is a CHECKBOX that both outlines AND filters the bank
-		// (the separate Filter-bank button is gone — filtered is the default;
-		// Luke, round 5), with the wiki-calc link beside it
-		initToggle(showInBank, "While the bank is open: outline this set's items"
-			+ " and filter the bank to them (needs Bank Tags enabled)");
-		showInBank.onToggle(this::applyShowInBank);
-		JPanel bankOpenRow = new JPanel(new GridLayout(1, 2, 4, 0));
+		// Show-in-bank moved up to the module's view area (R4, 2026-08-03):
+		// the bank mirrors whatever view is showing, not just calc results.
+		// Only the wiki-calc link remains down here.
+		JPanel bankOpenRow = new JPanel(new GridLayout(1, 1, 4, 0));
 		bankOpenRow.setOpaque(false);
 		bankOpenRow.setAlignmentX(LEFT_ALIGNMENT);
 		bankOpenRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
-		bankOpenRow.add(showInBank);
 		bankOpenRow.add(openDpsCalcButton());
 		bottomControls.add(bankOpenRow);
 		bottomControls.add(Box.createVerticalStrut(4));
@@ -854,7 +803,7 @@ public class LoadoutLabPanel extends PluginPanel
 
 		searchDebounce = new Timer(SEARCH_DEBOUNCE_MS, e -> runSearch());
 		searchDebounce.setRepeats(false);
-		searchField.getDocument().addDocumentListener(new DocumentListener()
+		searchField.editor().getDocument().addDocumentListener(new DocumentListener()
 		{
 			public void insertUpdate(DocumentEvent e) { onSearchEdited(); }
 			public void removeUpdate(DocumentEvent e) { onSearchEdited(); }
@@ -1340,7 +1289,6 @@ public class LoadoutLabPanel extends PluginPanel
 		wildyInfo.setVisible(wilderness);
 		updateWildernessControls();
 		superAntifireAssumed = false; // each monster starts on gear protection
-		applyShowInBank(); // no results yet for this monster: aids clear
 		// The slayer toggle has three states by monster: task-only bosses
 		// (Hydra, Araxxor, Sire...) force it ON - you cannot fight them
 		// off-task; unassignable monsters (raid bosses) force it OFF; and
@@ -1368,15 +1316,20 @@ public class LoadoutLabPanel extends PluginPanel
 		usageLog.record(monster.label());
 		selectedLabel.setText(monster.label());
 		selectedRow.setVisible(true);
-		// Iron Hub: elemental weakness on its own line so it never truncates
+		// Iron Hub: the elemental ICON plus "[+/-][N]% weakness" (GC7,
+		// 2026-08-03) — the element is the sprite's job, not prose's
 		if (monster.getWeaknessElement().isEmpty())
 		{
 			weaknessLabel.setVisible(false);
 		}
 		else
 		{
-			weaknessLabel.setText("+" + monster.getWeaknessSeverity() + "% weak to "
-				+ monster.getWeaknessElement() + " spells");
+			int severity = monster.getWeaknessSeverity();
+			weaknessLabel.setText((severity >= 0 ? "+" : "") + severity + "% weakness");
+			weaknessLabel.setIcon(elementIcon(monster.getWeaknessElement()));
+			weaknessLabel.setIconTextGap(6);
+			weaknessLabel.setToolTipText("Weak to "
+				+ monster.getWeaknessElement().toLowerCase(java.util.Locale.ROOT) + " spells");
 			weaknessLabel.setVisible(true);
 		}
 		String note = MonsterNotes.noteFor(monster);
@@ -1392,6 +1345,36 @@ public class LoadoutLabPanel extends PluginPanel
 		recompute();
 	}
 
+	/** The element's surge-spell sprite (16px) for the weakness line (GC7);
+	 *  null for an element the curated set doesn't carry — the text still
+	 *  says the percentage and the tooltip names the element. */
+	private javax.swing.Icon elementIcon(String element)
+	{
+		String key;
+		switch (element.toLowerCase(java.util.Locale.ROOT))
+		{
+			case "air":
+			case "wind":
+				key = "icons/magic/wind_surge_resized";
+				break;
+			case "water":
+				key = "icons/magic/water_surge_resized";
+				break;
+			case "earth":
+				key = "icons/magic/earth_surge_resized";
+				break;
+			case "fire":
+				key = "icons/magic/fire_surge_resized";
+				break;
+			default:
+				return null;
+		}
+		java.awt.image.BufferedImage img = com.ironhub.ui.v2.V2Sprites.get(theme, key);
+		return img == null ? null : new ImageIcon(
+			img.getHeight() <= 16 ? img
+				: img.getScaledInstance(-1, 16, java.awt.Image.SCALE_SMOOTH));
+	}
+
 	/** The wilderness tradeable cap, or -1 when the mode is off/hidden. */
 	private int riskCap()
 	{
@@ -1402,10 +1385,10 @@ public class LoadoutLabPanel extends PluginPanel
 		return protectItem.isSelected() ? 4 : 3;
 	}
 
-	/** The selected wilderness risk budget in gp. */
+	/** The wilderness risk budget in gp — fixed since the field was removed. */
 	private int selectedRiskBudget()
 	{
-		return RISK_STEPS[riskBudget.getSelectedIndex()];
+		return RISK_BUDGET_GP;
 	}
 
 	/** Recompute only when the parsed budget actually changed. */
@@ -1453,8 +1436,7 @@ public class LoadoutLabPanel extends PluginPanel
 
 	private String spellbookLock()
 	{
-		int index = spellbook.getSelectedIndex();
-		return index <= 0 ? "" : ((String) spellbook.getSelectedItem()).toLowerCase();
+		return spellbookIndex <= 0 ? "" : SPELLBOOKS[spellbookIndex].toLowerCase();
 	}
 
 	private void refreshExclusionsLabel()
@@ -1464,23 +1446,45 @@ public class LoadoutLabPanel extends PluginPanel
 		exclusionsLabel.setVisible(count > 0);
 	}
 
+	/**
+	 * A left-click list of one-shot actions floated under its label, on the
+	 * shared dropdown atom (X1 2026-08-03: a left-click picker is a
+	 * {@code V2Dropdown.openBelow}, never a hand-anchored {@code JPopupMenu}).
+	 * {@code detailClosed} keeps every row in plain detail — these are
+	 * actions, not a held selection.
+	 */
+	private void showActionList(javax.swing.JComponent anchor,
+		java.util.List<String> labels, java.util.List<Runnable> actions)
+	{
+		if (labels.isEmpty())
+		{
+			return;
+		}
+		com.ironhub.ui.v2.V2Dropdown list =
+			new com.ironhub.ui.v2.V2Dropdown(theme, labels.toArray(new String[0]));
+		list.detailClosed();
+		list.onChange(i -> actions.get(i).run());
+		list.width(ACTION_LIST_WIDTH);
+		list.openBelow(anchor);
+	}
+
 	private void showExclusionsMenu(MouseEvent e)
 	{
-		JPopupMenu menu = new JPopupMenu();
+		java.util.List<String> labels = new java.util.ArrayList<>();
+		java.util.List<Runnable> actions = new java.util.ArrayList<>();
 		for (Integer id : exclusionView.snapshot())
 		{
 			GearItem item = data.getGear(id);
 			String label = item == null ? ("item " + id) : item.label();
-			JMenuItem entry = new JMenuItem("Allow again: " + label);
-			entry.addActionListener(a ->
+			labels.add("Allow again: " + label);
+			actions.add(() ->
 			{
 				exclusionToggle.toggle(id);
 				refreshExclusionsLabel();
 				recompute();
 			});
-			menu.add(entry);
 		}
-		menu.show(exclusionsLabel, e.getX(), e.getY());
+		showActionList(exclusionsLabel, labels, actions);
 	}
 
 	private void refreshStoredLabel()
@@ -1647,7 +1651,8 @@ public class LoadoutLabPanel extends PluginPanel
 			return;
 		}
 		int monsterId = currentMonsterId();
-		JPopupMenu menu = new JPopupMenu();
+		java.util.List<String> labels = new java.util.ArrayList<>();
+		java.util.List<Runnable> actions = new java.util.ArrayList<>();
 		for (Map.Entry<String, Map<com.loadoutlab.data.GearSlot, Integer>> scoped
 			: mobProfile.allPins(monsterId).entrySet())
 		{
@@ -1657,16 +1662,14 @@ public class LoadoutLabPanel extends PluginPanel
 			{
 				GearItem item = data.getGear(entry.getValue());
 				String label = item == null ? ("item " + entry.getValue()) : item.label();
-				JMenuItem row = new JMenuItem(
-					"Unpin " + label + " (" + scopeLabel(scope) + ")");
 				com.loadoutlab.data.GearSlot slot = entry.getKey();
-				row.addActionListener(a ->
+				labels.add("Unpin " + label + " (" + scopeLabel(scope) + ")");
+				actions.add(() ->
 				{
 					mobProfile.unpin(monsterId, scope, slot);
 					refreshPinnedLabel();
 					recompute();
 				});
-				menu.add(row);
 			}
 		}
 		for (Map.Entry<String, Map<Integer, String>> scoped
@@ -1675,25 +1678,21 @@ public class LoadoutLabPanel extends PluginPanel
 			String scope = scoped.getKey();
 			for (Map.Entry<Integer, String> entry : scoped.getValue().entrySet())
 			{
-				JMenuItem row = new JMenuItem("Remove filter item " + entry.getValue()
-					+ " (" + scopeLabel(scope) + ")");
 				int itemId = entry.getKey();
-				row.addActionListener(a ->
+				labels.add("Remove filter item " + entry.getValue()
+					+ " (" + scopeLabel(scope) + ")");
+				actions.add(() ->
 				{
 					mobProfile.removeFilterItem(monsterId, scope, itemId);
 					refreshPinnedLabel();
 				});
-				menu.add(row);
 			}
 		}
-		menu.addSeparator();
-		JMenuItem addPin = new JMenuItem("Pin an item - all sets (search)...");
-		addPin.addActionListener(a -> searchAndPin(ALL_SETS));
-		menu.add(addPin);
-		JMenuItem addFilter = new JMenuItem("Add a bank-filter item - all sets (search)...");
-		addFilter.addActionListener(a -> searchAndAddFilter(ALL_SETS));
-		menu.add(addFilter);
-		menu.show(pinnedLabel, e.getX(), e.getY());
+		labels.add("Pin an item - all sets (search)...");
+		actions.add(() -> searchAndPin(ALL_SETS));
+		labels.add("Add a bank-filter item - all sets (search)...");
+		actions.add(() -> searchAndAddFilter(ALL_SETS));
+		showActionList(pinnedLabel, labels, actions);
 	}
 
 	/** The per-cell pin submenu: pin/unpin the shown item for this set or
@@ -1824,25 +1823,23 @@ public class LoadoutLabPanel extends PluginPanel
 
 	private void showStoredMenu(MouseEvent e)
 	{
-		JPopupMenu menu = new JPopupMenu();
+		java.util.List<String> labels = new java.util.ArrayList<>();
+		java.util.List<Runnable> actions = new java.util.ArrayList<>();
 		for (Integer id : storedView.snapshot())
 		{
 			GearItem item = data.getGear(id);
 			String label = item == null ? ("item " + id) : item.label();
-			JMenuItem entry = new JMenuItem("No longer stored elsewhere: " + label);
-			entry.addActionListener(a ->
+			labels.add("No longer stored elsewhere: " + label);
+			actions.add(() ->
 			{
 				storedToggle.toggle(id);
 				refreshStoredLabel();
 				recompute();
 			});
-			menu.add(entry);
 		}
-		menu.addSeparator();
-		JMenuItem add = new JMenuItem("Add a stored-elsewhere item...");
-		add.addActionListener(a -> showAddStoredDialog());
-		menu.add(add);
-		menu.show(storedLabel, e.getX(), e.getY());
+		labels.add("Add a stored-elsewhere item...");
+		actions.add(this::showAddStoredDialog);
+		showActionList(storedLabel, labels, actions);
 	}
 
 	/**
@@ -1971,7 +1968,7 @@ public class LoadoutLabPanel extends PluginPanel
 	private JLabel spellbookIcon(String bookFile, String tooltip, int comboIndex)
 	{
 		JLabel icon = slabToggle(tooltip + " (click again for any spellbook)",
-			() -> spellbook.getSelectedIndex() == comboIndex);
+			() -> spellbookIndex == comboIndex);
 		try (java.io.InputStream in = getClass().getResourceAsStream(
 			"/data/icons/spellbooks/" + bookFile))
 		{
@@ -1983,14 +1980,17 @@ public class LoadoutLabPanel extends PluginPanel
 		catch (java.io.IOException ignored)
 		{
 		}
-		spellbook.addActionListener(e -> icon.repaint());
 		icon.addMouseListener(new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
-				// setSelectedIndex fires the combo's listener -> recompute
-				spellbook.setSelectedIndex(spellbook.getSelectedIndex() == comboIndex ? 0 : comboIndex);
+				spellbookIndex = spellbookIndex == comboIndex ? 0 : comboIndex;
+				if (icon.getParent() != null)
+				{
+					icon.getParent().repaint(); // every book icon re-reads the index
+				}
+				recompute();
 			}
 		});
 		return icon;
@@ -2257,46 +2257,6 @@ public class LoadoutLabPanel extends PluginPanel
 		}
 	}
 
-	/** Three-dots "more options" glyph, painted (Swing glyphs tofu on Tahoe). */
-	private static final class DotsIcon implements javax.swing.Icon
-	{
-		private final int size;
-
-		DotsIcon(int size)
-		{
-			this.size = size;
-		}
-
-		@Override
-		public int getIconWidth()
-		{
-			return size;
-		}
-
-		@Override
-		public int getIconHeight()
-		{
-			return size;
-		}
-
-		@Override
-		public void paintIcon(Component c, Graphics g, int x, int y)
-		{
-			Graphics2D g2 = (Graphics2D) g.create();
-			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				RenderingHints.VALUE_ANTIALIAS_ON);
-			g2.setColor(c.getForeground());
-			double r = Math.max(1.2, size / 9.0);
-			double cy = y + size / 2.0;
-			for (int i = 0; i < 3; i++)
-			{
-				double cx = x + size * (0.22 + 0.28 * i);
-				g2.fill(new java.awt.geom.Ellipse2D.Double(cx - r, cy - r, 2 * r, 2 * r));
-			}
-			g2.dispose();
-		}
-	}
-
 	/**
 	 * Refresh glyph (circular arrow) painted as a ShapeIcon - the Unicode
 	 * reload symbols tofu in Swing on macOS Tahoe, so we draw it. Inherits
@@ -2384,7 +2344,6 @@ public class LoadoutLabPanel extends PluginPanel
 		boolean on = wildyInfo.isVisible() && wildyInfo.isSelected();
 		lowRisk.setVisible(on);
 		protectItem.setVisible(on);
-		riskBudget.setVisible(on);
 		refreshTogglesSlab();
 	}
 
@@ -2426,15 +2385,13 @@ public class LoadoutLabPanel extends PluginPanel
 			spellbookLock(), riskCap(), selectedRiskBudget(),
 			superAntifireAssumed && DragonfireRules.breathesFire(selectedMonster),
 			parsedBudgetGp(),
-			com.loadoutlab.optimizer.OptimizerService.OptimizeMode.values()[optimizeMode.getSelected()],
+			com.loadoutlab.optimizer.OptimizerService.OptimizeMode.values()[optimizeMode.selected()],
 			() -> statusLabel.setText(" "));
 	}
 
 	/** Account or profile switched: nothing on screen may survive. */
 	public void resetForIdentityChange()
 	{
-		showInBank.setSelected(false);
-		applyShowInBank();
 		lastResults = null;
 		clearSelection();
 		refreshExclusionsLabel();
@@ -2470,7 +2427,7 @@ public class LoadoutLabPanel extends PluginPanel
 		resultsPanel.repaint();
 		statusLabel.setText("Search a monster to begin.");
 		revalidate();
-		searchField.requestFocusInWindow();
+		searchField.editor().requestFocusInWindow();
 	}
 
 	/** Render results (EDT). Called by the plugin once the optimizer returns. */
@@ -2494,9 +2451,6 @@ public class LoadoutLabPanel extends PluginPanel
 		{
 			detailStyle = bestStyle(results);
 		}
-		// the bank aids follow fresh results and style switches while the
-		// Show-in-bank checkbox is on (Luke, round 5)
-		applyShowInBank();
 		if (resultsListener != null)
 		{
 			resultsListener.onResults(monster, results);
@@ -2644,7 +2598,9 @@ public class LoadoutLabPanel extends PluginPanel
 	 *  risk rows. Labels medium, values bold (Luke); spellbook/risk small. */
 	public javax.swing.JComponent statsTile(TileStats stats)
 	{
-		JPanel tile = slab();
+		// the DPS block is the Card (Luke, 2026-07-25) — the one live readout
+		// on the page, the same job Goals' Current Task card does
+		JPanel tile = com.ironhub.ui.v2.V2Surface.card(theme);
 		DpsResult best = stats.result;
 
 		// unknown values render NOTHING, never "?" (Luke) — with no result
@@ -2652,6 +2608,9 @@ public class LoadoutLabPanel extends PluginPanel
 		if (best != null)
 		{
 			JPanel grid = statGrid();
+			// DPS alone is BOLD (Luke, 2026-07-25) — it is the figure the Card
+			// exists to report, and the rest are its context. Everything else
+			// here stays on the medium font.
 			grid.add(statCell("DPS", String.format("%.2f", best.getDps()), GOOD,
 				"Damage per second vs " + (stats.monster == null ? "your target" : stats.monster.getName()),
 				OsrsSkin.boldFont()));
@@ -2663,7 +2622,8 @@ public class LoadoutLabPanel extends PluginPanel
 			if (!"?".equals(ttk))
 			{
 				grid.add(statCell("Avg TTK", ttk, INFO,
-					"Average time to kill: the monster's hitpoints over the dps", OsrsSkin.font()));
+					"Average time to kill: the monster's hitpoints over the dps",
+					OsrsSkin.font()));
 			}
 			tile.add(grid);
 		}
@@ -2679,7 +2639,8 @@ public class LoadoutLabPanel extends PluginPanel
 		if (stats.spellbook != null && !stats.spellbook.isEmpty())
 		{
 			tile.add(Box.createVerticalStrut(2));
-			tile.add(fullRow("Spellbook", stats.spellbook, INFO, "The spellbook this spell needs"));
+			tile.add(fullRow("Spellbook", stats.spellbook, INFO,
+				"The spellbook this spell needs"));
 		}
 		if (stats.riskText != null)
 		{
@@ -2703,7 +2664,10 @@ public class LoadoutLabPanel extends PluginPanel
 		{
 			return null;
 		}
-		JPanel tile = slab();
+		// NO highlight of its own (Luke, 2026-07-25): these rows already sit in
+		// a Well, and a filled slab inside it was two surfaces deep. Flat on
+		// whatever hosts it — in his vocabulary, the highlight is the fill.
+		JPanel tile = com.ironhub.ui.v2.V2Layout.column();
 		com.loadoutlab.data.StatBlock off = loadout.getOffensive();
 		com.loadoutlab.data.StatBlock def = loadout.getDefensive();
 		com.loadoutlab.data.StatBlock bon = loadout.getBonuses();
@@ -2749,12 +2713,10 @@ public class LoadoutLabPanel extends PluginPanel
 	/** A stone slab, not a black well (Luke) — the tiles sit on StonePanel. */
 	private JPanel slab()
 	{
-		StonePanel tile = new StonePanel(theme);
-		tile.setLayout(new BoxLayout(tile, BoxLayout.Y_AXIS));
-		tile.setAlignmentX(LEFT_ALIGNMENT);
-		tile.setBorder(BorderFactory.createCompoundBorder(tile.getBorder(),
-			new EmptyBorder(2, 4, 2, 4)));
-		return tile;
+		// the DLV2 Slab: same engraved box, now on the shared grain. Its own
+		// content inset comes with it, so the compound border this used to
+		// stack on top of StonePanel's is gone.
+		return com.ironhub.ui.v2.V2Surface.slab(theme);
 	}
 
 	private static String plus(int value)
@@ -2787,7 +2749,10 @@ public class LoadoutLabPanel extends PluginPanel
 		JPanel cell = new JPanel(new BorderLayout(4, 0));
 		cell.setOpaque(false);
 		JLabel key = line(label, MUTED);
-		key.setFont(headline ? OsrsSkin.font() : OsrsSkin.smallFont());
+		// the KEY follows its value into bold (Luke, 2026-07-25) — "DPS 6.98"
+		// is one statement, and bolding half of it read as a mistake
+		key.setFont(valueFont == OsrsSkin.boldFont() ? OsrsSkin.boldFont()
+			: headline ? OsrsSkin.font() : OsrsSkin.smallFont());
 		JLabel val = line(value, valueColor);
 		val.setFont(valueFont);
 		val.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -3248,9 +3213,10 @@ public class LoadoutLabPanel extends PluginPanel
 	}
 
 	/** "Filter bank": a virtual bank tag showing only this set's items. */
-	private StoneButton openDpsCalcButton()
+	private javax.swing.JComponent openDpsCalcButton()
 	{
-		StoneButton open = new StoneButton(theme, "Open DPS calc", () ->
+		// the chip ATOM, not a hand-built chip-shaped thing (Luke, 2026-07-25)
+		javax.swing.JPanel open = com.ironhub.ui.v2.V2ChipRow.action(theme, "Open DPS calc", () ->
 		{
 			// the loadout derives from the CURRENT results at click time —
 			// the old lastShownLoadout capture died with the icon grid,
@@ -3260,8 +3226,9 @@ public class LoadoutLabPanel extends PluginPanel
 				&& detail.owned != null && !detail.owned.isEmpty())
 			{
 				Map<GearSlot, Integer> loadout = new java.util.EnumMap<>(GearSlot.class);
+				DpsResult shown = detail.owned.get(0);
 				for (Map.Entry<GearSlot, GearItem> slot
-					: detail.owned.get(0).getLoadout().getGear().entrySet())
+					: shown.getLoadout().getGear().entrySet())
 				{
 					if (slot.getValue() != null)
 					{
@@ -3269,53 +3236,13 @@ public class LoadoutLabPanel extends PluginPanel
 					}
 				}
 				dpsCalcHook.open(selectedMonster.getId(), selectedMonster.getName(),
-					loadout, slayerTask.isSelected());
+					loadout, slayerTask.isSelected(),
+					shown.getAttackType(), shown.getSpellName(),
+					detail.assumedLevels, detail.assumedPrayerName);
 			}
 		});
 		open.setToolTipText("Open the wiki DPS calculator with this monster and setup mirrored");
 		return open;
-	}
-
-	/**
-	 * The Show-in-bank checkbox applies BOTH the outline and the filter for
-	 * the selected style's best set (filtered is the default — the separate
-	 * button is gone; Luke, round 5). Re-applied on new results and style
-	 * switches; unchecked or cleared = both off.
-	 */
-	private void applyShowInBank()
-	{
-		StyleResult detail = lastResults == null || selectedMonster == null
-			? null : lastResults.get(detailStyle);
-		if (!showInBank.isSelected() || detail == null
-			|| detail.owned == null || detail.owned.isEmpty())
-		{
-			bankHighlighter.highlight(null);
-			bankFilter.filter(null);
-			return;
-		}
-		DpsResult best = detail.owned.get(0);
-		Set<Integer> ids = new java.util.HashSet<>();
-		for (GearItem item : best.getLoadout().getGear().values())
-		{
-			if (item != null)
-			{
-				ids.add(item.getId());
-			}
-		}
-		GearItem dart = loadedDart(best);
-		if (dart != null)
-		{
-			ids.add(dart.getId());
-		}
-		if (detail.specWeapon != null)
-		{
-			ids.add(detail.specWeapon.getId());
-		}
-		// trip supplies (food, antidotes...) join the filtered view
-		Set<Integer> filterIds = new java.util.HashSet<>(ids);
-		filterIds.addAll(mobProfile.filterItems(currentMonsterId(), detailStyle));
-		bankHighlighter.highlight(filterIds);
-		bankFilter.filter(filterIds);
 	}
 
 	/** A left-aligned, height-capped flow row added to the card. */

@@ -6,12 +6,14 @@ import com.ironhub.ui.UiTokens;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneBorder;
-import com.ironhub.ui.osrs.StoneButton;
-import com.ironhub.ui.osrs.StoneCheckbox;
-import com.ironhub.ui.osrs.StonePanel;
-import com.ironhub.ui.osrs.StoneChipRow;
-import com.ironhub.ui.osrs.StoneTextField;
+import com.ironhub.ui.v2.V2Checkbox;
+import com.ironhub.ui.v2.V2ChipRow;
+import com.ironhub.ui.v2.V2Dropdown;
+import com.ironhub.ui.v2.V2ProgressBar;
+import com.ironhub.ui.v2.V2Surface;
+import com.ironhub.ui.v2.V2TextField;
+import com.ironhub.ui.v2.V2Tokens;
+import com.ironhub.ui.v2.V2Well;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Insets;
@@ -121,17 +123,17 @@ class BankTab extends JPanel
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
 	private final com.ironhub.ui.components.SpriteCache spriteCache;
 
-	private final StoneTextField search;
-	private final javax.swing.JComboBox<String> statFilter;
+	private final V2TextField search;
+	private final V2Dropdown statFilter;
 	private final JPanel actionsHolder = new JPanel();
 	private final JPanel skillStrip = new JPanel();
 	private final JPanel statsHolder = new JPanel();
 	private final JPanel list = new JPanel();
-	private final StoneChipRow alchSort;
+	private final V2ChipRow alchSort;
 	private final JPanel xpSection = new JPanel();
 	/** One long-lived field serves the SKILL and RC target inputs — a
 	 *  per-rebuild field would eat keystrokes (each commit rebuilds). */
-	private final StoneTextField targetField;
+	private final V2TextField targetField;
 	private boolean seedingTarget;
 
 	private Mode mode = Mode.SEARCH;
@@ -195,13 +197,12 @@ class BankTab extends JPanel
 		this.bankedXpPack = bankedXpPack;
 		this.xpActionsPack = xpActionsPack;
 		this.theme = theme;
-		this.search = new StoneTextField(theme, "Search bank…");
-		this.statFilter = com.ironhub.ui.osrs.StoneComboBoxUI.skin(
-			new javax.swing.JComboBox<>(STAT_NAMES), theme);
-		this.alchSort = new StoneChipRow(theme, false, "Each", "Stack");
+		this.search = new V2TextField(theme, "Search bank…", null);
+		this.statFilter = new V2Dropdown(theme, STAT_NAMES);
+		this.alchSort = new V2ChipRow(theme, false, "Each", "Stack");
 		this.alchSort.onChange(i -> rebuild());
-		this.targetField = new StoneTextField(theme, null);
-		this.targetField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+		this.targetField = V2TextField.plain(theme, null, null);
+		this.targetField.editor().getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
 		{
 			@Override
 			public void insertUpdate(javax.swing.event.DocumentEvent e)
@@ -229,7 +230,7 @@ class BankTab extends JPanel
 		add(search);
 		add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 		statFilter.setAlignmentX(LEFT_ALIGNMENT);
-		statFilter.addActionListener(e -> rebuild());
+		statFilter.onChange(i -> rebuild());
 		add(statFilter);
 		add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 
@@ -289,7 +290,7 @@ class BankTab extends JPanel
 		add(xpSection);
 		add(Box.createVerticalGlue());
 
-		search.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
+		search.editor().getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
 		{
 			@Override
 			public void insertUpdate(javax.swing.event.DocumentEvent e)
@@ -363,7 +364,7 @@ class BankTab extends JPanel
 
 	private void rebuild()
 	{
-		boolean targetHadFocus = targetField.isFocusOwner();
+		boolean targetHadFocus = targetField.editor().isFocusOwner();
 		list.removeAll();
 		lastShownIds = List.of(); // set by addRows; stale ids must not linger
 		fullResultIds = List.of();
@@ -379,7 +380,7 @@ class BankTab extends JPanel
 		else
 		{
 			String query = search.getText().trim();
-			int stat = statFilter.getSelectedIndex();
+			int stat = statFilter.selected();
 			boolean needsItemData = mode == Mode.ALCH || mode == Mode.STAT_GROUP
 				|| !selection.isEmpty() // the item-stats card wants equipment stats
 				|| (mode == Mode.SEARCH && stat > 0);
@@ -455,7 +456,7 @@ class BankTab extends JPanel
 		if (targetHadFocus)
 		{
 			// the commit's own rebuild re-parents the field — keep the caret
-			targetField.requestFocusInWindow();
+			targetField.editor().requestFocusInWindow();
 		}
 	}
 
@@ -491,7 +492,7 @@ class BankTab extends JPanel
 			.filter(bank::containsKey)
 			.filter(id -> !state.isAlchExcluded(id, bank.get(id)))
 			.filter(id -> matches(state.itemName(id), query))
-			.sorted(alchComparator(prices, bank, alchSort.getSelected() == 0)
+			.sorted(alchComparator(prices, bank, alchSort.selected() == 0)
 				.thenComparing(id -> state.itemName(id).toLowerCase(Locale.ROOT)))
 			.map(id -> new Row(id,
 				alchFigure(stackValue(prices, bank, id), prices.get(id), bank.get(id)), true))
@@ -614,9 +615,7 @@ class BankTab extends JPanel
 		list.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
 
 		// essence counts — absent = 0, shown honestly
-		StonePanel essences = new StonePanel(theme);
-		essences.setLayout(new BoxLayout(essences, BoxLayout.Y_AXIS));
-		essences.setAlignmentX(LEFT_ALIGNMENT);
+		V2Surface essences = V2Surface.slab(theme);
 		essences.add(iconNameValueRow(PURE_ESSENCE, "Pure essence",
 			"×" + QuantityFormatter.quantityToStackSize(pure), OsrsSkin.MUTED));
 		essences.add(iconNameValueRow(RUNE_ESSENCE, "Rune essence",
@@ -632,15 +631,13 @@ class BankTab extends JPanel
 			list.add(faintLine("No runecrafting methods at your level in the pack."));
 			return;
 		}
-		javax.swing.JComboBox<String> picker = com.ironhub.ui.osrs.StoneComboBoxUI.skin(
-			new javax.swing.JComboBox<>(methods.stream()
-				.map(a -> a.name).toArray(String[]::new)), theme);
-		picker.setSelectedIndex(methods.indexOf(current));
-		picker.setAlignmentX(LEFT_ALIGNMENT);
+		V2Dropdown picker = new V2Dropdown(theme, methods.stream()
+			.map(a -> a.name).toArray(String[]::new));
+		picker.setSelected(methods.indexOf(current));
 		List<com.ironhub.data.XpActionsPack.XpAction> options = methods;
-		picker.addActionListener(e ->
+		picker.onChange(i ->
 		{
-			rcMethod = options.get(picker.getSelectedIndex()).name;
+			rcMethod = options.get(i).name;
 			rebuild();
 		});
 		list.add(picker);
@@ -773,12 +770,8 @@ class BankTab extends JPanel
 		{
 			lastShownIds = ids.subList(0, Math.min(ids.size(), MAX_RESULTS));
 			fullResultIds = ids;
-			StonePanel group = new StonePanel(theme);
-			group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
-			group.setAlignmentX(LEFT_ALIGNMENT);
-			int corner = theme.cornerStamp.length;
-			group.setBorder(new StoneBorder(theme, theme.background,
-				new Insets(corner, corner, corner, corner)));
+			// the item rows sit inside one Well at the list inset (§4)
+			V2Surface group = listWell();
 			int index = 0;
 			for (int id : lastShownIds)
 			{
@@ -801,9 +794,7 @@ class BankTab extends JPanel
 		if (single != null)
 		{
 			list.add(Box.createVerticalStrut(UiTokens.PAD_TIGHT));
-			StonePanel detailCard = new StonePanel(theme);
-			detailCard.setLayout(new BoxLayout(detailCard, BoxLayout.Y_AXIS));
-			detailCard.setAlignmentX(LEFT_ALIGNMENT);
+			V2Surface detailCard = V2Surface.slab(theme);
 			detailCard.add(new OsrsLabel(state.itemName(single), OsrsSkin.LABEL,
 				OsrsSkin.smallFont()).leftAligned().squeezable());
 			detailCard.add(skillDetail(single, byItem.get(single), chosen.get(single),
@@ -856,12 +847,7 @@ class BankTab extends JPanel
 		cap(header);
 		list.add(header);
 
-		StonePanel group = new StonePanel(theme);
-		group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
-		group.setAlignmentX(LEFT_ALIGNMENT);
-		int corner = theme.cornerStamp.length;
-		group.setBorder(new StoneBorder(theme, theme.background,
-			new Insets(corner, corner, corner, corner)));
+		V2Surface group = listWell();
 		List<Map.Entry<Integer, Double>> inNeedOrder = required.entrySet().stream()
 			.sorted(Comparator.<Map.Entry<Integer, Double>>comparingDouble(e -> -e.getValue())
 				.thenComparing(e -> state.itemName(e.getKey()).toLowerCase(Locale.ROOT)))
@@ -897,9 +883,8 @@ class BankTab extends JPanel
 		double totalXp, double selectionXp, boolean showBankedLine)
 	{
 		int banked = bankedLevel(xpNow, totalXp);
-		StonePanel card = new StonePanel(theme);
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setAlignmentX(LEFT_ALIGNMENT);
+		// the skill's standing is the one live readout on the page — the Card
+		V2Surface card = V2Surface.card(theme);
 		// name BOLD, " — 72" regular, " (74 banked)" green regular — three
 		// labels because the fonts differ (Luke, 2026-07-17)
 		JPanel title = new JPanel();
@@ -1000,7 +985,7 @@ class BankTab extends JPanel
 		// in range persists and stops this; only edits persist, never auto).
 		// A modifier toggle moves the banked level, so a stale earlier auto
 		// value re-seeds too — unless the user is mid-edit in the field.
-		if (persisted == 0 && !targetField.isFocusOwner()
+		if (persisted == 0 && !targetField.editor().isFocusOwner()
 			&& !targetField.getText().trim().equals(String.valueOf(autoTarget)))
 		{
 			seedingTarget = true;
@@ -1014,7 +999,7 @@ class BankTab extends JPanel
 		fieldCap.add(targetField);
 		// sized to measured 3-digit ink (max effective level = 126)
 		Dimension pref = targetField.getPreferredSize();
-		int digitsWidth = targetField.getFontMetrics(targetField.getFont())
+		int digitsWidth = targetField.editor().getFontMetrics(targetField.editor().getFont())
 			.stringWidth("126") + 12; // edges 2+2 + padding 4+4
 		pref = new Dimension(digitsWidth, pref.height);
 		fieldCap.setPreferredSize(pref);
@@ -1045,9 +1030,9 @@ class BankTab extends JPanel
 		{
 			double goalXp = net.runelite.api.Experience.getXpForLevel(target);
 			double fraction = Math.min(1, (xpNow + bankedTotal) / goalXp);
-			com.ironhub.ui.osrs.StoneMeter meter = new com.ironhub.ui.osrs.StoneMeter(
-				theme, lerp(UiTokens.STATUS_WARNING, OsrsSkin.VALUE, fraction), fraction);
-			meter.setAlignmentX(LEFT_ALIGNMENT);
+			V2ProgressBar meter = new V2ProgressBar(theme, V2ProgressBar.Size.METER)
+				.fill(lerp(UiTokens.STATUS_WARNING, OsrsSkin.VALUE, fraction))
+				.fraction(fraction);
 			JPanel meterRow = new JPanel();
 			meterRow.setLayout(new BoxLayout(meterRow, BoxLayout.X_AXIS));
 			meterRow.setOpaque(false);
@@ -1098,35 +1083,10 @@ class BankTab extends JPanel
 
 	/** The +/× goal affordance in skin colours — its own action, faint
 	 *  until hovered (the diaries/GoalsTab glyph grammar). */
-	private static JLabel goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
+	private static JComponent goalGlyph(boolean isGoal, String tooltip, Runnable onClick)
 	{
-		JLabel glyph = new JLabel(isGoal ? "×" : "+");
-		OsrsSkin.crisp(glyph);
-		glyph.setFont(OsrsSkin.font());
-		glyph.setForeground(OsrsSkin.FAINT);
-		glyph.setToolTipText(tooltip);
-		glyph.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-		glyph.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.TITLE);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				glyph.setForeground(OsrsSkin.FAINT);
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e)
-			{
-				onClick.run();
-			}
-		});
-		return glyph;
+		// the shared letter-glyph atom (unified 2026-08-03)
+		return new com.ironhub.ui.v2.V2GlyphButton(isGoal ? "×" : "+", tooltip, onClick);
 	}
 
 	/** Linear blend a → b by t (the meter's red-to-green progress fill). */
@@ -1153,14 +1113,14 @@ class BankTab extends JPanel
 		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
 		row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 0, UiTokens.ROW_GAP));
-		StoneCheckbox box = new StoneCheckbox(theme, activeModifiers.contains(modifier.getName()));
-		box.setDimmed(greyed);
+		V2Checkbox box = new V2Checkbox(theme, modifier.getName(),
+			activeModifiers.contains(modifier.getName()), null);
+		box.state(greyed
+			? (activeModifiers.contains(modifier.getName())
+				? V2Checkbox.State.DISABLED_ON : V2Checkbox.State.DISABLED)
+			: (activeModifiers.contains(modifier.getName())
+				? V2Checkbox.State.ON : V2Checkbox.State.OFF));
 		row.add(box);
-		row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
-		row.add(new OsrsLabel(modifier.getName(),
-			greyed ? OsrsSkin.FAINT : OsrsSkin.MUTED, OsrsSkin.smallFont())
-			.leftAligned().squeezable());
-		row.add(Box.createHorizontalGlue());
 		if (greyed)
 		{
 			row.setToolTipText("Not usable by the selected item's activity");
@@ -1212,13 +1172,11 @@ class BankTab extends JPanel
 		{
 			String[] names = options.stream().map(BankedXpPack.Entry::getMethod)
 				.toArray(String[]::new);
-			javax.swing.JComboBox<String> picker = com.ironhub.ui.osrs.StoneComboBoxUI.skin(
-				new javax.swing.JComboBox<>(names), theme);
-			picker.setSelectedIndex(options.indexOf(current));
-			picker.setAlignmentX(LEFT_ALIGNMENT);
-			picker.addActionListener(e ->
+			V2Dropdown picker = new V2Dropdown(theme, names);
+			picker.setSelected(options.indexOf(current));
+			picker.onChange(i ->
 			{
-				chosenActivity.put(itemId, options.get(picker.getSelectedIndex()).getActivity());
+				chosenActivity.put(itemId, options.get(i).getActivity());
 				rebuild();
 			});
 			detail.add(picker);
@@ -1336,6 +1294,15 @@ class BankTab extends JPanel
 		return best;
 	}
 
+	/** A list Well at the list inset (§4) — every grouped row block here. */
+	private V2Surface listWell()
+	{
+		V2Surface well = V2Surface.well(theme);
+		int inset = V2Well.CAP + V2Tokens.TIGHT;
+		well.setBorder(new EmptyBorder(inset, inset, inset, inset));
+		return well;
+	}
+
 	// ── controls ──────────────────────────────────────────────────────
 
 	private void rebuildActions()
@@ -1346,7 +1313,8 @@ class BankTab extends JPanel
 		row.setAlignmentX(LEFT_ALIGNMENT);
 		if (!selection.isEmpty())
 		{
-			row.add(new StoneButton(theme, "Clear selection (" + selection.size() + ")", () ->
+			row.add(new com.ironhub.ui.v2.V2Button(theme,
+				"Clear selection (" + selection.size() + ")", () ->
 			{
 				selection.clear();
 				rebuild();
@@ -1355,7 +1323,7 @@ class BankTab extends JPanel
 		int excluded = state.getAlchExcluded().size();
 		if (mode == Mode.ALCH && excluded > 0)
 		{
-			row.add(new StoneButton(theme, "Reset excluded (" + excluded + ")",
+			row.add(new com.ironhub.ui.v2.V2Button(theme, "Reset excluded (" + excluded + ")",
 				state::clearAlchExclusions));
 		}
 		if (row.getComponentCount() > 0)
@@ -1482,12 +1450,22 @@ class BankTab extends JPanel
 	private JPanel stripCell(javax.swing.Icon icon, boolean active, String tooltip,
 		Runnable onPress)
 	{
-		JPanel cell = new JPanel(new java.awt.BorderLayout());
-		cell.setOpaque(active);
-		if (active)
+		// active = the translucent HIGHLIGHT wash, the system's lit reading —
+		// never an opaque V1 selectFill slab (X1 2026-08-03)
+		JPanel cell = new JPanel(new java.awt.BorderLayout())
 		{
-			cell.setBackground(theme.selectFill);
-		}
+			@Override
+			protected void paintComponent(java.awt.Graphics g)
+			{
+				if (active)
+				{
+					g.setColor(V2Tokens.HIGHLIGHT);
+					g.fillRect(0, 0, getWidth(), getHeight());
+				}
+				super.paintComponent(g);
+			}
+		};
+		cell.setOpaque(false);
 		cell.setBorder(new EmptyBorder(2, 2, 2, 2));
 		JLabel label = new JLabel(icon);
 		cell.add(label, java.awt.BorderLayout.CENTER);
@@ -1589,13 +1567,8 @@ class BankTab extends JPanel
 		fullResultIds = rows.stream().map(row -> row.itemId).collect(Collectors.toList());
 		if (!rows.isEmpty())
 		{
-			// the item rows sit inside one notched frame, checklist-style
-			StonePanel group = new StonePanel(theme);
-			group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
-			group.setAlignmentX(LEFT_ALIGNMENT);
-			int corner = theme.cornerStamp.length;
-			group.setBorder(new StoneBorder(theme, theme.background,
-				new Insets(corner, corner, corner, corner)));
+			// the item rows sit inside one Well at the list inset (§4)
+			V2Surface group = listWell();
 			int index = 0;
 			for (Row row : rows.subList(0, Math.min(rows.size(), MAX_RESULTS)))
 			{
@@ -1623,13 +1596,23 @@ class BankTab extends JPanel
 	{
 		int itemId = spec.itemId;
 		boolean selected = selection.contains(itemId);
-		JPanel row = new JPanel();
-		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-		row.setOpaque(selected);
-		if (selected)
+		// selected = the HIGHLIGHT wash + the name in heading orange (§8's
+		// selected reading), never an opaque selectFill slab (X1 2026-08-03)
+		JPanel row = new JPanel()
 		{
-			row.setBackground(theme.selectFill);
-		}
+			@Override
+			protected void paintComponent(java.awt.Graphics g)
+			{
+				if (selected)
+				{
+					g.setColor(V2Tokens.HIGHLIGHT);
+					g.fillRect(0, 0, getWidth(), getHeight());
+				}
+				super.paintComponent(g);
+			}
+		};
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
 		row.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
 
@@ -1642,7 +1625,8 @@ class BankTab extends JPanel
 		// every result list reads in the small font (Luke, 2026-07-17)
 		java.awt.Font rowFont = OsrsSkin.smallFont();
 		String tooltip = statsTooltip(itemId, quantity);
-		OsrsLabel nameLabel = new OsrsLabel(state.itemName(itemId), OsrsSkin.LABEL, rowFont)
+		OsrsLabel nameLabel = new OsrsLabel(state.itemName(itemId),
+			selected ? OsrsSkin.TITLE : OsrsSkin.LABEL, rowFont)
 			.leftAligned().squeezable();
 		nameLabel.setToolTipText(tooltip);
 		row.add(nameLabel);
@@ -1680,19 +1664,11 @@ class BankTab extends JPanel
 		{
 			row.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 			// the resting grey x says "this box excludes" without a hover
-			StoneCheckbox exclude = new StoneCheckbox(theme, false, true);
+			// the box alone — this row lays its own parts out. Remembers the
+			// quantity: excluded at 1 auto-returns once the player owns more
+			V2Checkbox exclude = new V2Checkbox(theme, null, false,
+				() -> state.setAlchExcluded(itemId, quantity));
 			exclude.setToolTipText("Exclude from Highest alchs");
-			exclude.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-			exclude.addMouseListener(new MouseAdapter()
-			{
-				@Override
-				public void mousePressed(MouseEvent e)
-				{
-					// remembers the quantity: excluded at 1 auto-returns
-					// once the player owns more (notify re-renders the list)
-					state.setAlchExcluded(itemId, quantity);
-				}
-			});
 			row.add(exclude);
 		}
 		row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
@@ -1777,9 +1753,8 @@ class BankTab extends JPanel
 		{
 			comparePick = 0;
 		}
-		StonePanel card = new StonePanel(theme);
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		card.setAlignmentX(LEFT_ALIGNMENT);
+		// the opened item's stats are the one live readout — the Card
+		V2Surface card = V2Surface.card(theme);
 		JPanel columns = new JPanel(new java.awt.GridLayout(1, comparePick > 0 ? 2 : 1, 8, 0));
 		columns.setOpaque(false);
 		columns.setAlignmentX(LEFT_ALIGNMENT);
@@ -1796,7 +1771,7 @@ class BankTab extends JPanel
 			controls.setLayout(new BoxLayout(controls, BoxLayout.X_AXIS));
 			controls.setOpaque(false);
 			controls.setAlignmentX(LEFT_ALIGNMENT);
-			controls.add(new StoneButton(theme, "Compare", () ->
+			controls.add(V2ChipRow.action(theme, "Compare", null, null, OsrsSkin.smallFont(), () ->
 			{
 				comparePick = comparePick + 1 < ordered.size() ? comparePick + 1 : 1;
 				rebuild();
@@ -1829,11 +1804,10 @@ class BankTab extends JPanel
 			// the raw 36x32 sprite, unscaled
 			JLabel icon = new JLabel();
 			icon.setAlignmentX(LEFT_ALIGNMENT);
-			// AsyncBufferedImage pixels fill in place — repaint suffices, and
-			// the old onLoaded(setIcon) ran Swing mutation on the client thread
-			AsyncBufferedImage sprite = itemManager.getImage(itemId);
-			icon.setIcon(new ImageIcon(sprite));
-			sprite.onLoaded(icon::repaint);
+			// addTo: ItemManager's documented pattern — it registers a
+			// listener only while unresolved, so a per-rebuild re-request
+			// no longer stacks one repaint listener per rebuild
+			itemManager.getImage(itemId).addTo(icon);
 			col.add(icon);
 		}
 		col.add(new OsrsLabel(state.itemName(itemId), OsrsSkin.LABEL, OsrsSkin.smallFont())
@@ -2079,7 +2053,10 @@ class BankTab extends JPanel
 					(xpNow + result.xp - floor) / (ceil - floor)));
 			}
 			setToolTipText(tooltip(skill, result));
+			this.bar = new V2ProgressBar(theme, V2ProgressBar.Size.METER);
 		}
+
+		private final V2ProgressBar bar;
 
 		@Override
 		public Dimension getPreferredSize()
@@ -2098,8 +2075,9 @@ class BankTab extends JPanel
 		{
 			java.awt.Graphics2D g2 = (java.awt.Graphics2D) g;
 			int w = getWidth(), h = getHeight();
-			com.ironhub.ui.osrs.StoneNavButton.paintSlab(g2, theme, w, h,
-				theme.boxFill, theme.edgeLight);
+			// the Tile SURFACE, shared with V2Tile and V2Surface.tile — this
+			// used to paint its own fills (Luke's Bank pass, 2026-07-26)
+			V2Surface.paintTile(g2, theme, w, h, false);
 			int x = 6;
 			if (icon != null)
 			{
@@ -2124,13 +2102,14 @@ class BankTab extends JPanel
 			}
 			x += 7 + 3;
 			drawShadowed(g2, String.valueOf(banked), x, baseline, OsrsSkin.VALUE);
-			// the thin meter (StoneMeter anatomy: recess trough, 1px inset fill)
-			int barY = h - 10;
-			g2.setColor(theme.recess);
-			g2.fillRect(6, barY, w - 12, 5);
-			g2.setColor(OsrsSkin.PROGRESS_BLUE);
-			g2.fillRect(7, barY + 1, (int) Math.round((w - 14) * fraction), 3);
-			OsrsSkin.outline(g2, theme.edgeDark, 6, barY, w - 12, 5);
+			// the METER atom across the foot, painted in place
+			bar.fill(V2Tokens.BAR_BLUE).fraction(fraction);
+			int barH = bar.getPreferredSize().height;
+			int barY = h - barH - V2Tokens.ROW;
+			bar.setBounds(V2Tokens.PAD, barY, w - 2 * V2Tokens.PAD, barH);
+			g2.translate(V2Tokens.PAD, barY);
+			bar.paint(g2);
+			g2.translate(-V2Tokens.PAD, -barY);
 		}
 
 		/** Shadowed pixel text; returns the x after the drawn string. */

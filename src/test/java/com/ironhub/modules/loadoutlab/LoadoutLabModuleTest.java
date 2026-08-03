@@ -70,11 +70,39 @@ public class LoadoutLabModuleTest
 		javax.imageio.ImageIO.write(image, "png", out);
 	}
 
+	/** The 1.7 MB item-sources pack must parse ONCE for the module's life —
+	 *  the old fresh-DataPack-per-call defeated the per-instance memo and
+	 *  Gson-parsed it per unowned wiki-gear row per render, on the EDT. */
+	@Test
+	public void itemSourcesPackParsesOnceNotPerRow()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		LoadoutLabModule module = newModule(state);
+
+		long t0 = System.nanoTime();
+		com.ironhub.data.ItemSourcesPack first = module.itemSourcesPack();
+		long parseMs = (System.nanoTime() - t0) / 1_000_000;
+		t0 = System.nanoTime();
+		com.ironhub.data.ItemSourcesPack second = module.itemSourcesPack();
+		long cachedMicros = (System.nanoTime() - t0) / 1_000;
+		System.out.printf("item-sources pack: first parse %d ms, cached hit %d us%n",
+			parseMs, cachedMicros);
+
+		org.junit.Assert.assertSame(first, second);
+	}
+
 	private static LoadoutLabModule newModule(AccountState state)
 	{
 		return new LoadoutLabModule(new com.loadoutlab.LoadoutLabPlugin(),
 			new net.runelite.client.eventbus.EventBus(), new com.ironhub.IronHubConfig()
 			{
+				// Vanilla: the config default is MYSTIC, and these renders are
+				// judged against the Vanilla design system (Luke, 2026-07-25)
+				@Override
+				public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+				{
+					return com.ironhub.ui.osrs.OsrsTheme.STONE;
+				}
 			},
 			state, null, null, null, new com.google.gson.Gson(), null, null, null, null);
 	}
@@ -230,10 +258,12 @@ public class LoadoutLabModuleTest
 		javax.imageio.ImageIO.write(image, "png", out);
 	}
 
-	/** The setups list: checkbox-less checklist rows inside a stone-scrolled
-	 *  frame, capped so a long list never dominates the tab (Luke). */
+	/** GC3/GC4 (2026-08-03): the setups picker is the shared V2 dropdown,
+	 *  floated beneath the View setups button. Picking a setup views it
+	 *  (and the atom closes on pick by contract); "Live view" leads and
+	 *  returns to the live diff. */
 	@Test
-	public void setupsListRendersFramedAndScrollCapped() throws Exception
+	public void setupsDropdownPicksViewAndLive() throws Exception
 	{
 		AccountState state = liveState();
 		for (int i = 1; i <= 12; i++)
@@ -243,14 +273,73 @@ public class LoadoutLabModuleTest
 			state.saveSetup("Setup " + i, setup);
 		}
 		LoadoutLabModule module = newModule(state);
-		javax.swing.JComponent tab = module.buildTab();
-		javax.swing.SwingUtilities.invokeAndWait(module::toggleAllSetupsForTest);
-		java.awt.image.BufferedImage image =
-			com.ironhub.ui.SwingRender.render((javax.swing.JPanel) tab);
-		assertTrue(image.getHeight() > 200);
-		java.io.File out = new java.io.File("build/reports/loadout-setups-list.png");
-		out.getParentFile().mkdirs();
-		javax.imageio.ImageIO.write(image, "png", out);
+		module.buildTab();
+		javax.swing.SwingUtilities.invokeAndWait(() ->
+		{
+			java.util.List<String> names = state.savedSetupNames();
+			com.ironhub.ui.v2.V2Dropdown dropdown = module.setupsDropdownForTest();
+			dropdown.pick(3); // "Live view" leads, so 3 = the third saved name
+			assertEquals(names.get(2), module.viewedSetupForTest());
+			// rebuilt fresh per open: the active setup is preselected
+			assertEquals(3, module.setupsDropdownForTest().selected());
+			module.setupsDropdownForTest().pick(0);
+			assertEquals(null, module.viewedSetupForTest());
+		});
+	}
+
+	/** R4 (2026-08-03): the bank mirror follows what the VIEWER shows — the
+	 *  task setup in Slayer view, the viewed setup when one is up, and a
+	 *  live capture in Current — never a stale calc result. */
+	@Test
+	public void bankMirrorFollowsTheViewedView() throws Exception
+	{
+		AccountState state = liveState();
+		state.setSlayerTask("Bloodvelds");
+		PersistedState.SavedSetup taskSetup = new PersistedState.SavedSetup();
+		taskSetup.equipment.put("WEAPON", 4151);
+		state.saveSetup("Bloodvelds", taskSetup);
+		PersistedState.SavedSetup other = new PersistedState.SavedSetup();
+		other.equipment.put("WEAPON", 12926);
+		state.saveSetup("Zulrah", other);
+
+		LoadoutLabModule module = newModule(state);
+		module.buildTab();
+		javax.swing.SwingUtilities.invokeAndWait(() ->
+		{
+			// Current view: a live capture of what is worn/carried
+			module.setViewSourceForTest(0);
+			assertEquals((Integer) 12926,
+				module.displayedSetupForTest().equipment.get("WEAPON"));
+			// Slayer view: the task's setup
+			module.setViewSourceForTest(1);
+			assertEquals((Integer) 4151,
+				module.displayedSetupForTest().equipment.get("WEAPON"));
+			// an explicitly viewed setup wins over the source chips
+			module.viewSetupForTest("Zulrah");
+			assertEquals((Integer) 12926,
+				module.displayedSetupForTest().equipment.get("WEAPON"));
+		});
+	}
+
+	/** R5 (2026-08-03): one setup name per monster whatever the view —
+	 *  the NPC's singular and the task's plural unify on the plural; a
+	 *  name with no sibling passes through untouched. */
+	@Test
+	public void setupNamesUnifyOnThePluralTaskForm() throws Exception
+	{
+		AccountState state = liveState();
+		state.setSlayerTask("Bloodvelds");
+		LoadoutLabModule module = newModule(state);
+		assertEquals("Bloodvelds", module.canonicalSetupName("Bloodveld"));
+		assertEquals("Bloodvelds", module.canonicalSetupName("blood veld"));
+		assertEquals("Bloodvelds", module.canonicalSetupName("Bloodvelds"));
+		// an existing setup's name is the family's canonical form too
+		PersistedState.SavedSetup setup = new PersistedState.SavedSetup();
+		setup.equipment.put("WEAPON", 4151);
+		state.saveSetup("Jellies", setup);
+		assertEquals("Jellies", module.canonicalSetupName("Jelly"));
+		// no sibling: never blindly pluralised
+		assertEquals("Kalphite Queen", module.canonicalSetupName("Kalphite Queen"));
 	}
 
 	@Test

@@ -82,10 +82,10 @@ public class SlayerTasksPackTest
 	}
 
 	@Test
-	public void mastersAreTheNineWithUniqueFocusIds()
+	public void mastersAreTheTenWithUniqueFocusIds()
 	{
 		SlayerTasksPack pack = load();
-		assertEquals(9, pack.masters.size());
+		assertEquals(10, pack.masters.size()); // + Mortimer (S12, 2026-08-03)
 		Set<Integer> focus = new HashSet<>();
 		for (SlayerTasksPack.Master master : pack.masters)
 		{
@@ -94,6 +94,23 @@ public class SlayerTasksPackTest
 		assertTrue(pack.masterByFocus(7).wilderness); // Krystilia (core's constant)
 		assertEquals("Turael", pack.masterByFocus(1).name);
 		assertEquals("Turael", pack.masterByName("Aya").name); // dialog alias
+
+		// Mortimer: focus id is the -1 SENTINEL until the game's value is
+		// documented (never matches a SLAYER_MASTER varbit read, so live
+		// detection stays honest-empty rather than guessing); base points
+		// 0 — his Mortifier system awards per-task amounts instead
+		SlayerTasksPack.Master mortimer = pack.masterByName("Mortimer");
+		assertEquals(-1, mortimer.focusId);
+		assertEquals(0, mortimer.points);
+		// the full wiki table (R9, verified 2026-08-03): 29 rows including
+		// Venators — Mortimer is the only master who assigns them, and the
+		// task rides a curated supplemental entry until the pinned core
+		// Task.java knows it
+		assertEquals(29, mortimer.tasks.size());
+		assertTrue(mortimer.tasks.stream().anyMatch(t -> "venators".equals(t.task)));
+		SlayerTasksPack.Task venators = pack.task("venators");
+		assertEquals("Venators", venators.name);
+		assertTrue("venator icon", venators.icon > 0);
 	}
 
 	@Test

@@ -28,6 +28,39 @@ public final class GoalSeeds
 		return seed;
 	}
 
+	/** A whole CA tier ("All Easy combat tasks"): proven by the
+	 *  {@code catier_<tier>} unlock the CA module marks off the game's own
+	 *  tier-status varbit (Luke, 2026-07-27). */
+	public static PersistedState.GoalSeed caTier(String tier)
+	{
+		String key = tier.toLowerCase(java.util.Locale.ROOT);
+		String proof = "unlock:catier_" + key;
+		PersistedState.GoalSeed seed = base("ca", "ca:tier_" + key,
+			"All " + tier + " combat tasks");
+		seed.steps.add(step("Complete every " + tier + " combat achievement", proof));
+		seed.achieved.add(proof);
+		return seed;
+	}
+
+	/** Every CA of one boss: proven by the {@code caboss_<slug>} unlock the
+	 *  CA module marks when the boss's task count completes. */
+	public static PersistedState.GoalSeed caBoss(String boss)
+	{
+		String proof = "unlock:" + caBossProofKey(boss);
+		PersistedState.GoalSeed seed = base("ca", "ca:boss_" + sanitize(boss),
+			"All " + boss + " combat tasks");
+		seed.steps.add(step("Complete every combat achievement for " + boss, proof));
+		seed.achieved.add(proof);
+		return seed;
+	}
+
+	/** The boss proof key — sanitized, because an unlock: key must carry no
+	 *  colons (the graph's colon-split parse truncates them). */
+	public static String caBossProofKey(String boss)
+	{
+		return "caboss_" + sanitize(boss);
+	}
+
 	/** An achievement diary task: one step, proven by the
 	 *  {@code diarytask_<slug>} unlock the diaries module marks. */
 	public static PersistedState.GoalSeed diary(String slug, String task, String region, String tier)
@@ -63,6 +96,42 @@ public final class GoalSeeds
 		return s.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]+", "_");
 	}
 
+	/** The goal id a clue-tier STASH-set seed carries — shared with the UI's
+	 *  is-tracked check (CL2 2026-08-03). */
+	public static String clueTierId(String tier)
+	{
+		return "cluetier:" + sanitize(tier);
+	}
+
+	/** The unlock FLAG (no "unlock:" prefix) proving one STASH unit filled —
+	 *  built here once so the factory and the clues module's marker can never
+	 *  drift (the pohProofKey precedent). */
+	public static String clueStashProof(String stashKey)
+	{
+		return "cluestash_" + sanitize(stashKey);
+	}
+
+	/**
+	 * A clue TIER's STASH set (CL2 2026-08-03, the {@link #diaryTier} shape):
+	 * one step per unit, each proven by the {@code cluestash_<key>} unlock
+	 * the clues module marks as that unit FILLS. Achieved = every unit
+	 * filled. Fill detection is chat-based and a pre-plugin fill is
+	 * undetectable — the tab's manual filled toggle feeds the same flags.
+	 */
+	public static PersistedState.GoalSeed clueTier(String tier,
+		java.util.List<String> stashKeys, java.util.List<String> stashNames)
+	{
+		PersistedState.GoalSeed seed = base("cluetier", clueTierId(tier),
+			tier + " STASH set");
+		for (int i = 0; i < stashKeys.size(); i++)
+		{
+			String proof = "unlock:" + clueStashProof(stashKeys.get(i));
+			seed.steps.add(step("Fill the " + stashNames.get(i) + " STASH", proof));
+			seed.achieved.add(proof);
+		}
+		return seed;
+	}
+
 	/** A clue step: its item requirements become planner steps, proven by
 	 *  the {@code cluestep_<id>} unlock the clues module marks. */
 	public static PersistedState.GoalSeed clue(String id, String text, String tier, List<String> reqs)
@@ -94,6 +163,25 @@ public final class GoalSeeds
 		// isn't always a currently-owned item)
 		seed.steps.add(step("Obtain " + name + " (" + activity + ")", "item:" + itemId));
 		seed.achieved.add(proof);
+		return seed;
+	}
+
+	/** A slayer point unlock (S11, 2026-08-03): earning the points is a
+	 *  live varbit step (4068 = the game's own balance), buying it is
+	 *  proven by the {@code slayerreward_<slug>} flag the slayer module
+	 *  mirrors from the unlock's own varbit — achieved detection for free,
+	 *  immediate when already purchased. */
+	public static PersistedState.GoalSeed slayerUnlock(String key, String name, int points)
+	{
+		PersistedState.GoalSeed seed = base("slayerunlock", "slayerunlock:" + key, name);
+		if (points > 0)
+		{
+			String req = "varbit:4068:" + points + ":Slayer reward points";
+			seed.steps.add(step(Requirements.parse(req).describe(), req));
+		}
+		seed.steps.add(step("Buy " + name + " at any Slayer Rewards board",
+			"unlock:" + key));
+		seed.achieved.add("unlock:" + key);
 		return seed;
 	}
 

@@ -27,6 +27,7 @@ public class QolModule implements IronHubModule
 	private final IronHubConfig config;
 	private final DataPack dataPack;
 	private final javax.inject.Provider<com.ironhub.modules.goals.GoalPlannerModule> planner; // null in tests
+	private final net.runelite.client.game.ItemManager itemManager; // null in unit tests
 	private QolTab tab;
 	private int seedProfileGeneration = -1;
 	private final Runnable seedListener = this::onProfileMaybeChanged;
@@ -45,17 +46,36 @@ public class QolModule implements IronHubModule
 
 	@Inject
 	public QolModule(AccountState state, IronHubConfig config, DataPack dataPack,
-		javax.inject.Provider<com.ironhub.modules.goals.GoalPlannerModule> planner)
+		javax.inject.Provider<com.ironhub.modules.goals.GoalPlannerModule> planner,
+		net.runelite.client.game.ItemManager itemManager)
 	{
 		this.state = state;
 		this.config = config;
 		this.dataPack = dataPack;
 		this.planner = planner;
+		this.itemManager = itemManager;
 	}
 
 	/** The current plan already obtains this item under some OTHER goal
 	 *  (gear chart, supplies …) — the affordance says so instead of
 	 *  offering a duplicate (Luke: Ava's assembler was offered twice). */
+	/** Identity stamp of the planner's facts, for the tab's fingerprint. */
+	int planFactsStamp()
+	{
+		if (planner == null)
+		{
+			return 0;
+		}
+		try
+		{
+			return planner.get().planFactsStamp();
+		}
+		catch (RuntimeException e)
+		{
+			return 0;
+		}
+	}
+
 	boolean planWantsItem(int itemId)
 	{
 		if (planner == null)
@@ -133,7 +153,7 @@ public class QolModule implements IronHubModule
 		if (tab == null)
 		{
 			tab = new QolTab(state, dataPack.load("qol", QolPack.class),
-				config.osrsTheme(), this::planWantsItem);
+				config.osrsTheme(), this::planWantsItem, this::planFactsStamp, itemManager);
 		}
 		return tab;
 	}

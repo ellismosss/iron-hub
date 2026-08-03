@@ -1,19 +1,24 @@
 package com.ironhub.modules.sync;
 
-import java.util.Optional;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ExternalSyncTest
 {
+	/** The WOM/Temple pings survive an enable cycle without touching the
+	 *  state listener registry — the module is event-driven only since the
+	 *  Discord webhook's removal (Luke, 2026-08-03). */
 	@Test
-	public void milestoneDetection()
+	public void startUpAndShutDownAreEventBusOnly()
 	{
-		assertEquals(Optional.empty(), ExternalSyncModule.milestone(41, 43));
-		assertEquals(Optional.of(50), ExternalSyncModule.milestone(49, 50));
-		assertEquals(Optional.of(80), ExternalSyncModule.milestone(78, 81)); // crossed 80
-		assertEquals(Optional.of(99), ExternalSyncModule.milestone(98, 99));
-		assertEquals(Optional.empty(), ExternalSyncModule.milestone(50, 50)); // no gain
+		ExternalSyncModule module = new ExternalSyncModule(null,
+			new net.runelite.client.eventbus.EventBus(), new com.ironhub.IronHubConfig()
+			{
+			}, null);
+		module.startUp();
+		module.onGameTick(null); // null client tolerated
+		module.shutDown();
+		assertTrue(true); // reaching here IS the pin: no NPE, no registry leak
 	}
 }

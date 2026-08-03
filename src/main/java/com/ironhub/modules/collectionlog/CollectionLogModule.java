@@ -23,7 +23,6 @@ import net.runelite.api.MenuAction;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
-import net.runelite.api.events.ScriptPostFired;
 import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.gameval.InterfaceID;
@@ -60,7 +59,6 @@ public class CollectionLogModule implements IronHubModule
 	static final String NEW_ITEM_PREFIX = "New item added to your collection log:";
 
 	// Fires once when the collection log interface is built — attach the button.
-	private static final int SCRIPT_COLLECTION_SETUP = 7797;
 	// Per-item callback the enumerate script fires for every OBTAINED slot.
 	private static final int SCRIPT_COLLECTION_ITEM = 4100;
 	// The cs2 proc that walks the whole log and re-fires 4100 for all obtained items.
@@ -80,7 +78,6 @@ public class CollectionLogModule implements IronHubModule
 	private com.ironhub.data.ItemSourcesPack itemSources;
 	private CollectionLogTab tab;
 
-	private final LogSyncButton syncButton = new LogSyncButton();
 	// Full-sync harvest state (client thread only): canonical id -> the
 	// count the log carries for it (the game draws it on the sprite).
 	private final java.util.Map<Integer, Integer> harvest = new java.util.LinkedHashMap<>();
@@ -131,7 +128,6 @@ public class CollectionLogModule implements IronHubModule
 	public void shutDown()
 	{
 		eventBus.unregister(this);
-		syncButton.reset();
 		if (tab != null)
 		{
 			tab.dispose();
@@ -259,38 +255,10 @@ public class CollectionLogModule implements IronHubModule
 	}
 
 	@Subscribe
-	public void onScriptPostFired(ScriptPostFired event)
-	{
-		if (event.getScriptId() == SCRIPT_COLLECTION_SETUP)
-		{
-			// The interface was (re)built — its dynamic children were wiped.
-			syncButton.reset();
-			syncButton.attach(client, this::triggerFullSync);
-			// Another plugin handling 7797 may deleteAllChildren() on this
-			// container AFTER us; re-attach once more on the next client
-			// cycle so we survive the wipe regardless of EventBus ordering.
-			clientThread.invokeLater(() ->
-			{
-				syncButton.attach(client, this::triggerFullSync);
-				return true;
-			});
-		}
-	}
-
-	@Subscribe
 	public void onGameTick(GameTick event)
 	{
 		readCatalogOnce();
 		readOpenPageHeader();
-		// Self-heal: re-create the button if another plugin wiped it.
-		// attach() no-ops when the log is closed or the button is present.
-		syncButton.attach(client, this::triggerFullSync);
-		if (fullSyncRequested)
-		{
-			// A redraw can rebuild the button and revert its label;
-			// re-pin the busy state each tick until we consume.
-			syncButton.setBusy(true);
-		}
 		if (syncAtTick != null && client.getTickCount() >= syncAtTick)
 		{
 			consumeHarvest();
@@ -302,7 +270,6 @@ public class CollectionLogModule implements IronHubModule
 	{
 		if (event.getGameState() == GameState.LOGIN_SCREEN)
 		{
-			syncButton.reset();
 			catalogRead = false;
 		}
 	}
@@ -333,9 +300,14 @@ public class CollectionLogModule implements IronHubModule
 	 */
 	private void readOpenPageHeader()
 	{
-		Widget header = client.getWidget(InterfaceID.Collection.HEADER);
-		Widget[] lines = header == null ? null : header.getDynamicChildren();
-		if (lines == null || lines.length < 2)
+		// HEADER_TEXT, not HEADER: the title and counter lines are children
+		// of the text widget (core's ChatCommandsPlugin reads the title as
+		// HEADER_TEXT child 0). HEADER is the container — its child list is
+		// empty, which is why no count was ever captured (root-caused
+		// 2026-07-27 against the 1.12.33 sources; Luke: "I already have").
+		Widget header = client.getWidget(InterfaceID.Collection.HEADER_TEXT);
+		Widget[] lines = header == null ? null : header.getChildren();
+		if (lines == null || lines.length < 2 || lines[0] == null)
 		{
 			return;
 		}
@@ -349,7 +321,7 @@ public class CollectionLogModule implements IronHubModule
 		List<String> counts = new ArrayList<>();
 		for (int i = 1; i < lines.length; i++)
 		{
-			String text = lines[i].getText();
+			String text = lines[i] == null ? null : lines[i].getText();
 			if (text == null)
 			{
 				continue;
@@ -379,6 +351,31 @@ public class CollectionLogModule implements IronHubModule
 		return false;
 	}
 
+	/**
+	 * The sidebar's own Sync log button (Luke, 2026-07-27): runs the same
+	 * full sync the in-log header button does, but only when the log is
+	 * already open — we never open the interface ourselves (no client
+	 * automation, §Hub rules). The callback lands on the EDT with whether
+	 * a sync actually started.
+	 */
+	void syncFromPanel(java.util.function.Consumer<Boolean> started)
+	{
+		if (clientThread == null || client == null)
+		{
+			started.accept(false);
+			return;
+		}
+		clientThread.invoke(() ->
+		{
+			boolean open = client.getWidget(InterfaceID.Collection.SEARCH_TOGGLE) != null;
+			if (open)
+			{
+				triggerFullSync();
+			}
+			javax.swing.SwingUtilities.invokeLater(() -> started.accept(open));
+		});
+	}
+
 	/** Press the game's own Search and run the enumerate script; the
 	 *  per-item 4100 callbacks are harvested in onScriptPreFired.
 	 *  Package-private for tests. */
@@ -386,10 +383,8 @@ public class CollectionLogModule implements IronHubModule
 	{
 		harvest.clear();
 		fullSyncRequested = true;
-		// Guarantee a consume even if the log is empty (no 4100 fires) so
-		// the button never sticks on "Syncing...".
+		// Guarantee a consume even if the log is empty (no 4100 fires).
 		syncAtTick = client.getTickCount() + SYNC_SETTLE_TICKS;
-		syncButton.setBusy(true);
 		client.menuAction(-1, InterfaceID.Collection.SEARCH_TOGGLE, MenuAction.CC_OP, 1, -1,
 			"Search", null);
 		client.runScript(SCRIPT_ENUMERATE_LOG);
@@ -409,7 +404,6 @@ public class CollectionLogModule implements IronHubModule
 		if (fullSyncRequested)
 		{
 			fullSyncRequested = false;
-			syncButton.setBusy(false);
 			int playerCount = client.getVarpValue(VarPlayerID.COLLECTION_COUNT);
 			if (playerCount > 0)
 			{

@@ -52,36 +52,38 @@ public class ModuleLifecycleTest
 			new DiariesModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new CombatAchievementsModule(state, config, null,
 				new net.runelite.client.eventbus.EventBus(),
-				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
-			new QolModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
-			new LootModule(state, null, config),
+				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null),
+			new QolModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null),
+			new LootModule(state, null, config, null,
+				new net.runelite.client.eventbus.EventBus(),
+				new com.ironhub.data.DataPack(new com.google.gson.Gson())),
 			new BankTrackerModule(state, null, null, null, null, null, null, null, null, null, config,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null),
 			new FarmingRunModule(state, null, new net.runelite.client.eventbus.EventBus(), null, null, null, config, null, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null, null, null, null, null),
 			new DailiesModule(state, null, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null, null, null, null, null, null, null, null, null),
 			new GoalPlannerModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
 			new ClueStashModule(state, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()),
-				new net.runelite.client.eventbus.EventBus(), null),
+				new net.runelite.client.eventbus.EventBus(), null, null, null),
 			new SlayerOptimizerModule(state, null, null, config, null, null,
 				new net.runelite.client.eventbus.EventBus(), null, null, null,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null, null, null, null, null, null, null),
 			new SuppliesRunwayModule(state, null, config, null),
 			new CollectionLogModule(state, null, null, new net.runelite.client.eventbus.EventBus(), config,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()), null),
-			new ExternalSyncModule(state, null, new net.runelite.client.eventbus.EventBus(), config, null, new com.google.gson.Gson()),
+			new ExternalSyncModule(null, new net.runelite.client.eventbus.EventBus(), config, null),
 			new DashboardModule(),
 			new DeathRecoveryModule(state, null, config, null),
 			new com.ironhub.modules.loadoutlab.LoadoutLabModule(
 				new com.loadoutlab.LoadoutLabPlugin(), new net.runelite.client.eventbus.EventBus(), config,
 				state, null, null, null, new com.google.gson.Gson(), null, null, null, null),
-			new com.ironhub.modules.designlab.DesignLabModule(config, new net.runelite.client.eventbus.EventBus()),
+			new com.ironhub.modules.designlab.DesignLabModule(config, new net.runelite.client.eventbus.EventBus(), null),
 			new com.ironhub.modules.dailies.DailiesNewModule(
 				new DailiesModule(state, null, config, new com.ironhub.data.DataPack(new com.google.gson.Gson()),
 					null, null, null, null, null, null, null, null, null, null, null),
 				config),
 			new com.ironhub.modules.poh.PohModule(state, config,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()),
-				new net.runelite.client.eventbus.EventBus(), null),
+				new net.runelite.client.eventbus.EventBus(), null, null),
 			new com.ironhub.modules.hunter.HunterRumoursModule(state, config,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()),
 				null, null, new net.runelite.client.eventbus.EventBus(), null, null,
@@ -96,9 +98,12 @@ public class ModuleLifecycleTest
 				new net.runelite.client.eventbus.EventBus(), null, null, null, null),
 			new com.ironhub.modules.bankspace.BankSpaceModule(state, config,
 				new com.ironhub.data.DataPack(new com.google.gson.Gson()),
-				new net.runelite.client.eventbus.EventBus(), null, null, null));
+				new net.runelite.client.eventbus.EventBus(), null, null, null),
+			new com.ironhub.modules.wheresmystuff.WheresMyStuffModule(state, config,
+				new com.ironhub.data.DataPack(new com.google.gson.Gson()),
+				new net.runelite.client.eventbus.EventBus(), null, null));
 
-		assertEquals(26, modules.size());
+		assertEquals(27, modules.size());
 
 		// the nav blocks route by exact module name — a mismatch is a hub
 		// slot forever showing "Enable the <name> module" for a module that
@@ -125,5 +130,47 @@ public class ModuleLifecycleTest
 			module.startUp();
 			module.shutDown();
 		}
+	}
+
+	@Test
+	public void shutDownAllSurvivesAThrowingModule()
+	{
+		// one broken module must not skip its siblings or the persistNow
+		// flush that follows the loop in IronHubPlugin.shutDown
+		java.util.List<String> shut = new java.util.ArrayList<>();
+		IronHubModule bad = new IronHubModule()
+		{
+			public String name()
+			{
+				return "bad";
+			}
+
+			public void startUp()
+			{
+			}
+
+			public void shutDown()
+			{
+				throw new IllegalStateException("boom");
+			}
+		};
+		IronHubModule good = new IronHubModule()
+		{
+			public String name()
+			{
+				return "good";
+			}
+
+			public void startUp()
+			{
+			}
+
+			public void shutDown()
+			{
+				shut.add(name());
+			}
+		};
+		IronHubPlugin.shutDownAll(java.util.List.of(bad, good));
+		assertEquals(java.util.List.of("good"), shut);
 	}
 }

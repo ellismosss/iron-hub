@@ -46,6 +46,13 @@ public class CollectionLogTest
 		CollectionLogModule module = new CollectionLogModule(state, client, null,
 			new EventBus(), new IronHubConfig()
 		{
+			@Override
+			public com.ironhub.ui.osrs.OsrsTheme osrsTheme()
+			{
+				// Vanilla: osrsTheme() defaults to MYSTIC, and the renders
+				// exist to be judged against the Vanilla design system
+				return com.ironhub.ui.osrs.OsrsTheme.STONE;
+			}
 		}, new DataPack(new Gson()), null);
 		module.startUp();
 		return module;
@@ -54,6 +61,27 @@ public class CollectionLogTest
 	private static ChatMessage chat(String message)
 	{
 		return new ChatMessage(null, ChatMessageType.GAMEMESSAGE, "", message, "", 0);
+	}
+
+	@Test
+	public void wikiAdjudicatedDropRatesStayCorrected()
+	{
+		// The 2026-08-03 rate audit: the upstream spreadsheet shipped
+		// Pristine spider silk at Sarachnis cudgel's 1/384 where the wiki
+		// says 1/50. gen_clog.py now cross-validates every plain-activity
+		// rate against the wiki's collection_log_source bucket; these pins
+		// prove the curated corrections survive a regeneration.
+		ClogPack pack = new DataPack(new Gson()).load("clog", ClogPack.class);
+		ClogPack.Activity sarachnis = pack.activities.stream()
+			.filter(a -> a.name.equals("Killing sarachnis")).findFirst().orElseThrow(AssertionError::new);
+		double silk = sarachnis.items.stream()
+			.filter(i -> i.itemId == 33133).findFirst().orElseThrow(AssertionError::new).attempts;
+		assertEquals(50.0, silk, 0.001);
+		ClogPack.Activity calvarion = pack.activities.stream()
+			.filter(a -> a.name.equals("Killing calvar'ion")).findFirst().orElseThrow(AssertionError::new);
+		double pick = calvarion.items.stream()
+			.filter(i -> i.itemId == 11920).findFirst().orElseThrow(AssertionError::new).attempts;
+		assertEquals(358.0, pick, 0.001);
 	}
 
 	@Test
@@ -364,6 +392,11 @@ public class CollectionLogTest
 		String firstTab = state.getClogCatalog().get(0).name;
 		tab.showForRender(firstTab, null);
 		render(tab, "collectionlog-category");
+
+		tab.expandForRender(firstTab, first.name);
+		java.awt.image.BufferedImage expanded = render(tab, "collectionlog-category-expanded");
+		assertTrue("expanding a page tile must add its results in-line",
+			expanded.getHeight() > 300);
 
 		tab.showForRender(firstTab, first.name);
 		java.awt.image.BufferedImage page = render(tab, "collectionlog-page");

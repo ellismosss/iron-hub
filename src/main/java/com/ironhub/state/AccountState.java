@@ -78,6 +78,10 @@ public class AccountState implements StateView
 	private static final int EXCLUDED_AT_MANY = Integer.MAX_VALUE;
 	// bank-tab per-skill target levels: skill name -> level (persisted)
 	private final Map<String, Integer> bankSkillTargets = new ConcurrentHashMap<>();
+	// supplies watchlist: diffs against the pack defaults + per-item red thresholds (persisted)
+	private final Set<Integer> supplyAdded = ConcurrentHashMap.newKeySet();
+	private final Set<Integer> supplyRemoved = ConcurrentHashMap.newKeySet();
+	private final Map<Integer, Integer> supplyThresholds = new ConcurrentHashMap<>();
 	/** Dailies the player has explicitly included/excluded from the guided run.
 	 *  Only explicit choices are stored — an absent id falls back to the pack's
 	 *  own default, so a new event opts in and a Wilderness one stays out. */
@@ -85,6 +89,16 @@ public class AccountState implements StateView
 
 	// aggregated loot: npc name -> item id -> total quantity (persisted)
 	private final Map<String, Map<Integer, Integer>> lootBySource = new ConcurrentHashMap<>();
+	private final Map<String, Map<Integer, Integer>> lootPickedBySource = new ConcurrentHashMap<>();
+	private final Map<String, Long> lootValueBySource = new ConcurrentHashMap<>();
+	private final Map<String, Long> suppliesValueBySource = new ConcurrentHashMap<>();
+	private final Map<String, Long> lootLastKillMs = new ConcurrentHashMap<>();
+	// SESSION scope (L5): since profile activation, never persisted
+	private final Map<String, Map<Integer, Integer>> sessionLootBySource = new ConcurrentHashMap<>();
+	private final Map<String, Map<Integer, Integer>> sessionSuppliesBySource = new ConcurrentHashMap<>();
+	private final Map<String, Integer> sessionKills = new ConcurrentHashMap<>();
+	private final Map<String, Long> sessionLootValue = new ConcurrentHashMap<>();
+	private final Map<String, Long> sessionSuppliesValue = new ConcurrentHashMap<>();
 
 	// supplies consumed per source (canonical item ids, persisted); the
 	// checkpoint is carried gear at the last bank interaction or kill
@@ -116,6 +130,9 @@ public class AccountState implements StateView
 	private final Set<Integer> bankStorageIgnored = ConcurrentHashMap.newKeySet();
 	private volatile boolean bankStorageFlagBis;
 
+	// where's my stuff: last-seen contents per storage (pack key -> snapshot)
+	private final Map<String, PersistedState.StorageSnapshot> storageContents = new ConcurrentHashMap<>();
+
 	// hunters' rumours: preferred locations + capped records
 	public static final int MAX_RUMOUR_RECORDS = 50;
 	private final Map<String, String> rumourPrefLocations = new ConcurrentHashMap<>();
@@ -132,6 +149,7 @@ public class AccountState implements StateView
 	private final Map<String, String> slayerLocationPrefs = new ConcurrentHashMap<>();
 	private final Map<String, java.util.List<String>> slayerBlockPrefs = new ConcurrentHashMap<>();
 	private final Map<String, java.util.List<String>> slayerSkipPrefs = new ConcurrentHashMap<>();
+	private final Map<String, java.util.List<String>> slayerBracelets = new ConcurrentHashMap<>();
 
 	/** Rolling consumption events for runway rates, capped. */
 	public static final int MAX_CONSUMPTION_EVENTS = 500;
@@ -157,8 +175,10 @@ public class AccountState implements StateView
 	private final Map<Integer, Integer> clogQuantities = new ConcurrentHashMap<>();
 	private final Map<Integer, Long> clogObtainedAt = new ConcurrentHashMap<>();
 	private final Map<String, java.util.List<String>> clogPageCounts = new ConcurrentHashMap<>();
-	private final java.util.List<PersistedState.ClogTab> clogCatalog =
-		java.util.Collections.synchronizedList(new java.util.ArrayList<>());
+	// published wholesale (volatile immutable copies): the EDT iterates the
+	// returned list during rebuilds while the client thread replaces it — a
+	// synchronizedList clear+addAll tore mid-iteration (CME = half-built tab)
+	private volatile java.util.List<PersistedState.ClogTab> clogCatalog = java.util.List.of();
 	private volatile int clogBaseline = -1;
 	private volatile long clogSyncedMs;
 	private final Set<String> plannerPins = ConcurrentHashMap.newKeySet();
@@ -335,10 +355,12 @@ public class AccountState implements StateView
 	}
 
 	/**
-	 * Which readable container an EXACT item id sits in, or null if it is in
-	 * none we can see. Only bank / inventory / worn are readable — POH costume
-	 * storage, STASH units and the like need a Dude-Where's-My-Stuff-style
-	 * port, so an item stored there reads as "not currently seen" honestly.
+	 * Which place an EXACT item id was last seen, or null if none we track.
+	 * Bank / inventory / worn are the always-live containers; beyond them the
+	 * "Where's my stuff" tracker (Dude-Where's-My-Stuff port) names every
+	 * storage it has seen the item in — e.g. "Fancy dress box (PoH)" — carried
+	 * as a self-describing label on the snapshot so this renders offline.
+	 * Live containers win over a stored snapshot (the item is in your hand now).
 	 */
 	public String whereOwned(int itemId)
 	{
@@ -354,7 +376,58 @@ public class AccountState implements StateView
 		{
 			return "Worn";
 		}
-		return null;
+		return storedLabel(itemId);
+	}
+
+	/**
+	 * The label of the tracked storage that last held this exact item id
+	 * ("Fancy dress box (PoH)"), or null. When more than one storage holds it,
+	 * the most recently seen wins. Never consults bank/inventory/worn.
+	 */
+	public String storedLabel(int itemId)
+	{
+		String label = null;
+		long best = Long.MIN_VALUE;
+		for (PersistedState.StorageSnapshot snap : storageContents.values())
+		{
+			if (snap.items.getOrDefault(itemId, 0) > 0 && snap.lastSeen >= best)
+			{
+				best = snap.lastSeen;
+				label = snap.label.isEmpty() ? snap.name : snap.label;
+			}
+		}
+		return label;
+	}
+
+	/** Quantity of this exact item id across every tracked storage — the
+	 *  "Where's my stuff" snapshots (never bank/inventory/worn). */
+	public int storedCount(int itemId)
+	{
+		return storedCount(itemId, null);
+	}
+
+	/** Stored count skipping one storage family: the clue view excludes
+	 *  "stash" — an outfit sealed inside a STASH unit must not read as
+	 *  available for filling ANOTHER unit (Luke, 2026-07-28: the router
+	 *  asked him to strip one STASH to dress the next). */
+	public int storedCount(int itemId, String excludeFamily)
+	{
+		int total = 0;
+		for (PersistedState.StorageSnapshot snap : storageContents.values())
+		{
+			if (excludeFamily == null || !excludeFamily.equals(snap.family))
+			{
+				total += snap.items.getOrDefault(itemId, 0);
+			}
+		}
+		return total;
+	}
+
+	/** True if this exact item id is in bank/inventory/worn OR any tracked
+	 *  storage — the ownership test surfaces use ("You own this"). */
+	public boolean ownedAnywhere(int itemId)
+	{
+		return ownedCount(itemId) > 0 || storedLabel(itemId) != null;
 	}
 
 	/** Bank contents from the last bank visit (item id → quantity). */
@@ -568,7 +641,7 @@ public class AccountState implements StateView
 	 */
 	public enum Topic
 	{
-		BANK, INVENTORY, EQUIPMENT, SKILLS, QUESTS, VARBITS, UNLOCKS, GOALS, LOOT, RECORDS
+		BANK, INVENTORY, EQUIPMENT, SKILLS, QUESTS, VARBITS, UNLOCKS, GOALS, LOOT, RECORDS, STORAGE
 	}
 
 	/** Listeners fire on the client thread after meaningful state changes.
@@ -597,6 +670,52 @@ public class AccountState implements StateView
 	public int profileGeneration()
 	{
 		return profileGeneration;
+	}
+
+	/**
+	 * Cheap digest of every input the requirement graph can read (the
+	 * StateView surface): skill LEVELS (not xp — no leaf reads raw xp, and
+	 * including it would re-render on every drop), quest states and
+	 * points, the owned-item containers (replaced wholesale on ingest, so
+	 * identity suffices), unlocks, kill counts and watched var values.
+	 * Requirement-driven tabs fingerprint on this: if it hasn't moved, no
+	 * met/unmet answer can have changed (2026-08-03 audit ruling 9).
+	 */
+	public long requirementInputsDigest()
+	{
+		long digest = profileGeneration;
+		for (Skill skill : Skill.values())
+		{
+			digest = 31 * digest + getRealLevel(skill);
+		}
+		digest = 31 * digest + questStates.hashCode();
+		digest = 31 * digest + questPoints;
+		digest = 31 * digest + System.identityHashCode(bank);
+		digest = 31 * digest + System.identityHashCode(inventory);
+		digest = 31 * digest + System.identityHashCode(equipment);
+		digest = 31 * digest + System.identityHashCode(runePouch);
+		digest = 31 * digest + unlocks.hashCode();
+		digest = 31 * digest + killCounts.hashCode();
+		digest = 31 * digest + varbitValues.hashCode();
+		digest = 31 * digest + varpValues.hashCode();
+		return digest;
+	}
+
+	/** Digest of the POH built-tier marks (not requirement-visible — the
+	 *  House tab fingerprints it alongside the inputs digest). */
+	public int pohBuiltDigest()
+	{
+		return pohBuilt.hashCode();
+	}
+
+	/** Digest of the supply watch prefs (adds, removes, thresholds) — the
+	 *  Runway tab fingerprints it alongside the inputs digest. */
+	public int supplyPrefsDigest()
+	{
+		int digest = supplyAdded.hashCode();
+		digest = 31 * digest + supplyRemoved.hashCode();
+		digest = 31 * digest + supplyThresholds.hashCode();
+		return digest;
 	}
 
 	private void notifyListeners()
@@ -694,6 +813,7 @@ public class AccountState implements StateView
 	public void incrementKillCount(String source)
 	{
 		killCounts.merge(source, 1, Integer::sum);
+		sessionKills.merge(source, 1, Integer::sum);
 		persist();
 		notifyListeners(Topic.LOOT); // kill counts render on the loot surfaces
 	}
@@ -705,15 +825,115 @@ public class AccountState implements StateView
 		Map<Integer, Integer> totals =
 			lootBySource.computeIfAbsent(source, s -> new ConcurrentHashMap<>());
 		items.forEach((id, qty) -> totals.merge(id, qty, Integer::sum));
+		Map<Integer, Integer> session =
+			sessionLootBySource.computeIfAbsent(source, s -> new ConcurrentHashMap<>());
+		items.forEach((id, qty) -> session.merge(id, qty, Integer::sum));
+		lootLastKillMs.put(source, System.currentTimeMillis());
 		if (itemManager != null) // resolve names so the loot tab reads offline
 		{
-			for (int id : items.keySet())
+			long value = 0;
+			for (Map.Entry<Integer, Integer> e : items.entrySet())
 			{
-				itemNames.computeIfAbsent(id, i -> itemManager.getItemComposition(i).getName());
+				itemNames.computeIfAbsent(e.getKey(),
+					i -> itemManager.getItemComposition(i).getName());
+				// priced at DROP time on the client thread (L6) — the tab
+				// never asks ItemManager for prices on the EDT
+				value += unitValue(e.getKey()) * e.getValue();
 			}
+			lootValueBySource.merge(source, value, Long::sum);
+			sessionLootValue.merge(source, value, Long::sum);
 		}
 		persist();
 		notifyListeners(Topic.LOOT);
+	}
+
+	/**
+	 * What one of this item is worth to THIS account (client thread).
+	 * Ironmen can't trade, so GE prices are fiction for them — high alch
+	 * is the realisable value. Mains get the GE price; coins are coins.
+	 */
+	public long unitValue(int itemId)
+	{
+		if (itemId == net.runelite.api.gameval.ItemID.COINS)
+		{
+			return 1;
+		}
+		if (itemManager == null) // headless: unpriced, never a guess
+		{
+			return 0;
+		}
+		if (isIronman())
+		{
+			return itemManager.getItemComposition(itemId).getHaPrice();
+		}
+		return itemManager.getItemPrice(itemId);
+	}
+
+	/** Confirmed picked-up drops (L3) — merged by the pickup tracker;
+	 *  client thread. Only claimed pickups, never guesses. */
+	public void recordPickedLoot(String source, Map<Integer, Integer> items)
+	{
+		if (items.isEmpty())
+		{
+			return;
+		}
+		Map<Integer, Integer> picked =
+			lootPickedBySource.computeIfAbsent(source, s -> new ConcurrentHashMap<>());
+		items.forEach((id, qty) -> picked.merge(id, qty, Integer::sum));
+		persist();
+		notifyListeners(Topic.LOOT);
+	}
+
+	/** Confirmed picked-up totals for a source (L3); empty for legacy data. */
+	public Map<Integer, Integer> lootPickedFor(String source)
+	{
+		return lootPickedBySource.getOrDefault(source, Map.of());
+	}
+
+	/** Value of a source's recorded drops, priced at drop time (L6) —
+	 *  high alch on an ironman, GE otherwise ({@link #unitValue}). */
+	public long lootValueFor(String source)
+	{
+		return lootValueBySource.getOrDefault(source, 0L);
+	}
+
+	/** GE value of supplies consumed at a source, priced at use time (L6). */
+	public long suppliesValueFor(String source)
+	{
+		return suppliesValueBySource.getOrDefault(source, 0L);
+	}
+
+	/** Last kill epoch ms for a loot source (L4 recency), 0 = pre-tracking. */
+	public long lootLastKill(String source)
+	{
+		return lootLastKillMs.getOrDefault(source, 0L);
+	}
+
+	// ── session scope (L5): since profile activation ──────────────────
+
+	public Map<Integer, Integer> sessionLootFor(String source)
+	{
+		return sessionLootBySource.getOrDefault(source, Map.of());
+	}
+
+	public Map<Integer, Integer> sessionSuppliesFor(String source)
+	{
+		return sessionSuppliesBySource.getOrDefault(source, Map.of());
+	}
+
+	public int sessionKillCount(String source)
+	{
+		return sessionKills.getOrDefault(source, 0);
+	}
+
+	public long sessionLootValueFor(String source)
+	{
+		return sessionLootValue.getOrDefault(source, 0L);
+	}
+
+	public long sessionSuppliesValueFor(String source)
+	{
+		return sessionSuppliesValue.getOrDefault(source, 0L);
 	}
 
 	/** Sources with recorded loot, for the loot tab's selector. */
@@ -835,6 +1055,19 @@ public class AccountState implements StateView
 		}
 	}
 
+	/** Forget every built mark — detected and manual alike. The House tab's
+	 *  reset, so detection can be tested from a blank slate. */
+	public void clearPohBuilt()
+	{
+		if (pohBuilt.isEmpty())
+		{
+			return;
+		}
+		pohBuilt.clear();
+		persist();
+		notifyListeners();
+	}
+
 	// ── sailing boats ─────────────────────────────────────────────────
 
 	/** Boat-type key ("0" raft / "1" skiff / "2" sloop) -> last-boarding
@@ -844,6 +1077,54 @@ public class AccountState implements StateView
 		Map<String, PersistedState.BoatSnapshot> out = new HashMap<>();
 		sailingBoats.forEach((k, v) -> out.put(k, v.copy()));
 		return out;
+	}
+
+	// ── where's my stuff ──────────────────────────────────────────────
+
+	/** Commit a storage read: its full current contents (item id -> qty),
+	 *  self-described by name/family/label so it renders offline. A read is
+	 *  authoritative — withdrawing everything leaves an honest empty snapshot
+	 *  (still "seen"), never silence; silence is only for never-opened
+	 *  storages. */
+	public void putStorageContents(String key, String name, String family,
+		String label, Map<Integer, Integer> items, Map<Integer, String> itemNames, long now)
+	{
+		PersistedState.StorageSnapshot previous = storageContents.get(key);
+		boolean changed = previous == null || !previous.items.equals(items);
+		// a fresh object per commit: EDT readers copy() snapshots, and an
+		// in-place mutation here raced that iteration (client thread writes,
+		// EDT reads) — published objects never change after the put
+		PersistedState.StorageSnapshot snap = new PersistedState.StorageSnapshot();
+		snap.items = new HashMap<>(items);
+		snap.itemNames = itemNames == null ? new HashMap<>() : new HashMap<>(itemNames);
+		snap.lastSeen = now;
+		snap.name = name;
+		snap.family = family;
+		snap.label = label;
+		storageContents.put(key, snap);
+		if (changed)
+		{
+			persist();
+			notifyListeners(Topic.STORAGE); // slot storages move per cast — scoped listeners can skip
+		}
+	}
+
+	/** Read-only copy of every tracked storage snapshot (pack key -> snapshot). */
+	public Map<String, PersistedState.StorageSnapshot> getStorageContents()
+	{
+		Map<String, PersistedState.StorageSnapshot> out = new HashMap<>();
+		storageContents.forEach((k, v) -> out.put(k, v.copy()));
+		return out;
+	}
+
+	/** Forget a tracked storage (the surface's manual reset). */
+	public void clearStorage(String key)
+	{
+		if (storageContents.remove(key) != null)
+		{
+			persist();
+			notifyListeners(Topic.STORAGE);
+		}
 	}
 
 	/** Preferred courier-task ports (port-tasks pack dbrows). */
@@ -917,9 +1198,12 @@ public class AccountState implements StateView
 	 *  downgrade a previously seen one). */
 	public void putSailingBoat(int boatType, Map<String, Integer> partTiers, long now)
 	{
-		PersistedState.BoatSnapshot snap = sailingBoats.computeIfAbsent(
-			String.valueOf(boatType), k -> new PersistedState.BoatSnapshot());
-		boolean changed = snap.lastSeen == 0;
+		PersistedState.BoatSnapshot previous = sailingBoats.get(String.valueOf(boatType));
+		// merge into a copy and publish it whole — EDT readers copy() the
+		// held snapshot, and mutating its partTiers in place raced them
+		PersistedState.BoatSnapshot snap = previous == null
+			? new PersistedState.BoatSnapshot() : previous.copy();
+		boolean changed = previous == null;
 		for (Map.Entry<String, Integer> e : partTiers.entrySet())
 		{
 			Integer cur = snap.partTiers.get(e.getKey());
@@ -930,6 +1214,7 @@ public class AccountState implements StateView
 			}
 		}
 		snap.lastSeen = now;
+		sailingBoats.put(String.valueOf(boatType), snap);
 		if (changed)
 		{
 			persist();
@@ -947,6 +1232,25 @@ public class AccountState implements StateView
 	public boolean isStashFilled(int objectId)
 	{
 		return stashFilled.contains(objectId);
+	}
+
+	/** Object ids of every STASH unit currently filled (a read-only copy). */
+	public Set<Integer> getStashFilled()
+	{
+		return new HashSet<>(stashFilled);
+	}
+
+	/** Forget every STASH built/filled mark — detection restarts clean. */
+	public void clearStashDetection()
+	{
+		boolean changed = !stashBuilt.isEmpty() || !stashFilled.isEmpty();
+		stashBuilt.clear();
+		stashFilled.clear();
+		if (changed)
+		{
+			persist();
+			notifyListeners();
+		}
 	}
 
 	public void setStashBuilt(int objectId, boolean built)
@@ -1202,6 +1506,34 @@ public class AccountState implements StateView
 		return java.util.List.copyOf(slayerSkipPrefs.getOrDefault(master, java.util.List.of()));
 	}
 
+	/** Bracelet reminders for a task (S4): "slaughter" / "expeditious". */
+	public java.util.List<String> getSlayerBracelets(String task)
+	{
+		return java.util.List.copyOf(slayerBracelets.getOrDefault(task, java.util.List.of()));
+	}
+
+	public void toggleSlayerBracelet(String task, String bracelet)
+	{
+		java.util.List<String> next = new java.util.ArrayList<>(getSlayerBracelets(task));
+		if (!next.remove(bracelet))
+		{
+			// mutually exclusive (Luke, live-test round): Slaughter EXTENDS a
+			// task, Expeditious shortens it — both at once makes no sense
+			next.clear();
+			next.add(bracelet);
+		}
+		if (next.isEmpty())
+		{
+			slayerBracelets.remove(task);
+		}
+		else
+		{
+			slayerBracelets.put(task, next);
+		}
+		persist();
+		notifyListeners();
+	}
+
 	public void setSlayerSkipPref(String master, java.util.List<String> tasks)
 	{
 		if (tasks == null || tasks.isEmpty())
@@ -1440,10 +1772,22 @@ public class AccountState implements StateView
 		setup.inventory = getInventorySlots();
 		setup.inventoryQty = new int[setup.inventory.length];
 		Map<Integer, Integer> quantities = getInventorySnapshot();
+		// the snapshot totals per item id — a stack's whole quantity sits in
+		// its one slot, but unstackables occupy a slot each, so the per-id
+		// total must split across its slots or every slot claims all of them
+		Map<Integer, Integer> slotsPerId = new HashMap<>();
+		for (int id : setup.inventory)
+		{
+			if (id > 0)
+			{
+				slotsPerId.merge(id, 1, Integer::sum);
+			}
+		}
 		for (int i = 0; i < setup.inventory.length; i++)
 		{
-			setup.inventoryQty[i] = setup.inventory[i] > 0
-				? quantities.getOrDefault(setup.inventory[i], 1) : 0;
+			int id = setup.inventory[i];
+			setup.inventoryQty[i] = id > 0
+				? Math.max(1, quantities.getOrDefault(id, 1) / slotsPerId.get(id)) : 0;
 		}
 		return setup;
 	}
@@ -1620,16 +1964,30 @@ public class AccountState implements StateView
 		return clogQuantities.getOrDefault(canonicalId, 0);
 	}
 
+	/** Order-independent digest of the counted slot quantities — a cheap
+	 *  fingerprint term so count-only harvests (no new slots) still
+	 *  re-render the open page. */
+	public long clogQuantitiesDigest()
+	{
+		long digest = 0;
+		for (Map.Entry<Integer, Integer> e : clogQuantities.entrySet())
+		{
+			digest += e.getKey() * 1_000_003L + e.getValue();
+		}
+		return digest;
+	}
+
 	/** When we saw a slot fill; 0 = before we watched (honestly undated). */
 	public long clogObtainedAt(int canonicalId)
 	{
 		return clogObtainedAt.getOrDefault(canonicalId, 0L);
 	}
 
-	/** The game's own log structure as last read from the cache. */
+	/** The game's own log structure as last read from the cache — a stable
+	 *  immutable snapshot, safe to iterate on any thread. */
 	public java.util.List<PersistedState.ClogTab> getClogCatalog()
 	{
-		return java.util.Collections.unmodifiableList(clogCatalog);
+		return clogCatalog;
 	}
 
 	/** A fresh cache read replaced the structure (client thread). No-op when
@@ -1641,22 +1999,22 @@ public class AccountState implements StateView
 		{
 			return;
 		}
-		clogCatalog.clear();
-		clogCatalog.addAll(tabs);
+		clogCatalog = java.util.List.copyOf(tabs);
 		persist();
 		notifyListeners();
 	}
 
 	private boolean sameCatalog(java.util.List<PersistedState.ClogTab> tabs)
 	{
-		if (tabs.size() != clogCatalog.size())
+		java.util.List<PersistedState.ClogTab> held0 = clogCatalog;
+		if (tabs.size() != held0.size())
 		{
 			return false;
 		}
 		for (int i = 0; i < tabs.size(); i++)
 		{
 			PersistedState.ClogTab fresh = tabs.get(i);
-			PersistedState.ClogTab held = clogCatalog.get(i);
+			PersistedState.ClogTab held = held0.get(i);
 			if (!fresh.name.equals(held.name) || fresh.pages.size() != held.pages.size())
 			{
 				return false;
@@ -1833,6 +2191,24 @@ public class AccountState implements StateView
 			persist();
 			notifyListeners();
 		}
+	}
+
+	/** Pin several goals AT ONCE, in order — the merge-accept path only
+	 *  (Luke, 2026-08-03). Everywhere else the single-pin rule holds via
+	 *  {@link #setGoalPinned}; a merge IS one combined route, so its
+	 *  members pin together (pinnedGoals is ordered and
+	 *  PlanConstraints.pinnedGoals accepts several). */
+	public void setGoalsPinned(java.util.List<String> goalIds)
+	{
+		if (goalIds == null || goalIds.isEmpty())
+		{
+			return;
+		}
+		pinnedGoals.clear();
+		plannerPins.clear();
+		pinnedGoals.addAll(goalIds);
+		persist();
+		notifyListeners();
 	}
 
 	/** Whether this task (plan action) is the single active pin. */
@@ -2019,6 +2395,7 @@ public class AccountState implements StateView
 		death.plane = where.getPlane();
 		inventory.forEach((id, qty) -> death.carried.merge(id, qty, Integer::sum));
 		equipment.forEach((id, qty) -> death.carried.merge(id, qty, Integer::sum));
+		death.reclaimFeeGp = reclaimFeeEstimate(death.carried);
 		deaths.add(death);
 		while (deaths.size() > MAX_DEATHS)
 		{
@@ -2028,13 +2405,79 @@ public class AccountState implements StateView
 		notifyListeners();
 	}
 
+	/** Price each carried item for the fee estimate — GE guide price (the
+	 *  game's own fee basis, NOT the ironman HA valuation) plus
+	 *  stackability, on the client thread. -1 when unpriceable. */
+	private long reclaimFeeEstimate(Map<Integer, Integer> carried)
+	{
+		if (itemManager == null)
+		{
+			return -1; // headless: unpriced, never a guess
+		}
+		java.util.List<long[]> items = new java.util.ArrayList<>();
+		for (Map.Entry<Integer, Integer> e : carried.entrySet())
+		{
+			net.runelite.api.ItemComposition comp = itemManager.getItemComposition(e.getKey());
+			items.add(new long[]{itemManager.getItemPrice(e.getKey()), e.getValue(),
+				comp != null && comp.isStackable() ? 1 : 0});
+		}
+		return graveFeeEstimate(items, isIronman());
+	}
+
+	/**
+	 * The GRAVE reclaim fee estimate (DR1 2026-08-03), from the wiki's
+	 * verified structure: per item, free under 100k GE, 1k to 1m, 10k to
+	 * 10m, 100k at 10m+; total capped at 500,000; ironmen pay half. The
+	 * estimate assumes the usual three kept items (highest unit value) and
+	 * no skull — the tooltip says so. Returns -1 — unknown, never a guess —
+	 * when a stackable stack could plausibly cross a band: the wiki does not
+	 * say whether bands read the unit or the stack value.
+	 */
+	public static long graveFeeEstimate(java.util.List<long[]> items, boolean ironman)
+	{
+		// items: {unitGePrice, qty, stackable(0/1)}
+		java.util.List<long[]> sorted = new java.util.ArrayList<>(items);
+		sorted.sort((a, b) -> Long.compare(b[0], a[0]));
+		int kept = 3;
+		long total = 0;
+		for (long[] item : sorted)
+		{
+			long unit = item[0];
+			long qty = item[1];
+			boolean stackable = item[2] != 0;
+			if (kept > 0 && !stackable)
+			{
+				long taken = Math.min(kept, qty);
+				kept -= taken;
+				qty -= taken;
+			}
+			if (qty <= 0)
+			{
+				continue;
+			}
+			if (stackable && qty > 1 && unit * qty >= 100_000)
+			{
+				return -1; // band basis for stacks is undocumented
+			}
+			long fee = unit < 100_000 ? 0
+				: unit < 1_000_000 ? 1_000
+				: unit < 10_000_000 ? 10_000 : 100_000;
+			total += fee * qty;
+		}
+		if (ironman)
+		{
+			total /= 2;
+		}
+		return Math.min(total, 500_000);
+	}
+
 	/** Recent deaths, oldest first (read-only views of persisted records). */
 	public java.util.List<Death> getDeaths()
 	{
 		return deaths.stream()
 			.map(d -> new Death(d.timeMs,
 				new net.runelite.api.coords.WorldPoint(d.x, d.y, d.plane),
-				java.util.Collections.unmodifiableMap(d.carried)))
+				java.util.Collections.unmodifiableMap(d.carried), d.reclaimFeeGp))
 			.collect(java.util.stream.Collectors.toList());
 	}
 
@@ -2044,12 +2487,16 @@ public class AccountState implements StateView
 		public final long timeMs;
 		public final net.runelite.api.coords.WorldPoint where;
 		public final Map<Integer, Integer> carried;
+		/** Estimated grave reclaim fee in gp; -1 = unknown ("?"). */
+		public final long reclaimFeeGp;
 
-		Death(long timeMs, net.runelite.api.coords.WorldPoint where, Map<Integer, Integer> carried)
+		Death(long timeMs, net.runelite.api.coords.WorldPoint where,
+			Map<Integer, Integer> carried, long reclaimFeeGp)
 		{
 			this.timeMs = timeMs;
 			this.where = where;
 			this.carried = carried;
+			this.reclaimFeeGp = reclaimFeeGp;
 		}
 	}
 
@@ -2071,6 +2518,8 @@ public class AccountState implements StateView
 			return; // no baseline yet (fresh login mid-trip)
 		}
 		Map<Integer, Integer> used = suppliesBySource.computeIfAbsent(source, s -> new ConcurrentHashMap<>());
+		Map<Integer, Integer> sessionUsed =
+			sessionSuppliesBySource.computeIfAbsent(source, s -> new ConcurrentHashMap<>());
 		long now = System.currentTimeMillis();
 		checkpoint.forEach((id, before) ->
 		{
@@ -2078,6 +2527,14 @@ public class AccountState implements StateView
 			if (delta > 0)
 			{
 				used.merge(id, delta, Integer::sum);
+				sessionUsed.merge(id, delta, Integer::sum);
+				if (itemManager != null)
+				{
+					// consumed supplies priced at USE time (L6)
+					long cost = unitValue(id) * delta;
+					suppliesValueBySource.merge(source, cost, Long::sum);
+					sessionSuppliesValue.merge(source, cost, Long::sum);
+				}
 				PersistedState.ConsumptionEvent event = new PersistedState.ConsumptionEvent();
 				event.timeMs = now;
 				event.itemId = id;
@@ -2191,6 +2648,74 @@ public class AccountState implements StateView
 			? bankSkillTargets.put(skillName, target)
 			: bankSkillTargets.remove(skillName);
 		if ((previous == null ? 0 : previous) != Math.max(0, target))
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	// ── supplies runway watchlist (persisted) ─────────────────────────────
+	// The watchlist is stored as diffs against the pack's curated defaults:
+	// items the player ADDED beyond the defaults, and default items REMOVED.
+	// The module resolves "is this item on the list" against both plus the
+	// pack's default flag, so a pack update surfaces new defaults unless the
+	// player removed them.
+
+	/** Whether an item is on the watchlist, given whether the pack lists it
+	 *  as a default. */
+	public boolean isSupplyTracked(int itemId, boolean isDefault)
+	{
+		if (supplyAdded.contains(itemId))
+		{
+			return true;
+		}
+		return isDefault && !supplyRemoved.contains(itemId);
+	}
+
+	/** Add an item to the watchlist (clears a prior removal). */
+	public void trackSupply(int itemId, boolean isDefault)
+	{
+		boolean changed = supplyRemoved.remove(itemId);
+		if (!isDefault)
+		{
+			changed |= supplyAdded.add(itemId);
+		}
+		if (changed)
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	/** Remove an item from the watchlist. A removed default is remembered so
+	 *  it stays off; a non-default just drops from the added set. */
+	public void untrackSupply(int itemId, boolean isDefault)
+	{
+		boolean changed = supplyAdded.remove(itemId);
+		if (isDefault)
+		{
+			changed |= supplyRemoved.add(itemId);
+		}
+		if (changed)
+		{
+			persist();
+			notifyListeners();
+		}
+	}
+
+	/** The red-highlight threshold for a supply, or 0 when none is set. */
+	public int getSupplyThreshold(int itemId)
+	{
+		return supplyThresholds.getOrDefault(itemId, 0);
+	}
+
+	/** Set (value > 0) or clear a supply's red-highlight threshold. */
+	public void setSupplyThreshold(int itemId, int value)
+	{
+		Integer previous = value > 0
+			? supplyThresholds.put(itemId, value)
+			: supplyThresholds.remove(itemId);
+		if ((previous == null ? 0 : previous) != Math.max(0, value))
 		{
 			persist();
 			notifyListeners();
@@ -2349,6 +2874,14 @@ public class AccountState implements StateView
 			// plugin started mid-session: no GameStateChanged will fire, so
 			// seed skills/containers once from the live client
 			containersSeeded = true;
+			long hash = client.getAccountHash();
+			if (hash != -1 && hash != profile)
+			{
+				// same activation LOGGED_IN does — without it profile stays
+				// -1, every persist() no-ops, and the next login replay
+				// restores from disk over the user's unpersisted edits
+				activateProfile(hash);
+			}
 			refreshSkills();
 			refreshContainers();
 			notifyListeners();
@@ -2410,7 +2943,9 @@ public class AccountState implements StateView
 	/** Sanity ceiling — nothing sustains this; guards burst artifacts. */
 	private static final double RATE_CAP = 1_500_000;
 
-	/** skill -> [lastDropMs, sessionXp, sessionActiveMs]; client thread. */
+	/** skill -> [lastDropMs, sessionXp, sessionActiveMs]. Client thread,
+	 *  except the shutdown flush (plugin shutDown runs on the EDT) — every
+	 *  access synchronizes on the map. */
 	private final Map<Skill, long[]> rateSessions = new java.util.EnumMap<>(Skill.class);
 
 	private void trackRateSession(Skill skill, Integer previousXp, int experience)
@@ -2425,13 +2960,16 @@ public class AccountState implements StateView
 			return;
 		}
 		long now = System.currentTimeMillis();
-		long[] session = rateSessions.computeIfAbsent(skill, k -> new long[3]);
-		if (session[0] > 0 && now - session[0] <= RATE_IDLE_MS)
+		synchronized (rateSessions)
 		{
-			session[2] += now - session[0];
+			long[] session = rateSessions.computeIfAbsent(skill, k -> new long[3]);
+			if (session[0] > 0 && now - session[0] <= RATE_IDLE_MS)
+			{
+				session[2] += now - session[0];
+			}
+			session[1] += delta;
+			session[0] = now;
 		}
-		session[1] += delta;
-		session[0] = now;
 	}
 
 	/** Fold substantial sessions into the persisted EWMA; runs at the
@@ -2439,20 +2977,28 @@ public class AccountState implements StateView
 	 *  fixture xp seeding can't pollute rates). */
 	private void foldRateSessions()
 	{
-		for (Map.Entry<Skill, long[]> entry : rateSessions.entrySet())
+		synchronized (rateSessions)
 		{
-			long[] session = entry.getValue();
-			if (session[2] < RATE_FOLD_ACTIVE_MS)
+			for (Map.Entry<Skill, long[]> entry : rateSessions.entrySet())
 			{
-				continue;
+				long[] session = entry.getValue();
+				if (session[2] < RATE_FOLD_ACTIVE_MS)
+				{
+					continue;
+				}
+				foldRateSample(entry.getKey(), session[1], session[2] / 3_600_000.0);
+				session[1] = 0;
+				session[2] = 0;
 			}
-			foldRateSample(entry.getKey(), session[1], session[2] / 3_600_000.0);
-			session[1] = 0;
-			session[2] = 0;
 		}
 	}
 
-	/** One observed sample into the EWMA — the fold core (test seam). */
+	/** One observed sample into the EWMA — the fold core (test seam).
+	 *  Never persists: the only live caller is foldRateSessions inside
+	 *  persistNow, which snapshots measuredRates right after — a persist()
+	 *  here re-entered persistNow from the logout flush (gameState no
+	 *  longer LOGGED_IN, so persist() falls through) and recursed until
+	 *  stack overflow, losing the flush entirely. */
 	void foldRateSample(Skill skill, double xpGained, double activeHours)
 	{
 		if (activeHours <= 0 || xpGained <= 0)
@@ -2466,7 +3012,6 @@ public class AccountState implements StateView
 		measuredRates.put(key, previous == null || previous <= 0
 			? rate : 0.7 * previous + 0.3 * rate);
 		measuredRateHours.merge(key, activeHours, Double::sum);
-		persist();
 	}
 
 	/** The measured EWMA xp/hr, or 0 below the observation threshold —
@@ -2568,7 +3113,11 @@ public class AccountState implements StateView
 		}                 // state under the incoming account's id
 		profile = hash;
 		profileGeneration++;
-		rateSessions.clear(); // pace sessions are per-account
+		synchronized (rateSessions)
+		{
+			rateSessions.clear(); // pace sessions are per-account
+		}
+		supplyCheckpoint = Map.of(); // consumption baselines are per-account
 		// quest states are per-account client data: clear them and force an
 		// immediate refresh, or the new profile gates on the old account's
 		// quests for up to 30s (2026-07-20 audit)
@@ -2602,11 +3151,32 @@ public class AccountState implements StateView
 		}
 		bankSkillTargets.clear();
 		bankSkillTargets.putAll(persisted.bankSkillTargets);
+		supplyAdded.clear();
+		supplyAdded.addAll(persisted.supplyAdded);
+		supplyRemoved.clear();
+		supplyRemoved.addAll(persisted.supplyRemoved);
+		supplyThresholds.clear();
+		supplyThresholds.putAll(persisted.supplyThresholds);
 		dailiesChoice.clear();
 		dailiesChoice.putAll(persisted.dailiesChoice);
 		lootBySource.clear();
 		persisted.lootBySource.forEach((src, items) ->
 			lootBySource.put(src, new ConcurrentHashMap<>(items)));
+		lootPickedBySource.clear();
+		persisted.lootPickedBySource.forEach((src, items) ->
+			lootPickedBySource.put(src, new ConcurrentHashMap<>(items)));
+		lootValueBySource.clear();
+		lootValueBySource.putAll(persisted.lootValueBySource);
+		suppliesValueBySource.clear();
+		suppliesValueBySource.putAll(persisted.suppliesValueBySource);
+		lootLastKillMs.clear();
+		lootLastKillMs.putAll(persisted.lootLastKillMs);
+		// a fresh profile is a fresh session (L5)
+		sessionLootBySource.clear();
+		sessionSuppliesBySource.clear();
+		sessionKills.clear();
+		sessionLootValue.clear();
+		sessionSuppliesValue.clear();
 		suppliesBySource.clear();
 		persisted.suppliesBySource.forEach((src, items) ->
 			suppliesBySource.put(src, new ConcurrentHashMap<>(items)));
@@ -2637,6 +3207,8 @@ public class AccountState implements StateView
 		pohBuilt.addAll(persisted.pohBuilt);
 		sailingBoats.clear();
 		persisted.sailingBoats.forEach((k, v) -> sailingBoats.put(k, v.copy()));
+		storageContents.clear();
+		persisted.storageContents.forEach((k, v) -> storageContents.put(k, v.copy()));
 		preferredPorts.clear();
 		preferredPorts.addAll(persisted.preferredPorts);
 		bankStorageOff.clear();
@@ -2662,11 +3234,12 @@ public class AccountState implements StateView
 		slayerBlockPrefs.putAll(persisted.slayerBlockPrefs);
 		slayerSkipPrefs.clear();
 		slayerSkipPrefs.putAll(persisted.slayerSkipPrefs);
+		slayerBracelets.clear();
+		slayerBracelets.putAll(persisted.slayerBracelets);
 		selectedGoals.clear();
 		selectedGoals.addAll(persisted.selectedGoals);
 		goalSeeds.clear();
 		goalSeeds.putAll(persisted.goalSeeds);
-		migrateLegacyGoalSeeds(persisted);
 		goalRecords.clear();
 		goalRecords.addAll(persisted.goalRecords);
 		clogObtained.clear();
@@ -2681,8 +3254,7 @@ public class AccountState implements StateView
 		clogObtainedAt.putAll(persisted.clogObtainedAt);
 		clogPageCounts.clear();
 		clogPageCounts.putAll(persisted.clogPageCounts);
-		clogCatalog.clear();
-		clogCatalog.addAll(persisted.clogCatalog);
+		clogCatalog = java.util.List.copyOf(persisted.clogCatalog);
 		plannerPins.clear();
 		plannerPins.addAll(persisted.plannerPins);
 		plannerSnoozes.clear();
@@ -2709,6 +3281,10 @@ public class AccountState implements StateView
 		collectionLogTotal = persisted.collectionLogTotal;
 		collectionLogSeenMs = persisted.collectionLogSeenMs;
 		activeGoal = persisted.activeGoal == null ? "" : persisted.activeGoal;
+		// last: its persist() snapshots THIS object, so every field above
+		// must already hold the new profile before it can run (headless
+		// persists synchronously — mid-restore it wrote a torn profile)
+		migrateLegacyGoalSeeds(persisted);
 		log.debug("activated profile {} ({} banked item stacks)", hash, bank.size());
 	}
 
@@ -2786,8 +3362,15 @@ public class AccountState implements StateView
 		state.alchExcluded = new HashSet<>(alchExcludedAtQty.keySet()); // legacy readers
 		state.alchExcludedAtQty = new HashMap<>(alchExcludedAtQty);
 		state.bankSkillTargets = new HashMap<>(bankSkillTargets);
+		state.supplyAdded = new HashSet<>(supplyAdded);
+		state.supplyRemoved = new HashSet<>(supplyRemoved);
+		state.supplyThresholds = new HashMap<>(supplyThresholds);
 		state.dailiesChoice = new HashMap<>(dailiesChoice);
 		lootBySource.forEach((src, items) -> state.lootBySource.put(src, new HashMap<>(items)));
+		lootPickedBySource.forEach((src, items) -> state.lootPickedBySource.put(src, new HashMap<>(items)));
+		state.lootValueBySource = new HashMap<>(lootValueBySource);
+		state.suppliesValueBySource = new HashMap<>(suppliesValueBySource);
+		state.lootLastKillMs = new HashMap<>(lootLastKillMs);
 		suppliesBySource.forEach((src, items) -> state.suppliesBySource.put(src, new HashMap<>(items)));
 		savedLoadouts.forEach((activity, slots) -> state.savedLoadouts.put(activity, new HashMap<>(slots)));
 		// setups deep-copy (ProfileStore's contract: toJson runs on the
@@ -2806,6 +3389,7 @@ public class AccountState implements StateView
 		state.deaths = new java.util.ArrayList<>(deaths);
 		state.pohBuilt = new HashSet<>(pohBuilt);
 		sailingBoats.forEach((k, v) -> state.sailingBoats.put(k, v.copy()));
+		storageContents.forEach((k, v) -> state.storageContents.put(k, v.copy()));
 		state.preferredPorts = new HashSet<>(preferredPorts);
 		state.bankStorageOff = new HashSet<>(bankStorageOff);
 		state.bankStorageIgnored = new HashSet<>(bankStorageIgnored);
@@ -2830,6 +3414,7 @@ public class AccountState implements StateView
 		state.slayerLocationPrefs = new HashMap<>(slayerLocationPrefs);
 		slayerBlockPrefs.forEach((m, list) -> state.slayerBlockPrefs.put(m, new java.util.ArrayList<>(list)));
 		slayerSkipPrefs.forEach((m, list) -> state.slayerSkipPrefs.put(m, new java.util.ArrayList<>(list)));
+		slayerBracelets.forEach((t, list) -> state.slayerBracelets.put(t, new java.util.ArrayList<>(list)));
 		state.selectedGoals = new HashSet<>(selectedGoals);
 		state.activeGoal = activeGoal;
 		state.clogObtained = new HashSet<>(clogObtained);
@@ -2840,10 +3425,7 @@ public class AccountState implements StateView
 		state.clogObtainedAt = new HashMap<>(clogObtainedAt);
 		clogPageCounts.forEach((page, lines) ->
 			state.clogPageCounts.put(page, new java.util.ArrayList<>(lines)));
-		synchronized (clogCatalog)
-		{
-			state.clogCatalog = new java.util.ArrayList<>(clogCatalog);
-		}
+		state.clogCatalog = new java.util.ArrayList<>(clogCatalog); // immutable snapshot — safe to copy lock-free
 		state.plannerPins = new HashSet<>(plannerPins);
 		state.plannerSnoozes = new HashSet<>(plannerSnoozes);
 		state.plannerBans = new HashSet<>(plannerBans);

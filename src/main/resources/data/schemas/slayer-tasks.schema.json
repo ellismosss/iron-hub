@@ -251,8 +251,8 @@
   },
   "masters": {
    "type": "array",
-   "minItems": 9,
-   "maxItems": 9,
+   "minItems": 10,
+   "maxItems": 10,
    "items": {
     "type": "object",
     "required": [
@@ -273,8 +273,9 @@
      },
      "focusId": {
       "type": "integer",
-      "minimum": 1,
-      "maximum": 9
+      "minimum": -1,
+      "maximum": 9,
+      "not": {"const": 0}
      },
      "x": {
       "type": "integer"

@@ -32,7 +32,10 @@ public final class BankedXp
 	public static Map<Skill, Result> compute(AccountState state, BankedXpPack pack)
 	{
 		// best method per (skill, item)
-		Map<Skill, Map<Integer, BankedXpPack.Entry>> best = new HashMap<>();
+		// EnumMap, never HashMap keyed by an enum: identity-hash iteration
+		// order differs per JVM run, and tied-XP tiles reordered between
+		// sessions (the DOMAIN-NOTES gotcha)
+		Map<Skill, Map<Integer, BankedXpPack.Entry>> best = new java.util.EnumMap<>(Skill.class);
 		for (BankedXpPack.Entry entry : pack.getEntries())
 		{
 			Skill skill = Skill.valueOf(entry.getSkill().toUpperCase(Locale.ROOT));
@@ -41,7 +44,7 @@ public final class BankedXp
 					(a, b) -> a.getXpEach() >= b.getXpEach() ? a : b);
 		}
 
-		Map<Skill, Result> totals = new HashMap<>();
+		Map<Skill, Result> totals = new java.util.EnumMap<>(Skill.class);
 		best.forEach((skill, byItem) -> byItem.forEach((itemId, entry) ->
 		{
 			int count = state.getBankSnapshot().getOrDefault(itemId, 0);
