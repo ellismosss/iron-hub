@@ -143,8 +143,10 @@ public class LoadoutLabModule implements IronHubModule
 	private String dismissedFollow = "";
 	/** Viewing state: a named setup diffed vs current, an unsaved edited
 	 *  draft (wins over the name), or — both null — the live view. */
-	private String viewedSetup;
-	private PersistedState.SavedSetup draft;
+	private volatile String viewedSetup;
+	// volatile: the EDT edits the draft; onScriptPreFired's bank-collect
+	// reads it from the client thread
+	private volatile PersistedState.SavedSetup draft;
 
 	// ── DPS Calc integration (Luke, 2026-07-21): the wrapper owns the ONE
 	// gear viewer + stat tile; the calc publishes its per-style results here
@@ -752,7 +754,13 @@ public class LoadoutLabModule implements IronHubModule
 			System.identityHashCode(slayerSetup()),
 			wikiGearCollapsed,
 			wikiStyleIndex,
-			dpsMonster != null ? dpsMonster.getName() : null);
+			dpsMonster != null ? dpsMonster.getName() : null,
+			// the combat-line inputs the module watches — without them a
+			// style/autocast/weapon-category change hashed identical and
+			// the Style line went stale
+			state.getVarp(VarPlayer.ATTACK_STYLE),
+			state.getVarbit(AUTOCAST_SPELL),
+			state.getVarbit(WEAPON_CATEGORY));
 		if (fp == lastViewFp)
 		{
 			return;
@@ -1631,10 +1639,21 @@ public class LoadoutLabModule implements IronHubModule
 		return pack;
 	}
 
-	private com.ironhub.data.ItemSourcesPack itemSourcesPack()
+	private com.ironhub.data.ItemSourcesPack itemSourcesPack;
+
+	com.ironhub.data.ItemSourcesPack itemSourcesPack()
 	{
-		return new com.ironhub.data.DataPack(gson)
-			.load("item-sources", com.ironhub.data.ItemSourcesPack.class);
+		com.ironhub.data.ItemSourcesPack pack = itemSourcesPack;
+		if (pack == null)
+		{
+			// lazy FIELD cache like recEquipPack — DataPack's memo is
+			// per-instance, so a fresh DataPack per call re-parsed the
+			// 1.7 MB pack once per wiki-gear row per render, on the EDT
+			pack = new com.ironhub.data.DataPack(gson)
+				.load("item-sources", com.ironhub.data.ItemSourcesPack.class);
+			itemSourcesPack = pack;
+		}
+		return pack;
 	}
 
 	private com.ironhub.ui.components.SpriteCache wikiSprites()

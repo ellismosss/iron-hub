@@ -70,6 +70,27 @@ public class LoadoutLabModuleTest
 		javax.imageio.ImageIO.write(image, "png", out);
 	}
 
+	/** The 1.7 MB item-sources pack must parse ONCE for the module's life —
+	 *  the old fresh-DataPack-per-call defeated the per-instance memo and
+	 *  Gson-parsed it per unowned wiki-gear row per render, on the EDT. */
+	@Test
+	public void itemSourcesPackParsesOnceNotPerRow()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		LoadoutLabModule module = newModule(state);
+
+		long t0 = System.nanoTime();
+		com.ironhub.data.ItemSourcesPack first = module.itemSourcesPack();
+		long parseMs = (System.nanoTime() - t0) / 1_000_000;
+		t0 = System.nanoTime();
+		com.ironhub.data.ItemSourcesPack second = module.itemSourcesPack();
+		long cachedMicros = (System.nanoTime() - t0) / 1_000;
+		System.out.printf("item-sources pack: first parse %d ms, cached hit %d us%n",
+			parseMs, cachedMicros);
+
+		org.junit.Assert.assertSame(first, second);
+	}
+
 	private static LoadoutLabModule newModule(AccountState state)
 	{
 		return new LoadoutLabModule(new com.loadoutlab.LoadoutLabPlugin(),
