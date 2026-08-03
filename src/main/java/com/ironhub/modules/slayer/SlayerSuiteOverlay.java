@@ -74,16 +74,19 @@ class SlayerSuiteOverlay extends OverlayPanel
 			return null;
 		}
 		panelComponent.getChildren().clear();
-		panelComponent.setBackgroundColor(UiTokens.OVERLAY_BG);
+		// the STANDARD RuneLite overlay background, exactly like the goals
+		// planner — PanelComponent defaults to it, so never override
+		// (Luke, 2026-08-03 round 3)
 		panelComponent.setPreferredSize(new Dimension(WIDTH, 0));
 
 		String task = module.taskName();
-		// "Bloodvelds x63" — the name white, the live remaining count grey
-		// RIGHT AFTER it (Luke, live-test round 2; replaces the old
-		// right-aligned "63 left", which would now be a duplicate)
+		// "Bloodvelds x63 ... 63 left" — the name white, the count grey
+		// right after it (Luke, live-test round 2), and the original
+		// right-aligned "N left" stays (Luke, round 3: not to be removed)
 		panelComponent.getChildren().add(new TwoToneLine(
 			task.isEmpty() ? "Slayer task" : task, Color.WHITE,
-			" x" + remaining, UiTokens.CANVAS_LOCKED));
+			" x" + remaining, UiTokens.CANVAS_LOCKED,
+			remaining + " left", UiTokens.OVERLAY_VALUE));
 
 		int assigned = module.initialAmount();
 		if (assigned >= remaining && assigned > 0)
@@ -194,25 +197,40 @@ class SlayerSuiteOverlay extends OverlayPanel
 		}
 	}
 
-	/** One line, two colours side by side: the task name white, its count
-	 *  grey immediately after ("Bloodvelds x63") — LineComponent can only
-	 *  colour a whole side. */
+	/** One line, two colours side by side on the left (the task name white,
+	 *  its count grey immediately after — LineComponent can only colour a
+	 *  whole side), plus an optional right-aligned segment ("63 left"). */
 	private static final class TwoToneLine
 		implements net.runelite.client.ui.overlay.components.LayoutableRenderableEntity
 	{
 		private final String left;
 		private final Color leftColor;
+		private final String leftTail;
+		private final Color leftTailColor;
 		private final String right;
 		private final Color rightColor;
 		private final java.awt.Rectangle bounds = new java.awt.Rectangle();
 		private java.awt.Point location = new java.awt.Point();
+		private int width;
 
-		TwoToneLine(String left, Color leftColor, String right, Color rightColor)
+		TwoToneLine(String left, Color leftColor, String leftTail, Color leftTailColor,
+			String right, Color rightColor)
 		{
 			this.left = left;
 			this.leftColor = leftColor;
+			this.leftTail = leftTail;
+			this.leftTailColor = leftTailColor;
 			this.right = right;
 			this.rightColor = rightColor;
+		}
+
+		private void shadowed(Graphics2D graphics, String text, Color color, int x, int baseline)
+		{
+			// the standard overlay text shadow, like TextComponent draws
+			graphics.setColor(Color.BLACK);
+			graphics.drawString(text, x + 1, baseline + 1);
+			graphics.setColor(color);
+			graphics.drawString(text, x, baseline);
 		}
 
 		@Override
@@ -220,18 +238,16 @@ class SlayerSuiteOverlay extends OverlayPanel
 		{
 			java.awt.FontMetrics metrics = graphics.getFontMetrics();
 			int baseline = location.y + metrics.getHeight();
-			// the standard overlay text shadow, like TextComponent draws
-			graphics.setColor(Color.BLACK);
-			graphics.drawString(left, location.x + 1, baseline + 1);
-			graphics.setColor(leftColor);
-			graphics.drawString(left, location.x, baseline);
-			int x = location.x + metrics.stringWidth(left);
-			graphics.setColor(Color.BLACK);
-			graphics.drawString(right, x + 1, baseline + 1);
-			graphics.setColor(rightColor);
-			graphics.drawString(right, x, baseline);
-			Dimension dimension = new Dimension(
-				metrics.stringWidth(left + right), metrics.getHeight() + 2);
+			shadowed(graphics, left, leftColor, location.x, baseline);
+			shadowed(graphics, leftTail, leftTailColor,
+				location.x + metrics.stringWidth(left), baseline);
+			int lineWidth = Math.max(width, metrics.stringWidth(left + leftTail));
+			if (right != null && !right.isEmpty())
+			{
+				shadowed(graphics, right, rightColor,
+					location.x + lineWidth - metrics.stringWidth(right), baseline);
+			}
+			Dimension dimension = new Dimension(lineWidth, metrics.getHeight() + 2);
 			bounds.setLocation(location);
 			bounds.setSize(dimension);
 			return dimension;
@@ -252,7 +268,10 @@ class SlayerSuiteOverlay extends OverlayPanel
 		@Override
 		public void setPreferredSize(Dimension dimension)
 		{
-			// fixed to its text
+			if (dimension != null && dimension.width > 0)
+			{
+				width = dimension.width;
+			}
 		}
 	}
 }

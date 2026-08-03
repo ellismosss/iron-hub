@@ -50,7 +50,9 @@ class FarmingRunOverlay extends OverlayPanel
 			return null;
 		}
 		panelComponent.getChildren().clear();
-		panelComponent.setBackgroundColor(UiTokens.OVERLAY_BG);
+		// the STANDARD RuneLite overlay background, exactly like the goals
+		// planner — PanelComponent defaults to it, so never override
+		// (Luke, 2026-08-03 round 3)
 		panelComponent.setPreferredSize(new Dimension(WIDTH, 0));
 
 		panelComponent.getChildren().add(LineComponent.builder()

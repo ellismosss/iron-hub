@@ -56,9 +56,9 @@ public final class UiTokens
 	public static final Color CANVAS_WARNING = new Color(0xFF, 0x5C, 0x5C);
 
 	// ── Overlay surface ───────────────────────────────────────────────
-	public static final Color OVERLAY_BG = new Color(0, 0, 0, 140);        // rgba(0,0,0,0.55)
+	// Overlays wear the STANDARD RuneLite panel background — never a
+	// custom one (Luke, 2026-08-03: every overlay matches the goals planner)
 	public static final Color OVERLAY_VALUE = Color.WHITE; // values in white (Luke, 2026-07-24 — was yellow)
-	public static final Color OVERLAY_BAR_TROUGH = new Color(255, 255, 255, 38); // rgba(255,255,255,0.15)
 
 	// ── Spacing & metrics (px) ────────────────────────────────────────
 	public static final int PANEL_WIDTH = 225;      // hard platform constraint — never widen
