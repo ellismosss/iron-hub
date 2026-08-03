@@ -190,7 +190,7 @@ class PortTasksTab extends JPanel
 
 	private void addBoard()
 	{
-		List<PortTasksModule.Advice> ranked = module.rankOffers();
+		List<PortTasksModule.Advice> ranked = module.rankOffersCached();
 		if (ranked.isEmpty())
 		{
 			content.add(header("Noticeboard"));

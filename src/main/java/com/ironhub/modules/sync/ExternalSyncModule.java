@@ -21,8 +21,7 @@ import net.runelite.client.eventbus.Subscribe;
  * External sync (DESIGN.md §3.19) — ALL opt-in, defaults off, documented
  * in the README for Hub review:
  * - Wise Old Man + TempleOSRS: update ping on logout (rate-limited)
- * - Discord webhook: level milestones (multiples of 10, and 99) and
- *   completed goals
+ * - Discord webhook: level milestones (multiples of 10, and 99)
  * No data leaves the client unless the user enables a toggle.
  */
 @Slf4j
@@ -66,6 +65,12 @@ public class ExternalSyncModule implements IronHubModule
 	@Override
 	public void startUp()
 	{
+		// session baselines reset: while the module was off it missed the
+		// LOGGING_IN reseed, and comparing account B's levels against
+		// account A's stale baseline fired a burst of bogus milestone
+		// webhooks on the first notify
+		lastLevels.clear();
+		username = null; // re-seeded from the local player next tick
 		eventBus.register(this);
 		state.addListener(listener);
 	}
@@ -183,6 +188,11 @@ public class ExternalSyncModule implements IronHubModule
 
 	private static String encode(String value)
 	{
-		return java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8);
+		// URLEncoder is form encoding: '+' for a space decodes as a space
+		// only in QUERY strings — the WOM url uses the name as a PATH
+		// segment, where a literal '+' names a different player. %20 is
+		// valid in both positions.
+		return java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8)
+			.replace("+", "%20");
 	}
 }

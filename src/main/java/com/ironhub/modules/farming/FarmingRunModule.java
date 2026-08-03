@@ -208,6 +208,8 @@ public class FarmingRunModule implements IronHubModule
 	private boolean firstRefresh = true;
 	// runs currently ready — a not-ready -> ready transition re-ticks the run
 	private final Set<String> runReadySeen = ConcurrentHashMap.newKeySet();
+	/** Profile re-derive seam: transition state is per-account. */
+	private int seenGeneration = -1;
 
 	@Inject
 	public FarmingRunModule(AccountState state, Client client, EventBus eventBus,
@@ -253,6 +255,7 @@ public class FarmingRunModule implements IronHubModule
 	@Override
 	public void startUp()
 	{
+		seenGeneration = state.profileGeneration(); // fresh baselines already
 		pack = dataPack.load("farm-runs", FarmRunsPack.class);
 		skillUnlocks = dataPack.load("skill-unlocks", com.ironhub.data.SkillUnlocksPack.class);
 		if (tracking == null && configManager != null)
@@ -521,8 +524,28 @@ public class FarmingRunModule implements IronHubModule
 		{
 			return;
 		}
+		int generation = state.profileGeneration();
+		if (generation != seenGeneration)
+		{
+			// account switch: the tracker now reads the new profile's
+			// RSProfile data, but the transition bookkeeping still holds the
+			// old account's picture — B's long-ready herbs would replay a
+			// "ready" notification and re-tick runs; a mid-run hop would
+			// advance A's run from B's patches
+			seenGeneration = generation;
+			notifiedReady.clear();
+			runReadySeen.clear();
+			runReadyCache.clear();
+			lastFingerprint = "";
+			firstRefresh = true; // silent re-seed, exactly like startup
+			if (running())
+			{
+				endRun(false);
+			}
+		}
 		tracking.refresh();
 		runReadyCache.clear(); // fresh tracker data — recompute readiness lazily
+		patchesByRegion = null; // customized tab data may have moved patches
 		sharedReadyPatches = tracking.readyPatchCount();
 		reTickReadyRuns();
 		notifyTransitions();
@@ -1912,6 +1935,13 @@ public class FarmingRunModule implements IronHubModule
 		UNKNOWN
 	}
 
+	/** region id -> the vendored patches there, with their tab. Rebuilt
+	 *  lazily after each tracker refresh — patchesAt used to walk the
+	 *  ENTIRE farming world per stop, and the picker rebuild pays a
+	 *  patchesAt per row. */
+	private volatile java.util.Map<Integer,
+		List<java.util.Map.Entry<Tab, com.ironhub.modules.farming.rl.FarmingPatch>>> patchesByRegion;
+
 	/** The farming patches at a stop with their live views: every vendored
 	 *  world patch in the stop's region. */
 	List<StopPatch> patchesAt(FarmRunsPack.Location location)
@@ -1921,19 +1951,31 @@ public class FarmingRunModule implements IronHubModule
 		{
 			return out;
 		}
-		int region = location.worldPoint().getRegionID();
-		long now = Instant.now().getEpochSecond();
-		for (java.util.Map.Entry<Tab, java.util.Set<com.ironhub.modules.farming.rl.FarmingPatch>> entry
-			: tracking.tracker().getTabData())
+		java.util.Map<Integer,
+			List<java.util.Map.Entry<Tab, com.ironhub.modules.farming.rl.FarmingPatch>>> byRegion =
+			patchesByRegion;
+		if (byRegion == null)
 		{
-			for (com.ironhub.modules.farming.rl.FarmingPatch patch : entry.getValue())
+			byRegion = new java.util.HashMap<>();
+			for (java.util.Map.Entry<Tab, java.util.Set<com.ironhub.modules.farming.rl.FarmingPatch>> entry
+				: tracking.tracker().getTabData())
 			{
-				if (patch.getRegion().getRegionID() == region)
+				for (com.ironhub.modules.farming.rl.FarmingPatch patch : entry.getValue())
 				{
-					PatchPrediction prediction = tracking.tracker().predictPatch(patch);
-					out.add(new StopPatch(entry.getKey(), viewOf(prediction, now)));
+					byRegion.computeIfAbsent(patch.getRegion().getRegionID(),
+							k -> new java.util.ArrayList<>())
+						.add(new java.util.AbstractMap.SimpleEntry<>(entry.getKey(), patch));
 				}
 			}
+			patchesByRegion = byRegion;
+		}
+		int region = location.worldPoint().getRegionID();
+		long now = Instant.now().getEpochSecond();
+		for (java.util.Map.Entry<Tab, com.ironhub.modules.farming.rl.FarmingPatch> entry
+			: byRegion.getOrDefault(region, List.of()))
+		{
+			PatchPrediction prediction = tracking.tracker().predictPatch(entry.getValue());
+			out.add(new StopPatch(entry.getKey(), viewOf(prediction, now)));
 		}
 		out.sort(java.util.Comparator.comparing(sp -> sp.category.ordinal()));
 		return out;

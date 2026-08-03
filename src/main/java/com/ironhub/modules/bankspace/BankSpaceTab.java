@@ -244,8 +244,15 @@ class BankSpaceTab extends JPanel
 		row.add(top);
 		if ("ignored".equals(expanded))
 		{
+			int shown = 0;
 			for (BankStoragePack.Entry entry : ignored)
 			{
+				if (shown++ >= ITEM_CAP) // the same row-list law as the locations
+				{
+					row.add(sub("+ " + (ignored.size() - ITEM_CAP) + " more",
+						OsrsSkin.FAINT));
+					break;
+				}
 				row.add(itemRow(entry, true));
 			}
 		}

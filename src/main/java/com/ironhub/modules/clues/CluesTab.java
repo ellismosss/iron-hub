@@ -210,8 +210,27 @@ class CluesTab extends JPanel
 
 	private void rebuild()
 	{
+		satisfiedMemo.clear();
 		rebuildHero();
-		rebuildContent();
+		rebuildContentKeepMemo();
+	}
+
+	/** One requirement-graph walk per clue per pass — the hero, the tier
+	 *  tiles and the expanded detail all ask, and each re-walked all ~126
+	 *  clues' graphs on the EDT (three to four full sweeps per rebuild). */
+	private final java.util.Map<String, Boolean> satisfiedMemo = new java.util.HashMap<>();
+
+	private boolean satisfied(ClueStepsPack.Clue clue)
+	{
+		// get/put, not computeIfAbsent: the evaluation can re-enter here
+		// for another clue, which a mid-computeIfAbsent mutation rejects
+		Boolean cached = satisfiedMemo.get(clue.id);
+		if (cached == null)
+		{
+			cached = module.satisfied(clue);
+			satisfiedMemo.put(clue.id, cached);
+		}
+		return cached;
 	}
 
 	private ClueStepsPack.Stash unitFor(ClueStepsPack.Clue clue)
@@ -265,7 +284,7 @@ class CluesTab extends JPanel
 			for (ClueStepsPack.Clue clue : pack.clues)
 			{
 				steps++;
-				if (module.satisfied(clue))
+				if (satisfied(clue))
 				{
 					doable++;
 				}
@@ -280,7 +299,7 @@ class CluesTab extends JPanel
 			{
 				int idx = tierIndex(clue.tier);
 				tierSteps[idx]++;
-				if (module.satisfied(clue))
+				if (satisfied(clue))
 				{
 					tierDoable[idx]++;
 				}
@@ -350,6 +369,12 @@ class CluesTab extends JPanel
 	// ── the tier grid ─────────────────────────────────────────────────
 
 	private void rebuildContent()
+	{
+		satisfiedMemo.clear(); // standalone refreshes re-evaluate fresh
+		rebuildContentKeepMemo();
+	}
+
+	private void rebuildContentKeepMemo()
 	{
 		content.removeAll();
 		ClueStepsPack pack = module.pack();
@@ -427,7 +452,7 @@ class CluesTab extends JPanel
 				String tier = tiers.get(start + col);
 				List<ClueStepsPack.Clue> clues = byTier.get(tier);
 				int doable = (int) clues.stream()
-					.filter(module::satisfied).count();
+					.filter(this::satisfied).count();
 				line.add(tierTile(tier, doable, clues.size()));
 			}
 			line.add(Box.createHorizontalGlue());
@@ -705,7 +730,7 @@ class CluesTab extends JPanel
 	private void tierDetail(String tier, List<ClueStepsPack.Clue> clues)
 	{
 		int doable = (int) clues.stream()
-			.filter(module::satisfied).count();
+			.filter(this::satisfied).count();
 		int units = 0;
 		int filled = 0;
 		for (ClueStepsPack.Clue clue : clues)
@@ -731,7 +756,7 @@ class CluesTab extends JPanel
 		Map<ClueStepsPack.Clue, Double> gapBy = new java.util.IdentityHashMap<>();
 		for (ClueStepsPack.Clue clue : clues)
 		{
-			boolean can = module.satisfied(clue);
+			boolean can = satisfied(clue);
 			doableBy.put(clue, can);
 			double gap = 0;
 			if (!can && clue.reqs != null)

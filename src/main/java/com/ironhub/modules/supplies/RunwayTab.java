@@ -223,8 +223,15 @@ class RunwayTab extends JPanel
 			return;
 		}
 		V2Surface group = group();
+		int shown = 0;
 		for (SuppliesPack.Item item : items)
 		{
+			if (shown++ >= 50) // the row-list law — search results already cap
+			{
+				group.add(note("+ " + (items.size() - 50)
+					+ " more — refine your search."));
+				break;
+			}
 			group.add(watchRow(item));
 		}
 		cap(group);
