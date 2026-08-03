@@ -901,6 +901,15 @@ class CombatAchievementsTab extends JPanel
 		head.add(name);
 		head.add(Box.createHorizontalGlue());
 		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		// the standard W-glyph wiki affordance (CA1 2026-08-03) — the same
+		// grammar as the goals cards; the right-click menu stays for parity
+		com.ironhub.ui.v2.V2SpriteButton wiki = new com.ironhub.ui.v2.V2SpriteButton(
+			theme, com.ironhub.ui.v2.V2SpriteButton.EMPTY_BOX,
+			false, () -> LinkBrowser.browse(task.wikiUrl())).letter("W");
+		wiki.setToolTipText("Open wiki");
+		wiki.putClientProperty(OWN_ACTION, Boolean.TRUE); // never also expands the row
+		head.add(wiki);
+		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 		head.add(goalGlyph(task));
 		head.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		clickAnywhere(head, new MouseAdapter()
