@@ -265,4 +265,172 @@ public class AccountStateTest
 		StateFixture.profile(state, 1L);
 		assertTrue(state.isUnlocked("fairy_rings"));
 	}
+
+	@Test
+	public void rateFoldNeverReentersPersistDuringTheLogoutFlush()
+	{
+		// the logout flush runs persistNow with gameState already off
+		// LOGGED_IN; a persist() inside the fold core re-entered persistNow
+		// there and recursed until stack overflow, losing the flush
+		net.runelite.api.Client client = org.mockito.Mockito.mock(net.runelite.api.Client.class);
+		org.mockito.Mockito.when(client.getGameState())
+			.thenReturn(net.runelite.api.GameState.LOGIN_SCREEN);
+		int[] saves = {0};
+		AccountState state = new AccountState(client, null,
+			new ProfileStore(new com.google.gson.Gson(), r -> { saves[0]++; r.run(); },
+				temp.getRoot()), null);
+		StateFixture.profile(state, 42L);
+		saves[0] = 0;
+
+		state.foldRateSample(net.runelite.api.Skill.FISHING, 50_000, 0.5);
+		assertEquals(0, saves[0]); // the fold core itself must not write
+
+		state.persistNow(); // the flush snapshots the folded rates exactly once
+		assertEquals(1, saves[0]);
+	}
+
+	@Test
+	public void midSessionEnableActivatesTheProfileBeforePersisting()
+	{
+		// plugin toggled on while already logged in: no GameStateChanged
+		// fires, so the first tick must activate the profile — without it
+		// every persist() no-ops and the next login replay restores the
+		// on-disk state over the user's edits
+		net.runelite.api.Client client = org.mockito.Mockito.mock(net.runelite.api.Client.class);
+		org.mockito.Mockito.when(client.getGameState())
+			.thenReturn(net.runelite.api.GameState.LOGGED_IN);
+		org.mockito.Mockito.when(client.getAccountHash()).thenReturn(77L);
+		AccountState state = new AccountState(client, null,
+			StateFixture.store(temp.getRoot()), null);
+
+		state.onGameTick(); // first tick after the mid-session enable
+		state.setUnlocked("mid_session_edit", true);
+		state.persistNow();
+
+		AccountState reloaded = StateFixture.state(temp.getRoot());
+		StateFixture.profile(reloaded, 77L);
+		assertTrue(reloaded.isUnlocked("mid_session_edit"));
+	}
+
+	@Test
+	public void captureSetupSplitsUnstackableQuantitiesAcrossSlots()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		// three sharks in three slots (unstackable), one stack of 100 runes
+		StateFixture.inventorySlots(state, new int[]{385, 385, 385, 554, -1});
+		StateFixture.inventory(state, Map.of(385, 3, 554, 100));
+
+		PersistedState.SavedSetup setup = state.captureSetup();
+		assertEquals(1, setup.inventoryQty[0]);
+		assertEquals(1, setup.inventoryQty[1]);
+		assertEquals(1, setup.inventoryQty[2]);
+		assertEquals(100, setup.inventoryQty[3]);
+		assertEquals(0, setup.inventoryQty[4]);
+		// carrying exactly what was captured means nothing to withdraw —
+		// the old per-slot totals (3+3+3 sharks) flagged a phantom shortfall
+		assertTrue(state.setupItemsToWithdraw(setup).isEmpty());
+	}
+
+	@Test
+	public void clogCatalogReadsAreStableSnapshots()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		PersistedState.ClogTab bosses = new PersistedState.ClogTab();
+		bosses.name = "Bosses";
+		state.setClogCatalog(java.util.List.of(bosses));
+
+		java.util.List<PersistedState.ClogTab> view = state.getClogCatalog();
+		PersistedState.ClogTab raids = new PersistedState.ClogTab();
+		raids.name = "Raids";
+		state.setClogCatalog(java.util.List.of(bosses, raids));
+
+		// an earlier read stays what it was — EDT rebuilds iterate it while
+		// the client thread publishes a replacement
+		assertEquals(1, view.size());
+		assertEquals(2, state.getClogCatalog().size());
+	}
+
+	@Test
+	public void profileSwitchDropsTheConsumptionBaseline()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 1L);
+		StateFixture.inventory(state, Map.of(385, 10)); // ten sharks
+		StateFixture.checkpointSupplies(state);
+
+		StateFixture.profile(state, 2L); // account switch
+		StateFixture.inventory(state, Map.of(385, 4));
+		state.ingestLoot("Zulrah", Map.of(12934, 1));
+
+		// the old account's baseline must not attribute six phantom sharks
+		// to the new account's first kill
+		assertTrue(state.getConsumptionLog().isEmpty());
+		assertTrue(state.suppliesFor("Zulrah").isEmpty());
+	}
+
+	@Test
+	public void legacyGoalMigrationPersistsTheFullyRestoredProfile()
+	{
+		ProfileStore store = StateFixture.store(temp.getRoot());
+		PersistedState legacy = new PersistedState();
+		PersistedState.CustomGoal goal = new PersistedState.CustomGoal();
+		goal.name = "60 Attack";
+		goal.req = "skill:Attack:60";
+		legacy.customGoals.put("custom:skill:Attack:60", goal);
+		PersistedState.GoalRecord record = new PersistedState.GoalRecord();
+		record.goalId = "diary:x";
+		record.name = "done";
+		legacy.goalRecords.add(record);
+		legacy.measuredRates.put("Attack", 50_000.0);
+		store.save(9L, legacy);
+
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 9L); // triggers the one-time migration
+
+		// the migration's persist rewrote the profile — it must contain the
+		// FULLY restored state, not just the fields restored before it ran
+		PersistedState written = store.load(9L);
+		assertTrue(written.goalSeeds.containsKey("custom:skill:Attack:60"));
+		assertEquals(1, written.goalRecords.size());
+		assertEquals(50_000.0, written.measuredRates.get("Attack"), 0.01);
+	}
+
+	@Test
+	public void publishedSnapshotsNeverTearUnderConcurrentReads() throws Exception
+	{
+		// no profile on purpose: persist() no-ops, keeping the hammer tight.
+		// Pre-fix, putSailingBoat/putStorageContents mutated the held
+		// snapshot in place while an EDT reader's copy() iterated it.
+		AccountState state = StateFixture.state(temp.getRoot());
+		java.util.concurrent.atomic.AtomicReference<Throwable> failed =
+			new java.util.concurrent.atomic.AtomicReference<>();
+		java.util.concurrent.atomic.AtomicBoolean stop =
+			new java.util.concurrent.atomic.AtomicBoolean();
+		Thread reader = new Thread(() ->
+		{
+			try
+			{
+				while (!stop.get())
+				{
+					state.getSailingBoats().values().forEach(b -> b.partTiers.size());
+					state.getStorageContents().values().forEach(s -> s.items.size());
+				}
+			}
+			catch (Throwable t)
+			{
+				failed.set(t);
+			}
+		});
+		reader.start();
+		for (int i = 0; i < 20_000 && failed.get() == null; i++)
+		{
+			state.putSailingBoat(1, Map.of("p" + (i % 8), i), i); // tiers always rise
+			state.putStorageContents("k", "n", "f", "l", Map.of(1, i, i % 8 + 2, i), null, i);
+		}
+		stop.set(true);
+		reader.join(10_000);
+		assertTrue(String.valueOf(failed.get()), failed.get() == null);
+	}
 }

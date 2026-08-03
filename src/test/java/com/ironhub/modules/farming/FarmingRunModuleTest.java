@@ -1146,15 +1146,19 @@ public class FarmingRunModuleTest
 		worn[net.runelite.api.EquipmentInventorySlot.CAPE.getSlotIdx()] = 1052;
 		worn[net.runelite.api.EquipmentInventorySlot.RING.getSlotIdx()] = 13126;
 		StateFixture.equipmentSlots(before, worn);
-		StateFixture.inventorySlots(before, new int[]{8013, 5291, 5291, 0});
-		StateFixture.inventory(before, Map.of(8013, 3, 5291, 5));
+		// tabs and seeds stack (one slot holds the whole quantity); the two
+		// herb slots are unstackable — one each, never the per-id total
+		StateFixture.inventorySlots(before, new int[]{8013, 5291, 257, 257});
+		StateFixture.inventory(before, Map.of(8013, 3, 5291, 5, 257, 2));
 
 		com.ironhub.state.PersistedState.SavedSetup setup = before.captureSetup();
 		assertEquals((Integer) 1052, setup.equipment.get("CAPE"));
 		assertEquals((Integer) 13126, setup.equipment.get("RING"));
 		assertEquals(8013, setup.inventory[0]);
 		assertEquals(3, setup.inventoryQty[0]);
-		assertEquals(5, setup.inventoryQty[1]); // 5 grimy... seeds stacked
+		assertEquals(5, setup.inventoryQty[1]); // 5 seeds in their one stack
+		assertEquals(1, setup.inventoryQty[2]); // unstackable herbs split
+		assertEquals(1, setup.inventoryQty[3]);
 		before.saveFarmRunSetup("My herbs", setup);
 
 		AccountState after = StateFixture.state(temp.getRoot());

@@ -129,4 +129,46 @@ public class ModuleLifecycleTest
 			module.shutDown();
 		}
 	}
+
+	@Test
+	public void shutDownAllSurvivesAThrowingModule()
+	{
+		// one broken module must not skip its siblings or the persistNow
+		// flush that follows the loop in IronHubPlugin.shutDown
+		java.util.List<String> shut = new java.util.ArrayList<>();
+		IronHubModule bad = new IronHubModule()
+		{
+			public String name()
+			{
+				return "bad";
+			}
+
+			public void startUp()
+			{
+			}
+
+			public void shutDown()
+			{
+				throw new IllegalStateException("boom");
+			}
+		};
+		IronHubModule good = new IronHubModule()
+		{
+			public String name()
+			{
+				return "good";
+			}
+
+			public void startUp()
+			{
+			}
+
+			public void shutDown()
+			{
+				shut.add(name());
+			}
+		};
+		IronHubPlugin.shutDownAll(java.util.List.of(bad, good));
+		assertEquals(java.util.List.of("good"), shut);
+	}
 }

@@ -164,8 +164,10 @@ public class AccountState implements StateView
 	private final Map<Integer, Integer> clogQuantities = new ConcurrentHashMap<>();
 	private final Map<Integer, Long> clogObtainedAt = new ConcurrentHashMap<>();
 	private final Map<String, java.util.List<String>> clogPageCounts = new ConcurrentHashMap<>();
-	private final java.util.List<PersistedState.ClogTab> clogCatalog =
-		java.util.Collections.synchronizedList(new java.util.ArrayList<>());
+	// published wholesale (volatile immutable copies): the EDT iterates the
+	// returned list during rebuilds while the client thread replaces it — a
+	// synchronizedList clear+addAll tore mid-iteration (CME = half-built tab)
+	private volatile java.util.List<PersistedState.ClogTab> clogCatalog = java.util.List.of();
 	private volatile int clogBaseline = -1;
 	private volatile long clogSyncedMs;
 	private final Set<String> plannerPins = ConcurrentHashMap.newKeySet();
@@ -929,15 +931,19 @@ public class AccountState implements StateView
 	public void putStorageContents(String key, String name, String family,
 		String label, Map<Integer, Integer> items, Map<Integer, String> itemNames, long now)
 	{
-		PersistedState.StorageSnapshot snap = storageContents.computeIfAbsent(
-			key, k -> new PersistedState.StorageSnapshot());
-		boolean changed = snap.lastSeen == 0 || !snap.items.equals(items);
+		PersistedState.StorageSnapshot previous = storageContents.get(key);
+		boolean changed = previous == null || !previous.items.equals(items);
+		// a fresh object per commit: EDT readers copy() snapshots, and an
+		// in-place mutation here raced that iteration (client thread writes,
+		// EDT reads) — published objects never change after the put
+		PersistedState.StorageSnapshot snap = new PersistedState.StorageSnapshot();
 		snap.items = new HashMap<>(items);
 		snap.itemNames = itemNames == null ? new HashMap<>() : new HashMap<>(itemNames);
 		snap.lastSeen = now;
 		snap.name = name;
 		snap.family = family;
 		snap.label = label;
+		storageContents.put(key, snap);
 		if (changed)
 		{
 			persist();
@@ -1034,9 +1040,12 @@ public class AccountState implements StateView
 	 *  downgrade a previously seen one). */
 	public void putSailingBoat(int boatType, Map<String, Integer> partTiers, long now)
 	{
-		PersistedState.BoatSnapshot snap = sailingBoats.computeIfAbsent(
-			String.valueOf(boatType), k -> new PersistedState.BoatSnapshot());
-		boolean changed = snap.lastSeen == 0;
+		PersistedState.BoatSnapshot previous = sailingBoats.get(String.valueOf(boatType));
+		// merge into a copy and publish it whole — EDT readers copy() the
+		// held snapshot, and mutating its partTiers in place raced them
+		PersistedState.BoatSnapshot snap = previous == null
+			? new PersistedState.BoatSnapshot() : previous.copy();
+		boolean changed = previous == null;
 		for (Map.Entry<String, Integer> e : partTiers.entrySet())
 		{
 			Integer cur = snap.partTiers.get(e.getKey());
@@ -1047,6 +1056,7 @@ public class AccountState implements StateView
 			}
 		}
 		snap.lastSeen = now;
+		sailingBoats.put(String.valueOf(boatType), snap);
 		if (changed)
 		{
 			persist();
@@ -1576,10 +1586,22 @@ public class AccountState implements StateView
 		setup.inventory = getInventorySlots();
 		setup.inventoryQty = new int[setup.inventory.length];
 		Map<Integer, Integer> quantities = getInventorySnapshot();
+		// the snapshot totals per item id — a stack's whole quantity sits in
+		// its one slot, but unstackables occupy a slot each, so the per-id
+		// total must split across its slots or every slot claims all of them
+		Map<Integer, Integer> slotsPerId = new HashMap<>();
+		for (int id : setup.inventory)
+		{
+			if (id > 0)
+			{
+				slotsPerId.merge(id, 1, Integer::sum);
+			}
+		}
 		for (int i = 0; i < setup.inventory.length; i++)
 		{
-			setup.inventoryQty[i] = setup.inventory[i] > 0
-				? quantities.getOrDefault(setup.inventory[i], 1) : 0;
+			int id = setup.inventory[i];
+			setup.inventoryQty[i] = id > 0
+				? Math.max(1, quantities.getOrDefault(id, 1) / slotsPerId.get(id)) : 0;
 		}
 		return setup;
 	}
@@ -1762,10 +1784,11 @@ public class AccountState implements StateView
 		return clogObtainedAt.getOrDefault(canonicalId, 0L);
 	}
 
-	/** The game's own log structure as last read from the cache. */
+	/** The game's own log structure as last read from the cache — a stable
+	 *  immutable snapshot, safe to iterate on any thread. */
 	public java.util.List<PersistedState.ClogTab> getClogCatalog()
 	{
-		return java.util.Collections.unmodifiableList(clogCatalog);
+		return clogCatalog;
 	}
 
 	/** A fresh cache read replaced the structure (client thread). No-op when
@@ -1777,22 +1800,22 @@ public class AccountState implements StateView
 		{
 			return;
 		}
-		clogCatalog.clear();
-		clogCatalog.addAll(tabs);
+		clogCatalog = java.util.List.copyOf(tabs);
 		persist();
 		notifyListeners();
 	}
 
 	private boolean sameCatalog(java.util.List<PersistedState.ClogTab> tabs)
 	{
-		if (tabs.size() != clogCatalog.size())
+		java.util.List<PersistedState.ClogTab> held0 = clogCatalog;
+		if (tabs.size() != held0.size())
 		{
 			return false;
 		}
 		for (int i = 0; i < tabs.size(); i++)
 		{
 			PersistedState.ClogTab fresh = tabs.get(i);
-			PersistedState.ClogTab held = clogCatalog.get(i);
+			PersistedState.ClogTab held = held0.get(i);
 			if (!fresh.name.equals(held.name) || fresh.pages.size() != held.pages.size())
 			{
 				return false;
@@ -2553,6 +2576,14 @@ public class AccountState implements StateView
 			// plugin started mid-session: no GameStateChanged will fire, so
 			// seed skills/containers once from the live client
 			containersSeeded = true;
+			long hash = client.getAccountHash();
+			if (hash != -1 && hash != profile)
+			{
+				// same activation LOGGED_IN does — without it profile stays
+				// -1, every persist() no-ops, and the next login replay
+				// restores from disk over the user's unpersisted edits
+				activateProfile(hash);
+			}
 			refreshSkills();
 			refreshContainers();
 			notifyListeners();
@@ -2614,7 +2645,9 @@ public class AccountState implements StateView
 	/** Sanity ceiling — nothing sustains this; guards burst artifacts. */
 	private static final double RATE_CAP = 1_500_000;
 
-	/** skill -> [lastDropMs, sessionXp, sessionActiveMs]; client thread. */
+	/** skill -> [lastDropMs, sessionXp, sessionActiveMs]. Client thread,
+	 *  except the shutdown flush (plugin shutDown runs on the EDT) — every
+	 *  access synchronizes on the map. */
 	private final Map<Skill, long[]> rateSessions = new java.util.EnumMap<>(Skill.class);
 
 	private void trackRateSession(Skill skill, Integer previousXp, int experience)
@@ -2629,13 +2662,16 @@ public class AccountState implements StateView
 			return;
 		}
 		long now = System.currentTimeMillis();
-		long[] session = rateSessions.computeIfAbsent(skill, k -> new long[3]);
-		if (session[0] > 0 && now - session[0] <= RATE_IDLE_MS)
+		synchronized (rateSessions)
 		{
-			session[2] += now - session[0];
+			long[] session = rateSessions.computeIfAbsent(skill, k -> new long[3]);
+			if (session[0] > 0 && now - session[0] <= RATE_IDLE_MS)
+			{
+				session[2] += now - session[0];
+			}
+			session[1] += delta;
+			session[0] = now;
 		}
-		session[1] += delta;
-		session[0] = now;
 	}
 
 	/** Fold substantial sessions into the persisted EWMA; runs at the
@@ -2643,20 +2679,28 @@ public class AccountState implements StateView
 	 *  fixture xp seeding can't pollute rates). */
 	private void foldRateSessions()
 	{
-		for (Map.Entry<Skill, long[]> entry : rateSessions.entrySet())
+		synchronized (rateSessions)
 		{
-			long[] session = entry.getValue();
-			if (session[2] < RATE_FOLD_ACTIVE_MS)
+			for (Map.Entry<Skill, long[]> entry : rateSessions.entrySet())
 			{
-				continue;
+				long[] session = entry.getValue();
+				if (session[2] < RATE_FOLD_ACTIVE_MS)
+				{
+					continue;
+				}
+				foldRateSample(entry.getKey(), session[1], session[2] / 3_600_000.0);
+				session[1] = 0;
+				session[2] = 0;
 			}
-			foldRateSample(entry.getKey(), session[1], session[2] / 3_600_000.0);
-			session[1] = 0;
-			session[2] = 0;
 		}
 	}
 
-	/** One observed sample into the EWMA — the fold core (test seam). */
+	/** One observed sample into the EWMA — the fold core (test seam).
+	 *  Never persists: the only live caller is foldRateSessions inside
+	 *  persistNow, which snapshots measuredRates right after — a persist()
+	 *  here re-entered persistNow from the logout flush (gameState no
+	 *  longer LOGGED_IN, so persist() falls through) and recursed until
+	 *  stack overflow, losing the flush entirely. */
 	void foldRateSample(Skill skill, double xpGained, double activeHours)
 	{
 		if (activeHours <= 0 || xpGained <= 0)
@@ -2670,7 +2714,6 @@ public class AccountState implements StateView
 		measuredRates.put(key, previous == null || previous <= 0
 			? rate : 0.7 * previous + 0.3 * rate);
 		measuredRateHours.merge(key, activeHours, Double::sum);
-		persist();
 	}
 
 	/** The measured EWMA xp/hr, or 0 below the observation threshold —
@@ -2772,7 +2815,11 @@ public class AccountState implements StateView
 		}                 // state under the incoming account's id
 		profile = hash;
 		profileGeneration++;
-		rateSessions.clear(); // pace sessions are per-account
+		synchronized (rateSessions)
+		{
+			rateSessions.clear(); // pace sessions are per-account
+		}
+		supplyCheckpoint = Map.of(); // consumption baselines are per-account
 		// quest states are per-account client data: clear them and force an
 		// immediate refresh, or the new profile gates on the old account's
 		// quests for up to 30s (2026-07-20 audit)
@@ -2878,7 +2925,6 @@ public class AccountState implements StateView
 		selectedGoals.addAll(persisted.selectedGoals);
 		goalSeeds.clear();
 		goalSeeds.putAll(persisted.goalSeeds);
-		migrateLegacyGoalSeeds(persisted);
 		goalRecords.clear();
 		goalRecords.addAll(persisted.goalRecords);
 		clogObtained.clear();
@@ -2893,8 +2939,7 @@ public class AccountState implements StateView
 		clogObtainedAt.putAll(persisted.clogObtainedAt);
 		clogPageCounts.clear();
 		clogPageCounts.putAll(persisted.clogPageCounts);
-		clogCatalog.clear();
-		clogCatalog.addAll(persisted.clogCatalog);
+		clogCatalog = java.util.List.copyOf(persisted.clogCatalog);
 		plannerPins.clear();
 		plannerPins.addAll(persisted.plannerPins);
 		plannerSnoozes.clear();
@@ -2921,6 +2966,10 @@ public class AccountState implements StateView
 		collectionLogTotal = persisted.collectionLogTotal;
 		collectionLogSeenMs = persisted.collectionLogSeenMs;
 		activeGoal = persisted.activeGoal == null ? "" : persisted.activeGoal;
+		// last: its persist() snapshots THIS object, so every field above
+		// must already hold the new profile before it can run (headless
+		// persists synchronously — mid-restore it wrote a torn profile)
+		migrateLegacyGoalSeeds(persisted);
 		log.debug("activated profile {} ({} banked item stacks)", hash, bank.size());
 	}
 
@@ -3056,10 +3105,7 @@ public class AccountState implements StateView
 		state.clogObtainedAt = new HashMap<>(clogObtainedAt);
 		clogPageCounts.forEach((page, lines) ->
 			state.clogPageCounts.put(page, new java.util.ArrayList<>(lines)));
-		synchronized (clogCatalog)
-		{
-			state.clogCatalog = new java.util.ArrayList<>(clogCatalog);
-		}
+		state.clogCatalog = new java.util.ArrayList<>(clogCatalog); // immutable snapshot — safe to copy lock-free
 		state.plannerPins = new HashSet<>(plannerPins);
 		state.plannerSnoozes = new HashSet<>(plannerSnoozes);
 		state.plannerBans = new HashSet<>(plannerBans);

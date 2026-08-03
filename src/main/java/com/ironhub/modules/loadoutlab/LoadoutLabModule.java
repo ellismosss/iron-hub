@@ -609,10 +609,22 @@ public class LoadoutLabModule implements IronHubModule
 		setup.inventory = state.getInventorySlots();
 		setup.inventoryQty = new int[setup.inventory.length];
 		Map<Integer, Integer> quantities = state.getInventorySnapshot();
+		// per-id totals split across slots — unstackables occupy a slot
+		// each, and crediting every slot the full total overcounts them
+		// (same rule as AccountState.captureSetup)
+		Map<Integer, Integer> slotsPerId = new HashMap<>();
+		for (int id : setup.inventory)
+		{
+			if (id > 0)
+			{
+				slotsPerId.merge(id, 1, Integer::sum);
+			}
+		}
 		for (int i = 0; i < setup.inventory.length; i++)
 		{
-			setup.inventoryQty[i] = setup.inventory[i] > 0
-				? quantities.getOrDefault(setup.inventory[i], 1) : 0;
+			int id = setup.inventory[i];
+			setup.inventoryQty[i] = id > 0
+				? Math.max(1, quantities.getOrDefault(id, 1) / slotsPerId.get(id)) : 0;
 		}
 		if (clientThread != null && client != null)
 		{
