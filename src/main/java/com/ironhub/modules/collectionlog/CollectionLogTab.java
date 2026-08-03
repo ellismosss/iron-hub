@@ -388,15 +388,20 @@ class CollectionLogTab extends JPanel
 					new javax.swing.border.LineBorder(Color.BLACK, 1),
 					new javax.swing.border.LineBorder(OsrsSkin.FAINT, 1)),
 				new EmptyBorder(2, 2, 2, 2)));
-			// glue BOTH sides — the icons centre in the box (Luke, 2026-07-27)
-			box.add(Box.createHorizontalGlue());
+			// distributed across the FULL row (C2, Luke 2026-08-03): minimal
+			// margin at the far edges, one equal glue gap between each pair
 			int shown = 0;
 			for (int id : latest)
 			{
-				if (shown++ >= LATEST_STRIP)
+				if (shown >= LATEST_STRIP)
 				{
 					break;
 				}
+				if (shown > 0)
+				{
+					box.add(Box.createHorizontalGlue());
+				}
+				shown++;
 				JLabel icon = new JLabel();
 				java.awt.Image sprite = sprites.getBox(id, 22);
 				if (sprite != null)
@@ -408,12 +413,7 @@ class CollectionLogTab extends JPanel
 				icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
 				icon.setToolTipText(itemName(id));
 				box.add(icon);
-				if (shown < LATEST_STRIP)
-				{
-					box.add(Box.createHorizontalStrut(2));
-				}
 			}
-			box.add(Box.createHorizontalGlue());
 			cap(box);
 			latestStrip.add(box);
 			latestStrip.add(Box.createVerticalStrut(4));
@@ -458,16 +458,16 @@ class CollectionLogTab extends JPanel
 		if (state.getClogBaseline() < 0)
 		{
 			colour = OsrsSkin.TITLE;
-			text = "Open the log and press Log Sync to import";
-			tip = "Open your collection log in-game and press the Log Sync button in its "
-				+ "header — every obtained slot imports in one click.";
+			text = "Open the log, then press Sync log here";
+			tip = "Open your collection log in-game, then press Sync log — "
+				+ "every obtained slot imports in one click.";
 		}
 		else if (!module.inSync())
 		{
 			colour = OsrsSkin.TITLE;
-			text = "New slots since last sync · press Log Sync";
+			text = "New slots since last sync";
 			tip = "Your in-game slot count moved past the last full sync — open the "
-				+ "collection log and press Log Sync to catch up.";
+				+ "collection log and press Sync log here to catch up.";
 		}
 		else
 		{
