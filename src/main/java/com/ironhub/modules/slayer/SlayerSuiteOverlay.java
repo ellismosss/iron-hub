@@ -80,15 +80,14 @@ class SlayerSuiteOverlay extends OverlayPanel
 		panelComponent.setPreferredSize(new Dimension(WIDTH, 0));
 
 		String task = module.taskName();
-		// "Bloodvelds x63 ... 63 left" — the name white, the count grey
-		// right after it (Luke, live-test round 2), and the original
-		// right-aligned "N left" stays (Luke, round 3: not to be removed)
+		int assigned = module.initialAmount();
+		// "Bloodvelds x150 ... 63 left" — the name white, the TOTAL assigned
+		// amount grey right after it (Luke, round 4: the total, not the
+		// remaining count — "N left" already carries that)
 		panelComponent.getChildren().add(new TwoToneLine(
 			task.isEmpty() ? "Slayer task" : task, Color.WHITE,
-			" x" + remaining, UiTokens.CANVAS_LOCKED,
+			assigned > 0 ? " x" + assigned : "", UiTokens.CANVAS_LOCKED,
 			remaining + " left", UiTokens.OVERLAY_VALUE));
-
-		int assigned = module.initialAmount();
 		if (assigned >= remaining && assigned > 0)
 		{
 			// the kill-count bar (S3): the SAME small bar as the goals
