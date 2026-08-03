@@ -105,6 +105,84 @@ public class CluesTest
 		module.shutDown();
 	}
 
+	/**
+	 * CL1 2026-08-03: the route card's outfit filter checks what is ON YOUR
+	 * PERSON — inventory and worn count, the bank does not (mid-route the
+	 * bank is behind you), any: alternatives count, quantities gate.
+	 */
+	@Test
+	public void carriedReqCountsPersonNotBank()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+
+		String req = "any:item:1205:1:Bronze dagger|item:1153:1:Iron full helm";
+		assertFalse(ClueStashModule.carriedReq(state, req));
+
+		// banked is NOT carried
+		StateFixture.bank(state, Map.of(1205, 1));
+		assertFalse(ClueStashModule.carriedReq(state, req));
+
+		// worn IS carried (carriedCount reads the SLOT array); so is
+		// inventory; either alternative satisfies
+		StateFixture.equipmentSlots(state, new int[]{1153});
+		assertTrue(ClueStashModule.carriedReq(state, req));
+		StateFixture.equipmentSlots(state, new int[]{});
+		StateFixture.inventory(state, Map.of(1205, 1));
+		assertTrue(ClueStashModule.carriedReq(state, req));
+
+		// a quantity gates: 2 needed, 1 carried
+		assertFalse(ClueStashModule.carriedReq(state, "item:1205:2:Bronze daggers"));
+	}
+
+	/**
+	 * CL2 2026-08-03: "+ Goal" on a tier seeds one goal through the unified
+	 * seed system — one step per STASH unit, each proven by its
+	 * cluestash_<key> unlock as the unit fills; already-filled units prove
+	 * at add time; removal round-trips.
+	 */
+	@Test
+	public void tierGoalSeedsAndProvesPerUnit()
+	{
+		AccountState state = StateFixture.state(temp.getRoot());
+		StateFixture.profile(state, 42L);
+		ClueStashModule module = module(state);
+		module.startUp();
+
+		String tier = pack.stash.get(0).tier;
+		java.util.List<ClueStepsPack.Stash> units = new java.util.ArrayList<>();
+		for (ClueStepsPack.Stash unit : pack.stash)
+		{
+			if (tier.equalsIgnoreCase(unit.tier))
+			{
+				units.add(unit);
+			}
+		}
+
+		// one unit already filled BEFORE tracking: it must prove at add time
+		state.setStashFilled(units.get(0).objectId, true);
+		module.addTierGoal(tier);
+		assertTrue(module.isTierGoal(tier));
+		com.ironhub.state.PersistedState.GoalSeed seed =
+			state.getGoalSeeds().get(com.ironhub.state.GoalSeeds.clueTierId(tier));
+		assertNotNull(seed);
+		assertEquals("one step per unit", units.size(), seed.steps.size());
+		assertEquals("one proof per unit", units.size(), seed.achieved.size());
+		assertTrue("a pre-filled unit proves immediately", state.isUnlocked(
+			com.ironhub.state.GoalSeeds.clueStashProof(units.get(0).key)));
+		assertFalse("an unfilled unit never proves", state.isUnlocked(
+			com.ironhub.state.GoalSeeds.clueStashProof(units.get(1).key)));
+
+		// a unit filling later proves through the state listener
+		state.setStashFilled(units.get(1).objectId, true);
+		assertTrue(state.isUnlocked(
+			com.ironhub.state.GoalSeeds.clueStashProof(units.get(1).key)));
+
+		module.removeTierGoal(tier);
+		assertFalse(module.isTierGoal(tier));
+		module.shutDown();
+	}
+
 	/** Every unit carries its gameval HH_CONSTRUCTED_* built varbit —
 	 *  unique, present, the S.T.A.S.H chart's own source (2026-07-29). */
 	@Test

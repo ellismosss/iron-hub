@@ -96,6 +96,42 @@ public final class GoalSeeds
 		return s.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]+", "_");
 	}
 
+	/** The goal id a clue-tier STASH-set seed carries — shared with the UI's
+	 *  is-tracked check (CL2 2026-08-03). */
+	public static String clueTierId(String tier)
+	{
+		return "cluetier:" + sanitize(tier);
+	}
+
+	/** The unlock FLAG (no "unlock:" prefix) proving one STASH unit filled —
+	 *  built here once so the factory and the clues module's marker can never
+	 *  drift (the pohProofKey precedent). */
+	public static String clueStashProof(String stashKey)
+	{
+		return "cluestash_" + sanitize(stashKey);
+	}
+
+	/**
+	 * A clue TIER's STASH set (CL2 2026-08-03, the {@link #diaryTier} shape):
+	 * one step per unit, each proven by the {@code cluestash_<key>} unlock
+	 * the clues module marks as that unit FILLS. Achieved = every unit
+	 * filled. Fill detection is chat-based and a pre-plugin fill is
+	 * undetectable — the tab's manual filled toggle feeds the same flags.
+	 */
+	public static PersistedState.GoalSeed clueTier(String tier,
+		java.util.List<String> stashKeys, java.util.List<String> stashNames)
+	{
+		PersistedState.GoalSeed seed = base("cluetier", clueTierId(tier),
+			tier + " STASH set");
+		for (int i = 0; i < stashKeys.size(); i++)
+		{
+			String proof = "unlock:" + clueStashProof(stashKeys.get(i));
+			seed.steps.add(step("Fill the " + stashNames.get(i) + " STASH", proof));
+			seed.achieved.add(proof);
+		}
+		return seed;
+	}
+
 	/** A clue step: its item requirements become planner steps, proven by
 	 *  the {@code cluestep_<id>} unlock the clues module marks. */
 	public static PersistedState.GoalSeed clue(String id, String text, String tier, List<String> reqs)

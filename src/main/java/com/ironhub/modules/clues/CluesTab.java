@@ -594,16 +594,37 @@ class CluesTab extends JPanel
 			card.add(new OsrsLabel(standing, OsrsSkin.FAINT, OsrsSkin.smallFont()).leftAligned());
 			if (next.clue != null && !next.clue.reqs.isEmpty())
 			{
-				card.add(Box.createVerticalStrut(2));
-				JPanel outfit = row();
+				// only the outfit pieces NOT on your person (inventory + worn
+				// — the bank is behind you mid-route): the only-missing rule,
+				// CL1 2026-08-03. All carried = one green line, no icon row.
+				java.util.List<String> missing = new java.util.ArrayList<>();
 				for (String raw : next.clue.reqs)
 				{
-					outfit.add(badgedItem(raw, true, ICON_SLOT_SMALL));
-					outfit.add(Box.createHorizontalStrut(2));
+					if (!carriedReq(raw))
+					{
+						missing.add(raw);
+					}
 				}
-				outfit.add(Box.createHorizontalGlue());
-				cap(outfit);
-				card.add(outfit);
+				card.add(Box.createVerticalStrut(2));
+				if (missing.isEmpty())
+				{
+					card.add(new OsrsLabel("Outfit carried", OsrsSkin.VALUE,
+						OsrsSkin.smallFont()).leftAligned());
+				}
+				else
+				{
+					card.add(new OsrsLabel("Missing:", OsrsSkin.FAINT,
+						OsrsSkin.smallFont()).leftAligned());
+					JPanel outfit = row();
+					for (String raw : missing)
+					{
+						outfit.add(badgedItem(raw, false, ICON_SLOT_SMALL));
+						outfit.add(Box.createHorizontalStrut(2));
+					}
+					outfit.add(Box.createHorizontalGlue());
+					cap(outfit);
+					card.add(outfit);
+				}
 			}
 			card.add(Box.createVerticalStrut(2));
 			JPanel actions = row();
@@ -854,6 +875,24 @@ class CluesTab extends JPanel
 		JPanel titleRow = row();
 		titleRow.add(new OsrsLabel(tier, OsrsSkin.TITLE, OsrsSkin.boldFont()).leftAligned());
 		titleRow.add(Box.createHorizontalGlue());
+		// "+ Goal" on the tier: fill every unit of this tier's STASH set,
+		// through the unified seed system (CL2 2026-08-03)
+		boolean tierGoal = module.isTierGoal(tier);
+		titleRow.add(goalGlyph(tierGoal,
+			tierGoal ? "Remove the " + tier + " STASH-set goal"
+				: "Track filling every " + tier + " STASH as a goal",
+			() ->
+			{
+				if (module.isTierGoal(tier))
+				{
+					module.removeTierGoal(tier);
+				}
+				else
+				{
+					module.addTierGoal(tier);
+				}
+			}));
+		titleRow.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
 		// routing is opt-in per tier (Luke, 2026-07-28) — this button is
 		// the only thing that starts it
 		if (tier.equals(activeRouteTier))
@@ -1134,6 +1173,11 @@ class CluesTab extends JPanel
 		slot.setMinimumSize(d);
 		slot.setMaximumSize(d);
 		return slot;
+	}
+
+	private boolean carriedReq(String raw)
+	{
+		return ClueStashModule.carriedReq(state, raw);
 	}
 
 	private static int altItemId(String alt)

@@ -349,6 +349,84 @@ public class ClueStashModule implements IronHubModule
 		return state.getGoalSeeds().containsKey("clue:" + clue.id);
 	}
 
+	/**
+	 * True when any alternative of an outfit requirement is ON YOUR PERSON in
+	 * its required quantity — inventory + worn (+ rune pouch), never the
+	 * bank, because a route is walked with what you carry (CL1 2026-08-03).
+	 * A requirement with no resolvable item id is never "carried": what we
+	 * cannot verify stays visible. Display-only — routing/readiness keeps its
+	 * own bank-aware ownership view.
+	 */
+	static boolean carriedReq(com.ironhub.state.AccountState state, String raw)
+	{
+		String body = raw.startsWith("any:") ? raw.substring(4) : raw;
+		for (String alt : body.split("\\|"))
+		{
+			String[] parts = alt.split(":", 4);
+			if (parts.length < 2 || !"item".equals(parts[0]))
+			{
+				continue;
+			}
+			int id;
+			int qty = 1;
+			try
+			{
+				id = Integer.parseInt(parts[1]);
+				if (parts.length >= 3)
+				{
+					qty = Math.max(1, Integer.parseInt(parts[2]));
+				}
+			}
+			catch (NumberFormatException e)
+			{
+				continue;
+			}
+			if (state.carriedCount(id) >= qty)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** Track filling every one of a tier's STASH units as one goal (CL2
+	 *  2026-08-03) — the unified seed system; already-filled units prove
+	 *  immediately via markProofs on the add's own state change. */
+	void addTierGoal(String tier)
+	{
+		if (pack == null)
+		{
+			return;
+		}
+		java.util.List<String> keys = new ArrayList<>();
+		java.util.List<String> names = new ArrayList<>();
+		for (ClueStepsPack.Stash unit : pack.stash)
+		{
+			if (tier.equalsIgnoreCase(unit.tier))
+			{
+				keys.add(unit.key);
+				names.add(unit.name);
+			}
+		}
+		if (keys.isEmpty())
+		{
+			return;
+		}
+		state.addGoalSeed(com.ironhub.state.GoalSeeds.clueTier(tier, keys, names));
+		markProofs();
+	}
+
+	void removeTierGoal(String tier)
+	{
+		state.removeGoalSeed(com.ironhub.state.GoalSeeds.clueTierId(tier));
+	}
+
+	boolean isTierGoal(String tier)
+	{
+		return state.getGoalSeeds().containsKey(
+			com.ironhub.state.GoalSeeds.clueTierId(tier));
+	}
+
 	/** Mark cluestep_<id> unlocks for goal'd steps whose reqs are now met —
 	 *  the goals' achieved proof (never flashes on goal removal). */
 	private void markProofs()
@@ -369,6 +447,33 @@ public class ClueStashModule implements IronHubModule
 					newlyDone = new ArrayList<>();
 				}
 				newlyDone.add("cluestep_" + id);
+			}
+		}
+		// tier goals (CL2): every FILLED unit of a goal'd tier proves its
+		// cluestash_<key> unlock — fill detection (and the manual filled
+		// toggle) already feed isStashFilled, so this is a pure read
+		java.util.Set<String> tierGoalIds = state.goalSeedIds("cluetier");
+		if (!tierGoalIds.isEmpty())
+		{
+			for (ClueStepsPack.Stash unit : pack.stash)
+			{
+				// goalSeedIds strips the family prefix — compare suffixes
+				String suffix = com.ironhub.state.GoalSeeds.clueTierId(unit.tier)
+					.substring("cluetier:".length());
+				if (!tierGoalIds.contains(suffix)
+					|| !state.isStashFilled(unit.objectId))
+				{
+					continue;
+				}
+				String flag = com.ironhub.state.GoalSeeds.clueStashProof(unit.key);
+				if (!state.isUnlocked(flag))
+				{
+					if (newlyDone == null)
+					{
+						newlyDone = new ArrayList<>();
+					}
+					newlyDone.add(flag);
+				}
 			}
 		}
 		if (newlyDone != null)
