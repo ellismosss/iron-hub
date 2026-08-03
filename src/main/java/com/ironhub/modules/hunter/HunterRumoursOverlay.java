@@ -84,6 +84,13 @@ class HunterRumoursOverlay extends OverlayPanel
 			.right(pieceFound ? "done" : caught + "/" + pity)
 			.rightColor(pieceFound ? UiTokens.OVERLAY_VALUE : UiTokens.CANVAS_LOCKED)
 			.build());
+		// the countable target wears the overlay bar, slayer-grammar style
+		// (X2 2026-08-03); the pity rate is a ceiling, so the fraction clamps
+		if (!pieceFound && pity > 0)
+		{
+			panelComponent.getChildren().add(new com.ironhub.ui.components.OverlayStoneBar(
+				Math.min(1.0, caught / (double) pity), config.osrsTheme(), WIDTH - 8));
+		}
 		panelComponent.getChildren().add(LineComponent.builder()
 			.left(rumour.trap).leftColor(UiTokens.CANVAS_LOCKED)
 			.right("Lv " + rumour.level).rightColor(UiTokens.CANVAS_LOCKED)

@@ -161,6 +161,12 @@ public class FarmingRunModule implements IronHubModule
 
 	// run state — written on the client thread, read from EDT/overlay
 	private volatile long runStartMs;
+	// idle-gated ACTIVE time (ActivityClock, X4 2026-08-03): accrued on
+	// farming signals — xp movement and stop advances — so a run parked at
+	// the bank does not log its parking
+	private volatile long runActiveMs;
+	private volatile long runLastActivityMs;
+	private volatile int runLastSeenXp;
 	private volatile String runName = "";
 	private volatile List<Stop> stops = List.of();
 	private final Set<String> visited = ConcurrentHashMap.newKeySet();
@@ -267,7 +273,7 @@ public class FarmingRunModule implements IronHubModule
 		eventBus.register(this);
 		if (overlayManager != null)
 		{
-			overlay = new FarmingRunOverlay(this);
+			overlay = new FarmingRunOverlay(this, config);
 			overlayManager.add(overlay);
 			// green-glow the setup items still to withdraw (bank only)
 			bankHighlight = new com.ironhub.ui.components.BankRestockOverlay(this::farmBankHighlight);
@@ -459,6 +465,17 @@ public class FarmingRunModule implements IronHubModule
 		// dirty (a timetracking config write) refreshes soon but never every
 		// tick — while the core plugin writes near patches, per-tick refresh
 		// meant hundreds of ConfigManager lookups per tick (freeze audit)
+		// xp movement during a run is the live activity signal (X4) — a
+		// cached AccountState read, not a client call, so per-tick is cheap
+		if (running())
+		{
+			int xp = state.getXp(net.runelite.api.Skill.FARMING);
+			if (xp != runLastSeenXp)
+			{
+				runLastSeenXp = xp;
+				runActivitySignal();
+			}
+		}
 		refreshTick++;
 		if (refreshTick - lastRefreshTick >= REFRESH_TICKS
 			|| (trackingDirty && refreshTick - lastRefreshTick >= DIRTY_REFRESH_TICKS))
@@ -715,11 +732,25 @@ public class FarmingRunModule implements IronHubModule
 		return false;
 	}
 
+	/** A farming activity signal: accrue idle-gated active time (X4). */
+	private void runActivitySignal()
+	{
+		if (!running())
+		{
+			return;
+		}
+		long now = System.currentTimeMillis();
+		runActiveMs = com.ironhub.state.ActivityClock.accrue(
+			runActiveMs, runLastActivityMs, now);
+		runLastActivityMs = now;
+	}
+
 	/** Bank the Farming xp gained since the last advance against this stop's
 	 *  bucket — called as each stop completes, so a combined run's record
 	 *  knows its tree xp from its herb xp. */
 	private void attributeXpTo(Stop stop)
 	{
+		runActivitySignal(); // advancing a stop is farming activity
 		int xp = state.getXp(net.runelite.api.Skill.FARMING);
 		int delta = xp - lastAdvanceXp;
 		lastAdvanceXp = xp;
@@ -841,6 +872,9 @@ public class FarmingRunModule implements IronHubModule
 		runXpByBucket.clear();
 		runStartHerbsById = herbCountsById();
 		runStartMs = System.currentTimeMillis();
+		runActiveMs = 0;
+		runLastActivityMs = runStartMs; // starting the run is itself a signal
+		runLastSeenXp = runStartFarmingXp;
 		// Switch the sidebar to the active run NOW — queued before routeToNext so
 		// a Shortest Path bridge hiccup can't leave the picker showing (the run
 		// had started but the sidebar only updated on the next bank open).
@@ -1364,6 +1398,11 @@ public class FarmingRunModule implements IronHubModule
 			record.endMs = System.currentTimeMillis();
 			record.name = runName;
 			record.durationMs = record.endMs - runStartMs;
+			// the honest figure: idle-gated active time (X4 2026-08-03) —
+			// display goes through ActivityClock.activeElapsed, whose capped
+			// tail closes at endMs
+			record.activeMs = runActiveMs;
+			record.lastActivityMs = runLastActivityMs;
 			record.xpByBucket = new java.util.HashMap<>(runXpByBucket);
 			java.util.Map<Integer, Integer> herbsNow = herbCountsById();
 			for (java.util.Map.Entry<Integer, Integer> herb : herbsNow.entrySet())

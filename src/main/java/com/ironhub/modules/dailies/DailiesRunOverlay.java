@@ -21,17 +21,27 @@ class DailiesRunOverlay extends OverlayPanel
 	private static final int MAX_UPCOMING = 5;
 
 	private final DailiesModule module;
+	private final com.ironhub.IronHubConfig config;
 
-	DailiesRunOverlay(DailiesModule module)
+	/** Missing-bring for the current stop, refreshed at most every 600 ms —
+	 *  it walks containers per entry and render() runs per frame (the
+	 *  memoize rule, 2026-07-20 audit; the farm overlay's pattern). */
+	private long cachedAtMs;
+	private String cachedStopId;
+	private java.util.List<String> cachedMissing = java.util.List.of();
+	private String cachedUnverified = "";
+
+	DailiesRunOverlay(DailiesModule module, com.ironhub.IronHubConfig config)
 	{
 		this.module = module;
+		this.config = config;
 		setPosition(OverlayPosition.TOP_LEFT);
 	}
 
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		if (!module.running())
+		if (!config.dailiesOverlay() || !module.running())
 		{
 			return null;
 		}
@@ -66,13 +76,29 @@ class DailiesRunOverlay extends OverlayPanel
 					.build());
 			}
 
-			String bring = module.bringLine(next);
-			if (!bring.isEmpty())
+			long now = System.currentTimeMillis();
+			if (!next.id.equals(cachedStopId) || now - cachedAtMs >= 600)
 			{
-				// Amber (actionable), not red: red is a verified shortfall, and
-				// we never checked your bank — this is a reminder, not a warning.
+				cachedAtMs = now;
+				cachedStopId = next.id;
+				cachedMissing = module.missingBring(next);
+				cachedUnverified = module.unverifiedBringLine(next);
+			}
+			// Only what you are verifiably SHORT of shows, in red — red is
+			// earned, these are checked against inventory + worn (the
+			// only-missing rule, X2 2026-08-03). Entries the pack cannot
+			// verify (no item ids) stay an amber reminder: we never checked.
+			if (!cachedMissing.isEmpty())
+			{
 				panelComponent.getChildren().add(LineComponent.builder()
-					.left("Bring: " + bring)
+					.left("Missing: " + String.join(" · ", cachedMissing))
+					.leftColor(UiTokens.STATUS_WARNING)
+					.build());
+			}
+			if (!cachedUnverified.isEmpty())
+			{
+				panelComponent.getChildren().add(LineComponent.builder()
+					.left("Bring: " + cachedUnverified)
 					.leftColor(UiTokens.CANVAS_AVAILABLE)
 					.build());
 			}
@@ -88,6 +114,14 @@ class DailiesRunOverlay extends OverlayPanel
 			.left(module.visitedCount() + "/" + module.stops().size())
 			.leftColor(UiTokens.OVERLAY_VALUE)
 			.build());
+		// the countable target wears the overlay bar, slayer-grammar style
+		// (X2 2026-08-03)
+		if (!module.stops().isEmpty())
+		{
+			panelComponent.getChildren().add(new com.ironhub.ui.components.OverlayStoneBar(
+				module.visitedCount() / (double) module.stops().size(),
+				config.osrsTheme(), WIDTH - 8));
+		}
 
 		// Upcoming only — done stops are counted in the progress line, and a
 		// long run would otherwise overflow the overlay budget. The sidebar

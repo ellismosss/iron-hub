@@ -99,6 +99,12 @@ public interface IronHubConfig extends Config
 	@ConfigItem(keyName = "notifyDailyReset", name = "Daily reset", description = "Notify at the daily reset when dailies are outstanding", section = notificationsSection, position = 4)
 	default boolean notifyDailyReset() { return true; }
 
+	@ConfigItem(keyName = "farmingOverlay", name = "Farm run overlay", description = "Floating overlay during a farm run: current stop, teleport, missing items, patch state and progress", section = notificationsSection, position = 5)
+	default boolean farmingOverlay() { return true; }
+
+	@ConfigItem(keyName = "dailiesOverlay", name = "Daily run overlay", description = "Floating overlay during a daily run: current stop, travel, what to bring and progress", section = notificationsSection, position = 5)
+	default boolean dailiesOverlay() { return true; }
+
 	@ConfigItem(keyName = "caTierGoal", name = "CA tier goal", description = "Combat Achievements tier to work toward; Auto advances to the next incomplete tier", section = notificationsSection, position = 6)
 	default CaTierGoal caTierGoal() { return CaTierGoal.AUTO; }
 

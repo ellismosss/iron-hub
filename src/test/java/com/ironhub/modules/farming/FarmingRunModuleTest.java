@@ -1104,7 +1104,7 @@ public class FarmingRunModuleTest
 			module.stopLabel(stop(module, "celastrus/farming-guild")));
 
 		// a long run's overlay must still fit the 250x200 budget (capped list)
-		FarmingRunOverlay overlay = new FarmingRunOverlay(module);
+		FarmingRunOverlay overlay = new FarmingRunOverlay(module, new com.ironhub.IronHubConfig() {});
 		java.awt.image.BufferedImage canvas = new java.awt.image.BufferedImage(
 			300, 300, java.awt.image.BufferedImage.TYPE_INT_RGB);
 		java.awt.Graphics2D g = canvas.createGraphics();
@@ -1413,6 +1413,13 @@ public class FarmingRunModuleTest
 		assertEquals((Integer) 12_000, record.xpByBucket.get("Trees"));
 		assertEquals((Integer) 1_500, record.xpByBucket.get("Herbs"));
 		assertEquals((Integer) 3, record.herbsByType.get(207));
+		// X4 2026-08-03: the record carries the idle-gated activity fields —
+		// lastActivityMs set marks it non-legacy, so display goes through
+		// ActivityClock.activeElapsed instead of the wall clock
+		assertTrue("a new record is never 'legacy'", record.lastActivityMs > 0);
+		assertTrue(record.activeMs >= 0);
+		assertTrue("active can never exceed wall-clock",
+			record.activeMs <= record.durationMs);
 
 		// with history, the sidebar rates exist: 12,000 tree xp per run and
 		// 3 ranarr x 95 potential Herblore xp
@@ -1672,7 +1679,7 @@ public class FarmingRunModuleTest
 		assertTrue(module.farmingXpGained() > 0);
 		assertEquals(6, module.herbsHarvested());
 
-		FarmingRunOverlay overlay = new FarmingRunOverlay(module);
+		FarmingRunOverlay overlay = new FarmingRunOverlay(module, new com.ironhub.IronHubConfig() {});
 		java.awt.image.BufferedImage canvas = new java.awt.image.BufferedImage(
 			300, 260, java.awt.image.BufferedImage.TYPE_INT_RGB);
 		java.awt.Graphics2D g = canvas.createGraphics();

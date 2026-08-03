@@ -67,6 +67,12 @@ public class PersistedState
 		public long endMs;
 		public String name;
 		public long durationMs;
+		/** ACTIVE time via ActivityClock (accrued between farming signals,
+		 *  idle-gated) — a run parked at the bank for 20 minutes is not a
+		 *  25-minute run (X4 2026-08-03). 0 = legacy record: callers fall
+		 *  back to the wall-clock {@link #durationMs}. */
+		public long activeMs;
+		public long lastActivityMs;
 		public Map<String, Integer> xpByBucket = new HashMap<>();
 		public Map<Integer, Integer> herbsByType = new HashMap<>();
 	}

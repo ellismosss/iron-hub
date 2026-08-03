@@ -176,7 +176,7 @@ public class DailiesModule implements IronHubModule
 			"dailies", bankTagsService, tagManager, layoutManager, itemManager);
 		if (overlayManager != null)
 		{
-			overlay = new DailiesRunOverlay(this);
+			overlay = new DailiesRunOverlay(this, config);
 			overlayManager.add(overlay);
 			// the same bank-only green glow the farm run uses for what is still to withdraw
 			bankHighlight = new com.ironhub.ui.components.BankRestockOverlay(this::bankHighlight);
@@ -537,6 +537,70 @@ public class DailiesModule implements IronHubModule
 		StringBuilder out = new StringBuilder();
 		for (DailiesPack.Bring bring : daily.bring)
 		{
+			if (out.length() > 0)
+			{
+				out.append(" · ");
+			}
+			out.append(String.format(Locale.ROOT, "%,d", (long) bring.per * qty))
+				.append(' ').append(bring.label);
+		}
+		return out.toString();
+	}
+
+	/**
+	 * The bring entries you are VERIFIABLY short of — only entries whose pack
+	 * row names item ids can be checked against what you carry (inventory +
+	 * worn + rune pouch), and only the shortfall shows (the only-missing rule,
+	 * X2 2026-08-03). Entries without ids never appear here: we cannot verify
+	 * them, so they stay on the {@link #unverifiedBringLine} reminder instead
+	 * of masquerading as a checked shortfall.
+	 */
+	java.util.List<String> missingBring(DailiesPack.Daily daily)
+	{
+		if (daily.bring == null || daily.bring.isEmpty())
+		{
+			return java.util.List.of();
+		}
+		int qty = Math.max(1, quantity(daily));
+		java.util.List<String> missing = new java.util.ArrayList<>();
+		for (DailiesPack.Bring bring : daily.bring)
+		{
+			if (bring.itemIds == null || bring.itemIds.isEmpty())
+			{
+				continue;
+			}
+			long needed = (long) bring.per * qty;
+			long carried = 0;
+			for (int id : bring.itemIds)
+			{
+				carried += state.carriedCount(id);
+			}
+			if (carried < needed)
+			{
+				missing.add(String.format(Locale.ROOT, "%,d", needed - carried)
+					+ ' ' + bring.label);
+			}
+		}
+		return missing;
+	}
+
+	/** The unverifiable bring entries (no item ids in the pack), scaled to
+	 *  your tier — a reminder, never a warning. Empty when every entry is
+	 *  id-backed. */
+	String unverifiedBringLine(DailiesPack.Daily daily)
+	{
+		if (daily.bring == null || daily.bring.isEmpty())
+		{
+			return "";
+		}
+		int qty = Math.max(1, quantity(daily));
+		StringBuilder out = new StringBuilder();
+		for (DailiesPack.Bring bring : daily.bring)
+		{
+			if (bring.itemIds != null && !bring.itemIds.isEmpty())
+			{
+				continue;
+			}
 			if (out.length() > 0)
 			{
 				out.append(" · ");

@@ -27,6 +27,7 @@ class FarmingRunOverlay extends OverlayPanel
 	private static final int MAX_UPCOMING = 6;
 
 	private final FarmingRunModule module;
+	private final com.ironhub.IronHubConfig config;
 
 	/** Missing-items + patch-state for the current stop, refreshed at most
 	 *  once per game tick — both walk every patch / expand item variants,
@@ -36,16 +37,17 @@ class FarmingRunOverlay extends OverlayPanel
 	private List<FarmRunsPack.Item> cachedMissing = List.of();
 	private String cachedPatch;
 
-	FarmingRunOverlay(FarmingRunModule module)
+	FarmingRunOverlay(FarmingRunModule module, com.ironhub.IronHubConfig config)
 	{
 		this.module = module;
+		this.config = config;
 		setPosition(OverlayPosition.TOP_LEFT);
 	}
 
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		if (!module.running())
+		if (!config.farmingOverlay() || !module.running())
 		{
 			return null;
 		}
@@ -120,6 +122,14 @@ class FarmingRunOverlay extends OverlayPanel
 		panelComponent.getChildren().add(LineComponent.builder()
 			.left(progress.toString()).leftColor(UiTokens.OVERLAY_VALUE)
 			.build());
+		// the countable target wears the overlay bar, slayer-grammar style
+		// (X2 2026-08-03)
+		if (!module.stops().isEmpty())
+		{
+			panelComponent.getChildren().add(new com.ironhub.ui.components.OverlayStoneBar(
+				module.visitedCount() / (double) module.stops().size(),
+				config.osrsTheme(), WIDTH - 8));
+		}
 
 		// Upcoming stops only (done ones are counted in the progress line), and
 		// only the next few — a long run (the combo tree run is 18 stops) would
