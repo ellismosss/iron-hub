@@ -445,6 +445,12 @@ public final class Requirements
 		}
 
 		@Override
+		public Integer varbitId()
+		{
+			return varbitId;
+		}
+
+		@Override
 		public double gap(StateView state)
 		{
 			return Math.max(0, value - state.getVarbit(varbitId));

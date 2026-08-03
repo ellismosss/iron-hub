@@ -109,6 +109,9 @@ public class Plan
 	public final java.util.Map<String, String> goalNames = new java.util.LinkedHashMap<>();
 	/** Goal id → icon item id, where the goal has one. */
 	public final java.util.Map<String, Integer> goalIcons = new java.util.LinkedHashMap<>();
+	/** varbit ids the plan's requirements read — the module registers them
+	 *  with AccountState.watchVarbits so currency leaves read live values. */
+	public final java.util.Set<Integer> watchVarbits = new java.util.LinkedHashSet<>();
 	public double knownHours;
 	public int unknownCount;
 	public final List<String> degraded = new ArrayList<>();

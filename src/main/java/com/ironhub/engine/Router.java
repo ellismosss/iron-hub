@@ -50,6 +50,7 @@ public class Router
 		plan.degraded.addAll(dag.degraded);
 		plan.goalNames.putAll(dag.goalNames);
 		plan.goalIcons.putAll(dag.goalIcons);
+		plan.watchVarbits.addAll(dag.watchVarbits);
 		this.goalNames = dag.goalNames;
 		ProjectedState projection = new ProjectedState(base);
 		Map<Skill, Long> bankRemaining = new HashMap<>(bankedXp);

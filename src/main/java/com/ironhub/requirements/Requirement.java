@@ -36,6 +36,14 @@ public interface Requirement
 		return null;
 	}
 
+	/** The watched varbit's id, for {@code varbit:} leaves only — the
+	 *  planner registers these with AccountState.watchVarbits, or a
+	 *  currency goal's points read 0 forever (Luke, 2026-08-03). */
+	default Integer varbitId()
+	{
+		return null;
+	}
+
 	/** Short human line, e.g. "70 Agility", "Song of the Elves". */
 	String describe();
 

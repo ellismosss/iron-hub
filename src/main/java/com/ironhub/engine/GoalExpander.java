@@ -129,6 +129,17 @@ public class GoalExpander
 		// already satisfied (owned item, claimed diary, boosted level…):
 		// nothing to plan — an owned Arclight must never become a step
 		com.ironhub.requirements.Requirement parsed = Requirements.parse(req);
+		// varbit leaves (minigame currencies) only read live values once
+		// watched — collect them for the planner to register, or "Earn N
+		// points" reads 0 forever (Luke, 2026-08-03)
+		for (com.ironhub.requirements.Requirement leaf : parsed.missing(state))
+		{
+			Integer varbit = leaf.varbitId();
+			if (varbit != null)
+			{
+				dag.watchVarbits.add(varbit);
+			}
+		}
 		if (!Requirements.isManual(parsed) && parsed.isMetWithBoosts(state, boosts))
 		{
 			return out;
@@ -344,7 +355,15 @@ public class GoalExpander
 		if (existing != null)
 		{
 			existing.neededBy.add(goalId);
-			existing.obtainQty = Math.max(existing.obtainQty, qty);
+			if (qty > existing.obtainQty)
+			{
+				// a bigger stock demand re-scales the KB batch materials:
+				// re-expand at the new quantity — material reqs land on the
+				// same obtain nodes (ids carry no qty), so this merge
+				// recursively bumps their quantities too (Luke, 2026-08-03)
+				existing.obtainQty = qty;
+				expandKbReqs(existing, gearItem, goalId);
+			}
 			out.add(id);
 			return;
 		}
@@ -359,26 +378,7 @@ public class GoalExpander
 		}
 		node.neededBy.add(goalId);
 		out.add(id);
-		// The knowledge base knows how the item is OBTAINED — buy it for N
-		// points, make it from these materials, finish that quest — which is
-		// what turns a dead-end "Buy: Twiggy O'Korn" into real steps (Luke,
-		// 2026-07-23). It applies to curated chart items too (the gem bag's
-		// 100 nuggets were nowhere), but the audited chain keeps ownership
-		// of the item's own USE gates: only an unaudited item takes its
-		// equip reqs from the wiki extraction.
-		// When the curated chain already expresses a CHOICE of routes
-		// ("any:skillb:Crafting:80|skillb:Hunter:83" for an Amulet of
-		// glory), that any: IS the obtainment model — expanding the KB
-		// recipe alongside it demanded both routes at once. There, the KB
-		// contributes only the orthogonal part: what the purchase costs.
-		boolean curatedChoice = gearOffersChoice(gearItem);
-		for (String req : kbObtainReqs(itemId, node.obtainQty, gearItem == null, curatedChoice))
-		{
-			for (String dep : expandRequirement(req, goalId, null, itemId))
-			{
-				node.dependsOn.add(dep);
-			}
-		}
+		expandKbReqs(node, gearItem, goalId);
 		if (gearItem != null && gearItem.getRequirements() != null)
 		{
 			boolean dropGated = packs.rates != null && packs.rates.hasDropRate(itemId);
@@ -561,6 +561,35 @@ public class GoalExpander
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * The knowledge base knows how the item is OBTAINED — buy it for N
+	 * points, make it from these materials, finish that quest — which is
+	 * what turns a dead-end "Buy: Twiggy O'Korn" into real steps (Luke,
+	 * 2026-07-23). It applies to curated chart items too (the gem bag's
+	 * 100 nuggets were nowhere), but the audited chain keeps ownership
+	 * of the item's own USE gates: only an unaudited item takes its
+	 * equip reqs from the wiki extraction.
+	 * When the curated chain already expresses a CHOICE of routes
+	 * ("any:skillb:Crafting:80|skillb:Hunter:83" for an Amulet of
+	 * glory), that any: IS the obtainment model — expanding the KB
+	 * recipe alongside it demanded both routes at once. There, the KB
+	 * contributes only the orthogonal part: what the purchase costs.
+	 * Idempotent for a given quantity, and safe to re-run when a merge
+	 * raises node.obtainQty: material reqs expand onto qty-less node ids,
+	 * so the merge path recursively re-scales them.
+	 */
+	private void expandKbReqs(Action node, GearProgressionPack.Item gearItem, String goalId)
+	{
+		boolean curatedChoice = gearOffersChoice(gearItem);
+		for (String req : kbObtainReqs(node.itemId, node.obtainQty, gearItem == null, curatedChoice))
+		{
+			for (String dep : expandRequirement(req, goalId, null, node.itemId))
+			{
+				node.dependsOn.add(dep);
+			}
+		}
 	}
 
 	private List<String> kbObtainReqs(int itemId, int neededQty, boolean includeEquipReqs,

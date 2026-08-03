@@ -250,6 +250,15 @@ public class GoalPlannerModule implements IronHubModule
 			{
 				return; // shut down mid-computation: drop the result
 			}
+			if (!plan.watchVarbits.isEmpty())
+			{
+				// currency (varbit:) requirement leaves read live values only
+				// once watched — nobody else registers minigame-point varbits,
+				// so "Earn N points" read 0 forever (watchedVarbits is a
+				// concurrent set; safe from the planner thread)
+				int[] ids = plan.watchVarbits.stream().mapToInt(Integer::intValue).toArray();
+				state.watchVarbits(ids);
+			}
 			if (sessionStartPlanHours < 0)
 			{
 				sessionStartPlanHours = state.getLastPlanHours();
