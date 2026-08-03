@@ -43,8 +43,10 @@ public class ItemNameIndex
 	private volatile Map<Integer, String> byId;
 
 	/** A display name for an item id ("Abyssal whip"), or null. The index
-	 *  stores normalized names, so the first letter is re-capitalized —
-	 *  exactly how the wiki writes item names. */
+	 *  stores NORMALIZED names (FIRE_RUNE), so they go through pretty() —
+	 *  lowercased, underscores to spaces, first letter capitalized, exactly
+	 *  how the wiki writes item names. (Capitalizing the raw key leaked
+	 *  FIRE_RUNE into the UI — 2026-08-03 live test.) */
 	public String nameOf(int itemId)
 	{
 		Map<Integer, String> reverse = byId;
@@ -53,8 +55,10 @@ public class ItemNameIndex
 			reverse = new java.util.HashMap<>();
 			for (Map.Entry<String, Integer> e : byNormalizedName.entrySet())
 			{
-				reverse.putIfAbsent(e.getValue(), e.getKey().isEmpty() ? e.getKey()
-					: Character.toUpperCase(e.getKey().charAt(0)) + e.getKey().substring(1));
+				if (!e.getKey().isEmpty())
+				{
+					reverse.putIfAbsent(e.getValue(), pretty(e.getKey()));
+				}
 			}
 			byId = reverse;
 		}

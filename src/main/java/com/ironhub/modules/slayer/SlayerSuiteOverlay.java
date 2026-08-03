@@ -84,17 +84,10 @@ class SlayerSuiteOverlay extends OverlayPanel
 		int assigned = module.initialAmount();
 		if (assigned >= remaining && assigned > 0)
 		{
-			// the kill-count bar (S3): progress toward the assignment
-			net.runelite.client.ui.overlay.components.ProgressBarComponent bar =
-				new net.runelite.client.ui.overlay.components.ProgressBarComponent();
-			bar.setBackgroundColor(UiTokens.OVERLAY_BAR_TROUGH);
-			bar.setForegroundColor(com.ironhub.ui.v2.V2Tokens.BAR_FILL);
-			bar.setMaximum(assigned);
-			bar.setValue(assigned - remaining);
-			bar.setLabelDisplayMode(
-				net.runelite.client.ui.overlay.components.ProgressBarComponent.LabelDisplayMode.TEXT_ONLY);
-			bar.setCenterLabel((assigned - remaining) + " / " + assigned);
-			panelComponent.getChildren().add(bar);
+			// the kill-count bar (S3): the SAME small bar as the goals
+			// overlay (R10) — the "N left" on the title line carries the count
+			panelComponent.getChildren().add(new com.ironhub.ui.components.OverlayStoneBar(
+				(assigned - remaining) / (double) assigned, config.osrsTheme(), WIDTH - 8));
 		}
 		String master = module.masterName();
 		String area = module.areaName();

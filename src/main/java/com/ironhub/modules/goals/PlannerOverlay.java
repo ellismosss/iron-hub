@@ -195,8 +195,21 @@ class PlannerOverlay extends OverlayPanel
 
 		double measured = gauge.xpPerHour();
 		// the skill icon carries the identity (Luke, 2026-07-24) — the head
-		// line is [icon] method-or-target … time(white)
-		iconLine(skillIcon(skill), head.action.name, Color.WHITE,
+		// line is [icon] method-or-target … time(white). With the icon in
+		// place the skill's NAME is redundant: "Construction to 77" reads
+		// as [icon] "to 77" (Luke, live-test round)
+		java.awt.image.BufferedImage icon = skillIcon(skill);
+		String title = head.action.name;
+		if (icon != null && skill != null)
+		{
+			String skillName = skill.getName();
+			if (title.length() > skillName.length()
+				&& title.regionMatches(true, 0, skillName, 0, skillName.length()))
+			{
+				title = title.substring(skillName.length()).trim();
+			}
+		}
+		iconLine(icon, title, Color.WHITE,
 			timeText(ttlHours(head, xpLeft, measured)), UiTokens.OVERLAY_VALUE);
 
 		long anchor = anchorFor(head.action.id, liveXp);
@@ -343,7 +356,8 @@ class PlannerOverlay extends OverlayPanel
 				displayFraction = fraction;
 			}
 		}
-		panelComponent.getChildren().add(new LabeledBar(displayFraction, config.osrsTheme()));
+		panelComponent.getChildren().add(new com.ironhub.ui.components.OverlayStoneBar(
+			displayFraction, config.osrsTheme(), WIDTH - 8));
 	}
 
 	/** First live xp seen for a step this session — the bar's stable floor. */
@@ -887,67 +901,6 @@ class PlannerOverlay extends OverlayPanel
 		}
 	}
 
-	/** The Design-lab StoneMeter, drawn on the canvas: a 5px recess trough
-	 * with a 1px-inset semantic fill and a 1px dark outline — the exact thin
-	 * bar the sidebar uses (Luke, 2026-07-24: the overlay's bar was too
-	 * thick). Theme-matched so it tracks the player's skin. */
-	private static final class LabeledBar implements LayoutableRenderableEntity
-	{
-		private static final int HEIGHT = 5;
-
-		private final Rectangle bounds = new Rectangle();
-		private final double fraction;
-		private final com.ironhub.ui.osrs.OsrsTheme theme;
-		private Point location = new Point();
-		private int width = WIDTH - 8;
-
-		LabeledBar(double fraction, com.ironhub.ui.osrs.OsrsTheme theme)
-		{
-			this.fraction = Math.min(1, Math.max(0, fraction));
-			this.theme = theme;
-		}
-
-		@Override
-		public Dimension render(Graphics2D graphics)
-		{
-			int y = location.y + 2;
-			// StoneMeter.paintComponent, pixel-for-pixel: recess fill, the
-			// semantic fill inset 1px (crisp, no AA), then the dark outline
-			graphics.setColor(theme.recess);
-			graphics.fillRect(location.x, y, width, HEIGHT);
-			graphics.setColor(com.ironhub.ui.osrs.OsrsSkin.PROGRESS_BLUE);
-			graphics.fillRect(location.x + 1, y + 1,
-				(int) Math.round((width - 2) * fraction), HEIGHT - 2);
-			graphics.setColor(theme.edgeDark);
-			graphics.drawRect(location.x, y, width - 1, HEIGHT - 1);
-
-			Dimension dimension = new Dimension(width, HEIGHT + 4);
-			bounds.setLocation(location);
-			bounds.setSize(dimension);
-			return dimension;
-		}
-
-		@Override
-		public Rectangle getBounds()
-		{
-			return bounds;
-		}
-
-		@Override
-		public void setPreferredLocation(Point position)
-		{
-			this.location = position;
-		}
-
-		@Override
-		public void setPreferredSize(Dimension dimension)
-		{
-			if (dimension != null && dimension.width > 0)
-			{
-				this.width = dimension.width;
-			}
-		}
-	}
 
 	// ── compact formatters (were shared with the deleted PlannerTab) ──────
 

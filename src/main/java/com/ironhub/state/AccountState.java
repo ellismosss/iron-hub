@@ -852,11 +852,15 @@ public class AccountState implements StateView
 	 * Ironmen can't trade, so GE prices are fiction for them — high alch
 	 * is the realisable value. Mains get the GE price; coins are coins.
 	 */
-	private long unitValue(int itemId)
+	public long unitValue(int itemId)
 	{
 		if (itemId == net.runelite.api.gameval.ItemID.COINS)
 		{
 			return 1;
+		}
+		if (itemManager == null) // headless: unpriced, never a guess
+		{
+			return 0;
 		}
 		if (isIronman())
 		{

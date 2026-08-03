@@ -69,6 +69,9 @@ class SlayerTab extends JPanel
 	private String historyQuery = "";
 	private com.ironhub.ui.v2.V2TextField historySearch;
 	private long expandedRecordStart = -1;
+	/** R8: the task view's Locations and Bring slabs fold. */
+	private boolean locationsCollapsed;
+	private boolean bringCollapsed;
 
 	SlayerTab(AccountState state, SlayerOptimizerModule module, OsrsTheme theme)
 	{
@@ -247,8 +250,13 @@ class SlayerTab extends JPanel
 		if (entry.locations != null && !entry.locations.isEmpty())
 		{
 			// section rows ride a stone slab now (Luke, 2026-07-21); the
-			// click-to-prefer hint lives in the row tooltips, not a line
-			JPanel locations = slab("Locations");
+			// click-to-prefer hint lives in the row tooltips, not a line.
+			// Foldable since the live-test round (R8)
+			JPanel locations = slabFold("Locations", locationsCollapsed, () ->
+			{
+				locationsCollapsed = !locationsCollapsed;
+				javax.swing.SwingUtilities.invokeLater(this::rebuild);
+			});
 			String preferred = state.getSlayerLocationPref(entry.name);
 			for (SlayerTasksPack.Location location : entry.locations)
 			{
@@ -260,7 +268,11 @@ class SlayerTab extends JPanel
 
 		if (entry.bring != null && !entry.bring.isEmpty())
 		{
-			JPanel bring = slab("Bring");
+			JPanel bring = slabFold("Bring", bringCollapsed, () ->
+			{
+				bringCollapsed = !bringCollapsed;
+				javax.swing.SwingUtilities.invokeLater(this::rebuild);
+			});
 			// protection alternatives render as ONE any-of row — the slayer
 			// helmet replaces the facemask family (Luke, 2026-07-21)
 			for (List<SlayerTasksPack.BringItem> group
@@ -532,7 +544,7 @@ class SlayerTab extends JPanel
 		card.add(bottom);
 
 		// click any logged task for its stats overview (S6): kills, xp, gp
-		// and ACTIVE time in bold white, the drops beneath
+		// and ACTIVE time in white body font, the drops beneath
 		if (record.start == expandedRecordStart)
 		{
 			card.add(Box.createVerticalStrut(2));
@@ -604,13 +616,14 @@ class SlayerTab extends JPanel
 		return card;
 	}
 
-	/** One bold/white stat line of the S6 overview. */
+	/** One stat line of the S6 overview — white values in the BODY font
+	 *  (the bold read as shouting; Luke, live-test round). */
 	private void statLine(JPanel card, String label, String value)
 	{
 		JPanel line = row(0);
 		line.add(new OsrsLabel(label, OsrsSkin.MUTED, OsrsSkin.smallFont()).leftAligned());
 		line.add(Box.createHorizontalGlue());
-		line.add(new OsrsLabel(value, OsrsSkin.BAR_TEXT, OsrsSkin.boldFont()));
+		line.add(new OsrsLabel(value, OsrsSkin.BAR_TEXT, OsrsSkin.font()));
 		cap(line);
 		card.add(line);
 	}
@@ -1170,11 +1183,55 @@ class SlayerTab extends JPanel
 		return well;
 	}
 
+	/**
+	 * A slab whose header FOLDS (R8: Locations and Bring): triangle + title,
+	 * the whole header the hit target. Returns the well like {@link #slab};
+	 * when collapsed the well never joins the block, so rows callers add to
+	 * it simply don't show.
+	 */
+	private JPanel slabFold(String title, boolean collapsed, Runnable onToggle)
+	{
+		JPanel block = com.ironhub.ui.v2.V2Layout.column();
+		JPanel head = row(0);
+		JLabel triangle = new JLabel(new com.ironhub.ui.components.PaintedIcon(collapsed
+			? com.ironhub.ui.components.PaintedIcon.Shape.TRIANGLE_RIGHT
+			: com.ironhub.ui.components.PaintedIcon.Shape.TRIANGLE_DOWN, 10));
+		head.add(triangle);
+		head.add(Box.createHorizontalStrut(UiTokens.ROW_GAP));
+		head.add(new OsrsLabel(title, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned());
+		head.add(Box.createHorizontalGlue());
+		head.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+		head.setToolTipText((collapsed ? "Show " : "Hide ") + title.toLowerCase(java.util.Locale.ROOT));
+		head.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mousePressed(java.awt.event.MouseEvent e)
+			{
+				onToggle.run();
+			}
+		});
+		cap(head);
+		block.add(head);
+		com.ironhub.ui.v2.V2Surface well = com.ironhub.ui.v2.V2Surface.well(theme);
+		int inset = com.ironhub.ui.v2.V2Well.CAP + com.ironhub.ui.v2.V2Tokens.TIGHT;
+		well.setBorder(new javax.swing.border.EmptyBorder(inset, inset, inset, inset));
+		well.putClientProperty("slab.block", block);
+		if (!collapsed)
+		{
+			block.add(Box.createVerticalStrut(2));
+			block.add(well);
+		}
+		return well;
+	}
+
 	/** Takes the WELL {@link #slab} handed back and adds the header-plus-well
-	 *  column around it — callers keep passing the thing they added rows to. */
+	 *  column around it — callers keep passing the thing they added rows to.
+	 *  (A folded slab's well is parentless; its block rides a property.) */
 	private void addSlab(JPanel well)
 	{
-		java.awt.Container column = well.getParent();
+		Object owner = well.getClientProperty("slab.block");
+		java.awt.Container column = owner instanceof java.awt.Container
+			? (java.awt.Container) owner : well.getParent();
 		JComponent block = column instanceof JComponent ? (JComponent) column : well;
 		content.add(Box.createVerticalStrut(6));
 		cap(block);

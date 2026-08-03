@@ -844,9 +844,12 @@ public class SlayerOptimizerModule implements IronHubModule
 		long value = 0;
 		for (net.runelite.client.game.ItemStack stack : event.getItems())
 		{
-			value += (long) itemManager.getItemPrice(stack.getId()) * stack.getQuantity();
+			// canonical ids: noted drops otherwise miss the name index and
+			// show as "Item N". Priced like the loot tab — HA on an ironman
+			int id = itemManager.canonicalize(stack.getId());
+			value += state.unitValue(id) * stack.getQuantity();
 			// per-task drop breakdown (S6): the history stats view lists them
-			active.drops.merge(stack.getId(), stack.getQuantity(), Integer::sum);
+			active.drops.merge(id, stack.getQuantity(), Integer::sum);
 		}
 		active.lootValue += value;
 		pushRecords();
