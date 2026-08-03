@@ -86,7 +86,7 @@ public class DailiesModule implements IronHubModule
 	 * has already reissued. This is core's {@code dailyReset} escape hatch
 	 * (see {@link DailyTracker}); 0 until we have seen a login.
 	 */
-	private volatile long varbitsFreshDay;
+	volatile long varbitsFreshDay; // package-private: the stale-reset pin sets yesterday
 
 	/** Reset crossing → notify once, and never on a login replay. */
 	private long notifiedForDay;
@@ -491,15 +491,29 @@ public class DailiesModule implements IronHubModule
 	{
 		if (client == null)
 		{
-			return outstanding(state, pack);
+			return outstandingNow();
 		}
 		long now = System.currentTimeMillis();
 		if (outstandingCache < 0 || now - outstandingCacheAtMs >= 600)
 		{
-			outstandingCache = outstanding(state, pack);
+			outstandingCache = outstandingNow();
 			outstandingCacheAtMs = now;
 		}
 		return outstandingCache;
+	}
+
+	/** The member count uses the module's own staleness bookkeeping (the
+	 *  static below trusts varbits as they read — right for callers with no
+	 *  bookkeeping): past 00:00 UTC a stale claim varbit must count
+	 *  AVAILABLE, exactly as {@link #stateOf} colours the rows — or the
+	 *  reset notification, infobox and Start button miss every reissued
+	 *  daily until relog, the idle-player case the tick check exists for. */
+	private int outstandingNow()
+	{
+		return (int) pack.dailies.stream()
+			.filter(d -> state.isDailySelected(d.id, !d.optOut))
+			.filter(d -> stateOf(d) == DailyTracker.State.AVAILABLE)
+			.count();
 	}
 
 	private volatile int outstandingCache = -1;

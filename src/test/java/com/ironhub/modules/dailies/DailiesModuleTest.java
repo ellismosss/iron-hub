@@ -558,6 +558,33 @@ public class DailiesModuleTest
 		org.mockito.Mockito.verifyNoMoreInteractions(notifier);
 	}
 
+	/** Idle past midnight: claim varbits refresh only on login, so a daily
+	 *  claimed yesterday still reads "claimed". The member count must use
+	 *  the crossedReset bookkeeping — the tab already colours these rows
+	 *  AVAILABLE, yet the reset notification counted 0 and never fired
+	 *  (recovering only on relog). */
+	@Test
+	public void staleClaimVarbitsStillCountTowardTheResetNotification()
+	{
+		AccountState state = state();
+		DailiesPack.Daily zaff = pack().daily("zaff_battlestaves");
+		StateFixture.varbit(state, zaff.detection.varbit, 1); // claimed yesterday
+		net.runelite.client.Notifier notifier = org.mockito.Mockito.mock(
+			net.runelite.client.Notifier.class);
+		DailiesModule module = module(state, notifier);
+
+		long now = System.currentTimeMillis();
+		module.varbitsFreshDay = DailyTracker.startOfUtcDay(now) - DAY;
+		assertTrue(module.crossedReset());
+		assertTrue("a stale-claimed daily must count outstanding",
+			module.outstanding() >= 1);
+		// tomorrow noon: startUp anchored "already told" to today (see
+		// resetNotifiesOnceAndNeverReplaysOnLogin)
+		module.notifyReset(DailyTracker.startOfUtcDay(now) + DAY + DAY / 2);
+		org.mockito.Mockito.verify(notifier).notify(
+			org.mockito.ArgumentMatchers.contains("available again"));
+	}
+
 	/** Logging in re-baselines the varbits: they are only refreshed from the
 	 *  server then, which is what makes crossedReset() meaningful. */
 	@Test
