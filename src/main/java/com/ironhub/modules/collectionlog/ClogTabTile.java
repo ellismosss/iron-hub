@@ -98,8 +98,11 @@ class ClogTabTile extends JComponent
 		int w = getWidth();
 		int h = getHeight();
 		// the CARD art, matching the page grid's card tiles (Luke,
-		// 2026-07-27); the wash goes flat-inset like V2Tile.card()
-		V2Tokens.card().paint(g2, theme, 0, 0, w, h);
+		// 2026-07-27); the wash goes flat-inset like V2Tile.card().
+		// Selected wears the art's own lit variant (§8) so an open tab and a
+		// hovered one never read the same (X1 2026-08-03).
+		(selected ? V2Tokens.card().variant("_hovered") : V2Tokens.card())
+			.paint(g2, theme, 0, 0, w, h);
 		if (hover || selected)
 		{
 			g2.setColor(V2Tokens.HIGHLIGHT);

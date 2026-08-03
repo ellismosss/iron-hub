@@ -350,7 +350,7 @@ public class IronHubPanel extends PluginPanel
 				: themes[i] == com.ironhub.ui.osrs.OsrsTheme.DARK ? "Dark"
 				: themes[i].toString();
 		}
-		com.ironhub.ui.osrs.StoneChipRow chips = new com.ironhub.ui.osrs.StoneChipRow(
+		com.ironhub.ui.v2.V2ChipRow chips = new com.ironhub.ui.v2.V2ChipRow(
 			config.osrsTheme(), true, labels);
 		for (int i = 0; i < themes.length; i++)
 		{
@@ -511,7 +511,7 @@ public class IronHubPanel extends PluginPanel
 					selected = i;
 				}
 			}
-			com.ironhub.ui.osrs.StoneChipRow chips = new com.ironhub.ui.osrs.StoneChipRow(
+			com.ironhub.ui.v2.V2ChipRow chips = new com.ironhub.ui.v2.V2ChipRow(
 				config.osrsTheme(), true, open.modules.toArray(new String[0]));
 			chips.setSelected(selected);
 			chips.onChange(index ->

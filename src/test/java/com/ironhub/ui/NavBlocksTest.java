@@ -133,11 +133,11 @@ public class NavBlocksTest
 	{
 		build();
 		javax.swing.SwingUtilities.invokeAndWait(() -> home.pressBlock("Settings"));
-		com.ironhub.ui.osrs.StoneChipRow chips =
-			find(panel, com.ironhub.ui.osrs.StoneChipRow.class);
+		com.ironhub.ui.v2.V2ChipRow chips =
+			find(panel, com.ironhub.ui.v2.V2ChipRow.class);
 		assertNotNull("no skin switcher in the Settings hub", chips);
 		assertEquals("the switcher must show the live theme",
-			com.ironhub.ui.osrs.OsrsTheme.MYSTIC.ordinal(), chips.getSelected());
+			com.ironhub.ui.osrs.OsrsTheme.MYSTIC.ordinal(), chips.selected());
 
 		javax.swing.SwingUtilities.invokeAndWait(
 			() -> chips.pick(com.ironhub.ui.osrs.OsrsTheme.STONE.ordinal()));
@@ -219,8 +219,8 @@ public class NavBlocksTest
 		javax.swing.SwingUtilities.invokeAndWait(() -> panel.toggleModule("Progression", "House"));
 		assertEquals(java.util.List.of("House"), enableNotes());
 		// the chip row inside the Build tile switches to its second module
-		com.ironhub.ui.osrs.StoneChipRow chips =
-			find(panel, com.ironhub.ui.osrs.StoneChipRow.class);
+		com.ironhub.ui.v2.V2ChipRow chips =
+			find(panel, com.ironhub.ui.v2.V2ChipRow.class);
 		assertNotNull("a two-module tile must offer chips", chips);
 		javax.swing.SwingUtilities.invokeAndWait(() -> chips.pick(1));
 		assertEquals(java.util.List.of("Boats"), enableNotes());

@@ -1040,8 +1040,9 @@ public class LoadoutLabModule implements IronHubModule
 				if (computing)
 				{
 					// translucent scrim + "Thinking..." while the optimizer
-					// runs (Luke: no more "Optimizing vs ..." popup)
-					g.setColor(new Color(0, 0, 0, 150));
+					// runs (Luke: no more "Optimizing vs ..." popup) — the
+					// system's own SHADOW wash, not a local literal (X1)
+					g.setColor(com.ironhub.ui.v2.V2Tokens.SHADOW);
 					g.fillRect(0, 0, getWidth(), getHeight());
 					com.ironhub.ui.osrs.OsrsSkin.crisp((javax.swing.JComponent) this);
 					g.setFont(com.ironhub.ui.osrs.OsrsSkin.boldFont());

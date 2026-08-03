@@ -14,7 +14,6 @@ import com.ironhub.ui.osrs.OsrsIcons;
 import com.ironhub.ui.osrs.OsrsLabel;
 import com.ironhub.ui.osrs.OsrsSkin;
 import com.ironhub.ui.osrs.OsrsTheme;
-import com.ironhub.ui.osrs.StoneButton;
 import com.ironhub.ui.osrs.StoneMeter;
 import com.ironhub.ui.osrs.StonePanel;
 import com.ironhub.ui.osrs.StoneProgressBar;
@@ -75,6 +74,9 @@ class GoalsHubTab extends JPanel
 	private static final int TAB_INSET = 2 * (V2Tokens.STONE_FRAME_INSET + V2Tokens.PAD);
 	/** The choose-a-method affordance (design/choose_method.png, Luke). */
 	private static final int CHOOSE_ICON = 14;
+	/** The source picker floats under a 14px icon — anchor width would pin
+	 *  the popup to 14px, so it takes a readable width of its own. */
+	private static final int SOURCE_PICKER_WIDTH = 190;
 	/**
 	 * The larger icon in the CURRENT TASK hero tile (Luke). 25px is the curated
 	 * skill sprites' NATIVE size: at 34 they had to be blown up 1.36x, and
@@ -1050,12 +1052,7 @@ class GoalsHubTab extends JPanel
 				@Override
 				public void mousePressed(MouseEvent e)
 				{
-					JPopupMenu menu = new JPopupMenu();
-					addSourceChoices(menu, step);
-					if (menu.getComponentCount() > 0)
-					{
-						menu.show(chooser, 0, chooser.getHeight());
-					}
+					showSourcePicker(chooser, step);
 					e.consume();
 				}
 			});
@@ -1154,13 +1151,78 @@ class GoalsHubTab extends JPanel
 	 *  glory/herb sack have several routes, the player chooses). */
 	private void addSourceChoices(JPopupMenu menu, Plan.Step step)
 	{
-		if (step.action.kind != com.ironhub.engine.Action.Kind.OBTAIN
-			|| step.action.itemId <= 0 || module.itemSources() == null)
+		List<SourceChoice> choices = sourceChoices(step);
+		if (choices.isEmpty())
 		{
 			return;
 		}
+		menu.addSeparator();
+		for (SourceChoice c : choices)
+		{
+			menu.add(item((c.chosen ? "· " : "") + c.label, c.action));
+		}
+	}
+
+	/**
+	 * The left-click picker: the SAME choices the right-click menu offers, on
+	 * the shared dropdown atom floated under the chooser icon (X1 2026-08-03
+	 * — a left-click picker is a {@code V2Dropdown.openBelow}, never a
+	 * hand-anchored {@code JPopupMenu}).
+	 */
+	private void showSourcePicker(javax.swing.JComponent anchor, Plan.Step step)
+	{
+		List<SourceChoice> choices = sourceChoices(step);
+		if (choices.isEmpty())
+		{
+			return;
+		}
+		String[] labels = new String[choices.size()];
+		int chosen = -1;
+		for (int i = 0; i < choices.size(); i++)
+		{
+			labels[i] = choices.get(i).label;
+			if (choices.get(i).chosen)
+			{
+				chosen = i;
+			}
+		}
+		com.ironhub.ui.v2.V2Dropdown picker =
+			new com.ironhub.ui.v2.V2Dropdown(theme, labels);
+		if (chosen >= 0)
+		{
+			picker.setSelected(chosen);
+		}
+		picker.onChange(i -> choices.get(i).action.run());
+		picker.width(SOURCE_PICKER_WIDTH);
+		picker.openBelow(anchor);
+	}
+
+	/** One offerable obtainment route: label, whether it is the current
+	 *  preference, and the toggle (choosing the chosen one clears it). */
+	private static final class SourceChoice
+	{
+		final String label;
+		final boolean chosen;
+		final Runnable action;
+
+		SourceChoice(String label, boolean chosen, Runnable action)
+		{
+			this.label = label;
+			this.chosen = chosen;
+			this.action = action;
+		}
+	}
+
+	private List<SourceChoice> sourceChoices(Plan.Step step)
+	{
+		if (step.action.kind != com.ironhub.engine.Action.Kind.OBTAIN
+			|| step.action.itemId <= 0 || module.itemSources() == null)
+		{
+			return List.of();
+		}
 		int itemId = step.action.itemId;
 		String pref = state.getItemSourcePref(itemId);
+		List<SourceChoice> choices = new ArrayList<>();
 		List<String> paths = requirementPaths(itemId);
 		// When the gear chart expresses a CHOICE of routes ("Crafting 80 OR
 		// Hunter 83"), THAT any: is what drives the plan — the KB sources are
@@ -1171,34 +1233,33 @@ class GoalsHubTab extends JPanel
 		{
 			if (paths.size() < 2)
 			{
-				return;
+				return List.of();
 			}
-			menu.addSeparator();
 			for (String path : paths)
 			{
 				String key = com.ironhub.engine.GoalExpander.PATH_PREF + path;
 				boolean chosen = key.equals(pref);
-				menu.add(item((chosen ? "· " : "") + "Get it via " + describePath(path),
+				choices.add(new SourceChoice("Get it via " + describePath(path), chosen,
 					() -> state.setItemSourcePref(itemId, chosen ? null : key)));
 			}
-			return;
+			return choices;
 		}
 		com.ironhub.data.ItemSourcesPack.Entry kb = module.itemSources().entry(itemId);
 		List<com.ironhub.data.ItemSourcesPack.Source> sources = kb == null
 			|| kb.getSources() == null ? List.of() : kb.getSources();
 		if (sources.size() < 2)
 		{
-			return;
+			return List.of();
 		}
-		menu.addSeparator();
 		for (com.ironhub.data.ItemSourcesPack.Source s : sources)
 		{
 			String key = com.ironhub.data.ItemSourcesPack.key(s);
 			boolean chosen = key.equals(pref);
-			menu.add(item((chosen ? "· " : "") + "Get it via "
-					+ com.ironhub.data.ItemSourcesPack.label(s, state),
+			choices.add(new SourceChoice(
+				"Get it via " + com.ironhub.data.ItemSourcesPack.label(s, state), chosen,
 				() -> state.setItemSourcePref(itemId, chosen ? null : key)));
 		}
+		return choices;
 	}
 
 	/** The branches of an item's own {@code any:} requirement, if it has one. */
@@ -1668,9 +1729,8 @@ class GoalsHubTab extends JPanel
 		row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP + 4, 2, UiTokens.ROW_GAP));
 		row.add(new OsrsLabel(name, OsrsSkin.MUTED, OsrsSkin.font()).leftAligned().squeezable());
 		row.add(Box.createHorizontalGlue());
-		StoneButton add = new StoneButton(theme, theme.boxFill, "+ Add", () -> addSearchGoal(goalId, name));
-		add.setMaximumSize(add.getPreferredSize());
-		row.add(add);
+		row.add(com.ironhub.ui.v2.V2ChipRow.action(theme, "+ Add",
+			() -> addSearchGoal(goalId, name)));
 		cap(row);
 		return row;
 	}
@@ -1716,10 +1776,8 @@ class GoalsHubTab extends JPanel
 		JPanel top = row();
 		top.add(new OsrsLabel(s.name, OsrsSkin.LABEL, OsrsSkin.font()).leftAligned().squeezable());
 		top.add(Box.createHorizontalGlue());
-		StoneButton add = new StoneButton(theme, theme.boxFill,
-			"merge".equals(s.kind) ? "Merge" : "+ Route", () -> acceptSuggestion(s));
-		add.setMaximumSize(add.getPreferredSize());
-		top.add(add);
+		top.add(com.ironhub.ui.v2.V2ChipRow.action(theme,
+			"merge".equals(s.kind) ? "Merge" : "+ Route", () -> acceptSuggestion(s)));
 		top.add(Box.createHorizontalStrut(UiTokens.PAD_TIGHT));
 		// dismiss: never see this offer again; the next candidate fills in
 		JLabel x = new JLabel(new PaintedIcon(PaintedIcon.Shape.CROSS, 11));

@@ -66,7 +66,6 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
@@ -240,6 +239,9 @@ public class LoadoutLabPanel extends PluginPanel
 	}
 
 	private static final int SEARCH_DEBOUNCE_MS = 150;
+	/** The manage-lists dropdowns float under one-line labels — a readable
+	 *  fixed width, not the label's own. */
+	private static final int ACTION_LIST_WIDTH = 200;
 	private static final int SEARCH_LIMIT = 25;
 	private static final int ICON_SIZE = 32;
 	/** Grid display order: weapon beside shield, body beside legs. */
@@ -373,8 +375,11 @@ public class LoadoutLabPanel extends PluginPanel
 	private final JLabel monsterNote = new JLabel();
 	private final ToggleRow f2pOnly = new ToggleRow("Non-members gear only");
 	private final ToggleRow slayerTask = new ToggleRow("On slayer task");
-	private final JComboBox<String> spellbook =
-		new JComboBox<>(new String[]{"Any spellbook", "Standard", "Ancient", "Arceuus"});
+	// Iron Hub X1 2026-08-03: the old spellbook JComboBox was never mounted —
+	// the icon toggles drove it purely as a selection holder. An index does
+	// that without a dead V1 control.
+	private static final String[] SPELLBOOKS = {"Any spellbook", "Standard", "Ancient", "Arceuus"};
+	private int spellbookIndex;
 	private final JPanel resultsPanel = new JPanel();
 	private final JLabel statusLabel = new JLabel(" ");
 	private final Timer searchDebounce;
@@ -592,12 +597,8 @@ public class LoadoutLabPanel extends PluginPanel
 		// droppable and no fees at all.
 
 
-		// Lock the magic card's auto-spell to one spellbook.
-		spellbook.setAlignmentX(LEFT_ALIGNMENT);
-		spellbook.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
-		spellbook.setToolTipText("Limit spells to one spellbook (powered staves always considered)");
-		spellbook.addActionListener(e -> recompute());
-		// Iron Hub: spellbook selector moves below the results (see bottomControls)
+		// Lock the magic card's auto-spell to one spellbook — held in
+		// spellbookIndex, driven by the icon toggles below the results.
 
 		// Buyable upgrades within a total gp budget join the consideration
 		// pool (dream items are the manual version, via right-click).
@@ -1462,8 +1463,7 @@ public class LoadoutLabPanel extends PluginPanel
 
 	private String spellbookLock()
 	{
-		int index = spellbook.getSelectedIndex();
-		return index <= 0 ? "" : ((String) spellbook.getSelectedItem()).toLowerCase();
+		return spellbookIndex <= 0 ? "" : SPELLBOOKS[spellbookIndex].toLowerCase();
 	}
 
 	private void refreshExclusionsLabel()
@@ -1473,23 +1473,45 @@ public class LoadoutLabPanel extends PluginPanel
 		exclusionsLabel.setVisible(count > 0);
 	}
 
+	/**
+	 * A left-click list of one-shot actions floated under its label, on the
+	 * shared dropdown atom (X1 2026-08-03: a left-click picker is a
+	 * {@code V2Dropdown.openBelow}, never a hand-anchored {@code JPopupMenu}).
+	 * {@code detailClosed} keeps every row in plain detail — these are
+	 * actions, not a held selection.
+	 */
+	private void showActionList(javax.swing.JComponent anchor,
+		java.util.List<String> labels, java.util.List<Runnable> actions)
+	{
+		if (labels.isEmpty())
+		{
+			return;
+		}
+		com.ironhub.ui.v2.V2Dropdown list =
+			new com.ironhub.ui.v2.V2Dropdown(theme, labels.toArray(new String[0]));
+		list.detailClosed();
+		list.onChange(i -> actions.get(i).run());
+		list.width(ACTION_LIST_WIDTH);
+		list.openBelow(anchor);
+	}
+
 	private void showExclusionsMenu(MouseEvent e)
 	{
-		JPopupMenu menu = new JPopupMenu();
+		java.util.List<String> labels = new java.util.ArrayList<>();
+		java.util.List<Runnable> actions = new java.util.ArrayList<>();
 		for (Integer id : exclusionView.snapshot())
 		{
 			GearItem item = data.getGear(id);
 			String label = item == null ? ("item " + id) : item.label();
-			JMenuItem entry = new JMenuItem("Allow again: " + label);
-			entry.addActionListener(a ->
+			labels.add("Allow again: " + label);
+			actions.add(() ->
 			{
 				exclusionToggle.toggle(id);
 				refreshExclusionsLabel();
 				recompute();
 			});
-			menu.add(entry);
 		}
-		menu.show(exclusionsLabel, e.getX(), e.getY());
+		showActionList(exclusionsLabel, labels, actions);
 	}
 
 	private void refreshStoredLabel()
@@ -1656,7 +1678,8 @@ public class LoadoutLabPanel extends PluginPanel
 			return;
 		}
 		int monsterId = currentMonsterId();
-		JPopupMenu menu = new JPopupMenu();
+		java.util.List<String> labels = new java.util.ArrayList<>();
+		java.util.List<Runnable> actions = new java.util.ArrayList<>();
 		for (Map.Entry<String, Map<com.loadoutlab.data.GearSlot, Integer>> scoped
 			: mobProfile.allPins(monsterId).entrySet())
 		{
@@ -1666,16 +1689,14 @@ public class LoadoutLabPanel extends PluginPanel
 			{
 				GearItem item = data.getGear(entry.getValue());
 				String label = item == null ? ("item " + entry.getValue()) : item.label();
-				JMenuItem row = new JMenuItem(
-					"Unpin " + label + " (" + scopeLabel(scope) + ")");
 				com.loadoutlab.data.GearSlot slot = entry.getKey();
-				row.addActionListener(a ->
+				labels.add("Unpin " + label + " (" + scopeLabel(scope) + ")");
+				actions.add(() ->
 				{
 					mobProfile.unpin(monsterId, scope, slot);
 					refreshPinnedLabel();
 					recompute();
 				});
-				menu.add(row);
 			}
 		}
 		for (Map.Entry<String, Map<Integer, String>> scoped
@@ -1684,25 +1705,21 @@ public class LoadoutLabPanel extends PluginPanel
 			String scope = scoped.getKey();
 			for (Map.Entry<Integer, String> entry : scoped.getValue().entrySet())
 			{
-				JMenuItem row = new JMenuItem("Remove filter item " + entry.getValue()
-					+ " (" + scopeLabel(scope) + ")");
 				int itemId = entry.getKey();
-				row.addActionListener(a ->
+				labels.add("Remove filter item " + entry.getValue()
+					+ " (" + scopeLabel(scope) + ")");
+				actions.add(() ->
 				{
 					mobProfile.removeFilterItem(monsterId, scope, itemId);
 					refreshPinnedLabel();
 				});
-				menu.add(row);
 			}
 		}
-		menu.addSeparator();
-		JMenuItem addPin = new JMenuItem("Pin an item - all sets (search)...");
-		addPin.addActionListener(a -> searchAndPin(ALL_SETS));
-		menu.add(addPin);
-		JMenuItem addFilter = new JMenuItem("Add a bank-filter item - all sets (search)...");
-		addFilter.addActionListener(a -> searchAndAddFilter(ALL_SETS));
-		menu.add(addFilter);
-		menu.show(pinnedLabel, e.getX(), e.getY());
+		labels.add("Pin an item - all sets (search)...");
+		actions.add(() -> searchAndPin(ALL_SETS));
+		labels.add("Add a bank-filter item - all sets (search)...");
+		actions.add(() -> searchAndAddFilter(ALL_SETS));
+		showActionList(pinnedLabel, labels, actions);
 	}
 
 	/** The per-cell pin submenu: pin/unpin the shown item for this set or
@@ -1833,25 +1850,23 @@ public class LoadoutLabPanel extends PluginPanel
 
 	private void showStoredMenu(MouseEvent e)
 	{
-		JPopupMenu menu = new JPopupMenu();
+		java.util.List<String> labels = new java.util.ArrayList<>();
+		java.util.List<Runnable> actions = new java.util.ArrayList<>();
 		for (Integer id : storedView.snapshot())
 		{
 			GearItem item = data.getGear(id);
 			String label = item == null ? ("item " + id) : item.label();
-			JMenuItem entry = new JMenuItem("No longer stored elsewhere: " + label);
-			entry.addActionListener(a ->
+			labels.add("No longer stored elsewhere: " + label);
+			actions.add(() ->
 			{
 				storedToggle.toggle(id);
 				refreshStoredLabel();
 				recompute();
 			});
-			menu.add(entry);
 		}
-		menu.addSeparator();
-		JMenuItem add = new JMenuItem("Add a stored-elsewhere item...");
-		add.addActionListener(a -> showAddStoredDialog());
-		menu.add(add);
-		menu.show(storedLabel, e.getX(), e.getY());
+		labels.add("Add a stored-elsewhere item...");
+		actions.add(this::showAddStoredDialog);
+		showActionList(storedLabel, labels, actions);
 	}
 
 	/**
@@ -1980,7 +1995,7 @@ public class LoadoutLabPanel extends PluginPanel
 	private JLabel spellbookIcon(String bookFile, String tooltip, int comboIndex)
 	{
 		JLabel icon = slabToggle(tooltip + " (click again for any spellbook)",
-			() -> spellbook.getSelectedIndex() == comboIndex);
+			() -> spellbookIndex == comboIndex);
 		try (java.io.InputStream in = getClass().getResourceAsStream(
 			"/data/icons/spellbooks/" + bookFile))
 		{
@@ -1992,14 +2007,17 @@ public class LoadoutLabPanel extends PluginPanel
 		catch (java.io.IOException ignored)
 		{
 		}
-		spellbook.addActionListener(e -> icon.repaint());
 		icon.addMouseListener(new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
-				// setSelectedIndex fires the combo's listener -> recompute
-				spellbook.setSelectedIndex(spellbook.getSelectedIndex() == comboIndex ? 0 : comboIndex);
+				spellbookIndex = spellbookIndex == comboIndex ? 0 : comboIndex;
+				if (icon.getParent() != null)
+				{
+					icon.getParent().repaint(); // every book icon re-reads the index
+				}
+				recompute();
 			}
 		});
 		return icon;

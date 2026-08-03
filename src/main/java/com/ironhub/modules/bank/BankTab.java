@@ -1475,12 +1475,22 @@ class BankTab extends JPanel
 	private JPanel stripCell(javax.swing.Icon icon, boolean active, String tooltip,
 		Runnable onPress)
 	{
-		JPanel cell = new JPanel(new java.awt.BorderLayout());
-		cell.setOpaque(active);
-		if (active)
+		// active = the translucent HIGHLIGHT wash, the system's lit reading —
+		// never an opaque V1 selectFill slab (X1 2026-08-03)
+		JPanel cell = new JPanel(new java.awt.BorderLayout())
 		{
-			cell.setBackground(theme.selectFill);
-		}
+			@Override
+			protected void paintComponent(java.awt.Graphics g)
+			{
+				if (active)
+				{
+					g.setColor(V2Tokens.HIGHLIGHT);
+					g.fillRect(0, 0, getWidth(), getHeight());
+				}
+				super.paintComponent(g);
+			}
+		};
+		cell.setOpaque(false);
 		cell.setBorder(new EmptyBorder(2, 2, 2, 2));
 		JLabel label = new JLabel(icon);
 		cell.add(label, java.awt.BorderLayout.CENTER);
@@ -1611,13 +1621,23 @@ class BankTab extends JPanel
 	{
 		int itemId = spec.itemId;
 		boolean selected = selection.contains(itemId);
-		JPanel row = new JPanel();
-		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-		row.setOpaque(selected);
-		if (selected)
+		// selected = the HIGHLIGHT wash + the name in heading orange (§8's
+		// selected reading), never an opaque selectFill slab (X1 2026-08-03)
+		JPanel row = new JPanel()
 		{
-			row.setBackground(theme.selectFill);
-		}
+			@Override
+			protected void paintComponent(java.awt.Graphics g)
+			{
+				if (selected)
+				{
+					g.setColor(V2Tokens.HIGHLIGHT);
+					g.fillRect(0, 0, getWidth(), getHeight());
+				}
+				super.paintComponent(g);
+			}
+		};
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
 		row.setAlignmentX(LEFT_ALIGNMENT);
 		row.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
 
@@ -1630,7 +1650,8 @@ class BankTab extends JPanel
 		// every result list reads in the small font (Luke, 2026-07-17)
 		java.awt.Font rowFont = OsrsSkin.smallFont();
 		String tooltip = statsTooltip(itemId, quantity);
-		OsrsLabel nameLabel = new OsrsLabel(state.itemName(itemId), OsrsSkin.LABEL, rowFont)
+		OsrsLabel nameLabel = new OsrsLabel(state.itemName(itemId),
+			selected ? OsrsSkin.TITLE : OsrsSkin.LABEL, rowFont)
 			.leftAligned().squeezable();
 		nameLabel.setToolTipText(tooltip);
 		row.add(nameLabel);

@@ -20,11 +20,23 @@ listed below.
 | Bank | Bank & banked XP, Bank space saver, Where's my stuff, Money making, Supplies runway, Death recovery | 2026-07-26 |
 | Settings | Design lab | — (shows V1 on purpose) |
 
-**Known V1 residue in migrated pages**, so the table above is not read as more
-than it is: `GoalsHubTab` still holds a `StonePanel`, two `StoneButton`s and two
-V1 bars; `SlayerTab` two `StoneMeter`s, a `StoneButton` and two
-`StoneComboBoxUI` pickers; `LoadoutLabPanel` one `StoneCheckbox`. All are
-one-line swaps that the passes above simply did not reach.
+**Known V1 residue in migrated pages** (re-audited in the X1 sweep,
+2026-08-03), so the table above is not read as more than it is:
+`GoalsHubTab` still holds a `StonePanel` (suggestion card), two
+`StoneProgressBar`s and a `StoneMeter`; `SlayerTab` two `StoneMeter`s;
+`LoadoutLabPanel` one `StoneCheckbox`, its `JList` monster results
+(hand-skinned selection colours) and the swap-icons item-grid picker (a
+grid of items is a shape no atom offers yet); plus dead V1 imports in
+SlayerTab/LoadoutLabPanel/FarmingTab/GearLibraryTab. The X1 sweep
+retired the rest: the panel shell's two `StoneChipRow`s, GoalsHubTab's
+two width-pinned `StoneButton`s and its raw `JPopupMenu` source picker,
+LoadoutLab's three label-menus and its never-mounted spellbook
+`JComboBox`, the CollectionLog page-row `setBackground` hover, BankTab's
+opaque `selectFill` selections, and ClogTabTile's hover-equals-selected
+wash. Still hand-rolled everywhere (needs its own pass): the ~20-copy
+faint-until-hovered glyph helper (`goalGlyph`/`wikiGlyph`/`actionLabel`)
+that §13 answered with `V2SpriteButton.letter`, and 1px `JPanel`
+dividers that should be `V2Divider`.
 
 **The strategy changed part-way through.** The Goals hub was first rebuilt from
 V2 atoms in the lab (`GoalsV2View`). It did its job — it found five missing

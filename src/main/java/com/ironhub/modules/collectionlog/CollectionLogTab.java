@@ -703,10 +703,26 @@ class CollectionLogTab extends JPanel
 		int owned = obtainedIn(items);
 		boolean complete = owned >= items.size() && !items.isEmpty();
 
-		JPanel row = row();
+		// hover is the translucent HIGHLIGHT wash, not an opaque background
+		// swap — the row lights over whatever it sits on (X1 2026-08-03)
+		boolean[] hover = {false};
+		JPanel row = new JPanel()
+		{
+			@Override
+			protected void paintComponent(java.awt.Graphics g)
+			{
+				if (hover[0])
+				{
+					g.setColor(V2Tokens.HIGHLIGHT);
+					g.fillRect(0, 0, getWidth(), getHeight());
+				}
+				super.paintComponent(g);
+			}
+		};
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		row.setOpaque(false);
+		row.setAlignmentX(LEFT_ALIGNMENT);
 		row.setBorder(new EmptyBorder(2, UiTokens.ROW_GAP, 2, UiTokens.ROW_GAP));
-		row.setOpaque(true);
-		row.setBackground(theme.background);
 		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		OsrsLabel name = new OsrsLabel(page.name,
 			// the interface's own colouring: green when a page is finished,
@@ -724,13 +740,15 @@ class CollectionLogTab extends JPanel
 			@Override
 			public void mouseEntered(MouseEvent e)
 			{
-				row.setBackground(theme.hoverFill);
+				hover[0] = true;
+				row.repaint();
 			}
 
 			@Override
 			public void mouseExited(MouseEvent e)
 			{
-				row.setBackground(theme.background);
+				hover[0] = false;
+				row.repaint();
 			}
 
 			@Override
