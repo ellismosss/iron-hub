@@ -26,7 +26,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import net.runelite.client.game.ItemManager;
-import net.runelite.client.util.AsyncBufferedImage;
 import net.runelite.client.util.LinkBrowser;
 
 /**
@@ -57,6 +56,10 @@ class GearTab extends JPanel
 	private final V2ChipRow filterTop;
 	private final JPanel body = new JPanel();
 	private final Runnable listener = com.ironhub.ui.components.RebuildGate.install(this, this::rebuild);
+	// ask once per sprite and rebuild through the gate when it lands — raw
+	// getImage+onLoaded per tile stacked a listener per tile per rebuild
+	// (~180 on the login screen, all firing at once mid-login)
+	private final com.ironhub.ui.components.SpriteCache sprites;
 	private final java.util.function.Consumer<Boolean> onHideCompleteChange;
 	private String filter; // lower-case category, null = all
 	private boolean hideComplete;
@@ -79,6 +82,7 @@ class GearTab extends JPanel
 		this.pack = pack;
 		this.boostsPack = boostsPack;
 		this.itemManager = itemManager;
+		this.sprites = new com.ironhub.ui.components.SpriteCache(itemManager, listener);
 		this.theme = theme;
 		this.hideComplete = hideComplete;
 		this.onHideCompleteChange = onHideCompleteChange;
@@ -272,9 +276,11 @@ class GearTab extends JPanel
 		}
 		else if (itemManager != null)
 		{
-			AsyncBufferedImage icon = itemManager.getImage(item.icon());
-			tile.emblem(icon);
-			icon.onLoaded(tile::repaint);
+			java.awt.Image emblem = sprites.get(item.icon(), -1, 32);
+			if (emblem != null)
+			{
+				tile.emblem(emblem); // null keeps the tile's honest code placeholder
+			}
 		}
 		return tile;
 	}

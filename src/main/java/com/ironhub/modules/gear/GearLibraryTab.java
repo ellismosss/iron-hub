@@ -69,7 +69,7 @@ class GearLibraryTab extends JPanel
 
 	private final AccountState state;
 	private final EquipmentPack pack;
-	private final EquipmentLibrary library;
+	final EquipmentLibrary library; // package-private: the query-count pin reads it
 	private final ItemSourcesPack itemSources;
 	private final ItemManager itemManager; // null in headless tests
 	private final net.runelite.client.callback.ClientThread clientThread; // null in headless tests
@@ -85,6 +85,9 @@ class GearLibraryTab extends JPanel
 	private volatile java.util.Map<Integer, Integer> priceCache = java.util.Map.of();
 	private boolean pricesRequested;
 	private final Runnable listener = RebuildGate.install(this, this::onStateChanged);
+	// sprites bypass the fingerprint: an arriving icon changes no state, so
+	// routing it into onStateChanged compared equal and never repainted
+	private final Runnable spriteListener = RebuildGate.install(this, this::rebuildGrid);
 	/** The progression chart, hosted in a collapsible section below. */
 	private final GearTab chart;
 
@@ -134,7 +137,7 @@ class GearLibraryTab extends JPanel
 		this.clientThread = clientThread;
 		this.theme = theme;
 		this.chart = chart;
-		this.sprites = new SpriteCache(itemManager, listener);
+		this.sprites = new SpriteCache(itemManager, spriteListener);
 		this.library = new EquipmentLibrary(pack, this::owns, this::marketValue);
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -435,6 +438,7 @@ class GearLibraryTab extends JPanel
 
 	private void onStateChanged()
 	{
+		clearVisibleMemo(); // the fingerprint must see fresh library state
 		List<Object> print = fingerprint();
 		if (!print.equals(lastPrint))
 		{
@@ -514,10 +518,27 @@ class GearLibraryTab extends JPanel
 		}
 	}
 
+	/** One query per pass: rebuildGrid, its fingerprint, the summary count
+	 *  and the pager all derive from the same filtered result — computed
+	 *  fresh at the top of each pass (the memo clears there), not four
+	 *  full pack scans + sorts per keystroke on the EDT. */
+	private List<EquipmentPack.Item> visibleMemo;
+	private List<Unit> visibleUnitsMemo;
+
+	private void clearVisibleMemo()
+	{
+		visibleMemo = null;
+		visibleUnitsMemo = null;
+	}
+
 	private List<EquipmentPack.Item> visible()
 	{
-		return library.query(search.getText(), slotKey(), owned, access, sort, ascending,
-			hideLeagues);
+		if (visibleMemo == null)
+		{
+			visibleMemo = library.query(search.getText(), slotKey(), owned, access, sort,
+				ascending, hideLeagues);
+		}
+		return visibleMemo;
 	}
 
 	/** The filtered result as units — one per item, one per variant group
@@ -525,6 +546,15 @@ class GearLibraryTab extends JPanel
 	 *  set (set name = name minus its piece-type word). Sets win the grid;
 	 *  variants then fold inside an expanded set ({@link #memberUnits}). */
 	private List<Unit> visibleUnits()
+	{
+		if (visibleUnitsMemo != null)
+		{
+			return visibleUnitsMemo;
+		}
+		return visibleUnitsMemo = computeVisibleUnits();
+	}
+
+	private List<Unit> computeVisibleUnits()
 	{
 		List<EquipmentPack.Item> items = visible();
 		if (!groupSets && !groupVariants)
@@ -820,6 +850,7 @@ class GearLibraryTab extends JPanel
 
 	private void rebuildGrid()
 	{
+		clearVisibleMemo(); // control changes need a fresh query — exactly one
 		lastPrint = fingerprint();
 		list.removeAll();
 		List<Unit> allUnits = visibleUnits();

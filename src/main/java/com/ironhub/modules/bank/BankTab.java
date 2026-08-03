@@ -1808,11 +1808,10 @@ class BankTab extends JPanel
 			// the raw 36x32 sprite, unscaled
 			JLabel icon = new JLabel();
 			icon.setAlignmentX(LEFT_ALIGNMENT);
-			// AsyncBufferedImage pixels fill in place — repaint suffices, and
-			// the old onLoaded(setIcon) ran Swing mutation on the client thread
-			AsyncBufferedImage sprite = itemManager.getImage(itemId);
-			icon.setIcon(new ImageIcon(sprite));
-			sprite.onLoaded(icon::repaint);
+			// addTo: ItemManager's documented pattern — it registers a
+			// listener only while unresolved, so a per-rebuild re-request
+			// no longer stacks one repaint listener per rebuild
+			itemManager.getImage(itemId).addTo(icon);
 			col.add(icon);
 		}
 		col.add(new OsrsLabel(state.itemName(itemId), OsrsSkin.LABEL, OsrsSkin.smallFont())

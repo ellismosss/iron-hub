@@ -346,18 +346,36 @@ class QuestsTab extends JPanel
 		repaint();
 	}
 
+	/** Scaled once per tab lifetime — the emblem is static per theme, and
+	 *  questEmblem runs twice per rebuild: each call re-area-averaged the
+	 *  full-wiki-resolution art on the EDT. */
+	private javax.swing.ImageIcon emblemIconCache;
+
+	private javax.swing.ImageIcon emblemIcon()
+	{
+		if (emblemIconCache == null)
+		{
+			java.awt.image.BufferedImage art =
+				com.ironhub.ui.v2.V2Sprites.get(theme, "icons/quests_large");
+			if (art != null)
+			{
+				emblemIconCache = new javax.swing.ImageIcon(
+					art.getScaledInstance(-1, 30, java.awt.Image.SCALE_SMOOTH));
+			}
+		}
+		return emblemIconCache;
+	}
+
 	/** The quest-journal emblem (Luke's curated sprite), scaled to the
 	 *  hero's flank height — the source art is full wiki resolution. */
 	private JComponent questEmblem()
 	{
 		JLabel icon = new JLabel();
 		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-		java.awt.image.BufferedImage art =
-			com.ironhub.ui.v2.V2Sprites.get(theme, "icons/quests_large");
+		javax.swing.ImageIcon art = emblemIcon();
 		if (art != null)
 		{
-			icon.setIcon(new javax.swing.ImageIcon(
-				art.getScaledInstance(-1, 30, java.awt.Image.SCALE_SMOOTH)));
+			icon.setIcon(art);
 		}
 		else
 		{

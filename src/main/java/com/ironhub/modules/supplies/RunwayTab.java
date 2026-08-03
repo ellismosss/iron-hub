@@ -162,6 +162,25 @@ class RunwayTab extends JPanel
 		}
 	}
 
+	/** The category strip is built once in the constructor — icons that had
+	 *  not resolved then (login screen, first mount) must land on the
+	 *  existing tiles when the cache's arrival callback rebuilds. */
+	private void refreshCategoryIcons()
+	{
+		if (pack == null)
+		{
+			return;
+		}
+		for (int i = 0; i < tiles.size() && i < pack.categories.size(); i++)
+		{
+			Image icon = sprites.get(pack.categories.get(i).icon, -1, 26);
+			if (icon != null)
+			{
+				tiles.get(i).emblem(icon);
+			}
+		}
+	}
+
 	private void rebuild()
 	{
 		if (editingField != null && editingField.hasFocus())
@@ -169,6 +188,7 @@ class RunwayTab extends JPanel
 			rebuildDeferred = true;
 			return;
 		}
+		refreshCategoryIcons();
 		list.removeAll();
 		if (pack == null || selectedCategory == null)
 		{

@@ -1778,6 +1778,19 @@ public class AccountState implements StateView
 		return clogQuantities.getOrDefault(canonicalId, 0);
 	}
 
+	/** Order-independent digest of the counted slot quantities — a cheap
+	 *  fingerprint term so count-only harvests (no new slots) still
+	 *  re-render the open page. */
+	public long clogQuantitiesDigest()
+	{
+		long digest = 0;
+		for (Map.Entry<Integer, Integer> e : clogQuantities.entrySet())
+		{
+			digest += e.getKey() * 1_000_003L + e.getValue();
+		}
+		return digest;
+	}
+
 	/** When we saw a slot fill; 0 = before we watched (honestly undated). */
 	public long clogObtainedAt(int canonicalId)
 	{

@@ -227,16 +227,27 @@ class DiariesTab extends JPanel
 
 	/** The achievement-diary emblem (Luke's curated sprite), scaled to the
 	 *  hero's flank height — the source art is full wiki resolution. */
+	/** Scaled once per tab lifetime — static art, re-area-averaged on the
+	 *  EDT twice per rebuild before (QuestsTab's twin). */
+	private javax.swing.ImageIcon diaryIconCache;
+
 	private JComponent diaryIcon()
 	{
 		JLabel icon = new JLabel();
 		icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-		java.awt.image.BufferedImage art =
-			com.ironhub.ui.v2.V2Sprites.get(theme, "icons/achievement_dairy_large");
-		if (art != null)
+		if (diaryIconCache == null)
 		{
-			icon.setIcon(new javax.swing.ImageIcon(
-				art.getScaledInstance(-1, 30, java.awt.Image.SCALE_SMOOTH)));
+			java.awt.image.BufferedImage art =
+				com.ironhub.ui.v2.V2Sprites.get(theme, "icons/achievement_dairy_large");
+			if (art != null)
+			{
+				diaryIconCache = new javax.swing.ImageIcon(
+					art.getScaledInstance(-1, 30, java.awt.Image.SCALE_SMOOTH));
+			}
+		}
+		if (diaryIconCache != null)
+		{
+			icon.setIcon(diaryIconCache);
 		}
 		else
 		{

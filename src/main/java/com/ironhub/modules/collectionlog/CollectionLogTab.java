@@ -101,6 +101,10 @@ class CollectionLogTab extends JPanel
 	private final AccountState state;
 	private final OsrsTheme theme;
 	private final Runnable listener = RebuildGate.install(this, this::onStateChanged);
+	// sprites bypass the fingerprint: an arriving icon changes no state, so
+	// routing it into onStateChanged compared equal and never repainted —
+	// blank icons until an unrelated rebuild (CA's tab had it right)
+	private final Runnable spriteListener = RebuildGate.install(this, this::rebuildAll);
 	private final SpriteCache sprites;
 	private final Set<Integer> slayerActivities;
 
@@ -130,7 +134,7 @@ class CollectionLogTab extends JPanel
 		this.module = module;
 		this.state = state;
 		this.theme = theme;
-		this.sprites = new SpriteCache(itemManager, listener);
+		this.sprites = new SpriteCache(itemManager, spriteListener);
 
 		// Activities that count as "Slayer" for the ranking (Log Adviser's
 		// rule): a Slayer level requirement, minus boat bounty tasks.
@@ -218,6 +222,7 @@ class CollectionLogTab extends JPanel
 	{
 		List<Object> print = new ArrayList<>();
 		print.add(state.getClogObtained().size());
+		print.add(state.clogQuantitiesDigest()); // count-only harvests must re-render open pages
 		print.add(state.getClogSkipped());
 		print.add(selectedClogGoals());
 		print.add(state.getClogBaseline());

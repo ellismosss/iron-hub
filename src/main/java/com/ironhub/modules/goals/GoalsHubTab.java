@@ -153,6 +153,12 @@ class GoalsHubTab extends JPanel
 		planListener = () ->
 		{
 			latestPlan = module.currentPlan();
+			if (displayedPlan == null)
+			{
+				// tab built before the first plan landed: seed the banner
+				// baseline or it can never compare and stays dead for good
+				displayedPlan = latestPlan;
+			}
 			rebuildGate.run();
 		};
 		module.addPlanListener(planListener);
@@ -1796,8 +1802,16 @@ class GoalsHubTab extends JPanel
 		// newest first
 		List<PersistedState.GoalRecord> sorted = new ArrayList<>(records);
 		sorted.sort((a, b) -> Long.compare(b.completedAt, a.completedAt));
+		// the record store caps at 200 — the row-list law caps the RENDER
+		// at ~50 with an honest tail (the Bank grammar)
+		int shown = 0;
 		for (PersistedState.GoalRecord r : sorted)
 		{
+			if (shown++ >= 50)
+			{
+				content.add(moreLine("+ " + (sorted.size() - 50) + " more"));
+				break;
+			}
 			content.add(archiveRow(r));
 		}
 		content.add(strut(6));
@@ -2197,10 +2211,21 @@ class GoalsHubTab extends JPanel
 		return img == null ? null : new ImageIcon(img);
 	}
 
+	/** Static badges scale once — this ran a fresh SCALE_SMOOTH area
+	 *  average per row per rebuild. EDT-only; sources are a handful of
+	 *  static images per theme. */
+	private static final java.util.Map<java.awt.Image, java.util.Map<Integer, Icon>> SIZED =
+		new java.util.IdentityHashMap<>();
+
 	private static Icon sized(java.awt.Image img, int height)
 	{
-		return img == null ? null
-			: new ImageIcon(img.getScaledInstance(-1, height, java.awt.Image.SCALE_SMOOTH));
+		if (img == null)
+		{
+			return null;
+		}
+		return SIZED.computeIfAbsent(img, k -> new java.util.HashMap<>())
+			.computeIfAbsent(height, h ->
+				new ImageIcon(img.getScaledInstance(-1, h, java.awt.Image.SCALE_SMOOTH)));
 	}
 
 	/** A route's icon by kind — every badge scaled to the item-sprite height
