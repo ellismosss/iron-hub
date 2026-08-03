@@ -1234,3 +1234,54 @@ inside), and furniture the game does not place as a `GameObject` at all —
 objects**, so a GameObjectSpawned-only reader can never see them. Spawn events
 of all four kinds are only a trigger, coalesced to one sweep per tick (a scene
 load fires hundreds and each sweep reads ~43k tiles).
+
+## Slayer helmet substitution (module: slayer, S1 2026-08-03)
+
+The helmet substitutes for exactly its own components' protections:
+facemask (4164), earmuffs (4166), nose peg (4168), spiny helmet (4551),
+reinforced goggles (24942), enchanted gem functions — encoded ONCE in
+`SlayerOptimizerModule.bringGroups`, which synthesizes the helm
+alternative whenever a wiki table lists a protective item without it.
+**NOT substituted (wiki-verified twice, incl. the Cave horror page): the
+witchwood icon and the mirror shield** — a helm wearer still needs them.
+`carriedCount` is variation-aware, so recolours/imbues all count.
+
+## Mortimer (pack: slayer-tasks.json, S12 2026-08-03)
+
+The 10th master (Wyrmscraig Cavern, released 2026-07-29). Base points 0
+— his "Mortifier" modifiers award per-task amounts instead; skips cost
+100, blocks 120 with only 2 slots; his streak is separate (Krystilia-
+style). **His SLAYER_MASTER focus id and block varbits are undocumented
+in every source available at generation** (the pinned RuneLite API
+predates him), so the pack carries `focusId: -1` — a sentinel that never
+matches a varbit read; live master detection and blocked-slot reads stay
+honestly empty until the id is learned (live check: read SLAYER_MASTER
+while assigned by him). Venators (his exclusive task) skip generation
+until core's Task catalog knows them. His quest gate (partial Fallen
+From Grace) is unencodable until quests.json knows the quest.
+
+## Clog drop-rate audit (tools/gen_clog.py, G3 2026-08-03)
+
+The Log Adviser spreadsheet's `attempts` are strategy-adjusted figures,
+NOT raw wiki denominators: on-task rates, key-farming chains (hill
+giants = giant key 1/128 x chest 1/118; Sarachnis egg sacs = grubby key
+1/15 x chest 1/25), unit conversions (Soul Wars zeal, Volcanic Mine
+points, molch pearls), per-casket multi-rolls, ring-of-wealth salvage
+rates, the chewed-bones pyre route (mith dragons: 1/32,768 direct +
+3/128 x 1/256 = exactly 1/8,192). The generator's audit compares every
+plain-activity row against the wiki's collection_log_source bucket and
+HARD-FAILS on a >2.5x divergence without a curated correction or
+adjudicated waiver; 'N × 1/M' wiki notation is never auto-parsed (it
+reads as rolls on some pages and quantity on others).
+
+## Loot pickup detection (module: loot, L3 2026-08-03)
+
+Ground-item fates classify on ItemDespawned: PICKED when the player
+stands on the tile or the inventory gained the id within 2 ticks
+(telegrab/area-loot); UNKNOWN through a scene reload — the client
+unloads ground items that still exist server-side, so a teleport-away
+despawn proves nothing; LEFT otherwise. Pending drops whose despawn
+never arrives stay unclassified. Only confirmed pickups persist; the
+UI derives left-behind and never guesses unknowns into either bucket.
+Live checks owed: despawn-event timing vs scene unload, and area-loot's
+inventory-gain window.
